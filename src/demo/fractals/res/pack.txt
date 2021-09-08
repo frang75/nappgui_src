@@ -1,0 +1,3 @@
+VENDOR=NAppGUI
+VERSION=1.0
+DESC=Write here the application description
