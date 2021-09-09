@@ -80,15 +80,17 @@ typedef enum _table_flag_t
 
 typedef enum _window_flag_t
 {
-    ekWNFLAG = 0,
-    ekWNEDGE = 1,
-    ekWNTITLE = 2,
-    ekWNMAX = 4,
-    ekWNMIN = 8,
-    ekWNCLOSE = 16,
-    ekWNRES = 32,
-    ekWNSTD = ekWNTITLE | ekWNMIN | ekWNCLOSE,
-    ekWNSRES = ekWNSTD | ekWNMAX | ekWNRES
+    ekWNFLAG            = 0,
+    ekWNEDGE            = 1 << 0,
+    ekWNTITLE           = 1 << 1,
+    ekWNMAX             = 1 << 2,
+    ekWNMIN             = 1 << 3,
+    ekWNCLOSE           = 1 << 4,
+    ekWNRES             = 1 << 5,
+    ekWNRETURN          = 1 << 6,
+    ekWNESC             = 1 << 7,
+    ekWNSTD             = ekWNTITLE | ekWNMIN | ekWNCLOSE,
+    ekWNSRES            = ekWNSTD | ekWNMAX | ekWNRES
 } window_flag_t;
 
 typedef enum _gevent_t

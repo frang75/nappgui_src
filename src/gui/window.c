@@ -34,13 +34,13 @@ struct _window_t
     bool_t is_destroyed;
     bool_t visible;
     uint32_t flags;
-    gui_role_t role2;
+    gui_role_t role;
     void *ositem;
     ResId titleid;
     Panel *main_panel;
-    Listener *OnMoved_listener;
-    Listener *OnResize_listener;
-    Listener *OnClose_listener;
+    Listener *OnMoved;
+    Listener *OnResize;
+    Listener *OnClose;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -69,7 +69,7 @@ static void i_destroy(Window **window)
     if ((*window)->visible == TRUE)
         window_hide(*window);
 
-    if ((*window)->role2 == ekGUI_ROLE_MODAL)
+    if ((*window)->role == ekGUI_ROLE_MODAL)
         window_stop_modal(*window, 0);
         
     if ((*window)->main_panel != NULL)
@@ -89,9 +89,9 @@ static void i_destroy(Window **window)
         (*window)->context->func_window_destroy(&(*window)->ositem);
     }
     
-    listener_destroy(&(*window)->OnMoved_listener);
-    listener_destroy(&(*window)->OnResize_listener);
-    listener_destroy(&(*window)->OnClose_listener);    
+    listener_destroy(&(*window)->OnMoved);
+    listener_destroy(&(*window)->OnResize);
+    listener_destroy(&(*window)->OnClose);    
     gui_context_release((GuiContext**)(&(*window)->context));
     obj_delete(window, Window);
 }
@@ -123,8 +123,8 @@ static void i_OnWindowMoved(Window *window, Event *event)
     cassert_no_null(event);
     cassert(event_type(event) == ekEVWNDMOVED);
     cassert(event_sender_imp(event, NULL) == window->ositem);
-    if (window->visible == TRUE && window->OnMoved_listener != NULL)
-        listener_pass_event(window->OnMoved_listener, event, window, Window);
+    if (window->visible == TRUE && window->OnMoved != NULL)
+        listener_pass_event(window->OnMoved, event, window, Window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -159,8 +159,8 @@ static void i_OnWindowResize(Window *window, Event *e)
 		S2Df size = s2df(params->width, params->height);
 		_component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &size);
 		_panel_locate_components(window->main_panel);
-		if (window->OnResize_listener != NULL)
-			listener_pass_event(window->OnResize_listener, e, window, Window);
+		if (window->OnResize != NULL)
+			listener_pass_event(window->OnResize, e, window, Window);
 		break;
 	}
 
@@ -185,14 +185,14 @@ static void i_OnWindowClose(Window *window, Event *event)
 
     switch (params->origin) {
     case ekCLBUTTON:
-        if (window->OnClose_listener != NULL)
+        if (window->OnClose != NULL)
         {
-            listener_pass_event(window->OnClose_listener, event, window, Window);
+            listener_pass_event(window->OnClose, event, window, Window);
             closed = *event_result(event, bool_t);
         }
         else
         {
-            switch (window->role2)
+            switch (window->role)
             {
                 case ekGUI_ROLE_MAIN:
                     closed = FALSE;
@@ -212,12 +212,30 @@ static void i_OnWindowClose(Window *window, Event *event)
         break;
 
     case ekCLESC:
-    case ekCLINTRO:
-        *event_result(event, bool_t) = FALSE;
-        if (window->OnClose_listener != NULL)
+        if (window->flags & ekWNESC)
         {
-            listener_pass_event(window->OnClose_listener, event, window, Window);
+            *event_result(event, bool_t) = TRUE;
+            if (window->OnClose != NULL)
+                listener_pass_event(window->OnClose, event, window, Window);
             closed = *event_result(event, bool_t);
+        }
+        else
+        {
+            closed = FALSE;
+        }
+        break;
+
+    case ekCLINTRO:
+        if (window->flags & ekWNRETURN)
+        {
+            *event_result(event, bool_t) = TRUE;
+            if (window->OnClose != NULL)
+                listener_pass_event(window->OnClose, event, window, Window);
+            closed = *event_result(event, bool_t);
+        }
+        else
+        {
+            closed = FALSE;
         }
         break;
 
@@ -233,7 +251,7 @@ static void i_OnWindowClose(Window *window, Event *event)
         if (window->visible == TRUE)
             window_hide(window);
 
-        if (window->role2 == ekGUI_ROLE_MODAL)
+        if (window->role == ekGUI_ROLE_MODAL)
             window_stop_modal(window, (uint32_t)params->origin);
 
         cassert(window->visible == FALSE);
@@ -258,7 +276,7 @@ static Window *i_create_window(const uint32_t flags)
     window->context = gui_context_retain(gui_context_get_current());
     window->ositem = window->context->func_window_create((enum_t)flags);
     window->flags = flags;
-    window->role2 = ENUM_MAX(gui_role_t);
+    window->role = ENUM_MAX(gui_role_t);
     window->context->func_window_OnResize(window->ositem, obj_listener(window, i_OnWindowResize, Window));
     window->context->func_window_OnClose(window->ositem, obj_listener(window, i_OnWindowClose, Window));
     window->context->func_window_set_property(window->ositem, ekGUI_PROPERTY_CHILDREN, NULL);
@@ -371,7 +389,7 @@ void window_panel(Window *window, Panel *panel)
 void window_OnMoved(Window *window, Listener *listener)
 {
     component_update_listener(
-                    window, &window->OnMoved_listener, listener, i_OnWindowMoved, 
+                    window, &window->OnMoved, listener, i_OnWindowMoved, 
                     window->context->func_window_OnMoved,
                     Window);
 }
@@ -381,7 +399,7 @@ void window_OnMoved(Window *window, Listener *listener)
 void window_OnResize(Window *window, Listener *listener)
 {
     cassert_no_null(window);
-    listener_update(&window->OnResize_listener, listener);
+    listener_update(&window->OnResize, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -389,7 +407,7 @@ void window_OnResize(Window *window, Listener *listener)
 void window_OnClose(Window *window, Listener *listener)
 {
     cassert_no_null(window);
-    listener_update(&window->OnClose_listener, listener);
+    listener_update(&window->OnClose, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -460,8 +478,8 @@ void window_show(Window *window)
         cassert_no_null(window->context);
         cassert_no_nullf(window->context->func_window_launch);
         window->visible = TRUE;
-        if (window->role2 == ENUM_MAX(gui_role_t))
-            window->role2 = ekGUI_ROLE_MAIN;
+        if (window->role == ENUM_MAX(gui_role_t))
+            window->role = ekGUI_ROLE_MAIN;
         window->context->func_window_launch(window->ositem, NULL);
     }
 }
@@ -493,7 +511,7 @@ void window_launch_overlay(Window *window, Window *parent_window)
         cassert_no_null(parent_window);
         renderable_window = _window_ositem(parent_window);
         window->visible = TRUE;
-        window->role2 = ekGUI_ROLE_OVERLAY;
+        window->role = ekGUI_ROLE_OVERLAY;
         window->context->func_window_launch(window->ositem, renderable_window);
     }
 }
@@ -508,7 +526,7 @@ uint32_t window_modal(Window *window, Window *parent)
     cassert_no_nullf(window->context->func_window_launch_modal);
     if (window->visible == FALSE)
     {
-        window->role2 = ekGUI_ROLE_MODAL;
+        window->role = ekGUI_ROLE_MODAL;
         window->visible = TRUE;
         return window->context->func_window_launch_modal(window->ositem, (parent != NULL) ? parent->ositem : NULL);
     }
@@ -524,14 +542,14 @@ uint32_t window_modal(Window *window, Window *parent)
 void window_stop_modal(Window *window, const uint32_t return_value)
 {
     cassert_no_null(window);
-    cassert(window->role2 == ekGUI_ROLE_MODAL);
+    cassert(window->role == ekGUI_ROLE_MODAL);
     cassert_no_null(window->context);
     cassert_no_nullf(window->context->func_window_stop_modal);
-    if (window->role2 == ekGUI_ROLE_MODAL)
+    if (window->role == ekGUI_ROLE_MODAL)
     {
         window->context->func_window_stop_modal(window->ositem, return_value);
         window->visible = FALSE;
-        window->role2 = ENUM_MAX(gui_role_t);
+        window->role = ENUM_MAX(gui_role_t);
     }
 }
 
@@ -761,7 +779,7 @@ void _window_locale(Window *window)
 gui_role_t _window_role(const Window *window)
 {
     cassert_no_null(window);
-    return window->role2;
+    return window->role;
 }
 
 /*---------------------------------------------------------------------------*/

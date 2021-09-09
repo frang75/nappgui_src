@@ -91,6 +91,8 @@ struct i_app_t
     ArrPt(i_Task) *scheduler;
 };
 
+DeclType(i_Task);
+
 /*---------------------------------------------------------------------------*/
 
 static void i_destroy_task(i_Task **task)
