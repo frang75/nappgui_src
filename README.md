@@ -14,7 +14,7 @@ Cross-Platform C SDK. Build portable desktop applications for Windows, macOS and
 (from C:\)
 
 // Clone the NAppGUI repo
-git clone --depth 1 https://github.com/frang75/nappgui.git nappgui_sdk
+git clone --depth 1 https://github.com/frang75/nappgui_src.git nappgui_sdk
 
 // Create a build directory
 mkdir nappgui_build
@@ -47,7 +47,7 @@ msbuild NAppGUI.sln
 (from your home dir ~/)
 
 // Clone the NAppGUI repo
-git clone --depth 1 https://github.com/frang75/nappgui.git nappgui_sdk
+git clone --depth 1 https://github.com/frang75/nappgui_src.git nappgui_sdk
 
 // Create a build directory
 mkdir nappgui_build
@@ -90,7 +90,7 @@ sudo apt-get install libcurl4-openssl-dev
 (from your home dir ~/)
 
 // Clone the NAppGUI repo
-git clone --depth 1 https://github.com/frang75/nappgui.git nappgui_sdk
+git clone --depth 1 https://github.com/frang75/nappgui_src.git nappgui_sdk
 
 // Create a build directory
 mkdir nappgui_build
