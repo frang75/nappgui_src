@@ -117,4 +117,3 @@ make
 - [NAppGUI Hello World](https://nappgui.com/en/start/hello.html)
 - [Create a new project](https://nappgui.com/en/start/newprj.html)
 - [About Portability](https://nappgui.com/en/start/win_mac_linux.html)
-- [Download the Free eBook](https://nappgui.com/ebook/nappgui_en.pdf)
