@@ -20,13 +20,6 @@ typedef struct _oscolumn_t OSColumn;
 typedef struct _strsize_data_t StringSizeData;
 typedef struct _evscroll_t EvScroll;
 
-
-//struct _evrect_t
-//{
-//    EvPos pos;
-//    EvSize size;
-//};
-
 struct _evscroll_t
 {
     real32_t pos;
@@ -64,9 +57,8 @@ enum gui_indicator_state_t
     ekGUI_INDICATOR_STATE_CRITICAL
 };
 
-//typedef void(*FPtr_void)(void);
-
-//typedef void(*FPtr_transition)(const real64_t ptime, const real64_t ctime);
+DeclPt(OSControl);
+DeclPt(OSMenuItem);
 
 #endif
 

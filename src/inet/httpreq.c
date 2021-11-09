@@ -150,7 +150,7 @@ bool_t http_get(Http *http, const char_t *path, const byte_t *data, const uint32
 {
     cassert_no_null(http);
     i_clear_response(http);
-    oshttp_get(http->oshttp, path, data, size, &http->error);    
+    oshttp_get(http->oshttp, path, data, size, TRUE, &http->error);    
     ptr_assign(error, http->error);
     return http->error == ekIOK ? TRUE : FALSE;
 }
@@ -161,7 +161,7 @@ bool_t http_post(Http *http, const char_t *path, const byte_t *data, const uint3
 {
     cassert_no_null(http);
     i_clear_response(http);
-    oshttp_post(http->oshttp, path, data, size, &http->error);
+    oshttp_post(http->oshttp, path, data, size, TRUE, &http->error);
     ptr_assign(error, http->error);
     return http->error == ekIOK ? TRUE : FALSE;
 }
@@ -180,18 +180,56 @@ static bool_t i_response(Http *http)
             {
                 cassert(http->rprotocol == NULL);
                 cassert(http->rmsg == NULL);
-                http->rprotocol = str_c(stm_read_trim(stm));
-                http->rcode = str_to_u32(stm_read_trim(stm), 10, NULL);
-                http->rmsg = str_trim(stm_read_line(stm));
 
                 stm_lines(line, stm)
-                    Field *header = NULL;
 
-                    if (line[0] == '\0')
-                        break;
+                    if (str_empty_c(line) == FALSE)
+                    {
+                        // The headers could contain several responses (redirection)
+                        // We get the last one
+                        if (str_str(line, ":") == NULL)
+                        {
+                            const char_t *st = line;
+                            char_t code[64];
+                            uint32_t i = 0;
 
-                    header = arrst_new(http->headers, Field);
-                    str_split_trim(line, ":", &header->name, &header->value);
+                            str_destopt(&http->rprotocol);
+                            str_destopt(&http->rmsg);
+
+                            while (*line != ' ') line++;
+                            http->rprotocol = str_cn(st, (uint32_t)(line - st));
+
+                            line++;
+                            while(*line != ' ' && *line != '\0')
+                            {
+                                code[i] = *line;
+                                line++;
+                                i++;
+                            }
+
+                            code[i] = '\0';
+
+                            http->rcode = str_to_u32(code, 10, NULL);
+
+                            if (*line != '\0')
+                            {
+                                line++;
+                                http->rmsg = str_c(line);
+                            }
+                            else
+                            {
+                                http->rmsg = str_c("");
+                            }
+
+                            arrst_clear(http->headers, i_remove_field, Field);
+                        }
+                        else
+                        {
+                            Field *header = arrst_new(http->headers, Field);
+                            str_split_trim(line, ":", &header->name, &header->value);
+                        }
+                    }
+
                 stm_next(line, stm)
 
                 stm_close(&stm);
@@ -356,3 +394,38 @@ Stream *http_dget(const char_t *url, uint32_t *result, ierror_t *error)
     return stm;
 }
 
+/*---------------------------------------------------------------------------*/
+
+bool_t http_exists(const char_t *url)
+{
+    bool_t exists = FALSE;
+    Url *uurl = url_parse(url);
+    const char_t *sh = url_scheme(uurl);
+    const char_t *host = url_host(uurl);
+    uint16_t port = url_port(uurl);
+    Http *http = NULL;
+    
+    if (str_equ_nocase(sh, "http") == TRUE)
+        http = http_create(host, port);
+    else if (str_equ_nocase(sh, "https") == TRUE)
+        http = http_secure(host, port);
+
+    if (http != NULL)
+    {
+        String *res = url_resource(uurl);
+        i_clear_response(http);
+        oshttp_get(http->oshttp, tc(res), NULL, 0, FALSE, &http->error);
+        if (http->error == ekIOK)
+        {
+            uint32_t result = http_response_status(http);
+            if (result >= 200 && result <= 299)
+                exists = TRUE;
+        }
+
+        http_destroy(&http);
+        str_destroy(&res);
+    }
+
+    url_destroy(&uurl);
+    return exists;
+}

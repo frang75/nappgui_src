@@ -93,7 +93,10 @@ typedef enum _split_flag_t
     ekSPFLAG    = 0,
     ekSPVERT    = 0,
     ekSPHORZ    = 1,
-    ekSPTYPE    = 1
+    ekSPTYPE    = 1,
+    ekSPPROP    = 2,
+    ekSPLEFT    = 3,
+    ekSPRIGHT   = 4
 } split_flag_t;
 
 typedef enum _menu_flag_t

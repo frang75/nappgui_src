@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osguictx.h
- * https://nappgui.com/en/osgui/osguictx.html
  *
  */
 

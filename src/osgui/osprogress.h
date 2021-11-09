@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osprogress.h
- * https://nappgui.com/en/osgui/osprogress.html
  *
  */
 

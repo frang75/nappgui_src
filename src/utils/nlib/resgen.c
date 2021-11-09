@@ -70,6 +70,9 @@ struct _resource_pack_t
     ArrPt(String) *errors;
 };
 
+DeclSt(i_Local);
+DeclSt(i_Resource);
+
 /*---------------------------------------------------------------------------*/
 
 #define i_MAX_RESOURCE_PACK_SIZE    4194304

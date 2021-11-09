@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: prmenu.h
- * https://nappgui.com/en/demo/products/prmenu.html
  *
  */
 

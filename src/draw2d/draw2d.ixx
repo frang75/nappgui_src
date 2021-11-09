@@ -390,7 +390,7 @@ struct _gui_context_t
     FPtr_create_enum func_split_create;
     FPtr_set_ptr func_split_attach_control;
     FPtr_set_ptr func_split_detach_control;
-    FPtr_set_listener func_split_OnMoved;
+    FPtr_set_listener func_split_OnDrag;
     FPtr_set4_real32 func_split_track_area;
 
     /*! <View> */
@@ -427,6 +427,7 @@ struct _gui_context_t
 	/*! <Panels> */
     FPtr_create func_panel_create;
     FPtr_area func_panel_area;
+    FPtr_get2_real32 func_panel_scroller_size;
     FPtr_set4_real32 func_panel_content_size;
     FPtr_call func_panel_set_need_display;
 

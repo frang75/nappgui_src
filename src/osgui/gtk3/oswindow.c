@@ -190,7 +190,7 @@ static __INLINE GtkWidget* i_focus_widget(const OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_search_tabstop(OSControl **tabstop, const uint32_t size, GtkWidget *widget)
+static __INLINE uint32_t i_search_tabstop(const OSControl **tabstop, const uint32_t size, GtkWidget *widget)
 {
     register uint32_t i;
     if (widget == NULL)
@@ -205,13 +205,13 @@ static __INLINE uint32_t i_search_tabstop(OSControl **tabstop, const uint32_t si
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_tabstop(GtkWindow *window, OSControl **tabstop, const uint32_t size, const uint32_t index, const bool_t reverse)
+static void i_set_tabstop(GtkWindow *window, const OSControl **tabstop, const uint32_t size, const uint32_t index, const bool_t reverse)
 {
     register uint32_t idx = index, i;
     cassert(index < size);
     for (i = 0 ; i < size; ++i)
     {
-        register OSControl *control = tabstop[idx];
+        register const OSControl *control = tabstop[idx];
         register GtkWidget *widget = i_focus_widget(control);
         if (widget && gtk_widget_is_sensitive(widget) && gtk_widget_get_visible(widget))
         {
@@ -261,7 +261,7 @@ static void i_set_next_tabstop(GtkWindow *window, const ArrPt(OSControl) *tabsto
     register uint32_t size = arrpt_size(tabstops, OSControl);
     if (size > 0)
     {
-        register OSControl **tabstop = arrpt_all(tabstops, OSControl);
+        register const OSControl **tabstop = arrpt_all_const(tabstops, OSControl);
         register uint32_t tabindex = i_search_tabstop(tabstop, size, widget);
         if (tabindex == UINT32_MAX)
             tabindex = 0;
@@ -275,12 +275,12 @@ static void i_set_next_tabstop(GtkWindow *window, const ArrPt(OSControl) *tabsto
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_previous_tabstop(GtkWindow *window, ArrPt(OSControl) *tabstops, GtkWidget *widget)
+static void i_set_previous_tabstop(GtkWindow *window, const ArrPt(OSControl) *tabstops, GtkWidget *widget)
 {
     register uint32_t size = arrpt_size(tabstops, OSControl);
     if (size > 0)
     {
-        register OSControl **tabstop = arrpt_all(tabstops, OSControl);
+        register const OSControl **tabstop = arrpt_all_const(tabstops, OSControl);
         register uint32_t tabindex = i_search_tabstop(tabstop, size, widget);
         if (tabindex == UINT32_MAX)
             tabindex = 0;
@@ -928,7 +928,7 @@ void _oswindow_unset_focus(OSWindow *window)
     focus_widget = gtk_window_get_focus(GTK_WINDOW(window->control.widget));
     tabstop = arrpt_all(window->tabstops, OSControl);
     n = arrpt_size(window->tabstops, OSControl);
-    index = i_search_tabstop(tabstop, n, focus_widget);
+    index = i_search_tabstop((const OSControl**)tabstop, n, focus_widget);
     if (index != UINT32_MAX)
         _oscontrol_unset_focus(tabstop[index]);
 }

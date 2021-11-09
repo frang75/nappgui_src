@@ -42,6 +42,7 @@ struct _user_font_t
     HANDLE handle;
 };
 
+DeclSt(UserFont);
 #define i_abs(x) (((x) < 0.f) ? -(x) : (x))
 static char_t i_FAMILY[LF_FACESIZE];
 static ArrSt(UserFont) *kUSER_FONTS = NULL;

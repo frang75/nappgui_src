@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osbutton.h
- * https://nappgui.com/en/osgui/osbutton.html
  *
  */
 

@@ -139,7 +139,7 @@ static size_t i_write_response(char *buffer, size_t size, size_t nitems, void *u
 
 /*---------------------------------------------------------------------------*/
 
-static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
     int res = 0;
     cassert_no_null(http);
@@ -149,6 +149,10 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
         ptr_assign(error, http->error);
         return;
     }
+
+    // Seems that CURLOPT_FOLLOWLOCATION fails
+    res = curl_easy_setopt(http->curl, CURLOPT_FOLLOWLOCATION, auto_redirect ? 1L : 0L);
+    cassert_unref(res == CURLE_OK, res);
 
     {
         String *url = str_printf("%s%s", tc(http->host_url), path);
@@ -215,16 +219,16 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
-    i_request(http, TRUE, path, data, size, error);
+    i_request(http, TRUE, path, data, size, auto_redirect, error);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
-    i_request(http, FALSE, path, data, size, error);
+    i_request(http, FALSE, path, data, size, auto_redirect, error);
 }
 
 /*---------------------------------------------------------------------------*/

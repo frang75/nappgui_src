@@ -50,6 +50,8 @@ struct _respack
     ArrSt(i_Resource) *resources;
 };
 
+DeclSt(i_Resource);
+
 /*---------------------------------------------------------------------------*/
 
 static void i_init_resource(
@@ -351,7 +353,7 @@ static __INLINE i_Resource *i_resource(const ArrPt(ResPack) *packs, const ResId 
     packid = str_str(idr, "::");
     if (packid != NULL)
     {
-        arrpt_foreach(pack, packs, ResPack)
+        arrpt_foreach_const(pack, packs, ResPack)
             if (str_cmp_cn(tc(pack->name), idr, (uint32_t)(packid - idr)) == 0)
             {
                 uint32_t idx;

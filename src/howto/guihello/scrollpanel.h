@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: scrollpanel.h
- * https://nappgui.com/en/howto/guihello/scrollpanel.html
  *
  */
 

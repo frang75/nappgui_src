@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osgui.h
- * https://nappgui.com/en/osgui/osgui.html
  *
  */
 

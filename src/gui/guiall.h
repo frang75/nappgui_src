@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: guiall.h
- * https://nappgui.com/en/gui/guiall.html
  *
  */
 
@@ -20,7 +19,6 @@
 #include "cell.h"
 #include "combo.h"
 #include "comwin.h"
-#include "view.h"
 #include "globals.h"
 #include "gui.h"
 #include "label.h"
@@ -32,9 +30,11 @@
 #include "popup.h"
 #include "progress.h"
 #include "slider.h"
+#include "view.h"
 #include "textview.h"
 #include "imageview.h"
 #include "tableview.h"
+#include "splitview.h"
 #include "updown.h"
 #include "window.h"
 

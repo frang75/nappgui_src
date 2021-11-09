@@ -20,6 +20,7 @@
 #include "listboxes.h"
 #include "textviews.h"
 #include "baslayout.h"
+#include "splits.h"
 #include "sublayout.h"
 #include "subpanel.h"
 #include "multilayout.h"
@@ -68,18 +69,21 @@ static void i_set_panel(Layout *layout, const uint32_t index)
         panel = textviews();
         break;
     case 9:
-        panel = basic_layout();
+        panel = split_panel();
         break;
     case 10:
-        panel = sublayouts();
+        panel = basic_layout();
         break;
     case 11:
-        panel = subpanels();
+        panel = sublayouts();
         break;
     case 12:
-        panel = multilayouts();
+        panel = subpanels();
         break;
     case 13:
+        panel = multilayouts();
+        break;
+    case 14:
         panel = scrollpanel();
         break;
     }
@@ -116,6 +120,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Form", NULL);
     listbox_add_elem(list, "Sliders", NULL);
     listbox_add_elem(list, "TextViews", NULL);
+    listbox_add_elem(list, "SplitViews", NULL);
     listbox_add_elem(list, "Basic Layout", NULL);
     listbox_add_elem(list, "SubLayouts", NULL);
     listbox_add_elem(list, "Subpanels", NULL);

@@ -400,7 +400,7 @@ static void i_set_next_tabstop(const ArrPt(OSControl) *tabstops, HWND hwnd, HWND
     register uint32_t size = arrpt_size(tabstops, OSControl);
     if (size > 0)
     {
-        register const OSControl **tabstop = arrpt_all(tabstops, OSControl);
+        register const OSControl **tabstop = arrpt_all_const(tabstops, OSControl);
         register uint32_t tabindex = i_search_tabstop(tabstop, size, hwnd);
         if (tabindex == UINT32_MAX)
             tabindex = 0;
@@ -419,7 +419,7 @@ static void i_set_previous_tabstop(const ArrPt(OSControl) *tabstops, HWND hwnd, 
     register uint32_t size = arrpt_size(tabstops, OSControl);
     if (size > 0)
     {
-        register const OSControl **tabstop = arrpt_all(tabstops, OSControl);
+        register const OSControl **tabstop = arrpt_all_const(tabstops, OSControl);
         register uint32_t tabindex = i_search_tabstop(tabstop, size, hwnd);
         if (tabindex == UINT32_MAX)
             tabindex = 0;
@@ -438,7 +438,7 @@ static void i_set_ctabstop(const ArrPt(OSControl) *tabstops, HWND *ctabstop)
     register uint32_t size = arrpt_size(tabstops, OSControl);
     if (*ctabstop && size > 0)
     {
-        register const OSControl **tabstop = arrpt_all(tabstops, OSControl);
+        register const OSControl **tabstop = arrpt_all_const(tabstops, OSControl);
         register uint32_t tabindex = i_search_tabstop(tabstop, size, *ctabstop);
         if (tabindex == UINT32_MAX)
             tabindex = 0;

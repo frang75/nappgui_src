@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: nrclib.h
- * https://nappgui.com/en/utils/nlib/nrclib.html
  *
  */
 

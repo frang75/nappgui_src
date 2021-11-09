@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: popcom.h
- * https://nappgui.com/en/howto/guihello/popcom.html
  *
  */
 

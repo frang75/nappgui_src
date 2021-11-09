@@ -434,17 +434,25 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const mouse_t b
 
 /*---------------------------------------------------------------------------*/
 
-void _oslistener_mouse_dragged(const NSView *view, NSEvent *theEvent, const mouse_t button, ViewListeners *listeners)
+void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const mouse_t button, Listener *OnDrag_listener)
 {
-    cassert_no_null(listeners);
-    if (listeners->is_enabled == YES && listeners->OnDrag != NULL)
+    if (OnDrag_listener != NULL)
     {
         EvMouse params;
         i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.x, &params.y);
         params.button = button;
         params.count = 0;
-        listener_event(listeners->OnDrag, ekEVDRAG, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+        listener_event(OnDrag_listener, ekEVDRAG, (OSView*)view, &params, NULL, OSView, EvMouse, void);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oslistener_mouse_dragged(const NSView *view, NSEvent *theEvent, const mouse_t button, ViewListeners *listeners)
+{
+    cassert_no_null(listeners);
+    if (listeners->is_enabled == YES)
+        _oslistener_mouse_dragged2(view, theEvent, button, listeners->OnDrag);
 }
 
 /*---------------------------------------------------------------------------*/

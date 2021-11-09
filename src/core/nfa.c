@@ -55,14 +55,15 @@ struct _nfa_t
 
 #define MIN_UNICODE 5
 #define MAX_UNICODE 1114112
-ArrSt(NToken);
-ArrStDecl(NToken);
+DeclSt(NToken);
+DeclSt(Trans);
+DeclSt(symbol_t);
 
 /*---------------------------------------------------------------------------*/
 
 static void i_write_tokens(Stream *stm, const ArrSt(NToken) *tokens)
 {
-    arrst_foreach(token, tokens, NToken)
+    arrst_foreach_const(token, tokens, NToken)
         switch (token->symbol) {
         case ekCHAR:
             if (token->from == MIN_UNICODE && token->to == MAX_UNICODE)
@@ -688,7 +689,7 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
     ArrPt(NFA) *stack = arrpt_create(NFA);
     NFA *nfa = NULL;
 
-    arrst_foreach(token, tokens, NToken)
+    arrst_foreach_const(token, tokens, NToken)
         switch(token->symbol) {
         case ekCHAR:
         {
@@ -810,7 +811,7 @@ static void i_add_state(ArrSt(uint32_t) *states, const uint32_t state)
 
 static void i_add_closure(const ArrSt(Trans) *ttable, ArrSt(uint32_t) *states, const uint32_t state)
 {
-    const Trans *trans = arrst_get(ttable, state, Trans);
+    const Trans *trans = arrst_get_const(ttable, state, Trans);
 
     if (trans->symbol != UINT32_MAX)
     {

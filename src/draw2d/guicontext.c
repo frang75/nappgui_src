@@ -764,7 +764,7 @@ void _gui_context_append_split_manager(
                         FPtr_destroy func_split_destroy,
                         FPtr_set_ptr func_split_attach_control,
                         FPtr_set_ptr func_split_detach_control,
-                        FPtr_set_listener func_split_OnMoved,
+                        FPtr_set_listener func_split_OnDrag,
                         FPtr_set4_real32 func_split_track_area,
                         FPtr_set_ptr func_attach_split_to_panel,
                         FPtr_set_ptr func_detach_split_from_panel,
@@ -779,7 +779,7 @@ void _gui_context_append_split_manager(
     cassert(gui_context->func_destroy[ekGUI_COMPONENT_SPLITVIEW] == NULL);
     cassert(gui_context->func_split_attach_control == NULL);
     cassert(gui_context->func_split_detach_control == NULL);
-    cassert(gui_context->func_split_OnMoved == NULL);
+    cassert(gui_context->func_split_OnDrag == NULL);
     cassert(gui_context->func_split_track_area == NULL);
     cassert(gui_context->func_attach_to_panel[ekGUI_COMPONENT_SPLITVIEW] == NULL);
     cassert(gui_context->func_detach_from_panel[ekGUI_COMPONENT_SPLITVIEW] == NULL);
@@ -792,7 +792,7 @@ void _gui_context_append_split_manager(
     cassert_no_nullf(func_split_destroy);
     cassert_no_nullf(func_split_attach_control);
     cassert_no_nullf(func_split_attach_control);
-    cassert_no_nullf(func_split_OnMoved);
+    cassert_no_nullf(func_split_OnDrag);
     cassert_no_nullf(func_split_track_area);
     cassert_no_nullf(func_attach_split_to_panel);
     cassert_no_nullf(func_detach_split_from_panel);
@@ -805,7 +805,7 @@ void _gui_context_append_split_manager(
     gui_context->func_destroy[ekGUI_COMPONENT_SPLITVIEW] = func_split_destroy;
     gui_context->func_split_attach_control = func_split_attach_control;
     gui_context->func_split_detach_control = func_split_detach_control;
-    gui_context->func_split_OnMoved = func_split_OnMoved;
+    gui_context->func_split_OnDrag = func_split_OnDrag;
     gui_context->func_split_track_area = func_split_track_area;
     gui_context->func_attach_to_panel[ekGUI_COMPONENT_SPLITVIEW] = func_attach_split_to_panel;
     gui_context->func_detach_from_panel[ekGUI_COMPONENT_SPLITVIEW] = func_detach_split_from_panel;
@@ -972,6 +972,7 @@ void _gui_context_append_panel_manager(
                         FPtr_create func_panel_create,
                         FPtr_destroy func_panel_destroy,
                         FPtr_area func_panel_area,
+                        FPtr_get2_real32 func_panel_scroller_size,
                         FPtr_set4_real32 func_panel_content_size,
                         FPtr_call func_panel_set_need_display,
                         FPtr_set_ptr func_attach_panel_to_panel,
@@ -986,6 +987,7 @@ void _gui_context_append_panel_manager(
     cassert(context->func_panel_create == NULL);
     cassert(context->func_destroy[ekGUI_COMPONENT_PANEL] == NULL);
     cassert(context->func_panel_area == NULL);
+    cassert(context->func_panel_scroller_size == NULL);
     cassert(context->func_panel_content_size == NULL);
     cassert(context->func_panel_set_need_display == NULL);
     cassert(context->func_attach_to_panel[ekGUI_COMPONENT_PANEL] == NULL);
@@ -998,6 +1000,7 @@ void _gui_context_append_panel_manager(
     cassert_no_nullf(func_panel_create);
     cassert_no_nullf(func_panel_destroy);
     cassert_no_nullf(func_panel_area);
+    cassert_no_nullf(func_panel_scroller_size);
     cassert_no_nullf(func_panel_content_size);
     cassert_no_nullf(func_panel_set_need_display);
     cassert_no_nullf(func_attach_panel_to_panel);
@@ -1010,6 +1013,7 @@ void _gui_context_append_panel_manager(
     context->func_panel_create = func_panel_create;
     context->func_destroy[ekGUI_COMPONENT_PANEL] = func_panel_destroy;
     context->func_panel_area = func_panel_area;
+    context->func_panel_scroller_size = func_panel_scroller_size;
     context->func_panel_content_size = func_panel_content_size;
     context->func_panel_set_need_display = func_panel_set_need_display;
     context->func_attach_to_panel[ekGUI_COMPONENT_PANEL] = func_attach_panel_to_panel;

@@ -42,13 +42,15 @@ struct _area_t
     NSColor *skcolor;
 };
 
+DeclSt(Area);
+
 /*---------------------------------------------------------------------------*/
 
 @interface OSXPanel : NSView
 {
     @public
     NSScrollView *scroll;
-    BOOL is_rounded;
+    CGSize content_size;
     ArrSt(Area) *areas;
 }
 @end
@@ -103,9 +105,8 @@ OSPanel *ospanel_create(const uint32_t flags)
     OSXPanel *panel = nil;
     heap_auditor_add("OSXPanel");
     panel = [[OSXPanel alloc] initWithFrame:NSZeroRect];
-    //_oscontrol_init(panel);
-    panel->is_rounded = NO;
     panel->areas = NULL;
+    panel->content_size = CGSizeMake(-1, -1);
     [panel setAutoresizesSubviews:NO];
     
     if (flags & ekHSCROLL || flags & ekVSCROLL)
@@ -333,6 +334,61 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
 /*---------------------------------------------------------------------------*/
 
+void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
+{
+    if ([(NSView*)panel isKindOfClass:[NSScrollView class]])
+    {
+        NSScrollView *scroll = (NSScrollView*)panel;
+        
+        if (width)
+        {
+            NSScroller *scroller = [scroll verticalScroller];
+            *width = 0;
+            if (scroller != nil)
+                *width = (real32_t)[scroller frame].size.width;
+        }
+
+        if (height)
+        {
+            NSScroller *scroller = [scroll horizontalScroller];
+            *height = 0;
+            if (scroller != nil)
+                *height = (real32_t)[scroller frame].size.height;
+        }
+    }
+    else
+    {
+        if (width)
+            *width = 16;
+        
+        if (height)
+            *height = 16;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnUpdateSize(OSPanel *panel)
+{
+    OSXPanel *lpanel = i_get_panel(panel);
+    if ([(NSView*)panel isKindOfClass:[NSScrollView class]])
+    {
+        CGFloat diff = 0;
+        NSScroller *scroller = [(NSScrollView*)panel verticalScroller];
+        if (scroller != nil && [scroller isHidden] == NO)
+            diff = [scroller frame].size.width;
+
+        [lpanel setFrame:NSMakeRect(0, 0, lpanel->content_size.width - diff, lpanel->content_size.height)];
+    }
+    else
+    {
+        cassert(lpanel->content_size.width == -1);
+        cassert(lpanel->content_size.height == -1);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
     OSXPanel *lpanel = i_get_panel(panel);
@@ -340,7 +396,9 @@ void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t h
     cassert(lpanel == [(NSScrollView*)panel documentView]);
     unref(line_width);
     unref(line_height);
-    [lpanel setFrame:NSMakeRect(0, 0, (CGFloat)width, (CGFloat)height)];
+    lpanel->content_size.width = (CGFloat)width;
+    lpanel->content_size.height = (CGFloat)height;
+    i_OnUpdateSize(panel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -399,14 +457,8 @@ void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame((NSView*)panel, x, y, width, height);
+    i_OnUpdateSize(panel);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void ospanel_position(OSPanel *panel, const real32_t x, const real32_t y)
-//{
-//    _oscontrol_set_origin((NSView*)panel, x, y);
-//}
 
 /*---------------------------------------------------------------------------*/
 

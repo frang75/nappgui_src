@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ostext.h
- * https://nappgui.com/en/osgui/ostext.html
  *
  */
 

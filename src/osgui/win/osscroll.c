@@ -174,30 +174,44 @@ int osscroll_y_pos(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
-int osscroll_bar_width(const OSScroll *scroll)
+int osscroll_bar_width(const OSScroll *scroll, const bool_t check_if_visible)
 {
-    cassert_no_null(scroll);
-    if (scroll->vscroll != NULL)
+    if (check_if_visible == TRUE)
     {
-        if (scroll->content_height > scroll->view_height)
-            return GetSystemMetrics(SM_CXVSCROLL);
-    }
+        cassert_no_null(scroll);
+        if (scroll->vscroll != NULL)
+        {
+            if (scroll->content_height > scroll->view_height)
+                return GetSystemMetrics(SM_CXVSCROLL);
+        }
 
-    return 0;
+        return 0;
+    }
+    else
+    {
+        return GetSystemMetrics(SM_CXVSCROLL);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-int osscroll_bar_height(const OSScroll *scroll)
+int osscroll_bar_height(const OSScroll *scroll, const bool_t check_if_visible)
 {
-    cassert_no_null(scroll);
-    if (scroll->hscroll != NULL)
+    if (check_if_visible == TRUE)
     {
-        if (scroll->content_width > scroll->view_width)
-            return GetSystemMetrics(SM_CXHSCROLL);
-    }
+        cassert_no_null(scroll);
+        if (scroll->hscroll != NULL)
+        {
+            if (scroll->content_width > scroll->view_width)
+                return GetSystemMetrics(SM_CXHSCROLL);
+        }
 
-    return 0;
+        return 0;
+    }
+    else
+    {
+        return GetSystemMetrics(SM_CXHSCROLL);
+    }       
 }
 
 /*---------------------------------------------------------------------------*/
@@ -205,13 +219,15 @@ int osscroll_bar_height(const OSScroll *scroll)
 static int i_incr(HWND scroll, int nBar, int incr)
 {
     SCROLLINFO si;
+    int pos = 0;
     BOOL ok;
+    
     si.cbSize = sizeof(SCROLLINFO);
     si.fMask = SIF_ALL;
     ok = GetScrollInfo(scroll, nBar, &si);
     cassert_unref(ok != 0, ok);
 
-    int pos = si.nPos + incr;
+    pos = si.nPos + incr;
 
     if (pos < 0)
         pos = 0;
@@ -256,8 +272,9 @@ bool_t osscroll_wheel(OSScroll *scroll, WPARAM wParam, const bool_t update_child
 
 void osscroll_message(OSScroll *scroll, WPARAM wParam, UINT nMsg, const bool_t update_children)
 {
+    WORD lw = 0;
     cassert_no_null(scroll);
-    WORD lw = LOWORD(wParam);
+    lw = LOWORD(wParam);
     if (lw != SB_ENDSCROLL)
     {
         SCROLLINFO si;

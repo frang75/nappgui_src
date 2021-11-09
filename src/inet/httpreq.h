@@ -47,5 +47,7 @@ bool_t http_response_body(const Http *http, Stream *body, ierror_t *error);
 
 Stream *http_dget(const char_t *url, uint32_t *result, ierror_t *error);
 
+bool_t http_exists(const char_t *url);
+
 __END_C
 

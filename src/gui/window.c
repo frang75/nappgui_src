@@ -18,8 +18,10 @@
 #include "component.inl"
 #include "obj.inl"
 #include "panel.inl"
+#include "panel.h"
+#include "layout.inl"
+#include "layout.h"
 
-#include "array.h"
 #include "cassert.h"
 #include "event.h"
 #include "ptr.h"
@@ -37,7 +39,7 @@ struct _window_t
     gui_role_t role;
     void *ositem;
     ResId titleid;
-    Panel *main_panel;
+    Layout *main_layout;
     Listener *OnMoved;
     Listener *OnResize;
     Listener *OnClose;
@@ -72,23 +74,22 @@ static void i_destroy(Window **window)
     if ((*window)->role == ekGUI_ROLE_MODAL)
         window_stop_modal(*window, 0);
         
-    if ((*window)->main_panel != NULL)
+    if ((*window)->main_layout != NULL)
     {
+        Panel *main_panel = layout_get_panel((*window)->main_layout, 0, 0);
+
         // Prevent flickering in Windows because the main panel new parent will be 
         // set to NULL (Desktop HWND) when is detached from this window.
         #if defined(__WINDOWS__)
-        _panel_hide_all((*window)->main_panel);
+        _panel_hide_all(main_panel);
         #endif
 
-        i_detach_main_panel((*window)->main_panel, (*window)->ositem, (*window)->context->func_detach_main_panel_from_window);
-        _panel_destroy(&(*window)->main_panel);
-        (*window)->context->func_window_destroy(&(*window)->ositem);
-    }
-    else
-    {
-        (*window)->context->func_window_destroy(&(*window)->ositem);
+        i_detach_main_panel(main_panel, (*window)->ositem, (*window)->context->func_detach_main_panel_from_window);
+        _layout_destroy(&(*window)->main_layout);
+        _panel_destroy(&main_panel);
     }
     
+    (*window)->context->func_window_destroy(&(*window)->ositem);
     listener_destroy(&(*window)->OnMoved);
     listener_destroy(&(*window)->OnResize);
     listener_destroy(&(*window)->OnClose);    
@@ -148,7 +149,7 @@ static void i_OnWindowResize(Window *window, Event *e)
 		cassert_no_null(result);
 		reqsize.width = params->width;
 		reqsize.height = params->height;
-		_panel_compose(window->main_panel, &reqsize, &finsize);
+		_layout_compose(window->main_layout, &reqsize, &finsize);
 		result->width = finsize.width;
 		result->height = finsize.height;
 		break;
@@ -156,9 +157,9 @@ static void i_OnWindowResize(Window *window, Event *e)
 
 	case ekEVWNDSIZE:
 	{
-		S2Df size = s2df(params->width, params->height);
-		_component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &size);
-		_panel_locate_components(window->main_panel);
+		//S2Df size = s2df(params->width, params->height);
+		//_component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &size);
+		_layout_locate(window->main_layout);
 		if (window->OnResize != NULL)
 			listener_pass_event(window->OnResize, e, window, Window);
 		break;
@@ -299,37 +300,39 @@ static Window *i_create_window(const uint32_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_main_panel_compose(Window *window, const S2Df *content_required_size)
+static void i_main_layout_compose(Window *window, const S2Df *content_required_size)
 {
-    S2Df main_panel_size;
+    S2Df main_layout_size;
     cassert_no_null(window);
     cassert_no_null(window->context);
     cassert_no_nullf(window->context->func_window_set_taborder);
     cassert_no_nullf(window->context->func_window_set_size);
-    _panel_compose(window->main_panel, content_required_size, &main_panel_size);
+    _layout_compose(window->main_layout, content_required_size, &main_layout_size);
     window->context->func_window_set_taborder(window->ositem, NULL);
-    _panel_taborder(window->main_panel, window);
-    window->context->func_window_set_size(window->ositem, main_panel_size.width, main_panel_size.height);
-    _component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &main_panel_size);
-    _panel_locate_components(window->main_panel);
+    _layout_taborder(window->main_layout, window);
+    window->context->func_window_set_size(window->ositem, main_layout_size.width, main_layout_size.height);
+    //_component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &main_panel_size);
+    _layout_locate(window->main_layout);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_attach_main_panel(Window *window, const S2Df *content_size, Panel **panel)
+static void i_attach_main_layout(Window *window, const S2Df *content_size, Layout **layout)
 {
+    Panel *main_panel = NULL;
     GuiComponent *panel_component = NULL;
     cassert_no_null(window);
-    cassert(window->main_panel == NULL);
+    cassert(window->main_layout == NULL);
     cassert_no_null(window->context);
     cassert_no_nullf(window->context->func_attach_main_panel_to_window);
-    cassert_no_null(panel);
-    window->main_panel = *panel;
-    _panel_window(window->main_panel, window);
-    panel_component = _panel_get_component(window->main_panel);
+    cassert_no_null(layout);
+    window->main_layout = *layout;
+    main_panel = layout_get_panel(window->main_layout, 0, 0);
+    _panel_window(main_panel, window);
+    panel_component = _panel_get_component(main_panel);
     cassert_no_null(panel_component);
     window->context->func_attach_main_panel_to_window(window->ositem, panel_component->ositem);
-    i_main_panel_compose(window, content_size);
+    i_main_layout_compose(window, content_size);
     _component_visible(panel_component, TRUE);
 }
 
@@ -346,7 +349,9 @@ Window *window_create(const uint32_t flags)
 
 void window_panel(Window *window, Panel *panel)
 {
-    i_attach_main_panel(window, NULL, &panel);
+    Layout *layout = layout_create(1, 1);
+    layout_panel(layout, panel, 0, 0);
+    i_attach_main_layout(window, NULL, &layout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -668,7 +673,7 @@ void window_size(Window *window, const S2Df size)
 {
     cassert_no_null(window);
     cassert(window->flags & ekWNRES);
-    i_main_panel_compose(window, &size);
+    i_main_layout_compose(window, &size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -713,11 +718,13 @@ S2Df _window_get_size(const Window *window)
 
 S2Df window_get_client_size(const Window *window)
 {
-    GuiComponent *comp;
+    Panel *panel = NULL;
+    GuiComponent *component = NULL;
     S2Df size;
     cassert_no_null(window);
-    comp = _panel_get_component(window->main_panel);
-    window->context->func_get_size[ekGUI_COMPONENT_PANEL](comp->ositem, &size.width, &size.height);
+    panel = layout_get_panel(window->main_layout, 0, 0);
+    component = _panel_get_component(panel);
+    window->context->func_get_size[ekGUI_COMPONENT_PANEL](component->ositem, &size.width, &size.height);
     return size;
 }
 
@@ -763,8 +770,10 @@ void window_cursor(Window *window, const cursor_t cursor, const Image *image, co
 
 void _window_locale(Window *window)
 {
+    Panel *main_panel = NULL;
     cassert_no_null(window);
-    _panel_locale(window->main_panel);
+    main_panel = layout_get_panel(window->main_layout, 0, 0);
+    _panel_locale(main_panel);
     if (window->titleid != NULL)
     {
         const char_t *text = _gui_respack_text(window->titleid, NULL);
@@ -821,13 +830,14 @@ void _window_update(Window *window)
     if (window->flags & ekWNRES)
     {
         S2Df current_panel_size;
-        GuiComponent *component = _panel_get_component(window->main_panel);
+        Panel *main_panel = layout_get_panel(window->main_layout, 0, 0);
+        GuiComponent *component = _panel_get_component(main_panel);
         window->context->func_get_size[ekGUI_COMPONENT_PANEL](component->ositem, &current_panel_size.width, &current_panel_size.height);
-        i_main_panel_compose(window, &current_panel_size);
+        i_main_layout_compose(window, &current_panel_size);
     }
     else
     {
-        i_main_panel_compose(window, NULL);
+        i_main_layout_compose(window, NULL);
     }
 }
 

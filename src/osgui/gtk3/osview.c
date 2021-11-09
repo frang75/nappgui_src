@@ -463,7 +463,6 @@ void osview_OnWheel(OSView *view, Listener *listener)
     _oslistener_signal(view->control.widget, listener != NULL, &view->listeners.wheel_signal, GDK_SCROLL_MASK, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
 }
 
-
 /*---------------------------------------------------------------------------*/
 
 void osview_OnKeyDown(OSView *view, Listener *listener)

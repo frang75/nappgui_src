@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osdrawctrl.h
- * https://nappgui.com/en/osgui/osdrawctrl.html
  *
  */
 

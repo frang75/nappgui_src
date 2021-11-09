@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: arch.hxx
- * https://nappgui.com/en/sewer/arch.html
  *
  */
 

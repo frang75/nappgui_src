@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: products.hxx
- * https://nappgui.com/en/demo/products/products.html
  *
  */
 

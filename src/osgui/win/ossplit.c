@@ -31,122 +31,108 @@ struct _ossplit_t
     OSControl control;
     split_flag_t flags;
     RECT divrect;
-    ViewListeners listeners;
+    OSControl* child1;
+    OSControl* child2;
+    bool_t left_button;
+    bool_t launch_OnDrag;
+    POINTS mouse_pos;
+    Listener *OnDrag;
 };
 
 /*---------------------------------------------------------------------------*/
-
-static BOOL i_in_divider_rect(HWND hwnd, const RECT *divrect, const POINT *pt)
-{
-    if (PtInRect(divrect, *pt) == TRUE)
-    {
-        SetCapture(hwnd);
-        return TRUE;
-    }
-    else
-    {
-        ReleaseCapture();
-        return FALSE;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
+static uint32_t i_SIZE = 0;
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSSplit *split = (OSSplit*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     static int IC = 0;
     cassert_no_null(split);
 
-    switch (uMsg)
+    switch (uMsg) {
+	case WM_ERASEBKGND:
+		return 1;
+
+    case WM_SETCURSOR:
     {
-        //case WM_PAINT:
-        //{
-        //    static int I = 0;
-        //    BOOL ret;
-        //    RECT frame, rect;
-        //    HDC hdc;
-        //    PAINTSTRUCT ps;
-        //    ret = GetClientRect(hwnd, &frame);
-	       // cassert(ret != 0);
-        //    rect = frame;
-        //    hdc = BeginPaint(split->control.hwnd, &ps);
-        //    FillRect(hdc, &rect, CreateSolidBrush(RGB(255 / ((I%2)+1), 200, 200)));
-        //    I+=1;
-        //    EndPaint(hwnd, &ps);
-        //}
-
-        //break;
-
-        case WM_SETCURSOR:
+        POINT pt;
+        GetCursorPos(&pt);
+        ScreenToClient(split->control.hwnd, &pt);
+        if (PtInRect(&split->divrect, pt) == TRUE)
         {
-            POINT pt;
-            GetCursorPos(&pt);
-            ScreenToClient(split->control.hwnd, &pt);
-            if (i_in_divider_rect(split->control.hwnd, &split->divrect, &pt) == TRUE)
-            {
-                HCURSOR cursor = split_type(split->flags) == ekSPVERT ? kSIZING_VERTICAL_CURSOR : kSIZING_HORIZONTAL_CURSOR;
-                SetCursor(cursor);
-                return TRUE;
-            }
-
-            break;
+            HCURSOR cursor = split_type(split->flags) == ekSPVERT ? kSIZING_VERTICAL_CURSOR : kSIZING_HORIZONTAL_CURSOR;
+            cassert(GetCapture() != split->control.hwnd);
+            SetCapture(split->control.hwnd);
+            SetCursor(cursor);
+            return TRUE;
         }
 
-        case WM_NCHITTEST:
-            return HTCLIENT;
+        break;
+    }
 
-        case WM_MOUSEMOVE:
+    case WM_NCHITTEST:
+        return HTCLIENT;
 
-            if (split->listeners.button == ekMLEFT)
-            {
-                POINTS point = MAKEPOINTS(lParam);
-                oslistener_mouse_moved((OSControl*)split, wParam, (real32_t)point.x, (real32_t)point.y, NULL, &split->listeners);
-                InvalidateRect(split->control.hwnd, NULL, FALSE);
-            }
-            else if (split->listeners.button == ENUM_MAX(mouse_t))
-            {
-                POINTS point;
-                POINT pt;
-                point = MAKEPOINTS(lParam);
-                pt.x = point.x;
-                pt.y = point.y;
-                if (i_in_divider_rect(split->control.hwnd, &split->divrect, &pt) == TRUE)
-                {
-                    HCURSOR cursor = split_type(split->flags) == ekSPVERT ? kSIZING_VERTICAL_CURSOR : kSIZING_HORIZONTAL_CURSOR;
-                    SetCursor(cursor);
-                }
-            }
-
-            break;
-
-        case WM_LBUTTONDOWN:
+    case WM_MOUSEMOVE:
+        cassert(GetCapture() == split->control.hwnd);
+        if (split->left_button == TRUE)
         {
-            POINTS point;
+            if (split->OnDrag != NULL)
+            {
+                RECT rect;
+                split->mouse_pos = MAKEPOINTS(lParam);
+                split->launch_OnDrag = TRUE;
+                GetWindowRect(hwnd, &rect);
+                SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left + 1, rect.bottom - rect.top + 1, SWP_NOMOVE /*| SWP_NOSIZE */| SWP_NOZORDER);
+            }
+        }
+        else 
+        {
+            POINTS point = MAKEPOINTS(lParam);
             POINT pt;
-            point = MAKEPOINTS(lParam);
             pt.x = point.x;
             pt.y = point.y;
-            if (i_in_divider_rect(split->control.hwnd, &split->divrect, &pt) == TRUE)
-            {
-                cassert(FALSE);
-                //oslistener_mouse_down(hwnd, ekMLEFT, &split->listeners);
-                return 0;
-            }
-
-            break;
+            if (PtInRect(&split->divrect, pt) == FALSE)
+                ReleaseCapture();
         }
 
-        case WM_LBUTTONUP:
+        return 0;
 
-            if (split->listeners.button == ekMLEFT)
-            {
-                cassert(FALSE);
-                //oslistener_mouse_up((OSControl*)split, lParam, ekMLEFT, &split->listeners);
-                return 0;
-            }
+    case WM_LBUTTONDOWN:
+    {
+    #if defined __ASSERTS__
+        POINTS point;
+        POINT pt;
+        point = MAKEPOINTS(lParam);
+        pt.x = point.x;
+        pt.y = point.y;
+        cassert(GetCapture() == split->control.hwnd);
+        cassert(PtInRect(&split->divrect, pt) == TRUE);
+    #endif
 
-            break;
+        split->left_button = TRUE;
+        return 0;
+    }
+
+    case WM_LBUTTONUP:
+        split->left_button = FALSE;
+        ReleaseCapture();
+        return 0;
+
+    case WM_SIZE:
+        if (split->launch_OnDrag == TRUE)
+        {
+            EvMouse params;
+            cassert(split->OnDrag != NULL);
+            cassert(split->left_button == TRUE);
+            params.x = (real32_t)split->mouse_pos.x;
+            params.y = (real32_t)split->mouse_pos.y;
+            params.button = ekLEFT;
+            params.count = 0;
+            listener_event(split->OnDrag, ekEVDRAG, split, &params, NULL, OSSplit, EvMouse, void);
+            split->launch_OnDrag = FALSE;
+        }
+
+        //bstd_printf("Size %d!!!!!!\n", i_SIZE++);
+        break;
     }
 
     return CallWindowProc(split->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -161,7 +147,6 @@ OSSplit *ossplit_create(const split_flag_t flags)
     view->flags = flags;
     /* WS_EX_CONTROLPARENT: Recursive TabStop navigation over view children */
     _oscontrol_init((OSControl*)view, PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    oslistener_init(&view->listeners);
 	return view;
 }
 
@@ -172,7 +157,7 @@ void ossplit_destroy(OSSplit **view)
     cassert_no_null(view);
     cassert_no_null(*view);
     cassert(_oscontrol_num_children((*view)->control.hwnd) == 0);
-    oslistener_remove(&(*view)->listeners);
+    listener_destroy(&(*view)->OnDrag);
     _oscontrol_destroy(&(*view)->control);
     heap_delete(view, OSSplit);
 }
@@ -181,6 +166,17 @@ void ossplit_destroy(OSSplit **view)
 
 void ossplit_attach_control(OSSplit *view, OSControl *control)
 {
+    cassert_no_null(control);
+    if (view->child1 == NULL)
+    {
+        view->child1 = control;
+    }
+    else
+    {
+        cassert(view->child2 == NULL);
+        view->child2 = control;
+    }
+
     _oscontrol_attach_to_parent(control, (OSControl*)view);
 }
 
@@ -188,19 +184,26 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
 
 void ossplit_detach_control(OSSplit *view, OSControl *control)
 {
+    cassert_no_null(control);
+    if (view->child1 == control)
+    {
+        view->child1 = NULL;
+    }
+    else
+    {
+        cassert(view->child2 == control);
+        view->child2 = NULL;
+    }
+
     _oscontrol_detach_from_parent(control, (OSControl*)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_OnMoved(OSSplit *view, Listener *listener)
+void ossplit_OnDrag(OSSplit *view, Listener *listener)
 {
     cassert_no_null(view);
-    cassert(FALSE);
-    unref(listener);
-    //listener_update(&view->listeners.OnMouseStartDrag, listener_copy(listener));
-    //listener_update(&view->listeners.OnMouseDragging, listener_copy(listener));
-    //listener_update(&view->listeners.OnMouseEndDrag, listener);
+    listener_update(&view->OnDrag, listener);
 }
 
 /*---------------------------------------------------------------------------*/

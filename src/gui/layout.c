@@ -106,8 +106,7 @@ struct _layout_t
     Listener *OnObjChange;
 };
 
-DeclType(Cell);
-ArrPtDecl(Layout);
+DeclSt(i_LineDim);
 
 /*---------------------------------------------------------------------------*/
 
@@ -512,6 +511,14 @@ void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const
 /*---------------------------------------------------------------------------*/
 
 void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const uint32_t row)
+{
+    cassert_no_null(view);
+    i_set_component(layout, (GuiComponent*)view, col, row, ekJUSTIFY, ekJUSTIFY);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const uint32_t row)
 {
     cassert_no_null(view);
     i_set_component(layout, (GuiComponent*)view, col, row, ekJUSTIFY, ekJUSTIFY);
@@ -1433,7 +1440,7 @@ void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size
 static real32_t i_dimension_size(const ArrSt(i_LineDim) *dim, const real32_t margin)
 {
     real32_t size = margin;
-    arrst_foreach(edim, dim, i_LineDim)
+    arrst_foreach_const(edim, dim, i_LineDim)
         size += edim->margin;
         size += edim->size;
     arrst_end()
@@ -1527,15 +1534,9 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_area func_a
                 switch (cell->type)
                 {
                     case i_ekCOMPONENT:
-                    {
-                        Panel *panels[GUI_COMPONENT_MAX_PANELS];
-                        uint32_t k, num_panels;
                         _component_set_frame(cell->content.component, &cell_origin, &cell_size);        
-                        _component_panels(cell->content.component, &num_panels, panels);
-                        for (k = 0; k < num_panels; ++k)
-                            _panel_locate_components(panels[k]);
+                        _component_locate(cell->content.component);
                         break;
-                    }
 
                     case i_ekLAYOUT:
                         i_layout_locate(cell->content.layout, &cell_origin, func_area, ospanel);
@@ -1604,17 +1605,23 @@ static void i_layout_enabled(Layout *layout, const bool_t parent_enabled)
 
 void _layout_locate(Layout *layout)
 {
-    FPtr_area func_area;
-    void *ospanel;
+    void *ospanel = NULL;
+    FPtr_area func_area = NULL;
     cassert_no_null(layout);
-    cassert_no_null(layout->panel);
-    ospanel = ((GuiComponent*)layout->panel)->ositem;
-    func_area = ((GuiComponent*)layout->panel)->context->func_panel_area;
-    func_area(ospanel, NULL, 0, 0, 0, 0, 0, 0);
+
+    if (layout->panel != NULL)
+    {
+        ospanel = ((GuiComponent*)layout->panel)->ositem;
+        func_area = ((GuiComponent*)layout->panel)->context->func_panel_area;
+        func_area(ospanel, NULL, 0, 0, 0, 0, 0, 0);
+    }
+
     i_layout_locate(layout, &kV2D_ZEROf, func_area, ospanel);
     i_layout_visible(layout, TRUE);
     i_layout_enabled(layout, TRUE);
-    ((GuiComponent*)layout->panel)->context->func_panel_set_need_display(ospanel);
+
+    if (layout->panel != NULL)
+        ((GuiComponent*)layout->panel)->context->func_panel_set_need_display(ospanel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1628,12 +1635,11 @@ static void i_cell_taborder(const Cell *cell, Window *window)
         case i_ekLAYOUT:
             _layout_taborder(cell->content.layout, window);
             break;
+
         case i_ekCOMPONENT:
-            if (cell->content.component->type == ekGUI_COMPONENT_PANEL)
-                _panel_taborder((Panel*)cell->content.component, window);
-            else
-                _window_taborder(window, cell->content.component->ositem);
+            _component_taborder(cell->content.component, window);
             break;
+
         case i_ekEMPTY:
             break;
         cassert_default();

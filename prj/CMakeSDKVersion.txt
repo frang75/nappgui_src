@@ -4,19 +4,17 @@
 
 set(NAPPGUI_MAJOR 1)
 set(NAPPGUI_MINOR 2)
-set(NAPPGUI_REVISION 0)
+set(NAPPGUI_REVISION 1)
 
 # Build version
 #------------------------------------------------------------------------------
 # This is a 'Release' distribution
-if (EXISTS ${CMAKE_PRJ_PATH}/build.txt)
-    set(VERSION_FILE ${CMAKE_PRJ_PATH}/build.txt)
+set (VERSION_FILE ${CMAKE_PRJ_PATH}/build.txt)
+if (EXISTS "${VERSION_FILE}")
     set(RELEASE_DISTRIBUTION YES)
-    if (EXISTS "${VERSION_FILE}")
-        file(READ ${VERSION_FILE} NAPPGUI_BUILD)
-        string(REPLACE "\r\n" "" NAPPGUI_BUILD ${NAPPGUI_BUILD})
-        string(REPLACE "\n" "" NAPPGUI_BUILD ${NAPPGUI_BUILD})
-    endif()
+    file(READ ${VERSION_FILE} NAPPGUI_BUILD)
+    string(REPLACE "\r\n" "" NAPPGUI_BUILD ${NAPPGUI_BUILD})
+    string(REPLACE "\n" "" NAPPGUI_BUILD ${NAPPGUI_BUILD})
 
 # This a 'Development' version
 else()

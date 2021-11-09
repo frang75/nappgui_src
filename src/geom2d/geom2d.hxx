@@ -153,25 +153,25 @@ struct _col2dd_t
     real64_t d;
 };
 
-DeclType(V2Df);
-DeclType(V2Dd);
-DeclType(S2Df);
-DeclType(S2Dd);
-DeclType(R2Df);
-DeclType(R2Dd);
-DeclType(T2Df);
-DeclType(T2Dd);
-DeclType(Seg2Df);
-DeclType(Seg2Dd);
-DeclType(Cir2Df);
-DeclType(Cir2Dd);
-DeclType(Box2Df);
-DeclType(Box2Dd);
-DeclType(Tri2Df);
-DeclType(Tri2Dd);
-ArrPtDecl(Pol2Df);
-ArrPtDecl(Pol2Dd);
-DeclType(Col2Df);
-DeclType(Col2Dd);
+DeclSt(V2Df);
+DeclSt(V2Dd);
+DeclSt(S2Df);
+DeclSt(S2Dd);
+DeclSt(R2Df);
+DeclSt(R2Dd);
+DeclSt(T2Df);
+DeclSt(T2Dd);
+DeclSt(Seg2Df);
+DeclSt(Seg2Dd);
+DeclSt(Cir2Df);
+DeclSt(Cir2Dd);
+DeclSt(Box2Df);
+DeclSt(Box2Dd);
+DeclSt(Tri2Df);
+DeclSt(Tri2Dd);
+DeclPt(Pol2Df);
+DeclPt(Pol2Dd);
+DeclSt(Col2Df);
+DeclSt(Col2Dd);
 
 #endif

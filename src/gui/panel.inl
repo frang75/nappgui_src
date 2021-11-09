@@ -44,11 +44,13 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
 
 void _panel_taborder(const Panel *panel, Window *window);
 
-void _panel_locate_components(Panel *panel);
+void _panel_locate(Panel *panel);
 
 void _panel_locale(Panel *panel);
 
 ArrPt(Layout) *_panel_layouts(const Panel *panel);
+
+bool_t _panel_with_scroll(const Panel *panel);
 
 __END_C
 

@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: oscomwin.h
- * https://nappgui.com/en/osgui/oscomwin.html
  *
  */
 

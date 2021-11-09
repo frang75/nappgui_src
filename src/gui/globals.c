@@ -51,12 +51,13 @@ V2Df globals_mouse_position(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t globals_scrollbar_width(void)
-{
-    uint32_t v = 0;
-    const GuiContext *context = gui_context_get_current();
-    cassert_no_null(context);
-    cassert_no_nullf(context->func_globals_value);
-    context->func_globals_value(0, (void*)&v);
-    return v;
-}
+//uint32_t globals_scrollbar_width(void);
+//uint32_t globals_scrollbar_width(void)
+//{
+//    uint32_t v = 0;
+//    const GuiContext *context = gui_context_get_current();
+//    cassert_no_null(context);
+//    cassert_no_nullf(context->func_globals_value);
+//    context->func_globals_value(0, (void*)&v);
+//    return v;
+//}

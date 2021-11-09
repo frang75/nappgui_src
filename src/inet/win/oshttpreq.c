@@ -128,11 +128,12 @@ void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
     WCHAR wpath[1024];
     uint64_t hsize = 0;
     BOOL status = FALSE;
+    DWORD flags = 0;
 
     cassert_no_null(http);
 
@@ -150,7 +151,9 @@ static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const
         http->hRequest = NULL;
     }
 
-	http->hRequest = HttpOpenRequest(http->hConnect, verb, wpath, L"HTTP/1.1", NULL, NULL, http->secure ? INTERNET_FLAG_SECURE : 0, 0);
+    flags |= http->secure ? INTERNET_FLAG_SECURE : 0;
+    flags |= auto_redirect ? 0 : INTERNET_FLAG_NO_AUTO_REDIRECT;
+	http->hRequest = HttpOpenRequest(http->hConnect, verb, wpath, L"HTTP/1.1", NULL, NULL, flags, 0);
     if (http->hRequest == NULL)
     {
         ptr_assign(error, ekISERVER);
@@ -182,16 +185,16 @@ static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
-    i_request(http, L"GET", path, data, size, error);
+    i_request(http, L"GET", path, data, size, auto_redirect, error);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
-    i_request(http, L"POST", path, data, size, error);
+    i_request(http, L"POST", path, data, size, auto_redirect, error);
 }
 
 /*---------------------------------------------------------------------------*/

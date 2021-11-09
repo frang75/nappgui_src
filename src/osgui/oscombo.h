@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: oscombo.h
- * https://nappgui.com/en/osgui/oscombo.html
  *
  */
 

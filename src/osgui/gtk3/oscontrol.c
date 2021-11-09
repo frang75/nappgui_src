@@ -565,7 +565,7 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
 	else
 	{
 	    cassert(str_equ_c(ptype, "GtkBox"));
-        cassert(str_equ_c(G_OBJECT_TYPE_NAME(control->widget), "GtkLayout"));
+        cassert(str_equ_c(G_OBJECT_TYPE_NAME(control->widget), "GtkLayout") || str_equ_c(G_OBJECT_TYPE_NAME(control->widget), "GtkScrolledWindow"));
 	    cassert(control->type == ekGUI_COMPONENT_PANEL);
 	    cassert(x == 0.f);
 	    cassert(y == 0.f);

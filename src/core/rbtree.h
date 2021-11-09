@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: rbtree.h
- * https://nappgui.com/en/core/rbtree.html
  *
  */
 
@@ -15,39 +14,39 @@
 
 __EXTERN_C
 
-RBTree *rbtree_create_imp(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize);
+RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize, const char_t *type);
 
-void rbtree_destroy_imp(RBTree **tree, FPtr_remove func_remove, FPtr_destroy func_destroy_key);
+void rbtree_destroy(RBTree **tree, FPtr_remove func_remove, FPtr_destroy func_destroy_key, const char_t *type);
 
-void rbtree_destroy_ptr_imp(RBTree **tree, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key);
+void rbtree_destroy_ptr(RBTree **tree, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key, const char_t *type);
 
-uint32_t rbtree_size_imp(const RBTree *tree);
+uint32_t rbtree_size(const RBTree *tree);
 
-byte_t *rbtree_get_imp(const RBTree *tree, const void *key, const bool_t isptr);
+byte_t *rbtree_get(const RBTree *tree, const void *key, const bool_t isptr);
 
-byte_t *rbtree_insert_imp(RBTree *tree, const void *key, FPtr_copy func_key_copy);
+byte_t *rbtree_insert(RBTree *tree, const void *key, FPtr_copy func_key_copy);
 
-bool_t rbtree_insert_ptr_imp(RBTree *tree, void *ptr);
+bool_t rbtree_insert_ptr(RBTree *tree, void *ptr);
 
-bool_t rbtree_delete_imp(RBTree *tree, const void *key, FPtr_remove func_remove, FPtr_destroy func_destroy_key);
+bool_t rbtree_delete(RBTree *tree, const void *key, FPtr_remove func_remove, FPtr_destroy func_destroy_key);
 
-bool_t rbtree_delete_ptr_imp(RBTree *tree, const void *key, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key);
+bool_t rbtree_delete_ptr(RBTree *tree, const void *key, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key);
 
-byte_t *rbtree_first_imp(RBTree *tree);
+byte_t *rbtree_first(RBTree *tree);
 
-byte_t *rbtree_last_imp(RBTree *tree);
+byte_t *rbtree_last(RBTree *tree);
 
-byte_t *rbtree_next_imp(RBTree *tree);
+byte_t *rbtree_next(RBTree *tree);
 
-byte_t *rbtree_prev_imp(RBTree *tree);
+byte_t *rbtree_prev(RBTree *tree);
 
-byte_t *rbtree_first_ptr_imp(RBTree *tree);
+byte_t *rbtree_first_ptr(RBTree *tree);
 
-byte_t *rbtree_last_ptr_imp(RBTree *tree);
+byte_t *rbtree_last_ptr(RBTree *tree);
 
-byte_t *rbtree_next_ptr_imp(RBTree *tree);
+byte_t *rbtree_next_ptr(RBTree *tree);
 
-byte_t *rbtree_prev_ptr_imp(RBTree *tree);
+byte_t *rbtree_prev_ptr(RBTree *tree);
 
 const char_t *rbtree_get_key(const RBTree *tree);
 

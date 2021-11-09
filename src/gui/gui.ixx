@@ -86,8 +86,10 @@ struct _gui_component_t
 };
 
 ArrPt(Column);
-ArrPt(GuiComponent);
-ArrSt(Cell);
+DeclPt(Cell);
+DeclPt(Layout);
+DeclPt(GuiComponent);
+DeclPt(MenuItem);
 
 struct _colitem_t
 {

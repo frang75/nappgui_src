@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ossplit.h
- * https://nappgui.com/en/osgui/ossplit.html
  *
  */
 
@@ -23,7 +22,7 @@ void ossplit_attach_control(OSSplit *view, OSControl *control);
 
 void ossplit_detach_control(OSSplit *view, OSControl *control);
 
-void ossplit_OnMoved(OSSplit *view, Listener *listener);
+void ossplit_OnDrag(OSSplit *view, Listener *listener);
 
 void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 

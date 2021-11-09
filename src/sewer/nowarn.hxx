@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: nowarn.hxx
- * https://nappgui.com/en/sewer/nowarn.html
  *
  */
 
@@ -25,8 +24,12 @@
 #pragma warning( disable : 4668 )
 // C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winuser.h(6537,32): warning C4255: 'EnableMouseInPointerForThread': no function prototype given: converting '()' to '(void)'
 #pragma warning( disable : 4255 )
+
+#if _MSC_VER > 1400
 // C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\GdiplusHeaders.h(701,40): warning C4458: declaration of 'nativeCap' hides class member
 #pragma warning( disable : 4458 )
+#endif
+
 // C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\Richedit.h(783,3): warning C4201: nonstandard extension used: nameless struct/union
 #pragma warning( disable : 4201 )
 //C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\malloc.h(160): warning C4548: expression before comma has no effect; expected expression with side-effect1>

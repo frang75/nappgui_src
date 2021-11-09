@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: die.hxx
- * https://nappgui.com/en/demo/die/die.html
  *
  */
 

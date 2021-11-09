@@ -56,6 +56,8 @@ struct _ospanel_t
     ArrSt(Area) *areas;
 };
 
+DeclSt(Area);
+
 /*---------------------------------------------------------------------------*/
 
 static void i_remove_area(Area *area)
@@ -90,11 +92,11 @@ static __INLINE void i_area(HDC hdc, const Area *area)
 
 /*---------------------------------------------------------------------------*/
 
-static HBRUSH i_brush(HWND hwnd, ArrSt(Area) *areas, COLORREF *c)
+static HBRUSH i_brush(HWND hwnd, const ArrSt(Area) *areas, COLORREF *c)
 {
     RECT rc;
     _oscontrol_get_local_frame(hwnd, &rc);
-    arrst_foreach(area, areas, Area)
+    arrst_foreach_const(area, areas, Area)
         POINT pt;
         pt.x = rc.left + 1;
         pt.y = rc.top + 1;
@@ -295,6 +297,13 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             osscroll_wheel(panel->scroll, wParam, TRUE);
 
         break;
+
+    //case WM_PAINT:
+    //    if (panel->scroll != NULL)
+    //    {
+    //        int j = 1;
+    //    }
+    //    break;
 	}
 
     {
@@ -440,6 +449,18 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
         if (panel->areas != NULL)
             arrst_clear(panel->areas, i_remove_area, Area);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
+{
+    cassert_no_null(panel);
+    if (width != NULL)
+        *width = (real32_t)osscroll_bar_width(panel->scroll, FALSE);
+
+    if (height != NULL)
+        *height = (real32_t)osscroll_bar_height(panel->scroll, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

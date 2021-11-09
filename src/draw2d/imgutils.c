@@ -816,7 +816,7 @@ Pixbuf *imgutil_indexed_to_gray(const uint32_t width, const uint32_t height, con
         {
             // 1) Get the pixel value
             ibyte = pixdata[i / (8 / ibpp)];
-            ipos = (byte_t)i % (8 / ibpp);
+            ipos = (byte_t)(i % (8 / ibpp));
             value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
             c = palette[value];
 
@@ -921,7 +921,7 @@ Pixbuf *imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, con
         {
             // 1) Get the pixel value
             ibyte = pixdata[i / (8 / ibpp)];
-            ipos = (byte_t)i % (8 / ibpp);
+            ipos = (byte_t)(i % (8 / ibpp));
             value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
             c = palette[value];
 
@@ -1021,7 +1021,7 @@ Pixbuf *imgutil_indexed_to_rgb(const uint32_t width, const uint32_t height, cons
         {
             // 1) Get the pixel value
             ibyte = pixdata[i / (8 / ibpp)];
-            ipos = (byte_t)i % (8 / ibpp);
+            ipos = (byte_t)(i % (8 / ibpp));
             value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
             c = palette[value];
 

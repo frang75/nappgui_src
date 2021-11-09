@@ -45,6 +45,8 @@ void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const
 
 void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const uint32_t row);
 
+void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const uint32_t row);
+
 void layout_panel(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row);
 
 void layout_layout(Layout *layout, Layout *sublayout, const uint32_t col, const uint32_t row);
@@ -138,6 +140,9 @@ __END_C
 
 #define layout_get_imageview(layout, col, row)\
     (ImageView*)layout_control_imp(layout, col, row, "ImageView")
+
+#define layout_get_panel(layout, col, row)\
+    (Panel*)layout_control_imp(layout, col, row, "Panel")
 
 #define layout_dbind(layout, listener, type)\
     layout_dbind_imp(layout, listener, (const char_t*)#type, (uint16_t)sizeof(type))

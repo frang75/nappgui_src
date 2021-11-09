@@ -25,8 +25,8 @@
 #include "popup.inl"
 #include "progress.inl"
 #include "slider.inl"
-//#include "split.inl"
 #include "textview.inl"
+#include "splitview.inl"
 #include "updown.inl"
 #include "window.inl"
 
@@ -88,7 +88,7 @@ static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
             (FPtr_panels)NULL,                                  /* ekGUI_COMPONENT_TABLEVIEW */
             (FPtr_panels)NULL,                                  /* ekGUI_COMPONENT_TREEVIEW */
             (FPtr_panels)NULL,/*_boxview_panels,*/              /* ekGUI_COMPONENT_BOXVIEW */
-            (FPtr_panels)NULL,/*_splitview_panels*/             /* ekGUI_COMPONENT_SPLITVIEW */
+            (FPtr_panels)_splitview_panels,                     /* ekGUI_COMPONENT_SPLITVIEW */
             (FPtr_panels)NULL,                                  /* ekGUI_COMPONENT_CUSTOMVIEW */
             (FPtr_panels)_panel_panels,                         /* ekGUI_COMPONENT_PANEL */
             (FPtr_panels)NULL};                                 /* ekGUI_COMPONENT_LINE */
@@ -106,7 +106,7 @@ static const FPtr_dimension i_FUNC_DIMENSION[GUI_CONTEXT_NUM_COMPONENTS] = {
             (FPtr_dimension)NULL/*_tableview_dimension*/,       /* ekGUI_COMPONENT_TABLEVIEW */
             (FPtr_dimension)NULL,                               /* ekGUI_COMPONENT_TREEVIEW */
             (FPtr_dimension)NULL,                               /* ekGUI_COMPONENT_BOXVIEW */
-            (FPtr_dimension)NULL/*_split_dimension*/,           /* ekGUI_COMPONENT_SPLITVIEW */
+            (FPtr_dimension)_splitview_dimension,               /* ekGUI_COMPONENT_SPLITVIEW */
             (FPtr_dimension)_view_dimension,                    /* ekGUI_COMPONENT_CUSTOMVIEW */
             (FPtr_dimension)_panel_dimension,                   /* ekGUI_COMPONENT_PANEL */
             (FPtr_dimension)NULL};                              /* ekGUI_COMPONENT_LINE */
@@ -124,7 +124,7 @@ static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
             (FPtr_expand)NULL,                                  /* ekGUI_COMPONENT_TABLEVIEW */
             (FPtr_expand)NULL,                                  /* ekGUI_COMPONENT_TREEVIEW */
             (FPtr_expand)NULL,                                  /* ekGUI_COMPONENT_BOXVIEW */
-            (FPtr_expand)NULL,                                  /* ekGUI_COMPONENT_SPLITVIEW */
+            (FPtr_expand)_splitview_expand,                     /* ekGUI_COMPONENT_SPLITVIEW */
             (FPtr_expand)NULL,                                  /* ekGUI_COMPONENT_CUSTOMVIEW */
             (FPtr_expand)_panel_expand,                         /* ekGUI_COMPONENT_PANEL */
             (FPtr_expand)NULL};                                 /* ekGUI_COMPONENT_LINE */
@@ -142,7 +142,7 @@ static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
             (FPtr_set_size)NULL,                                /* ekGUI_COMPONENT_TABLEVIEW */
             (FPtr_set_size)NULL,                                /* ekGUI_COMPONENT_TREEVIEW */
             (FPtr_set_size)NULL,/*_boxview_OnResize,*/          /* ekGUI_COMPONENT_BOXVIEW */
-            (FPtr_set_size)NULL/*_split_OnResize*/,             /* ekGUI_COMPONENT_SPLITVIEW */
+            (FPtr_set_size)_splitview_OnResize,                 /* ekGUI_COMPONENT_SPLITVIEW */
             (FPtr_set_size)_view_OnResize,                      /* ekGUI_COMPONENT_CUSTOMVIEW */
             (FPtr_set_size)NULL,                                /* ekGUI_COMPONENT_PANEL */
             (FPtr_set_size)NULL};                               /* ekGUI_COMPONENT_LINE */
@@ -196,7 +196,7 @@ static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
             (FPtr_destroy)NULL/*_tableview_destroy*/,           /* ekGUI_COMPONENT_TABLEVIEW */
             (FPtr_destroy)NULL,/*_treeview_destroy,*/           /* ekGUI_COMPONENT_TREEVIEW */
             (FPtr_destroy)NULL,/*_boxview_destroy,*/            /* ekGUI_COMPONENT_BOXVIEW */
-            (FPtr_destroy)NULL/*_split_destroy*/,               /* ekGUI_COMPONENT_SPLITVIEW */
+            (FPtr_destroy)_splitview_destroy,                   /* ekGUI_COMPONENT_SPLITVIEW */
             (FPtr_destroy)_view_destroy,                        /* ekGUI_COMPONENT_CUSTOMVIEW */
             (FPtr_destroy)_panel_destroy_all,                   /* ekGUI_COMPONENT_PANEL */
             (FPtr_destroy)NULL/*_line_destroy*/};               /* ekGUI_COMPONENT_LINE */
@@ -314,6 +314,55 @@ void _component_expand(GuiComponent *component, const uint32_t di, const real32_
         cassert_no_null(final_size);
         *final_size = max_r32(required_size, 5.f);
     }    
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _component_locate(GuiComponent *component)
+{
+    Panel *panels[GUI_COMPONENT_MAX_PANELS];
+    uint32_t i, num_panels;
+    _component_panels(component, &num_panels, panels);
+    for (i = 0; i < num_panels; ++i)
+        _panel_locate(panels[i]);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _component_taborder(GuiComponent *component, Window *window)
+{
+    cassert_no_null(component);
+    switch(component->type) {
+    case ekGUI_COMPONENT_PANEL:
+        _panel_taborder((Panel*)component, window);
+        break;
+
+    case ekGUI_COMPONENT_SPLITVIEW:
+        _splitview_taborder((SplitView*)component, window);
+        break;
+
+    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_COMPONENT_POPUP:
+    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_COMPONENT_COMBOBOX:
+    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_COMPONENT_UPDOWN:
+    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_COMPONENT_TEXTVIEW:
+    case ekGUI_COMPONENT_TABLEVIEW:
+    case ekGUI_COMPONENT_TREEVIEW:
+    case ekGUI_COMPONENT_CUSTOMVIEW:
+        _window_taborder(window, component->ositem);
+        break;
+
+	case ekGUI_COMPONENT_BOXVIEW:
+    case ekGUI_COMPONENT_LINE:
+    case ekGUI_COMPONENT_HEADER:
+    case ekGUI_COMPONENT_WINDOW:
+    case ekGUI_COMPONENT_TOOLBAR:
+    cassert_default();
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -541,7 +590,7 @@ const char_t *_component_type(const GuiComponent *component)
     case ekGUI_COMPONENT_CUSTOMVIEW:
         return _view_subtype((View*)component);
     case ekGUI_COMPONENT_TEXTVIEW:
-        return "VText";
+        return "TextView";
     case ekGUI_COMPONENT_TABLEVIEW:
         return "TableView";
     case ekGUI_COMPONENT_TREEVIEW:

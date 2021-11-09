@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: prview.h
- * https://nappgui.com/en/demo/products/prview.html
  *
  */
 

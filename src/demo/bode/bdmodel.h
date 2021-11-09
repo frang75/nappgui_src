@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bdmodel.h
- * https://nappgui.com/en/demo/bode/bdmodel.html
  *
  */
 

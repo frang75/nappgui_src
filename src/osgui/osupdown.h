@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osupdown.h
- * https://nappgui.com/en/osgui/osupdown.html
  *
  */
 

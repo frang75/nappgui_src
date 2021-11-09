@@ -12,7 +12,6 @@
 
 #include "core.inl"
 #include "blib.inl"
-#include "array.h"
 #include "bmem.h"
 #include "cassert.h"
 #include "heap.h"
@@ -92,14 +91,14 @@ static Array *i_create_init_array(const uint32_t elems, const uint16_t esize, co
 
 /*---------------------------------------------------------------------------*/
 
-Array *array_create_imp(const uint16_t esize, const char_t *type)
+Array *array_create(const uint16_t esize, const char_t *type)
 {
     return i_create_init_array(0, esize, type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-Array *array_copy_imp(const Array *array, FPtr_scopy func_copy, const char_t *type)
+Array *array_copy(const Array *array, FPtr_scopy func_copy, const char_t *type)
 {
     byte_t *data = NULL;
     
@@ -124,7 +123,7 @@ Array *array_copy_imp(const Array *array, FPtr_scopy func_copy, const char_t *ty
 
 /*---------------------------------------------------------------------------*/
 
-Array *array_copy_ptr_imp(const Array *array, FPtr_copy func_copy, const char_t *type)
+Array *array_copy_ptr(const Array *array, FPtr_copy func_copy, const char_t *type)
 {
     byte_t *data = NULL;
 
@@ -182,14 +181,14 @@ static Array *i_read_array(Stream *stream, const uint16_t esize, FPtr_read func_
 
 /*---------------------------------------------------------------------------*/
 
-Array *array_read_imp(Stream *stream, const uint16_t esize, FPtr_read_init func_read_init, const char_t *type)
+Array *array_read(Stream *stream, const uint16_t esize, FPtr_read_init func_read_init, const char_t *type)
 {
     return i_read_array(stream, esize, NULL, func_read_init, type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-Array *array_read_ptr_imp(Stream *stream, FPtr_read func_read, const char_t *type)
+Array *array_read_ptr(Stream *stream, FPtr_read func_read, const char_t *type)
 {
     return i_read_array(stream, sizeof(void*), func_read, NULL, type);
 }
@@ -221,7 +220,7 @@ static void i_destroy_elems(void **data, const uint32_t elems, FPtr_destroy func
 
 /*---------------------------------------------------------------------------*/
 
-void array_destroy_imp(Array **array, FPtr_remove func_remove, const char_t *type)
+void array_destroy(Array **array, FPtr_remove func_remove, const char_t *type)
 {
     cassert_no_null(array);
     cassert_no_null(*array);
@@ -232,18 +231,18 @@ void array_destroy_imp(Array **array, FPtr_remove func_remove, const char_t *typ
 
 /*---------------------------------------------------------------------------*/
 
-void array_destopt_imp(Array **array, FPtr_remove func_remove, const char_t *type)
+void array_destopt(Array **array, FPtr_remove func_remove, const char_t *type)
 {
     if (array != NULL)
     {
         if (*array != NULL)
-            array_destroy_imp(array, func_remove, type);
+            array_destroy(array, func_remove, type);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void array_destroy_ptr_imp(Array **array, FPtr_destroy func_destroy, const char_t *type)
+void array_destroy_ptr(Array **array, FPtr_destroy func_destroy, const char_t *type)
 {
     cassert_no_null(array);
     cassert_no_null(*array);
@@ -254,12 +253,12 @@ void array_destroy_ptr_imp(Array **array, FPtr_destroy func_destroy, const char_
 
 /*---------------------------------------------------------------------------*/
 
-void array_destopt_ptr_imp(Array **array, FPtr_destroy func_destroy, const char_t *type)
+void array_destopt_ptr(Array **array, FPtr_destroy func_destroy, const char_t *type)
 {
     if (array != NULL)
     {
         if (*array != NULL)
-            array_destroy_ptr_imp(array, func_destroy, type);
+            array_destroy_ptr(array, func_destroy, type);
     }
 }
 
@@ -281,7 +280,7 @@ static void i_clear(Array *array)
 
 /*---------------------------------------------------------------------------*/
 
-void array_clear_imp(Array *array, FPtr_remove func_remove)
+void array_clear(Array *array, FPtr_remove func_remove)
 {
     cassert_no_null(array);
     if (func_remove != NULL)
@@ -291,7 +290,7 @@ void array_clear_imp(Array *array, FPtr_remove func_remove)
 
 /*---------------------------------------------------------------------------*/
 
-void array_clear_ptr_imp(Array *array, FPtr_destroy func_destroy)
+void array_clear_ptr(Array *array, FPtr_destroy func_destroy)
 {
     cassert_no_null(array);
     if (func_destroy != NULL)
@@ -338,7 +337,7 @@ static void i_write_array(
 
 /*---------------------------------------------------------------------------*/
 
-void array_write_imp(Stream *stream, const Array *array, FPtr_write func_write)
+void array_write(Stream *stream, const Array *array, FPtr_write func_write)
 {
     cassert_no_null(array);
     i_write_array(stream, array, i_get_str_elem, func_write);
@@ -346,7 +345,7 @@ void array_write_imp(Stream *stream, const Array *array, FPtr_write func_write)
 
 /*---------------------------------------------------------------------------*/
 
-void array_write_ptr_imp(Stream *stream, const Array *array, FPtr_write func_write)
+void array_write_ptr(Stream *stream, const Array *array, FPtr_write func_write)
 {
     cassert_no_null(array);
     i_write_array(stream, array, i_get_ptr_elem, func_write);
@@ -354,7 +353,7 @@ void array_write_ptr_imp(Stream *stream, const Array *array, FPtr_write func_wri
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t array_size_imp(const Array *array)
+uint32_t array_size(const Array *array)
 {
     cassert_no_null(array);
     return array->elems;
@@ -362,7 +361,7 @@ uint32_t array_size_imp(const Array *array)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t array_esize_imp(const Array *array)
+uint32_t array_esize(const Array *array)
 {
     cassert_no_null(array);
     return array->esize;
@@ -429,7 +428,7 @@ static void i_shrink_array(
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_get_imp(const Array *array, const uint32_t pos)
+byte_t *array_get(const Array *array, const uint32_t pos)
 {
     cassert_no_null(array);
     cassert_msg(pos < array->elems, "Array invalid index");
@@ -438,7 +437,7 @@ byte_t *array_get_imp(const Array *array, const uint32_t pos)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_get_last_imp(const Array *array)
+byte_t *array_get_last(const Array *array)
 {
     cassert_no_null(array);
     cassert(array->elems > 0);
@@ -447,7 +446,7 @@ byte_t *array_get_last_imp(const Array *array)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_all_imp(const Array *array)
+byte_t *array_all(const Array *array)
 {
     cassert_no_null(array);
     return array->elems > 0 ? array->data : NULL;
@@ -455,7 +454,7 @@ byte_t *array_all_imp(const Array *array)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_insert_imp(Array *array, const uint32_t pos, const uint32_t n)
+byte_t *array_insert(Array *array, const uint32_t pos, const uint32_t n)
 {
     register uint32_t celem, cpos;
     cassert_no_null(array);
@@ -474,16 +473,16 @@ byte_t *array_insert_imp(Array *array, const uint32_t pos, const uint32_t n)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_insert0_imp(Array *array, const uint32_t pos, const uint32_t n)
+byte_t *array_insert0(Array *array, const uint32_t pos, const uint32_t n)
 {
-    register byte_t *data = array_insert_imp(array, pos, n);
+    register byte_t *data = array_insert(array, pos, n);
     bmem_set_zero(data, n * array->esize);
     return data;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void array_join_imp(Array *dest, const Array *src, FPtr_scopy func_copy)
+void array_join(Array *dest, const Array *src, FPtr_scopy func_copy)
 {    
     cassert_no_null(dest);
     cassert_no_null(src);
@@ -514,7 +513,7 @@ void array_join_imp(Array *dest, const Array *src, FPtr_scopy func_copy)
 
 /*---------------------------------------------------------------------------*/
 
-void array_join_ptr_imp(Array *dest, const Array *src, FPtr_copy func_copy)
+void array_join_ptr(Array *dest, const Array *src, FPtr_copy func_copy)
 {    
     cassert_no_null(dest);
     cassert_no_null(src);
@@ -566,7 +565,7 @@ static void i_delete_elems(uint32_t *nallocs, uint32_t *elems, byte_t **data, co
 
 /*---------------------------------------------------------------------------*/
 
-void array_delete_imp(Array *array, const uint32_t pos, const uint32_t n, FPtr_remove func_remove)
+void array_delete(Array *array, const uint32_t pos, const uint32_t n, FPtr_remove func_remove)
 {
     cassert_no_null(array);
     cassert(n > 0);
@@ -587,7 +586,7 @@ void array_delete_imp(Array *array, const uint32_t pos, const uint32_t n, FPtr_r
 
 /*---------------------------------------------------------------------------*/
 
-void array_delete_ptr_imp(Array *array, const uint32_t pos, const uint32_t n, FPtr_destroy func_destroy)
+void array_delete_ptr(Array *array, const uint32_t pos, const uint32_t n, FPtr_destroy func_destroy)
 {
     cassert_no_null(array);
     cassert(n > 0);
@@ -612,7 +611,7 @@ void array_delete_ptr_imp(Array *array, const uint32_t pos, const uint32_t n, FP
 
 /*---------------------------------------------------------------------------*/
 
-void array_pop_imp(Array *array, FPtr_remove func_remove)
+void array_pop(Array *array, FPtr_remove func_remove)
 {
     cassert_no_null(array);
     cassert(array->elems > 0);
@@ -627,7 +626,7 @@ void array_pop_imp(Array *array, FPtr_remove func_remove)
 
 /*---------------------------------------------------------------------------*/
 
-void array_pop_ptr_imp(Array *array, FPtr_destroy func_destroy)
+void array_pop_ptr(Array *array, FPtr_destroy func_destroy)
 {
     cassert_no_null(array);
     cassert(array->elems > 0);
@@ -646,7 +645,7 @@ void array_pop_ptr_imp(Array *array, FPtr_destroy func_destroy)
 
 /*---------------------------------------------------------------------------*/
 
-void array_sort_imp(Array *array, FPtr_compare func_compare)
+void array_sort(Array *array, FPtr_compare func_compare)
 {
     cassert_no_null(array);
     blib_qsort(array->data, array->elems, array->esize, func_compare);
@@ -654,7 +653,7 @@ void array_sort_imp(Array *array, FPtr_compare func_compare)
 
 /*---------------------------------------------------------------------------*/
 
-void array_sort_ex_imp(Array *array, FPtr_compare_ex func_compare, void *data)
+void array_sort_ex(Array *array, FPtr_compare_ex func_compare, void *data)
 {
     cassert_no_null(array);
     blib_qsort_ex(array->data, array->elems, array->esize, func_compare, (const byte_t*)data);
@@ -684,7 +683,7 @@ static int i_compare_ptr(const void **elem1, const void **elem2, i_CompareDPtr *
 
 /*---------------------------------------------------------------------------*/
 
-void array_sort_ptr_imp(Array *array, FPtr_compare func_compare)
+void array_sort_ptr(Array *array, FPtr_compare func_compare)
 {
     i_CompareDPtr cmp;
     cassert_no_null(array);
@@ -696,7 +695,7 @@ void array_sort_ptr_imp(Array *array, FPtr_compare func_compare)
 
 /*---------------------------------------------------------------------------*/
 
-void array_sort_ptr_ex_imp(Array *array, FPtr_compare_ex func_compare, void *data)
+void array_sort_ptr_ex(Array *array, FPtr_compare_ex func_compare, void *data)
 {
     i_CompareDPtr cmp;
     cassert_no_null(array);
@@ -708,7 +707,7 @@ void array_sort_ptr_ex_imp(Array *array, FPtr_compare_ex func_compare, void *dat
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t array_find_ptr_imp(const Array *array, const void *elem)
+uint32_t array_find_ptr(const Array *array, const void *elem)
 {
     const void **data;
     register uint32_t i;
@@ -727,7 +726,7 @@ uint32_t array_find_ptr_imp(const Array *array, const void *elem)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_search_imp(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
+byte_t *array_search(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
 {
     byte_t *data;
     register uint32_t i, n ,s;
@@ -751,7 +750,7 @@ byte_t *array_search_imp(const Array *array, FPtr_compare func_compare, const vo
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_search_ptr_imp(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
+byte_t *array_search_ptr(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
 {
     const void **data;
     register uint32_t i;
@@ -773,7 +772,7 @@ byte_t *array_search_ptr_imp(const Array *array, FPtr_compare func_compare, cons
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_bsearch_imp(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
+byte_t *array_bsearch(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
 {
     uint32_t i;
     cassert_no_null(array);
@@ -805,7 +804,7 @@ static int i_compare_dkey(const void *elem, const void *key, i_CompareKey *cmp)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *array_bsearch_ptr_imp(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
+byte_t *array_bsearch_ptr(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
 {   
     i_CompareKey cmp;
     uint32_t i;

@@ -49,6 +49,8 @@ struct _popup_t
     Listener *OnChange;
 };
 
+DeclSt(PElem);
+
 /*---------------------------------------------------------------------------*/
 
 static void i_remove_elem(PElem *elem)

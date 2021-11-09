@@ -76,7 +76,7 @@ struct _ldata_t
 
 /*---------------------------------------------------------------------------*/
 
-DeclType(PElem);
+DeclSt(PElem);
 static const uint32_t i_LEFT_PADDING = 4;
 static const uint32_t i_RIGHT_PADDING = 4;
 static const uint32_t i_BOTTOM_PADDING = 4;
@@ -659,6 +659,7 @@ ListBox *listbox_create(void)
     view_OnUp(view, listener((ListBox*)view, i_OnUp, ListBox));
     view_OnKeyDown(view, listener((ListBox*)view, i_OnKeyDown, ListBox));
     view_OnKeyUp(view, listener((ListBox*)view, i_OnKeyUp, ListBox));
+    _view_set_subtype(view, "ListBox");
     i_document_size((ListBox*)view, view_get_data(view, LData));
     return (ListBox*)view;
 }

@@ -82,23 +82,24 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_NCPAINT:
         if (view->flags & ekBORDER)
         {
-            RECT rect;
-            COLORREF color;
-            HPEN pen = NULL;
-            HRGN reg = NULL;
-            HDC hdc = NULL;
-            HGDIOBJ cpen = NULL;
-            GetWindowRect(hwnd, &rect);
-            color = GetSysColor(COLOR_ACTIVEBORDER);
-            pen = CreatePen(PS_INSIDEFRAME, 1, color);
-            reg = CreateRectRgn(rect.left, rect.top, rect.right, rect.bottom);
-            hdc = GetDCEx(hwnd, reg, DCX_WINDOW | DCX_INTERSECTRGN | DCX_CACHE);
-            cpen = SelectObject(hdc, pen);
-            Rectangle(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top);
-            SelectObject(hdc, cpen);
-            ReleaseDC(hwnd, hdc);
-            DeleteObject(reg);
-            DeleteObject(pen);
+            // Very bad redraw effects. We leave the default border color.
+            //RECT rect;
+            //COLORREF color;
+            //HPEN pen = NULL;
+            //HRGN reg = NULL;
+            //HDC hdc = NULL;
+            //HGDIOBJ cpen = NULL;
+            //GetWindowRect(hwnd, &rect);
+            //color = GetSysColor(COLOR_ACTIVEBORDER);
+            //pen = CreatePen(PS_INSIDEFRAME, 1, color);
+            //reg = CreateRectRgn(rect.left, rect.top, rect.right, rect.bottom);
+            //hdc = GetDCEx(hwnd, reg, DCX_WINDOW | DCX_INTERSECTRGN | DCX_CACHE);
+            //cpen = SelectObject(hdc, pen);
+            //Rectangle(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top);
+            //SelectObject(hdc, cpen);
+            //ReleaseDC(hwnd, hdc);
+            //DeleteObject(reg);
+            //DeleteObject(pen);
         }
         break;
 
@@ -524,10 +525,10 @@ void osview_scroller_size(const OSView* view, real32_t* width, real32_t* height)
 {
     cassert_no_null(view);
     if (width != NULL)
-        *width = (real32_t)osscroll_bar_width(view->scroll);
+        *width = (real32_t)osscroll_bar_width(view->scroll, TRUE);
 
     if (height != NULL)
-        *height = (real32_t)osscroll_bar_height(view->scroll);
+        *height = (real32_t)osscroll_bar_height(view->scroll, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

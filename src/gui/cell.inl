@@ -50,3 +50,4 @@ bool_t _cell_enabled(const Cell *cell);
 
 __END_C
 
+ArrStFuncs(Cell);

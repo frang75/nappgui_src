@@ -728,7 +728,7 @@ void _gui_context_append_split_manager(
                         FPtr_destroy func_split_destroy,
                         FPtr_set_ptr func_split_attach_control,
                         FPtr_set_ptr func_split_detach_control,
-                        FPtr_set_listener func_split_OnMoved,
+                        FPtr_set_listener func_split_OnDrag,
                         FPtr_set4_real32 func_split_track_area,
                         FPtr_set_ptr func_attach_split_to_panel,
                         FPtr_set_ptr func_detach_split_from_panel,
@@ -743,7 +743,7 @@ void _gui_context_append_split_manager(
                         func_split_destroy,\
                         func_split_attach_control,\
                         func_split_detach_control,\
-                        func_split_OnMoved,\
+                        func_split_OnDrag,\
                         func_split_track_area,\
                         func_attach_split_to_panel,\
                         func_detach_split_from_panel,\
@@ -758,7 +758,7 @@ void _gui_context_append_split_manager(
         FUNC_CHECK_DESTROY(func_split_destroy, splitv_type),\
         FUNC_CHECK_SET_PTR(func_split_attach_control, splitv_type, OSControl),\
         FUNC_CHECK_SET_PTR(func_split_detach_control, splitv_type, OSControl),\
-        FUNC_CHECK_SET_LISTENER(func_split_OnMoved, splitv_type),\
+        FUNC_CHECK_SET_LISTENER(func_split_OnDrag, splitv_type),\
         FUNC_CHECK_SET4_REAL32(func_split_track_area, splitv_type),\
         FUNC_CHECK_SET_PTR(func_attach_split_to_panel, splitv_type, panel_type),\
         FUNC_CHECK_SET_PTR(func_detach_split_from_panel, splitv_type, panel_type),\
@@ -773,7 +773,7 @@ void _gui_context_append_split_manager(
                         (FPtr_destroy)func_split_destroy,\
                         (FPtr_set_ptr)func_split_attach_control,\
                         (FPtr_set_ptr)func_split_detach_control,\
-                        (FPtr_set_listener)func_split_OnMoved,\
+                        (FPtr_set_listener)func_split_OnDrag,\
                         (FPtr_set4_real32)func_split_track_area,\
                         (FPtr_set_ptr)func_attach_split_to_panel,\
                         (FPtr_set_ptr)func_detach_split_from_panel,\
@@ -947,6 +947,7 @@ void _gui_context_append_panel_manager(
                         FPtr_create func_panel_create,
                         FPtr_destroy func_panel_destroy,
                         FPtr_area func_panel_area,
+                        FPtr_get2_real32 func_panel_scroller_size,
                         FPtr_set4_real32 func_panel_content_size,
                         FPtr_call func_panel_set_need_display,
                         FPtr_set_ptr func_attach_panel_to_panel,
@@ -961,6 +962,7 @@ void _gui_context_append_panel_manager(
                         func_panel_create,\
                         func_panel_destroy,\
                         func_panel_area,\
+                        func_panel_scroller_size,\
                         func_panel_content_size,\
                         func_panel_set_need_display,\
                         func_attach_panel_to_panel,\
@@ -975,6 +977,7 @@ void _gui_context_append_panel_manager(
         FUNC_CHECK_CREATE(func_panel_create, panel_type),\
         FUNC_CHECK_DESTROY(func_panel_destroy, panel_type),\
         FUNC_CHECK_AREA(func_panel_area, panel_type),\
+        FUNC_CHECK_GET2_REAL32(func_panel_scroller_size, panel_type),\
         FUNC_CHECK_SET4_REAL32(func_panel_content_size, panel_type),\
         FUNC_CHECK_CALL(func_panel_set_need_display, panel_type),\
         FUNC_CHECK_SET_PTR(func_attach_panel_to_panel, panel_type, panel_type),\
@@ -989,6 +992,7 @@ void _gui_context_append_panel_manager(
                         (FPtr_create)func_panel_create,\
                         (FPtr_destroy)func_panel_destroy,\
                         (FPtr_area)func_panel_area,\
+                        (FPtr_get2_real32)func_panel_scroller_size,\
                         (FPtr_set4_real32)func_panel_content_size,\
                         (FPtr_call)func_panel_set_need_display,\
                         (FPtr_set_ptr)func_attach_panel_to_panel,\

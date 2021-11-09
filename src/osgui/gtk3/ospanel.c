@@ -12,6 +12,7 @@
 
 #include "ospanel.h"
 #include "ospanel.inl"
+#include "ossplit.inl"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol.inl"
@@ -50,12 +51,14 @@ struct _area_t
 struct _ospanel_t
 {
     OSControl control;
+    OSControl *capture;
     GtkWidget *content;
     GtkAdjustment *hadjust;
     GtkAdjustment *vadjust;
     ArrSt(Area) *areas;
 };
 
+DeclSt(Area);
 #define i_red(rgba)     (((double)((uint8_t)((rgba) >>  0))) / 255.)
 #define i_green(rgba)   (((double)((uint8_t)((rgba) >>  8))) / 255.)
 #define i_blue(rgba)    (((double)((uint8_t)((rgba) >> 16))) / 255.)
@@ -109,6 +112,39 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSPanel *panel)
+{
+    if (panel->capture != NULL)
+    {
+        if (panel->capture->type == ekGUI_COMPONENT_SPLITVIEW)
+        {
+            _ossplit_OnPress((OSSplit*)panel->capture, event);
+
+        }
+//    // Left button
+//    if (event->button == 1)
+//    {
+//        if (view->inside_rect == TRUE)
+//        {
+//            gtk_grab_add(widget);
+//            bstd_printf("PRESSED!!!!!!!!!!!!!!\n");
+//            view->left_button = TRUE;
+//            return FALSE;
+//        }
+//    }
+
+        return TRUE;
+    }
+    // The handler will be called before the default handler of the signal.
+    // This is the default behaviour
+    else
+    {
+        return FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSPanel *ospanel_create(const uint32_t flags)
 {
     OSPanel *panel = heap_new0(OSPanel);
@@ -120,9 +156,18 @@ OSPanel *ospanel_create(const uint32_t flags)
         GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
         panel->content = widget;
         gtk_widget_show(panel->content);
-        _oscontrol_init(&panel->control, ekGUI_COMPONENT_CUSTOMVIEW, scroll, scroll, FALSE);
+        _oscontrol_init(&panel->control, ekGUI_COMPONENT_PANEL, scroll, scroll, FALSE);
         gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
         gtk_container_add(GTK_CONTAINER(panel->control.widget), panel->content);
+
+        // A parent widget can "capture" the mouse
+        {
+            GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(panel->control.widget));
+            GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(panel->control.widget));
+            g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
+            g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
+        }
+
         panel->hadjust = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(panel->control.widget));
         panel->vadjust = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(panel->control.widget));
     }
@@ -193,6 +238,47 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
         if (panel->areas != NULL)
             arrst_clear(panel->areas, NULL, Area);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+#if defined __ASSERTS__
+
+/*---------------------------------------------------------------------------*/
+
+// Working os SplitView WIP
+//static bool_t i_IS_SCROLLED_WINDOW(GtkWidget *widget)
+//{
+//#if GTK_CHECK_VERSION(3, 8, 0)
+//    return GTK_IS_SCROLLED_WINDOW(widget);
+//#else
+//
+//    if (GTK_IS_EVENT_BOX(widget) == TRUE)
+//    {
+//        GtkWidget *child = gtk_bin_get_child(GTK_BIN(widget));
+//        return GTK_IS_SCROLLED_WINDOW(child);
+//    }
+//
+//    return FALSE;
+//#endif
+//}
+
+/*---------------------------------------------------------------------------*/
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
+{
+    cassert_no_null(panel);
+
+    // In GTK scrollbars are overlapping
+    if (width != NULL)
+        *width = 0;
+
+    if (height != NULL)
+        *height = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -351,4 +437,22 @@ void _ospanel_detach_control(OSPanel *panel, OSControl *control)
 {
     cassert_no_null(panel);
     _oscontrol_detach_from_parent(control, panel->content ? panel->content : panel->control.widget);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_set_capture(OSPanel *panel, OSControl *control)
+{
+    cassert_no_null(panel);
+    cassert(panel->capture == NULL);
+    panel->capture = control;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_release_capture(OSPanel *panel)
+{
+    cassert_no_null(panel);
+    cassert(panel->capture != NULL);
+    panel->capture = NULL;
 }

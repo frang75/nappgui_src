@@ -17,11 +17,11 @@
 #include "heap.h"
 #include "ptr.h"
 
-enum i_type_t
+typedef enum i_type_t
 {
     i_RED_NODE      = 0,
     i_BLACK_NODE    = 1
-};
+} i_type_t;
 
 typedef struct i_node_t i_Node;
 typedef i_Node* i_NodePt;
@@ -29,7 +29,7 @@ typedef struct i_iterator_t i_Iterator;
 
 struct i_node_t
 {
-    enum i_type_t type;
+    i_type_t type;
     i_Node *lnode;
     i_Node *rnode;
 };
@@ -133,27 +133,7 @@ static void i_destroy_node(
 
 /*---------------------------------------------------------------------------*/
 
-static RBTree *i_create_rbtree(
-                        const uint32_t elems,
-                        const uint16_t esize,
-                        const uint16_t ksize,
-                        i_Node **root,
-                        FPtr_compare func_compare,
-                        const i_Iterator *it)
-{
-    RBTree *tree = heap_new(RBTree);
-    tree->elems = elems;
-    tree->esize = esize;
-    tree->ksize = ksize;
-    tree->root = ptr_dget(root, i_Node);
-    tree->func_compare = func_compare;
-    tree->it = *it;
-    return tree;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_destroy_rbtree(RBTree **tree, FPtr_remove func_remove, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key)
+static void i_destroy_rbtree(RBTree **tree, FPtr_remove func_remove, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key, const char_t *type)
 {
     cassert_no_null(tree);
     cassert_no_null(*tree);
@@ -162,21 +142,23 @@ static void i_destroy_rbtree(RBTree **tree, FPtr_remove func_remove, FPtr_destro
         i_destroy_node(&(*tree)->root, (*tree)->esize, (*tree)->ksize, func_remove, func_destroy, func_destroy_key);
 
     heap_delete_n(&(*tree)->it.path, (*tree)->it.path_alloc, i_NodePt);
-    heap_delete(tree, RBTree);
+    heap_free((byte_t**)tree, sizeof(RBTree), type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-RBTree *rbtree_create_imp(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize)
+RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize, const char_t *type)
 {
-    i_Node *root = NULL;
-    i_Iterator it;
-    uint16_t nksize;
-    it.path_size = 0;
-    it.path_alloc = 8;
-    it.path = heap_new_n(it.path_alloc, i_NodePt);
-    nksize = ksize > 0 ? ksize + ksize % sizeof(void*) : ksize; // Node element alignment
-    return i_create_rbtree(0, esize, nksize, &root, func_compare, &it);
+    RBTree *tree = (RBTree*)heap_malloc(sizeof(RBTree), type);
+    tree->func_compare = func_compare;
+    tree->elems = 0;
+    tree->esize = esize;
+    tree->ksize = ksize > 0 ? ksize + ksize % sizeof(void*) : ksize; // Node element alignment
+    tree->root = NULL;
+    tree->it.path_size = 0;
+    tree->it.path_alloc = 8;
+    tree->it.path = heap_new_n(tree->it.path_alloc, i_NodePt);
+    return tree;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -211,21 +193,21 @@ static void i_update_iterator_size(const uint32_t nelems, i_Iterator *it)
 
 /*---------------------------------------------------------------------------*/
 
-void rbtree_destroy_imp(RBTree **tree, FPtr_remove func_remove, FPtr_destroy func_destroy_key)
+void rbtree_destroy(RBTree **tree, FPtr_remove func_remove, FPtr_destroy func_destroy_key, const char_t *type)
 {
-    i_destroy_rbtree(tree, func_remove, NULL, func_destroy_key);
+    i_destroy_rbtree(tree, func_remove, NULL, func_destroy_key, type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void rbtree_destroy_ptr_imp(RBTree **tree, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key)
+void rbtree_destroy_ptr(RBTree **tree, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key, const char_t *type)
 {
-    i_destroy_rbtree(tree, NULL, func_destroy, func_destroy_key);
+    i_destroy_rbtree(tree, NULL, func_destroy, func_destroy_key, type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t rbtree_size_imp(const RBTree *tree)
+uint32_t rbtree_size(const RBTree *tree)
 {
     cassert_no_null(tree);
     return tree->elems;
@@ -307,7 +289,7 @@ static int i_node_by_key(i_Node *root, const void *key, const bool_t isptr, FPtr
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_get_imp(const RBTree *tree, const void *key, const bool_t isptr)
+byte_t *rbtree_get(const RBTree *tree, const void *key, const bool_t isptr)
 {
     cassert_no_null(tree);
     if (__TRUE_EXPECTED(tree->root != NULL))
@@ -697,7 +679,7 @@ static i_Node *i_insert_node(
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_insert_imp(RBTree *tree, const void *key, FPtr_copy func_key_copy)
+byte_t *rbtree_insert(RBTree *tree, const void *key, FPtr_copy func_key_copy)
 {
     i_Node *new_node = i_insert_node(&tree->root, tree->elems, key, FALSE, tree->func_compare, &tree->it, tree->ksize, tree->esize);
     tree->it.path_size = 0;
@@ -725,7 +707,7 @@ byte_t *rbtree_insert_imp(RBTree *tree, const void *key, FPtr_copy func_key_copy
 
 /*---------------------------------------------------------------------------*/
 
-bool_t rbtree_insert_ptr_imp(RBTree *tree, void *ptr)
+bool_t rbtree_insert_ptr(RBTree *tree, void *ptr)
 {
     i_Node *new_node = i_insert_node(&tree->root, tree->elems, ptr, TRUE, tree->func_compare, &tree->it, tree->ksize, tree->esize);
     tree->it.path_size = 0;    
@@ -1029,7 +1011,7 @@ static bool_t i_delete_element(
 
 /*---------------------------------------------------------------------------*/
 
-bool_t rbtree_delete_imp(RBTree *tree, const void *key, FPtr_remove func_remove, FPtr_destroy func_destroy_key)
+bool_t rbtree_delete(RBTree *tree, const void *key, FPtr_remove func_remove, FPtr_destroy func_destroy_key)
 {
     cassert_no_null(tree);
     if (i_delete_element(&tree->root, tree->elems, key, (bool_t)(func_destroy_key != NULL), tree->func_compare, &tree->it, tree->esize, tree->ksize, func_remove, NULL, func_destroy_key) == TRUE)
@@ -1048,7 +1030,7 @@ bool_t rbtree_delete_imp(RBTree *tree, const void *key, FPtr_remove func_remove,
 
 /*---------------------------------------------------------------------------*/
 
-bool_t rbtree_delete_ptr_imp(RBTree *tree, const void *key, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key)
+bool_t rbtree_delete_ptr(RBTree *tree, const void *key, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key)
 {
     cassert_no_null(tree);
     if (i_delete_element(&tree->root, tree->elems, key, TRUE, tree->func_compare, &tree->it, tree->esize, tree->ksize, NULL, func_destroy, func_destroy_key) == TRUE)
@@ -1067,7 +1049,7 @@ bool_t rbtree_delete_ptr_imp(RBTree *tree, const void *key, FPtr_destroy func_de
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_first_imp(RBTree *tree)
+byte_t *rbtree_first(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_first(tree->root, &tree->it) == TRUE)
@@ -1078,7 +1060,7 @@ byte_t *rbtree_first_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_last_imp(RBTree *tree)
+byte_t *rbtree_last(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_last(tree->root, &tree->it) == TRUE)
@@ -1089,7 +1071,7 @@ byte_t *rbtree_last_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_next_imp(RBTree *tree)
+byte_t *rbtree_next(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_inorder_next(&tree->it) == TRUE)
@@ -1100,7 +1082,7 @@ byte_t *rbtree_next_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_prev_imp(RBTree *tree)
+byte_t *rbtree_prev(RBTree *tree)
 {   
     cassert_no_null(tree);
     if (i_inorder_prev(&tree->it) == TRUE)
@@ -1111,7 +1093,7 @@ byte_t *rbtree_prev_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_first_ptr_imp(RBTree *tree)
+byte_t *rbtree_first_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_first(tree->root, &tree->it) == TRUE)
@@ -1122,7 +1104,7 @@ byte_t *rbtree_first_ptr_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_last_ptr_imp(RBTree *tree)
+byte_t *rbtree_last_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_last(tree->root, &tree->it) == TRUE)
@@ -1133,7 +1115,7 @@ byte_t *rbtree_last_ptr_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_next_ptr_imp(RBTree *tree)
+byte_t *rbtree_next_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_inorder_next(&tree->it) == TRUE)
@@ -1144,7 +1126,7 @@ byte_t *rbtree_next_ptr_imp(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_prev_ptr_imp(RBTree *tree)
+byte_t *rbtree_prev_ptr(RBTree *tree)
 {   
     cassert_no_null(tree);
     if (i_inorder_prev(&tree->it) == TRUE)

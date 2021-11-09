@@ -294,4 +294,6 @@ struct _evtbcell_t
     color_t bgcolor;
 };
 
+DeclSt(FPtr_respack);
+
 #endif

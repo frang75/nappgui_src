@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ospopup.h
- * https://nappgui.com/en/osgui/ospopup.html
  *
  */
 

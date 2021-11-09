@@ -59,7 +59,15 @@ static void i_OnTViewDestroy(GtkWidget *obj, gpointer data)
     unref(control);
 }
 
+//static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSText *view)
+//{
+//    //_oslistener_mouse_moved((OSControl*)view, event, NULL, NULL, &view->listeners);
+//    return FALSE;
+//}
+
 /*---------------------------------------------------------------------------*/
+
+//#include "oslistener.inl"
 
 OSText *ostext_create(const tview_flag_t flags)
 {
@@ -78,6 +86,8 @@ OSText *ostext_create(const tview_flag_t flags)
     view->afspace = 0;
     view->curtag = NULL;
     view->tview = gtk_text_view_new();
+//    gint moved_signal = 0;
+//    _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     g_signal_connect(view->tview, "destroy", G_CALLBACK(i_OnTViewDestroy), (gpointer)view);
     gtk_widget_show(view->tview);
     view->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));

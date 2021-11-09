@@ -186,6 +186,7 @@ const WORD kVIRTUAL_KEY[] =
 };
 
 uint32_t kNUM_VKEYS = sizeof(kVIRTUAL_KEY) / sizeof(WORD);
+DeclSt(ACCEL);
 
 /*---------------------------------------------------------------------------*/
 

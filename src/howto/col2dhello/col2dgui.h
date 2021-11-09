@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: col2dgui.h
- * https://nappgui.com/en/howto/col2dhello/col2dgui.html
  *
  */
 

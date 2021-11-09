@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: types.hxx
- * https://nappgui.com/en/sewer/types.html
  *
  */
 
@@ -51,38 +50,6 @@ typedef enum _enum_t
 #define __EXTERN_C
 #define __END_C
 #endif
-
-#define ArrStDecl(type)\
-struct type##Data\
-{\
-    type elem[1024];\
-};\
-\
-struct Arr##St##type\
-{\
-    uint32_t reserved;\
-    uint32_t size;\
-    uint16_t elem_sizeof;\
-    struct type##Data *content;\
-}
-
-#define ArrPtDecl(type)\
-struct type##PtData\
-{\
-    type *elem[1024];\
-};\
-\
-struct Arr##Pt##type\
-{\
-    uint32_t reserved;\
-    uint32_t size;\
-    uint16_t elem_sizeof;\
-    struct type##PtData *content;\
-}
-
-#define DeclType(type)\
-    ArrStDecl(type);\
-    ArrPtDecl(type)
 
 #endif
 

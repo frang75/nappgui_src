@@ -33,6 +33,10 @@ void _component_dimension(GuiComponent *component, const uint32_t i, real32_t *d
 
 void _component_expand(GuiComponent *component, const uint32_t di, const real32_t current_size, const real32_t required_size, real32_t *final_size);
 
+void _component_locate(GuiComponent *component);
+
+void _component_taborder(GuiComponent *component, Window *window);
+
 void _component_visible(GuiComponent *component, const bool_t visible);
 
 void _component_enabled(GuiComponent *component, const bool_t enabled);

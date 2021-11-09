@@ -136,13 +136,56 @@ struct i_databind_t
 
 /*---------------------------------------------------------------------------*/
 
+DeclSt(EnumVBind);
+DeclPt(EnumBind);
+DeclSt(DBind);
+DeclPt(StBind);
+
+//struct StBindData{ StBind elem[1024];};struct ArrStStBind{ uint32_t reserved; uint32_t size; uint16_t elem_sizeof; struct StBindData *content;}; struct ArrStStBind;inline struct ArrStStBind* arrst_StBind_create(const uint16_t esize){ return (struct ArrStStBind*)array_create(esize, (const char_t*)("ArrSt::""StBind"));}inline struct ArrStStBind* arrst_StBind_copy(const struct ArrStStBind *array, void(func_copy)(StBind*, const StBind*)){ return (struct ArrStStBind*)array_copy((Array*)array, (FPtr_scopy)func_copy, (const char_t*)("ArrSt::""StBind"));}inline struct ArrStStBind* arrst_StBind_read(Stream *stream, const uint16_t esize, void(func_read)(Stream*, StBind*)){ return (struct ArrStStBind*)array_read(stream, esize, (FPtr_read_init)func_read, (const char_t*)("ArrSt::""StBind"));}inline void arrst_StBind_destroy(struct ArrStStBind **array, void(func_remove)(StBind*)){ array_destroy((Array**)array, (FPtr_remove)func_remove, (const char_t*)("ArrSt::""StBind"));}inline void arrst_StBind_destopt(struct ArrStStBind **array, void(func_remove)(StBind*)){ array_destopt((Array**)array, (FPtr_remove)func_remove, (const char_t*)("ArrSt::""StBind"));}inline void arrst_StBind_clear(struct ArrStStBind *array, void(func_remove)(StBind*)){ array_clear((Array*)array, (FPtr_remove)func_remove);}inline void arrst_StBind_write(Stream *stream, const struct ArrStStBind *array, void(func_write)(Stream*, const StBind*)){ array_write(stream, (const Array*)array, (FPtr_write)func_write);}inline uint32_t arrst_StBind_size(const struct ArrStStBind *array){ return array_size((const Array*)array);}inline StBind *arrst_StBind_get(struct ArrStStBind *array, const uint32_t pos){ return (StBind*)array_get((Array*)array, pos);}inline const StBind *arrst_StBind_get_const(const struct ArrStStBind *array, const uint32_t pos){ return (const StBind*)array_get((Array*)array, pos);}inline StBind *arrst_StBind_last(struct ArrStStBind *array){ return (StBind*)array_get_last((Array*)array);}inline const StBind *arrst_StBind_last_const(const struct ArrStStBind *array){ return (const StBind*)array_get_last((const Array*)array);}inline StBind *arrst_StBind_all(struct ArrStStBind *array){ return (StBind*)array_all((Array*)array);}inline const StBind *arrst_StBind_all_const(const struct ArrStStBind *array){ return (const StBind*)array_all((Array*)array);}inline StBind *arrst_StBind_insert(struct ArrStStBind *array, const uint32_t pos, const uint32_t n){ return (StBind*)array_insert((Array*)array, pos, n);}inline StBind *arrst_StBind_insert0(struct ArrStStBind *array, const uint32_t pos, const uint32_t n){ return (StBind*)array_insert0((Array*)array, pos, n);}inline void arrst_StBind_join(struct ArrStStBind *dest, const struct ArrStStBind *src, void(func_copy)(StBind*, const StBind*)){ array_join((Array*)dest, (const Array*)src, (FPtr_scopy)func_copy);}inline void arrst_StBind_delete(struct ArrStStBind *array, const uint32_t pos, void(func_remove)(StBind*)){ array_delete((Array*)array, pos, 1, (FPtr_remove)func_remove);}inline void arrst_StBind_pop(struct ArrStStBind *array, void(func_remove)(StBind*)){ array_pop((Array*)array, (FPtr_remove)func_remove);}inline void arrst_StBind_sort(struct ArrStStBind *array, int(func_compare)(const StBind*, const StBind*)){ array_sort((Array*)array, (FPtr_compare)func_compare);}inline void arrst_StBind_sort_ex(struct ArrStStBind *array, FPtr_compare_ex func_compare, void *data){ array_sort_ex((Array*)array, func_compare, data);}inline StBind* arrst_StBind_search(struct ArrStStBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (StBind*)array_search((Array*)array, func_compare, key, pos);}inline const StBind* arrst_StBind_search_const(const struct ArrStStBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (const StBind*)array_search((Array*)array, func_compare, key, pos);}inline StBind* arrst_StBind_bsearch(struct ArrStStBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (StBind*)array_bsearch((Array*)array, func_compare, key, pos);}inline const StBind* arrst_StBind_bsearch_const(const struct ArrStStBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (const StBind*)array_bsearch((Array*)array, func_compare, key, pos);}inline void arrst_StBind_end(void);
+//struct DBindData{ DBind elem[1024];};
+//struct ArrStDBind{ uint32_t reserved; uint32_t size; uint16_t elem_sizeof; struct DBindData *content;};
+//struct ArrStDBind;
+//inline struct ArrStDBind* arrst_DBind_create(const uint16_t esize)
+//{ return (struct ArrStDBind*)array_create(esize, (const char_t*)("ArrSt::""DBind"));}
+//inline struct ArrStDBind* arrst_DBind_copy(const struct ArrStDBind *array, void(func_copy)(DBind*, const DBind*))
+//{ return (struct ArrStDBind*)array_copy((Array*)array, (FPtr_scopy)func_copy, (const char_t*)("ArrSt::""DBind"));}
+//inline struct ArrStDBind* arrst_DBind_read(Stream *stream, const uint16_t esize, void(func_read)(Stream*, DBind*))
+//{ return (struct ArrStDBind*)array_read(stream, esize, (FPtr_read_init)func_read, (const char_t*)("ArrSt::""DBind"));}
+//inline void arrst_DBind_destroy(struct ArrStDBind **array, void(func_remove)(DBind*))
+//{ array_destroy((Array**)array, (FPtr_remove)func_remove, (const char_t*)("ArrSt::""DBind"));}
+//inline void arrst_DBind_destopt(struct ArrStDBind **array, void(func_remove)(DBind*))
+//{ array_destopt((Array**)array, (FPtr_remove)func_remove, (const char_t*)("ArrSt::""DBind"));}
+//inline void arrst_DBind_clear(struct ArrStDBind *array, void(func_remove)(DBind*))
+//{ array_clear((Array*)array, (FPtr_remove)func_remove);}
+//inline void arrst_DBind_write(Stream *stream, const struct ArrStDBind *array, void(func_write)(Stream*, const DBind*))
+//{ array_write(stream, (const Array*)array, (FPtr_write)func_write);}
+//inline uint32_t arrst_DBind_size(const struct ArrStDBind *array)
+//{ return array_size((const Array*)array);}
+//inline DBind *arrst_DBind_get(struct ArrStDBind *array, const uint32_t pos)
+//{ return (DBind*)array_get((Array*)array, pos);}
+//inline const DBind *arrst_DBind_get_const(const struct ArrStDBind *array, const uint32_t pos)
+//{ return (const DBind*)array_get((Array*)array, pos);}
+//inline DBind *arrst_DBind_last(struct ArrStDBind *array)
+//{ return (DBind*)array_get_last((Array*)array);}
+//inline const DBind *arrst_DBind_last_const(const struct ArrStDBind *array)
+//{ return (const DBind*)array_get_last((const Array*)array);}
+//
+//DBind *arrst_DBind_all(struct ArrStDBind *array);inline DBind *arrst_DBind_all(struct ArrStDBind *array){return (DBind*)array_all((Array*)array);}
+//
+//
+//
+//inline const DBind *arrst_DBind_all_const(const struct ArrStDBind *array)
+//{ return (const DBind*)array_all((Array*)array);}
+//inline DBind *arrst_DBind_insert(struct ArrStDBind *array, const uint32_t pos, const uint32_t n)
+//{ return (DBind*)array_insert((Array*)array, pos, n);}
+//inline DBind *arrst_DBind_insert0(struct ArrStDBind *array, const uint32_t pos, const uint32_t n)
+//{ return (DBind*)array_insert0((Array*)array, pos, n);}inline void arrst_DBind_join(struct ArrStDBind *dest, const struct ArrStDBind *src, void(func_copy)(DBind*, const DBind*)){ array_join((Array*)dest, (const Array*)src, (FPtr_scopy)func_copy);}inline void arrst_DBind_delete(struct ArrStDBind *array, const uint32_t pos, void(func_remove)(DBind*)){ array_delete((Array*)array, pos, 1, (FPtr_remove)func_remove);}inline void arrst_DBind_pop(struct ArrStDBind *array, void(func_remove)(DBind*)){ array_pop((Array*)array, (FPtr_remove)func_remove);}inline void arrst_DBind_sort(struct ArrStDBind *array, int(func_compare)(const DBind*, const DBind*)){ array_sort((Array*)array, (FPtr_compare)func_compare);}inline void arrst_DBind_sort_ex(struct ArrStDBind *array, FPtr_compare_ex func_compare, void *data){ array_sort_ex((Array*)array, func_compare, data);}inline DBind* arrst_DBind_search(struct ArrStDBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (DBind*)array_search((Array*)array, func_compare, key, pos);}inline const DBind* arrst_DBind_search_const(const struct ArrStDBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (const DBind*)array_search((Array*)array, func_compare, key, pos);}inline DBind* arrst_DBind_bsearch(struct ArrStDBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (DBind*)array_bsearch((Array*)array, func_compare, key, pos);}inline const DBind* arrst_DBind_bsearch_const(const struct ArrStDBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (const DBind*)array_bsearch((Array*)array, func_compare, key, pos);}inline void arrst_DBind_end(void);
+//struct EnumVBindData{ EnumVBind elem[1024];};struct ArrStEnumVBind{ uint32_t reserved; uint32_t size; uint16_t elem_sizeof; struct EnumVBindData *content;}; struct ArrStEnumVBind;inline struct ArrStEnumVBind* arrst_EnumVBind_create(const uint16_t esize){ return (struct ArrStEnumVBind*)array_create(esize, (const char_t*)("ArrSt::""EnumVBind"));}inline struct ArrStEnumVBind* arrst_EnumVBind_copy(const struct ArrStEnumVBind *array, void(func_copy)(EnumVBind*, const EnumVBind*)){ return (struct ArrStEnumVBind*)array_copy((Array*)array, (FPtr_scopy)func_copy, (const char_t*)("ArrSt::""EnumVBind"));}inline struct ArrStEnumVBind* arrst_EnumVBind_read(Stream *stream, const uint16_t esize, void(func_read)(Stream*, EnumVBind*)){ return (struct ArrStEnumVBind*)array_read(stream, esize, (FPtr_read_init)func_read, (const char_t*)("ArrSt::""EnumVBind"));}inline void arrst_EnumVBind_destroy(struct ArrStEnumVBind **array, void(func_remove)(EnumVBind*)){ array_destroy((Array**)array, (FPtr_remove)func_remove, (const char_t*)("ArrSt::""EnumVBind"));}inline void arrst_EnumVBind_destopt(struct ArrStEnumVBind **array, void(func_remove)(EnumVBind*)){ array_destopt((Array**)array, (FPtr_remove)func_remove, (const char_t*)("ArrSt::""EnumVBind"));}inline void arrst_EnumVBind_clear(struct ArrStEnumVBind *array, void(func_remove)(EnumVBind*)){ array_clear((Array*)array, (FPtr_remove)func_remove);}inline void arrst_EnumVBind_write(Stream *stream, const struct ArrStEnumVBind *array, void(func_write)(Stream*, const EnumVBind*)){ array_write(stream, (const Array*)array, (FPtr_write)func_write);}inline uint32_t arrst_EnumVBind_size(const struct ArrStEnumVBind *array){ return array_size((const Array*)array);}inline EnumVBind *arrst_EnumVBind_get(struct ArrStEnumVBind *array, const uint32_t pos){ return (EnumVBind*)array_get((Array*)array, pos);}inline const EnumVBind *arrst_EnumVBind_get_const(const struct ArrStEnumVBind *array, const uint32_t pos){ return (const EnumVBind*)array_get((Array*)array, pos);}inline EnumVBind *arrst_EnumVBind_last(struct ArrStEnumVBind *array){ return (EnumVBind*)array_get_last((Array*)array);}inline const EnumVBind *arrst_EnumVBind_last_const(const struct ArrStEnumVBind *array){ return (const EnumVBind*)array_get_last((const Array*)array);}inline EnumVBind *arrst_EnumVBind_all(struct ArrStEnumVBind *array){ return (EnumVBind*)array_all((Array*)array);}inline const EnumVBind *arrst_EnumVBind_all_const(const struct ArrStEnumVBind *array){ return (const EnumVBind*)array_all((Array*)array);}inline EnumVBind *arrst_EnumVBind_insert(struct ArrStEnumVBind *array, const uint32_t pos, const uint32_t n){ return (EnumVBind*)array_insert((Array*)array, pos, n);}inline EnumVBind *arrst_EnumVBind_insert0(struct ArrStEnumVBind *array, const uint32_t pos, const uint32_t n){ return (EnumVBind*)array_insert0((Array*)array, pos, n);}inline void arrst_EnumVBind_join(struct ArrStEnumVBind *dest, const struct ArrStEnumVBind *src, void(func_copy)(EnumVBind*, const EnumVBind*)){ array_join((Array*)dest, (const Array*)src, (FPtr_scopy)func_copy);}inline void arrst_EnumVBind_delete(struct ArrStEnumVBind *array, const uint32_t pos, void(func_remove)(EnumVBind*)){ array_delete((Array*)array, pos, 1, (FPtr_remove)func_remove);}inline void arrst_EnumVBind_pop(struct ArrStEnumVBind *array, void(func_remove)(EnumVBind*)){ array_pop((Array*)array, (FPtr_remove)func_remove);}inline void arrst_EnumVBind_sort(struct ArrStEnumVBind *array, int(func_compare)(const EnumVBind*, const EnumVBind*)){ array_sort((Array*)array, (FPtr_compare)func_compare);}inline void arrst_EnumVBind_sort_ex(struct ArrStEnumVBind *array, FPtr_compare_ex func_compare, void *data){ array_sort_ex((Array*)array, func_compare, data);}inline EnumVBind* arrst_EnumVBind_search(struct ArrStEnumVBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (EnumVBind*)array_search((Array*)array, func_compare, key, pos);}inline const EnumVBind* arrst_EnumVBind_search_const(const struct ArrStEnumVBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (const EnumVBind*)array_search((Array*)array, func_compare, key, pos);}inline EnumVBind* arrst_EnumVBind_bsearch(struct ArrStEnumVBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (EnumVBind*)array_bsearch((Array*)array, func_compare, key, pos);}inline const EnumVBind* arrst_EnumVBind_bsearch_const(const struct ArrStEnumVBind *array, FPtr_compare func_compare, const void *key, uint32_t *pos){ return (const EnumVBind*)array_bsearch((Array*)array, func_compare, key, pos);}inline void arrst_EnumVBind_end(void);
+
 static void i_remove_object(byte_t *data, const StBind *stbind, const uint16_t size);
 static void i_destroy_object(byte_t **data, const StBind *stbind, const uint16_t size);
 static void i_write_value(Stream *stm, DBind *dbind, dtype_t type, const char_t *subtype, const void *data);
 static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t *subtype, void *data);
-DeclType(DBind);
-DeclType(StBind);
-
 static i_DataBind i_DATABIND = { 0, 0 };
 
 /*---------------------------------------------------------------------------*/
@@ -1039,7 +1082,7 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         uint16_t esize;
         str_cat_c(atype, 128, subtype);
         i_data_type(subtype, NULL, &esize);
-        *array = array_create_imp(esize, atype);
+        *array = array_create(esize, atype);
         break;
     }
 
@@ -1049,7 +1092,7 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         const char_t *subtype = i_subtype_str(member);
         Array **array = (Array**)(data + member->offset);
         str_cat_c(atype, 128, subtype);
-        *array = array_create_imp(sizeof(void*), atype);
+        *array = array_create(sizeof(void*), atype);
         break;
     }
 
@@ -1134,7 +1177,7 @@ byte_t *dbind_create_imp(const char_t *type)
         uint16_t esize;
         i_data_type(tc(subtype), NULL, &esize);
         str_cat_c(atype, 128, tc(subtype));
-        data = (byte_t*)array_create_imp(esize, atype);
+        data = (byte_t*)array_create(esize, atype);
         break;
     }
 
@@ -1142,7 +1185,7 @@ byte_t *dbind_create_imp(const char_t *type)
     {
         char_t atype[128] = ARRPT;
         str_cat_c(atype, 128, tc(subtype));
-        data = (byte_t*)array_create_imp(sizeof(void*), atype);
+        data = (byte_t*)array_create(sizeof(void*), atype);
         break;
     }
 
@@ -1298,9 +1341,9 @@ static void i_destroy_array(Array **array, const char_t *type)
         if (dtype == ekDTYPE_OBJECT)
         {
             StBind *stbind = i_find_stbind(tc(subtype), NULL);
-            byte_t *data = array_all_imp(*array);
-            uint32_t i, n = array_size_imp(*array);
-            cassert(size == array_esize_imp(*array));
+            byte_t *data = array_all(*array);
+            uint32_t i, n = array_size(*array);
+            cassert(size == array_esize(*array));
             for (i = 0; i < n; ++i, data += size)
                 i_remove_object(data, stbind, size);
         }
@@ -1316,7 +1359,7 @@ static void i_destroy_array(Array **array, const char_t *type)
         }
 
         cassert(subtype == NULL);
-        array_destroy_imp(array, NULL, atype);
+        array_destroy(array, NULL, atype);
     }
 }
 
@@ -1336,20 +1379,20 @@ static void i_destroy_arrpt(Array **array, const char_t *type)
         case ekDTYPE_OBJECT:
         {
             StBind *stbind = i_find_stbind(tc(subtype), NULL);
-            byte_t *data = array_all_imp(*array);
-            uint32_t i, n = array_size_imp(*array);
-            cassert(sizeof(void*) == array_esize_imp(*array));
+            byte_t *data = array_all(*array);
+            uint32_t i, n = array_size(*array);
+            cassert(sizeof(void*) == array_esize(*array));
             for (i = 0; i < n; ++i, data += sizeof(void*))
                 i_destroy_object((byte_t**)data, stbind, size);
             str_cat_c(atype, 128, tc(subtype));
-            array_destroy_imp(array, NULL, atype);
+            array_destroy(array, NULL, atype);
             str_destroy(&subtype);
             break;
         }
 
         case ekDTYPE_STRING:
             str_cat_c(atype, 128, "String");
-            array_destroy_ptr_imp(array, (FPtr_destroy)str_destopt, atype);
+            array_destroy_ptr(array, (FPtr_destroy)str_destopt, atype);
             break;
 
         case ekDTYPE_BOOL:
@@ -1587,7 +1630,7 @@ static bool_t i_read_array(Stream *stm, dtype_t type, const char_t *subtype, Arr
     uint32_t i, n = stm_read_u32(stm);
     for (i = 0; i < n; ++i)
     {
-        byte_t *obj = array_insert_imp(array, UINT32_MAX, 1);
+        byte_t *obj = array_insert(array, UINT32_MAX, 1);
         dbind_init_imp(obj, subtype);
         ok &= i_read_value(stm, NULL, type, subtype, obj);
     }
@@ -1610,7 +1653,7 @@ static bool_t i_read_arrpt(Stream *stm, const char_t *type, Array *array)
         ok &= i_read_value(stm, NULL, dtype, tc(subtype), obj);
         if (ok == TRUE)
         {
-            void **objins = (void**)array_insert_imp(array, UINT32_MAX, 1);
+            void **objins = (void**)array_insert(array, UINT32_MAX, 1);
             *objins = obj;
         }
     }
@@ -1757,16 +1800,16 @@ static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t
         uint16_t size;
         dtype_t dtype;
         cassert(*(Array**)data != NULL);
-        cassert(array_size_imp(*(Array**)data) == 0);
+        cassert(array_size(*(Array**)data) == 0);
         dtype = i_data_type(subtype, NULL, &size);
-        cassert(size == array_esize_imp(*(Array**)data));
+        cassert(size == array_esize(*(Array**)data));
         return i_read_array(stm, dtype, subtype, *((Array**)data));
     }
 
     case ekDTYPE_ARRPTR:
         cassert(*(Array**)data != NULL);
-        cassert(array_size_imp(*(Array**)data) == 0);
-        cassert(sizeof(void*) == array_esize_imp(*(Array**)data));
+        cassert(array_size(*(Array**)data) == 0);
+        cassert(sizeof(void*) == array_esize(*(Array**)data));
         return i_read_arrpt(stm, subtype, *(Array**)data);
 
     case ekDTYPE_OBJECT:
@@ -1827,7 +1870,7 @@ static void *i_create_type(Stream *stm, const char_t *type)
             Array *array;
             cassert_msg(FALSE, "Not implemented");
             cassert_msg(stbind != NULL, "DBind unknown type");
-            array = array_create_imp(stbind->size, tc(subtype));
+            array = array_create(stbind->size, tc(subtype));
             adtype = i_data_type(tc(subtype), NULL, &adsize);
             if (i_read_array(stm, adtype, tc(subtype), array) == TRUE)
             {
@@ -1847,7 +1890,7 @@ static void *i_create_type(Stream *stm, const char_t *type)
             Array *array;
             cassert_msg(i_find_stbind(tc(subtype), NULL) != NULL, "DBind unknown type");
             str_cat_c(atype, 128, tc(subtype));
-            array = array_create_imp(sizeof(void*), atype);
+            array = array_create(sizeof(void*), atype);
             if (i_read_arrpt(stm, tc(subtype), array) == TRUE)
             {
                 obj = (byte_t*)array;
@@ -2009,9 +2052,9 @@ static void i_write_array(Stream *stm, const Array *array, const char_t *type)
 {
     if (array != NULL)
     {
-        const byte_t *data = array_all_imp(array);
-        uint32_t i, n = array_size_imp(array);
-        uint32_t es = array_esize_imp(array);
+        const byte_t *data = array_all(array);
+        uint32_t i, n = array_size(array);
+        uint32_t es = array_esize(array);
         String *subtype = NULL;
         dtype_t atype = i_data_type(type, &subtype, NULL);
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;
@@ -2032,8 +2075,8 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
 {
     if (array != NULL)
     {
-        const byte_t *data = array_all_imp(array);
-        uint32_t i, n = array_size_imp(array);
+        const byte_t *data = array_all(array);
+        uint32_t i, n = array_size(array);
         String *subtype = NULL;
         dtype_t atype = _dbind_type(type, &subtype, NULL);
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;

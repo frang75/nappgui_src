@@ -76,6 +76,8 @@ struct _tdata_t
     real32_t padding_right;
 };
 
+DeclSt(Column);
+
 /*---------------------------------------------------------------------------*/
 
 static void i_remove_column(Column *column)

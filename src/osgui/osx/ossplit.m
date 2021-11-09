@@ -18,7 +18,6 @@
 #include "ospanel.inl"
 #include "cassert.h"
 #include "event.h"
-#include "event.inl"
 #include "heap.h"
 #include "ptr.h"
 
@@ -28,11 +27,12 @@
 
 @interface OSXSplitView : NSView 
 {
-    @public
+@public
     split_flag_t flags;
     NSTrackingArea *track_area;
-    NSRect div_rect;
-    ViewListeners listeners;
+    NSRect divrect;
+    bool_t left_button;
+    Listener *OnDrag;
 }
 
 - (void) mouseDragged:(NSEvent*)theEvent;
@@ -46,26 +46,43 @@
 
 /*---------------------------------------------------------------------------*/
 
+static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
+{
+    NSPoint pt = [view convertPoint:*pt_window fromView:nil];
+        
+    if ([view isKindOfClass:[OSXSplitView class]])
+    {
+        OSXSplitView *split = (OSXSplitView*)view;
+        if (NSPointInRect(pt, split->divrect) == YES)
+        {
+            if (split_type(split->flags) == ekSPHORZ)
+                return [NSCursor resizeUpDownCursor];
+            else
+                return [NSCursor resizeLeftRightCursor];
+        }
+    }
+     
+    for (NSView *child in [view subviews])
+    {
+        NSRect rect = [child frame];
+        if (NSPointInRect(pt, rect) == YES)
+            return i_cursor(child, pt_window);
+    }
+
+    return [NSCursor arrowCursor];
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void) mouseMoved:(NSEvent*)event
 {
-    unref(event);
-    cassert(FALSE);
-    //if (self->listeners.is_dragging == NO)
+    cassert_no_null(event);
+    if (self->left_button == FALSE)
     {
-        NSPoint local_point;
-        cassert_no_null(event);
-        local_point = [self convertPoint:[event locationInWindow] fromView:nil];
-        if (NSPointInRect(local_point, self->div_rect) == YES)
-        {
-            if (split_type(self->flags) == ekSPHORZ)
-                [[NSCursor resizeUpDownCursor] set];
-            else
-                [[NSCursor resizeLeftRightCursor] set];
-        }
-        else
-        {
-            [[NSCursor arrowCursor] set];
-        }
+        NSPoint pt = [event locationInWindow];
+        NSCursor *cursor = i_cursor(self, &pt);
+        cassert(cursor != nil);
+        [cursor set];
     }
 }
 
@@ -73,11 +90,10 @@
 
 - (NSView*)hitTest:(NSPoint)aPoint
 {
-    cassert(FALSE);
-    //if (self->listeners.is_dragging == NO)
+    if (self->left_button == FALSE)
     {
         NSPoint local_point = [self convertPoint:aPoint fromView:[self superview]];
-        if (NSPointInRect(local_point, self->div_rect) == YES)
+        if (NSPointInRect(local_point, self->divrect) == YES)
         {
             return self;
         }
@@ -103,10 +119,10 @@
             }
         }
     }
-//    else
-//    {
-//        return nil;
-//    }
+    else
+    {
+        return nil;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -123,13 +139,9 @@
     if (window != nil)
         [window disableScreenUpdatesUntilFlush];
     
-    //BOOL is_dragging = self->listeners.is_dragging;
-    cassert(FALSE);
-    BOOL is_dragging = NO;//self->listeners.is_dragging;
-    _oslistener_mouse_dragged(self, theEvent, ekMLEFT, &self->listeners);
-    
-    if (is_dragging == NO)
+    if (self->left_button == TRUE)
     {
+        _oslistener_mouse_dragged2(self, theEvent, ekMLEFT, self->OnDrag);
         [window disableCursorRects];
         if (split_type(self->flags) == ekSPHORZ)
             [[NSCursor resizeUpDownCursor] set];
@@ -140,14 +152,22 @@
 
 /*---------------------------------------------------------------------------*/
 
+-(void)mouseDown:(NSEvent*)theEvent
+{
+    unref(theEvent);
+    cassert(self->left_button == FALSE);
+    self->left_button = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void)mouseUp:(NSEvent*)theEvent
 {
-    BOOL is_dragging = NO;// self->listeners.is_dragging;
-    cassert(FALSE);
-    _oslistener_mouse_up(self, theEvent, ekMLEFT, &self->listeners);
-    if (is_dragging == YES)
+    unref(theEvent);
+    if (self->left_button == TRUE)
     {
         NSWindow *window = [self window];
+        self->left_button = FALSE;
         [window enableCursorRects];
         [window resetCursorRects];
     }
@@ -179,9 +199,10 @@ OSSplit *ossplit_create(const split_flag_t flags)
     view = [[OSXSplitView alloc] initWithFrame:NSZeroRect];
     view->flags = flags;
     view->track_area = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:(NSTrackingAreaOptions)(NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways) owner:view userInfo:nil];
-    view->div_rect = NSZeroRect;
+    view->divrect = NSZeroRect;
+    view->left_button = FALSE;
+    view->OnDrag = NULL;
     [view addTrackingArea:view->track_area];
-    _oslistener_init(&view->listeners);
     [view setAutoresizesSubviews:NO];
     return (OSSplit*)view;
 }
@@ -190,12 +211,12 @@ OSSplit *ossplit_create(const split_flag_t flags)
 
 void ossplit_destroy(OSSplit **view)
 {
-    OSXSplitView *split;
+    OSXSplitView *split = nil;
     cassert_no_null(view);
     split = *(OSXSplitView**)view;
     cassert_no_null(split);
     cassert([[split subviews] count] == 0);
-    _oslistener_release(&split->listeners);
+    listener_destroy(&split->OnDrag);
     [split removeTrackingArea:split->track_area];
     [split->track_area release];
     [split release];
@@ -245,14 +266,10 @@ void ossplit_detach_control(OSSplit *view, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_OnMoved(OSSplit *view, Listener *listener)
+void ossplit_OnDrag(OSSplit *view, Listener *listener)
 {
     cassert_no_null(view);
-    cassert_no_null(listener);
-    cassert(FALSE);
-//    listener_update(&((OSXSplitView*)view)->listeners.OnMouseStartDrag, listener_copy(listener));
-//    listener_update(&((OSXSplitView*)view)->listeners.OnMouseDragging, listener_copy(listener));
-//    listener_update(&((OSXSplitView*)view)->listeners.OnMouseEndDrag, listener);
+    listener_update(&((OSXSplitView*)view)->OnDrag, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -261,7 +278,7 @@ void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const
 {
     OSXSplitView *split = (OSXSplitView*)view;
     cassert_no_null(split);
-    split->div_rect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
+    split->divrect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ospanel.h
- * https://nappgui.com/en/osgui/ospanel.html
  *
  */
 
@@ -20,6 +19,8 @@ OSPanel *ospanel_create(const uint32_t flags);
 void ospanel_destroy(OSPanel **panel);
 
 void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
+
+void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height);
 
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height);
 

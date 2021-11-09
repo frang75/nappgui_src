@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: globals.h
- * https://nappgui.com/en/gui/globals.html
  *
  */
 
@@ -20,7 +19,5 @@ device_t globals_device(void);
 void globals_resolution(S2Df *resolution);
 
 V2Df globals_mouse_position(void);
-
-uint32_t globals_scrollbar_width(void);
 
 __END_C

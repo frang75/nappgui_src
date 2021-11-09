@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bdplot.h
- * https://nappgui.com/en/demo/bode/bdplot.html
  *
  */
 

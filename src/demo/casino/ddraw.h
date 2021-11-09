@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ddraw.h
- * https://nappgui.com/en/demo/casino/ddraw.html
  *
  */
 

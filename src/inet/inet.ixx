@@ -24,6 +24,6 @@ struct _field_t
     String *value;
 };
 
-DeclType(Field);
+DeclSt(Field);
 
 #endif

@@ -20,5 +20,9 @@ void _ospanel_attach_control(OSPanel *panel, OSControl *control);
 
 void _ospanel_detach_control(OSPanel *panel, OSControl *control);
 
+void _ospanel_set_capture(OSPanel *panel, OSControl *control);
+
+void _ospanel_release_capture(OSPanel *panel);
+
 __END_C
 

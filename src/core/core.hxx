@@ -234,6 +234,8 @@ typedef struct _evfiledir_t EvFileDir;
 #define HEAPARR         "::arr"
 #define ARRST           "ArrSt::"
 #define ARRPT           "ArrPt::"
+#define SETST           "SetSt::"
+#define SETPT           "SetPt::"
 #define ArrPt(type)     struct Arr##Pt##type
 #define ArrSt(type)     struct Arr##St##type
 #define SetPt(type)     struct Set##Pt##type
@@ -274,31 +276,39 @@ struct _evfiledir_t
     uint32_t depth;
 };
 
-DeclType(bool_t);
-DeclType(int8_t);
-DeclType(int16_t);
-DeclType(int32_t);
-DeclType(int64_t);
-DeclType(uint8_t);
-DeclType(uint16_t);
-DeclType(uint32_t);
-DeclType(uint64_t);
-DeclType(real32_t);
-DeclType(real64_t);
-SetSt(bool_t);
-SetSt(int8_t);
-SetSt(int16_t);
-SetSt(int32_t);
-SetSt(int64_t);
-SetSt(uint8_t);
-SetSt(uint16_t);
-SetSt(uint32_t);
-SetSt(uint64_t);
-SetSt(real32_t);
-SetSt(real64_t);
-ArrPtDecl(String);
-ArrPtDecl(ResPack);
-DeclType(DirEntry);
+#include "array.h"
+#include "rbtree.h"
+#include "arrst.inl"
+#include "arrpt.inl"
+#include "setst.inl"
+#include "setpt.inl"
+
+#define DeclSt(type)\
+    ArrStDebug(type);\
+    SetStDebug(type);\
+    ArrStFuncs(type);\
+    SetStFuncs(type)
+
+#define DeclPt(type)\
+    ArrPtDebug(type);\
+    SetPtDebug(type);\
+    ArrPtFuncs(type);\
+    SetPtFuncs(type)
+
+DeclSt(bool_t);
+DeclSt(int8_t);
+DeclSt(int16_t);
+DeclSt(int32_t);
+DeclSt(int64_t);
+DeclSt(uint8_t);
+DeclSt(uint16_t);
+DeclSt(uint32_t);
+DeclSt(uint64_t);
+DeclSt(real32_t);
+DeclSt(real64_t);
+DeclPt(String);
+DeclSt(DirEntry);
+DeclPt(ResPack);
 
 #ifdef  __cplusplus
 

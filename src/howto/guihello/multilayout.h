@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: multilayout.h
- * https://nappgui.com/en/howto/guihello/multilayout.html
  *
  */
 

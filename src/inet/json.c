@@ -315,7 +315,7 @@ static bool_t i_parse_array(i_Parser *parser, dtype_t type, const char_t *subtyp
     byte_t *obj;
     bool_t ok;
 
-    obj = array_insert_imp(array, UINT32_MAX, 1);
+    obj = array_insert(array, UINT32_MAX, 1);
     dbind_init_imp(obj, subtype);
 
     ok = i_parse_value(parser, NULL, type, subtype, obj);
@@ -325,10 +325,10 @@ static bool_t i_parse_array(i_Parser *parser, dtype_t type, const char_t *subtyp
         // Empty array
         if (parser->token == i_ekCLOSE_ARRAY)
         {
-            uint32_t s = array_size_imp(array);
-            byte_t *elem = array_get_imp(array, s - 1);
+            uint32_t s = array_size(array);
+            byte_t *elem = array_get(array, s - 1);
             dbind_remove_imp(elem, subtype);
-            array_delete_imp(array, s - 1, 1, NULL);
+            array_delete(array, s - 1, 1, NULL);
             return TRUE;
         }
         else
@@ -346,7 +346,7 @@ static bool_t i_parse_array(i_Parser *parser, dtype_t type, const char_t *subtyp
         if (parser->token != i_ekCOMMA)
             return i_error(FALSE, TRUE, parser, "Comma expected in ArrSt");
 
-        obj = array_insert_imp(array, UINT32_MAX, 1);
+        obj = array_insert(array, UINT32_MAX, 1);
         dbind_init_imp(obj, subtype);
         ok = i_parse_value(parser, NULL, type, subtype, obj);
         if (ok == FALSE)
@@ -371,7 +371,7 @@ static bool_t i_parse_arrptr(i_Parser *parser, const char_t *subtype, Array *arr
 
     for (;;)
     {
-        void **elem = (void**)array_insert_imp(array, UINT32_MAX, 1);
+        void **elem = (void**)array_insert(array, UINT32_MAX, 1);
         *elem = obj;
 
         i_new_token(parser);
@@ -662,16 +662,16 @@ static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const 
             uint16_t size;
             dtype_t dtype;
             cassert(*(Array**)object != NULL);
-            cassert(array_size_imp(*(Array**)object) == 0);
+            cassert(array_size(*(Array**)object) == 0);
             dtype = _dbind_type(subtype, NULL, &size);
-            cassert(size == array_esize_imp(*(Array**)object));
+            cassert(size == array_esize(*(Array**)object));
             return i_parse_array(parser, dtype, subtype, *((Array**)object));
         }
         else if (type == ekDTYPE_ARRPTR)
         {
             cassert(*(Array**)object != NULL);
-            cassert(array_size_imp(*(Array**)object) == 0);
-            cassert(sizeof(void*) == array_esize_imp(*(Array**)object));
+            cassert(array_size(*(Array**)object) == 0);
+            cassert(sizeof(void*) == array_esize(*(Array**)object));
             return i_parse_arrptr(parser, subtype, *(Array**)object);
         }
 
@@ -1022,9 +1022,9 @@ static void i_write_array(Stream *stm, const Array *array, const char_t *type)
 {
     if (array != NULL)
     {
-        const byte_t *data = array_all_imp(array);
-        uint32_t i, n = array_size_imp(array);
-        uint32_t es = array_esize_imp(array);
+        const byte_t *data = array_all(array);
+        uint32_t i, n = array_size(array);
+        uint32_t es = array_esize(array);
         String *subtype = NULL;
         dtype_t atype = _dbind_type(type, &subtype, NULL);
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;
@@ -1050,8 +1050,8 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
 {
     if (array != NULL)
     {
-        const byte_t *data = array_all_imp(array);
-        uint32_t i, n = array_size_imp(array);
+        const byte_t *data = array_all(array);
+        uint32_t i, n = array_size(array);
         String *subtype = NULL;
         dtype_t atype = _dbind_type(type, &subtype, NULL);
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;

@@ -33,6 +33,10 @@ void panel_visible_layout(Panel *panel, const uint32_t index);
 
 void panel_update(Panel *panel);
 
+real32_t panel_scroll_width(const Panel *panel);
+
+real32_t panel_scroll_height(const Panel *panel);
+
 __END_C
 
 #define panel_data(panel, data, func_destroy_data, type)\

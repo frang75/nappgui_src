@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: prmodel.h
- * https://nappgui.com/en/demo/products/prmodel.html
  *
  */
 

@@ -36,5 +36,9 @@ desktopApp("DrawHello" "howto/drawhello" "" NRC_EMBEDDED)
 desktopApp("Col2dHello" "howto/col2dhello" "" NRC_EMBEDDED)
 desktopApp("DrawImg" "howto/drawimg" "" NRC_EMBEDDED)
 desktopApp("UrlImg" "howto/urlimg" "inet" NRC_EMBEDDED)
+# Dlls
+
+# Exes
 
 # Your projects here!
+

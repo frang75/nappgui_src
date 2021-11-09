@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: labels.h
- * https://nappgui.com/en/howto/guihello/labels.html
  *
  */
 

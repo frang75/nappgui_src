@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: col2dhello.hxx
- * https://nappgui.com/en/howto/col2dhello/col2dhello.html
  *
  */
 
@@ -152,5 +151,8 @@ struct _app_t
     V2Df mouse_pos;
     V2Df obj_pos;
 };
+
+DeclSt(Shape);
+DeclSt(Dist);
 
 #endif

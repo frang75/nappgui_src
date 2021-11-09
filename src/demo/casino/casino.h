@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: casino.h
- * https://nappgui.com/en/demo/casino/casino.html
  *
  */
 

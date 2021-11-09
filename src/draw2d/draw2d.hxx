@@ -105,7 +105,7 @@ typedef struct _palette_t Palette;
 typedef struct _pixbuf_t Pixbuf;
 typedef struct _image_t Image;
 typedef struct _font_t Font;
-ArrPtDecl(Image);
-DeclType(color_t);
+DeclSt(color_t);
+DeclPt(Image);
 
 #endif

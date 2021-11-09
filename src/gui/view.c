@@ -635,6 +635,8 @@ void _view_OnResize(View *view, const S2Df *size)
         params.height = size->height;
         listener_event(view->OnResize, ekEVRESIZE, view, &params, NULL, View, EvSize, void);
     }
+
+    view->component.context->func_view_set_need_display(view->component.ositem);
 }
 
 /*---------------------------------------------------------------------------*/

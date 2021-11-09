@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: config.hxx
- * https://nappgui.com/en/sewer/config.html
  *
  */
 
@@ -99,7 +98,7 @@
 	#if defined (__LINUX__)
     #define __INLINE
 	#else
-    #define __INLINE                        __attribute__((always_inline))
+    #define __INLINE                        inline
 	#endif
 
 	#define __DEPRECATED                    __attribute__((__deprecated__))
@@ -112,7 +111,7 @@
 #endif
 
     #define __SCANF(format_idx, arg_idx)    __attribute__((__format__ (__scanf__, format_idx, arg_idx)))
-    #define __UNUSED                        __attribute__((warn_unused_result))
+    #define __TYPECHECK                     __attribute__((unused))
 
     #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
         #define __ALLOC_SIZE(x)             __attribute__((__alloc_size__(x)))
@@ -136,7 +135,7 @@
     #define __SENTINEL
     #define __PRINTF(format_idx, arg_idx)
     #define __SCANF(format_idx, arg_idx)
-    #define __UNUSED
+    #define __TYPECHECK                     _inline
     #define __ALLOC_SIZE(x)
     #define __ALLOC_SIZE2(x,y)
     #define __TRUE_EXPECTED(expr)           (expr)

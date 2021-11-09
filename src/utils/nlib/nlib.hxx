@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: nlib.hxx
- * https://nappgui.com/en/utils/nlib/nlib.html
  *
  */
 

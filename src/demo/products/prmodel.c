@@ -48,6 +48,8 @@ struct _model_t
     ArrPt(Product) *products;
 };
 
+DeclPt(Product);
+
 /*---------------------------------------------------------------------------*/
 
 Model *model_create(void)

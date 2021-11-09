@@ -77,6 +77,12 @@ struct _coloralt_t
     color_t dark;
 };
 
+DeclSt(Transition);
+DeclSt(CurIcon);
+DeclSt(ColorAlt);
+DeclPt(Window);
+DeclPt(Menu);
+
 #define kFIRST_COLOR_ALT 16
 static bool_t i_kDARK_MODE = FALSE;
 

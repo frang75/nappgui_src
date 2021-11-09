@@ -91,7 +91,8 @@ struct i_app_t
     ArrPt(i_Task) *scheduler;
 };
 
-DeclType(i_Task);
+DeclSt(i_Task);
+DeclPt(i_Task);
 
 /*---------------------------------------------------------------------------*/
 

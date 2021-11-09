@@ -57,6 +57,9 @@ struct _btext_t
     ArrSt(Text) *texts;
 };
 
+DeclSt(Attr);
+DeclSt(Text);
+
 /*---------------------------------------------------------------------------*/
 
 BText *btext_create(void)

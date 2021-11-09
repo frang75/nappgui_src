@@ -13,7 +13,6 @@
 #ifndef __ARRST_HPP__
 #define __ARRST_HPP__
 
-#include "array.h"
 #include "bstd.h"
 #include "nowarn.hxx"
 #include <typeinfo>
@@ -30,6 +29,8 @@ struct ArrSt
 
 	static void destroy(ArrSt<type> **array, void(*func_remove)(type*));
 
+	static void destopt(ArrSt<type> **array, void(*func_remove)(type*));
+
 	static void clear(ArrSt<type> *array, void(*func_remove)(type*));
 
 	static void write(Stream *stm, const ArrSt<type> *array, void(*func_write)(Stream*, const type*));
@@ -42,7 +43,11 @@ struct ArrSt
 
 	static type* first(ArrSt<type> *array);
 
+	static const type* first(const ArrSt<type> *array);
+
 	static type* last(ArrSt<type> *array);
+
+	static const type* last(const ArrSt<type> *array);
 
 	static type* all(ArrSt<type> *array);
 
@@ -116,7 +121,7 @@ static const char_t* i_arrtype(void)
 template<typename type> 
 ArrSt<type>* ArrSt<type>::create(void)
 {
-	return (ArrSt<type>*)array_create_imp(sizeof(type), i_arrtype<type>());
+	return (ArrSt<type>*)array_create(sizeof(type), i_arrtype<type>());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -124,7 +129,7 @@ ArrSt<type>* ArrSt<type>::create(void)
 template<typename type> 
 ArrSt<type>* ArrSt<type>::copy(const ArrSt<type> *array, void(*func_copy)(type*, const type))
 {
-    return (ArrSt<type>*)array_copy_imp((Array*)array, (FPtr_scopy)func_copy, i_arrtype<type>());
+    return (ArrSt<type>*)array_copy((Array*)array, (FPtr_scopy)func_copy, i_arrtype<type>());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -132,7 +137,7 @@ ArrSt<type>* ArrSt<type>::copy(const ArrSt<type> *array, void(*func_copy)(type*,
 template<typename type> 
 ArrSt<type>* ArrSt<type>::read(Stream *stm, void(*func_read)(Stream*, type*))
 {
-	return (ArrSt<type>*)array_read_imp(stm, sizeof(type), (FPtr_read_init)func_read, i_arrtype<type>());
+	return (ArrSt<type>*)array_read(stm, sizeof(type), (FPtr_read_init)func_read, i_arrtype<type>());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -140,7 +145,15 @@ ArrSt<type>* ArrSt<type>::read(Stream *stm, void(*func_read)(Stream*, type*))
 template<typename type> 
 void ArrSt<type>::destroy(ArrSt<type> **array, void(*func_remove)(type*))
 {
-    array_destroy_imp((Array**)array, (FPtr_remove)func_remove, i_arrtype<type>());
+    array_destroy((Array**)array, (FPtr_remove)func_remove, i_arrtype<type>());
+}
+
+/*---------------------------------------------------------------------------*/
+
+template<typename type> 
+void ArrSt<type>::destopt(ArrSt<type> **array, void(*func_remove)(type*))
+{
+    array_destopt((Array**)array, (FPtr_remove)func_remove, i_arrtype<type>());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -148,7 +161,7 @@ void ArrSt<type>::destroy(ArrSt<type> **array, void(*func_remove)(type*))
 template<typename type> 
 void ArrSt<type>::clear(ArrSt<type> *array, void(*func_remove)(type*))
 {
-    array_clear_imp((Array*)array, (FPtr_remove)func_remove);
+    array_clear((Array*)array, (FPtr_remove)func_remove);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -156,7 +169,7 @@ void ArrSt<type>::clear(ArrSt<type> *array, void(*func_remove)(type*))
 template<typename type> 
 void ArrSt<type>::write(Stream *stm, const ArrSt<type> *array, void(*func_write)(Stream*, const type*))
 {
-    array_write_imp(stm, (const Array*)array, (FPtr_write)func_write);
+    array_write(stm, (const Array*)array, (FPtr_write)func_write);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -164,7 +177,7 @@ void ArrSt<type>::write(Stream *stm, const ArrSt<type> *array, void(*func_write)
 template<typename type> 
 uint32_t ArrSt<type>::size(const ArrSt<type> *array)
 {
-	return array_size_imp((Array*)array);
+	return array_size((Array*)array);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -172,7 +185,7 @@ uint32_t ArrSt<type>::size(const ArrSt<type> *array)
 template<typename type> 
 type* ArrSt<type>::get(ArrSt<type> *array, const uint32_t pos)
 {
-    return (type*)array_get_imp((Array*)array, pos);
+    return (type*)array_get((Array*)array, pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -180,7 +193,7 @@ type* ArrSt<type>::get(ArrSt<type> *array, const uint32_t pos)
 template<typename type> 
 const type* ArrSt<type>::get(const ArrSt<type> *array, const uint32_t pos)
 {
-    return (type*)array_get_imp((Array*)array, pos);
+    return (type*)array_get((Array*)array, pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -188,7 +201,15 @@ const type* ArrSt<type>::get(const ArrSt<type> *array, const uint32_t pos)
 template<typename type> 
 type* ArrSt<type>::first(ArrSt<type> *array)
 {
-    return (type*)array_get_imp((Array*)array, 0);
+    return (type*)array_get((Array*)array, 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template<typename type> 
+const type* ArrSt<type>::first(const ArrSt<type> *array)
+{
+    return (const type*)array_get((const Array*)array, 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -196,7 +217,15 @@ type* ArrSt<type>::first(ArrSt<type> *array)
 template<typename type> 
 type* ArrSt<type>::last(ArrSt<type> *array)
 {
-    return (type*)array_get_last_imp((Array*)array);
+    return (type*)array_get_last((Array*)array);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template<typename type> 
+const type* ArrSt<type>::last(const ArrSt<type> *array)
+{
+    return (const type*)array_get_last((const Array*)array);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -204,7 +233,7 @@ type* ArrSt<type>::last(ArrSt<type> *array)
 template<typename type> 
 type* ArrSt<type>::all(ArrSt<type> *array)
 {
-    return (type*)array_all_imp((Array*)array);
+    return (type*)array_all((Array*)array);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -212,7 +241,7 @@ type* ArrSt<type>::all(ArrSt<type> *array)
 template<typename type> 
 const type* ArrSt<type>::all(const ArrSt<type> *array)
 {
-    return (type*)array_all_imp((Array*)array);
+    return (type*)array_all((Array*)array);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -220,7 +249,7 @@ const type* ArrSt<type>::all(const ArrSt<type> *array)
 template<typename type> 
 void ArrSt<type>::grow(ArrSt<type> *array, const uint32_t n)
 {
-	array_insert_imp((Array*)array, UINT32_MAX, n);
+	array_insert((Array*)array, UINT32_MAX, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,7 +257,7 @@ void ArrSt<type>::grow(ArrSt<type> *array, const uint32_t n)
 template<typename type> 
 type* ArrSt<type>::nnew(ArrSt<type> *array)
 {
-    return (type*)array_insert_imp((Array*)array, UINT32_MAX, 1);
+    return (type*)array_insert((Array*)array, UINT32_MAX, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -236,7 +265,7 @@ type* ArrSt<type>::nnew(ArrSt<type> *array)
 template<typename type> 
 type* ArrSt<type>::new0(ArrSt<type> *array)
 {
-    return (type*)array_insert0_imp((Array*)array, UINT32_MAX, 1);
+    return (type*)array_insert0((Array*)array, UINT32_MAX, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -244,7 +273,7 @@ type* ArrSt<type>::new0(ArrSt<type> *array)
 template<typename type> 
 type* ArrSt<type>::new_n(ArrSt<type> *array, const uint32_t n)
 {
-    return (type*)array_insert_imp((Array*)array, UINT32_MAX, n);
+    return (type*)array_insert((Array*)array, UINT32_MAX, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -252,7 +281,7 @@ type* ArrSt<type>::new_n(ArrSt<type> *array, const uint32_t n)
 template<typename type> 
 type* ArrSt<type>::new_n0(ArrSt<type> *array, const uint32_t n)
 {
-    return (type*)array_insert0_imp((Array*)array, UINT32_MAX, n);
+    return (type*)array_insert0((Array*)array, UINT32_MAX, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -260,7 +289,7 @@ type* ArrSt<type>::new_n0(ArrSt<type> *array, const uint32_t n)
 template<typename type> 
 type* ArrSt<type>::prepend_n(ArrSt<type> *array, const uint32_t n)
 {
-    return (type*)array_insert_imp((Array*)array, 0, n);
+    return (type*)array_insert((Array*)array, 0, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -268,7 +297,7 @@ type* ArrSt<type>::prepend_n(ArrSt<type> *array, const uint32_t n)
 template<typename type> 
 type* ArrSt<type>::insert_n(ArrSt<type> *array, const uint32_t pos, const uint32_t n)
 {
-    return (type*)array_insert_imp((Array*)array, pos, n);
+    return (type*)array_insert((Array*)array, pos, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -276,7 +305,7 @@ type* ArrSt<type>::insert_n(ArrSt<type> *array, const uint32_t pos, const uint32
 template<typename type> 
 void ArrSt<type>::append(ArrSt<type> *array, const type value)
 {
-	*(type*)array_insert_imp((Array*)array, UINT32_MAX, 1) = value;
+	*(type*)array_insert((Array*)array, UINT32_MAX, 1) = value;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -284,7 +313,7 @@ void ArrSt<type>::append(ArrSt<type> *array, const type value)
 template<typename type> 
 void ArrSt<type>::prepend(ArrSt<type> *array, const type value)
 {
-	*(type*)array_insert_imp((Array*)array, 0, 1) = value;
+	*(type*)array_insert((Array*)array, 0, 1) = value;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -292,7 +321,7 @@ void ArrSt<type>::prepend(ArrSt<type> *array, const type value)
 template<typename type> 
 void ArrSt<type>::insert(ArrSt<type> *array, const uint32_t pos, const type value)
 {
-	*(type*)array_insert_imp((Array*)array, pos, 1) = value;
+	*(type*)array_insert((Array*)array, pos, 1) = value;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -300,7 +329,7 @@ void ArrSt<type>::insert(ArrSt<type> *array, const uint32_t pos, const type valu
 template<typename type> 
 void ArrSt<type>::join(ArrSt<type> *dest, const ArrSt<type> *src, void(*func_copy)(type*, const type))
 {
-    array_join_imp((Array*)(dest), (const Array*)src, (FPtr_scopy)func_copy);
+    array_join((Array*)(dest), (const Array*)src, (FPtr_scopy)func_copy);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -308,7 +337,7 @@ void ArrSt<type>::join(ArrSt<type> *dest, const ArrSt<type> *src, void(*func_cop
 template<typename type> 
 void ArrSt<type>::ddelete(ArrSt<type> *array, const uint32_t pos, void(*func_remove)(type*))
 {
-    array_delete_imp((Array*)array, pos, 1, (FPtr_remove)func_remove);
+    array_delete((Array*)array, pos, 1, (FPtr_remove)func_remove);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -316,7 +345,7 @@ void ArrSt<type>::ddelete(ArrSt<type> *array, const uint32_t pos, void(*func_rem
 template<typename type> 
 void ArrSt<type>::pop(ArrSt<type> *array, void(*func_remove)(type*))
 {
-    array_pop_imp((Array*)array, (FPtr_remove)func_remove);
+    array_pop((Array*)array, (FPtr_remove)func_remove);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -324,7 +353,7 @@ void ArrSt<type>::pop(ArrSt<type> *array, void(*func_remove)(type*))
 template<typename type> 
 void ArrSt<type>::sort(ArrSt<type> *array, int(*func_compare)(const type*, const type*))
 {
-    array_sort_imp((Array*)array, (FPtr_compare)func_compare);
+    array_sort((Array*)array, (FPtr_compare)func_compare);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -332,7 +361,7 @@ void ArrSt<type>::sort(ArrSt<type> *array, int(*func_compare)(const type*, const
 template<typename type, typename dtype>
 void ArrS2<type,dtype>::sort_ex(ArrSt<type> *array, int(*func_compare)(const type*, const type*, const dtype*), const dtype *data)
 {
-    array_sort_ex_imp((Array*)array, (FPtr_compare_ex)func_compare, (void*)data);
+    array_sort_ex((Array*)array, (FPtr_compare_ex)func_compare, (void*)data);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -340,7 +369,7 @@ void ArrS2<type,dtype>::sort_ex(ArrSt<type> *array, int(*func_compare)(const typ
 template<typename type, typename dtype>
 type* ArrS2<type,dtype>::search(const ArrSt<type> *array, int(*func_compare)(const type*, const type*), const dtype *key, uint32_t *pos)
 {
-    return (type*)array_search_imp((const Array*)array, (FPtr_compare)func_compare, (const void*)key, pos);
+    return (type*)array_search((const Array*)array, (FPtr_compare)func_compare, (const void*)key, pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -348,7 +377,7 @@ type* ArrS2<type,dtype>::search(const ArrSt<type> *array, int(*func_compare)(con
 template<typename type, typename dtype>
 type* ArrS2<type,dtype>::bsearch(const ArrSt<type> *array, int(*func_compare)(const type*, const type*), const dtype *key, uint32_t *pos)
 {
-    return (type*)array_bsearch_imp((const Array*)array, (FPtr_compare)func_compare, (const void*)key, pos);
+    return (type*)array_bsearch((const Array*)array, (FPtr_compare)func_compare, (const void*)key, pos);
 }
 
 #endif

@@ -126,6 +126,16 @@ function(getRecursiveSourceFiles targetName dir group)
                 string(REPLACE "/" "\\" groupname ${group})
                 source_group(${groupname} FILES ${dir}/${child})
 
+                # Force header files 'Build errors with CMake >= 3.21.2'
+                # https://gitlab.kitware.com/cmake/cmake/-/merge_requests/5926
+                list (FIND HEADER_EXTENSION "*${extLower}" index)
+                if (${index} GREATER -1)
+                    set_source_files_properties(${dir}/${child} PROPERTIES HEADER_FILE_ONLY ON)
+                    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+                        set_source_files_properties(${dir}/${child} PROPERTIES XCODE_EXPLICIT_FILE_TYPE sourcecode.c.h)
+                    endif()
+                endif()
+
                 # Linker error in binary distributions 
                 # when linking mixed c++ and c modules
                 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

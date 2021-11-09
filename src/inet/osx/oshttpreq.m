@@ -35,6 +35,7 @@
 {
 @public
     OSHttp *http;
+    bool_t auto_redirect;
 }
 
 @end
@@ -90,6 +91,22 @@ struct _oshttp_t
     cassert(metrics != nil);
 }
 
+/*---------------------------------------------------------------------------*/
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+                     willPerformHTTPRedirection:(NSHTTPURLResponse *)response
+                                     newRequest:(NSURLRequest *)request
+                              completionHandler:(void (^)(NSURLRequest * _Nullable))completionHandler;
+{
+    unref(session);
+    unref(task);
+    unref(response);
+    if (auto_redirect == TRUE)
+        completionHandler(request);
+    else
+        completionHandler(nil);
+}
+
 #endif
 
 @end
@@ -125,6 +142,7 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
 #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     http->delegate = [[OSXURLDelegate alloc] init];
     http->delegate->http = http;
+    http->delegate->auto_redirect = TRUE;
     http->session = [[NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:http->delegate delegateQueue:nil] retain];
     http->mutex = bmutex_create();
 #endif
@@ -331,10 +349,9 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
 
 /*---------------------------------------------------------------------------*/
 
-static void i_request(OSHttp *http, NSString *verb, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+static void i_request(OSHttp *http, NSString *verb, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
     cassert_no_null(http);
-    
     http->response = FALSE;
     str_destopt(&http->protocol);
     ptr_destopt(stm_close, &http->headers, Stream);
@@ -364,6 +381,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
 #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     // Synchronous request
     bool_t end = FALSE;
+    http->delegate->auto_redirect = auto_redirect;
 	NSURLSessionTask *task = [http->session dataTaskWithRequest:http->request completionHandler:^(NSData * _Nullable ddata, NSURLResponse * _Nullable response, NSError * _Nullable lerror)
     {
         i_response(ddata, response, lerror, http);
@@ -383,6 +401,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
     NSURLResponse *response = nil;
     NSError *lerror = nil;
     NSData *ddata = [NSURLConnection sendSynchronousRequest:http->request returningResponse:&response error:&lerror];
+    unref(auto_redirect);
     i_response(ddata, response, lerror, http);
 #endif
 
@@ -391,16 +410,16 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
-    i_request(http, @"GET", path, data, size, error);
+    i_request(http, @"GET", path, data, size, auto_redirect, error);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
 {
-    i_request(http, @"POST", path, data, size, error);
+    i_request(http, @"POST", path, data, size, auto_redirect, error);
 }
 
 /*---------------------------------------------------------------------------*/

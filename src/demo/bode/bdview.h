@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bdview.h
- * https://nappgui.com/en/demo/bode/bdview.html
  *
  */
 

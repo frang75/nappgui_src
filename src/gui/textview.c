@@ -38,10 +38,10 @@ TextView *textview_create(void)
     const GuiContext *context = gui_context_get_current();
     TextView *view = obj_new0(TextView);
     void *ositem = NULL;
-    Font *font = _gui_create_default_font();
+    Font *font = font_monospace(font_regular_size(), 0);
     const char_t *family = font_family(font);
-    uint32_t units = ekFPOINTS;
-    real32_t size = font_size(font);
+    uint32_t units = ekFPIXELS;
+    real32_t size = 14;
     uint32_t fstyle = ekFNORMAL;
     align_t palign = ekLEFT;
     real32_t lspacing = 1;

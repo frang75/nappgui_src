@@ -143,7 +143,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     }
     else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
     {
-        name = "DejaVu Sans Mono";
+        name = "Ubuntu Mono";
     }
     else
     {

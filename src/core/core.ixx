@@ -82,4 +82,6 @@ struct _evassert_t
     uint32_t line;
 };
 
+DeclPt(NFA);
+
 #endif

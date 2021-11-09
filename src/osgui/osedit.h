@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osedit.h
- * https://nappgui.com/en/osgui/osedit.html
  *
  */
 

@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: nglob.h
- * https://nappgui.com/en/utils/nlib/nglob.html
  *
  */
 

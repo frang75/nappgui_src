@@ -26,9 +26,9 @@ void oshttp_clear_headers(OSHttp *http);
 
 void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value);
 
-void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
+void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
 
-void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
+void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
 
 Stream *oshttp_response(OSHttp *http);
 
