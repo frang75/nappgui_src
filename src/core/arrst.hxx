@@ -4,7 +4,8 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: arrst.inl
+ * File: arrst.hxx
+ * https://nappgui.com/en/core/arrst.html
  *
  */
 

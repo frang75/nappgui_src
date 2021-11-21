@@ -48,7 +48,7 @@ static App *i_create(void)
 	app->window = bdview_create(app->ctrl);
     ctrl_run(app->ctrl);
     window_origin(app->window, app->model->wpos);
-    window_size(app->window, s2df(700, 400));//app->model->wsize);
+	window_size(app->window, app->model->wsize);
 	window_OnClose(app->window, listener(app, i_OnClose, App));
 	window_show(app->window);
     return app;

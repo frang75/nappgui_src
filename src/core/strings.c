@@ -28,13 +28,6 @@
 #define i_SIZE(str) *((uint32_t*)str)
 #define i_DATA(str) ((char_t*)((char_t*)str + sizeof(uint32_t)))
 
-/* Not used, only for debugger inspection */
-struct _string_t
-{
-    uint32_t size;
-    char data[512];
-};
-
 /*---------------------------------------------------------------------------*/
 
 static String *i_create_string(const uint32_t length, const char_t *data)

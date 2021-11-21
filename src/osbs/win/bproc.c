@@ -169,6 +169,7 @@ Proc *bproc_exec(const char_t *command, perror_t *error)
         return NULL;
     }
 
+    ptr_assign(error, ekPOK);
     return i_create(pipes, &info);
 }
 

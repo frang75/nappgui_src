@@ -6,6 +6,7 @@
 #------------------------------------------------------------------------------
 macro(checkVisualStudioVersion)
     # MSVC_VERSION
+    # 1930 = 17.0 Visual Studio 2022 RTW (v143 toolset)
     # 1929 = 16.10/11 Visual Studio 2019 (v142 toolset)
     # 1928 = 16.8/9 Visual Studio 2019 (v142 toolset)
     # 1927 = 16.7 Visual Studio 2019 (v142 toolset)
@@ -55,7 +56,9 @@ macro(checkVisualStudioVersion)
 		set(CMAKE_VS_PLATFORM_TOOLSET "v90")
 	else()
 		# Plaform Toolset Macro
-		if (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v142")
+		if (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v143")
+			set(VS_TOOLSET_NUMBER 1430)
+		elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v142")
 			set(VS_TOOLSET_NUMBER 1420)
 		elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v141")
 			set(VS_TOOLSET_NUMBER 1410)

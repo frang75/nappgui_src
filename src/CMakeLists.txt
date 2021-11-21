@@ -8,9 +8,7 @@ project(NAppGUI)
 get_filename_component(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR} PATH)
 include(${ROOT_PATH}/prj/CMakeNAppGUI.txt)
 
-# NAppGUI Libraries
-
-# NAppGUI Sources
+# Libraries
 staticLib("sewer" "" NRC_NONE)
 staticLib("osbs" "sewer" NRC_NONE)
 staticLib("core" "osbs" NRC_NONE)
@@ -21,10 +19,12 @@ staticLib("gui" "draw2d" NRC_EMBEDDED)
 staticLib("osapp" "osgui;gui" NRC_NONE)
 staticLib("inet" "core" NRC_NONE)
 staticLib("utils/nlib" "core" NRC_NONE)
+staticLib("demo/casino" "draw2d" NRC_EMBEDDED)
+
+# Exes
 commandApp("utils/nrc" "utils/nlib" NRC_NONE)
 desktopApp("HelloWorld" "demo/hello" "" NRC_NONE)
 desktopApp("HelloCpp" "demo/hellocpp" "" NRC_NONE)
-staticLib("demo/casino" "draw2d" NRC_EMBEDDED)
 desktopApp("Die" "demo/die" "demo/casino" NRC_EMBEDDED)
 desktopApp("Dice" "demo/dice" "demo/casino" NRC_EMBEDDED)
 desktopApp("Bricks" "demo/bricks" "" NRC_EMBEDDED)
@@ -36,9 +36,7 @@ desktopApp("DrawHello" "howto/drawhello" "" NRC_EMBEDDED)
 desktopApp("Col2dHello" "howto/col2dhello" "" NRC_EMBEDDED)
 desktopApp("DrawImg" "howto/drawimg" "" NRC_EMBEDDED)
 desktopApp("UrlImg" "howto/urlimg" "inet" NRC_EMBEDDED)
-# Dlls
 
-# Exes
 
 # Your projects here!
 

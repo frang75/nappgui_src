@@ -261,6 +261,13 @@ typedef void(*FPtr_write)(Stream *stream, const void *obj);
 #define FUNC_CHECK_WRITE(func, type)\
     (void)((void(*)(Stream*, const type*))func == func)
 
+/* Do not use! only for debugger inspection */
+struct _string_t
+{
+    uint32_t size;
+    char data[512];
+};
+
 struct _direntry_t
 {
     String *name;
@@ -278,10 +285,10 @@ struct _evfiledir_t
 
 #include "array.h"
 #include "rbtree.h"
-#include "arrst.inl"
-#include "arrpt.inl"
-#include "setst.inl"
-#include "setpt.inl"
+#include "arrst.hxx"
+#include "arrpt.hxx"
+#include "setst.hxx"
+#include "setpt.hxx"
 
 #define DeclSt(type)\
     ArrStDebug(type);\

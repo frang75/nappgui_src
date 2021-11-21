@@ -4,7 +4,8 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: arrpt.inl
+ * File: arrpt.hxx
+ * https://nappgui.com/en/core/arrpt.html
  *
  */
 

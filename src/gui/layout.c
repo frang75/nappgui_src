@@ -1312,10 +1312,26 @@ static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_siz
 {
     real32_t diff = required_size - current_size;
     real32_t total = 0;
+    uint32_t last_id = UINT32_MAX;
+    real32_t norm = 0;
+
     cassert_no_null(dim);
+    arrst_foreach(edim, dim, i_LineDim)
+        norm += edim->resize_percent;
+        if (edim->resize_percent > 0)
+            last_id = edim_i;
+    arrst_end()
+
+    cassert_unref(bmath_absf(1 - norm) < 0.00001f, norm);
 
     arrst_foreach(edim, dim, i_LineDim)
-        real32_t increment = bmath_roundf(diff * edim->resize_percent);
+        real32_t increment = 0;
+    
+        if (edim_i == last_id)
+            increment = diff - total;
+        else
+            increment = bmath_roundf(diff * edim->resize_percent);
+
         edim->size += increment;
         total += increment;
 
@@ -1325,12 +1341,7 @@ static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_siz
         cassert(edim->size >= 0);
     arrst_end()
 
-    /* Pixel adjustment in last element */
-	if (bmath_absf(diff - total) > 0)
-	{
-        i_LineDim* edim = arrst_last(dim, i_LineDim);
-		edim->size += diff - total;
-	}
+    cassert(bmath_absf(diff - total) < 0.00001f);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -4,7 +4,8 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: setst.inl
+ * File: setst.hxx
+ * https://nappgui.com/en/core/setst.html
  *
  */
 

@@ -4,7 +4,8 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: setpt.inl
+ * File: setpt.hxx
+ * https://nappgui.com/en/core/setpt.html
  *
  */
 
