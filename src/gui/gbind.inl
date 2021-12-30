@@ -14,25 +14,23 @@
 
 __EXTERN_C
 
-void gbind_set_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj);
+void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj);
 
-void gbind_set_layout(Layout *layout, StBind *stbind, DBind *dbind, void *obj);
+void gbind_upd_layout(Layout *layout, StBind *stbind, DBind *dbind, void *obj);
 
-void gbind_upd_bool(Layout *layout, DBind *dbind, void *obj, void *obj_notif, StBind *st_notif, Listener *listener, bool_t value);
+void gbind_upd_bool(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, bool_t value);
 
-void gbind_upd_enum(Layout *layout, DBind *dbind, void *obj, void *obj_notif, StBind *st_notif, Listener *listener, enum_t value);
+void gbind_upd_uint32(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, uint32_t value);
 
-void gbind_upd_uint32(Layout *layout, DBind *dbind, void *obj, void *obj_notif, StBind *st_notif, Listener *listener, uint32_t value);
+void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, const real32_t value);
 
-void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, void *obj_notif, StBind *st_notif, Listener *listener, const real32_t value);
-
-void gbind_upd_string(Layout *layout, DBind *dbind, void *obj, void *obj_notif, StBind *st_notif, Listener *listener, const char_t *str);
+void gbind_upd_string(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, const char_t *str);
 
 void gbind_upd_image(Layout *layout, DBind *dbind, void *objbind, const Image *image);
 
-void gbind_upd_increment(Layout *layout, DBind *dbind, void *objbind);
+void gbind_upd_increment(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, const bool_t pos);
 
-void gbind_upd_decrement(Layout *layout, DBind *dbind, void *objbind);
+bool_t gbind_modify_data(const void *obj, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize, const EvBind *evbind);
 
 __END_C
 

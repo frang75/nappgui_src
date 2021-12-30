@@ -249,19 +249,13 @@ void ctrl_run(Ctrl *ctrl)
 
 void ctrl_OnModelChange(Ctrl *ctrl, Event *e)
 {
-    cassert(event_sender(e, Model) == ctrl->model);
-    switch (event_type(e)) {
-    case ekEVOBJVALIDATE:
-    {
-        bool_t *ok = event_result(e, bool_t);
-        *ok = model_validate(ctrl->model);
-        break;
-    }
-
-    case ekEVOBJCHANGE:
+	bool_t *ok = event_result(e, bool_t);
+    cassert(evbind_object(e, Model) == ctrl->model);
+	*ok = model_validate(ctrl->model);
+	if (*ok == TRUE)
+	{
         i_update_bode(ctrl, ctrl->model->cparams.T);
         view_update(ctrl->view1);
         view_update(ctrl->view2);
-        break;
     }
 }

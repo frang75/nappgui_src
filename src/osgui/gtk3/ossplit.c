@@ -13,7 +13,8 @@
 #include "ossplit.h"
 #include "ossplit.inl"
 #include "ospanel.inl"
-#include "osgui.inl"
+#include "ostext.inl"
+#include "osview.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol.inl"
 #include "cassert.h"
@@ -45,51 +46,16 @@ static void i_set_capture(GtkWidget *widget, OSSplit *split)
     {
         gtk_container_foreach(GTK_CONTAINER(widget), (GtkCallback)i_set_capture, split);
     }
-//    else if (GTK_IS_SCROLLED_WINDOW(widget) == TRUE)
-//    {
-//        GtkWidget *child = gtk_bin_get_child(GTK_BIN(widget));
-//        OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(child), "OSControl");
-//        if (control->type == ekGUI_COMPONENT_PANEL)
-//             {
-//                 bstd_printf("Capture PANEL in SCROLL\n");
-//             }
-//             else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
-//             {
-//                 bstd_printf("Capture VIEW in SCROLL\n");
-//
-//             }
-//             else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
-//            {
-//                bstd_printf("Capture TEXT in SCROLL\n");
-//            }
-//
-//    }
     else
     {
         OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
         if (control->type == ekGUI_COMPONENT_PANEL)
-        {
             _ospanel_set_capture((OSPanel*)control, (OSControl*)split);
-            //bstd_printf("Capture PANEL in SCROLL\n");
-        }
-//        else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
-//        {
-//        bstd_printf("Capture VIEW in SCROLL\n");
-//
-//        }
-//        else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
-//        {
-//        bstd_printf("Capture TEXT in SCROLL\n");
-//        }
-//        if (control != NULL)
-//        {
-//            if (control->type == ekGUI_COMPONENT_TEXTVIEW)
-//            {
-//                bstd_printf("Capture TEXT\n");
-//            }
-//        }
+        else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
+            _ostext_set_capture((OSText*)control, (OSControl*)split);
+        else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
+            _osview_set_capture((OSView*)control, (OSControl*)split);
     }
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -101,51 +67,29 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
     {
         gtk_container_foreach(GTK_CONTAINER(widget), i_release_capture, NULL);
     }
-//    else if (GTK_IS_SCROLLED_WINDOW(widget) == TRUE)
-//    {
-//        GtkWidget *child = gtk_bin_get_child(GTK_BIN(widget));
-//        OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(child), "OSControl");
-//        if (control->type == ekGUI_COMPONENT_PANEL)
-//             {
-//                 bstd_printf("Capture PANEL in SCROLL\n");
-//             }
-//             else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
-//             {
-//                 bstd_printf("Capture VIEW in SCROLL\n");
-//
-//             }
-//             else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
-//            {
-//                bstd_printf("Capture TEXT in SCROLL\n");
-//            }
-//
-//    }
     else
     {
         OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
         if (control->type == ekGUI_COMPONENT_PANEL)
-        {
             _ospanel_release_capture((OSPanel*)control);
-            //bstd_printf("Capture PANEL in SCROLL\n");
-        }
-//        else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
-//        {
-//        bstd_printf("Capture VIEW in SCROLL\n");
-//
-//        }
-//        else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
-//        {
-//        bstd_printf("Capture TEXT in SCROLL\n");
-//        }
-//        if (control != NULL)
-//        {
-//            if (control->type == ekGUI_COMPONENT_TEXTVIEW)
-//            {
-//                bstd_printf("Capture TEXT\n");
-//            }
-//        }
+        else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
+            _ostext_release_capture((OSText*)control);
+        else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
+            _osview_release_capture((OSView*)control);
     }
+}
 
+/*---------------------------------------------------------------------------*/
+// https://stackoverflow.com/questions/63647507/gdkeventmotion-x-and-y-coordinates-appears-to-refer-to-location-within-a-differe
+static void i_mouse_pos(GtkWidget *widget, GdkEventMotion *event, real32_t *x, real32_t *y)
+{
+    int mouse_x = 0;
+    int mouse_y = 0;
+    cassert_no_null(x);
+    cassert_no_null(y);
+    gdk_window_get_origin(gtk_widget_get_window(widget), &mouse_x, &mouse_y);
+    *x = (real32_t)(event->x_root - mouse_x);
+    *y = (real32_t)(event->y_root - mouse_y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -153,64 +97,35 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
 static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view)
 {
     cassert(widget == view->control.widget);
-//    if (event->type == GDK_MOTION_NOTIFY)
-//    {
-//        bstd_printf("GDK_MOTION_NOTIFY\n");
-//    }
-//    else if (event->type == GDK_DRAG_MOTION)
-//    {
-//        bstd_printf("GDK_DRAG_MOTION\n");
-//    }
-//    else
-//    {
-//        bstd_printf("UNKNOWN_MOTION\n");
-//    }
-
     if (view->left_button == TRUE)
     {
-        // bstd_printf("Dragging!!!!!!!!!!!!!!!!!!\n");
-
+        if (view->OnDrag != NULL)
+        {
+            EvMouse params;
+            i_mouse_pos(widget, event, &params.x, &params.y);
+            params.button = ekLEFT;
+            params.count = 0;
+            listener_event(view->OnDrag, ekEVDRAG, view, &params, NULL, OSSplit, EvMouse, void);
+        }
     }
     else
     {
-        int mouse_x = 0;
-        int mouse_y = 0;
-//        int delta_x;
-//        int delta_y;
-        // https://stackoverflow.com/questions/63647507/gdkeventmotion-x-and-y-coordinates-appears-to-refer-to-location-within-a-differe
-        //bstd_printf("MOVING\n");
+        real32_t mouse_x = 0;
+        real32_t mouse_y = 0;
+        i_mouse_pos(widget, event, &mouse_x, &mouse_y);
 
-        gdk_window_get_origin(gtk_widget_get_window(widget)/*event->window*/, &mouse_x, &mouse_y);
-        mouse_x = event->x_root - mouse_x;
-        mouse_y = event->y_root - mouse_y;
-//        bstd_printf("Move (%.2f, %.2f)\n", (real32_t)mouse_x, (real32_t)mouse_y);
-//        bstd_printf("%x DivRect Pos:(%.2f, %.2f) Size:(%.2f, %.2f)\n", view, view->divrect.pos.x, view->divrect.pos.y, view->divrect.size.width, view->divrect.size.height);
-
-        if (r2d_containsf(&view->divrect, (real32_t)mouse_x, (real32_t)mouse_y) == TRUE)
-        //if (r2d_containsf(&view->divrect, (real32_t)event->x, (real32_t)event->y) == TRUE)
+        if (r2d_containsf(&view->divrect, mouse_x, mouse_y) == TRUE)
         {
-            //bstd_printf("INSIDE!!!!\n");
-
             if (view->inside_rect == FALSE)
             {
                 i_set_capture(widget, view);
                 view->inside_rect = TRUE;
             }
 
-//            GtkWidget *grab = gtk_grab_get_current();
-//            bstd_printf("Grab %x\n", grab);
-//
-//            if (gtk_widget_has_grab(widget) == FALSE)
-//                gtk_grab_add(widget);
-//
-//            cassert(gtk_widget_is_sensitive(widget) == TRUE);
-//            cassert(gtk_widget_has_grab(widget) == TRUE);
-
             if (split_type(view->flags) == ekSPHORZ)
                 _osgui_ns_resize_cursor(widget);
             else
                 _osgui_ew_resize_cursor(widget);
-
         }
         else
         {
@@ -223,22 +138,6 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
         }
     }
 
-    // Manually compute correct coordinates for the event
-//    int screen_x;
-//    int screen_y;
-//    int delta_x;
-//    int delta_y;
-//    GdkWindow *window = gtk_widget_get_window(widget);
-//    gdk_window_get_origin(gtk_widget_get_window(widget)/*event->window*/, &screen_x, &screen_y);
-//    delta_x = event->x_root - screen_x;
-//    delta_y = event->y_root - screen_y;
-//
-//    bstd_printf("GDKWindow: Widget:%x Event:%x\n", window, event->window);
-//    bstd_printf("Window: X:%d Y:%d\n", screen_x, screen_y);
-//    bstd_printf("Delta: X:%d Y:%d\n", delta_x, delta_y);
-//    bstd_printf("%x DivRect Pos:(%.2f, %.2f) Size:(%.2f, %.2f) Mouse (%.2f, %.2f)\n", view, view->divrect.pos.x, view->divrect.pos.y, view->divrect.size.width, view->divrect.size.height, (real32_t)event->x, (real32_t)event->y);
-
-    //_oslistener_mouse_moved((OSControl*)view, event, NULL, NULL, &view->listeners);
     return FALSE;
 }
 
@@ -255,55 +154,15 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSSplit *v
 static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSSplit *view)
 {
     view->left_button = FALSE;
-    //bstd_printf("RELEASED!!!!\n");
     if (view->inside_rect == TRUE)
     {
         i_release_capture(widget, NULL);
         view->inside_rect = FALSE;
     }
 
-    //_oslistener_mouse_up((OSControl*)view, event, NULL, NULL, &view->listeners);
     _osgui_default_cursor(widget);
     return TRUE;
 }
-
-/*---------------------------------------------------------------------------*/
-
-//static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
-//{
-//    cassert_no_null(panel);
-//    if (panel->areas == NULL)
-//        return FALSE;
-//
-//    cairo_save(cr);
-//    arrst_foreach(area, panel->areas, Area)
-//        if (area->bgcolor != kCOLOR_NULL)
-//        {
-//            real32_t r, g, b, a;
-//            color_get_rgbaf(area->bgcolor, &r, &g, &b, &a);
-//            cairo_set_source_rgba(cr, (double)r, (double)g, (double)b, (double)a);
-//            cairo_rectangle(cr, (double)area->x, (double)area->y, (double)area->w, (double)area->h);
-//            cairo_fill(cr);
-//        }
-//
-//        if (area->skcolor != kCOLOR_NULL)
-//        {
-//            real32_t r, g, b, a;
-//            cairo_antialias_t ca;
-//            color_get_rgbaf(area->skcolor, &r, &g, &b, &a);
-//            cairo_set_source_rgba(cr, (double)r, (double)g, (double)b, (double)a);
-//            cairo_set_line_width(cr, 1.);
-//            ca = cairo_get_antialias(cr);
-//            cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
-//            cairo_rectangle(cr, (double)area->x + 1, (double)area->y + 1, (double)area->w - 1, (double)area->h - 1);
-//            cairo_stroke(cr);
-//            cairo_set_antialias(cr, ca);
-//        }
-//
-//    arrst_end();
-//    cairo_restore(cr);
-//    return FALSE;
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -355,9 +214,6 @@ void ossplit_OnDrag(OSSplit *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->OnDrag, listener);
-//    listener_update(&view->listeners.OnMouseStartDrag, listener_copy(listener));
-//    listener_update(&view->listeners.OnMouseDragging, listener_copy(listener));
-//    listener_update(&view->listeners.OnMouseEndDrag, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -425,6 +281,15 @@ void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real
 
 /*---------------------------------------------------------------------------*/
 
+void _ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel)
+{
+    cassert_no_null(view);
+    ossplit_detach(*view, panel);
+    ossplit_destroy(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _ossplit_OnPress(OSSplit *view, GdkEventButton *event)
 {
     cassert_no_null(view);
@@ -434,9 +299,6 @@ void _ossplit_OnPress(OSSplit *view, GdkEventButton *event)
     if (event->button == 1)
     {
         if (view->inside_rect == TRUE)
-        {
-            //bstd_printf("PRESSED!!!!!!!!!!!!!!\n");
             view->left_button = TRUE;
-        }
     }
 }

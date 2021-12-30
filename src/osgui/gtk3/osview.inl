@@ -16,6 +16,10 @@ __EXTERN_C
 
 void _osview_detach_and_destroy(OSView **view, OSPanel *panel);
 
+void _osview_set_capture(OSView *view, OSControl *control);
+
+void _osview_release_capture(OSView *view);
+
 void _osview_set_focus(OSView *view);
 
 void _osview_unset_focus(OSView *view);

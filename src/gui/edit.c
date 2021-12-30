@@ -74,6 +74,7 @@ static void i_OnFilter(Edit *edit, Event *e)
     if (result->apply == FALSE)
     {
         _cell_upd_string(edit->component.parent, params->text);
+
         if (edit->OnFilter != NULL)
             listener_pass_event(edit->OnFilter, e, edit, Edit);
     }        
@@ -89,6 +90,7 @@ static void i_OnChange(Edit *edit, Event *e)
     cassert(event_type(e) == ekEVTXTCHANGE);
     cassert(event_sender_imp(e, NULL) == edit->component.ositem);
     str_upd(&edit->text, params->text);
+
     _cell_upd_string(edit->component.parent, params->text);
 
     if (edit->OnChange != NULL)

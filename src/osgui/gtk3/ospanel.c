@@ -117,21 +117,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSPanel *p
     if (panel->capture != NULL)
     {
         if (panel->capture->type == ekGUI_COMPONENT_SPLITVIEW)
-        {
             _ossplit_OnPress((OSSplit*)panel->capture, event);
-
-        }
-//    // Left button
-//    if (event->button == 1)
-//    {
-//        if (view->inside_rect == TRUE)
-//        {
-//            gtk_grab_add(widget);
-//            bstd_printf("PRESSED!!!!!!!!!!!!!!\n");
-//            view->left_button = TRUE;
-//            return FALSE;
-//        }
-//    }
 
         return TRUE;
     }
@@ -149,7 +135,8 @@ OSPanel *ospanel_create(const uint32_t flags)
 {
     OSPanel *panel = heap_new0(OSPanel);
     GtkWidget *widget = gtk_layout_new(NULL, NULL);
-    g_signal_connect(widget, "draw", G_CALLBACK(i_OnDraw), (gpointer)panel);
+    g_signal_connect(G_OBJECT(widget), "draw", G_CALLBACK(i_OnDraw), panel);
+    g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), panel);
 
     if (flags & ekHSCROLL || flags & ekVSCROLL)
     {
@@ -166,6 +153,7 @@ OSPanel *ospanel_create(const uint32_t flags)
             GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(panel->control.widget));
             g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
             g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
+            g_signal_connect(G_OBJECT(scroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
         }
 
         panel->hadjust = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(panel->control.widget));
@@ -239,33 +227,6 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
             arrst_clear(panel->areas, NULL, Area);
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-#if defined __ASSERTS__
-
-/*---------------------------------------------------------------------------*/
-
-// Working os SplitView WIP
-//static bool_t i_IS_SCROLLED_WINDOW(GtkWidget *widget)
-//{
-//#if GTK_CHECK_VERSION(3, 8, 0)
-//    return GTK_IS_SCROLLED_WINDOW(widget);
-//#else
-//
-//    if (GTK_IS_EVENT_BOX(widget) == TRUE)
-//    {
-//        GtkWidget *child = gtk_bin_get_child(GTK_BIN(widget));
-//        return GTK_IS_SCROLLED_WINDOW(child);
-//    }
-//
-//    return FALSE;
-//#endif
-//}
-
-/*---------------------------------------------------------------------------*/
-
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -401,10 +362,13 @@ static void i_destroy_child(GtkWidget *widget, gpointer data)
         _ospanel_destroy((OSPanel**)&control);
         break;
 
+    case ekGUI_COMPONENT_SPLITVIEW:
+        _ossplit_detach_and_destroy((OSSplit**)&control, panel);
+        break;
+
     case ekGUI_COMPONENT_TABLEVIEW:
     case ekGUI_COMPONENT_TREEVIEW:
     case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
     case ekGUI_COMPONENT_LINE:
     case ekGUI_COMPONENT_HEADER:
     case ekGUI_COMPONENT_WINDOW:
@@ -444,7 +408,6 @@ void _ospanel_detach_control(OSPanel *panel, OSControl *control)
 void _ospanel_set_capture(OSPanel *panel, OSControl *control)
 {
     cassert_no_null(panel);
-    cassert(panel->capture == NULL);
     panel->capture = control;
 }
 
@@ -453,6 +416,5 @@ void _ospanel_set_capture(OSPanel *panel, OSControl *control)
 void _ospanel_release_capture(OSPanel *panel)
 {
     cassert_no_null(panel);
-    cassert(panel->capture != NULL);
     panel->capture = NULL;
 }

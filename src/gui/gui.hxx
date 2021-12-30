@@ -123,15 +123,14 @@ typedef enum _gevent_t
     ekEVWNDCLOSE,
     ekEVCOLOR,
     ekEVTHEME,
+    ekEVOBJCHANGE,
 
     ekEVTBLSIZE,
     ekEVTBLNROWS,
     ekEVTBLROW,
     ekEVTBLCELL,
     ekEVHEADSIZE,
-    ekEVHEADCLICK,
-    ekEVOBJVALIDATE,
-    ekEVOBJCHANGE
+    ekEVHEADCLICK
 } event_t;
 
 typedef struct _control_t Control;
@@ -167,7 +166,6 @@ typedef struct _evpos_t EvPos;
 typedef struct _evsize_t EvSize;
 typedef struct _evwinclose_t EvWinClose;
 typedef struct _evmenu_t EvMenu;
-typedef struct _evbind_t EvBind;
 
 typedef struct _evheader_t EvHeader;
 typedef struct _evtbpos_t EvTbPos;
@@ -258,15 +256,6 @@ struct _evmenu_t
     uint32_t index;
     state_t state;
     const char_t *str;
-};
-
-#define evbind_field(param, type, mtype, mname)\
-    (CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype),\
-    param->offset == STRUCT_MEMBER_OFFSET(type, mname))
-
-struct _evbind_t
-{
-    uint16_t offset;
 };
 
 struct _evheader_t

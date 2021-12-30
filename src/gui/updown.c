@@ -35,10 +35,7 @@ static void i_OnClick(UpDown *updown, Event *e)
 {
     const EvButton *params = event_params(e, EvButton);
     cassert_no_null(updown);
-    if (params->index == 0)
-        _cell_upd_increment(updown->component.parent);
-    else
-        _cell_upd_decrement(updown->component.parent);
+	_cell_upd_increment(updown->component.parent, params->index == 0 ? TRUE : FALSE);
 
     if (updown->OnClick != NULL)
         listener_pass_event(updown->OnClick, e, updown, UpDown);

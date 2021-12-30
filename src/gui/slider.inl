@@ -20,13 +20,7 @@ void _slider_dimension(Slider *slider, const uint32_t i, real32_t *dim0, real32_
 
 bool_t _slider_is_horizontal(const Slider *slider);
 
-void _slider_set_dtype_real32(Slider *slider);
-
-void _slider_set_dtype_uint32(Slider *slider, const uint32_t intmax);
-
 void _slider_real32(Slider *slider, const real32_t value);
-
-void _slider_uint32(Slider *slider, const uint32_t value);
 
 __END_C
 

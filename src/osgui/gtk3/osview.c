@@ -19,6 +19,7 @@
 #include "oscontrol.inl"
 #include "oslistener.inl"
 #include "ospanel.inl"
+#include "ossplit.inl"
 #include "cassert.h"
 #include "event.h"
 #include "heap.h"
@@ -36,6 +37,7 @@ struct _osview_t
     GtkWidget *area;
     GtkAdjustment *hadjust;
     GtkAdjustment *vadjust;
+    OSControl *capture;
     real32_t area_width;
     real32_t area_height;
     real32_t clip_width;
@@ -49,7 +51,6 @@ struct _osview_t
 
 static gboolean i_OnConfig(GtkWidget *widget, GdkEventConfigure *event, OSView *view)
 {
-    //cassert(widget == view->control.widget);
     uint32_t w = (uint32_t)gtk_widget_get_allocated_width(widget);
     uint32_t h = (uint32_t)gtk_widget_get_allocated_height(widget);
 
@@ -68,10 +69,6 @@ static gboolean i_OnConfig(GtkWidget *widget, GdkEventConfigure *event, OSView *
                     dctx_update_view(view->ctx, (void*)widget);
             }
         }
-//        else
-//        {
-//            view->ctx = dctx_create_view((void*)widget);
-//        }
     }
 
     return TRUE;
@@ -150,7 +147,6 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
     }
     else
     {
-       // cassert(view->ctx == NULL);
         params.x = 0;
         params.y = 0;
         params.width = (real32_t)view->area_width;
@@ -213,14 +209,25 @@ static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSView *vie
 
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSView *view)
 {
-    gboolean can_focus = FALSE;
+    if (view->capture != NULL)
+    {
+        if (view->capture->type == ekGUI_COMPONENT_SPLITVIEW)
+        {
+            _ossplit_OnPress((OSSplit*)view->capture, event);
+        }
+    }
+    else
+    {
+        gboolean can_focus = FALSE;
 
-    cassert(widget == view->control.widget);
-    g_object_get(G_OBJECT(widget), "can-focus", &can_focus, NULL);
-    if (can_focus == TRUE)
-        gtk_widget_grab_focus(widget);
+        cassert(widget == view->control.widget);
+        g_object_get(G_OBJECT(widget), "can-focus", &can_focus, NULL);
+        if (can_focus == TRUE)
+            gtk_widget_grab_focus(widget);
 
-    _oslistener_mouse_down((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
+        _oslistener_mouse_down((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
+    }
+
     return TRUE;
 }
 
@@ -263,15 +270,6 @@ static gboolean i_OnKeyRelease(GtkWidget *widget, GdkEventKey *event, OSView *vi
 
     return (gboolean)_oslistener_key_up((OSControl*)view, event, &view->listeners);
 }
-
-///*---------------------------------------------------------------------------*/
-//
-//static void i_OnScrollMoved(GtkAdjustment *adjustment, OSView *view)
-//{
-//    cassert(view->area != NULL);
-//    unref(adjustment);
-//    gtk_widget_queue_draw(view->area);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -327,6 +325,14 @@ OSView *osview_create(const uint32_t flags)
         view->hadjust = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scroll));
         view->vadjust = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
 
+        {
+            GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(scroll));
+            GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(scroll));
+            g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
+            g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
+            g_signal_connect(G_OBJECT(scrolled), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        }
+
         if (flags & ekBORDER)
             _oscontrol_widget_border(scroll, "scrolledwindow", osglobals_border_color(), NULL);
     }
@@ -337,9 +343,6 @@ OSView *osview_create(const uint32_t flags)
         if (flags & ekBORDER)
             _oscontrol_widget_border(view->control.widget, "drawing_area", osglobals_border_color(), NULL);
     }
-
-    //gtk_widget_set_events(view->control.widget, GDK_POINTER_MOTION_MASK);
-
 
     return view;
 }
@@ -682,6 +685,22 @@ void _osview_detach_and_destroy(OSView **view, OSPanel *panel)
     cassert_no_null(view);
     osview_detach(*view, panel);
     osview_destroy(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_set_capture(OSView *view, OSControl *control)
+{
+    cassert_no_null(view);
+    view->capture = control;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_release_capture(OSView *view)
+{
+    cassert_no_null(view);
+    view->capture = NULL;
 }
 
 /*---------------------------------------------------------------------------*/

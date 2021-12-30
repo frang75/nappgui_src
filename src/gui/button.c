@@ -14,7 +14,6 @@
 #include "button.inl"
 #include "component.inl"
 #include "cell.inl"
-#include "dbind.inl"
 #include "gui.inl"
 #include "guicontexth.inl"
 #include "gbind.inl"
@@ -33,7 +32,6 @@
 struct _button_t
 {
     GuiComponent component;
-    dtype_t dtype;
     button_flag_t flags;
     S2Df size;
     ResId textid;
@@ -117,25 +115,14 @@ static void i_OnClick(Button *button, Event *event)
 
     i_update_button(button, params->state);
 
-    switch(button_type(button->flags)) {
+    switch (button_type(button->flags)) {
     case ekBTRADIO:
     {
-        Cell *cell = _cell_radio_dbind_cell(button->component.parent);
+        Cell* cell = _cell_radio_dbind_cell(button->component.parent);
         params->index = _cell_radio_index(button->component.parent);
 
         if (cell != NULL)
-        {
-            Button *main_button = (Button*)_cell_component(cell);
-            if (main_button->dtype == ekDTYPE_ENUM)
-            {
-                _cell_upd_enum_index(cell, params->index);
-            }
-            else
-            {
-                cassert(_dbind_type_is_number(main_button->dtype) == TRUE);
-                _cell_upd_uint32(cell, params->index);
-            }
-        }
+            _cell_upd_uint32(cell, params->index);
 
         if (button->OnClick == NULL)
             sender = _cell_radio_listener(button->component.parent);
@@ -145,10 +132,28 @@ static void i_OnClick(Button *button, Event *event)
 
     case ekBTCHECK2:
     case ekBTFLATGLE:
-        if (button->dtype == ekDTYPE_BOOL)
-            _cell_upd_bool(button->component.parent, params->state == ekOFF ? FALSE : TRUE);
+        _cell_upd_bool(button->component.parent, params->state == ekOFF ? FALSE : TRUE);
         break;
-    }
+
+    case ekBTCHECK3:
+    {
+        uint32_t v = 0;
+        switch (params->state) {
+        case ekOFF:
+            v = 0;
+            break;
+        case ekON:
+            v = 1;
+            break;
+        case ekMIXED:
+            v = 2;
+            break;
+            cassert_default();
+        }
+
+        _cell_upd_uint32(button->component.parent, v);
+        break;
+    }}
 
     if (sender && sender->OnClick)
     {
@@ -172,7 +177,6 @@ static Button *i_create(const button_flag_t flags, const align_t halign)
     _component_init(&button->component, context, PARAM(type, ekGUI_COMPONENT_BUTTON), &ositem);
     button->flags = flags;
     button->text = str_c("");
-    button->dtype = ekDTYPE_UNKNOWN;
 
     if (button_type(flags) != ekBTFLAT && button_type(flags) != ekBTFLATGLE)
         context->func_button_set_align(button->component.ositem, (enum_t)halign);
@@ -459,31 +463,9 @@ void _button_radio_state(Button *button, const state_t state)
 
 /*---------------------------------------------------------------------------*/
 
-void _button_set_dtype(Button *button, const dtype_t dtype)
-{
-    cassert_no_null(button);
-    cassert(button->dtype == ekDTYPE_UNKNOWN);
-    button->dtype = dtype;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _button_bool(Button *button, const bool_t value)
 {
-    cassert_no_null(button);
-    button->component.context->func_button_set_state(button->component.ositem, (enum_t)(value ? ekON : ekOFF));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _button_enum(Button *button, const DBind *dbind, const enum_t value)
-{
-    uint32_t index = 0;
-    cassert_no_null(button);
-    cassert(button_type(button->flags) == ekBTRADIO);
-    cassert(button->dtype == ekDTYPE_ENUM);
-    index = _dbind_enum_index(dbind, value);
-    _cell_set_radio_index(button->component.parent, index);
+    _button_uint32(button, (uint32_t)value);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -491,6 +473,27 @@ void _button_enum(Button *button, const DBind *dbind, const enum_t value)
 void _button_uint32(Button *button, const uint32_t value)
 {
     cassert_no_null(button);
-    cassert(button_type(button->flags) == ekBTRADIO);
-    _cell_set_radio_index(button->component.parent, value);
+    switch (button_type(button->flags)) {
+    case ekBTRADIO:
+        _cell_set_radio_index(button->component.parent, value);
+        break;
+
+    case ekBTFLATGLE:
+    case ekBTCHECK2:
+        button_state(button, value == 0 ? ekOFF : ekON);
+        break;
+
+    case ekBTCHECK3:
+    {
+        state_t st = ekMIXED;
+        if (value == 0)
+            st = ekOFF;
+        else if (value == 1)
+            st = ekON;
+        button_state(button, st);
+        break;
+    }
+
+    cassert_default();
+    }
 }

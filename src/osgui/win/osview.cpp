@@ -348,6 +348,9 @@ OSView *osview_create(const uint32_t flags)
     {
         view->osdraw.button_theme = osstyleXP_OpenTheme(view->control.hwnd, L"BUTTON");
         view->osdraw.list_theme = osstyleXP_OpenTheme(view->control.hwnd, L"Explorer::ListView");
+        // WinXP
+        if (view->osdraw.list_theme == NULL)
+            view->osdraw.list_theme = osstyleXP_OpenTheme(view->control.hwnd, L"ListView");
     }
 
     oslistener_init(&view->listeners);

@@ -69,17 +69,15 @@ void col2dhello_dbind(void)
 static void i_OnCloud(App *app, Event *e)
 {
     Shape *shape = arrst_get(app->shapes, app->selshape, Shape);
-    EvBind *p = event_params(e, EvBind);
     cassert(shape->type == ekPOINT_CLOUD);
 
-    if (evbind_field(p, Cloud, uint32_t, type) == TRUE)
+    if (evbind_modify(e, Cloud, uint32_t, type) == TRUE)
         col2dhello_update_cloud_bounds(&shape->body.cloud);
     else
         col2dhello_update_cloud(&shape->body.cloud);
 
     col2dhello_collisions(app);
     col2dhello_update_gui(app);
-    unref(e);
 }
 
 /*---------------------------------------------------------------------------*/

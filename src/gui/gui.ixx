@@ -47,6 +47,7 @@ typedef union _tag_t Tag;
 typedef struct _gui_component_t GuiComponent;
 typedef struct _colitem_t ColItem;
 typedef struct _evtransition_t EvTransition;
+typedef struct _evbind_t EvBind;
 
 typedef void(*FPtr_set_size)(void *component, const S2Df *size);
 #define FUNC_CHECK_SET_SIZE(func, type)\
@@ -106,6 +107,16 @@ struct _evtransition_t
     real64_t crtime;
     uint32_t cframe;
     uint32_t empty;
+};
+
+struct _evbind_t
+{
+	void *obj_notify;
+	void *obj_edit;
+	const char_t *objtype_notif;
+	const char_t *objtype_edit;
+    uint16_t offset_edit;
+	uint16_t size_edit;
 };
 
 #endif

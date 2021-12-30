@@ -336,4 +336,3 @@ void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real
     split->track_area = [[NSTrackingArea alloc] initWithRect:NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height) options:(NSTrackingAreaOptions)(NSTrackingMouseMoved | NSTrackingActiveInActiveApp) owner:split userInfo:nil];
     [split addTrackingArea:split->track_area];
 }
-

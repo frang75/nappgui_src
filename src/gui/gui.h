@@ -49,4 +49,24 @@ V2Df gui_mouse_pos(void);
 
 void gui_OnThemeChanged(Listener *listener);
 
+void *evbind_object_imp(Event *e, const char_t *type);
+
+bool_t evbind_modify_imp(Event *e, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
+
 __END_C
+
+#define evbind_object(e, type)\
+	(type*)evbind_object_imp(e, (const char_t*)#type)
+
+#define evbind_modify(e, type, mtype, mname)\
+    (\
+		CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype),\
+        evbind_modify_imp(\
+				e,\
+                (const char_t*)#type,\
+                (uint16_t)sizeof(type),\
+                (const char_t*)#mname,\
+                (const char_t*)#mtype,\
+				(uint16_t)STRUCT_MEMBER_OFFSET(type, mname),\
+                (uint16_t)STRUCT_MEMBER_SIZE(type, mname))\
+    )

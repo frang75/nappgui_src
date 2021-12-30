@@ -24,9 +24,11 @@
 #include "edit.h"
 #include "edit.inl"
 #include "panel.inl"
-#include "popup.h"
+//#include "popup.h"
 #include "popup.inl"
+#include "listbox.inl"
 #include "slider.inl"
+#include "view.inl"
 #include "window.inl"
 
 #include "arrpt.h"
@@ -940,17 +942,17 @@ static void i_layout_dbind(Layout *layout, StBind *stbind, void *obj)
                 Panel *panel = (Panel*)cell->content.component;
                 ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
                 arrpt_foreach(panel_layout, panel_layouts, Layout)
-                    gbind_set_layout(panel_layout, stbind, cell->dbind, obj);
+                    gbind_upd_layout(panel_layout, stbind, cell->dbind, obj);
                 arrpt_end();
             }
             else
             {
-                gbind_set_component(cell, stbind, cell->dbind, obj);
+                gbind_upd_component(cell, stbind, cell->dbind, obj);
             }
             break;
 
         case i_ekLAYOUT:
-            gbind_set_layout(cell->content.layout, stbind, cell->dbind, obj);
+            gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
             break;
 
         case i_ekEMPTY:
@@ -981,6 +983,31 @@ void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type)
     cassert_unref(str_equ_c(_dbind_stbind_type(layout->stbind), type) == TRUE, type);
     layout->objbind = obj;
     i_layout_dbind(layout, layout->stbind, layout->objbind);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
+{
+	DBind *dbind = _dbind_member(type, mname);
+	_layout_dbind_update(layout, dbind);
+	unref(mtype);
+#if defined __ASSERTS__
+	{
+		StBind *stbind = _dbind_stbind(type);
+		uint16_t offset;
+		uint16_t mmsize;
+		cassert(_dbind_stbind_size(stbind) == size);
+		_dbind_member_get(dbind, &offset, NULL, &mmsize, NULL);
+		cassert(offset == moffset);
+		cassert(msize == mmsize);
+	}
+#else
+	unref(size);
+	unref(mtype);
+	unref(moffset);
+	unref(msize);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1705,10 +1732,10 @@ static void i_dbind_update(Layout *layout, StBind *stbind, DBind *dbind, void *o
         {
             switch (cell->type) {
             case i_ekCOMPONENT:
-                gbind_set_component(cell, stbind, cell->dbind, obj);
+                gbind_upd_component(cell, stbind, cell->dbind, obj);
                 break;
             case i_ekLAYOUT:
-                gbind_set_layout(cell->content.layout, stbind, cell->dbind, obj);
+                gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
                 break;
             case i_ekEMPTY:
             cassert_default();
@@ -1755,6 +1782,19 @@ ArrSt(Cell)* _layout_cells(Layout* layout)
 {
     cassert_no_null(layout);
     return layout->cells;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener)
+{
+	cassert_no_null(layout);
+	cassert_no_null(obj);
+	cassert_no_null(obj_type);
+	cassert_no_null(listener);
+	*obj = layout->objbind;
+	*obj_type = _dbind_stbind_type(layout->stbind);
+	*listener = layout->OnObjChange;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1898,75 +1938,77 @@ static void i_set_dbind(Cell *cell, DBind *dbind)
     cell->dbind = dbind;
     if (cell->type == i_ekCOMPONENT)
     {
-        if (cell->content.component->type == ekGUI_COMPONENT_EDITBOX && _dbind_is_number_type(dbind) == TRUE)
+        dtype_t dtype = _dbind_member_type(dbind);
+
+        switch (cell->content.component->type) { 
+        case ekGUI_COMPONENT_POPUP:
         {
-            edit_autoselect((Edit*)cell->content.component, TRUE);
-        }
-        else if (cell->content.component->type == ekGUI_COMPONENT_POPUP)
-        {
-            PopUp *popup = (PopUp*)cell->content.component;
-            dtype_t dtype = _dbind_member_type(dbind);
-            _popup_set_dtype(popup, dtype);
-            if (dtype == ekDTYPE_ENUM)
+            PopUp* popup = (PopUp*)cell->content.component;
+            if (dtype == ekDTYPE_ENUM && _popup_size(popup) == 0)
             {
                 register uint32_t i, n = _dbind_enum_size(dbind);
-                cassert(_popup_size(popup) == 0);
                 for (i = 0; i < n; ++i)
                 {
-                    const char_t *alias = _dbind_enum_alias(dbind, i);
+                    const char_t* alias = _dbind_enum_alias(dbind, i);
                     _popup_add_enum_item(popup, alias);
                 }
 
-                popup_list_height(popup, n < 15 ? n : 15);
+                _popup_list_height(popup, n < 15 ? n : 15);
             }
-        }
-        else if (cell->content.component->type == ekGUI_COMPONENT_BUTTON)
-        {
-            Button *button = (Button*)cell->content.component;
-            dtype_t dtype = _dbind_member_type(dbind);
-            _button_set_dtype(button, dtype);
-        }
-        else if (cell->content.component->type == ekGUI_COMPONENT_SLIDER)
-        {
-            Slider *slider = (Slider*)cell->content.component;
-            dtype_t dtype = _dbind_member_type(dbind);
-            switch(dtype) {
-            case ekDTYPE_REAL32:
-            case ekDTYPE_REAL64:
-                _slider_set_dtype_real32(slider);
-                break;
 
-            case ekDTYPE_INT8:
-            case ekDTYPE_INT16:
-            case ekDTYPE_INT32:
-            case ekDTYPE_INT64:
-            case ekDTYPE_UINT8:
-            case ekDTYPE_UINT16:
-            case ekDTYPE_UINT32:
-            case ekDTYPE_UINT64:
+            break;
+        }
+
+        case ekGUI_COMPONENT_CUSTOMVIEW:
+		{
+            View *view = (View*)cell->content.component;
+			if (str_equ_c(_view_subtype(view), "ListBox") == TRUE)
+			{
+				ListBox *listbox = (ListBox*)cell->content.component;
+				if (dtype == ekDTYPE_ENUM && _listbox_count(listbox) == 0)
+				{
+					register uint32_t i, n = _dbind_enum_size(dbind);
+					for (i = 0; i < n; ++i)
+					{
+						const char_t* alias = _dbind_enum_alias(dbind, i);
+						_listbox_add_enum_item(listbox, alias);
+					}
+				}
+			}
+
+			break;
+		}
+
+        case ekGUI_COMPONENT_EDITBOX:
+            if (_dbind_is_number_type(dbind) == TRUE)
             {
-                int64_t min, max;
-                _dbind_int_range(dbind, &min, &max);
-                _slider_set_dtype_uint32(slider, (uint32_t)(max - min));
-                break;
+                Edit* edit = (Edit*)cell->content.component;
+                edit_autoselect(edit, TRUE);
             }
+            break;
 
-            case ekDTYPE_ENUM:
-            case ekDTYPE_BOOL:
-            case ekDTYPE_STRING:
-            case ekDTYPE_STRING_PTR:
-            case ekDTYPE_ARRAY:
-            case ekDTYPE_ARRPTR:
-            case ekDTYPE_OBJECT:
-            case ekDTYPE_OBJECT_PTR:
-            case ekDTYPE_OBJECT_OPAQUE:
-            case ekDTYPE_UNKNOWN:
-            cassert_default();
+        case ekGUI_COMPONENT_LABEL:
+        case ekGUI_COMPONENT_BUTTON:
+        case ekGUI_COMPONENT_COMBOBOX:
+        case ekGUI_COMPONENT_SLIDER:
+        case ekGUI_COMPONENT_UPDOWN:
+        case ekGUI_COMPONENT_PROGRESS:
+			break;
 
-            }
+        case ekGUI_COMPONENT_TEXTVIEW:
+        case ekGUI_COMPONENT_TABLEVIEW:
+        case ekGUI_COMPONENT_TREEVIEW:
+        case ekGUI_COMPONENT_BOXVIEW:
+        case ekGUI_COMPONENT_SPLITVIEW:
+        case ekGUI_COMPONENT_PANEL:
+        case ekGUI_COMPONENT_LINE:
+        case ekGUI_COMPONENT_HEADER:
+        case ekGUI_COMPONENT_WINDOW:
+        case ekGUI_COMPONENT_TOOLBAR:
+        cassert_default();
         }
     }
-    else if (cell->type == i_ekLAYOUT && _dbind_is_basic_type(dbind))
+    else if (cell->type == i_ekLAYOUT && _dbind_is_basic_type(dbind) == TRUE)
     {
         arrst_foreach(lcell, cell->content.layout->cells, Cell)
             i_set_dbind(lcell, dbind);
@@ -2114,13 +2156,11 @@ bool_t _cell_filter_str(Cell *cell, const char_t *str, char_t *dest, const uint3
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_cell_obj(Cell *cell, void **obj, void **obj_notif, StBind **st_notif, Listener **listener)
+static Layout *i_cell_obj(Cell *cell, void **obj, Layout **layout_notif)
 {
     Layout *layout = cell->parent;
     *obj = NULL;
-    *obj_notif = NULL;
-    *st_notif = NULL;
-    *listener = NULL;
+    *layout_notif = NULL;
 
     // Find the closest parent layout with object data
     while (layout->stbind == NULL && layout->parent != NULL)
@@ -2151,9 +2191,8 @@ static Layout *i_cell_obj(Cell *cell, void **obj, void **obj_notif, StBind **st_
         while(layout_notify->OnObjChange == NULL && layout_notify->parent != NULL)
             layout_notify = layout_notify->parent->parent;
 
-        *listener = layout_notify->OnObjChange;
-        *obj_notif = layout_notify->objbind;
-        *st_notif = layout_notify->stbind;
+		if (layout_notify->OnObjChange != NULL)
+			*layout_notif = layout_notify;
     }
 
     return layout;
@@ -2166,31 +2205,12 @@ void _cell_upd_bool(Cell *cell, const bool_t value)
     cassert_no_null(cell);
     if (cell->dbind != NULL)
     {
-        void *obj = NULL, *obj_notif = NULL;
-        StBind *st_notif = NULL;
-        Listener *listener = NULL;
-        Layout *layout = i_cell_obj(cell, &obj, &obj_notif, &st_notif, &listener);
+		void *obj = NULL;
+		Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
 
         if (obj != NULL)
-            gbind_upd_bool(layout, cell->dbind, obj, obj_notif, st_notif, listener, value);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _cell_upd_enum_index(Cell *cell, const uint32_t index)
-{
-    cassert_no_null(cell);
-    if (cell->dbind != NULL)
-    {
-        void *obj = NULL, *obj_notif = NULL;
-        StBind *st_notif = NULL;
-        Listener *listener = NULL;
-        enum_t value = _dbind_enum_value(cell->dbind, index);
-        Layout *layout = i_cell_obj(cell, &obj, &obj_notif, &st_notif, &listener);
-
-        if (obj != NULL)
-            gbind_upd_enum(layout, cell->dbind, obj, obj_notif, st_notif, listener, value);
+            gbind_upd_bool(layout, cell->dbind, obj, layout_notif, value);
     }
 }
 
@@ -2201,13 +2221,12 @@ void _cell_upd_uint32(Cell *cell, const uint32_t value)
     cassert_no_null(cell);
     if (cell->dbind != NULL)
     {
-        void *obj = NULL, *obj_notif = NULL;
-        StBind *st_notif = NULL;
-        Listener *listener = NULL;
-        Layout *layout = i_cell_obj(cell, &obj, &obj_notif, &st_notif, &listener);
+		void *obj = NULL;
+		Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
 
         if (obj != NULL)
-            gbind_upd_uint32(layout, cell->dbind, obj, obj_notif, st_notif, listener, value);
+            gbind_upd_uint32(layout, cell->dbind, obj, layout_notif, value);
     }
 }
 
@@ -2218,13 +2237,12 @@ void _cell_upd_norm_real32(Cell *cell, const real32_t value)
     cassert_no_null(cell);
     if (cell->dbind != NULL)
     {
-        void *obj = NULL, *obj_notif = NULL;
-        StBind *st_notif = NULL;
-        Listener *listener = NULL;
-        Layout *layout = i_cell_obj(cell, &obj, &obj_notif, &st_notif, &listener);
+        void *obj = NULL;
+		Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
 
         if (layout->objbind != NULL)
-            gbind_upd_norm_real32(layout, cell->dbind, obj, obj_notif, st_notif, listener, value);
+            gbind_upd_norm_real32(layout, cell->dbind, obj, layout_notif, value);
     }
 }
 
@@ -2235,13 +2253,12 @@ void _cell_upd_string(Cell *cell, const char_t *str)
     cassert_no_null(cell);
     if (cell->dbind != NULL)
     {
-        void *obj = NULL, *obj_notif = NULL;
-        StBind *st_notif = NULL;
-        Listener *listener = NULL;
-        Layout *layout = i_cell_obj(cell, &obj, &obj_notif, &st_notif, &listener);
+        void *obj = NULL;
+		Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
 
         if (layout->objbind != NULL)
-            gbind_upd_string(layout, cell->dbind, obj, obj_notif, st_notif, listener, str);
+            gbind_upd_string(layout, cell->dbind, obj, layout_notif, str);
     }
 }
 
@@ -2251,10 +2268,9 @@ void _cell_upd_image(Cell *cell, const Image *image)
 {
     if (cell && cell->dbind != NULL)
     {
-        Layout *layout = cell->parent;
-        while (layout->stbind == NULL) 
-            layout = layout->parent->parent;
-        cassert(_dbind_get_stbind(cell->dbind) == layout->stbind);
+        void *obj = NULL;
+		Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
 
         if (layout->objbind != NULL)
             gbind_upd_image(layout, cell->dbind, layout->objbind, image);
@@ -2263,35 +2279,17 @@ void _cell_upd_image(Cell *cell, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-void _cell_upd_increment(Cell *cell)
+void _cell_upd_increment(Cell *cell, const bool_t pos)
 {
     cassert_no_null(cell);
     if (cell->dbind != NULL)
     {
-        Layout *layout = cell->parent;
-        while (layout->stbind == NULL) 
-            layout = layout->parent->parent;
-        cassert(_dbind_get_stbind(cell->dbind) == layout->stbind);
+        void *obj = NULL;
+		Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
 
         if (layout->objbind != NULL)
-            gbind_upd_increment(layout, cell->dbind, layout->objbind);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _cell_upd_decrement(Cell *cell)
-{
-    cassert_no_null(cell);
-    if (cell->dbind != NULL)
-    {
-        Layout *layout = cell->parent;
-        while (layout->stbind == NULL) 
-            layout = layout->parent->parent;
-        cassert(_dbind_get_stbind(cell->dbind) == layout->stbind);
-
-        if (layout->objbind != NULL)
-            gbind_upd_decrement(layout, cell->dbind, layout->objbind);
+            gbind_upd_increment(layout, cell->dbind, obj, layout_notif, pos);
     }
 }
 

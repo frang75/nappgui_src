@@ -103,6 +103,8 @@ void layout_dbind_imp(Layout *layout, Listener *listener, const char_t *type, co
 
 void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type);
 
+void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
+
 __END_C
 
 #define layout_get_label(layout, col, row)\
@@ -153,3 +155,15 @@ __END_C
         layout_dbind_obj_imp(layout, (void*)obj, (const char_t*)#type)\
     )
 
+#define layout_dbind_update(layout, type, mtype, mname)\
+    (\
+        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype),\
+        layout_dbind_update_imp(\
+                layout,\
+                (const char_t*)#type,\
+                (uint16_t)sizeof(type),\
+                (const char_t*)#mname,\
+                (const char_t*)#mtype,\
+                (uint16_t)STRUCT_MEMBER_OFFSET(type, mname),\
+                (uint16_t)STRUCT_MEMBER_SIZE(type, mname))\
+    )

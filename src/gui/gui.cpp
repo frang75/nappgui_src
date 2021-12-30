@@ -15,6 +15,7 @@
 #include "draw.inl"
 #include "draw2d.inl"
 #include "guicontexth.inl"
+#include "gbind.inl"
 #include "res_assert.h"
 #include "menu.inl"
 #include "respack.inl"
@@ -385,6 +386,26 @@ V2Df gui_mouse_pos(void)
 void gui_OnThemeChanged(Listener *listener)
 {
     listener_update(&i_GUI.OnTheme, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *evbind_object_imp(Event *e, const char_t *type)
+{
+	const EvBind *p = event_params(e, EvBind);
+	cassert_unref(str_equ_c(p->objtype_notif, type) == TRUE, type);
+	return p->obj_notify;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t evbind_modify_imp(Event *e, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
+{
+	const EvBind *p = event_params(e, EvBind);
+	if (p->obj_notify != NULL)
+		return gbind_modify_data(p->obj_notify, type, size, mname, mtype, moffset, msize, p);
+
+	return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/

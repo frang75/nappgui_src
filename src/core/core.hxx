@@ -262,6 +262,12 @@ typedef void(*FPtr_write)(Stream *stream, const void *obj);
     (void)((void(*)(Stream*, const type*))func == func)
 
 /* Do not use! only for debugger inspection */
+struct _buffer_t
+{
+    uint32_t size;
+    char data[512];
+};
+
 struct _string_t
 {
     uint32_t size;

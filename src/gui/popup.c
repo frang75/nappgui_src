@@ -14,7 +14,6 @@
 #include "popup.inl"
 #include "cell.inl"
 #include "component.inl"
-#include "dbind.inl"
 #include "gui.inl"
 #include "guicontexth.inl"
 #include "obj.inl"
@@ -42,7 +41,6 @@ struct _pelem_t
 struct _popup_t
 {
     GuiComponent component;
-    dtype_t dtype;
     S2Df size;
     ResId ttipid;
     ArrSt(PElem) *elems;
@@ -79,37 +77,7 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
     const EvButton *params = event_params(event, EvButton);
     cassert_no_null(popup);
 
-    switch (popup->dtype) {
-    case ekDTYPE_UNKNOWN:
-        break;
-
-    case ekDTYPE_INT8:
-    case ekDTYPE_INT16:
-    case ekDTYPE_INT32:
-    case ekDTYPE_INT64:
-    case ekDTYPE_UINT8:
-    case ekDTYPE_UINT16:
-    case ekDTYPE_UINT32:
-    case ekDTYPE_UINT64:
-        _cell_upd_uint32(popup->component.parent, params->index);
-        break;
-
-    case ekDTYPE_ENUM:
-        _cell_upd_enum_index(popup->component.parent, params->index);
-        break;
-
-    case ekDTYPE_BOOL:
-    case ekDTYPE_REAL32:
-    case ekDTYPE_REAL64:
-    case ekDTYPE_STRING:
-    case ekDTYPE_STRING_PTR:
-    case ekDTYPE_ARRAY:
-    case ekDTYPE_ARRPTR:
-    case ekDTYPE_OBJECT:
-    case ekDTYPE_OBJECT_PTR:
-    case ekDTYPE_OBJECT_OPAQUE:
-    cassert_default();
-    }
+    _cell_upd_uint32(popup->component.parent, params->index);
 
     if (popup->OnChange != NULL)
     {
@@ -130,7 +98,6 @@ PopUp *popup_create(void)
     void *ositem = context->func_popup_create((const enum_t)ekPUFLAG);
     context->func_popup_set_font(ositem, font);
     _component_init(&popup->component, context, PARAM(type, ekGUI_COMPONENT_POPUP), &ositem);
-    popup->dtype = ekDTYPE_UNKNOWN;
     popup->elems = arrst_create(PElem);
     context->func_popup_OnChange(popup->component.ositem, obj_listener(popup, i_OnSelectionChange, PopUp));
     font_destroy(&font);
@@ -253,19 +220,9 @@ uint32_t _popup_size(const PopUp *popup)
 
 /*---------------------------------------------------------------------------*/
 
-void _popup_set_dtype(PopUp *popup, const dtype_t dtype)
+void _popup_list_height(PopUp *popup, const uint32_t elems)
 {
-    cassert_no_null(popup);
-    cassert(popup->dtype == ekDTYPE_UNKNOWN);
-    popup->dtype = dtype;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _popup_enum(PopUp *popup, const DBind *dbind, const enum_t value)
-{
-    uint32_t index = _dbind_enum_index(dbind, value);
-    _popup_uint32(popup, index);
+	popup_list_height(popup, elems);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -275,7 +232,11 @@ void _popup_uint32(PopUp *popup, const uint32_t value)
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
     cassert_no_nullf(popup->component.context->func_popup_set_selected);
-    popup->component.context->func_popup_set_selected(popup->component.ositem, value);
+
+    if (value < arrst_size(popup->elems, PElem))
+        popup->component.context->func_popup_set_selected(popup->component.ositem, value);
+    else
+        popup->component.context->func_popup_set_selected(popup->component.ositem, UINT32_MAX);
 }
 
 /*---------------------------------------------------------------------------*/

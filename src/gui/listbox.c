@@ -11,6 +11,8 @@
 /* ListBox */
 
 #include "listbox.h"
+#include "listbox.inl"
+#include "cell.inl"
 #include "draw2d.inl"
 #include "drawctrl.inl"
 #include "view.h"
@@ -362,6 +364,8 @@ static void i_select(ListBox *box, LData *data, const bool_t bymouse)
         text = tc(elem->text);
     }
 
+	_cell_upd_uint32(_view_cell((View*)box), data->selected);
+
     if (data->OnSelect != NULL)
     {
         EvButton params;
@@ -645,6 +649,37 @@ static void i_OnKeyUp(ListBox *box, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+
+static void i_set_empty(ListBox *listbox)
+{
+	LData *data = view_get_data((View*)listbox, LData);
+	i_clean_select(data->elems);
+	view_update((View*)listbox);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_uint32(ListBox *listbox, const uint32_t value)
+{
+	LData *data = view_get_data((View*)listbox, LData);
+	i_clean_select(data->elems);
+
+	if (value < arrst_size(data->elems, PElem))
+	{
+		PElem *elem = arrst_get(data->elems, value, PElem);
+		elem->select = TRUE;
+		data->selected = value;
+	}
+	else
+	{
+		data->selected = UINT32_MAX;
+	}
+
+	view_update((View*)listbox);
+}
+
+/*---------------------------------------------------------------------------*/
+
 ListBox *listbox_create(void)
 {
     View *view = _view_create(ekHSCROLL | ekVSCROLL | ekBORDER | ekCONTROL | ekNOERASE);
@@ -660,6 +695,8 @@ ListBox *listbox_create(void)
     view_OnKeyDown(view, listener((ListBox*)view, i_OnKeyDown, ListBox));
     view_OnKeyUp(view, listener((ListBox*)view, i_OnKeyUp, ListBox));
     _view_set_subtype(view, "ListBox");
+	view_OnUInt32(view, (FPtr_set_uint32)i_set_uint32);
+	view_OnEmpty(view, (FPtr_call)i_set_empty);
     i_document_size((ListBox*)view, view_get_data(view, LData));
     return (ListBox*)view;
 }
@@ -866,3 +903,18 @@ bool_t listbox_checked(const ListBox *box, uint32_t index)
     elem = arrst_get(data->elems, index, PElem);
     return elem->check;
 }
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _listbox_count(const ListBox *listbox)
+{
+	return listbox_count(listbox);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _listbox_add_enum_item(ListBox *listbox, const char_t *text)
+{
+	listbox_add_elem(listbox, text, NULL);
+}
+

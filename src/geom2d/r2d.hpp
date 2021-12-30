@@ -23,6 +23,8 @@ struct R2D
 
     R2D(const real x, const real y, const real width, const real height);
 
+    static V2D<real>(*center)(const R2D* r2d);
+
     static bool_t(*collide)(const R2D *r2d1, const R2D *r2d2);
 
     static bool_t(*contains)(const R2D *r2d, const real x, const real y);

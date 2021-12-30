@@ -659,6 +659,14 @@ GuiContext *_view_context(View *view)
 
 /*---------------------------------------------------------------------------*/
 
+Cell *_view_cell(View *view)
+{
+    cassert_no_null(view);
+	return view->component.parent;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Window *_view_window(View *view)
 {
     return _component_window((GuiComponent*)view);

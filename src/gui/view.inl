@@ -34,6 +34,8 @@ void view_screen_rect(const View *view, R2Df *rect);
 
 GuiContext *_view_context(View *view);
 
+Cell *_view_cell(View *view);
+
 Window *_view_window(View *view);
 
 void *_view_get_native_imp(View *view);

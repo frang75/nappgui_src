@@ -62,6 +62,40 @@ R2Dd r2dd(const real64_t x, const real64_t y, const real64_t width, const real64
 
 /*---------------------------------------------------------------------------*/
 
+V2Df r2d_centerf(const R2Df *r2d)
+{
+    V2Df c;
+    cassert_no_null(r2d);
+    c.x = r2d->pos.x + r2d->size.width / 2;
+    c.y = r2d->pos.y + r2d->size.height / 2;
+    return c;
+}
+
+/*---------------------------------------------------------------------------*/
+
+V2Dd r2d_centerd(const R2Dd *r2d)
+{
+    V2Dd c;
+    cassert_no_null(r2d);
+    c.x = r2d->pos.x + r2d->size.width / 2;
+    c.y = r2d->pos.y + r2d->size.height / 2;
+    return c;
+}
+
+/*---------------------------------------------------------------------------*/
+
+template<typename real>
+static V2D<real> i_center(const R2D<real>* r2d)
+{
+    V2D<real> c;
+    cassert_no_null(r2d);
+    c.x = r2d->pos.x + r2d->size.width / 2;
+    c.y = r2d->pos.y + r2d->size.height / 2;
+    return c;
+}
+
+/*---------------------------------------------------------------------------*/
+
 template<typename real>
 static bool_t i_collide(const R2D<real> *r2d1, const R2D<real> *r2d2)
 {
@@ -222,6 +256,12 @@ const R2D<real32_t>(*R2D<real32_t>::kZERO) = ((R2D<real32_t>*)&kR2D_ZEROf);
 
 template<>
 const R2D<real64_t>(*R2D<real64_t>::kZERO) = ((R2D<real64_t>*)&kR2D_ZEROd);
+
+template<>
+V2D<real32_t>(*R2D<real32_t>::center)(const R2D<real32_t>*) = i_center<real32_t>;
+
+template<>
+V2D<real64_t>(*R2D<real64_t>::center)(const R2D<real64_t>*) = i_center<real64_t>;
 
 template<>
 bool_t(*R2D<real32_t>::collide)(const R2D<real32_t>*, const R2D<real32_t>*) = i_collide<real32_t>;

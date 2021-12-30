@@ -14,6 +14,8 @@
 
 __EXTERN_C
 
+void _ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel);
+
 void _ossplit_OnPress(OSSplit *view, GdkEventButton *event);
 
 __END_C

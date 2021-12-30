@@ -32,7 +32,6 @@ typedef struct _url_t Url;
 typedef struct _http_t Http;
 typedef struct _json_t Json;
 typedef struct _jsonopts_t JsonOpts;
-typedef struct _base64_t Base64;
 
 struct _jsonopts_t
 {

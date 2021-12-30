@@ -17,6 +17,7 @@
 #include "draw_gtk.inl"
 #include "oscontrol.inl"
 #include "ospanel.inl"
+#include "ossplit.inl"
 #include "cassert.h"
 #include "color.h"
 #include "event.h"
@@ -45,6 +46,7 @@ struct _ostext_t
     GtkWidget *tview;
     GtkTextBuffer *buffer;
     GtkCssProvider *pgcolor;
+    OSControl *capture;
     Listener *OnChange;
 };
 
@@ -64,6 +66,39 @@ static void i_OnTViewDestroy(GtkWidget *obj, gpointer data)
 //    //_oslistener_mouse_moved((OSControl*)view, event, NULL, NULL, &view->listeners);
 //    return FALSE;
 //}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSText *view)
+{
+    if (view->capture != NULL)
+    {
+        if (view->capture->type == ekGUI_COMPONENT_SPLITVIEW)
+        {
+            _ossplit_OnPress((OSSplit*)view->capture, event);
+
+        }
+//    // Left button
+//    if (event->button == 1)
+//    {
+//        if (view->inside_rect == TRUE)
+//        {
+//            gtk_grab_add(widget);
+//            bstd_printf("PRESSED!!!!!!!!!!!!!!\n");
+//            view->left_button = TRUE;
+//            return FALSE;
+//        }
+//    }
+
+        return TRUE;
+    }
+    // The handler will be called before the default handler of the signal.
+    // This is the default behaviour
+    else
+    {
+        return FALSE;
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -89,6 +124,21 @@ OSText *ostext_create(const tview_flag_t flags)
 //    gint moved_signal = 0;
 //    _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     g_signal_connect(view->tview, "destroy", G_CALLBACK(i_OnTViewDestroy), (gpointer)view);
+
+
+    // A parent widget can "capture" the mouse
+    {
+        GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(widget));
+        GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(widget));
+        g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(view->tview), "button-press-event", G_CALLBACK(i_OnPressed), view);
+    }
+
+
+    //g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
+
     gtk_widget_show(view->tview);
     view->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
     gtk_text_view_set_editable(GTK_TEXT_VIEW(view->tview), FALSE);
@@ -540,3 +590,18 @@ void _ostext_detach_and_destroy(OSText **view, OSPanel *panel)
     ostext_destroy(view);
 }
 
+/*---------------------------------------------------------------------------*/
+
+void _ostext_set_capture(OSText *view, OSControl *control)
+{
+    cassert_no_null(view);
+    view->capture = control;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ostext_release_capture(OSText *view)
+{
+    cassert_no_null(view);
+    view->capture = NULL;
+}

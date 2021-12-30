@@ -186,7 +186,12 @@ void ospopup_selected(OSPopUp *popup, const uint32_t index)
 {
     cassert_no_null(popup);
     popup->launch_event = FALSE;
-    gtk_combo_box_set_active(GTK_COMBO_BOX(popup->control.widget), (gint)index);
+    
+    if (index != UINT32_MAX)
+        gtk_combo_box_set_active(GTK_COMBO_BOX(popup->control.widget), (gint)index);
+    else
+        gtk_combo_box_set_active(GTK_COMBO_BOX(popup->control.widget), -1);
+
     popup->launch_event = TRUE;
 }
 

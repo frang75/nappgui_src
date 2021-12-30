@@ -107,33 +107,31 @@ static gboolean i_OnResize(GtkWidget *widget, GdkEventConfigure *event, OSWindow
         {
             EvSize params;
             EvSize result;
-            gint wreq = -1, hreq = -1;
             params.width = (real32_t)event->width;
             params.height = (real32_t)event->height;
             listener_event(window->OnResize, ekEVWNDSIZING, window, &params, &result, OSWindow, EvSize, EvSize);
             listener_event(window->OnResize, ekEVWNDSIZE, window, &result, NULL, OSWindow, EvSize, void);
+
+            if ((gint)result.width > event->width)
+            {
+                GdkGeometry hints;
+                window->minimun_width = (gint)result.width;
+                hints.min_width = window->minimun_width;
+                hints.min_height = window->minimun_height;
+                gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+            }
+
+            if ((gint)result.height > event->height)
+            {
+                GdkGeometry hints;
+                window->minimun_height = (gint)result.height;
+                hints.min_width = window->minimun_width;
+                hints.min_height = window->minimun_height;
+                gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+            }
+
             window->current_width = (gint)result.width;
             window->current_height = (gint)result.height;
-
-            if (window->current_width > event->width && window->minimun_width == -1)
-            {
-                wreq = window->current_width;
-                window->minimun_width = window->current_width;
-            }
-
-            if (window->current_height > event->height && window->minimun_height == -1)
-            {
-                hreq = window->current_height;
-                window->minimun_height = window->minimun_height;
-            }
-
-            unref(wreq);
-            unref(hreq);
-//            if (wreq > 0)
-//                gtk_widget_set_size_request(widget, wreq, window->minimun_height);
-//
-//            if (hreq > 0)
-//                gtk_widget_set_size_request(widget, window->minimun_width, hreq);
         }
         else
         {
@@ -354,7 +352,7 @@ OSWindow *oswindow_create(const window_flag_t flags)
     {
         gtk_window_set_icon(GTK_WINDOW(window->control.widget), i_APP_ICON);
     }
-
+    
 	return window;
 }
 
@@ -609,90 +607,6 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 
 /*---------------------------------------------------------------------------*/
 
-//#if defined (__NOTUSED__)
-//static void i_print_taborder(HWND hwnd)
-//{
-//    uint32_t taborder = 0;
-//    while(hwnd != NULL)
-//    {
-//        OSControl *control = (OSControl*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-//        if (control != NULL)
-//        {
-//            switch (control->type)
-//            {
-//                case ekGUI_COMPONENT_BOXVIEW:
-//                    cassert_printf("%d: BoxView\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_BUTTON:
-//                    cassert_printf("%d: ButtonView\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_COLOURBUTTON:
-//                    cassert_printf("%d: ColourButton\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_COMBOBOX:
-//                    cassert_printf("%d: ComboBox\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_EDITBOX:
-//                    cassert_printf("%d: EditBox\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_CUSTOMVIEW:
-//                    cassert_printf("%d: CustomView\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_LABEL:
-//                    cassert_printf("%d: Label\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_LEVEL:
-//                    cassert_printf("%d: Level\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_LINE:
-//                    cassert_printf("%d: Line\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_PANEL:
-//                    cassert_printf("%d: Panel\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_POPUP:
-//                    cassert_printf("%d: PopUp\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_PROGRESS:
-//                    cassert_printf("%d: Progress\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_SEGMENTED:
-//                    cassert_printf("%d: Segmented\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_SLIDER:
-//                    cassert_printf("%d: Slider\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_TABLEVIEW:
-//                    cassert_printf("%d: TableView\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_TEXTVIEW:
-//                    cassert_printf("%d: TextView\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_TREEVIEW:
-//                    cassert_printf("%d: TreeView\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_UPDOWN:
-//                    cassert_printf("%d: UpDown\n", taborder);
-//                    break;
-//                case ekGUI_COMPONENT_WINDOW:
-//                    cassert_printf("%d: Window\n", taborder);
-//                    break;
-//                cassert_default();
-//            }
-//        }
-//        else
-//        {
-//            cassert_printf("%d: Unknow Window Type (not iMech)\n", taborder);
-//        }
-//
-//        hwnd = GetNextWindow(hwnd, GW_HWNDNEXT);
-//        taborder += 1;
-//    }
-//}
-//#endif
-
-/*---------------------------------------------------------------------------*/
-
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
@@ -808,9 +722,7 @@ void oswindow_size(OSWindow *window, const real32_t width, const real32_t height
     if (window->is_resizable == TRUE)
     {
         window->resize_event = FALSE;
-        gtk_widget_set_size_request(window->control.widget, (gint)width, (gint)height);
-        //gtk_window_resize(GTK_WINDOW(window->control.widget), (gint)width, (gint)height);
-        //gtk_window_set_default_size (GTK_WINDOW(window->control.widget), (gint)width, (gint)height);
+        gtk_window_resize(GTK_WINDOW(window->control.widget), (gint)width, (gint)height);
         window->current_width = (gint)width;
         window->current_height = (gint)height;
         window->minimun_width = -1;
@@ -819,8 +731,9 @@ void oswindow_size(OSWindow *window, const real32_t width, const real32_t height
     else
     {
         gtk_widget_set_size_request(window->control.widget, (gint)width, (gint)height);
-        i_update_menu_size(window);
     }
+
+    i_update_menu_size(window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -932,5 +845,3 @@ void _oswindow_unset_focus(OSWindow *window)
     if (index != UINT32_MAX)
         _oscontrol_unset_focus(tabstop[index]);
 }
-
-

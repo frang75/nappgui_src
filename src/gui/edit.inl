@@ -21,7 +21,7 @@ void _edit_dimension(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim
 void _edit_locale(Edit *edit);
 
 bool_t _edit_is_multiline(const Edit *edit);
-    
+
 void _edit_text(Edit *edit, const char_t *text);
 
 __END_C

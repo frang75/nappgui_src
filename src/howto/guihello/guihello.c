@@ -19,6 +19,8 @@
 #include "popcom.h"
 #include "listboxes.h"
 #include "textviews.h"
+#include "guibind.h"
+#include "layoutbind.h"
 #include "baslayout.h"
 #include "splits.h"
 #include "sublayout.h"
@@ -72,18 +74,24 @@ static void i_set_panel(Layout *layout, const uint32_t index)
         panel = split_panel();
         break;
     case 10:
-        panel = basic_layout();
+        panel = guibind();
         break;
     case 11:
-        panel = sublayouts();
+        panel = layoutbind();
         break;
     case 12:
-        panel = subpanels();
+        panel = basic_layout();
         break;
     case 13:
-        panel = multilayouts();
+        panel = sublayouts();
         break;
     case 14:
+        panel = subpanels();
+        break;
+    case 15:
+        panel = multilayouts();
+        break;
+    case 16:
         panel = scrollpanel();
         break;
     }
@@ -121,6 +129,8 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Sliders", NULL);
     listbox_add_elem(list, "TextViews", NULL);
     listbox_add_elem(list, "SplitViews", NULL);
+    listbox_add_elem(list, "Data Binding", NULL);
+    listbox_add_elem(list, "Struct Binding", NULL);
     listbox_add_elem(list, "Basic Layout", NULL);
     listbox_add_elem(list, "SubLayouts", NULL);
     listbox_add_elem(list, "Subpanels", NULL);

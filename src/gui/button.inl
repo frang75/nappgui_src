@@ -30,11 +30,7 @@ Listener *_button_radio_listener(const Button *button);
 
 void _button_radio_state(Button *button, const state_t state);
 
-void _button_set_dtype(Button *button, const dtype_t dtype);
-
 void _button_bool(Button *button, const bool_t value);
-
-void _button_enum(Button *button, const DBind *dbind, const enum_t value);
 
 void _button_uint32(Button *button, const uint32_t value);
 

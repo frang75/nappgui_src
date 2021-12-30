@@ -19,13 +19,6 @@
 #define i_SIZE(buffer) *((uint32_t*)buffer)
 #define i_DATA(buffer) ((byte_t*)((byte_t*)buffer + sizeof(uint32_t)))
 
-/* Not used, only for debugger inspection */
-struct _buffer_t
-{
-    uint32_t size;
-    char data[256];
-};
-
 /*---------------------------------------------------------------------------*/
 
 Buffer *buffer_create(const uint32_t size)

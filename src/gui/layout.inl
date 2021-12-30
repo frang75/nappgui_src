@@ -38,4 +38,6 @@ void _layout_dbind_update(Layout *layout, DBind *dbind);
 
 ArrSt(Cell) *_layout_cells(Layout *layout);
 
+void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener);
+
 __END_C

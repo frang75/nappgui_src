@@ -591,9 +591,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
             StBind *stbind = i_find_stbind(tc(lsubtype), NULL);
             if (stbind != NULL)
             {
-                cassert(stbind->size = sizeof(void*));
-
-                ptr_assign(size, stbind->size);
+                ptr_assign(size, sizeof(void*));
 
                 if (subtype != NULL)
                     *subtype = lsubtype;
@@ -607,6 +605,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
                 }
                 else
                 {
+					cassert(stbind->size == sizeof(void*));
                     return ekDTYPE_OBJECT_OPAQUE;
                 }
             }
@@ -1105,35 +1104,35 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         break;
 
     case ekDTYPE_INT8:
-        *(int8_t*)(data + member->offset) = (int8_t)_dbind_int(member, member->attr.intt.def);
+        *(int8_t*)(data + member->offset) = _dbind_int8(member, (int8_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_INT16:
-        *(int16_t*)(data + member->offset) = (int16_t)_dbind_int(member, member->attr.intt.def);
+        *(int16_t*)(data + member->offset) = _dbind_int16(member, (int16_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_INT32:
-        *(int32_t*)(data + member->offset) = (int32_t)_dbind_int(member, member->attr.intt.def);
+        *(int32_t*)(data + member->offset) = _dbind_int32(member, (int32_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_INT64:
-        *(int64_t*)(data + member->offset) = (int64_t)_dbind_int(member, member->attr.intt.def);
+        *(int64_t*)(data + member->offset) = _dbind_int64(member, (int64_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT8:
-        *(uint8_t*)(data + member->offset) = (uint8_t)_dbind_int(member, member->attr.intt.def);
+        *(uint8_t*)(data + member->offset) = _dbind_uint8(member, (uint8_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT16:
-        *(uint16_t*)(data + member->offset) = (uint16_t)_dbind_int(member, member->attr.intt.def);
+        *(uint16_t*)(data + member->offset) = _dbind_uint16(member, (uint16_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT32:
-        *(uint32_t*)(data + member->offset) = (uint32_t)_dbind_int(member, member->attr.intt.def);
+        *(uint32_t*)(data + member->offset) = _dbind_uint32(member, (uint32_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT64:
-        *(uint64_t*)(data + member->offset) = (uint64_t)_dbind_int(member, member->attr.intt.def);
+        *(uint64_t*)(data + member->offset) = _dbind_uint64(member, (uint64_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_ENUM:
@@ -2667,42 +2666,6 @@ const char_t *_dbind_real64_format(const DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-void _dbind_int_range(const DBind *dbind, int64_t *min, int64_t *max)
-{
-    cassert_no_null(dbind);
-    cassert_no_null(min);
-    cassert_no_null(max);
-    switch (dbind->type) {
-    case ekDTYPE_INT8:
-    case ekDTYPE_INT16:
-    case ekDTYPE_INT32:
-    case ekDTYPE_INT64:
-    case ekDTYPE_UINT8:
-    case ekDTYPE_UINT16:
-    case ekDTYPE_UINT32:
-    case ekDTYPE_UINT64:
-        *min = dbind->attr.intt.min;
-        *max = dbind->attr.intt.max;
-        break;
-
-    case ekDTYPE_ENUM:
-    case ekDTYPE_BOOL:
-    case ekDTYPE_REAL32:
-    case ekDTYPE_REAL64:
-    case ekDTYPE_STRING:
-    case ekDTYPE_STRING_PTR:
-    case ekDTYPE_ARRAY:
-    case ekDTYPE_ARRPTR:
-    case ekDTYPE_OBJECT:
-    case ekDTYPE_OBJECT_PTR:
-    case ekDTYPE_OBJECT_OPAQUE:
-    case ekDTYPE_UNKNOWN:
-    cassert_default();
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _dbind_real32_range(const DBind *dbind, real32_t *min, real32_t *max)
 {
     cassert_no_null(dbind);
@@ -2723,6 +2686,118 @@ void _dbind_real64_range(const DBind *dbind, real64_t *min, real64_t *max)
     cassert_no_null(max);
     *min = dbind->attr.real64t.min;
     *max = dbind->attr.real64t.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_int8_range(const DBind *dbind, int8_t *min, int8_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_INT8);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= INT8_MIN);
+    cassert(dbind->attr.intt.max <= INT8_MAX);
+    *min = (int8_t)dbind->attr.intt.min;
+    *max = (int8_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_int16_range(const DBind *dbind, int16_t *min, int16_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_INT16);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= INT16_MIN);
+    cassert(dbind->attr.intt.max <= INT16_MAX);
+    *min = (int16_t)dbind->attr.intt.min;
+    *max = (int16_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_int32_range(const DBind *dbind, int32_t *min, int32_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_INT32);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= INT32_MIN);
+    cassert(dbind->attr.intt.max <= INT32_MAX);
+    *min = (int32_t)dbind->attr.intt.min;
+    *max = (int32_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_int64_range(const DBind *dbind, int64_t *min, int64_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_INT64);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= INT64_MIN);
+    cassert(dbind->attr.intt.max <= INT64_MAX);
+    *min = (int64_t)dbind->attr.intt.min;
+    *max = (int64_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_uint8_range(const DBind *dbind, uint8_t *min, uint8_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_UINT8);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= 0);
+    cassert(dbind->attr.intt.max <= UINT8_MAX);
+    *min = (uint8_t)dbind->attr.intt.min;
+    *max = (uint8_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_uint16_range(const DBind *dbind, uint16_t *min, uint16_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_UINT16);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= 0);
+    cassert(dbind->attr.intt.max <= UINT16_MAX);
+    *min = (uint16_t)dbind->attr.intt.min;
+    *max = (uint16_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_uint32_range(const DBind *dbind, uint32_t *min, uint32_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_UINT32);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= 0);
+    cassert(dbind->attr.intt.max <= UINT32_MAX);
+    *min = (uint32_t)dbind->attr.intt.min;
+    *max = (uint32_t)dbind->attr.intt.max;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_uint64_range(const DBind *dbind, uint64_t *min, uint64_t *max)
+{
+    cassert_no_null(dbind);
+    cassert(dbind->type == ekDTYPE_UINT64);
+    cassert_no_null(min);
+    cassert_no_null(max);
+    cassert(dbind->attr.intt.min >= 0);
+    cassert(dbind->attr.intt.max <= INT64_MAX);
+    *min = (uint64_t)dbind->attr.intt.min;
+    *max = (uint64_t)dbind->attr.intt.max;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2754,6 +2829,35 @@ uint16_t _dbind_stbind_size(const StBind *stbind)
 {
     cassert_no_null(stbind);
     return stbind->size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _dbind_stbind_members(const StBind *stbind)
+{
+    cassert_no_null(stbind);
+	return arrst_size(stbind->members, DBind);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dbind_stbind_member_i(const StBind *stbind, const uint32_t i, const char_t **name, uint16_t *offset, dtype_t *mtype, const char_t **subtype)
+{
+    DBind *member = NULL;
+    cassert_no_null(stbind);
+    member = arrst_get(stbind->members, i, DBind);
+
+	if (name != NULL)
+		*name = tc(member->name);
+
+	if (offset != NULL)
+		*offset = member->offset;
+
+	if (mtype != NULL)
+		*mtype = member->type;
+
+	if (subtype != NULL)
+		*subtype = i_subtype_str(member);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3140,87 +3244,166 @@ real64_t _dbind_real64(DBind *dbind, const real64_t value)
 
 /*---------------------------------------------------------------------------*/
 
-int64_t _dbind_int(const DBind *dbind, const int64_t value)
+static __INLINE int64_t i_int(const DBind* dbind, const dtype_t type, const int64_t value, const int64_t min, const int64_t max)
 {
     cassert_no_null(dbind);
-    switch (dbind->type) {
-    case ekDTYPE_INT8:
-    case ekDTYPE_INT16:
-    case ekDTYPE_INT32:
-    case ekDTYPE_INT64:
-    case ekDTYPE_UINT8:
-    case ekDTYPE_UINT16:
-    case ekDTYPE_UINT32:
-    case ekDTYPE_UINT64:
-        if (value < dbind->attr.intt.min)
-            return dbind->attr.intt.min;
-        else if (value > dbind->attr.intt.max)
-            return dbind->attr.intt.max;
-        else
-            return value;
-
-    case ekDTYPE_ENUM:
-        break;
-
-    case ekDTYPE_BOOL:
-    case ekDTYPE_REAL32:
-    case ekDTYPE_REAL64:
-    case ekDTYPE_STRING:
-    case ekDTYPE_STRING_PTR:
-    case ekDTYPE_ARRAY:
-    case ekDTYPE_ARRPTR:
-    case ekDTYPE_OBJECT:
-    case ekDTYPE_OBJECT_PTR:
-    case ekDTYPE_OBJECT_OPAQUE:
-    case ekDTYPE_UNKNOWN:
-    cassert_default();
-    }
-
-    return value;
+    cassert_unref(dbind->type == type, type);
+    cassert(dbind->attr.intt.min >= min);
+    cassert(dbind->attr.intt.max <= max);
+    if (value < dbind->attr.intt.min)
+        return dbind->attr.intt.min;
+    else if (value > dbind->attr.intt.max)
+        return dbind->attr.intt.max;
+    else
+        return value;
 }
 
 /*---------------------------------------------------------------------------*/
 
-real32_t _dbind_incr_real32(DBind *dbind, const real32_t value)
+int8_t _dbind_int8(const DBind* dbind, const int8_t value)
+{
+    return (int8_t)i_int(dbind, ekDTYPE_INT8, (int64_t)value, INT8_MIN, INT8_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int16_t _dbind_int16(const DBind* dbind, const int16_t value)
+{
+    return (int16_t)i_int(dbind, ekDTYPE_INT16, (int64_t)value, INT16_MIN, INT16_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int32_t _dbind_int32(const DBind* dbind, const int32_t value)
+{
+    return (int32_t)i_int(dbind, ekDTYPE_INT32, (int64_t)value, INT32_MIN, INT32_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int64_t _dbind_int64(const DBind* dbind, const int64_t value)
+{
+    return (int64_t)i_int(dbind, ekDTYPE_INT64, (int64_t)value, INT64_MIN, INT64_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint8_t _dbind_uint8(const DBind* dbind, const uint8_t value)
+{
+    return (uint8_t)i_int(dbind, ekDTYPE_UINT8, (int64_t)value, 0, UINT8_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint16_t _dbind_uint16(const DBind* dbind, const uint16_t value)
+{
+    return (uint16_t)i_int(dbind, ekDTYPE_UINT16, (int64_t)value, 0, UINT16_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _dbind_uint32(const DBind* dbind, const uint32_t value)
+{
+    return (uint32_t)i_int(dbind, ekDTYPE_UINT32, (int64_t)value, 0, UINT32_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint64_t _dbind_uint64(const DBind* dbind, const uint64_t value)
+{
+    return (uint64_t)i_int(dbind, ekDTYPE_UINT64, (int64_t)value, 0, INT64_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t _dbind_incr_real32(DBind *dbind, const real32_t value, const bool_t pos)
 {
     real32_t v = 0;
+	real32_t sc = pos ? 1.f : -1.f;
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_REAL32);
-    v = bmath_clampf(value + dbind->attr.real32t.incr, dbind->attr.real32t.min, dbind->attr.real32t.max);
+	v = bmath_clampf(value + sc * dbind->attr.real32t.incr, dbind->attr.real32t.min, dbind->attr.real32t.max);
     return bmath_round_stepf(v, dbind->attr.real32t.prec);
 }
 
 /*---------------------------------------------------------------------------*/
 
-real64_t _dbind_incr_real64(DBind *dbind, const real64_t value)
+real64_t _dbind_incr_real64(DBind *dbind, const real64_t value, const bool_t pos)
 {
     real64_t v = 0;
+	real64_t sc = pos ? 1. : -1.;
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_REAL64);
-    v = bmath_clampd(value + dbind->attr.real64t.incr, dbind->attr.real64t.min, dbind->attr.real64t.max);
+    v = bmath_clampd(value + sc * dbind->attr.real64t.incr, dbind->attr.real64t.min, dbind->attr.real64t.max);
     return bmath_round_stepd(v, dbind->attr.real64t.prec);
 }
 
 /*---------------------------------------------------------------------------*/
 
-real32_t _dbind_decr_real32(DBind *dbind, const real32_t value)
+static __INLINE int64_t i_incr_int(DBind *dbind, const int64_t value, const bool_t pos)
 {
-    real32_t v;
-    cassert_no_null(dbind);
-    cassert(dbind->type == ekDTYPE_REAL32);
-    v = bmath_clampf(value - dbind->attr.real32t.incr, dbind->attr.real32t.min, dbind->attr.real32t.max);
-    return bmath_round_stepf(v, dbind->attr.real32t.prec);
+    int64_t v = pos ? value + dbind->attr.intt.incr : value - dbind->attr.intt.incr;
+    if (v > dbind->attr.intt.max)
+        return dbind->attr.intt.max;
+    else if (v < dbind->attr.intt.min)
+        return dbind->attr.intt.min;
+    return v;
 }
 
 /*---------------------------------------------------------------------------*/
 
-real64_t _dbind_decr_real64(DBind *dbind, const real64_t value)
+int8_t _dbind_incr_int8(DBind *dbind, const int8_t value, const bool_t pos)
 {
-    real64_t v;
-    cassert_no_null(dbind);
-    cassert(dbind->type == ekDTYPE_REAL64);
-    v = bmath_clampd(value - dbind->attr.real64t.incr, dbind->attr.real64t.min, dbind->attr.real64t.max);
-    return bmath_round_stepd(v, dbind->attr.real64t.prec);
+    return (int8_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int16_t _dbind_incr_int16(DBind *dbind, const int16_t value, const bool_t pos)
+{
+    return (int16_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int32_t _dbind_incr_int32(DBind *dbind, const int32_t value, const bool_t pos)
+{
+    return (int32_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+int64_t _dbind_incr_int64(DBind *dbind, const int64_t value, const bool_t pos)
+{
+    return (int64_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint8_t _dbind_incr_uint8(DBind *dbind, const uint8_t value, const bool_t pos)
+{
+    return (uint8_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint16_t _dbind_incr_uint16(DBind *dbind, const uint16_t value, const bool_t pos)
+{
+    return (uint16_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _dbind_incr_uint32(DBind *dbind, const uint32_t value, const bool_t pos)
+{
+    return (uint32_t)i_incr_int(dbind, (int64_t)value, pos);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint64_t _dbind_incr_uint64(DBind *dbind, const uint64_t value, const bool_t pos)
+{
+    return (uint64_t)i_incr_int(dbind, (int64_t)value, pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3269,14 +3452,6 @@ static bool_t i_is_basic_type(const dtype_t type)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _dbind_is_basic_type(const DBind *dbind)
-{
-    cassert_no_null(dbind);
-    return i_is_basic_type(dbind->type);
-}
-
-/*---------------------------------------------------------------------------*/
-
 bool_t _dbind_type_is_number(const dtype_t type)
 {
     switch (type) {
@@ -3291,6 +3466,7 @@ bool_t _dbind_type_is_number(const dtype_t type)
     case ekDTYPE_REAL32:
     case ekDTYPE_REAL64:
         return TRUE;
+
     case ekDTYPE_BOOL:
     case ekDTYPE_ENUM:
     case ekDTYPE_STRING:
@@ -3300,9 +3476,9 @@ bool_t _dbind_type_is_number(const dtype_t type)
     case ekDTYPE_OBJECT:
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
+    case ekDTYPE_UNKNOWN:
         return FALSE;
 
-    case ekDTYPE_UNKNOWN:
     cassert_default();
     }
 
@@ -3345,6 +3521,14 @@ bool_t _dbind_type_is_integer(const dtype_t type)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t _dbind_is_basic_type(const DBind* dbind)
+{
+    cassert_no_null(dbind);
+    return i_is_basic_type(dbind->type);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t _dbind_is_number_type(const DBind *dbind)
 {
     cassert_no_null(dbind);
@@ -3372,11 +3556,15 @@ uint32_t _dbind_enum_size(const DBind *dbind)
 
 enum_t _dbind_enum_value(const DBind *dbind, const uint32_t index)
 {
-    const EnumVBind *ebind = NULL;
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_ENUM);
-    ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
-    return ebind->value;
+	if (index < arrst_size(dbind->attr.enumt.ebind->values, EnumVBind))
+	{
+		const EnumVBind *ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
+		return ebind->value;
+	}
+
+	return ENUM_MAX(enum_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3389,7 +3577,6 @@ uint32_t _dbind_enum_index(const DBind *dbind, const enum_t value)
         if (ebind->value == value)
             return ebind_i;
     arrst_end();
-    cassert(FALSE);
     return UINT32_MAX;
 }
 
@@ -3397,9 +3584,13 @@ uint32_t _dbind_enum_index(const DBind *dbind, const enum_t value)
 
 const char_t *_dbind_enum_alias(const DBind *dbind, const uint32_t index)
 {
-    const EnumVBind *ebind = NULL;
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_ENUM);
-    ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
-    return tc(ebind->alias);
+	if (index < arrst_size(dbind->attr.enumt.ebind->values, EnumVBind))
+	{
+		const EnumVBind *ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
+		return tc(ebind->alias);
+	}
+
+	return "";
 }

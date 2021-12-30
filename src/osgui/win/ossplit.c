@@ -40,7 +40,7 @@ struct _ossplit_t
 };
 
 /*---------------------------------------------------------------------------*/
-static uint32_t i_SIZE = 0;
+
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSSplit *split = (OSSplit*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
@@ -131,7 +131,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             split->launch_OnDrag = FALSE;
         }
 
-        //bstd_printf("Size %d!!!!!!\n", i_SIZE++);
         break;
     }
 

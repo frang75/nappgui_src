@@ -26,8 +26,6 @@
 struct _slider_t
 {
     GuiComponent component;
-    dtype_t dtype;
-    uint32_t intmax;
     real32_t current_pos;
     S2Df size;
     ResId ttipid;
@@ -49,23 +47,9 @@ void _slider_destroy(Slider **slider)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_int_pos(const real32_t pos, const uint32_t intmax)
-{
-    uint32_t ipos = (uint32_t)((pos + .001f) * (intmax + 1));
-    if (ipos > intmax)
-        return intmax;
-    else
-        return ipos;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnSliderMoved(Slider *slider, Event *e)
 {    
     const EvSlider *p = event_params(e, EvSlider);
-    uint32_t cip = UINT32_MAX;
-    uint32_t nip = UINT32_MAX;
-    bool_t moved_event = TRUE;
     cassert_no_null(slider);
     cassert_no_null(slider->component.context);
     cassert(event_sender_imp(e, NULL) == slider->component.ositem);
@@ -73,39 +57,15 @@ static void i_OnSliderMoved(Slider *slider, Event *e)
     cassert(p->incr == 0);
     cassert(p->step == UINT32_MAX);
 
-    // Discrete slider
-    if (slider->intmax != UINT32_MAX)
+    if (p->pos != slider->current_pos)
     {
-        real32_t pos = 0;
-        cip = i_int_pos(slider->current_pos, slider->intmax);
-        nip = i_int_pos(p->pos, slider->intmax);
-        pos = (real32_t)nip * (1.f / slider->intmax);
-        if (cip != nip)
-        {
-            moved_event = TRUE;
-            ((EvSlider*)p)->incr = p->pos - slider->current_pos;
-            ((EvSlider*)p)->step = nip;
-        }
-
-        slider->component.context->func_slider_set_position(slider->component.ositem, pos);
-        slider->current_pos = pos;
-    }
-    else
-    {
-        if (p->pos != slider->current_pos)
-        {
-            moved_event = TRUE;
-            ((EvSlider*)p)->incr = p->pos - slider->current_pos;
-            slider->current_pos = p->pos;
-        }
+        ((EvSlider*)p)->incr = p->pos - slider->current_pos;
+        slider->current_pos = p->pos;
     }
 
-    if (slider->dtype == ekDTYPE_UINT32)
-        _cell_upd_uint32(slider->component.parent, nip);
-    else if (slider->dtype == ekDTYPE_REAL32)
-        _cell_upd_norm_real32(slider->component.parent, p->pos);
+    _cell_upd_norm_real32(slider->component.parent, p->pos);
 
-    if (slider->OnMoved != NULL && moved_event == TRUE)
+    if (slider->OnMoved != NULL)
         listener_pass_event(slider->OnMoved, e, slider, Slider);
 }
 
@@ -122,8 +82,6 @@ static Slider *i_create(const slider_flag_t flags, const fsize_t knob_size)
     slider = obj_new0(Slider);
     ositem = context->func_slider_create((const enum_t)flags);
     _component_init(&slider->component, context, ekGUI_COMPONENT_SLIDER, &ositem);
-    slider->dtype = ekDTYPE_UNKNOWN;
-    slider->intmax = UINT32_MAX;
     slider->current_pos = 0;
     slider->size = s2df(-1, -1);
     slider->flags = flags;
@@ -172,11 +130,6 @@ void slider_steps(Slider *slider, const uint32_t steps)
 {
     cassert_no_null(slider);
     cassert(steps > 1); 
-    if (steps == UINT32_MAX)
-        slider->intmax = UINT32_MAX;
-    else
-        slider->intmax = steps - 1;
-
     slider->component.context->func_slider_set_tickmarks(slider->component.ositem, steps, FALSE);
 }
 
@@ -244,47 +197,15 @@ bool_t _slider_is_horizontal(const Slider *slider)
 
 /*---------------------------------------------------------------------------*/
 
-void _slider_set_dtype_real32(Slider *slider)
-{
-    cassert_no_null(slider);
-    cassert(slider->dtype == ekDTYPE_UNKNOWN);
-    slider->dtype = ekDTYPE_REAL32;
-    slider->component.context->func_slider_set_tickmarks(slider->component.ositem, UINT32_MAX, FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _slider_set_dtype_uint32(Slider *slider, const uint32_t intmax)
-{
-    cassert_no_null(slider);
-    cassert(slider->dtype == ekDTYPE_UNKNOWN);
-    slider->dtype = ekDTYPE_UINT32;
-    slider->intmax = intmax;
-    slider->component.context->func_slider_set_tickmarks(slider->component.ositem, intmax + 1, FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _slider_real32(Slider *slider, const real32_t value)
 {
     cassert_no_null(slider);
-    cassert(slider->dtype == ekDTYPE_REAL32);
     cassert(value >= 0.f && value <= 1.f);
     slider->current_pos = value;
     slider->component.context->func_slider_set_position(slider->component.ositem, value);
 }
 
 /*---------------------------------------------------------------------------*/
-
-void _slider_uint32(Slider *slider, const uint32_t value)
-{
-    real32_t rvalue = 0;
-    cassert_no_null(slider);
-    cassert(slider->dtype == ekDTYPE_UINT32);
-    cassert(value <= slider->intmax);
-    rvalue = (real32_t)value * (1.f / slider->intmax);
-    slider->component.context->func_slider_set_position(slider->component.ositem, rvalue);
-}
 
 /*
 void slider_set_tickmarks(Slider *slider, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top);

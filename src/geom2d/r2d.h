@@ -19,6 +19,10 @@ R2Df r2df(const real32_t x, const real32_t y, const real32_t width, const real32
 
 R2Dd r2dd(const real64_t x, const real64_t y, const real64_t width, const real64_t height);
 
+V2Df r2d_centerf(const R2Df* r2d);
+
+V2Dd r2d_centerd(const R2Dd* r2d);
+
 bool_t r2d_collidef(const R2Df *r2d1, const R2Df *r2d2);
 
 bool_t r2d_collided(const R2Dd *r2d1, const R2Dd *r2d2);

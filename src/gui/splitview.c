@@ -247,7 +247,7 @@ static SplitView *i_create(const uint32_t flags)
     split->flags = flags;
     split->is_dragging = FALSE;
     split->div_pos = .5f;
-    split->div_thick = 20;
+    split->div_thick = 10;
     context->func_split_OnDrag(split->component.ositem, obj_listener(split, i_OnDrag, SplitView));
     BIT_SET(split->flags, ekSPPROP);
     return split;
