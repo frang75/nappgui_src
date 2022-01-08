@@ -334,14 +334,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     elseif (${CMAKE_TOOLKIT} MATCHES "GTK3")
         message(STATUS "- Toolkit: Gtk+3")
-        # Use the package PkgConfig to detect GTK+ headers/library files
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-
-        # GTK3 i386 not not available for Ubuntu 12.04 or newer
-        #if (CMAKE_ARCHITECTURE MATCHES "i386" AND ${LSB_RELEASE_ID_SHORT} MATCHES "Ubuntu" AND ${LSB_RELEASE_VERSION_SHORT} VERSION_GREATER "12.00")
-        #    message(FATAL_ERROR "Not support 'Gtk+3' for 'i386' arch. Change to 'x64'.")
-        #endif()
         set(NAPPGUI_COMPILER_TOOLSET ${GCC_VERSION}_gtk3)
     
     else()

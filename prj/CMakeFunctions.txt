@@ -459,6 +459,9 @@ function(processTarget targetName targetType dependList)
     # GTK Include directories
     if (${CMAKE_TOOLKIT} MATCHES "GTK3")    
         if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/gtk3)
+            # Use the package PkgConfig to detect GTK+ headers/library files
+            find_package(PkgConfig REQUIRED)
+            pkg_check_modules(GTK3 REQUIRED gtk+-3.0)        
             target_include_directories(${targetName} PUBLIC ${GTK3_INCLUDE_DIRS})
             set_target_properties(${targetName} PROPERTIES COMPILE_FLAGS "-D__GTK3_TOOLKIT__")            
         endif()
@@ -698,23 +701,28 @@ function(targetDependOnLib targetName libName _ret)
 
     set(${_ret} "NO" PARENT_SCOPE)
 
+    if (${targetName} MATCHES "${libName}")
+        set(${_ret} "YES" PARENT_SCOPE)
+        return()
+    endif()
+
     foreach(lib in ${${targetName}_LINKDEPENDS})
 
         if (${lib} MATCHES "${libName}")
             set(${_ret} "YES" PARENT_SCOPE)
-            break()
+            return()
         endif()
 
         if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        
+                
             if (${lib} MATCHES ".*lib${libName}.a")
                 set(${_ret} "YES" PARENT_SCOPE)
-                break()
+                return()
             endif()
         
-        endif()                
+        endif()
+        
     endforeach()
-
 
 endfunction()
 
@@ -725,42 +733,44 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
     set(${targetName}_LINKDEPENDS "" CACHE INTERNAL "")
     getRecursiveTargetLinks(${targetName} "${firstLevelDepends}")
     
-    if (NOT "${${targetName}_LINKDEPENDS}" STREQUAL "")
-    
+    if (NOT "${${targetName}_LINKDEPENDS}" STREQUAL "")    
         target_link_libraries(${targetName} ${${targetName}_LINKDEPENDS})
+    endif()
+           
+    # Target should link with pthread
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        targetDependOnLib(${targetName} "osbs" _depends)    
+        if (${_depends} STREQUAL "YES")
+            target_link_libraries(${targetName} pthread)
+        endif()
+    endif()
                      
-        # Target should link with GTK3
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            if (${CMAKE_TOOLKIT} MATCHES "GTK3")
-                existsDepend(${targetName} "draw2d" _index)                
-                if (${_index} GREATER -1)        
-                    target_link_libraries(${targetName} ${GTK3_LIBRARIES})
-                endif()                        
-            endif()
-       endif()
+    # Target should link with GTK3
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        if (${CMAKE_TOOLKIT} MATCHES "GTK3")        
+            targetDependOnLib(${targetName} "draw2d" _depends)
+            if (${_depends} STREQUAL "YES")            
+                # Use the package PkgConfig to detect GTK+ headers/library files
+                find_package(PkgConfig REQUIRED)
+                pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+                target_link_libraries(${targetName} ${GTK3_LIBRARIES})            
+            endif()                        
+        endif()
+    endif()
 
-        # Target should link with pthread
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            existsDepend(${targetName} "osbs" _index)                
-            if (${_index} GREATER -1)        
-                target_link_libraries(${targetName} pthread)
-            endif()
-        endif()   
-
-        # Support for HTTP/Internet libraries        
-        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Target should link with libCurl
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        targetDependOnLib(${targetName} "inet" _depends)    
+        if (${_depends} STREQUAL "YES")
             find_package(CURL)
             if (${CURL_FOUND})
-                targetDependOnLib(${targetName} "inet" _depends)            
-                if (${_depends} STREQUAL "YES")
-                    target_link_libraries(${targetName} ${CURL_LIBRARY})
-                endif()                
-            else()
-                message(ERROR "- libCURL is required. Try 'sudo apt-get install libcurl4-openssl-dev'")
-            endif()
-        endif()
-        
+                target_link_libraries(${targetName} ${CURL_LIBRARY})                
+            else()            
+                message(ERROR "- libCURL is required. Try 'sudo apt-get install libcurl4-openssl-dev'")                
+            endif()        
+        endif()                        
     endif()
+        
 
 endfunction()
 
