@@ -39,6 +39,8 @@ void heap_auditor_delete(const char_t *name);
 
 void heap_stats(const bool_t stats);
 
+bool_t heap_leaks(void);
+
 __END_C
 
 #define heap_malloc(size, name)\

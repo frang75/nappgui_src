@@ -49,6 +49,10 @@ bool_t bfile_read(File *file, byte_t *data, const uint32_t size, uint32_t *rsize
 
 bool_t bfile_write(File *file, const byte_t *data, const uint32_t size, uint32_t *wsize, ferror_t *error);
 
+bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, ferror_t *error);
+
+uint64_t bfile_pos(const File *file);
+
 bool_t bfile_delete(const char_t *pathname, ferror_t *error);
 
 __END_C

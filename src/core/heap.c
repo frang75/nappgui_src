@@ -107,6 +107,7 @@ static i_Memory i_MEMORY;
 static uint32_t i_PAGESIZE = DEFAULT_PAGE_SIZE;
 static bool_t i_HEAP_VERBOSE = FALSE;
 static bool_t i_HEAP_STATS = TRUE;
+static bool_t i_HEAP_LEAKS = FALSE;
 
 /*---------------------------------------------------------------------------*/
 
@@ -362,6 +363,7 @@ void _heap_finish(void)
         log_printf("Total bytes a/dellocated: %" PRIu64 ", %" PRIu64 " (%" PRIu64 " bytes)", i_MEMORY.total_bytes_allocated, i_MEMORY.total_bytes_deallocated, i_MEMORY.total_bytes_allocated - i_MEMORY.total_bytes_deallocated);
         log_printf("Max bytes allocated: %" PRIu64, i_MEMORY.max_bytes_allocated);
         log_printf("==================================");
+        i_HEAP_LEAKS = TRUE;
     }
     else
     {
@@ -783,4 +785,11 @@ void heap_auditor_delete(const char_t *name)
 void heap_stats(const bool_t stats)
 {
     i_HEAP_STATS = stats;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t heap_leaks(void)
+{
+    return i_HEAP_LEAKS;
 }

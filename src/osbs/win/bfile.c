@@ -625,6 +625,63 @@ bool_t bfile_write(File *file, const byte_t *data, const uint32_t size, uint32_t
 
 /*---------------------------------------------------------------------------*/
 
+bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, ferror_t *error)
+{
+    LARGE_INTEGER li;
+    DWORD method = 0;
+    DWORD ret;
+
+    cassert_no_null(file);
+
+    li.QuadPart = (LONGLONG)offset;
+    switch (whence) {
+    case ekSEEKSET:
+        method = FILE_BEGIN;
+        break;
+    case ekSEEKCUR:
+        method = FILE_CURRENT;
+        break;
+    case ekSEEKEND:
+        method = FILE_END;
+        break;
+    cassert_default();
+    }
+
+    ret = SetFilePointer((HANDLE)file, li.LowPart, &li.HighPart, method);
+
+    if (ret != INVALID_SET_FILE_POINTER)
+    {
+        ptr_assign(error, ekFOK);
+        return TRUE;
+    }
+    else
+    {
+        if (GetLastError() == ERROR_NEGATIVE_SEEK)
+        {
+            ptr_assign(error, ekFSEEKNEG);
+        }
+        else
+        {
+            ptr_assign(error, ekFUNDEF);
+        }
+
+        return FALSE;
+   }
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint64_t bfile_pos(const File *file)
+{
+    DWORD low = 0;
+    LONG high = 0;
+    cassert_no_null(file);
+    low = SetFilePointer((HANDLE)file, 0, &high, FILE_CURRENT);
+    return ((uint64_t)high << 32) | low;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t bfile_delete(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];

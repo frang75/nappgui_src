@@ -557,6 +557,56 @@ bool_t bfile_write(File *file, const byte_t *data, const uint32_t size, uint32_t
 
 /*---------------------------------------------------------------------------*/
 
+bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, ferror_t *error)
+{
+    int fd = (int)(intptr_t)file;
+    int method = 0;
+    off_t res = 0;
+    cassert_no_null(file);
+
+    switch (whence) {
+    case ekSEEKSET:
+        method = SEEK_SET;
+        break;
+    case ekSEEKCUR:
+        method = SEEK_CUR;
+        break;
+    case ekSEEKEND:
+        method = SEEK_END;
+        break;
+    cassert_default();
+    }
+
+    res = lseek(fd, (off_t)offset, method);
+    if (res == -1)
+    {
+        if (errno == EINVAL)
+        {
+            ptr_assign(error, ekFSEEKNEG);
+        }
+        else
+        {
+            ptr_assign(error, ekFUNDEF);
+        }
+
+        return FALSE;
+    }
+
+    ptr_assign(error, ekFOK);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint64_t bfile_pos(const File *file)
+{
+    int fd = (int)(intptr_t)file;
+    cassert_no_null(file);
+    return (uint64_t)lseek(fd, (off_t)0, SEEK_CUR);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t bfile_delete(const char_t *filepath, ferror_t *error)
 {
     int res = unlink((const char*)filepath);
