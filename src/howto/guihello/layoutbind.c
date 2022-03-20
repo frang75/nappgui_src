@@ -10,8 +10,8 @@
 
 /* GUI data binding */
 
-#include "guibind.h"
 #include "guiall.h"
+#include "layoutbind.h"
 
 typedef struct _vector_t Vector;
 typedef struct _structtypes_t StructTypes;

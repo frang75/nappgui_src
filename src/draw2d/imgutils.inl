@@ -16,6 +16,8 @@ __EXTERN_C
 
 bool_t imgutil_parse(Stream *stm_in, Stream *stm_out);
 
+uint32_t imgutil_num_frames(const byte_t *data, const uint32_t size);
+
 Palette *imgutils_def_palette(const pixformat_t format);
 
 Pixbuf *imgutil_rgba_to_rgb(const byte_t *data, const uint32_t width, const uint32_t height);

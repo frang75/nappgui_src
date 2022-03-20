@@ -430,8 +430,8 @@ Cursor *osglobals_cursor(const cursor_t cursor, const Image *image, const real32
     case ekCUSER:
     {
         OSImage *osimage = (OSImage*)image_native(image);
-        GdkPixbuf *pixbuf = osimage_pixbuf(osimage);
-        gdkcursor = gdk_cursor_new_from_pixbuf(display, pixbuf, (gint)hot_x, (gint)hot_y);
+        const GdkPixbuf *pixbuf = osimage_pixbuf(osimage, UINT32_MAX);
+        gdkcursor = gdk_cursor_new_from_pixbuf(display, (GdkPixbuf*)pixbuf, (gint)hot_x, (gint)hot_y);
         break;
     }
 

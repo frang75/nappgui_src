@@ -370,13 +370,15 @@ static bool_t i_read_gif_extension(Stream *stm_in, Stream *stm_out)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_parse_gif(Stream *stm_in, Stream *stm_out)
+static bool_t i_parse_gif(Stream *stm_in, Stream *stm_out, uint32_t *num_frames)
 {
     endian_t rendian = stm_get_read_endian(stm_in);
     endian_t wendian = ekBIGEND;
     GifDesc desc;
     bool_t ok = TRUE;
+    cassert_no_null(num_frames);
 
+    *num_frames = 0;
     stm_set_read_endian(stm_in, ekLITEND);
 
     if (stm_out)
@@ -403,7 +405,7 @@ static bool_t i_parse_gif(Stream *stm_in, Stream *stm_out)
             stm_skip(stm_in, size);
     }
 
-    /* PNG Blocks */
+    /* GIF Blocks */
     for(;;)
     {
         byte_t type;
@@ -427,6 +429,8 @@ static bool_t i_parse_gif(Stream *stm_in, Stream *stm_out)
                 ok = FALSE;
                 break;
             }
+
+            *num_frames += 1;
         }
         /* GIF Terminator */
         else if (type == 0x3b)
@@ -620,22 +624,45 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t imgutil_parse(Stream *stm_in, Stream *stm_out)
+static bool_t i_parse_img(Stream *stm_in, Stream *stm_out, uint32_t *num_frames)
 {
     codec_t codec = i_header(stm_in, stm_out);
+    cassert_no_null(num_frames);
 
     switch (codec) {
         case ekPNG:
+            *num_frames = 1;        
             return i_parse_png(stm_in, stm_out);
         case ekJPG:
+            *num_frames = 1;        
             return i_parse_jpg(stm_in, stm_out);
         case ekGIF:
-            return i_parse_gif(stm_in, stm_out);
+            return i_parse_gif(stm_in, stm_out, num_frames);
         case ekBMP:
+            *num_frames = 1;        
             return i_parse_bmp(stm_in, stm_out);
         default:
             return FALSE;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t imgutil_parse(Stream *stm_in, Stream *stm_out)
+{
+    uint32_t num_frames = 0;
+    return i_parse_img(stm_in, stm_out, &num_frames);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t imgutil_num_frames(const byte_t *data, const uint32_t size)
+{
+    Stream *stm = stm_from_block(data, size);
+    uint32_t num_frames = 0;
+    i_parse_img(stm, NULL, &num_frames);
+    stm_close(&stm);
+    return num_frames;
 }
 
 /*---------------------------------------------------------------------------*/

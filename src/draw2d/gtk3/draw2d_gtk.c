@@ -25,6 +25,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <pango/pangocairo.h>
 #include <gdk/gdk.h>
+#include "osimage.inl"
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -510,9 +511,9 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 {
     gdouble nx = (gdouble)x;
     gdouble ny = (gdouble)y;
+    const GdkPixbuf *pixbuf = osimage_pixbuf(image, frame_index);
 
     cassert_no_null(ctx);
-    cassert(frame_index == UINT32_MAX);
     if (raster != ctx->raster_mode)
     {
         if (raster == TRUE)
@@ -523,8 +524,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 
     if (ctx->image_halign != ekLEFT || ctx->image_valign != ekTOP)
     {
-        gdouble w = (gdouble)gdk_pixbuf_get_width((GdkPixbuf*)image);
-        gdouble h = (gdouble)gdk_pixbuf_get_height((GdkPixbuf*)image);
+        gdouble w = (gdouble)gdk_pixbuf_get_width(pixbuf);
+        gdouble h = (gdouble)gdk_pixbuf_get_height(pixbuf);
 
         switch (ctx->image_halign) {
         case ekLEFT:
@@ -551,7 +552,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         }
     }
 
-    gdk_cairo_set_source_pixbuf(ctx->cairo, (GdkPixbuf*)image, nx, ny);
+    gdk_cairo_set_source_pixbuf(ctx->cairo, pixbuf, nx, ny);
     cairo_paint(ctx->cairo);
     ctx->source_color = 0;
 }

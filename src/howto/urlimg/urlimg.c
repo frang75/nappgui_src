@@ -34,6 +34,7 @@ static const char_t *i_FILES[] = {
                             "anim_04_game.gif",
                             "anim_04_item.gif",
                             "anim_04_player.gif",
+                            "static_05_cube.gif",
                             "home_01_gray.jpg",
                             "home_01_rgb.jpg",
                             "home_02_index02.png",

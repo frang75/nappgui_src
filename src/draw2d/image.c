@@ -420,23 +420,30 @@ Image *image_read(Stream *stm)
     if (_stm_memory(stm) == TRUE)
     {
         const byte_t *data = stm_buffer(stm);
-        uint32_t start = _stm_get_roffset(stm);
+        uint64_t st = stm_bytes_readed(stm);
         if (imgutil_parse(stm, NULL) == TRUE)
         {
-            uint32_t end = _stm_get_roffset(stm);
-            return image_from_data(data, end - start);
+            uint64_t ed = stm_bytes_readed(stm);
+            return image_from_data(data, (uint32_t)(ed - st));
         }
         else
         {
-            _stm_set_roffset(stm, start);
             return NULL;
         }
     }
     else
     {
-        cassert(FALSE);
-        //void _stm_restore(Stream *stm, const byte_t *data, const uint32_t size);
-        return NULL;
+        Image *image = NULL;
+        Stream *stm_out = stm_memory(4096);
+        if (imgutil_parse(stm, stm_out) == TRUE)
+        {
+            const byte_t *data = stm_buffer(stm_out);
+            uint32_t size = stm_buffer_size(stm_out);
+            image = image_from_data(data, size);
+        }
+
+        stm_close(&stm_out);
+        return image;
     }
 }
 

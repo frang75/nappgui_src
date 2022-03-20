@@ -13,12 +13,14 @@
 #include "image.inl"
 #include "osimage.inl"
 #include "dctx.inl"
+#include "imgutils.inl"
 #include "bmem.h"
 #include "buffer.h"
 #include "cassert.h"
 #include "heap.h"
 #include "pixbuf.h"
 #include "ptr.h"
+#include "strings.h"
 #include "stream.h"
 #include "unicode.h"
 #include "draw2d_gtk.ixx"
@@ -28,6 +30,12 @@
 #error This file is only for GTK Toolkit
 #endif
 
+struct _osimage_t
+{
+    GdkPixbuf *pixbuf;
+    GdkPixbufAnimation *animation;
+    uint32_t num_frames;
+};
 
 /*---------------------------------------------------------------------------*/
 
@@ -43,7 +51,29 @@ void osimage_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_destroy_pixbuf(guchar *pixels, gpointer data)
+static __INLINE OSImage *i_osimage(GdkPixbuf *pixbuf)
+{
+    OSImage *image = heap_new(OSImage);
+    image->pixbuf = pixbuf;
+    image->animation = NULL;
+    image->num_frames = 1;
+    return image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE OSImage *i_osanimation(GdkPixbufAnimation *animation, const uint32_t num_frames)
+{
+    OSImage *image = heap_new(OSImage);
+    image->pixbuf = NULL;
+    image->animation = animation;
+    image->num_frames = num_frames;
+    return image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_pixbuf_data(guchar *pixels, gpointer data)
 {
     uint32_t size = (uint32_t)(intptr_t)data;
     heap_delete_n(&pixels, size, guchar);
@@ -53,7 +83,8 @@ static void i_destroy_pixbuf(guchar *pixels, gpointer data)
 
 OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height, const pixformat_t format, const byte_t *pixel_data)
 {
-    GdkPixbuf *bitmap = NULL;
+    OSImage *image = NULL;
+    GdkPixbuf *pixbuf = NULL;
     GdkColorspace colorspace = GDK_COLORSPACE_RGB;
     gboolean has_alpha = FALSE;
     int bits_per_sample = 8;
@@ -131,143 +162,214 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     cassert_default();
     }
 
-    bitmap = gdk_pixbuf_new_from_data((const guchar*)data, colorspace, has_alpha, bits_per_sample, (int)width, (int)height, rowstride, i_destroy_pixbuf, (gpointer)(intptr_t)size);
-    heap_auditor_add("GdkPixbuf");
-    return (OSImage*)bitmap;
+    pixbuf = gdk_pixbuf_new_from_data((const guchar*)data, colorspace, has_alpha, bits_per_sample, (int)width, (int)height, rowstride, i_destroy_pixbuf_data, (gpointer)(intptr_t)size);
+    image = i_osimage(pixbuf);
+    return image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
+{
+    if (size >= 6)
+    {
+        const char_t *str = (const char_t*)data;
+        if (str_equ_cn(str, "GIF87a", 6) == TRUE || str_equ_cn(str, "GIF89a", 6) == TRUE)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+#if (GDK_PIXBUF_MAJOR < 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR < 4))
+#include "bfile.h"
+#include "hfile.h"
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
+{
+#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 14))
+    GInputStream *stream = g_memory_input_stream_new_from_data((const void*)data, (gssize)size, NULL);
+    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_stream(stream, NULL, NULL);
+    gboolean ok = g_input_stream_close(stream, NULL, NULL);
+    cassert_unref(ok == TRUE, ok);
+    return pixbuf;
+
+#else
+    // Only support for GdkPixbuf from file 
+    const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
+    GdkPixbuf *pixbuf = NULL;
+    if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
+    {
+        pixbuf = gdk_pixbuf_new_from_file ((const char*)tempfile, NULL);
+        bfile_delete(tempfile, NULL);
+    }
+
+    return pixbuf;
+
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint32_t size)
+{
+#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 28))
+    GInputStream *stream = g_memory_input_stream_new_from_data((const void*)data, (gssize)size, NULL);
+    GdkPixbufAnimation *animation = gdk_pixbuf_animation_new_from_stream(stream, NULL, NULL);
+    gboolean ok = g_input_stream_close(stream, NULL, NULL);
+    cassert_unref(ok == TRUE, ok);
+    return animation;
+
+#else
+    // Only support for GdkPixbufAnimation from file 
+    const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
+    GdkPixbufAnimation *animation = NULL;
+    if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
+    {
+        animation = gdk_pixbuf_animation_new_from_file((const char*)tempfile, NULL);
+        bfile_delete(tempfile, NULL);
+    }
+
+    return animation;
+
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 4))
+
+static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
+{
+    stm_write((Stream*)stream, (const byte_t*)data, (uint32_t)size);
+    unref(error);
+    return TRUE;
+}
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
+{
+    gboolean ok = FALSE;
+#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 4))
+    ok = gdk_pixbuf_save_to_callback(pixbuf, i_encode, (gpointer)stm, type, NULL, NULL);
+    cassert_unref(ok == TRUE, ok);
+
+#else
+    const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
+    Buffer *buffer = NULL;
+    ok = gdk_pixbuf_save(pixbuf, tempfile, type, NULL, NULL); 
+    cassert_unref(ok == TRUE, ok);
+    buffer = hfile_buffer(tempfile, NULL);
+    if (buffer != NULL)
+    {
+        const byte_t *data = buffer_data(buffer);
+        uint32_t size = buffer_size(buffer);
+        stm_write(stm, data, size);
+        buffer_destroy(&buffer);
+    }
+
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+static OSImage *i_single_osimage_from_data(const byte_t *data, const uint32_t size)
+{
+    GdkPixbuf *pixbuf = i_pixbuf_from_data(data, size);
+    return i_osimage(pixbuf);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static OSImage *i_multiple_osimage_from_data(const byte_t *data, const uint32_t size, const uint32_t num_frames)
+{
+    GdkPixbufAnimation *animation = i_animation_from_data(data, size);
+    return i_osanimation(animation, num_frames);
 }
 
 /*---------------------------------------------------------------------------*/
 
 OSImage *osimage_create_from_data(const byte_t *data, const uint32_t size)
 {
-    GInputStream *stream = NULL;
-    GdkPixbuf *bitmap = NULL;
-    gboolean ok;
+    OSImage *image = NULL;
+
     cassert_no_null(data);
     cassert(size > 0);
-    stream = g_memory_input_stream_new_from_data ((const void*)data, (gssize)size, NULL);
-    bitmap = gdk_pixbuf_new_from_stream(stream, NULL, NULL);
-    ok = g_input_stream_close(stream, NULL, NULL);
-    cassert_unref(ok == TRUE, ok);
-    heap_auditor_add("GdkPixbuf");
-    return (OSImage*)bitmap;
+
+    if (i_is_gif_buffer(data, size) == FALSE)
+    {
+        image = i_single_osimage_from_data(data, size);
+    }
+    else
+    {
+        uint32_t num_frames = imgutil_num_frames(data, size);
+        if (num_frames == 1)
+            image = i_single_osimage_from_data(data, size);
+        else
+            image = i_multiple_osimage_from_data(data, size, num_frames);
+    }
+
+    return image;
 }
 
 /*---------------------------------------------------------------------------*/
 
 OSImage *osimage_create_from_type(const char_t *file_type)
 {
+    // TODO
     unref(file_type);
     cassert(FALSE);
     return NULL;
-//    WCHAR wextension[64];
-//    DWORD dwFileAttributes;
-//    uint32_t num_bytes;
-//
-//    if (strcmp(file_type, ".") == 0)
-//    {
-//        num_bytes = unicode_convers("\fdsfg", (char_t*)wextension, ekUTF8, ekUTF16, sizeof(wextension));
-//        dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
-//    }
-//    else
-//    {
-//        num_bytes = unicode_convers(file_type, (char_t*)wextension, ekUTF8, ekUTF16, sizeof(wextension));
-//        dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
-//    }
-//
-//    if (num_bytes < sizeof(wextension))
-//    {
-//        SHFILEINFO psfi;
-//        DWORD_PTR ok;
-//        Gdiplus::Bitmap *bitmap = NULL;
-//        ok = SHGetFileInfo(wextension, dwFileAttributes, &psfi, sizeof(psfi), SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES);
-//        cassert(ok != 0);
-//        bitmap = Gdiplus::Bitmap::FromHICON(psfi.hIcon);
-//        heap_auditor_add("Gdiplus::Bitmap");
-//        return (OSImage*)bitmap;
-//    }
-//    else
-//    {
-//        cassert(FALSE);
-//        return NULL;
-//    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 OSImage *osimage_create_scaled(const OSImage *image, const uint32_t new_width, const uint32_t new_height)
-{
-    GdkPixbuf *bitmap = gdk_pixbuf_scale_simple((const GdkPixbuf*)image, (int)new_width, (int)new_height, GDK_INTERP_BILINEAR);
-    heap_auditor_add("GdkPixbuf");
-    return (OSImage*)bitmap;
+{    
+    cassert_no_null(image);
+    if (image->pixbuf != NULL)
+    {
+        GdkPixbuf *cpixbuf = gdk_pixbuf_scale_simple(image->pixbuf, (int)new_width, (int)new_height, GDK_INTERP_BILINEAR);
+        return i_osimage(cpixbuf);        
+    }
+    else
+    {
+        // At the moment, animations are not scaled
+        GdkPixbufAnimation *canimation = NULL;
+        cassert(image->animation != NULL);
+        canimation = g_object_ref(image->animation);
+        return i_osanimation(canimation, image->num_frames);
+    }
 }
-
-/*---------------------------------------------------------------------------*/
-
-//static cairo_status_t i_write_png(void *stm, const unsigned char *data, unsigned int size)
-//{
-//    stm_write((Stream*)stm, (const byte_t*)data, (const uint32_t)size);
-//    return CAIRO_STATUS_SUCCESS;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//static void i_read_png(png_structp png, png_bytep data, png_size_t size)
-//{
-//    Stream *stm = (Stream*)png_get_io_ptr(png);
-//    stm_read(stm, (byte_t*)data, (const uint32_t) size);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//static void i_convert_png(Stream *stm, const pixformat_t format)
-//{
-//    png_structp png = NULL;
-//    png_infop info = NULL;
-//
-//    png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-//    cassert_no_null(png);
-//
-//    png_set_read_fn(png, stm, i_read_png);
-//    //png_set_sig_bytes(png, 8);
-//
-//    info = png_create_info_struct(png);
-//    cassert_no_null(info);
-//
-//    png_read_info(png, info);
-//
-//    png_uint_32 w = 0, h = 0, ret;
-//    int bitd;
-//    int color;
-//    ret = png_get_IHDR(png, info, &w, &h, &bitd, &color, NULL, NULL, NULL);
-//    cassert(ret == 1);
-//    cassert(bitd == 8);
-//    cassert(color == PNG_COLOR_TYPE_RGB || color == PNG_COLOR_TYPE_RGB_ALPHA);
-//    png_destroy_read_struct(&png, &info, NULL);
-//
-//    // TODO
-//    cassert(FALSE);
-//}
 
 /*---------------------------------------------------------------------------*/
 
 OSImage *osimage_from_context(DCtx **ctx)
 {
     gint w, h;
-    GdkPixbuf *bitmap = NULL;
+    GdkPixbuf *pixbuf = NULL;
+
     cassert_no_null(ctx);
     cassert_no_null(*ctx);
 
     w = cairo_image_surface_get_width((*ctx)->surface);
     h = cairo_image_surface_get_height((*ctx)->surface);
-    bitmap = gdk_pixbuf_get_from_surface((*ctx)->surface, 0, 0, w, h);
+    pixbuf = gdk_pixbuf_get_from_surface((*ctx)->surface, 0, 0, w, h);
 
     if ((*ctx)->format == ekGRAY8)
     {
-        guchar *pixels = gdk_pixbuf_get_pixels(bitmap);
-        gboolean alpha = gdk_pixbuf_get_has_alpha(bitmap);
+        guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
+        gboolean alpha = gdk_pixbuf_get_has_alpha(pixbuf);
         register uint32_t i, j, offset = alpha ? 4 : 3;
-        int stride = gdk_pixbuf_get_rowstride(bitmap) - (offset * w);
+        int stride = gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
         for (j = 0; j < h; ++j)
         {
             for (i = 0; i < w; ++i)
@@ -283,9 +385,9 @@ OSImage *osimage_from_context(DCtx **ctx)
         }
     }
 
-    heap_auditor_add("GdkPixbuf");
     dctx_destroy(ctx);
-    return (OSImage*)bitmap;
+
+    return i_osimage(pixbuf);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -294,9 +396,17 @@ void osimage_destroy(OSImage **image)
 {
     cassert_no_null(image);
     cassert_no_null(*image);
-    g_object_unref((gpointer)*image);
-    heap_auditor_delete("GdkPixbuf");
-    *image = NULL;
+    if ((*image)->pixbuf != NULL)
+    {
+        g_object_unref((*image)->pixbuf);
+    }
+    else
+    {
+        cassert_no_null((*image)->animation);
+        g_object_unref((*image)->animation);
+    }
+
+    heap_delete(image, OSImage);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -395,28 +505,179 @@ static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const u
 
 /*---------------------------------------------------------------------------*/
 
+// Avoid GTimeVal deprecation warnings
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+
+static __INLINE GTimeVal i_time_init(void)
+{
+    GTimeVal tval;
+    tval.tv_sec = 0;
+    tval.tv_usec = 0;
+    return tval;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_time_add_ms(GTimeVal *tval, const uint32_t msecs)
+{
+    cassert_no_null(tval);
+    tval->tv_usec += msecs * 1000;
+    tval->tv_sec += tval->tv_usec / 1000000;
+    tval->tv_usec = tval->tv_usec % 1000000;
+}
+
+#pragma GCC diagnostic pop
+
+/*---------------------------------------------------------------------------*/
+
+// http://www.manpagez.com/html/gdk-pixbuf/gdk-pixbuf-2.34.0/gdk-pixbuf-Animations.php
+// Note that some formats, like GIF, might clamp the timeout values in the image 
+// file to avoid updates that are just too quick. The minimum timeout for GIF 
+// images is currently 20 milliseconds.
+static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame)
+{
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+    GTimeVal tval = i_time_init();
+#pragma GCC diagnostic pop
+
+    GdkPixbufAnimationIter *iter = gdk_pixbuf_animation_get_iter(animation, &tval);
+    int delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
+    uint32_t i = 0;
+
+    for (i = 0; i < frame; ++i)
+    {
+        gboolean next_frame = FALSE;
+
+    #if defined (__ASSERTS__)
+        i_time_add_ms(&tval, delay - 1);
+        cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
+        i_time_add_ms(&tval, 1);
+    #else
+        i_time_add_ms(&tval, delay);
+    #endif
+
+        next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
+        cassert_unref(next_frame == TRUE, next_frame);
+        delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
+    }
+
+    g_object_unref(iter);
+    return delay;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const uint32_t frame)
+{
+#pragma GCC diagnostic push 
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+    GTimeVal tval = i_time_init();
+#pragma GCC diagnostic pop
+
+    GdkPixbufAnimationIter *iter = gdk_pixbuf_animation_get_iter(animation, &tval);
+    GdkPixbuf *pixbuf = NULL;
+    uint32_t i = 0;
+
+    for (i = 0; i < frame; ++i)
+    {
+        int delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
+        gboolean next_frame = FALSE;
+
+    #if defined (__ASSERTS__)
+        i_time_add_ms(&tval, delay - 1);
+        cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
+        i_time_add_ms(&tval, 1);
+    #else
+        i_time_add_ms(&tval, delay);
+    #endif
+
+        next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
+        cassert_unref(next_frame == TRUE, next_frame);
+    }
+
+    pixbuf = gdk_pixbuf_animation_iter_get_pixbuf(iter);
+    g_object_unref(iter);
+    return pixbuf;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static const GdkPixbuf *i_image_pixbuf(const OSImage *image)
+{
+    cassert_no_null(image);
+    if (image->pixbuf != NULL)
+    {
+        return image->pixbuf;
+    }
+    else
+    {
+        cassert_no_null(image->animation);
+        return i_animation_pixbuf(image->animation, 0);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE uint32_t i_width(const OSImage *image)
+{
+    cassert_no_null(image);
+    if (image->pixbuf != NULL)
+    {
+        return gdk_pixbuf_get_width(image->pixbuf);
+    }
+    else
+    {
+        cassert_no_null(image->animation);
+        return gdk_pixbuf_animation_get_width(image->animation);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE uint32_t i_height(const OSImage *image)
+{
+    cassert_no_null(image);
+    if (image->pixbuf != NULL)
+    {
+        return gdk_pixbuf_get_height(image->pixbuf);
+    }
+    else
+    {
+        cassert_no_null(image->animation);
+        return gdk_pixbuf_animation_get_height(image->animation);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixformat_t *format, Pixbuf **pixels)
 {
     cassert_no_null(image);
 
     if (width != NULL)
-        *width = (uint32_t)gdk_pixbuf_get_width((GdkPixbuf*)image);
+        *width = i_width(image);
 
     if (height != NULL)
-        *height = (uint32_t)gdk_pixbuf_get_height((GdkPixbuf*)image);
+        *height = i_height(image);
 
     if (format != NULL || pixels != NULL)
     {
         pixformat_t lformat = ENUM_MAX(pixformat_t);
-        const byte_t *buffer = (const byte_t*)gdk_pixbuf_get_pixels((GdkPixbuf*)image);
-        uint32_t w = gdk_pixbuf_get_width((GdkPixbuf*)image);
-        uint32_t h = gdk_pixbuf_get_height((GdkPixbuf*)image);
-        uint32_t bits_per_pixel = gdk_pixbuf_get_n_channels((GdkPixbuf*)image) * 8;
+        const GdkPixbuf *pixbuf = i_image_pixbuf(image);
+        const byte_t *buffer = (const byte_t*)gdk_pixbuf_get_pixels(pixbuf);
+        uint32_t w = gdk_pixbuf_get_width(pixbuf);
+        uint32_t h = gdk_pixbuf_get_height(pixbuf);
+        uint32_t bits_per_pixel = gdk_pixbuf_get_n_channels(pixbuf) * 8;
         uint32_t offset = bits_per_pixel / 8;
-        uint32_t stride = gdk_pixbuf_get_rowstride((GdkPixbuf*)image) - (offset * w);
+        uint32_t stride = gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
 
         cassert(bits_per_pixel == 24 || bits_per_pixel == 32);
-        if (bits_per_pixel == 24 && gdk_pixbuf_get_has_alpha((GdkPixbuf*)image) == TRUE)
+        cassert(w == i_width(image));
+        cassert(h == i_height(image));
+
+        if (bits_per_pixel == 24 && gdk_pixbuf_get_has_alpha(pixbuf) == TRUE)
         {
             bits_per_pixel = 32;
             offset = 4;
@@ -457,92 +718,108 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 
 /*---------------------------------------------------------------------------*/
 
-static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
+static __INLINE const gchar *i_codec(const codec_t codec)
 {
-    stm_write((Stream*)stream, (const byte_t*)data, (uint32_t)size);
-    return TRUE;
+    switch(codec) {
+    case ekJPG:
+        return "jpeg";
+    case ekPNG:
+        return "png";
+    case ekBMP:
+        return "bmp";
+    case ekGIF:
+        return "gif";
+    cassert_default();
+    }        
+
+    return "";
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t osimage_available_codec(const OSImage *image, const codec_t codec)
 {
+    GSList *slist0 = gdk_pixbuf_get_formats();
+    GSList *slist = NULL;
+    const gchar *scodec = i_codec(codec);
+    bool_t ok = FALSE;
+
     unref(image);
-    unref(codec);
-    return TRUE;
+
+    for (slist = slist0; slist; slist = g_slist_next(slist)) 
+    {
+        GdkPixbufFormat *format = slist->data;
+    #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 2))
+        const gchar *name = gdk_pixbuf_format_get_name(format);
+        gboolean writable = gdk_pixbuf_format_is_writable(format);
+    #else
+        const gchar *name = format->name;
+        gboolean writable = (format->flags & GDK_PIXBUF_FORMAT_WRITABLE) != 0;
+    #endif
+
+        if (str_equ_c(name, scodec) == TRUE)
+        {
+            ok = writable;
+            break;
+        }
+    }
+
+    g_slist_free(slist0);
+    return ok;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osimage_write(const OSImage *image, const codec_t codec, Stream *stream)
 {
-    const char *type="";
-    gboolean ok;
-    switch (codec)
+    const char *type = i_codec(codec);
+    cassert_no_null(image);
+    if (image->pixbuf != NULL)
     {
-        case ekJPG:
-            type = "jpeg";
-            break;
-        case ekPNG:
-            type = "png";
-            break;
-        case ekBMP:
-            type = "bmp";
-            break;
-        case ekGIF:
-            type = "gif";
-            break;
-        cassert_default();
+        i_pixbuf_save(image->pixbuf, type, stream);
     }
-
-    ok = gdk_pixbuf_save_to_callback((GdkPixbuf*)image, i_encode, (gpointer)stream, type, NULL, NULL);
-    cassert_unref(ok == TRUE, ok);
+    else
+    {
+        GdkPixbuf *pixbuf = NULL;
+        cassert_no_null(image->animation);
+        pixbuf = gdk_pixbuf_animation_get_static_image(image->animation);
+        i_pixbuf_save(pixbuf, type, stream);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osimage_frames(const OSImage *image, uint32_t *num_frames, uint32_t *num_loops)
 {
-    unref(image);
-    unref(num_frames);
+    cassert_no_null(image);
     unref(num_loops);
-    ptr_assign(num_frames, 1);
-    //cassert(FALSE);
-
-//    GUID dimension;
-//    cassert_no_null(image);
-//    cassert_no_null(num_frames);
-//    unref(num_loops);
-//    ((Gdiplus::Bitmap*)image)->GetFrameDimensionsList(&dimension, 1);
-//    *num_frames = (uint32_t)((Gdiplus::Bitmap*)image)->GetFrameCount(&dimension);
+    if (num_frames != NULL)
+        *num_frames = image->num_frames;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *frame_length)
 {
-    unref(image);
-    unref(frame_index);
-    unref(frame_length);
-    cassert(FALSE);
-
-//    UINT property_size;
-//    Gdiplus::PropertyItem *property_item = NULL;
-//    cassert_no_null(image);
-//    cassert_no_null(frame_length);
-//    property_size = ((Gdiplus::Bitmap*)image)->GetPropertyItemSize(PropertyTagFrameDelay);
-//    property_item = (Gdiplus::PropertyItem*)heap_malloc(property_size, "ImgImpPropItem");
-//    ((Gdiplus::Bitmap*)image)->GetPropertyItem(PropertyTagFrameDelay, property_size, property_item);
-//    cassert(property_item->type == PropertyTagTypeLong);
-//    *frame_length = 0.1f * (real32_t)(((long*)property_item->value)[frame_index]);
-//    heap_free((byte_t**)&property_item, property_size, "ImgImpPropItem");
+    cassert_no_null(image);
+    cassert_no_null(frame_length);
+    cassert_no_null(image->animation);
+    cassert(frame_index < image->num_frames);
+    *frame_length = .001f * i_animation_delay(image->animation, frame_index);
 }
 
 /*---------------------------------------------------------------------------*/
 
-GdkPixbuf *osimage_pixbuf(OSImage *image)
+const GdkPixbuf *osimage_pixbuf(const OSImage *image, const uint32_t frame_index)
 {
     cassert_no_null(image);
-    return (GdkPixbuf*)image;
+    if (image->pixbuf != NULL)
+    {
+        return image->pixbuf;
+    }
+    else
+    {
+        cassert_no_null(image->animation);
+        return i_animation_pixbuf(image->animation, frame_index);
+    }
 }
-
