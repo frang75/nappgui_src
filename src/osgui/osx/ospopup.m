@@ -159,13 +159,13 @@ void ospopup_elem(OSPopUp *popup, const op_t op, const uint32_t idx, const char_
             [str release];
         }
 
-        #if defined (__ASSERTS__)
+	#if defined (__ASSERTS__)
         if (image != NULL)
         {
             NSSize size = [(NSImage*)image_native(image) size];
             cassert(size.width == 16.f && size.height == 16.f);
         }
-        #endif
+    #endif
 
         [item setImage:image != NULL ? (NSImage*)image_native(image) : nil];
     }

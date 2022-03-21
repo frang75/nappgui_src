@@ -197,7 +197,7 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const uint32_t x, const uint
 
 void osdrawctrl_image(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y, const cstate_t state)
 {
-    const OSImage *osimage = image_native(image);
+    const OSImage *osimage = osimage_from_image(image);
     unref(state);
     draw_imgimp(ctx, osimage, UINT32_MAX, x, y, TRUE);
 }

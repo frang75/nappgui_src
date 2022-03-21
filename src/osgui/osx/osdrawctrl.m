@@ -213,9 +213,9 @@ void osdrawctrl_focus(DCtx *ctx, const uint32_t x, const uint32_t y, const uint3
 
 void osdrawctrl_image(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y, const cstate_t state)
 {
-    const OSImage *osimage = image_native(image);
-    unref(state);
+    const OSImage *osimage = osimage_from_image(image);
     draw_imgimp(ctx, osimage, UINT32_MAX, (real32_t)x, (real32_t)y, TRUE);
+    unref(state);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -810,6 +810,13 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 
 /*---------------------------------------------------------------------------*/
 
+const void *osimage_native(const OSImage *image)
+{
+    return (const void*)osimage_pixbuf(image, 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
 const GdkPixbuf *osimage_pixbuf(const OSImage *image, const uint32_t frame_index)
 {
     cassert_no_null(image);

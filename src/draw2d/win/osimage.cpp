@@ -826,7 +826,7 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 
 /*---------------------------------------------------------------------------*/
 
-void *osimage_bitmap(const OSImage *osimage)
+const void *osimage_native(const OSImage *osimage)
 {
     cassert_no_null(osimage);
     return osimage->bitmap;
@@ -836,12 +836,11 @@ void *osimage_bitmap(const OSImage *osimage)
 
 HBITMAP osimage_hbitmap(const Image *image, COLORREF background)
 {
-    OSImage *osimage = (OSImage*)image_native(image);
+    Gdiplus::Bitmap *bitmap = (Gdiplus::Bitmap*)image_native(image);
     Gdiplus::Color c;
     HBITMAP hbitmap;
-    cassert_no_null(osimage);
     c.SetFromCOLORREF(background);
-    Gdiplus::Status status = osimage->bitmap->GetHBITMAP(c, &hbitmap);
+    Gdiplus::Status status = bitmap->GetHBITMAP(c, &hbitmap);
     cassert_unref(status == Gdiplus::Ok, status);
     return hbitmap;
 }
@@ -850,25 +849,25 @@ HBITMAP osimage_hbitmap(const Image *image, COLORREF background)
 
 HBITMAP osimage_hbitmap_cache(const Image *image, COLORREF background, LONG *width, LONG *height)
 {
-    OSImage *osimage = (OSImage*)image_native(image);
+    const OSImage *osimage = osimage_from_image(image);
     cassert_no_null(osimage);
 
     if (osimage->hbitmap != NULL && osimage->hbitmap_background != background)
     {
         BOOL ret = DeleteObject(osimage->hbitmap);
         cassert_unref(ret != 0, ret);
-        osimage->hbitmap = NULL;
+        ((OSImage*)osimage)->hbitmap = NULL;
     }
 
     if (osimage->hbitmap == NULL)
     {
         BITMAP bm;
         HBITMAP hbitmap = osimage_hbitmap(image, background);
-        osimage->hbitmap = hbitmap;
+        ((OSImage*)osimage)->hbitmap = hbitmap;
         GetObject(hbitmap, sizeof(bm), &bm);
-        osimage->hbitmap_width = bm.bmWidth;
-        osimage->hbitmap_height = bm.bmHeight;
-        osimage->hbitmap_background = background;
+        ((OSImage*)osimage)->hbitmap_width = bm.bmWidth;
+        ((OSImage*)osimage)->hbitmap_height = bm.bmHeight;
+        ((OSImage*)osimage)->hbitmap_background = background;
     }
 
     *width = osimage->hbitmap_width;
@@ -954,12 +953,12 @@ HCURSOR osimage_hcursor(const Image *image, const uint32_t hot_x, const uint32_t
 {
     // HCURSOR direct from Gdiplus::Bitmap ;-)
     // http://csharphelper.com/blog/2017/01/convert-a-bitmap-into-a-cursor-in-c/
-    OSImage *osimage = (OSImage*)image_native(image);
+    Gdiplus::Bitmap *bitmap = (Gdiplus::Bitmap*)image_native(image);
     HICON icon = NULL;
     ICONINFO info;
     HCURSOR hcursor = NULL;
     BOOL ret = FALSE;
-    Gdiplus::Status st = osimage->bitmap->GetHICON(&icon);
+    Gdiplus::Status st = bitmap->GetHICON(&icon);
     cassert_unref(st == Gdiplus::Ok, st);
     GetIconInfo(icon, &info);
     info.xHotspot = (DWORD)hot_x;
@@ -979,12 +978,12 @@ HCURSOR osimage_hcursor(const Image *image, const uint32_t hot_x, const uint32_t
 
 void osimage_draw(const Image *image, HDC hdc, const uint32_t frame_index, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const BOOL gray)
 {
-    OSImage *osimage = (OSImage*)image_native(image);
+    Gdiplus::Bitmap *bitmap = (Gdiplus::Bitmap*)image_native(image);
     Gdiplus::Graphics graphics(hdc);
 
     if (frame_index != UINT32_MAX)
     {
-        Gdiplus::Status status = osimage->bitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)frame_index);
+        Gdiplus::Status status = bitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)frame_index);
         cassert_unref(status == Gdiplus::Ok, status);
     }
 
@@ -1051,10 +1050,10 @@ void osimage_draw(const Image *image, HDC hdc, const uint32_t frame_index, const
         Gdiplus::ImageAttributes attr;
         Gdiplus::RectF rect((Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);
         attr.SetColorMatrix(&matrix, Gdiplus::ColorMatrixFlagsDefault, Gdiplus::ColorAdjustTypeBitmap);
-        graphics.DrawImage(osimage->bitmap, rect, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, (Gdiplus::REAL)height, Gdiplus::UnitPixel, &attr);
+        graphics.DrawImage(bitmap, rect, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, (Gdiplus::REAL)height, Gdiplus::UnitPixel, &attr);
     }
     else
     {
-        graphics.DrawImage(osimage->bitmap, (Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);
+        graphics.DrawImage(bitmap, (Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);
     }
 }

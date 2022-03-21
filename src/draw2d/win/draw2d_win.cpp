@@ -1061,7 +1061,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     cassert_unref(raster == FALSE, raster);
-    bitmap = (Gdiplus::Bitmap*)osimage_bitmap(image);
+    bitmap = (Gdiplus::Bitmap*)osimage_native(image);
     i_set_gdiplus_mode(ctx);
 
     if (frame_index != UINT32_MAX)

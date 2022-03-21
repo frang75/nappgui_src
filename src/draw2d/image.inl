@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-void *image_native(const Image *image);
+const void *image_native(const Image *image);
 
 void osimage_alloc_globals(void);
 
@@ -30,6 +30,8 @@ OSImage *osimage_create_scaled(const OSImage *image, const uint32_t new_width, c
 
 OSImage *osimage_from_context(DCtx **ctx);
 
+const OSImage *osimage_from_image(const Image *image);
+
 void osimage_destroy(OSImage **image);
 
 void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixformat_t *format, Pixbuf **pixels);
@@ -42,8 +44,7 @@ void osimage_frames(const OSImage *image, uint32_t *num_frames, uint32_t *num_lo
 
 void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *frame_length);
 
+const void *osimage_native(const OSImage *image);
+
 __END_C
-
-
-
 

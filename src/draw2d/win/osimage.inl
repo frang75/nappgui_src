@@ -14,8 +14,6 @@
 
 __EXTERN_C 
 
-void *osimage_bitmap(const OSImage *osimage);
-
 HBITMAP osimage_hbitmap(const Image *image, COLORREF background);
 
 HBITMAP osimage_hbitmap_cache(const Image *image, COLORREF background, LONG *width, LONG *height);

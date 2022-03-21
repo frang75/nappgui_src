@@ -412,25 +412,30 @@ Cursor *osglobals_cursor(const cursor_t cursor, const Image *image, const real32
     case ekCARROW:
         gdkcursor = gdk_cursor_new_from_name(display, "default");
         break;
+
     case ekCHAND:
         gdkcursor = gdk_cursor_new_from_name(display, "grab");
         break;
+
     case ekCIBEAM:
         gdkcursor = gdk_cursor_new_from_name(display, "text");
         break;
+
     case ekCCROSS:
         gdkcursor = gdk_cursor_new_from_name(display, "crosshair");
         break;
+
     case ekCSIZEWE:
         gdkcursor = gdk_cursor_new_from_name(display, "ew-resize");
         break;
+        
     case ekCSIZENS:
         gdkcursor = gdk_cursor_new_from_name(display, "ns-resize");
         break;
+
     case ekCUSER:
     {
-        OSImage *osimage = (OSImage*)image_native(image);
-        const GdkPixbuf *pixbuf = osimage_pixbuf(osimage, UINT32_MAX);
+        const GdkPixbuf *pixbuf = image_native(image);
         gdkcursor = gdk_cursor_new_from_pixbuf(display, (GdkPixbuf*)pixbuf, (gint)hot_x, (gint)hot_y);
         break;
     }

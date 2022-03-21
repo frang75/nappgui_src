@@ -441,10 +441,12 @@ void _oscombo_elem(GtkComboBox *combo, const op_t op, const uint32_t index, cons
         arrpt_append(images, img, Image);
         break;
     }
+
     case ekOPDEL:
         arrpt_delete(texts, index, str_destroy, String);
         arrpt_delete(images, index, i_img_dest, Image);
         break;
+
     case ekOPINS:
     {
         String *str = str_c(text);
@@ -453,6 +455,7 @@ void _oscombo_elem(GtkComboBox *combo, const op_t op, const uint32_t index, cons
         arrpt_insert(images, index, img, Image);
         break;
     }
+
     case ekOPSET:
     {
         String **str = arrpt_all(texts, String) + index;
@@ -465,6 +468,7 @@ void _oscombo_elem(GtkComboBox *combo, const op_t op, const uint32_t index, cons
         }
         break;
     }
+
     cassert_default();
     }
 
@@ -478,7 +482,7 @@ void _oscombo_elem(GtkComboBox *combo, const op_t op, const uint32_t index, cons
         cassert(n == arrpt_size(images, Image));
         for (i = 0; i < n; ++i, ++strs, ++imgs)
         {
-            void *pixbuf = NULL;
+            const void *pixbuf = NULL;
             if (*imgs != NULL)
             {
                 uint32_t w = image_width(*imgs);

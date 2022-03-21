@@ -489,6 +489,13 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 
 /*---------------------------------------------------------------------------*/
 
+const void *osimage_native(const OSImage *image)
+{
+    return (const void*)image;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /*void osimage_set_frame(const OSImage *image, const uint32_t frame_index)
 {
     NSBitmapImageRep *irep = nil;

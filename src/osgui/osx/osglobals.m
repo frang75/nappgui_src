@@ -311,8 +311,8 @@ Cursor *osglobals_cursor(const cursor_t cursor, const Image *image, const real32
         break;
     case ekCUSER:
     {
-        OSImage *osimage = image_native(image);
-        nscursor = [[NSCursor alloc] initWithImage:(NSImage*)osimage hotSpot:NSMakePoint((CGFloat)hot_x, (CGFloat)hot_y)];
+        NSImage *nsimage = (NSImage*)image_native(image);
+        nscursor = [[NSCursor alloc] initWithImage:nsimage hotSpot:NSMakePoint((CGFloat)hot_x, (CGFloat)hot_y)];
         break;
     }
         

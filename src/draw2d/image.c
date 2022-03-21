@@ -614,14 +614,18 @@ real32_t image_frame_length(const Image *image, const uint32_t findex)
 
 /*---------------------------------------------------------------------------*/
 
-//func(image_native).Devuelve un puntero al objeto nativo que implementa la imagen.
-//fret(void*).El objeto nativo. Ser� <c>Gdiplus::Bitmap</c> en Windows, <c>NSImage</c> en macOS y <c>GdkPixbuf</c> en Linux/Gtk.
-//fpar(const Image*,image).La imagen.
-//fnote.Utiliza este puntero para crear c�digo especializado, dependiente de plataforma.
-void *image_native(const Image *image)
+const OSImage *osimage_from_image(const Image *image)
 {
     cassert_no_null(image);
     return image->osimage;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const void *image_native(const Image *image)
+{
+    cassert_no_null(image);
+    return osimage_native(image->osimage);
 }
 
 /*---------------------------------------------------------------------------*/
