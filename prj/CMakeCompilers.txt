@@ -281,6 +281,11 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(CMAKE_ARCHITECTURE "x64" CACHE STRING "Processor architecture")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS i386 x64)
         
+    elseif (${HOST_ARCH} STREQUAL "aarch64")
+        set(NAPPGUI_HOST aarch64)
+        set(CMAKE_ARCHITECTURE "aarch64" CACHE STRING "Processor architecture")
+        set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS aarch64)
+
     else()
         string(FIND ${HOST_ARCH} "armv7" ARM_RES)
         if (${ARM_RES} EQUAL -1)
@@ -303,13 +308,19 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(NAPPGUI_ARCH x64)
         set(IDE_PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
         
+    elseif (CMAKE_ARCHITECTURE MATCHES "aarch64")
+        set(NAPPGUI_ARCH aarch64)
+        set(IDE_PROPERTIES COMPILE_FLAGS " " LINK_FLAGS " ")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-long-long")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long")
+
     elseif (CMAKE_ARCHITECTURE MATCHES "armv7")
         set(NAPPGUI_RASPBIAN 1)
         set(NAPPGUI_ARCH armv7)
         set(IDE_PROPERTIES COMPILE_FLAGS "-march=armv7-a")
       
     else()
-        message(FATAL_ERROR "Unknown processor architecture ${CMAKE_ARCHITECTURE}")
+        message(FATAL_ERROR "Unknown processor architecture '${CMAKE_ARCHITECTURE}'")
         
     endif()
 
