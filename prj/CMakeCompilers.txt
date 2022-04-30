@@ -39,7 +39,7 @@ if (WIN32)
     elseif (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
     	set(NAPPGUI_ARCH "x64")
     else ()
-        message (FATAL_ERROR "Unknown processor architecture")
+        message (FATAL_ERROR "Unknown processor architecture '${NAPPGUI_ARCH}' for pointer size '${CMAKE_SIZEOF_VOID_P}'")
     endif()
 
     if (MSVC)
@@ -266,7 +266,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             
     # Warnings
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic -std=c99 -fPIE")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++98 -fPIE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -fPIE")
     
     # Host architecture
     set(HOST_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
@@ -279,8 +279,13 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     elseif (${HOST_ARCH} STREQUAL "x86_64")
         set(NAPPGUI_HOST x64)
         set(CMAKE_ARCHITECTURE "x64" CACHE STRING "Processor architecture")
-        set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS i386 x64)
+        set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS x64)
         
+    elseif (${HOST_ARCH} STREQUAL "aarch64")
+        set(NAPPGUI_HOST aarch64)
+        set(CMAKE_ARCHITECTURE "aarch64" CACHE STRING "Processor architecture")
+        set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS aarch64)
+
     else()
         string(FIND ${HOST_ARCH} "armv7" ARM_RES)
         if (${ARM_RES} EQUAL -1)
@@ -298,18 +303,24 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(IDE_PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-long-long")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long")
-
+      
     elseif (CMAKE_ARCHITECTURE MATCHES "x64")
         set(NAPPGUI_ARCH x64)
         set(IDE_PROPERTIES COMPILE_FLAGS "-m64" LINK_FLAGS "-m64")
         
+    elseif (CMAKE_ARCHITECTURE MATCHES "aarch64")
+        set(NAPPGUI_ARCH aarch64)
+        set(IDE_PROPERTIES COMPILE_FLAGS " " LINK_FLAGS " ")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-long-long")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long")
+
     elseif (CMAKE_ARCHITECTURE MATCHES "armv7")
         set(NAPPGUI_RASPBIAN 1)
         set(NAPPGUI_ARCH armv7)
         set(IDE_PROPERTIES COMPILE_FLAGS "-march=armv7-a")
       
     else()
-        message(FATAL_ERROR "Unknown processor architecture ${CMAKE_ARCHITECTURE}")
+        message(FATAL_ERROR "Unknown processor architecture '${CMAKE_ARCHITECTURE}'")
         
     endif()
 

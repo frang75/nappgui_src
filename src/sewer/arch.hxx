@@ -76,7 +76,7 @@
     #elif defined (__arm__)
         #define __ARM__
     #elif defined (__aarch64__)
-        #error ARM64 is not supported by Linux systems
+        #define __ARM64__
     #else
         #error Unknown processor
     #endif
