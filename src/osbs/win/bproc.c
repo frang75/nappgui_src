@@ -245,12 +245,11 @@ bool_t bproc_finish(Proc *proc, uint32_t *code)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t bproc_read(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsize, perror_t *error)
+static bool_t i_read_pipe(HANDLE pipe, byte_t *data, const uint32_t size, uint32_t *rsize, perror_t *error)
 {
     DWORD lrsize; 
     BOOL ok;
-    cassert_no_null(proc);
-    ok = ReadFile(proc->pipes[STDOUT_READ_PARENT], (LPVOID)data, (DWORD)size, &lrsize, NULL);
+    ok = ReadFile(pipe, (LPVOID)data, (DWORD)size, &lrsize, NULL);
     if (ok == TRUE)
     {
         if (lrsize > 0)
@@ -285,21 +284,16 @@ bool_t bproc_read(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsize
 
 /*---------------------------------------------------------------------------*/
 
+bool_t bproc_read(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsize, perror_t *error)
+{
+    return i_read_pipe(proc->pipes[STDOUT_READ_PARENT], data, size, rsize, error);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t bproc_eread(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsize, perror_t *error)
 {
-    DWORD lrsize; 
-    BOOL ok;
-    cassert_no_null(proc);
-    ok = ReadFile(proc->pipes[STDERR_READ_PARENT], (LPVOID)data, (DWORD)size, &lrsize, NULL);
-    ptr_assign(rsize, (uint32_t)lrsize);
-    if (error != NULL)
-    {
-        if (ok == TRUE)
-            *error = ekPOK;
-        else
-            *error = ekPPIPE;            
-    }
-    return (bool_t)ok;
+    return i_read_pipe(proc->pipes[STDERR_READ_PARENT], data, size, rsize, error);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -327,16 +321,28 @@ bool_t bproc_write(Proc *proc, const byte_t *data, const uint32_t size, uint32_t
 
 bool_t bproc_read_close(Proc *proc)
 {
-    unref(proc);
-    return TRUE;
+    cassert_no_null(proc);
+    if (proc->pipes[STDOUT_READ_PARENT] != NULL)
+    {
+        CloseHandle(proc->pipes[STDOUT_READ_PARENT]);
+        proc->pipes[STDOUT_READ_PARENT] = NULL;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t bproc_eread_close(Proc *proc)
 {
-    unref(proc);
-    return TRUE;
+    cassert_no_null(proc);
+    if (proc->pipes[STDERR_READ_PARENT] != NULL)
+    {
+        CloseHandle(proc->pipes[STDERR_READ_PARENT]);
+        proc->pipes[STDERR_READ_PARENT] = NULL;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -183,7 +183,7 @@ static __INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
-#if (GDK_PIXBUF_MAJOR < 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR < 4))
+#if (GDK_PIXBUF_MAJOR < 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR < 28))
 #include "bfile.h"
 #include "hfile.h"
 #endif

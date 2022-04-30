@@ -36,7 +36,7 @@ struct _oslabel_t
     String *text;
     Font *font;
     color_t _color;
-    color_t _bgcolor;
+    GtkCssProvider *bgcolor;
     gint enter_signal;
     gint exit_signal;
     gint click_signal;
@@ -143,21 +143,39 @@ static void i_set_text(OSLabel *label)
         str_cat(&format, "\"");
     }
 
-    if (label->_bgcolor != 0)
-    {
-        char_t html[16];
-        color_to_html(label->_bgcolor, html, sizeof(html));
-        str_cat(&format, " background=\"");
-        str_cat(&format, html);
-        str_cat(&format, "\"");
-    }
-
     str_cat(&format, ">");
     str_cat(&format, tc(label->text));
     str_cat(&format, "</span>");
 
     gtk_label_set_markup(GTK_LABEL(label->label), tc(format));
     str_destroy(&format);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_bg_color(OSLabel *label, const color_t color)
+{
+    cassert_no_null(label);
+
+#if GTK_CHECK_VERSION(3, 22, 0)
+    if (label->bgcolor != NULL)
+    {
+        _oscontrol_remove_provider(label->label, label->bgcolor);
+        label->bgcolor = NULL;
+    }
+
+    if (color != kCOLOR_TRANSPARENT)
+        _oscontrol_widget_bg_color(label->label, "label", color, &label->bgcolor);
+
+#else
+    {
+        GdkRGBA gdkcolor;
+        _oscontrol_to_gdkrgba(color, &gdkcolor);
+        gtk_widget_override_background_color(label->control.widget, GTK_STATE_FLAG_NORMAL, &gdkcolor);
+        gtk_widget_override_background_color(label->label, GTK_STATE_FLAG_NORMAL, &gdkcolor);
+    }
+
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -171,12 +189,12 @@ OSLabel *oslabel_create(const label_flag_t flags)
     label->text = str_c("");
     label->font = _osgui_create_default_font();
     label->_color = kCOLOR_DEFAULT;
-    label->_bgcolor = kCOLOR_DEFAULT;
     gtk_label_set_use_markup(GTK_LABEL(label->label), TRUE);
     gtk_widget_show(label->label);
     gtk_container_add(GTK_CONTAINER(widget), label->label);
     gtk_label_set_line_wrap(GTK_LABEL(label->label), label_type(flags) == ekLBMULT ? TRUE : FALSE);
     i_set_text(label);
+    i_set_bg_color(label, kCOLOR_TRANSPARENT);
 	return label;
 }
 
@@ -186,6 +204,14 @@ void oslabel_destroy(OSLabel **label)
 {
     cassert_no_null(label);
     cassert_no_null(*label);
+
+    if ((*label)->bgcolor != NULL)
+    {
+        // Not g_object_unref
+        // g_object_unref((*label)->bgcolor);
+        (*label)->bgcolor = NULL;
+    }
+    
     listener_destroy(&(*label)->OnClick);
     listener_destroy(&(*label)->OnMouseEnter);
     listener_destroy(&(*label)->OnMouseExit);
@@ -274,8 +300,13 @@ void oslabel_align(OSLabel *label, const align_t align)
     gfloat xalign = 0;
     cassert_no_null(label);
     gtk_label_set_justify(GTK_LABEL(label->label), i_align(align, &xalign));
+
 #if GTK_CHECK_VERSION(3, 16, 0)
     gtk_label_set_xalign(GTK_LABEL(label->label), xalign);
+
+#else
+    gtk_misc_set_alignment(GTK_MISC(label->label), xalign, 0);
+
 #endif
 }
 
@@ -324,12 +355,7 @@ void oslabel_color(OSLabel *label, const color_t color)
 
 void oslabel_bgcolor(OSLabel *label, const color_t color)
 {
-    cassert_no_null(label);
-    if (label->_bgcolor != color)
-    {
-        label->_bgcolor = color;
-        i_set_text(label);
-    }
+    i_set_bg_color(label, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -412,6 +438,12 @@ void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame((OSControl*)label, x, y, width, height);
+
+#if GTK_CHECK_VERSION(3, 10, 0)
+    // Internal label doesn't need resize
+#else
+    gtk_widget_set_size_request(label->label, (gint)width, (gint)height);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

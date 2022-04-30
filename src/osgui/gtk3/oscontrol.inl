@@ -22,31 +22,23 @@ void _oscontrol_set_focus(OSControl *control);
 
 void _oscontrol_unset_focus(OSControl *control);
 
-char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize);
-
-void _oscontrol_set_text(OSControl *control, const char_t *text);
-
 void _oscontrol_remove_provider(GtkWidget *widget, GtkCssProvider *css_prov);
 
 color_t _oscontrol_from_gdkrgba(const GdkRGBA *gdkcolor);
 
 void _oscontrol_to_gdkrgba(const color_t color, GdkRGBA *gdkcolor);
 
+void _oscontrol_to_css_rgb(const color_t color, char_t *css, const uint32_t size);
+
 void _oscontrol_widget_color(GtkWidget *widget, const char_t *css_type, const color_t color, GtkCssProvider **css_provider);
 
-void _oscontrol_widget_get_color(GtkWidget *widget, color_t *color);
-
 void _oscontrol_widget_bg_color(GtkWidget *widget, const char_t *css_type, const color_t color, GtkCssProvider **css_provider);
-
-void _oscontrol_widget_border(GtkWidget *widget, const char_t *css_type, const color_t color, GtkCssProvider **css_provider);
 
 uint32_t _oscontrol_widget_font_size(GtkWidget *widget);
 
 void _oscontrol_widget_font(GtkWidget *widget, const char_t *css_type, const Font *font, GtkCssProvider **css_prov);
 
 void _oscontrol_set_font(OSControl *control, const Font *font, GtkCssProvider **css_prov);
-
-void _oscontrol_update_font(OSControl *control, Font **current_font, const Font *font);
 
 void _oscontrol_set_halign(OSControl *control, const align_t align);
 
@@ -63,6 +55,8 @@ void _oscontrol_set_enabled(OSControl *control, const bool_t is_enabled);
 void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y);
 
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height);
+
+void _oscontrol_widget_size(GtkWidget *widget, real32_t *width, real32_t *height);
 
 void _oscontrol_set_position(OSControl *control, const int x, const int y);
 

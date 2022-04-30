@@ -165,31 +165,6 @@ void dctx_size(const DCtx *ctx, uint32_t *width, uint32_t *height)
     cassert_no_null(ctx);
     ptr_assign(width, ctx->width);
     ptr_assign(height, ctx->height);
-
-//    if (ctx->widget != NULL)
-//    {
-//        GtkAllocation alloc;
-//
-//#if GTK_CHECK_VERSION(3, 20, 0)
-//        gtk_widget_get_allocated_size(ctx->widget, &alloc, NULL);
-//#else
-//        gtk_widget_get_allocation(ctx->widget, &alloc);
-//#endif
-//        if (width != NULL)
-//            *width = (real32_t)alloc.width;
-//
-//        if (height != NULL)
-//            *height = (real32_t)alloc.height;
-//    }
-//    else
-//    {
-//        cassert(ctx->surface != NULL);
-//        if (width != NULL)
-//            *width = (real32_t)cairo_image_surface_get_width(ctx->surface);
-//
-//        if (height != NULL)
-//            *height = (real32_t)cairo_image_surface_get_height(ctx->surface);
-//    }
 }
 
 /*---------------------------------------------------------------------------*/

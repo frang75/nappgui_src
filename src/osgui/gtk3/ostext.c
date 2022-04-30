@@ -232,7 +232,7 @@ void ostext_insert_text(OSText *view, const char_t *text)
         if (view->style & ekFITALIC)
         {
             GValue gvalue = G_VALUE_INIT;
-            g_value_init(&gvalue, G_TYPE_ENUM);
+            g_value_init(&gvalue, PANGO_TYPE_STYLE);
             g_value_set_enum(&gvalue, PANGO_STYLE_ITALIC);
             g_object_set_property(G_OBJECT(tag), "style-set", &gtrue);
             g_object_set_property(G_OBJECT(tag), "style", &gvalue);
@@ -242,7 +242,7 @@ void ostext_insert_text(OSText *view, const char_t *text)
         if (view->style & ekFUNDERLINE)
         {
             GValue gvalue = G_VALUE_INIT;
-            g_value_init(&gvalue, G_TYPE_ENUM);
+            g_value_init(&gvalue, PANGO_TYPE_UNDERLINE);
             g_value_set_enum(&gvalue, PANGO_UNDERLINE_SINGLE);
             g_object_set_property(G_OBJECT(tag), "underline-set", &gtrue);
             g_object_set_property(G_OBJECT(tag), "underline", &gvalue);
@@ -303,7 +303,7 @@ void ostext_insert_text(OSText *view, const char_t *text)
             cassert_default();
             }
 
-            g_value_init(&gvalue, G_TYPE_ENUM);
+            g_value_init(&gvalue, GTK_TYPE_JUSTIFICATION);
             g_value_set_enum(&gvalue, justif);
             g_object_set_property(G_OBJECT(tag), "justification-set", &gtrue);
             g_object_set_property(G_OBJECT(tag), "justification", &gvalue);

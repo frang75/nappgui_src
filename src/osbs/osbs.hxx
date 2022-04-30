@@ -102,7 +102,7 @@ typedef enum _file_seek_t
 {
     ekSEEKSET = 1,
     ekSEEKCUR,
-    ekSEEKEND,
+    ekSEEKEND
 } file_seek_t;
 
 typedef enum _ferror_t

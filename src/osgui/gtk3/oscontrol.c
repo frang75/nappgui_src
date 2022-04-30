@@ -13,11 +13,13 @@
 #include "oscontrol.inl"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
+#include "bstd.h"
 #include "cassert.h"
 #include "color.h"
 #include "font.h"
 #include "font.inl"
 #include "ptr.h"
+#include "stream.h"
 #include "strings.h"
 #include "osedit.inl"
 #include "oscombo.inl"
@@ -167,25 +169,6 @@ void _oscontrol_unset_focus(OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
-{
-	unref(control);
-	unref(tsize);
-	cassert(FALSE);
-	return NULL;
-}
-
-//*---------------------------------------------------------------------------*/
-
-void _oscontrol_set_text(OSControl *control, const char_t *text)
-{
-	unref(control);
-	unref(text);
-	cassert(FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _oscontrol_remove_provider(GtkWidget *widget, GtkCssProvider *css_prov)
 {
     GtkStyleContext *c = gtk_widget_get_style_context(widget);
@@ -208,12 +191,31 @@ color_t _oscontrol_from_gdkrgba(const GdkRGBA *gdkcolor)
 
 void _oscontrol_to_gdkrgba(const color_t color, GdkRGBA *gdkcolor)
 {
-    real32_t r, g, b, a;
-    color_get_rgbaf(color, &r, &g, &b, &a);
-    gdkcolor->red = (double)r;
-    gdkcolor->green = (double)g;
-    gdkcolor->blue = (double)b;
-    gdkcolor->alpha = (double)a;
+    if (color != kCOLOR_TRANSPARENT)
+    {
+        real32_t r, g, b, a;
+        color_get_rgbaf(color, &r, &g, &b, &a);
+        gdkcolor->red = (double)r;
+        gdkcolor->green = (double)g;
+        gdkcolor->blue = (double)b;
+        gdkcolor->alpha = (double)a;
+    }
+    else
+    {
+        gdkcolor->red = 0;
+        gdkcolor->green = 0;
+        gdkcolor->blue = 0;
+        gdkcolor->alpha = 0;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscontrol_to_css_rgb(const color_t color, char_t *css, const uint32_t size)
+{
+    uint8_t r, g, b;
+    color_get_rgb(color, &r, &g, &b);
+    bstd_sprintf(css, size, "rgb(%d,%d,%d)", r, g, b);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -230,25 +232,6 @@ void _oscontrol_widget_color(GtkWidget *widget, const char_t *css_type, const co
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE color_t i_color(const GdkRGBA *color)
-{
-    cassert_no_null(color);
-    return color_rgba((uint8_t)(color->red * 255.), (uint8_t)(color->green * 255.), (uint8_t)(color->blue * 255.), (uint8_t)(color->alpha * 255.));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_widget_get_color(GtkWidget *widget, color_t *color)
-{
-    GdkRGBA gcolor;
-    GtkStyleContext *c = gtk_widget_get_style_context(widget);
-    cassert_no_null(color);
-    gtk_style_context_get_color(c, GTK_STATE_FLAG_NORMAL, &gcolor);
-    *color = i_color(&gcolor);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _oscontrol_widget_bg_color(GtkWidget *widget, const char_t *css_type, const color_t color, GtkCssProvider **css_provider)
 {
     char_t html[16];
@@ -257,34 +240,6 @@ void _oscontrol_widget_bg_color(GtkWidget *widget, const char_t *css_type, const
     css = str_printf("%s {background-color:%s;background-image:none;}", css_type, html);
     _oscontrol_set_css_prov(widget, tc(css), css_provider);
     str_destroy(&css);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_widget_border(GtkWidget *widget, const char_t *css_type, const color_t color, GtkCssProvider **css_provider)
-{
-    char_t html[16];
-    String *css;
-    color_to_html(color, html, sizeof(html));
-    css = str_printf("%s {border-width:1px; border-style:solid; border-color:%s;}", css_type, html);
-    _oscontrol_set_css_prov(widget, tc(css), css_provider);
-    str_destroy(&css);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static uint32_t i_font_px(const real32_t fsize, const uint32_t fstyle)
-{
-    if ((fstyle & ekFPOINTS) == ekFPOINTS)
-    {
-        PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap*)fontmap);
-        return (uint32_t)(fsize / (dpi / 72.f));
-    }
-    else
-    {
-        return (uint32_t)fsize;
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -305,42 +260,70 @@ uint32_t _oscontrol_widget_font_size(GtkWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
+static real32_t i_font_pt(const real32_t fsize, const uint32_t fstyle)
+{
+    if ((fstyle & ekFPOINTS) == ekFPOINTS)
+    {
+        return fsize;
+    }
+    else
+    {
+        PangoFontMap *fontmap = pango_cairo_font_map_get_default();
+        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap*)fontmap);
+        return fsize / (dpi / 72.f);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _oscontrol_widget_font(GtkWidget *widget, const char_t *css_type, const Font *font, GtkCssProvider **css_prov)
 {
     PangoFontDescription *fdesc = (PangoFontDescription*)font_native(font);
     const char *family = pango_font_description_get_family(fdesc);
     uint32_t fstyle = font_style(font);
-    uint32_t pxsize = i_font_px(font_size(font), fstyle);
-    const char *italic = (fstyle & ekFITALIC) ? "italic" : "";
-    const char *bold = (fstyle & ekFBOLD) ? "bold" : "";
-    const char *decor = NULL;
+    real32_t ptsize = i_font_pt(font_size(font), fstyle);
+    const char *italic = (fstyle & ekFITALIC) ? "italic" : "normal";
+    const char *bold = (fstyle & ekFBOLD) ? "bold" : "normal";
+    Stream *stm = stm_memory(256);
     String *css = NULL;
 
-#if GTK_CHECK_VERSION(3, 6, 0)
+    stm_printf(stm, "%s { ", css_type);
+    stm_printf(stm, "font-family: \"%s\"; ", family);
+
+#if GTK_CHECK_VERSION(3, 22, 0)
+    stm_printf(stm, "font-size: %.2fpt; ", ptsize);
+#elif GTK_CHECK_VERSION(3, 10, 0)
+    stm_printf(stm, "font-size: %.2fpx; ", ptsize);
+#else
+    stm_printf(stm, "font-size: %.2f; ", ptsize);
+#endif
+
+    stm_printf(stm, "font-style: %s; ", italic);
+    stm_printf(stm, "font-weight: %s; ", bold);
+
+#if GTK_CHECK_VERSION(3, 22, 0)
     if (fstyle & ekFUNDERLINE)
     {
         if (fstyle & ekFSTRIKEOUT)
-            decor = "underline | line-through";
+            stm_printf(stm, "text-decoration-line: underline | line-through; ");
         else
-            decor = "underline";
+            stm_printf(stm, "text-decoration-line: underline; ");
     }
     else if (fstyle & ekFSTRIKEOUT)
     {
-        decor = "line-through";
+        stm_printf(stm, "text-decoration-line: line-through; ");
     }
     else
     {
-        decor = "none";
+        stm_printf(stm, "text-decoration-line: none; ");
     }
 #endif
 
-    if (decor != NULL)
-        css = str_printf("%s {font:%s %s %dpx \"%s\"; text-decoration-line:%s;}", css_type, italic, bold, pxsize, family, decor);
-    else
-        css = str_printf("%s {font:%s %s %dpx \"%s\";}", css_type, italic, bold, pxsize, family);
-
+    stm_printf(stm, "}");
+    css = stm_str(stm);
     _oscontrol_set_css_prov(widget, tc(css), css_prov);
     str_destroy(&css);
+    stm_close(&stm);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -380,20 +363,6 @@ void _oscontrol_set_font(OSControl *control, const Font *font, GtkCssProvider **
     cassert_no_null(control);
     css_type = i_css_sel(control->type);
     _oscontrol_widget_font(control->widget, css_type, font, css_prov);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_update_font(OSControl *control, Font **current_font, const Font *font)
-{
-    cassert_no_null(control);
-    cassert_no_null(current_font);
-    if (font_equals(*current_font, font) == FALSE)
-    {
-        font_destroy(current_font);
-        *current_font = font_copy(font);
-        _oscontrol_set_font(control, font, NULL);
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -518,15 +487,23 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
 
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height)
 {
-    GtkAllocation alloc;
     cassert_no_null(control);
+    _oscontrol_widget_size(control->widget, width, height);
+}
+
+//*---------------------------------------------------------------------------*/
+
+void _oscontrol_widget_size(GtkWidget *widget, real32_t *width, real32_t *height)
+{
+    GtkAllocation alloc;
+    cassert_no_null(widget);
     cassert_no_null(width);
     cassert_no_null(height);
 
 #if GTK_CHECK_VERSION(3, 20, 0)
-    gtk_widget_get_allocated_size(control->widget, &alloc, NULL);
+    gtk_widget_get_allocated_size(widget, &alloc, NULL);
 #else
-    gtk_widget_get_allocation(control->widget, &alloc);
+    gtk_widget_get_allocation(widget, &alloc);
 #endif
 
     *width = (real32_t)alloc.width;

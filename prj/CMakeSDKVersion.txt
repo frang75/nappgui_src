@@ -4,7 +4,7 @@
 
 set(NAPPGUI_MAJOR 1)
 set(NAPPGUI_MINOR 2)
-set(NAPPGUI_REVISION 1)
+set(NAPPGUI_REVISION 2)
 
 # Build version
 #------------------------------------------------------------------------------

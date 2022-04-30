@@ -15,6 +15,7 @@
 #include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol.inl"
+#include "osglobals.inl"
 #include "ospanel.inl"
 #include "cassert.h"
 #include "heap.h"
@@ -84,7 +85,7 @@ real32_t osprogress_thickness(const OSProgress *progress, const fsize_t size)
 {
     cassert_no_null(progress);
     cassert_unref(size == ekREGULAR, size);
-    return 10.f;
+    return (real32_t)osglobals_progress_height();
 }
 
 /*---------------------------------------------------------------------------*/

@@ -117,7 +117,6 @@ OSButton *osbutton_create(const button_flag_t flags)
     case ekBTPUSH:
         widget = gtk_button_new();
         focus_widget = widget;
-        //_oscontrol_set_css(widget, "button {padding-left:4px;padding-right:4px;padding-top:3px;padding-bottom:3px;min-height:10px;}");
         break;
 
     case ekBTFLAT:
@@ -238,8 +237,6 @@ void osbutton_image(OSButton *button, const Image *image)
     {
         const char_t *icon_name = _osgui_register_icon(image);
         gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(button->control.widget), icon_name);
-        //GtkWidget *icon = gtk_image_new_from_pixbuf((GdkPixbuf*)image_native(image));
-        //gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(button->control.widget), icon);
         break;
     }
 

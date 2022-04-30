@@ -188,6 +188,42 @@ static __INLINE GtkWidget* i_focus_widget(const OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
+static __INLINE void i_set_focus(const OSControl *control)
+{
+    cassert_no_null(control);
+    switch (control->type) {
+    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_COMPONENT_TEXTVIEW:
+    case ekGUI_COMPONENT_UPDOWN:
+    case ekGUI_COMPONENT_CUSTOMVIEW:
+        break;
+
+    case ekGUI_COMPONENT_EDITBOX:
+        _osedit_set_focus((OSEdit*)control);
+        break;
+
+    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_COMPONENT_POPUP:
+    case ekGUI_COMPONENT_COMBOBOX:
+        break;
+
+    case ekGUI_COMPONENT_TABLEVIEW:
+    case ekGUI_COMPONENT_TREEVIEW:
+    case ekGUI_COMPONENT_BOXVIEW:
+    case ekGUI_COMPONENT_SPLITVIEW:
+    case ekGUI_COMPONENT_PANEL:
+    case ekGUI_COMPONENT_LINE:
+    case ekGUI_COMPONENT_HEADER:
+    case ekGUI_COMPONENT_WINDOW:
+    case ekGUI_COMPONENT_TOOLBAR:
+    cassert_default();
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static __INLINE uint32_t i_search_tabstop(const OSControl **tabstop, const uint32_t size, GtkWidget *widget)
 {
     register uint32_t i;
@@ -211,6 +247,8 @@ static void i_set_tabstop(GtkWindow *window, const OSControl **tabstop, const ui
     {
         register const OSControl *control = tabstop[idx];
         register GtkWidget *widget = i_focus_widget(control);
+        i_set_focus(control);
+
         if (widget && gtk_widget_is_sensitive(widget) && gtk_widget_get_visible(widget))
         {
             if (control->type == ekGUI_COMPONENT_EDITBOX && _osedit_autoselect((OSEdit*)control) == FALSE)
@@ -221,6 +259,7 @@ static void i_set_tabstop(GtkWindow *window, const OSControl **tabstop, const ui
                     gtk_entry_grab_focus_without_selecting(GTK_ENTRY(widget));
                 #else
                     gtk_widget_grab_focus(widget);
+                    gtk_editable_select_region(GTK_EDITABLE(widget), -1, -1);
                 #endif
                 }
                 else

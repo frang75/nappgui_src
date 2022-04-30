@@ -269,9 +269,9 @@ const char_t *_osgui_register_icon(const Image *image)
 static void i_cursors(GtkWidget *widget)
 {
     GdkDisplay *display = gtk_widget_get_display(widget);
-    kNS_RESIZE_CURSOR = gdk_cursor_new_from_name(display, "ns-resize");
-    kEW_RESIZE_CURSOR = gdk_cursor_new_from_name(display, "ew-resize");
-    kDEFAULT_CURSOR = gdk_cursor_new_from_name(display, "default");
+    kNS_RESIZE_CURSOR = gdk_cursor_new_for_display(display, GDK_SB_V_DOUBLE_ARROW);
+    kEW_RESIZE_CURSOR = gdk_cursor_new_for_display(display, GDK_SB_H_DOUBLE_ARROW);
+    kDEFAULT_CURSOR = gdk_cursor_new_for_display(display, GDK_ARROW);
 }
 
 /*---------------------------------------------------------------------------*/

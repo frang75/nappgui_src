@@ -21,6 +21,16 @@
 #include "stream.h"
 #include "strings.h"
 
+typedef struct _proc_std_t ProcStd;
+
+struct _proc_std_t
+{
+    Proc *proc;
+    Stream *stm;
+};
+
+#define READ_BUFFER_SIZE    1024
+
 /*---------------------------------------------------------------------------*/
 
 static __INLINE bool_t i_localhost(const Login *login)
@@ -31,7 +41,22 @@ static __INLINE bool_t i_localhost(const Login *login)
 }
 
 /*---------------------------------------------------------------------------*/
+
+static uint32_t i_std_err(ProcStd *data)
+{
+    byte_t buffer[READ_BUFFER_SIZE + 1];
+    uint32_t rsize;
+    cassert_no_null(data);
+
+    while (bproc_eread(data->proc, buffer, READ_BUFFER_SIZE, &rsize, NULL) == TRUE)
+        stm_write(data->stm, buffer, rsize);
+    
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
 //#include"log.h"
+#include"bstd.h"
 static Stream *i_ssh_command(const Login *login, const char_t *cmd, const char_t *ssh_opts, const bool_t capture_stderr, uint32_t *return_value)
 {
     String *ssh = NULL;
@@ -56,21 +81,45 @@ static Stream *i_ssh_command(const Login *login, const char_t *cmd, const char_t
     proc = bproc_exec(tc(ssh), NULL);
     if (proc != NULL)
     {
-        byte_t buffer[512];
+        ProcStd proc_err = {NULL, NULL};
+        Thread *thread_err = NULL;
+        byte_t buffer[READ_BUFFER_SIZE + 1];
         uint32_t rsize, ret;
-        stm = stm_memory(1024);
-        while (bproc_read(proc, buffer, 512, &rsize, NULL) == TRUE)
-            stm_write(stm, buffer, rsize);
+
+        stm = stm_memory(READ_BUFFER_SIZE);
 
         if (capture_stderr == TRUE)
         {
-            stm_writef(stm, "\nstderr:\n");
-            while (bproc_eread(proc, buffer, 512, &rsize, NULL) == TRUE)
-                stm_write(stm, buffer, rsize);
+            proc_err.proc = proc;
+            proc_err.stm = stm_memory(READ_BUFFER_SIZE);
+            thread_err = bthread_create(i_std_err, &proc_err, ProcStd);
+        }
+        else
+        {
+            bproc_eread_close(proc);
+        }
+
+        while(bproc_read(proc, buffer, READ_BUFFER_SIZE, &rsize, NULL) == TRUE)
+        {
+            //buffer[rsize] = '\0';
+            //bstd_printf("stdout %d: %s", rsize, buffer);
+            stm_write(stm, buffer, rsize);
         }
 
         ret = bproc_wait(proc);
+
+        if (thread_err != NULL)
+            bthread_wait(thread_err);
+
         bproc_close(&proc);
+
+        if (proc_err.stm != NULL)
+        {
+            stm_writef(stm, "\nstderr:\n");
+            stm_pipe(proc_err.stm, stm, stm_buffer_size(proc_err.stm));
+            stm_close(&proc_err.stm);
+        }
+
         ptr_assign(return_value, ret);
         // ssh 0 success
         //if (ret != 0)
@@ -115,10 +164,10 @@ bool_t ssh_ping(const char_t *ip)
     {
         Stream *stm = NULL;
         String *str = NULL;
-        byte_t buffer[512];
+        byte_t buffer[READ_BUFFER_SIZE];
         uint32_t rsize;
-        stm = stm_memory(512);
-        while (bproc_read(proc, buffer, 512, &rsize, NULL) == TRUE)
+        stm = stm_memory(READ_BUFFER_SIZE);
+        while (bproc_read(proc, buffer, READ_BUFFER_SIZE, &rsize, NULL) == TRUE)
             stm_write(stm, buffer, rsize);
         bproc_close(&proc);
 

@@ -22,8 +22,6 @@ void osglobals_register_entry(GtkBorder *padding);
 
 bool_t osglobals_impostor_mapped(void);
 
-GtkWidget *osglobals_entry(void);
-
 GtkStyleContext *osglobals_entry_context(void);
 
 GtkStyleContext *osglobals_button_context(void);
@@ -49,6 +47,10 @@ color_t osglobals_border_color(void);
 uint32_t osglobals_check_width(void);
 
 uint32_t osglobals_check_height(void);
+
+uint32_t osglobals_entry_height(void);
+
+uint32_t osglobals_progress_height(void);
 
 GdkPixbuf* osglobals_checks_bitmap(void);
 

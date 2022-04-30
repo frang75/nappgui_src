@@ -220,7 +220,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSView *vi
     {
         gboolean can_focus = FALSE;
 
-        cassert(widget == view->control.widget);
+        //cassert(widget == view->control.widget);
         g_object_get(G_OBJECT(widget), "can-focus", &can_focus, NULL);
         if (can_focus == TRUE)
             gtk_widget_grab_focus(widget);
@@ -289,8 +289,10 @@ OSView *osview_create(const uint32_t flags)
     #if GTK_CHECK_VERSION(3, 16, 0)
         widget = gtk_gl_area_new();
         g_signal_connect(widget, "render", G_CALLBACK(i_OnRender), (gpointer)view);
+
     #else
         cassert(FALSE);
+
     #endif
     }
 
@@ -300,48 +302,59 @@ OSView *osview_create(const uint32_t flags)
 
     if (flags & ekHSCROLL || flags & ekVSCROLL)
     {
-        GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
-        GtkWidget *scrolled = NULL;
-
-    #if GTK_CHECK_VERSION(3, 8, 0)
-        scrolled = scroll;
-    #else
-        scrolled = gtk_event_box_new();
-        gtk_container_add(GTK_CONTAINER(scrolled), scroll);
-        gtk_widget_show(scroll);
-    #endif
+        GtkWidget *scrolled = gtk_scrolled_window_new(NULL, NULL);
+        GtkWidget *top = NULL;
 
         view->area = widget;
         gtk_widget_show(view->area);
-        _oscontrol_init(&view->control, ekGUI_COMPONENT_CUSTOMVIEW, scrolled, scrolled, FALSE);
-        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
     #if GTK_CHECK_VERSION(3, 8, 0)
-        gtk_container_add(GTK_CONTAINER(scroll), view->area);
+        gtk_container_add(GTK_CONTAINER(scrolled), view->area);
     #else
-        gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scroll), view->area);
+        gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled), view->area);
     #endif
 
-        view->hadjust = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scroll));
-        view->vadjust = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+        view->hadjust = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(scrolled));
+        view->vadjust = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scrolled));
 
-        {
-            GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(scroll));
-            GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(scroll));
-            g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
-            g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
-            g_signal_connect(G_OBJECT(scrolled), "button-press-event", G_CALLBACK(i_OnPressed), view);
-        }
+        // Scrolled Window inside an EventBox
+    #if GTK_CHECK_VERSION(3, 18, 0)
+        top = scrolled;
+
+    #else
+        top = gtk_event_box_new();
+        gtk_container_add(GTK_CONTAINER(top), scrolled);
+        gtk_widget_show(scrolled);
+
+    #endif
 
         if (flags & ekBORDER)
-            _oscontrol_widget_border(scroll, "scrolledwindow", osglobals_border_color(), NULL);
+        {
+            GtkWidget *frame = gtk_frame_new(NULL);
+            gtk_container_add(GTK_CONTAINER(frame), top);
+            gtk_widget_show(top);
+            top = frame;
+        }
+
+        _oscontrol_init(&view->control, ekGUI_COMPONENT_CUSTOMVIEW, top, top, FALSE);
     }
     else
     {
-        _oscontrol_init(&view->control, ekGUI_COMPONENT_CUSTOMVIEW, widget, widget, TRUE);
+        GtkWidget *top = NULL;
 
         if (flags & ekBORDER)
-            _oscontrol_widget_border(view->control.widget, "drawing_area", osglobals_border_color(), NULL);
+        {
+            top = gtk_frame_new(NULL);
+            gtk_container_add(GTK_CONTAINER(top), widget);
+            gtk_widget_show(widget);
+        }
+        else
+        {
+            top = widget;
+        }
+
+        _oscontrol_init(&view->control, ekGUI_COMPONENT_CUSTOMVIEW, top, top, TRUE);
     }
 
     return view;
@@ -360,11 +373,28 @@ void osview_destroy(OSView **view)
     if ((*view)->ctx != NULL)
         dctx_destroy(&(*view)->ctx);
 
+    // This is a scrolled window
     if ((*view)->area != NULL)
     {
+        GtkWidget *scrolled = (*view)->control.widget;
+
+        if ((*view)->flags & ekBORDER)
+            scrolled = gtk_bin_get_child(GTK_BIN(scrolled));
+
         // The object is unref when removed
         //g_object_ref((*view)->area);
-        gtk_container_remove(GTK_CONTAINER((*view)->control.widget), (*view)->area);
+    #if GTK_CHECK_VERSION(3, 18, 0)
+        {
+            GtkWidget *scroll = gtk_bin_get_child(GTK_BIN(scrolled));
+            gtk_container_remove(GTK_CONTAINER(scroll), (*view)->area);
+        }
+    #else
+        {
+            GtkWidget *viewport = gtk_bin_get_child(GTK_BIN(scrolled));
+            GtkWidget *scroll = gtk_bin_get_child(GTK_BIN(viewport));
+            gtk_container_remove(GTK_CONTAINER(scroll), (*view)->area);
+        }
+    #endif
     }
 
     _oscontrol_destroy(*(OSControl**)view);
@@ -407,6 +437,18 @@ void osview_OnExit(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+static GtkWidget *i_event_widget(GtkWidget *widget, const uint32_t flags)
+{
+    GtkWidget *evwidget = widget;
+
+    if (flags & ekBORDER)
+        evwidget = gtk_bin_get_child(GTK_BIN(widget));
+
+    return evwidget;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_OnMoved(OSView *view, Listener *listener)
 {
     bool_t add_signal;
@@ -422,8 +464,8 @@ void osview_OnDown(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->listeners.OnDown, listener);
-    _oslistener_signal(view->control.widget, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
-    _oslistener_signal(view->control.widget, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), listener != NULL || view->listeners.OnClick != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), listener != NULL || view->listeners.OnClick != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -432,8 +474,8 @@ void osview_OnUp(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->listeners.OnUp, listener);
-    _oslistener_signal(view->control.widget, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
-    _oslistener_signal(view->control.widget, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), listener != NULL || view->listeners.OnClick != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), listener != NULL || view->listeners.OnClick != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -442,8 +484,8 @@ void osview_OnClick(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->listeners.OnClick, listener);
-    _oslistener_signal(view->control.widget, listener != NULL || view->listeners.OnDown != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
-    _oslistener_signal(view->control.widget, listener != NULL || view->listeners.OnUp != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), listener != NULL || view->listeners.OnDown != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), listener != NULL || view->listeners.OnUp != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -454,7 +496,7 @@ void osview_OnDrag(OSView *view, Listener *listener)
     cassert_no_null(view);
     listener_update(&view->listeners.OnDrag, listener);
     add_signal = listener != NULL || view->listeners.OnMoved;
-    _oslistener_signal(view->control.widget, add_signal, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
+    _oslistener_signal(i_event_widget(view->control.widget, view->flags), add_signal, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -506,19 +548,25 @@ void osview_OnNotify(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_IS_SCROLLED_WINDOW(GtkWidget *widget)
+static bool_t i_IS_SCROLLED_WINDOW(GtkWidget *widget, const uint32_t flags)
 {
-#if GTK_CHECK_VERSION(3, 8, 0)
-    return GTK_IS_SCROLLED_WINDOW(widget);
-#else
+    GtkWidget *scrolled = widget;
 
-    if (GTK_IS_EVENT_BOX(widget) == TRUE)
+    if (flags & ekBORDER)
+        scrolled = gtk_bin_get_child(GTK_BIN(widget));
+
+#if GTK_CHECK_VERSION(3, 18, 0)
+    return GTK_IS_SCROLLED_WINDOW(scrolled);
+
+#else
+    if (GTK_IS_EVENT_BOX(scrolled) == TRUE)
     {
-        GtkWidget *child = gtk_bin_get_child(GTK_BIN(widget));
+        GtkWidget *child = gtk_bin_get_child(GTK_BIN(scrolled));
         return GTK_IS_SCROLLED_WINDOW(child);
     }
 
     return FALSE;
+
 #endif
 }
 
@@ -532,7 +580,7 @@ void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 {
     cassert_no_null(view);
     cassert(view->area != NULL);
-    cassert(i_IS_SCROLLED_WINDOW(view->control.widget) == TRUE);
+    cassert(i_IS_SCROLLED_WINDOW(view->control.widget, view->flags) == TRUE);
     cassert(view->hadjust != NULL);
     cassert(view->vadjust != NULL);
 
@@ -549,7 +597,7 @@ void osview_scroll_get(const OSView *view, real32_t *x, real32_t *y)
 {
     cassert_no_null(view);
     cassert(view->area != NULL);
-    cassert(i_IS_SCROLLED_WINDOW(view->control.widget) == TRUE);
+    cassert(i_IS_SCROLLED_WINDOW(view->control.widget, view->flags) == TRUE);
     cassert(view->hadjust != NULL);
     cassert(view->vadjust != NULL);
 
@@ -566,7 +614,7 @@ void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height)
 {
     cassert_no_null(view);
     cassert(view->area != NULL);
-    cassert(i_IS_SCROLLED_WINDOW(view->control.widget) == TRUE);
+    cassert(i_IS_SCROLLED_WINDOW(view->control.widget, view->flags) == TRUE);
     // In GTK scrollbars are overlapping
     if (width != NULL)
         *width = 0;
@@ -582,7 +630,7 @@ void osview_content_size(OSView *view, const real32_t width, const real32_t heig
     gint w, h;
     cassert_no_null(view);
     cassert(view->area != NULL);
-    cassert(i_IS_SCROLLED_WINDOW(view->control.widget) == TRUE);
+    cassert(i_IS_SCROLLED_WINDOW(view->control.widget, view->flags) == TRUE);
     unref(line_width);
     unref(line_height);
 

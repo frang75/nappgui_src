@@ -33,11 +33,14 @@ static GtkWidget *kBUTTON = NULL;
 static GtkWidget *kCHECK[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 static GtkWidget *kSEPARATOR = NULL;
 static GtkWidget *kLINKBUTTON = NULL;
+static GtkWidget *kPROGRESSBAR = NULL;
 static GtkWidget *kTABLE = NULL;
 static GtkWidget *kHEADER = NULL;
 static GdkPixbuf *kCHECKSBITMAP = NULL;
 static uint32_t kCHECK_WIDTH = 0;
 static uint32_t kCHECK_HEIGHT = 0;
+static uint32_t kENTRY_HEIGHT = 0;
+static uint32_t kPROGRESS_HEIGHT = 0;
 static bool_t kDARK_MODE = FALSE;
 static color_t kLABEL_COLOR = 0;
 static color_t kVIEW_COLOR = 0;
@@ -191,6 +194,27 @@ static void i_precompute_colors(void)
     //kROW2_COLOR = kBGTEXT_COLOR;
 }
 
+// Useful debug code to save GdkPixbuf to file
+/*---------------------------------------------------------------------------*/
+
+//#include "stream.h"
+//
+//static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
+//{
+//    stm_write((Stream*)stream, (const byte_t*)data, (uint32_t)size);
+//    unref(error);
+//    return TRUE;
+//}
+//
+///*---------------------------------------------------------------------------*/
+//
+//static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
+//{
+//    gboolean ok = FALSE;
+//    ok = gdk_pixbuf_save_to_callback(pixbuf, i_encode, (gpointer)stm, type, NULL, NULL);
+//    cassert_unref(ok == TRUE, ok);
+//}
+
 /*---------------------------------------------------------------------------*/
 
 static void i_precompute_checks(void)
@@ -218,7 +242,7 @@ static void i_precompute_checks(void)
     // #include "stream.h"
     // #include "image.inl"
     // Stream *stm = stm_to_file("/home/fran/Desktop/check.png", NULL);
-    // osimage_encoded((const OSImage*)kCHECKSBITMAP, ekPNG, stm);
+    // i_pixbuf_save(kCHECKSBITMAP, "png", stm);
     // stm_close(&stm);
 
     cairo_surface_destroy(surface);
@@ -227,15 +251,32 @@ static void i_precompute_checks(void)
 
 /*---------------------------------------------------------------------------*/
 
-static gboolean i_OnWindowMap(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean i_OnWindowDamage(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
     cassert(widget == kWINDOW);
-    cassert(i_IMPOSTOR_MAPPED == FALSE);
     unref(event);
     unref(data);
+
+    if (i_IMPOSTOR_MAPPED == TRUE)
+        return FALSE;
+
     i_IMPOSTOR_MAPPED = TRUE;
     i_precompute_colors();
     i_precompute_checks();
+
+
+    {
+        real32_t width, height;
+        cassert(kENTRY_HEIGHT == 0);
+        cassert(kPROGRESS_HEIGHT == 0);
+        _oscontrol_widget_size(kENTRY, &width, &height);
+        kENTRY_HEIGHT = (uint32_t)height;
+        _oscontrol_widget_size(kPROGRESSBAR, &width, &height);
+        kPROGRESS_HEIGHT = (uint32_t)height;
+        unref(width);
+    }
+
+
     gtk_widget_hide(widget);
     return FALSE;
 }
@@ -255,6 +296,10 @@ static void i_impostor_window(void)
 //        Stream *stm = stm_to_file("/home/fran/Desktop/app_css_export.css", NULL);
 //        g_object_get(settings, "gtk-theme-name", &theme_name, NULL);
 //        prov = gtk_css_provider_get_named(theme_name, NULL);
+//
+//        if (prov == NULL)
+//            prov = gtk_css_provider_get_default();
+//
 //        pdata = gtk_css_provider_to_string(prov);
 //        stm_writef(stm, pdata);
 //        stm_close(&stm);
@@ -266,12 +311,13 @@ static void i_impostor_window(void)
     GtkCellRenderer *renderer = NULL;
     GtkTreeViewColumn *column = NULL;
     cassert(kWINDOW == NULL);
-    kWINDOW = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    kWINDOW = gtk_offscreen_window_new();
     kLABEL = gtk_label_new("__LABEL__");
     kENTRY = gtk_entry_new();
     kBUTTON = gtk_button_new();
     kSEPARATOR = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     kLINKBUTTON = gtk_link_button_new_with_label("", "__LINK__");
+    kPROGRESSBAR = gtk_progress_bar_new();
     kTABLE = gtk_tree_view_new();
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Fixed?", renderer, NULL);
@@ -306,9 +352,9 @@ static void i_impostor_window(void)
     gtk_box_pack_end(GTK_BOX(box), kBUTTON, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(box), kSEPARATOR, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(box), kLINKBUTTON, TRUE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(box), kPROGRESSBAR, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(box), kTABLE, TRUE, TRUE, 0);
     gtk_box_pack_end(GTK_BOX(box), scroll, TRUE, TRUE, 0);
-
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kCHECK[0]), FALSE);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kCHECK[1]), FALSE);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kCHECK[2]), FALSE);
@@ -329,9 +375,12 @@ static void i_impostor_window(void)
     gtk_widget_set_state_flags(kCHECK[7], GTK_STATE_SELECTED, FALSE);
     gtk_widget_set_state_flags(kCHECK[8], GTK_STATE_FLAG_BACKDROP | GTK_STATE_PRELIGHT, FALSE);
     gtk_widget_set_sensitive(kCHECK[9], FALSE);
-
+    g_signal_connect(kWINDOW, "damage-event", G_CALLBACK(i_OnWindowDamage), NULL);
     gtk_widget_show_all(kWINDOW);
-    g_signal_connect(kWINDOW, "map-event", G_CALLBACK(i_OnWindowMap), NULL);
+
+    // Before i_OnWindowDamage some warnings
+    // Ubuntu 20.04 GTK 3.24.20
+    // Gdk-WARNING **: 20:44:39.639: ../../../../../gdk/x11/gdkwindow-x11.c:5633 drawable is not a native X11 window 
 }
 
 /*---------------------------------------------------------------------------*/
@@ -511,11 +560,19 @@ void osglobals_finish(void)
 
 /*---------------------------------------------------------------------------*/
 
+static __INLINE GtkWidget *i_entry(void)
+{
+    cassert(kENTRY != NULL);
+    return kENTRY;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_register_entry(GtkBorder *padding)
 {
     if (padding != NULL)
     {
-        GtkWidget *entry = osglobals_entry();
+        GtkWidget *entry = i_entry();
         GtkStyleContext *c = gtk_widget_get_style_context(entry);
         gtk_style_context_get_padding(c, GTK_STATE_FLAG_NORMAL, padding);
 
@@ -536,14 +593,6 @@ void osglobals_register_entry(GtkBorder *padding)
 bool_t osglobals_impostor_mapped(void)
 {
     return i_IMPOSTOR_MAPPED;
-}
-
-/*---------------------------------------------------------------------------*/
-
-GtkWidget *osglobals_entry(void)
-{
-    cassert(kENTRY != NULL);
-    return kENTRY;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -647,6 +696,22 @@ uint32_t osglobals_check_height(void)
 {
     cassert(kCHECK_HEIGHT != 0);
     return kCHECK_HEIGHT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t osglobals_entry_height(void)
+{
+    cassert(kENTRY_HEIGHT != 0);
+    return kENTRY_HEIGHT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t osglobals_progress_height(void)
+{
+    cassert(kPROGRESS_HEIGHT != 0);
+    return kPROGRESS_HEIGHT;
 }
 
 /*---------------------------------------------------------------------------*/
