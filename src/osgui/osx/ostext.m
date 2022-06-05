@@ -15,12 +15,13 @@
 #include "ostext.inl"
 #include "osgui.inl"
 #include "oscontrol.inl"
+#include "oscolor.inl"
 #include "ospanel.inl"
 #include "cassert.h"
+#include "color.h"
 #include "event.h"
-#include "font.h"
-#include "font.inl"
 #include "heap.h"
+#include "strings.h"
 #include "ptr.h"
 
 #if !defined (__MACOS__)
@@ -32,8 +33,15 @@
 @interface OSXTextView : NSTextView 
 {
     @public
-    Font *font;
+    char_t ffamily[64];
+    real32_t fsize;
+    uint32_t fstyle;
+    align_t palign;
+    real32_t pspacing;
+    real32_t pafter;
+    real32_t pbefore;
     NSScrollView *scroll;
+    NSMutableDictionary<NSAttributedStringKey, id> *dict;
     BOOL is_editable;
     BOOL is_opaque;
 }
@@ -53,22 +61,6 @@
 - (void)drawRect:(NSRect)rect
 {
     [super drawRect:rect];
-
-    /*
-    Feature #102: Retomar cuando tengamos las NSTableView.
-    if ([[self window] firstResponder] == self->scroll)
-    {
-        NSRect scroll_rect = NSInsetRect([self->scroll documentVisibleRect], 4, 4);
-        scroll_rect.origin.x -= 1.f;
-        scroll_rect.origin.y -= 1.f;
-        scroll_rect.size.width += 0.f;
-
-        [NSGraphicsContext saveGraphicsState];
-        NSSetFocusRingStyle(NSFocusRingOnly);
-        [[NSBezierPath bezierPathWithRect:rect] fill];
-        [NSGraphicsContext restoreGraphicsState];
-    }
-    */
 }
 
 @end
@@ -123,8 +115,15 @@ OSText *ostext_create(const tview_flag_t flags)
     heap_auditor_add("OSXTextView");
     view->is_editable = NO;
     view->is_opaque = YES;
-    view->font = font_monospace(13.f, 0);
     view->scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
+    view->dict = [[NSMutableDictionary alloc] init];
+    view->ffamily[0] = '\0';
+    view->fsize = REAL32_MAX;
+    view->fstyle = UINT32_MAX;
+    view->palign = ENUM_MAX(align_t);
+    view->pspacing = REAL32_MAX;
+    view->pafter = REAL32_MAX;
+    view->pbefore = REAL32_MAX;
     [view->scroll setDocumentView:view];
     [view->scroll setHasVerticalScroller:YES];
     [view->scroll setHasHorizontalScroller:YES];
@@ -132,8 +131,7 @@ OSText *ostext_create(const tview_flag_t flags)
     [view->scroll setBorderType:NSBezelBorder];
     [view->scroll setHidden:YES];
     [view setEditable:view->is_editable];
-    [view setFont:font_native(view->font)];
-    [view setRichText:NO];
+    [view setRichText:YES];
 
 #if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
     [view setAutomaticTextReplacementEnabled:NO];
@@ -147,7 +145,9 @@ OSText *ostext_create(const tview_flag_t flags)
         [view setDelegate:delegate];
     }
     
-    /*    [view->scroll setBorderType:NSLineBorder];*/
+    NSColor *color = oscolor_NSColor(1); // ekSYS_LABEL
+    [view->dict setValue:color forKey:NSForegroundColorAttributeName];
+
     return (OSText*)view->scroll;
 }
 
@@ -162,9 +162,9 @@ void ostext_destroy(OSText **view)
     cassert_no_null(lview);
     delegate = [lview delegate];
     cassert_no_null(delegate);
+    [lview->dict release];
     listener_destroy(&delegate->OnTextChange_listener);
     [lview setDelegate:nil];
-    font_destroy(&lview->font);
     [delegate release];
     [lview release];    
     [(*(NSScrollView**)view) release];
@@ -188,84 +188,66 @@ void ostext_OnTextChange(OSText *view, Listener *listener)
 }
 
 /*---------------------------------------------------------------------------*/
-/* #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-#pragma GCC diagnostic ignored "-Weverything"
- */
+
+static NSAttributedString *i_attr_str(OSXTextView *lview, const char_t *text)
+{
+    NSString *str = nil;
+    NSAttributedString *astr = nil;
+    cassert_no_null(lview);
+    str = [NSString stringWithUTF8String:(const char*)text];
+    astr = [[NSAttributedString alloc] initWithString:str attributes:lview->dict];
+    return astr;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ostext_insert_text(OSText *view, const char_t *text)
 {
     OSXTextView *lview = nil;
-    //NSDictionary *dict = nil;
-    NSString *str = nil;
-    NSRange end_range;
-
-    //NSAttributedString *astr = nil;
+    NSAttributedString *astr = nil;
     cassert_no_null(view);
     cassert_no_null(text);
     lview = [(NSScrollView*)view documentView];
     cassert_no_null(lview);
-    end_range = NSMakeRange([[lview string] length], 0);
-    //dict = _oscontrol_text_attribs(ekLEFT, UINT32_MAX, lview->font);
-    str = [NSString stringWithUTF8String:(const char*)text];
-    //astr = [[NSAttributedString alloc] initWithString:str attributes:dict];
-    //[dict release]; // Autorelease
-//    [[lview textStorage] appendAttributedString:astr];
-//    [[lview textStorage] appendAttributedString:astr];
-//    [[lview textStorage] appendString:str];
-    //[lview insertText:str];
+    astr = i_attr_str(lview, text);
 
-#if defined(MAC_OS_X_VERSION_10_11) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_11
     if (lview->is_editable == YES)
     {
-        [lview insertText:str replacementRange:end_range];
+        [[lview textStorage] appendAttributedString:astr];
     }
     else
     {
         [lview setEditable:YES];
-        [lview insertText:str replacementRange:end_range];
+        [[lview textStorage] appendAttributedString:astr];
         [lview setEditable:NO];
     }
-#else
-    if (lview->is_editable == YES)
-    {
-        [lview insertText:str];
-    }
-    else
-    {
-        [lview setEditable:YES];
-        [lview insertText:str];
-        [lview setEditable:NO];
-    }
-#endif
-    
-    [lview scrollRangeToVisible:end_range];
-    //[astr release];
+
+    [astr release];
 }
-
-//#pragma GCC diagnostic pop
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_set_text(OSText *view, const char_t *text)
 {
-    OSXTextView *lview;
-    NSString *str;
+    OSXTextView *lview = nil;
+    NSAttributedString *astr = nil;
     cassert_no_null(view);
     lview = [(NSScrollView*)view documentView];
     cassert_no_null(lview);
-    str = [[NSString alloc] initWithUTF8String:(const char*)text];
+    astr = i_attr_str(lview, text);
+
     if (lview->is_editable == YES)
     {
-        [lview setString:str];
+        [[lview textStorage] setAttributedString:astr];
     }
     else
     {
         [lview setEditable:YES];
-        [lview setString:str];
+        [[lview textStorage] setAttributedString:astr];
         [lview setEditable:NO];
     }
 
-    [str release];
+    [astr release];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -278,11 +260,230 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
 
 /*---------------------------------------------------------------------------*/
 
+static NSFont *i_convent_to_italic(NSFont *font, const CGFloat height, NSFontManager *font_manager)
+{
+    NSFont *italic_font = nil;
+    NSFontTraitMask fontTraits = (NSFontTraitMask)0;
+    cassert_no_null(font);
+    
+    italic_font = [font_manager convertFont:font toHaveTrait:NSItalicFontMask];
+    fontTraits = [font_manager traitsOfFont:italic_font];
+    
+    if ((fontTraits & NSItalicFontMask) == 0)
+    {
+        NSAffineTransform *font_transform = [NSAffineTransform transform];
+        [font_transform scaleBy:height];
+        
+        {
+            NSAffineTransformStruct data;
+            NSAffineTransform *italic_transform = nil;
+            data.m11 = 1.f;
+            data.m12 = 0.f;
+            data.m21 = - tanf(/*italic_angle*/-10.f * 0.017453292519943f);
+            data.m22 = 1.f;
+            data.tX  = 0.f;
+            data.tY  = 0.f;
+            italic_transform = [NSAffineTransform transform];
+            [italic_transform setTransformStruct:data];
+            [font_transform appendTransform:italic_transform];
+        }
+        
+        italic_font = [NSFont fontWithDescriptor:[italic_font fontDescriptor] textTransform:font_transform];
+    }
+    
+    return italic_font;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static NSFont *i_font_create(const char_t *family, const real32_t size, const uint32_t style)
+{
+    NSFont *nsfont = nil;
+    cassert(size > 0.f);
+
+    // Unitialized font attribs
+    if (str_empty_c(family) == TRUE)
+        return nil;
+
+    if (size >= REAL32_MAX + 1e3f)
+        return nil;
+
+    if (style == UINT32_MAX)
+        return nil;
+    
+    {
+        NSFontManager *fontManager = [NSFontManager sharedFontManager];
+        NSString *ffamily = [NSString stringWithUTF8String:family];
+        NSUInteger mask = (style & ekFBOLD) ? NSBoldFontMask : 0;
+        nsfont = [fontManager fontWithFamily:ffamily traits:(NSFontTraitMask)mask weight:5 size:(CGFloat)size];
+        cassert_fatal_msg(nsfont != nil, "Font is not available on this computer.");
+    }
+
+    if (nsfont != nil)
+    {
+        if (style & ekFITALIC)
+        {
+            NSFontManager *fontManager = [NSFontManager sharedFontManager];
+            nsfont = i_convent_to_italic(nsfont, (CGFloat)size, fontManager);
+        }
+    }
+    
+    return nsfont;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_change_font(OSXTextView *lview)
+{
+    NSFont *font = nil;
+    cassert_no_null(lview);
+    font = i_font_create(lview->ffamily, lview->fsize, lview->fstyle);
+    if (font != nil)
+    {
+        NSNumber *under = (lview->fstyle & ekFUNDERLINE) ? [NSNumber numberWithInt:NSUnderlineStyleSingle] : [NSNumber numberWithInt:NSUnderlineStyleNone];
+        NSNumber *strike = (lview->fstyle & ekFSTRIKEOUT) ? [NSNumber numberWithInt:NSUnderlineStyleSingle] : [NSNumber numberWithInt:NSUnderlineStyleNone];
+        [lview->dict setValue:font forKey:NSFontAttributeName];
+        [lview->dict setValue:under forKey:NSUnderlineStyleAttributeName];
+        [lview->dict setValue:strike forKey:NSStrikethroughStyleAttributeName];
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_change_paragraph(OSXTextView *lview)
+{
+    cassert_no_null(lview);
+
+    // Unitialized paragraph attribs
+    if (lview->palign == ENUM_MAX(align_t))
+        return;
+
+    if (lview->pspacing >= REAL32_MAX + 1e3f)
+        return;
+
+    if (lview->pafter >= REAL32_MAX + 1e3f)
+        return;
+
+    if (lview->pbefore >= REAL32_MAX + 1e3f)
+        return;
+
+    NSMutableParagraphStyle *par = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    [par setAlignment:_oscontrol_text_alignment(lview->palign)];
+    [par setLineSpacing:(CGFloat)lview->pspacing];
+    [par setParagraphSpacing:(CGFloat)lview->pafter];
+    [par setParagraphSpacingBefore:(CGFloat)lview->pbefore];
+    [lview->dict setValue:par forKey:NSParagraphStyleAttributeName];
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ostext_param(OSText *view, const guiprop_t param, const void *value)
 {
-    unref(view);
-    unref(param);
-    unref(value);
+    OSXTextView *lview = nil;
+    cassert_no_null(view);
+    lview = [(NSScrollView*)view documentView];
+    cassert_no_null(lview);
+            
+    switch (param) {
+    case ekGUI_TEXT_FAMILY:
+        if (str_equ_c(lview->ffamily, (const char_t*)value) == FALSE)
+        {
+            str_copy_c(lview->ffamily, sizeof(lview->ffamily), (const char_t*)value);
+            i_change_font(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_UNITS:
+        break;
+
+    case ekGUI_TEXT_SIZE:
+        if (lview->fsize != *((real32_t*)value))
+        {
+            lview->fsize = *((real32_t*)value);
+            i_change_font(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_STYLE:
+        if (lview->fstyle != *((uint32_t*)value))
+        {
+            lview->fstyle = *((uint32_t*)value);
+            i_change_font(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_COLOR:
+    {
+        NSColor *color = nil;
+        if (*(color_t*)value == kCOLOR_TRANSPARENT)
+            color = oscolor_NSColor(1); // ekSYS_LABEL
+        else
+            color = oscolor_NSColor(*(color_t*)value);
+        [lview->dict setValue:color forKey:NSForegroundColorAttributeName];
+        break;
+    }
+
+    case ekGUI_TEXT_BGCOLOR:
+    {
+        NSColor *color = oscolor_NSColor(*(color_t*)value);
+        [lview->dict setValue:color forKey:NSBackgroundColorAttributeName];
+        break;
+    }
+
+    case ekGUI_TEXT_PGCOLOR:
+        if (*(color_t*)value != kCOLOR_TRANSPARENT)
+        {
+            NSColor *color = oscolor_NSColor(*(color_t*)value);
+            [lview setBackgroundColor:color];
+            [lview setDrawsBackground:YES];
+        }
+        else
+        {
+            [lview setDrawsBackground:NO];
+        }
+        break;
+
+    case ekGUI_TEXT_PARALIGN:
+        if (lview->palign != *((align_t*)value))
+        {
+            lview->palign = *((align_t*)value);
+            i_change_paragraph(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_LSPACING:
+        if (lview->pspacing != *((real32_t*)value))
+        {
+            lview->pspacing = *((real32_t*)value);
+            i_change_paragraph(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_AFPARSPACE:
+        if (lview->pafter != *((real32_t*)value))
+        {
+            lview->pafter = *((real32_t*)value);
+            i_change_paragraph(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_BFPARSPACE:
+        if (lview->pbefore != *((real32_t*)value))
+        {
+            lview->pbefore = *((real32_t*)value);
+            i_change_paragraph(lview);
+        }
+        break;
+
+    case ekGUI_TEXT_VSCROLL:
+    {
+        NSRange edrange = NSMakeRange([[lview string] length], 0);
+        [lview scrollRangeToVisible:edrange];
+        break;
+    }
+
+    cassert_default();
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -307,17 +508,6 @@ void ostext_editable(OSText *view, const bool_t is_editable)
     lview->is_editable = (BOOL)is_editable;
     [lview setEditable:lview->is_editable];
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void ostext_set_font_size(OSText *view, const real32_t size)
-//{
-//    OSXTextView *lview;
-//    cassert_no_null(view);
-//    lview = [(NSScrollView*)view documentView];
-//    cassert_no_null(lview);
-//    [lview setFont:[NSFont fontWithName:@"Courier New" size:(CGFloat)size]];
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -404,5 +594,4 @@ void _ostext_detach_and_destroy(OSText **view, OSPanel *panel)
     ostext_detach(*view, panel);
     ostext_destroy(view);
 }
-
 

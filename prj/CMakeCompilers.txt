@@ -233,7 +233,11 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     # Libraries
     set(COCOA_LIB ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Cocoa.framework)
-
+    string(COMPARE GREATER_EQUAL ${OSX_SDK_NAME} "12.0" USE_UTTYPE)    
+    if (USE_UTTYPE)
+        set(COCOA_LIB ${COCOA_LIB};${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/UniformTypeIdentifiers.framework)
+    endif()
+    
     # NRC executable permissions
     set(NRC_FILE ${CMAKE_PRJ_PATH}/script/osx/${NAPPGUI_HOST}/nrc)
     file(TO_NATIVE_PATH \"${NRC_FILE}\" NRC_FILE)

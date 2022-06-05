@@ -30,6 +30,10 @@
 #error This file is only for OSX
 #endif
 
+#if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 void osimage_alloc_globals(void)
@@ -149,8 +153,17 @@ OSImage *osimage_create_from_type(const char_t *file_type)
         nsfile_type = [NSString stringWithUTF8String:file_type];
 
     /* osimage_from_file 'NSIconRepImageRep' with 3 (more than 1) representations */
+#if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
+    UTType *type = [UTType typeWithIdentifier:nsfile_type];
+    if (type != nil)
+        image = [[NSWorkspace sharedWorkspace] iconForContentType:type];
+#else
     image = [[NSWorkspace sharedWorkspace] iconForFileType:nsfile_type];
-    [image retain];
+#endif
+    
+    if (image != nil)
+        [image retain];
+    
     return (OSImage*)image;
 }
 

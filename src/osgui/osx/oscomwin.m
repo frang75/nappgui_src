@@ -24,20 +24,52 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
+
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
 static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32_t size)
 {
-    NSMutableArray *array = [NSMutableArray arrayWithCapacity:(NSUInteger)size];
-    register uint32_t i;
-    cassert_no_null(ftypes);
-    cassert(size > 0);
-    for (i = 0; i < size; ++i)
-    {
-        NSString *str = [NSString stringWithUTF8String:(const char*)ftypes[i]];
-        [array addObject:str];
-    }
+    NSMutableArray<UTType*> *array = [NSMutableArray array];
 
-    [panel setAllowedFileTypes:array];
+    if (ftypes != NULL && size > 0)
+    {
+        register uint32_t i;
+        for (i = 0; i < size; ++i)
+        {
+            NSString *ext = [NSString stringWithUTF8String:ftypes[i]];
+            UTType *type = [UTType typeWithIdentifier:ext];
+            if (type != nil)
+                [array addObject:type];
+        }
+    }
+        
+    [panel setAllowedContentTypes:array];
 }
+
+#else
+
+static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32_t size)
+{
+    if (ftypes != NULL && size > 0)
+    {
+        register uint32_t i;
+        NSMutableArray *array = [NSMutableArray arrayWithCapacity:(NSUInteger)size];
+        for (i = 0; i < size; ++i)
+        {
+            NSString *str = [NSString stringWithUTF8String:(const char*)ftypes[i]];
+            [array addObject:str];
+        }
+        
+        [panel setAllowedFileTypes:array];
+    }
+    else
+    {
+        [panel setAllowedFileTypes:nil];
+    }
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -46,7 +78,7 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
     NSOpenPanel *open_panel = [NSOpenPanel openPanel];
     BOOL dirsel = NO;
 
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+    #if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
     if (startdir != NULL)
     {
         NSString *str = [[NSString alloc] initWithUTF8String:startdir];
@@ -70,15 +102,9 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
         cassert(size > 0);
         if (size == 1 && strcmp((const char*)ftypes[0], "..DIR..") == 0)
             dirsel = YES;
-        else
-            i_set_ftypes(open_panel, ftypes, size);
     }
-    else
-    {
-        cassert(size == 0);
-        [open_panel setAllowedFileTypes:nil];
-    }
-
+    
+    i_set_ftypes(open_panel, ftypes, size);
     [open_panel setCanChooseFiles:!dirsel];
     [open_panel setCanChooseDirectories:dirsel];
     return open_panel;
@@ -96,17 +122,7 @@ static NSSavePanel *i_save_file(const char_t **ftypes, const uint32_t size)
      */
 
     [save_panel setCanCreateDirectories:YES];
-
-    if (ftypes != NULL)
-    {
-        i_set_ftypes(save_panel, ftypes, size);
-    }
-    else
-    {
-        cassert(size == 0);
-        [save_panel setAllowedFileTypes:nil];
-    }
-
+    i_set_ftypes(save_panel, ftypes, size);
     return save_panel;
 }
 

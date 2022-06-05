@@ -95,6 +95,8 @@
     if (self->theme_changed == TRUE)
     {
         #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+
+        #if defined (MAC_OS_VERSION_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12
         NSArray *windows = [NSApp windows];
         NSWindow *w = nil;
         if ([windows count] > 0)
@@ -102,12 +104,14 @@
         
         if (w != nil)
             [NSAppearance setCurrentAppearance:[w effectiveAppearance]];
-    
+        #endif
+        
         osglobals_theme_changed();
         
         if (self->OnThemeChanged != NULL)
             listener_event(self->OnThemeChanged, 0, (OSApp*)self->listener, NULL, NULL, OSApp, void, void);
-        #endif       
+        #endif
+        
         self->theme_changed = FALSE;
     }
 /*
