@@ -233,7 +233,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     # Libraries
     set(COCOA_LIB ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Cocoa.framework)
-    string(COMPARE GREATER_EQUAL ${OSX_SDK_NAME} "12.0" USE_UTTYPE)    
+    string(COMPARE GREATER_EQUAL ${CMAKE_OSX_DEPLOYMENT_TARGET} "12.0" USE_UTTYPE)
     if (USE_UTTYPE)
         set(COCOA_LIB ${COCOA_LIB};${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/UniformTypeIdentifiers.framework)
     endif()

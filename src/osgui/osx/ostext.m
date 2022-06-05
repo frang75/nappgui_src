@@ -41,7 +41,7 @@
     real32_t pafter;
     real32_t pbefore;
     NSScrollView *scroll;
-    NSMutableDictionary<NSAttributedStringKey, id> *dict;
+    NSMutableDictionary *dict;
     BOOL is_editable;
     BOOL is_opaque;
 }
