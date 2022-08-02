@@ -136,14 +136,6 @@ function(getRecursiveSourceFiles targetName dir group)
                     endif()
                 endif()
 
-                # Linker error in binary distributions 
-                # when linking mixed c++ and c modules
-                if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-                    if (${extLower} MATCHES ".c")
-                        set_source_files_properties(${child} PROPERTIES LANGUAGE CXX)                      
-                    endif()
-                endif()
-
                 appendSrcSubDir(${targetName} ${dir})
                 appendSrcFile(${targetName} ${dir}/${child})
             endif()
@@ -243,13 +235,7 @@ function(getResourceFiles targetName targetType dir _ret _include_dir)
 
             list(APPEND resCompiled ${DEST_RESDIR}/${resPack}.c)            
             list(APPEND resCompiled ${DEST_RESDIR}/${resPack}.h)
-            source_group("res\\${resPack}\\gen" FILES ${resCompiled})
-            
-            # Linker error in binary distributions if only the C compiler works '__gxx_personality_v0'
-            #if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-            #    set_source_files_properties(${DEST_RESDIR}/${resPack}.c PROPERTIES LANGUAGE CXX)                      
-            #endif()
-            
+            source_group("res\\${resPack}\\gen" FILES ${resCompiled})                        
             list(APPEND res_files ${resCompiled})
             
             set(${_include_dir} ${DEST_RESDIR} PARENT_SCOPE)

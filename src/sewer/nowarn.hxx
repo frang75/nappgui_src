@@ -25,7 +25,7 @@
 // C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winuser.h(6537,32): warning C4255: 'EnableMouseInPointerForThread': no function prototype given: converting '()' to '(void)'
 #pragma warning( disable : 4255 )
 
-#if _MSC_VER > 1400
+#if _MSC_VER > 1700
 // C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\GdiplusHeaders.h(701,40): warning C4458: declaration of 'nativeCap' hides class member
 #pragma warning( disable : 4458 )
 #endif

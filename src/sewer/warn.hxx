@@ -20,7 +20,7 @@
 #pragma warning( default : 4668 )
 #pragma warning( default : 4255 )
 
-#if _MSC_VER > 1400
+#if _MSC_VER > 1700
 #pragma warning( default : 4458 )
 #endif
 

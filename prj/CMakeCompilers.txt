@@ -270,7 +270,7 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
             
     # Warnings
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic -std=c99 -fPIE")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++98 -fPIE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++0x -fPIE")
     
     # Host architecture
     set(HOST_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})

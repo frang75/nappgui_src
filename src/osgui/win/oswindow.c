@@ -1011,8 +1011,9 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
         {
             if (window->control.hwnd == hDlg)
             {
-                SHORT state = GetAsyncKeyState(VK_LSHIFT);                
-                BOOL previous = ((0x8000 & state) != 0);
+                SHORT lshif_state = GetAsyncKeyState(VK_LSHIFT);                
+                SHORT rshif_state = GetAsyncKeyState(VK_RSHIFT);                
+                BOOL previous = ((0x8000 & lshif_state) != 0) || ((0x8000 & rshif_state) != 0);
                 HWND hwnd = GetFocus();
                 if (previous == TRUE)
                     i_set_previous_tabstop(window->tabstops, hwnd, &window->ctabstop);
