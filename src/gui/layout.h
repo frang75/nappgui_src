@@ -57,8 +57,6 @@ void layout_taborder(Layout *layout, const orient_t order);
 
 void layout_tabstop(Layout *layout, const uint32_t col, const uint32_t row, const bool_t tabstop);
 
-void layout_content_size(Layout *layout, const S2Df size);
-
 void layout_hsize(Layout *layout, const uint32_t col, const real32_t width);
 
 void layout_vsize(Layout *layout, const uint32_t row, const real32_t height);
@@ -123,7 +121,7 @@ __END_C
     (Combo*)layout_control_imp(layout, col, row, "Combo")
 
 #define layout_get_listbox(layout, col, row)\
-    (Combo*)layout_control_imp(layout, col, row, "ListBox")
+    (ListBox*)layout_control_imp(layout, col, row, "ListBox")
 
 #define layout_get_updown(layout, col, row)\
     (UpDown*)layout_control_imp(layout, col, row, "UpDown")

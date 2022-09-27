@@ -50,6 +50,7 @@ struct _osapp_t
 /*---------------------------------------------------------------------------*/
 
 OSApp i_APP = { 0 };
+int putenv(char *string);
 
 /*---------------------------------------------------------------------------*/
 
@@ -57,9 +58,9 @@ OSApp *osapp_init_imp(
                     uint32_t argc,
                     char_t **argv,
                     void *instance,
-                    void *listener, 
+                    void *listener,
                     const bool_t with_run_loop,
-                    FPtr_call func_OnFinishLaunching, 
+                    FPtr_call func_OnFinishLaunching,
                     FPtr_call func_OnTimerSignal)
 {
     cassert(instance == NULL);
@@ -68,8 +69,9 @@ OSApp *osapp_init_imp(
     cassert(i_APP.listener == NULL);
     cassert(i_APP.func_OnFinishLaunching == NULL);
     cassert(i_APP.func_OnTimerSignal == NULL);
+    putenv("GDK_BACKEND=x11");
     cassert(g_application_id_is_valid("com.nappgui.app") == TRUE);
-    i_APP.gtk_app = gtk_application_new("com.nappgui.app", G_APPLICATION_FLAGS_NONE);
+    i_APP.gtk_app = gtk_application_new("com.nappgui.app", G_APPLICATION_NON_UNIQUE);
     cassert_no_null(i_APP.gtk_app);
     i_APP.argc = argc;
     i_APP.argv = argv;
