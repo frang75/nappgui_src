@@ -93,9 +93,11 @@ if (WIN32)
         set(CMAKE_PACKAGE_GEN "NSIS" CACHE STRING "Package generator utility")
         set_property(CACHE CMAKE_PACKAGE_GEN PROPERTY STRINGS "NSIS;TGZ")
 
-        # Enhaced instruction set x86 Processors
+        # Enhanced instruction set x86 Processors
         if (${NAPPGUI_ARCH} STREQUAL "x86")
-            if (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v80")
+            if (Z${CMAKE_VS_PLATFORM_TOOLSET}Z STREQUAL "ZZ")
+                # add_definitions(/arch:SSE2)            
+            elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v80")
                 # Not Set in VS2005 is /arch:IA32
             elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v90")
                 add_definitions(/arch:SSE)
