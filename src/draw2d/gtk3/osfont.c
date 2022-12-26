@@ -12,9 +12,8 @@
 
 #include "font.h"
 #include "font.inl"
-#include "osfont.inl"
-//#include "draw.inl"
-//#include "draw_gtk.inl"
+#include "dctxh.h"
+
 #include "arrpt.h"
 #include "cassert.h"
 #include "heap.h"
@@ -25,9 +24,11 @@
 #error This file is only for GTK Toolkit
 #endif
 
+#include "nowarn.hxx"
 #include <pango/pangocairo.h>
+#include "warn.hxx"
 
-// System font should be set from GTK or other toolkit manager
+/* System font should be set from GTK or other toolkit manager */
 static String *kSYSTEM_FONT = NULL;
 static real32_t kFONT_REGULAR_SIZE = 0.f;
 static real32_t kFONT_SMALL_SIZE = 0.f;
@@ -60,23 +61,7 @@ void osfont_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osfont_set_default(const PangoFontDescription *fdesc)
-{
-    real32_t scale = osfont_device_to_pixels();
-    const char *family = NULL;
-    real32_t size = 0;
-    cassert(kSYSTEM_FONT == NULL);
-    family = pango_font_description_get_family(fdesc);
-    size = (real32_t)pango_font_description_get_size(fdesc);
-    kSYSTEM_FONT = str_c((const char_t*)family);
-    kFONT_REGULAR_SIZE = size * scale;
-    kFONT_SMALL_SIZE = kFONT_REGULAR_SIZE - 2.f;
-    kFONT_MINI_SIZE = kFONT_REGULAR_SIZE - 4.f;
-}
-
-/*---------------------------------------------------------------------------*/
-
-real32_t osfont_device_to_pixels(void)
+static real32_t i_device_to_pixels(void)
 {
     if (i_PANGO_TO_PIXELS < 0)
     {
@@ -87,6 +72,24 @@ real32_t osfont_device_to_pixels(void)
     }
 
     return i_PANGO_TO_PIXELS;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_default_osfont(DCtx *ctx, const void *font)
+{
+    const PangoFontDescription *fdesc = (const PangoFontDescription*)font;
+    real32_t scale = i_device_to_pixels();
+    const char *family = NULL;
+    real32_t size = 0;
+    unref(ctx);
+    cassert(kSYSTEM_FONT == NULL);
+    family = pango_font_description_get_family(fdesc);
+    size = (real32_t)pango_font_description_get_size(fdesc);
+    kSYSTEM_FONT = str_c((const char_t*)family);
+    kFONT_REGULAR_SIZE = size * scale;
+    kFONT_SMALL_SIZE = kFONT_REGULAR_SIZE - 2.f;
+    kFONT_MINI_SIZE = kFONT_REGULAR_SIZE - 4.f;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -124,7 +127,7 @@ static gint i_font_height(const real32_t size, const uint32_t style)
     else
     {
         cassert((style & ekFPIXELS) == ekFPIXELS);
-        return (gint)(size / osfont_device_to_pixels());
+        return (gint)(size / i_device_to_pixels());
     }
 }
 
@@ -212,6 +215,14 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
 
 /*---------------------------------------------------------------------------*/
 
+const void *osfont_native(const OSFont *font)
+{
+    cassert_no_null(font);
+    return (void*)font;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *cell_size)
 {
     PangoFontMap *fontmap;
@@ -230,7 +241,7 @@ void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *ce
     *internal_leading = 10;
     height = (real32_t)pango_font_metrics_get_ascent(metrics);
     height += (real32_t)pango_font_metrics_get_descent(metrics);
-    //height = (real32_t)pango_font_metrics_get_height(metrics);
+    /* height = (real32_t)pango_font_metrics_get_height(metrics); */
     height /= PANGO_SCALE;
     g_object_unref(context);
     g_object_unref(ffont);

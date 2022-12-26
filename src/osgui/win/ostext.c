@@ -17,8 +17,6 @@
 #include "oscontrol.inl"
 #include "ospanel.inl"
 #include "oswindow.inl"
-#include "win/draw2d_win.inl"
-
 #include "cassert.h"
 #include "color.h"
 #include "event.h"
@@ -52,6 +50,7 @@ struct _ostext_t
     char_t *text;
     uint32_t text_size;
     bool_t is_editable;
+    RECT border;
     Listener *OnChange;
 };
 
@@ -62,16 +61,39 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     OSText *view = (OSText*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(view);  
 
-    switch (uMsg)
+    switch (uMsg) {
+    case WM_NCCALCSIZE:
     {
-        /*
-        case WM_ERASEBKGND:
-            return 1;
-            */
-        case WM_PAINT:
-            if (_oswindow_in_resizing(hwnd) == TRUE)
-                return 0;
-            break;
+        LRESULT res = CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+
+        //if (TRUE)
+            res = _osgui_nccalcsize(hwnd, wParam, lParam, TRUE, &view->border);
+
+        return res;
+    }
+
+    case WM_NCPAINT:
+    {
+        LRESULT res = CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+
+        //if (TRUE)
+            res = _osgui_ncpaint(hwnd, &view->border);
+
+        return res;
+    }
+
+    case WM_SETFOCUS:
+        RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
+        break;
+
+    case WM_KILLFOCUS:
+        RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
+        break;
+
+    case WM_PAINT:
+        if (_oswindow_in_resizing(hwnd) == TRUE)
+            return 0;
+        break;
     }
 
     return CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -121,13 +143,13 @@ static void i_set_rich_text(HWND hwnd, const BOOL rich_text)
 
 /*---------------------------------------------------------------------------*/
 
-OSText *ostext_create(const tview_flag_t flags)
+OSText *ostext_create(const uint32_t flags)
 {
     OSText *view = NULL;
     DWORD dwStyle = 0;
     unref(flags);
     view = heap_new0(OSText);
-    view->control.type = ekGUI_COMPONENT_TEXTVIEW;
+    view->control.type = ekGUI_TYPE_TEXTVIEW;
     dwStyle = WS_CHILD | WS_CLIPSIBLINGS | ES_MULTILINE | ES_WANTRETURN /*| ES_AUTOVSCROLL*/ | WS_VSCROLL /*| WS_HSCROLL*/;
     _oscontrol_init((OSControl*)view, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kRICHEDIT_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     i_set_rich_text(view->control.hwnd, TRUE);
@@ -304,29 +326,29 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_param(OSText *view, const guiprop_t param, const void *value)
+void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
 {
     cassert_no_null(view);
     cassert_no_null(value);
-    switch (param) {
-    case ekGUI_TEXT_FAMILY:
+    switch (prop) {
+    case ekGUI_PROP_FAMILY:
         unicode_convers((const char_t*)value, (char_t*)view->szFaceName, ekUTF8, ekUTF16, sizeof(view->szFaceName));
         break;
 
-    case ekGUI_TEXT_UNITS:
+    case ekGUI_PROP_UNITS:
         view->units = *((const uint32_t*)value);
         break;
 
-    case ekGUI_TEXT_SIZE:
+    case ekGUI_PROP_SIZE:
     {
         real32_t size = *((real32_t*)value);
         if (view->units & ekFPOINTS)
-            size = size * (real32_t)kLOG_PIXY / 72.f;
-        view->yHeight = (LONG)(size * kTWIPS_PER_PIXEL);
+            size = size * (real32_t)kLOG_PIXY_GUI / 72.f;
+        view->yHeight = (LONG)(size * kTWIPS_PER_PIXEL_GUI);
         break;
     }
 
-    case ekGUI_TEXT_STYLE:
+    case ekGUI_PROP_STYLE:
     {
         uint32_t style = *((uint32_t*)value);
         view->dwEffects = 0;
@@ -351,28 +373,28 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         break;
     }
 
-    case ekGUI_TEXT_COLOR:
+    case ekGUI_PROP_COLOR:
         if (*((color_t*)value) == kCOLOR_TRANSPARENT)
             view->crTextColor = 0;
         else
             view->crTextColor = _oscontrol_colorref(*((color_t*)value));
         break;
 
-    case ekGUI_TEXT_BGCOLOR:
+    case ekGUI_PROP_BGCOLOR:
         if (*((color_t*)value) == kCOLOR_TRANSPARENT)
             view->crBackColor = 0;
         else
             view->crBackColor = _oscontrol_colorref(*((color_t*)value));
         break;
 
-    case ekGUI_TEXT_PGCOLOR:
+    case ekGUI_PROP_PGCOLOR:
         if (*((color_t*)value) == kCOLOR_TRANSPARENT)
             SendMessage(view->control.hwnd, EM_SETBKGNDCOLOR, 1, (LPARAM)0);
         else
             SendMessage(view->control.hwnd, EM_SETBKGNDCOLOR, 0, (LPARAM)_oscontrol_colorref(*((color_t*)value)));
         break;
 
-    case ekGUI_TEXT_PARALIGN:
+    case ekGUI_PROP_PARALIGN:
         switch (*((align_t*)value)) {
         case ekLEFT:
         case ekJUSTIFY:
@@ -387,19 +409,19 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_LSPACING:
+    case ekGUI_PROP_LSPACING:
         view->dyLineSpacing = (LONG)(20 * *((real32_t*)value));
         break;
 
-    case ekGUI_TEXT_AFPARSPACE:    
+    case ekGUI_PROP_AFPARSPACE:
         view->dySpaceAfter = (LONG)(20/*kTWIPS_PER_PIXEL*/ * *((real32_t*)value) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
-    case ekGUI_TEXT_BFPARSPACE:    
+    case ekGUI_PROP_BFPARSPACE:
         view->dySpaceBefore = (LONG)(20/*kTWIPS_PER_PIXEL*/ * *((real32_t*)value) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
-    case ekGUI_TEXT_VSCROLL:
+    case ekGUI_PROP_VSCROLL:
     {
         real32_t pos = *(real32_t*)value;
         WPARAM wParam = SB_THUMBPOSITION;
@@ -411,8 +433,8 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         break;
     }
 
-    case ekGUI_PROPERTY_RESIZE:
-    case ekGUI_PROPERTY_CHILDREN:
+    case ekGUI_PROP_RESIZE:
+    case ekGUI_PROP_CHILDREN:
     cassert_default();
     }
 }
@@ -565,7 +587,7 @@ void _ostext_command(OSText *view, WPARAM wParam)
             //edit_text = _oscontrol_get_text((const OSControl*)edit, &tsize);
             params.text = NULL;
             params.cpos = 0;//i_cursor_pos(edit->control.hwnd);
-            listener_event(view->OnChange, ekEVTXTCHANGE, view, &params, NULL, OSText, EvText, void);
+            listener_event(view->OnChange, ekGUI_EVENT_TXTCHANGE, view, &params, NULL, OSText, EvText, void);
             /*heap_deletes(&edit_text, tsize, char_t);
             SendMessage(edit->control.hwnd, EM_SETSEL, (WPARAM)params.cursor_pos, (LPARAM)params.cursor_pos);
             edit->is_editing = TRUE;*/

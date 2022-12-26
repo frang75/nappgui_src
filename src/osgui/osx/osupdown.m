@@ -46,13 +46,13 @@
     {
         EvButton params;
         double lvalue = [self doubleValue];
-        params.state = ekON;
+        params.state = ekGUI_ON;
         if (lvalue > self->value)
             params.index = 0;
         else
             params.index = 1;
         params.text = "";
-        listener_event(self->OnClick, ekEVUPDOWN, (OSUpDown*)self, &params, NULL, OSUpDown, EvButton, void);
+        listener_event(self->OnClick, ekGUI_EVENT_UPDOWN, (OSUpDown*)self, &params, NULL, OSUpDown, EvButton, void);
         self->value = lvalue;
     }
 }
@@ -61,7 +61,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSUpDown *osupdown_create(const updown_flag_t flags)
+OSUpDown *osupdown_create(const uint32_t flags)
 {
     OSXUpDown *updown = [[OSXUpDown alloc] initWithFrame:NSMakeRect(0.f, 0.f, 16.f, 16.f)];
     unref(flags);
@@ -74,7 +74,7 @@ OSUpDown *osupdown_create(const updown_flag_t flags)
     [updown setMaxValue:1e20];
     [updown setMinValue:-1e20];
     [updown setIncrement:1.];
-    _oscontrol_cell_set_control_size([updown cell], ekREGULAR);
+    _oscontrol_cell_set_control_size([updown cell], ekGUI_SIZE_REGULAR);
     updown->OnClick = NULL;
     updown->value = 0.;
     return (OSUpDown*)updown;

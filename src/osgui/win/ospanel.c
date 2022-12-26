@@ -125,40 +125,40 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         cassert_no_null(control);
         switch (control->type) {
-        case ekGUI_COMPONENT_BUTTON:
+        case ekGUI_TYPE_BUTTON:
             _osbutton_command((OSButton*)control, wParam);
             break;
 
-        case ekGUI_COMPONENT_EDITBOX:
+        case ekGUI_TYPE_EDITBOX:
             _osedit_command((OSEdit*)control, wParam);
             break;
 
-        case ekGUI_COMPONENT_TEXTVIEW:
+        case ekGUI_TYPE_TEXTVIEW:
             _ostext_command((OSText*)control, wParam);
             break;
 
-        case ekGUI_COMPONENT_POPUP:
+        case ekGUI_TYPE_POPUP:
             _ospopup_command((OSPopUp*)control, wParam);
             break;
 
-        case ekGUI_COMPONENT_COMBOBOX:
+        case ekGUI_TYPE_COMBOBOX:
             _oscombo_command((OSCombo*)control, wParam);
             break;
 
-        case ekGUI_COMPONENT_LABEL:
-        case ekGUI_COMPONENT_SLIDER:
-        case ekGUI_COMPONENT_UPDOWN:
-        case ekGUI_COMPONENT_PROGRESS:
-        case ekGUI_COMPONENT_TABLEVIEW:
-        case ekGUI_COMPONENT_TREEVIEW:
-	    case ekGUI_COMPONENT_BOXVIEW:
-        case ekGUI_COMPONENT_SPLITVIEW:
-        case ekGUI_COMPONENT_CUSTOMVIEW:
-        case ekGUI_COMPONENT_PANEL:
-        case ekGUI_COMPONENT_LINE:
-        case ekGUI_COMPONENT_HEADER:
-        case ekGUI_COMPONENT_WINDOW:
-        case ekGUI_COMPONENT_TOOLBAR:
+        case ekGUI_TYPE_LABEL:
+        case ekGUI_TYPE_SLIDER:
+        case ekGUI_TYPE_UPDOWN:
+        case ekGUI_TYPE_PROGRESS:
+        case ekGUI_TYPE_TABLEVIEW:
+        case ekGUI_TYPE_TREEVIEW:
+	    case ekGUI_TYPE_BOXVIEW:
+        case ekGUI_TYPE_SPLITVIEW:
+        case ekGUI_TYPE_CUSTOMVIEW:
+        case ekGUI_TYPE_PANEL:
+        case ekGUI_TYPE_LINE:
+        case ekGUI_TYPE_HEADER:
+        case ekGUI_TYPE_WINDOW:
+        case ekGUI_TYPE_TOOLBAR:
         cassert_default();
         }
             
@@ -170,7 +170,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if ((HWND)lParam != NULL)
         {
             OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
-            if (control->type == ekGUI_COMPONENT_SLIDER)
+            if (control->type == ekGUI_TYPE_SLIDER)
                 _osslider_message((OSSlider*)control, wParam);
         }
         else
@@ -206,7 +206,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         const NMHDR *nmhdr = (const NMHDR*)lParam;
         OSControl *control = (OSControl*)GetWindowLongPtr(nmhdr->hwndFrom, GWLP_USERDATA);
         cassert_no_null(control);
-        if (control->type == ekGUI_COMPONENT_UPDOWN)
+        if (control->type == ekGUI_TYPE_UPDOWN)
             _osupdown_OnNotification((OSUpDown*)control, nmhdr, lParam);
         return 0;
     }
@@ -222,7 +222,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         if (control != NULL)
         {
-            if (control->type == ekGUI_COMPONENT_LABEL)
+            if (control->type == ekGUI_TYPE_LABEL)
             {
                 COLORREF color, bgcolor;
                 HBRUSH bgbrush;
@@ -260,7 +260,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         HDC hdc = (HDC)wParam;
         cassert_no_null(control);
-        if (control->type == ekGUI_COMPONENT_EDITBOX)
+        if (control->type == ekGUI_TYPE_EDITBOX)
         {
             COLORREF color = UINT32_MAX, bgcolor = UINT32_MAX;
             HBRUSH bgbrush = NULL;
@@ -288,7 +288,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_CTLCOLORBTN:
     {
         OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
-        cassert_unref(control->type != ekGUI_COMPONENT_COMBOBOX, control);
+        cassert_unref(control->type != ekGUI_TYPE_COMBOBOX, control);
         break;
     }
 
@@ -349,7 +349,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 SetWindowOrgEx((HDC)wParam, 0, 0, NULL);
         }
 
-
         return res;
     }
 }
@@ -361,16 +360,16 @@ OSPanel *ospanel_create(const uint32_t flags)
     OSPanel *panel = heap_new0(OSPanel);
     DWORD dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-    if (flags & ekHSCROLL)
+    if (flags & ekVIEW_HSCROLL)
         dwStyle |= WS_HSCROLL;
 
-    if (flags & ekVSCROLL)
+    if (flags & ekVIEW_VSCROLL)
         dwStyle |= WS_VSCROLL;
 
-    panel->control.type = ekGUI_COMPONENT_PANEL;
+    panel->control.type = ekGUI_TYPE_PANEL;
     _oscontrol_init((OSControl*)panel, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kVIEW_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
 
-    if ((flags & ekHSCROLL) || (flags & ekVSCROLL))
+    if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
         panel->scroll = osscroll_create(panel->control.hwnd, FALSE, FALSE);
 
     panel->flags = flags;
@@ -546,7 +545,7 @@ void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const rea
 OSPanel *_ospanel_create_default(void)
 {
     OSPanel *panel = heap_new0(OSPanel);
-    panel->control.type = ekGUI_COMPONENT_PANEL;
+    panel->control.type = ekGUI_TYPE_PANEL;
     _oscontrol_init_hidden((OSControl*)panel, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS), kVIEW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
 	return panel;
 }
@@ -566,49 +565,49 @@ static BOOL CALLBACK i_destroy_child(HWND hwnd, LPARAM lParam)
     if (control != NULL)
     {
         switch (control->type) {
-        case ekGUI_COMPONENT_LABEL:
+        case ekGUI_TYPE_LABEL:
             _oslabel_detach_and_destroy((OSLabel**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_BUTTON:
+        case ekGUI_TYPE_BUTTON:
             _osbutton_detach_and_destroy((OSButton**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_POPUP:
+        case ekGUI_TYPE_POPUP:
             _ospopup_detach_and_destroy((OSPopUp**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_EDITBOX:
+        case ekGUI_TYPE_EDITBOX:
             _osedit_detach_and_destroy((OSEdit**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_COMBOBOX:
+        case ekGUI_TYPE_COMBOBOX:
             _oscombo_detach_and_destroy((OSCombo**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_SLIDER:
+        case ekGUI_TYPE_SLIDER:
             _osslider_detach_and_destroy((OSSlider**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_UPDOWN:
+        case ekGUI_TYPE_UPDOWN:
             _osupdown_detach_and_destroy((OSUpDown**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_PROGRESS:
+        case ekGUI_TYPE_PROGRESS:
             _osprogress_detach_and_destroy((OSProgress**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_TEXTVIEW:
+        case ekGUI_TYPE_TEXTVIEW:
             _ostext_detach_and_destroy((OSText**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_CUSTOMVIEW:
+        case ekGUI_TYPE_CUSTOMVIEW:
             _osview_detach_and_destroy((OSView**)&control, (OSPanel*)lParam);
             break;
-        case ekGUI_COMPONENT_PANEL:
+        case ekGUI_TYPE_PANEL:
             ospanel_detach((OSPanel*)control, (OSPanel*)lParam);
             _ospanel_destroy((OSPanel**)&control);
             break;
 
-        case ekGUI_COMPONENT_TABLEVIEW:
-        case ekGUI_COMPONENT_TREEVIEW:
-	    case ekGUI_COMPONENT_BOXVIEW:
-        case ekGUI_COMPONENT_SPLITVIEW:
-        case ekGUI_COMPONENT_LINE:
-        case ekGUI_COMPONENT_HEADER:
-        case ekGUI_COMPONENT_WINDOW:
-        case ekGUI_COMPONENT_TOOLBAR:
+        case ekGUI_TYPE_TABLEVIEW:
+        case ekGUI_TYPE_TREEVIEW:
+	    case ekGUI_TYPE_BOXVIEW:
+        case ekGUI_TYPE_SPLITVIEW:
+        case ekGUI_TYPE_LINE:
+        case ekGUI_TYPE_HEADER:
+        case ekGUI_TYPE_WINDOW:
+        case ekGUI_TYPE_TOOLBAR:
         cassert_default();
         }
     }
@@ -659,7 +658,7 @@ static BOOL CALLBACK i_draw_rect(HWND hwnd, LPARAM lParam)
     OSControl *control = (OSControl*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(control);
 
-    if (control->type != ekGUI_COMPONENT_PANEL)
+    if (control->type != ekGUI_TYPE_PANEL)
     {
         HDC hdc = (HDC)lParam;
         RECT rect;
@@ -744,6 +743,14 @@ COLORREF _ospanel_background_color(OSPanel *panel, HWND child_hwnd)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t _ospanel_with_scroll(const OSPanel *panel)
+{
+    cassert_no_null(panel);
+    return (bool_t)(panel->scroll != NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y)
 {
     cassert_no_null(panel);
@@ -759,4 +766,27 @@ void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y)
         *scroll_x = 0;
         *scroll_y = 0;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_scroll_frame(const OSPanel *panel, RECT *rect)
+{
+    int x, y, w, h;
+    cassert_no_null(panel);
+    cassert_no_null(rect);
+    osscroll_visible_area(panel->scroll, &x, &y, &w, &h, NULL, NULL);
+    rect->left = (LONG)x;
+    rect->top = (LONG)y;
+    rect->right = (LONG)(x + w);
+    rect->bottom = (LONG)(y + h);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_scroll(OSPanel *panel, const int x, const int y)
+{
+    cassert_no_null(panel);
+    if (panel->scroll != NULL)
+        osscroll_set(panel->scroll, x, y, TRUE);
 }

@@ -1,1 +1,1 @@
-processDesktopApp(Bricks "")
+processDesktopApp(Bricks "osapp" "")

@@ -36,6 +36,8 @@ void osstyleXP_CloseTheme(HTHEME theme);
 
 void osstyleXP_CloseThemeData(void);
 
+void osstyleXP_GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, const RECT *pBoundingRect, RECT *pContentRect);
+
 void osstyleXP_DrawThemeBackgroundNoBorder(HTHEME theme, int iPartId, int iStateId, HDC hdc, const RECT *rc);
 
 void osstyleXP_DrawThemeBackground2(HTHEME theme, int iPartId, int iStateId, HDC hdc, const RECT *rc);

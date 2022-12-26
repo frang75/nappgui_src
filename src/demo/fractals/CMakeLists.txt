@@ -1,1 +1,1 @@
-processDesktopApp(Fractals "")
+processDesktopApp(Fractals "osapp" "")

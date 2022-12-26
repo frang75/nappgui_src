@@ -15,33 +15,33 @@
 
 __EXTERN_C
 
-void dbind_imp(const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
+_core_api void dbind_imp(const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
 
-void dbind_enum_imp(const char_t *type, const char_t *name, const enum_t value, const char_t *alias);
+_core_api void dbind_enum_imp(const char_t *type, const char_t *name, const enum_t value, const char_t *alias);
 
-byte_t *dbind_create_imp(const char_t *type);
+_core_api byte_t *dbind_create_imp(const char_t *type);
 
-void dbind_init_imp(byte_t *data, const char_t *type);
+_core_api void dbind_init_imp(byte_t *data, const char_t *type);
 
-void dbind_remove_imp(byte_t *data, const char_t *type);
+_core_api void dbind_remove_imp(byte_t *data, const char_t *type);
 
-void dbind_destroy_imp(byte_t **data, const char_t *type);
+_core_api void dbind_destroy_imp(byte_t **data, const char_t *type);
 
-void dbind_destopt_imp(byte_t **data, const char_t *type);
+_core_api void dbind_destopt_imp(byte_t **data, const char_t *type);
 
-void *dbind_read_imp(Stream *stm, const char_t *type);
+_core_api void *dbind_read_imp(Stream *stm, const char_t *type);
 
-void dbind_write_imp(Stream *stm, const void *data, const char_t *type);
+_core_api void dbind_write_imp(Stream *stm, const void *data, const char_t *type);
 
-void dbind_default_imp(const char_t *type, const char_t *mname, const void *value);
+_core_api void dbind_default_imp(const char_t *type, const char_t *mname, const void *value);
 
-void dbind_range_imp(const char_t *type, const char_t *mname, const void *min, const void *max);
+_core_api void dbind_range_imp(const char_t *type, const char_t *mname, const void *min, const void *max);
 
-void dbind_precision_imp(const char_t *type, const char_t *mname, const void *prec);
+_core_api void dbind_precision_imp(const char_t *type, const char_t *mname, const void *prec);
 
-void dbind_increment_imp(const char_t *type, const char_t *mname, const void *incr);
+_core_api void dbind_increment_imp(const char_t *type, const char_t *mname, const void *incr);
 
-void dbind_suffix_imp(const char_t *type, const char_t *mname, const char_t *suffix);
+_core_api void dbind_suffix_imp(const char_t *type, const char_t *mname, const char_t *suffix);
 
 __END_C
 

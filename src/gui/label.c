@@ -15,15 +15,15 @@
 #include "component.inl"
 #include "gui.h"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
 #include "panel.inl"
+#include "guictx.h"
 
 #include "cassert.h"
 #include "color.h"
 #include "event.h"
 #include "font.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "strings.h"
 
@@ -33,14 +33,14 @@ struct _label_t
     S2Df size;
     ResId textid;
     String *text;
-    label_flag_t flags;
+    uint32_t flags;
     align_t halign;
     Font *font;
     Font *over_font;
     color_t color;
     color_t over_color;
     color_t bg_color;
-    color_t bg_over_color;    
+    color_t bg_over_color;
     Listener *OnClick;
 };
 
@@ -60,9 +60,9 @@ void _label_destroy(Label **label)
 
 /*---------------------------------------------------------------------------*/
 
-static Label *i_create(const label_flag_t flags, const align_t halign, const ellipsis_t ellipsis)
+static Label *i_create(const uint32_t flags, const align_t halign, const ellipsis_t ellipsis)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     Label *label = obj_new0(Label);
     void *ositem = NULL;
     label->font = _gui_create_default_font();
@@ -73,11 +73,11 @@ static Label *i_create(const label_flag_t flags, const align_t halign, const ell
     label->over_color = gui_label_color();
     label->bg_color = kCOLOR_TRANSPARENT;
     label->bg_over_color = kCOLOR_TRANSPARENT;
-    ositem = context->func_label_create((enum_t)flags);
+    ositem = context->func_create[ekGUI_TYPE_LABEL](flags);
     context->func_label_set_font(ositem, label->font);
     context->func_label_set_align(ositem, (enum_t)halign);
     context->func_label_set_ellipsis(ositem, (enum_t)ellipsis);
-    _component_init(&label->component, context, PARAM(type, ekGUI_COMPONENT_LABEL), &ositem);
+    _component_init(&label->component, context, PARAM(type, ekGUI_TYPE_LABEL), &ositem);
     return label;
 }
 
@@ -85,14 +85,14 @@ static Label *i_create(const label_flag_t flags, const align_t halign, const ell
 
 Label *label_create(void)
 {
-    return i_create(ekLBSING, PARAM(halign, ekLEFT), PARAM(ellipsis, ekELLIPEND));
+    return i_create(ekLABEL_SINGLE, PARAM(halign, ekLEFT), PARAM(ellipsis, ekELLIPEND));
 }
 
 /*---------------------------------------------------------------------------*/
 
 Label *label_multiline(void)
 {
-    return i_create(ekLBMULT, PARAM(halign, ekLEFT), PARAM(ellipsis, ekELLIPMLINE));
+    return i_create(ekLABEL_MULTI, PARAM(halign, ekLEFT), PARAM(ellipsis, ekELLIPMLINE));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -171,17 +171,9 @@ static void i_update_mouse_listeners(Label *label)
     else
     {
         label->component.context->func_label_OnMouseEnter(label->component.ositem, NULL);
-        label->component.context->func_label_OnMouseExit(label->component.ositem, NULL);        
+        label->component.context->func_label_OnMouseExit(label->component.ositem, NULL);
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void label_set_tag(Label *label, const uint32_t tag);
-//void label_set_tag(Label *label, const uint32_t tag)
-//{
-//    _component_set_tag((GuiComponent*)label, tag);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -199,8 +191,8 @@ void label_text(Label *label, const char_t *text)
 void label_font(Label *label, const Font *font)
 {
     cassert_no_null(label);
-    _gui_update_font(&label->font, &label->over_font, font);
-    label->component.context->func_label_set_font(label->component.ositem, label->font);
+    if (_gui_update_font(&label->font, &label->over_font, font) == TRUE)
+        label->component.context->func_label_set_font(label->component.ositem, label->font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -221,15 +213,6 @@ void label_align(Label *label, const align_t align)
     cassert_no_null(label);
     label->component.context->func_label_set_align(label->component.ositem, (enum_t)align);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void label_ellipsis(Label *label, const ellipsis_t ellipsis);
-//void label_ellipsis(Label *label, const ellipsis_t ellipsis)
-//{
-//    cassert_no_null(label);
-//    label->component.context->func_label_set_ellipsis(label->component.ositem, (enum_t)ellipsis);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -282,16 +265,15 @@ void _label_dimension(Label *label, const uint32_t i, real32_t *dim0, real32_t *
     else
     {
         cassert(i == 1);
-        switch (label_type(label->flags))
+        switch (label_get_type(label->flags))
         {
-            case ekLBSING:
+            case ekLABEL_SINGLE:
                 *dim1 = label->size.height;
                 break;
-            case ekLBMULT:
+            case ekLABEL_MULTI:
             {
                 real32_t width = 0.f;
                 label->component.context->func_label_bounds(label->component.ositem, tc(label->text), *dim0, &width, dim1);
-                //cassert(width <= *dim0);
                 break;
             }
             cassert_default();
@@ -325,6 +307,6 @@ void _label_text(Label *label, const char_t *text)
 bool_t _label_is_multiline(const Label *label)
 {
     cassert_no_null(label);
-    return (bool_t)(label_type(label->flags) == ekLBMULT);
+    return (bool_t)(label_get_type(label->flags) == ekLABEL_MULTI);
 }
 

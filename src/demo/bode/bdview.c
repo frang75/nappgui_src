@@ -163,7 +163,7 @@ static void i_slider_K(Layout *layout, const char_t *title, const uint32_t row)
     label_text(label, title);
     edit_align(edit, ekRIGHT);
     layout_label(layout, label, 0, row);
-    layout_slider(layout, slider, 1, row);    
+    layout_slider(layout, slider, 1, row);
     layout_edit(layout, edit, 2, row);
 }
 
@@ -201,7 +201,7 @@ static Layout* i_right(Ctrl *ctrl)
     View* view2 = view_create();
     layout_view(layout, view1, 0, 0);
     layout_view(layout, view2, 0, 1);
-    layout_layout(layout, layout1, 0, 2);        
+    layout_layout(layout, layout1, 0, 2);
     layout_vmargin(layout, 0, 2);
     layout_vmargin(layout, 1, 5);
     layout_vexpand2(layout, 0, 1, .5f);
@@ -219,7 +219,7 @@ static Panel *i_panel(Ctrl *ctrl)
     Layout *layout1 = i_left(ctrl);
     Layout* layout2 = i_right(ctrl);
     layout_layout(layout, layout1, 0, 0);
-    layout_layout(layout, layout2, 1, 0);        
+    layout_layout(layout, layout2, 1, 0);
     layout_hmargin(layout, 0, 5);
     layout_hexpand(layout, 1);
     layout_margin(layout, 10);
@@ -238,7 +238,7 @@ static Panel *i_panel(Ctrl *ctrl)
 Window* bdview_create(Ctrl *ctrl)
 {
     Panel *panel = i_panel(ctrl);
-    Window *window = window_create(ekWNSRES);
+    Window *window = window_create(ekWINDOW_STDRES);
     window_panel(window, panel);
     window_title(window, "Bode plot");
     return window;

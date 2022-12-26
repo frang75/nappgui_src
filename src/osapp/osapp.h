@@ -15,13 +15,13 @@
 
 __EXTERN_C
 
-void osapp_finish(void);
+_osapp_api void osapp_finish(void);
 
-void osapp_task_imp(void *data, const real32_t updtime, FPtr_task_main func_task_main, FPtr_task_update func_task_update, FPtr_task_end func_task_end);
+_osapp_api void osapp_task_imp(void *data, const real32_t updtime, FPtr_task_main func_task_main, FPtr_task_update func_task_update, FPtr_task_end func_task_end);
 
-void osapp_menubar(Menu *menu, Window *window);
+_osapp_api void osapp_menubar(Menu *menu, Window *window);
 
-void osapp_open_url(const char_t *url);
+_osapp_api void osapp_open_url(const char_t *url);
 
 __END_C
 

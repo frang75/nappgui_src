@@ -24,11 +24,5 @@ void _stm_restore_col(Stream *stm, const uint32_t col);
 
 void _stm_restore_row(Stream *stm, const uint32_t row);
 
-bool_t _stm_memory(const Stream *stm);
-
-uint32_t _stm_get_roffset(const Stream *stm);
-
-void _stm_set_roffset(Stream *stm, const uint32_t offset);
-
 __END_C
     

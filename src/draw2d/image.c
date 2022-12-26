@@ -12,11 +12,9 @@
 
 #include "image.h"
 #include "image.inl"
-#include "imgutils.inl"
-#include "respack.inl"
+#include "imgutil.inl"
 #include "buffer.h"
 #include "dctx.h"
-#include "dctx.inl"
 #include "draw.h"
 #include "draw.inl"
 #include "bmem.h"
@@ -26,8 +24,8 @@
 #include "palette.h"
 #include "pixbuf.h"
 #include "ptr.h"
+#include "respackh.h"
 #include "stream.h"
-#include "stream.inl"
 #include "strings.h"
 #include "t2d.h"
 
@@ -40,6 +38,8 @@ struct _image_t
     real32_t *frame_length;
     codec_t codec;
     OSImage *osimage;
+    void *data;
+    FPtr_destroy func_destroy_data;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -52,6 +52,8 @@ static Image *i_create_image(const uint32_t num_instances, const uint32_t num_fr
     image->frame_length = ptr_dget(frame_length, real32_t);
     image->codec = codec;
     image->osimage = ptr_dget_no_null(osimage, OSImage);
+    image->data = NULL;
+    image->func_destroy_data = NULL;
     return image;
 }
 
@@ -67,7 +69,13 @@ void image_destroy(Image **image)
 
         if ((*image)->frame_length != NULL)
             heap_free((byte_t**)&(*image)->frame_length, (*image)->num_frames * sizeof32(real32_t), "ImageFrames");
-        
+
+        if ((*image)->data != NULL)
+        {
+            if ((*image)->func_destroy_data != NULL)
+                (*image)->func_destroy_data(&(*image)->data);
+        }
+
         osimage_destroy(&(*image)->osimage);
         heap_delete(image, Image);
     }
@@ -131,7 +139,7 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
 
         if (cpalette == NULL)
         {
-            defpal = imgutils_def_palette(format);
+            defpal = imgutil_def_palette(format);
             cpalette = palette_ccolors(defpal);
         }
         else
@@ -149,9 +157,9 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
             rgb_pixels = imgutil_indexed_to_rgb(width, height, data, 0, bpp, cpalette);
 
         ptr_destopt(palette_destroy, &defpal, Palette);
-        break; 
+        break;
     }
-    
+
     case ekGRAY8:
     case ekRGB24:
     case ekRGBA32:
@@ -193,12 +201,13 @@ Image *image_from_pixbuf(const Pixbuf *pixbuf, const Palette *palette)
 
 static codec_t i_codec(const byte_t first)
 {
-    // Image Headers (only one byte for select)
-    // PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
-    // JPG: 0xFF 0xD8
-    // GIF: 'GIF'
-    // BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
-
+/*
+    Image Headers (only one byte for select)
+    PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
+    JPG: 0xFF 0xD8
+    GIF: 'GIF'
+    BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
+ */
     if (first == 0x89)
     {
         return ekPNG;
@@ -269,21 +278,6 @@ Image *image_copy(const Image *image)
     ((Image*)image)->num_instances += 1;
     return (Image*)image;
 }
-
-/*---------------------------------------------------------------------------*/
-
-//func(image_from_ftype).Obtiene el icono asociado a un tipo de archivo y que est� registrado en el sistema operativo.
-//fret(Image*).La imagen con el icono.
-//fpar(const char_t*,ftype).La extensi�n del archivo. Pe: <c>"doc"</c>, <c>"pdf"</c> o <c>"cpp"</c>. Para el icono de un directorio pasar <c>"."</c>.
-//Image *image_from_ftype(const char_t *ftype);
-//Image *image_system(const char_t *file_type);
-//Image *image_system(const char_t *file_type)
-//{
-//    OSImage *osimage = NULL;
-//    real32_t *frame_length = NULL;
-//    osimage = osimage_create_from_type(file_type);
-//    return i_create_image(1, PARAM(num_frames, 0), &frame_length, ekPNG, &osimage);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -417,10 +411,11 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
 
 Image *image_read(Stream *stm)
 {
-    if (_stm_memory(stm) == TRUE)
+    if (stm_is_memory(stm) == TRUE)
     {
         const byte_t *data = stm_buffer(stm);
         uint64_t st = stm_bytes_readed(stm);
+
         if (imgutil_parse(stm, NULL) == TRUE)
         {
             uint64_t ed = stm_bytes_readed(stm);
@@ -517,38 +512,39 @@ Pixbuf *image_pixels(const Image *image, const pixformat_t format)
     }
 
     return pixels;
-    //if (pixels != NULL)
-    //{
-    //    pixformat_t rformat = pixbuf_format(*pixels);
+/*     if (pixels != NULL)
+    {
+       pixformat_t rformat = pixbuf_format(*pixels);
 
-    //    if (format == ekOPTIMAL)
-    //    {
-    //        if (rformat == ekRGB24 || rformat == ekRGBA32)
-    //        {
-    //            Pixbuf *npixels = NULL;
-    //            cassert(palette == NULL || *palette == NULL);
-    //            npixels = imgutil_to_indexed(pixbuf_width(*pixels), pixbuf_height(*pixels), pixbuf_data(*pixels), rformat == ekRGB24 ? 3 : 4, palette);
-    //            if (npixels != NULL)
-    //            {
-    //                pixbuf_destroy(pixels);
-    //                *pixels = npixels;
-    //            }
-    //        }
-    //    }
-    //    else if (format == ekFIMAGE)
-    //    {
-    //        // Keep the image original format
-    //    }
-    //    else if (format != rformat)
-    //    {
-    //        Pixbuf *npixels = pixbuf_convert(*pixels, palette != NULL ? *palette : NULL, format);
-    //        if (npixels != NULL)
-    //        {
-    //            pixbuf_destroy(pixels);
-    //            *pixels = npixels;
-    //        }
-    //    }
-    //}
+       if (format == ekOPTIMAL)
+       {
+           if (rformat == ekRGB24 || rformat == ekRGBA32)
+           {
+               Pixbuf *npixels = NULL;
+               cassert(palette == NULL || *palette == NULL);
+               npixels = imgutil_to_indexed(pixbuf_width(*pixels), pixbuf_height(*pixels), pixbuf_data(*pixels), rformat == ekRGB24 ? 3 : 4, palette);
+               if (npixels != NULL)
+               {
+                   pixbuf_destroy(pixels);
+                   *pixels = npixels;
+               }
+           }
+       }
+       else if (format == ekFIMAGE)
+       {
+           // Keep the image original format
+       }
+       else if (format != rformat)
+       {
+           Pixbuf *npixels = pixbuf_convert(*pixels, palette != NULL ? *palette : NULL, format);
+           if (npixels != NULL)
+           {
+               pixbuf_destroy(pixels);
+               *pixels = npixels;
+           }
+       }
+    }
+ */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -610,6 +606,25 @@ real32_t image_frame_length(const Image *image, const uint32_t findex)
         i_frames((Image*)image);
     cassert(findex < image->num_frames);
     return image->frame_length[findex];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void image_data_imp(Image *image, void **data, FPtr_destroy func_destroy_data)
+{
+    cassert_no_null(image);
+    cassert(image->data == NULL);
+    cassert(image->func_destroy_data == NULL);
+    image->data = ptr_dget_no_null(data, void);
+    image->func_destroy_data = func_destroy_data;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *image_get_data_imp(const Image *image)
+{
+    cassert_no_null(image);
+    return image->data;
 }
 
 /*---------------------------------------------------------------------------*/

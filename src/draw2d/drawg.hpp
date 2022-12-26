@@ -21,19 +21,19 @@
 template<typename real>
 struct Draw
 {
-    static void (*v2d)(DCtx *ctx, const drawop_t op, const V2D<real> *v2d, const real radius);
+    _draw2d_api static void (*v2d)(DCtx *ctx, const drawop_t op, const V2D<real> *v2d, const real radius);
 
-    static void (*seg2d)(DCtx *ctx, const Seg2D<real> *seg);
+    _draw2d_api static void (*seg2d)(DCtx *ctx, const Seg2D<real> *seg);
 
-    static void (*cir2d)(DCtx *ctx, const drawop_t op, const Cir2D<real> *cir);
+    _draw2d_api static void (*cir2d)(DCtx *ctx, const drawop_t op, const Cir2D<real> *cir);
 
-    static void (*box2d)(DCtx *ctx, const drawop_t op, const Box2D<real> *box);
+    _draw2d_api static void (*box2d)(DCtx *ctx, const drawop_t op, const Box2D<real> *box);
 
-    static void (*obb2d)(DCtx *ctx, const drawop_t op, const OBB2D<real> *obb);
+    _draw2d_api static void (*obb2d)(DCtx *ctx, const drawop_t op, const OBB2D<real> *obb);
 
-    static void (*tri2d)(DCtx *ctx, const drawop_t op, const Tri2D<real> *tri);
+    _draw2d_api static void (*tri2d)(DCtx *ctx, const drawop_t op, const Tri2D<real> *tri);
 
-    static void (*pol2d)(DCtx *ctx, const drawop_t op, const Pol2D<real> *pol);
+    _draw2d_api static void (*pol2d)(DCtx *ctx, const drawop_t op, const Pol2D<real> *pol);
 };
 
 #endif

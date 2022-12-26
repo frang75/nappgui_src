@@ -29,7 +29,7 @@
 #error This file is only for Windows
 #endif
 
-struct _ospopup_t 
+struct _ospopup_t
 {
     OSControl control;
     Font *font;
@@ -44,7 +44,7 @@ struct _ospopup_t
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSPopUp *popup = (OSPopUp*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    cassert_no_null(popup);  
+    cassert_no_null(popup);
 
     switch (uMsg)
     {
@@ -54,7 +54,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		case WM_PAINT:
             if (_oswindow_in_resizing(hwnd) == TRUE)
                 return 0;
-            break;  
+            break;
     }
 
     return CallWindowProc(popup->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -69,13 +69,13 @@ static __INLINE DWORD i_style(void)
 
 /*---------------------------------------------------------------------------*/
 
-OSPopUp *ospopup_create(const popup_flag_t flags)
+OSPopUp *ospopup_create(const uint32_t flags)
 {
     OSPopUp *popup = NULL;
     DWORD dwStyle = 0;
     popup = heap_new0(OSPopUp);
     dwStyle = i_style();
-    popup->control.type = ekGUI_COMPONENT_POPUP;
+    popup->control.type = ekGUI_TYPE_POPUP;
     _oscontrol_init((OSControl*)popup, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), dwStyle, WC_COMBOBOXEX, 0, 120, i_WndProc, kDEFAULT_PARENT_WINDOW);
     popup->font = _osgui_create_default_font();
     popup->combo_hwnd = (HWND)SendMessage(popup->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
@@ -109,7 +109,7 @@ void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_elem(OSPopUp *popup, const op_t op, const uint32_t index, const char_t *text, const Image *image)
+void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
     cassert_no_null(popup);
     _oscombo_elem(popup->control.hwnd, popup->image_list, op, index, text, image);
@@ -252,11 +252,11 @@ void _ospopup_command(OSPopUp *popup, WPARAM wParam)
     if (HIWORD(wParam) == CBN_SELCHANGE && IsWindowEnabled(popup->control.hwnd) && popup->OnSelect != NULL)
     {
         EvButton params;
-        params.state = ekON;
+        params.state = ekGUI_ON;
         params.index = (uint32_t)SendMessage(popup->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
         cassert(params.index < (uint32_t)SendMessage(popup->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0));
         params.text = NULL;
-        listener_event(popup->OnSelect, ekEVPOPUP, popup, &params, NULL, OSPopUp, EvButton, void);
+        listener_event(popup->OnSelect, ekGUI_EVENT_POPUP, popup, &params, NULL, OSPopUp, EvButton, void);
     }
 }
 

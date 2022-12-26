@@ -21,7 +21,6 @@
 #include "color.h"
 #include "event.h"
 #include "font.h"
-#include "font.inl"
 #include "heap.h"
 #include "strings.h"
 
@@ -29,7 +28,7 @@
 #error This file is only for GTK Toolkit
 #endif
 
-struct _oslabel_t 
+struct _oslabel_t
 {
     OSControl control;
     GtkWidget *label;
@@ -57,9 +56,11 @@ static gboolean i_OnEnter(GtkWidget *widget, GdkEventCrossing *event, OSLabel *l
         EvMouse params;
         params.x = (real32_t)event->x;
         params.y = (real32_t)event->y;
-        params.button = ENUM_MAX(mouse_t);
+        params.lx = params.x;
+        params.ly = params.y;
+        params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
-        listener_event(label->OnMouseEnter, ekEVENTER, label, &params, NULL, OSLabel, EvMouse, void);
+        listener_event(label->OnMouseEnter, ekGUI_EVENT_ENTER, label, &params, NULL, OSLabel, EvMouse, void);
     }
 
     return TRUE;
@@ -73,7 +74,7 @@ static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSLabel *la
     unref(event);
     cassert_no_null(label);
     if (label->OnMouseExit != NULL)
-        listener_event(label->OnMouseExit, ekEVEXIT, label, NULL, NULL, OSLabel, void, void);
+        listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
 
     return TRUE;
 }
@@ -89,7 +90,7 @@ static gboolean i_OnClick(GtkWidget *widget, GdkEventButton *event, OSLabel *lab
     {
         EvText params;
         params.text = NULL;
-        listener_event(label->OnClick, ekEVLABEL, label, &params, NULL, OSLabel, EvText, void);
+        listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvText, void);
     }
 
     return TRUE;
@@ -171,8 +172,11 @@ static void i_set_bg_color(OSLabel *label, const color_t color)
     {
         GdkRGBA gdkcolor;
         _oscontrol_to_gdkrgba(color, &gdkcolor);
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         gtk_widget_override_background_color(label->control.widget, GTK_STATE_FLAG_NORMAL, &gdkcolor);
         gtk_widget_override_background_color(label->label, GTK_STATE_FLAG_NORMAL, &gdkcolor);
+        #pragma GCC diagnostic pop
     }
 
 #endif
@@ -180,11 +184,11 @@ static void i_set_bg_color(OSLabel *label, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-OSLabel *oslabel_create(const label_flag_t flags)
+OSLabel *oslabel_create(const uint32_t flags)
 {
     OSLabel *label = heap_new0(OSLabel);
     GtkWidget *widget = gtk_event_box_new();
-    _oscontrol_init(&label->control, ekGUI_COMPONENT_LABEL, widget, widget, TRUE);
+    _oscontrol_init(&label->control, ekGUI_TYPE_LABEL, widget, widget, TRUE);
     label->label = gtk_label_new(NULL);
     label->text = str_c("");
     label->font = _osgui_create_default_font();
@@ -192,7 +196,7 @@ OSLabel *oslabel_create(const label_flag_t flags)
     gtk_label_set_use_markup(GTK_LABEL(label->label), TRUE);
     gtk_widget_show(label->label);
     gtk_container_add(GTK_CONTAINER(widget), label->label);
-    gtk_label_set_line_wrap(GTK_LABEL(label->label), label_type(flags) == ekLBMULT ? TRUE : FALSE);
+    gtk_label_set_line_wrap(GTK_LABEL(label->label), label_get_type(flags) == ekLABEL_MULTI ? TRUE : FALSE);
     i_set_text(label);
     i_set_bg_color(label, kCOLOR_TRANSPARENT);
 	return label;
@@ -207,11 +211,11 @@ void oslabel_destroy(OSLabel **label)
 
     if ((*label)->bgcolor != NULL)
     {
-        // Not g_object_unref
-        // g_object_unref((*label)->bgcolor);
+        /* Not g_object_unref
+        g_object_unref((*label)->bgcolor); */
         (*label)->bgcolor = NULL;
     }
-    
+
     listener_destroy(&(*label)->OnClick);
     listener_destroy(&(*label)->OnMouseEnter);
     listener_destroy(&(*label)->OnMouseExit);
@@ -327,7 +331,7 @@ static PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
     cassert_default();
     }
 
-    return ekELLIPNONE;
+    return PANGO_ELLIPSIZE_NONE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -440,7 +444,7 @@ void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const rea
     _oscontrol_set_frame((OSControl*)label, x, y, width, height);
 
 #if GTK_CHECK_VERSION(3, 10, 0)
-    // Internal label doesn't need resize
+    /* Internal label doesn't need resize */
 #else
     gtk_widget_set_size_request(label->label, (gint)width, (gint)height);
 #endif

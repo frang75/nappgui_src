@@ -9,10 +9,10 @@
  */
 
 /* Listboxes */
-    
+
 #include "listboxes.h"
 #include "guiall.h"
-#include "res.h"
+#include "res_guihello.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -78,22 +78,6 @@ static ListBox *i_simple_listbox(void)
     listbox_add_elem(listbox, "Item 2", NULL);
     listbox_add_elem(listbox, "Item 3", NULL);
     listbox_add_elem(listbox, "Item 4", NULL);
-    //listbox_add_elem(listbox, "Item 5", NULL);
-    //listbox_add_elem(listbox, "Item 6", NULL);
-    //listbox_add_elem(listbox, "Item 7", NULL);
-    //listbox_add_elem(listbox, "Item 8", NULL);
-    //listbox_add_elem(listbox, "Item 9", NULL);
-    //listbox_add_elem(listbox, "Item 10", NULL);
-    //listbox_add_elem(listbox, "Item 11", NULL);
-    //listbox_add_elem(listbox, "Item 12", NULL);
-    //listbox_add_elem(listbox, "Item 13", NULL);
-    //listbox_add_elem(listbox, "Item 14", NULL);
-    //listbox_add_elem(listbox, "Item 15", NULL);
-    //listbox_add_elem(listbox, "Item 16", NULL);
-    //listbox_add_elem(listbox, "Item 17", NULL);
-    //listbox_add_elem(listbox, "Item 18", NULL);
-    //listbox_add_elem(listbox, "Item 19", NULL);
-    //listbox_add_elem(listbox, "Item 20", NULL);
     listbox_select(listbox, 0, TRUE);
     return listbox;
 }

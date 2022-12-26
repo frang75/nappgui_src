@@ -18,6 +18,4 @@ void _log_start(void);
 
 void _log_finish(void);
 
-void _log_printf_imp(const bool_t out_std, const bool_t err_std, const char_t *filepath, const char_t *format, va_list args);
-
 __END_C

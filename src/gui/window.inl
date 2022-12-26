@@ -16,8 +16,6 @@ __EXTERN_C
 
 void _window_update(Window *window);
 
-void _window_update_theme(Window *window);
-
 void *_window_ositem(Window *window);
 
 bool_t _window_is_visible(const Window *window);

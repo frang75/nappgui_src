@@ -10,8 +10,7 @@
 
 /* Array data structure */
 
-#include "core.inl"
-#include "blib.inl"
+#include "blib.h"
 #include "bmem.h"
 #include "cassert.h"
 #include "heap.h"
@@ -456,10 +455,10 @@ byte_t *array_all(const Array *array)
 
 byte_t *array_insert(Array *array, const uint32_t pos, const uint32_t n)
 {
-    register uint32_t celem, cpos;
+    uint32_t celem, cpos;
     cassert_no_null(array);
     celem = array->elems;
-    cpos = pos == UINT32_MAX ? celem : pos;
+    cpos = (pos == UINT32_MAX) ? celem : pos;
     cassert_msg(cpos <= array->elems, "Array invalid index");
     cassert(n > 0);
 

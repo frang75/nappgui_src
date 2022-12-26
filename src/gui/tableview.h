@@ -15,38 +15,53 @@
 
 __EXTERN_C
 
-TableView *tableview_create(const uint32_t num_cols, const uint32_t flags);
+_gui_api TableView *tableview_create(void);
 
-void tableview_OnNotify(TableView *view, Listener *listener);
+_gui_api void tableview_OnData(TableView *view, Listener *listener);
 
-void tableview_size(TableView *view, S2Df size);
+_gui_api void tableview_OnSelect(TableView *view, Listener *listener);
 
-void tableview_ctext(TableView *view, const uint32_t id, const char_t *text);
+_gui_api void tableview_OnHeaderClick(TableView *view, Listener *listener);
 
-void tableview_cwidth(TableView *view, const uint32_t id, const real32_t width);
+_gui_api void tableview_font(TableView *view, const Font *font);
 
-void tableview_calign(TableView *view, const uint32_t id, const align_t align);
+_gui_api void tableview_size(TableView *view, S2Df size);
 
-real32_t tableview_get_cwidth(TableView *view, const uint32_t id);
+_gui_api uint32_t tableview_new_column_text(TableView *view);
 
-void tableview_get_size(const TableView *view, S2Df *size);
+_gui_api void tableview_column_width(TableView *view, const uint32_t column_id, const real32_t width);
 
-void tableview_update(TableView *view);
-//void tableview_set_header_font(TableView *view, const Font *font);
-//
-//void tableview_set_header_text(TableView *view, const uint32_t column_id, const char_t *text);
-//
-//void tableview_set_header_align(TableView *view, const uint32_t column_id, const align_t align);
-//
-//void tableview_set_column_width(TableView *view, const uint32_t column_id, const real32_t width);
-//
-//void tableview_set_column_font(TableView *view, const uint32_t column_id, const Font *font);
-//
-//void tableview_set_column_align(TableView *view, const uint32_t column_id, const align_t align);
-//
-//void tableview_set_column_content_size(TableView *view, const uint32_t column_id, const S2Df *size);
-//
-//void tableview_OnGetNumRows(TableView *view, Listener *listener);
+_gui_api void tableview_column_limits(TableView *view, const uint32_t column_id, const real32_t min, const real32_t max);
+
+_gui_api void tableview_column_resizable(TableView *view, const uint32_t column_id, const bool_t resizable);
+
+_gui_api void tableview_column_freeze(TableView *view, const uint32_t last_column_id);
+
+_gui_api void tableview_header_title(TableView *view, const uint32_t column_id, const char_t *text);
+
+_gui_api void tableview_header_align(TableView *view, const uint32_t column_id, const align_t align);
+
+_gui_api void tableview_header_indicator(TableView *view, const uint32_t column_id, const uint32_t indicator);
+
+_gui_api void tableview_header_visible(TableView *view, const bool_t visible);
+
+_gui_api void tableview_header_clickable(TableView *view, const bool_t clickable);
+
+_gui_api void tableview_header_resizable(TableView *view, const bool_t resizable);
+
+_gui_api void tableview_multisel(TableView *view, const bool_t multisel, const bool_t preserve);
+
+_gui_api void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines);
+
+_gui_api void tableview_update(TableView *view);
+
+_gui_api void tableview_select(TableView *view, const uint32_t *rows, const uint32_t n);
+
+_gui_api void tableview_deselect(TableView *view, const uint32_t *rows, const uint32_t n);
+
+_gui_api void tableview_deselect_all(TableView *view);
+
+_gui_api const ArrSt(uint32_t) *tableview_selected(const TableView *view);
 
 __END_C
 

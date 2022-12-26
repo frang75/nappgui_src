@@ -17,15 +17,14 @@
 #include "event.h"
 #include "heap.h"
 #include "image.h"
-#include "image.inl"
 #include "strings.h"
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
 #endif
 
-static uint16_t i_VIRTUAL_KEY[] = 
-{ 
+static uint16_t i_VIRTUAL_KEY[] =
+{
     UINT16_MAX,                 /*ekKEY_UNASSIGNED      = 0*/
     'a',                        /*ekKEY_A               = 1*/
     's',                        /*ekKEY_S               = 2*/
@@ -43,12 +42,12 @@ static uint16_t i_VIRTUAL_KEY[] =
     'q',                        /*ekKEY_Q               = 13*/
     'w',                        /*ekKEY_W               = 14*/
     'e',                        /*ekKEY_E               = 15*/
-    'r',                        /*ekKEY_R               = 16*/ 
+    'r',                        /*ekKEY_R               = 16*/
     'y',                        /*ekKEY_Y               = 17*/
     't',                        /*ekKEY_T               = 18*/
     '1',                        /*ekKEY_1               = 19*/
 
-    '2',                        /*ekKEY_2               = 20*/ 
+    '2',                        /*ekKEY_2               = 20*/
     '3',                        /*ekKEY_3               = 21*/
     '4',                        /*ekKEY_4               = 22*/
     '6',                        /*ekKEY_6               = 23*/
@@ -136,7 +135,7 @@ static uint16_t i_VIRTUAL_KEY[] =
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXMenuItem : NSMenuItem 
+@interface OSXMenuItem : NSMenuItem
 {
     @public
     Listener *OnClick;
@@ -162,26 +161,26 @@ static uint16_t i_VIRTUAL_KEY[] =
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_state(const NSInteger state)
+static gui_state_t i_state(const NSInteger state)
 {
 #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     if (state == NSControlStateValueOff)
-        return ekOFF;
+        return ekGUI_OFF;
     if (state == NSControlStateValueOn)
-        return ekON;
+        return ekGUI_ON;
     if (state == NSControlStateValueMixed)
-        return ekMIXED;
+        return ekGUI_MIXED;
     cassert_msg(FALSE, "Unknown menu state");
-    return ENUM_MAX(state_t);
+    return ENUM_MAX(gui_state_t);
 #else
     if (state == NSOffState)
-        return ekOFF;
+        return ekGUI_OFF;
     if (state == NSOnState)
-        return ekON;
+        return ekGUI_ON;
     if (state == NSMixedState)
-        return ekMIXED;
+        return ekGUI_MIXED;
     cassert_msg(FALSE, "Unknown menu state");
-    return ENUM_MAX(state_t);
+    return ENUM_MAX(gui_state_t);
 #endif
 }
 
@@ -196,7 +195,7 @@ static state_t i_state(const NSInteger state)
         params.index = UINT32_MAX;
         params.state = i_state([(OSXMenuItem*)sender state]);
         params.str = NULL;
-        listener_event(((OSXMenuItem*)sender)->OnClick, ekEVMENU, (OSMenuItem*)sender, &params, NULL, OSMenuItem, EvMenu, void);
+        listener_event(((OSXMenuItem*)sender)->OnClick, ekGUI_EVENT_MENU, (OSMenuItem*)sender, &params, NULL, OSMenuItem, EvMenu, void);
     }
 }
 
@@ -204,10 +203,10 @@ static state_t i_state(const NSInteger state)
 
 /*---------------------------------------------------------------------------*/
 
-OSMenuItem *osmenuitem_create(const menu_flag_t flag)
+OSMenuItem *osmenuitem_create(const uint32_t flag)
 {
     switch (flag) {
-    case ekMNITEM:
+    case ekMENU_ITEM:
     {
         OSXMenuItem *item = [[OSXMenuItem alloc] initWithTitle:[NSString string] action:@selector(menuItemPressed:) keyEquivalent:[NSString string]];
         heap_auditor_add("OSXMenuItem");
@@ -218,13 +217,13 @@ OSMenuItem *osmenuitem_create(const menu_flag_t flag)
         [item setHidden:NO];
         return (OSMenuItem*)item;
     }
-            
-    case ekMNSEPARATOR:
+
+    case ekMENU_SEPARATOR:
         return (OSMenuItem*)[NSMenuItem separatorItem];
-    cassert_default();
             
+    cassert_default();
     }
-    
+
     return NULL;
 }
 
@@ -237,7 +236,7 @@ static BOOL i_check_item(NSObject *item)
     {
         return YES;
     }
-    else if ([item class] == [NSMenuItem class]) 
+    else if ([item class] == [NSMenuItem class])
     {
         return [(NSMenuItem*)item isSeparatorItem];
     }
@@ -263,7 +262,7 @@ void osmenuitem_destroy(OSMenuItem **item)
         listener_destroy(&((OSXMenuItem*)*item)->OnClick);
         [(NSMenuItem*)*item release];
     }
-    
+
     *item = NULL;
 }
 
@@ -298,27 +297,28 @@ void osmenuitem_visible(OSMenuItem *item, const bool_t visible)
 /*---------------------------------------------------------------------------*/
 
 void osmenuitem_text(OSMenuItem *item, const char_t *text)
-{    
+{
     NSString *str = nil;
     NSMenu *subMenu = nil;
     cassert_no_null(item);
     cassert_no_null(text);
     cassert([((NSObject*)item) isKindOfClass:[OSXMenuItem class]] == YES);
-    
+
     /* In Mac OS X El Capitan, the "Enter Full Screen" menu item appears by itself */
     /* https://github.com/electron/electron/issues/3038 */
     if (str_equ_nocase(text, "view") == TRUE || str_equ_nocase(text, "edit") == TRUE)
     {
         char_t nstr[32];
+        char_t u200C[] = {(char_t)226, (char_t)128, (char_t)140, 0};
         str_copy_c(nstr, sizeof(nstr), text);
-        str_cat_c(nstr, sizeof(nstr), "\u200C");
+        str_cat_c(nstr, sizeof(nstr), u200C);
         str = [[NSString alloc] initWithUTF8String:(const char*)nstr];
     }
     else
     {
         str = [[NSString alloc] initWithUTF8String:(const char*)text];
     }
-    
+
     [(OSXMenuItem*)item setTitle:str];
     /* The text printed in the menu do not take from NSMenuItem, but [NSMenuItem subMenu]
        lists.apple.com/archives/cocoa-dev/2008/Nov/msg00217.html */
@@ -368,16 +368,16 @@ void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers
 
 /*---------------------------------------------------------------------------*/
 
-static NSInteger i_menuitem_state(const state_t state)
+static NSInteger i_menuitem_state(const gui_state_t state)
 {
 #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     switch (state)
     {
-        case ekOFF:
+        case ekGUI_OFF:
             return NSControlStateValueOff;
-        case ekON:
+        case ekGUI_ON:
             return NSControlStateValueOn;
-        case ekMIXED:
+        case ekGUI_MIXED:
             return NSControlStateValueMixed;
         default:
             cassert(FALSE);
@@ -386,11 +386,11 @@ static NSInteger i_menuitem_state(const state_t state)
 #else
     switch (state)
     {
-        case ekOFF:
+        case ekGUI_OFF:
             return NSOffState;
-        case ekON:
+        case ekGUI_ON:
             return NSOnState;
-        case ekMIXED:
+        case ekGUI_MIXED:
             return NSMixedState;
         default:
             cassert(FALSE);
@@ -401,7 +401,7 @@ static NSInteger i_menuitem_state(const state_t state)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_state(OSMenuItem *item, const state_t state)
+void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
 {
     NSInteger _state;
     cassert_no_null(item);

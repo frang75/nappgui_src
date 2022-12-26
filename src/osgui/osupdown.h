@@ -14,28 +14,28 @@
 
 __EXTERN_C
 
-OSUpDown *osupdown_create(const updown_flag_t flags);
+_osgui_api OSUpDown *osupdown_create(const uint32_t flags);
 
-void osupdown_destroy(OSUpDown **updown);
+_osgui_api void osupdown_destroy(OSUpDown **updown);
 
-void osupdown_OnClick(OSUpDown *updown, Listener *listener);
+_osgui_api void osupdown_OnClick(OSUpDown *updown, Listener *listener);
 
-void osupdown_tooltip(OSUpDown *updown, const char_t *text);
+_osgui_api void osupdown_tooltip(OSUpDown *updown, const char_t *text);
 
 
-void osupdown_attach(OSUpDown *updown, OSPanel *panel);
+_osgui_api void osupdown_attach(OSUpDown *updown, OSPanel *panel);
 
-void osupdown_detach(OSUpDown *updown, OSPanel *panel);
+_osgui_api void osupdown_detach(OSUpDown *updown, OSPanel *panel);
 
-void osupdown_visible(OSUpDown *updown, const bool_t visible);
+_osgui_api void osupdown_visible(OSUpDown *updown, const bool_t visible);
 
-void osupdown_enabled(OSUpDown *updown, const bool_t enabled);
+_osgui_api void osupdown_enabled(OSUpDown *updown, const bool_t enabled);
 
-void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height);
+_osgui_api void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height);
 
-void osupdown_origin(const OSUpDown *updown, real32_t *x, real32_t *y);
+_osgui_api void osupdown_origin(const OSUpDown *updown, real32_t *x, real32_t *y);
 
-void osupdown_frame(OSUpDown *updown, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
+_osgui_api void osupdown_frame(OSUpDown *updown, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 
 __END_C
 

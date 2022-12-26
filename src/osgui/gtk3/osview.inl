@@ -24,5 +24,7 @@ void _osview_set_focus(OSView *view);
 
 void _osview_unset_focus(OSView *view);
 
+GtkWidget *_osview_focus(OSView *view);
+
 __END_C
 

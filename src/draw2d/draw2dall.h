@@ -8,31 +8,17 @@
  *
  */
 
-/* All-in-one osdraw headers include */
+/* All-in-one draw2d headers include */
 
-#include "coreall.h"
+#include "geom2dall.h"
 
-/* geom2d */
-#include "v2d.h"
-#include "s2d.h"
-#include "r2d.h"
-#include "t2d.h"
-#include "seg2d.h"
-#include "cir2d.h"
-#include "box2d.h"
-#include "obb2d.h"
-#include "tri2d.h"
-#include "pol2d.h"
-#include "col2d.h"
-
-/* draw2d */
-#include "draw2d.h"
 #include "color.h"
 #include "dctx.h"
 #include "draw.h"
+#include "draw2d.h"
 #include "drawg.h"
 #include "font.h"
 #include "image.h"
-#include "pixbuf.h"
 #include "palette.h"
+#include "pixbuf.h"
 

@@ -26,7 +26,7 @@
 typedef struct _lexopts_t LexOpts;
 
 typedef enum _state_t
-{   
+{
     stSTART,
     stSPACES,
     stSLASH,
@@ -48,7 +48,7 @@ typedef enum _state_t
     stEXP,
     stEXP1,
     stEND
-} state_t;
+} gui_state_t;
 
 struct _lexopts_t
 {
@@ -72,7 +72,7 @@ struct _lexscn_t
 
 /*---------------------------------------------------------------------------*/
 
-LexScn *lexscn_create(void)
+LexScn *_lexscn_create(void)
 {
     LexScn *lex = heap_new0(LexScn);
     lex->lexsize = 256;
@@ -82,7 +82,7 @@ LexScn *lexscn_create(void)
 
 /*---------------------------------------------------------------------------*/
 
-void lexscn_destroy(LexScn **lex)
+void _lexscn_destroy(LexScn **lex)
 {
     cassert_no_null(lex);
     cassert_no_null(*lex);
@@ -92,7 +92,7 @@ void lexscn_destroy(LexScn **lex)
 
 /*---------------------------------------------------------------------------*/
 
-void lexscn_spaces(LexScn *lex, const bool_t activate)
+void _lexscn_spaces(LexScn *lex, const bool_t activate)
 {
     cassert_no_null(lex);
     lex->opts.spaces = activate;
@@ -100,7 +100,7 @@ void lexscn_spaces(LexScn *lex, const bool_t activate)
 
 /*---------------------------------------------------------------------------*/
 
-void lexscn_newlines(LexScn *lex, const bool_t activate)
+void _lexscn_newlines(LexScn *lex, const bool_t activate)
 {
     cassert_no_null(lex);
     lex->opts.newlines = activate;
@@ -108,7 +108,7 @@ void lexscn_newlines(LexScn *lex, const bool_t activate)
 
 /*---------------------------------------------------------------------------*/
 
-void lexscn_escapes(LexScn *lex, const bool_t activate)
+void _lexscn_escapes(LexScn *lex, const bool_t activate)
 {
     cassert_no_null(lex);
     lex->opts.escapes = activate;
@@ -116,22 +116,11 @@ void lexscn_escapes(LexScn *lex, const bool_t activate)
 
 /*---------------------------------------------------------------------------*/
 
-void lexscn_comments(LexScn *lex, const bool_t activate)
+void _lexscn_comments(LexScn *lex, const bool_t activate)
 {
     cassert_no_null(lex);
     lex->opts.comments = activate;
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void lexscn_start(LexScn *lex, Stream *stm);
-//void lexscn_start(LexScn *lex, Stream *stm)
-//{
-//    cassert_no_null(lex);
-//    lex->col = 1;
-//    lex->row = 1;
-//    lex->stm = stm;
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -141,7 +130,7 @@ static uint32_t i_get_char(LexScn *lex, Stream *stm)
     uint32_t row = stm_col(stm);
     uint32_t code = stm_read_char(stm);
     cassert_no_null(lex);
-    
+
     if (__TRUE_EXPECTED(code != UINT32_MAX))
     {
         lex->pcol = col;
@@ -187,7 +176,7 @@ static void i_add_lexeme(LexScn *lex, const uint32_t code)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_START(const uint32_t code, ltoken_t *token)
+static gui_state_t i_START(const uint32_t code, ltoken_t *token)
 {
     cassert_no_null(token);
     switch (code) {
@@ -307,7 +296,7 @@ static state_t i_START(const uint32_t code, ltoken_t *token)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_SPACES(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_SPACES(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code == ' ' || code == '\t' || code == '\v' || code == '\f' || code == '\r')
         return stSPACES;
@@ -319,7 +308,7 @@ static state_t i_SPACES(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_SLASH(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_SLASH(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code == '/')
         return stSL_COMMENT;
@@ -333,7 +322,7 @@ static state_t i_SLASH(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_SL_COMMENT(const uint32_t code, ltoken_t *token)
+static gui_state_t i_SL_COMMENT(const uint32_t code, ltoken_t *token)
 {
     if (code == '\n')
     {
@@ -345,7 +334,7 @@ static state_t i_SL_COMMENT(const uint32_t code, ltoken_t *token)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_ML_COMMENT(const uint32_t code)
+static gui_state_t i_ML_COMMENT(const uint32_t code)
 {
     if (code == '*')
         return stML_COMMENT2;
@@ -354,7 +343,7 @@ static state_t i_ML_COMMENT(const uint32_t code)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_ML_COMMENT2(const uint32_t code, ltoken_t *token)
+static gui_state_t i_ML_COMMENT2(const uint32_t code, ltoken_t *token)
 {
     if (code == '/')
     {
@@ -370,7 +359,7 @@ static state_t i_ML_COMMENT2(const uint32_t code, ltoken_t *token)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_PERIOD(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_PERIOD(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code >= '0' && code <= '9')
         return stREAL;
@@ -382,7 +371,7 @@ static state_t i_PERIOD(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_IDENTIFIER(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_IDENTIFIER(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code >= 'a' && code <= 'z')
         return stIDENTIFIER;
@@ -400,7 +389,7 @@ static state_t i_IDENTIFIER(const uint32_t code, ltoken_t *token, uint8_t *chars
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_STRING(const uint32_t code, const bool_t escapes, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_STRING(const uint32_t code, const bool_t escapes, ltoken_t *token, uint8_t *charst)
 {
     if (code == '\\')
     {
@@ -419,7 +408,7 @@ static state_t i_STRING(const uint32_t code, const bool_t escapes, ltoken_t *tok
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *ci, char_t *c, uint8_t *charst)
+static gui_state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *ci, char_t *c, uint8_t *charst)
 {
     if (escapes == FALSE)
     {
@@ -472,7 +461,7 @@ static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *c
         return stSTRING;
     }
 
-    // Octal char
+    /* Octal char */
     if (*code >= '0' && *code <= '7')
     {
         cassert(*ci == 0);
@@ -482,7 +471,7 @@ static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *c
         return stSTRING_OCTAL;
     }
 
-    // Hex char
+    /* Hex char */
     if (*code == 'x')
     {
         cassert(*ci == 0);
@@ -490,7 +479,7 @@ static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *c
         return stSTRING_HEX;
     }
 
-    // Unicode BMP
+    /* Unicode BMP */
     if (*code == 'u')
     {
         cassert(*ci == 0);
@@ -498,7 +487,7 @@ static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *c
         return stSTRING_UNICODE4;
     }
 
-    // Unicode 32bits
+    /* Unicode 32bits */
     if (*code == 'U')
     {
         cassert(*ci == 0);
@@ -506,7 +495,7 @@ static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *c
         return stSTRING_UNICODE8;
     }
 
-    // Ignored escape sequence
+    /* Ignored escape sequence */
     cassert(*ci == 0);
     *charst = DISCARD_CHAR;
     return stSTRING;
@@ -514,7 +503,7 @@ static state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_t *c
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_STRING_OCTAL(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
+static gui_state_t i_STRING_OCTAL(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
 {
     if (*code >= '0' && *code <= '7')
     {
@@ -542,7 +531,7 @@ static state_t i_STRING_OCTAL(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_STRING_HEX(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
+static gui_state_t i_STRING_HEX(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
 {
     if ((*code >= 'a' && *code <= 'f') || (*code >= 'A' && *code <= 'F'))
     {
@@ -563,7 +552,7 @@ static state_t i_STRING_HEX(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *ch
         }
     }
 
-    // '\xhh' with 0 or 1 hex char --> discart
+    /* '\xhh' with 0 or 1 hex char --> discart */
     *ci = 0;
     *charst = DISCARD_CHAR;
     return stSTRING;
@@ -571,7 +560,7 @@ static state_t i_STRING_HEX(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *ch
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_STRING_UNICODE4(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
+static gui_state_t i_STRING_UNICODE4(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
 {
     if ((*code >= 'a' && *code <= 'f') || (*code >= 'A' && *code <= 'F'))
     {
@@ -592,14 +581,14 @@ static state_t i_STRING_UNICODE4(uint32_t *code, uint32_t *ci, char_t *c, uint8_
         }
     }
 
-    // '\uhhhh' with 0, 1, 2 or 3 hex char --> discart
+    /* '\uhhhh' with 0, 1, 2 or 3 hex char --> discart */
     *charst = DISCARD_CHAR;
     return stSTRING;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_STRING_UNICODE8(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
+static gui_state_t i_STRING_UNICODE8(uint32_t *code, uint32_t *ci, char_t *c, uint8_t *charst)
 {
     if ((*code >= 'a' && *code <= 'f') || (*code >= 'A' && *code <= 'F'))
     {
@@ -620,14 +609,14 @@ static state_t i_STRING_UNICODE8(uint32_t *code, uint32_t *ci, char_t *c, uint8_
         }
     }
 
-    // '\Uhhhhhhhh' with (0-7) hex char --> discart
+    /* '\Uhhhhhhhh' with (0-7) hex char --> discart */
     *charst = DISCARD_CHAR;
     return stSTRING;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_ZERO(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_ZERO(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code == 'x' || code == 'X')
         return stHEX;
@@ -643,7 +632,7 @@ static state_t i_ZERO(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_INT(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_INT(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code >= '0' && code <= '9')
         return stINT;
@@ -664,7 +653,7 @@ static state_t i_INT(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_HEX(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_HEX(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code >= '0' && code <= '9')
         return stHEX;
@@ -690,7 +679,7 @@ static state_t i_HEX(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_REAL(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_REAL(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code >= '0' && code <= '9')
         return stREAL;
@@ -713,7 +702,7 @@ static state_t i_REAL(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_EXP(const uint32_t code, ltoken_t *token)
+static gui_state_t i_EXP(const uint32_t code, ltoken_t *token)
 {
     if (code >= '0' && code <= '9')
         return stEXP1;
@@ -727,7 +716,7 @@ static state_t i_EXP(const uint32_t code, ltoken_t *token)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_EXP1(const uint32_t code, ltoken_t *token, uint8_t *charst)
+static gui_state_t i_EXP1(const uint32_t code, ltoken_t *token, uint8_t *charst)
 {
     if (code >= '0' && code <= '9')
         return stEXP1;
@@ -750,20 +739,7 @@ static state_t i_EXP1(const uint32_t code, ltoken_t *token, uint8_t *charst)
 
 /*---------------------------------------------------------------------------*/
 
-//void lexscn_jump_bom(LexScn *lex, Stream *stm);
-//void lexscn_jump_bom(LexScn *lex, Stream *stm)
-//{
-//    uint32_t code = i_get_char(lex, stm);
-//
-//    while (code == 0xFEFF)
-//        code = i_get_char(lex, stm);
-//
-//    i_store_char(lex, stm, code);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-ltoken_t lexscn_token(LexScn *lex, Stream *stm)
+ltoken_t _lexscn_token(LexScn *lex, Stream *stm)
 {
     ltoken_t token = ENUM_MAX(ltoken_t);
 
@@ -771,7 +747,7 @@ ltoken_t lexscn_token(LexScn *lex, Stream *stm)
     uint32_t code = 0;
     uint32_t ci = 0;
     char_t c[10];
-    state_t state = stSTART;
+    gui_state_t state = stSTART;
     cassert_no_null(lex);
     lex->tcol = stm_col(stm);
     lex->trow = stm_row(stm);
@@ -862,7 +838,7 @@ ltoken_t lexscn_token(LexScn *lex, Stream *stm)
             i_add_lexeme(lex, code);
         else if (charst == STORE_CHAR)
             i_store_char(lex, stm, code);
-        else 
+        else
             { cassert(charst == DISCARD_CHAR); }
 
         if (state == stEND)
@@ -899,7 +875,7 @@ ltoken_t lexscn_token(LexScn *lex, Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t lexscn_row(const LexScn *lex)
+uint32_t _lexscn_row(const LexScn *lex)
 {
     cassert_no_null(lex);
     return lex->trow;
@@ -907,7 +883,7 @@ uint32_t lexscn_row(const LexScn *lex)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t lexscn_col(const LexScn *lex)
+uint32_t _lexscn_col(const LexScn *lex)
 {
     cassert_no_null(lex);
     return lex->tcol;
@@ -915,7 +891,7 @@ uint32_t lexscn_col(const LexScn *lex)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *lexscn_lexeme(const LexScn *lex, uint32_t *size)
+const char_t *_lexscn_lexeme(const LexScn *lex, uint32_t *size)
 {
     cassert_no_null(lex);
     ptr_assign(size, lex->lexi);
@@ -924,7 +900,7 @@ const char_t *lexscn_lexeme(const LexScn *lex, uint32_t *size)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *lexscn_string(const ltoken_t token)
+const char_t *_lexscn_string(const ltoken_t token)
 {
     switch (token) {
     case ekTSLCOM:
@@ -957,7 +933,7 @@ const char_t *lexscn_string(const ltoken_t token)
     case ekTOPENCURL:
         return "{";
     case ekTCLOSCURL:
-        return "}";    
+        return "}";
     case ekTPLUS:
         return "+";
     case ekTMINUS:
@@ -1019,115 +995,3 @@ const char_t *lexscn_string(const ltoken_t token)
 
     return "--";
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void lexscn_jump(LexScn *lex, Stream *stm, const ltoken_t token);
-//void lexscn_jump(LexScn *lex, Stream *stm, const ltoken_t token)
-//{
-//    ltoken_t tok = lexscn_token(lex, stm);
-//    if (tok != token)
-//        stm_corrupt(stm);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//const char_t *lexscn_read_line(LexScn *lex);
-//const char_t *lexscn_read_line(LexScn *lex)
-//{
-//    uint32_t code = 0;
-//    cassert_no_null(lex);
-//
-//    for(;;) 
-//    {
-//        code = i_get_code(lex, lex->stm);
-//        if (code == ' ' || code == '\t' || code == '\v' || code == '\f' || code == '\r')
-//            continue;
-//        else
-//            break;
-//    }
-//
-//    lex->tcol = lex->col;
-//    lex->trow = lex->row;
-//    lex->lexi = 0;
-//
-//    while(code != '\n' && code != 0) 
-//    {
-//        i_add_lexeme(lex, code);        
-//        code = i_get_code(lex, lex->stm);
-//    }
-//
-//    lex->lexeme[lex->lexi] = '\0';
-//    return lex->lexeme;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//uint32_t lexscn_read_u32(LexScn *lex, Stream *stm);
-//uint32_t lexscn_read_u32(LexScn *lex, Stream *stm)
-//{
-//    ltoken_t tok = lexscn_token(lex, stm);
-//
-//    if (tok == ekTINTEGER)
-//        return str_to_u32(lexscn_lexeme(lex, NULL), 10, NULL);
-//
-//    stm_corrupt(stm);
-//    return 0;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//real32_t lexscn_read_r32(LexScn *lex, Stream *stm);
-//real32_t lexscn_read_r32(LexScn *lex, Stream *stm)
-//{
-//    bool_t minus = FALSE;
-//    ltoken_t tok = lexscn_token(lex, stm);
-//
-//    if (tok == ekTMINUS)
-//    {
-//        minus = TRUE;
-//        tok = lexscn_token(lex, stm);
-//    }
-//
-//    if (tok == ekTINTEGER || tok == ekTREAL)
-//    {
-//        real32_t number = str_to_r32(lexscn_lexeme(lex, NULL), NULL);
-//
-//        if (minus == TRUE)
-//            return - number;
-//        else
-//            return number;
-//    }
-//
-//    stm_corrupt(stm);
-//    return 0;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//real64_t lexscn_read_r64(LexScn *lex, Stream *stm);
-//real64_t lexscn_read_r64(LexScn *lex, Stream *stm)
-//{
-//    bool_t minus = FALSE;
-//    ltoken_t tok = lexscn_token(lex, stm);
-//
-//    if (tok == ekTMINUS)
-//    {
-//        minus = TRUE;
-//        tok = lexscn_token(lex, stm);
-//    }
-//
-//    if (tok == ekTINTEGER || tok == ekTREAL)
-//    {
-//        real64_t number = str_to_r64(lexscn_lexeme(lex, NULL), NULL);
-//
-//        if (minus == TRUE)
-//            return - number;
-//        else
-//            return number;
-//    }
-//
-//    stm_corrupt(stm);
-//    return 0;
-//}
-

@@ -15,31 +15,31 @@
 
 __EXTERN_C
 
-R2Df r2df(const real32_t x, const real32_t y, const real32_t width, const real32_t height);
+_geom2d_api R2Df r2df(const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 
-R2Dd r2dd(const real64_t x, const real64_t y, const real64_t width, const real64_t height);
+_geom2d_api R2Dd r2dd(const real64_t x, const real64_t y, const real64_t width, const real64_t height);
 
-V2Df r2d_centerf(const R2Df* r2d);
+_geom2d_api V2Df r2d_centerf(const R2Df* r2d);
 
-V2Dd r2d_centerd(const R2Dd* r2d);
+_geom2d_api V2Dd r2d_centerd(const R2Dd* r2d);
 
-bool_t r2d_collidef(const R2Df *r2d1, const R2Df *r2d2);
+_geom2d_api bool_t r2d_collidef(const R2Df *r2d1, const R2Df *r2d2);
 
-bool_t r2d_collided(const R2Dd *r2d1, const R2Dd *r2d2);
+_geom2d_api bool_t r2d_collided(const R2Dd *r2d1, const R2Dd *r2d2);
 
-bool_t r2d_containsf(const R2Df *r2d, const real32_t x, const real32_t y);
+_geom2d_api bool_t r2d_containsf(const R2Df *r2d, const real32_t x, const real32_t y);
 
-bool_t r2d_containsd(const R2Dd *r2d, const real64_t x, const real64_t y);
+_geom2d_api bool_t r2d_containsd(const R2Dd *r2d, const real64_t x, const real64_t y);
 
-bool_t r2d_clipf(const R2Df *viewport, const R2Df *r2d);
+_geom2d_api bool_t r2d_clipf(const R2Df *viewport, const R2Df *r2d);
 
-bool_t r2d_clipd(const R2Dd *viewport, const R2Dd *r2d);
+_geom2d_api bool_t r2d_clipd(const R2Dd *viewport, const R2Dd *r2d);
 
-void r2d_joinf(R2Df *r2d, const R2Df *src);
+_geom2d_api void r2d_joinf(R2Df *r2d, const R2Df *src);
 
-void r2d_joind(R2Dd *r2d, const R2Dd *src);
+_geom2d_api void r2d_joind(R2Dd *r2d, const R2Dd *src);
 
-extern const R2Df kR2D_ZEROf;
-extern const R2Dd kR2D_ZEROd;
+_geom2d_api extern const R2Df kR2D_ZEROf;
+_geom2d_api extern const R2Dd kR2D_ZEROd;
 
 __END_C

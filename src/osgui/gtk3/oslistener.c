@@ -29,7 +29,7 @@ void _oslistener_init(ViewListeners *listeners)
     cassert_no_null(listeners);
     bmem_zero(listeners, ViewListeners);
     listeners->is_enabled = TRUE;
-    listeners->button = ENUM_MAX(mouse_t);
+    listeners->button = ENUM_MAX(gui_mouse_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -54,44 +54,81 @@ void _oslistener_remove(ViewListeners *listeners)
 
 void _oslistener_signal(GtkWidget *widget, bool_t add, gint *signal_id, gint signal_mask, const gchar *signal_name, GCallback callback, gpointer callback_data)
 {
-    if (add == TRUE)
+    gboolean is_realized = gtk_widget_get_realized(widget);
+    #if defined (__DEBUG__)
+    const gchar *type = G_OBJECT_TYPE_NAME(widget);
+    #endif
+    cassert(gtk_widget_get_has_window(widget) == TRUE);
+
+    /*
+     * gtk_widget_set_events(): This function must be called while a widget is unrealized.
+     * Consider gtk_widget_add_events() for widgets that are already realized, or if you
+     * want to preserve the existing event mask. This function can’t be used with widgets
+     * that have no window. (See gtk_widget_get_has_window()). To get events on those widgets,
+     * place them inside a GtkEventBox and receive events on the event box.
+     */
+    if (is_realized == FALSE)
     {
-        if (*signal_id == 0)
+        if (add == TRUE)
         {
-            gtk_widget_add_events(widget, signal_mask);
-            *signal_id = g_signal_connect(G_OBJECT(widget), signal_name, callback, callback_data);
+            if (*signal_id == 0)
+            {
+                gtk_widget_add_events(widget, signal_mask);
+                *signal_id = g_signal_connect(G_OBJECT(widget), signal_name, callback, callback_data);
+            }
+        }
+        else
+        {
+            /* We want to delete the signal */
+            if (*signal_id != 0)
+            {
+                /* We delete the event mask */
+                gint emask = gtk_widget_get_events(widget);
+                emask &= ~signal_mask;
+                gtk_widget_set_events(widget, emask);
+                g_signal_handler_disconnect(G_OBJECT(widget), *signal_id);
+                *signal_id = 0;
+            }
         }
     }
+    /* Widget is realized */
     else
     {
-        if (*signal_id != 0)
+        if (add == TRUE)
         {
-            gint emask = gtk_widget_get_events(widget);
-            emask &= ~signal_mask;
-            gtk_widget_set_events(widget, emask);
-            g_signal_handler_disconnect(G_OBJECT(widget), *signal_id);
-            signal_id = 0;
+            if (*signal_id == 0)
+            {
+                gtk_widget_add_events(widget, signal_mask);
+                *signal_id = g_signal_connect(G_OBJECT(widget), signal_name, callback, callback_data);
+            }
+        }
+        /* If widget */
+        else
+        {
+            /* We want to delete the signal */
+            if (*signal_id != 0)
+            {
+                /* We can't delete the event mask if widget is realized */
+                g_signal_handler_disconnect(G_OBJECT(widget), *signal_id);
+                *signal_id = 0;
+            }
         }
     }
+
+    #if defined (__DEBUG__)
+    unref(type);
+    #endif
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void _oslistener_set_enabled(ViewListeners *listeners, bool_t is_enabled)
-//{
-//    cassert_no_null(listeners);
-//    listeners->is_enabled = is_enabled;
-//}
 
 /*---------------------------------------------------------------------------*/
 
 void _oslistener_redraw(OSControl *sender, EvDraw *params, ViewListeners *listeners)
 {
     cassert_no_null(sender);
-    cassert(sender->type == ekGUI_COMPONENT_CUSTOMVIEW);
+    cassert(sender->type == ekGUI_TYPE_CUSTOMVIEW);
     cassert_no_null(listeners);
     if (listeners->OnDraw != NULL)
-        listener_event(listeners->OnDraw, ekEVDRAW, sender, params, NULL, OSControl, EvDraw, void);
+        listener_event(listeners->OnDraw, ekGUI_EVENT_DRAW, sender, params, NULL, OSControl, EvDraw, void);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -104,7 +141,9 @@ void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, GtkAdju
         EvMouse params;
         params.x = (real32_t)event->x;
         params.y = (real32_t)event->y;
-        params.button = ENUM_MAX(mouse_t);
+        params.lx = params.x;
+        params.ly = params.y;
+        params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
 
         if (hadjust != NULL)
@@ -113,7 +152,7 @@ void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, GtkAdju
         if (vadjust != NULL)
             params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-        listener_event(listeners->OnEnter, ekEVENTER, sender, &params, NULL, OSControl, EvMouse, void);
+        listener_event(listeners->OnEnter, ekGUI_EVENT_ENTER, sender, &params, NULL, OSControl, EvMouse, void);
     }
 }
 
@@ -124,7 +163,7 @@ void _oslistener_mouse_exit(OSControl *sender, GdkEventCrossing *event, ViewList
     cassert_no_null(listeners);
     unref(event);
     if (listeners->OnExit != NULL)
-        listener_event(listeners->OnExit, ekEVEXIT, sender, NULL, NULL, OSControl, void, void);
+        listener_event(listeners->OnExit, ekGUI_EVENT_EXIT, sender, NULL, NULL, OSControl, void, void);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -135,13 +174,15 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, GtkAdjust
     cassert_no_null(sender);
     if (listeners->is_enabled == TRUE)
     {
-        if (listeners->button != ENUM_MAX(mouse_t))
+        if (listeners->button != ENUM_MAX(gui_mouse_t))
         {
             if (listeners->OnDrag != NULL)
             {
                 EvMouse params;
                 params.x = (real32_t)event->x;
                 params.y = (real32_t)event->y;
+                params.lx = params.x;
+                params.ly = params.y;
                 params.button = listeners->button;
                 params.count = 0;
 
@@ -151,7 +192,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, GtkAdjust
                 if (vadjust != NULL)
                     params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-                listener_event(listeners->OnDrag, ekEVDRAG, sender, &params, NULL, OSControl, EvMouse, void);
+                listener_event(listeners->OnDrag, ekGUI_EVENT_DRAG, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
         else
@@ -161,7 +202,9 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, GtkAdjust
                 EvMouse params;
                 params.x = (real32_t)event->x;
                 params.y = (real32_t)event->y;
-                params.button = ENUM_MAX(mouse_t);
+                params.lx = params.x;
+                params.ly = params.y;
+                params.button = ENUM_MAX(gui_mouse_t);
                 params.count = 0;
 
                 if (hadjust != NULL)
@@ -170,7 +213,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, GtkAdjust
                 if (vadjust != NULL)
                     params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-                listener_event(listeners->OnMoved, ekEVMOVED, sender, &params, NULL, OSControl, EvMouse, void);
+                listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
     }
@@ -185,16 +228,16 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, GtkAdjustm
     {
         switch(event->button) {
         case 1:
-            listeners->button = ekMLEFT;
+            listeners->button = ekGUI_MOUSE_LEFT;
             break;
         case 2:
-            listeners->button = ekMMIDDLE;
+            listeners->button = ekGUI_MOUSE_MIDDLE;
             break;
         case 3:
-            listeners->button = ekMRIGHT;
+            listeners->button = ekGUI_MOUSE_RIGHT;
             break;
         default:
-            listeners->button = ekMLEFT;
+            listeners->button = ekGUI_MOUSE_LEFT;
             break;
         }
 
@@ -203,6 +246,8 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, GtkAdjustm
             EvMouse params;
             params.x = (real32_t)event->x;
             params.y = (real32_t)event->y;
+            params.lx = params.x;
+            params.ly = params.y;
             params.button = listeners->button;
             params.count = 0;
 
@@ -212,7 +257,7 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, GtkAdjustm
             if (vadjust != NULL)
                 params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-            listener_event(listeners->OnDown, ekEVDOWN, sender, &params, NULL, OSControl, EvMouse, void);
+            listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, sender, &params, NULL, OSControl, EvMouse, void);
         }
     }
 }
@@ -223,13 +268,15 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, GtkAdjustmen
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
-    if (listeners->is_enabled == TRUE && listeners->button != ENUM_MAX(mouse_t))
+    if (listeners->is_enabled == TRUE && listeners->button != ENUM_MAX(gui_mouse_t))
     {
         if (listeners->OnUp != NULL)
         {
             EvMouse params;
             params.x = (real32_t)event->x;
             params.y = (real32_t)event->y;
+            params.lx = params.x;
+            params.ly = params.y;
             params.button = listeners->button;
             params.count = 0;
 
@@ -239,7 +286,7 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, GtkAdjustmen
             if (vadjust != NULL)
                 params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-            listener_event(listeners->OnUp, ekEVUP, sender, &params, NULL, OSControl, EvMouse, void);
+            listener_event(listeners->OnUp, ekGUI_EVENT_UP, sender, &params, NULL, OSControl, EvMouse, void);
         }
 
         if (listeners->OnClick != NULL)
@@ -247,6 +294,8 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, GtkAdjustmen
             EvMouse params;
             params.x = (real32_t)event->x;
             params.y = (real32_t)event->y;
+            params.lx = params.x;
+            params.ly = params.y;
             params.button = listeners->button;
 
             switch(event->type) {
@@ -270,10 +319,10 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, GtkAdjustmen
             if (vadjust != NULL)
                 params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-            listener_event(listeners->OnClick, ekEVCLICK, sender, &params, NULL, OSControl, EvMouse, void);
+            listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, sender, &params, NULL, OSControl, EvMouse, void);
         }
 
-        listeners->button = ENUM_MAX(mouse_t);
+        listeners->button = ENUM_MAX(gui_mouse_t);
     }
 }
 
@@ -300,7 +349,7 @@ void _oslistener_scroll_whell(OSControl *sender, GdkEventScroll *event, GtkAdjus
             if (vadjust != NULL)
                 params.y += (real32_t)gtk_adjustment_get_value(vadjust);
 
-            listener_event(listeners->OnWheel, ekEVWHEEL, sender, &params, NULL, OSControl, EvWheel, void);
+            listener_event(listeners->OnWheel, ekGUI_EVENT_WHEEL, sender, &params, NULL, OSControl, EvWheel, void);
         }
     }
 }
@@ -310,7 +359,7 @@ void _oslistener_scroll_whell(OSControl *sender, GdkEventScroll *event, GtkAdjus
 static bool_t i_key_event(OSControl *sender, const uint32_t type, GdkEventKey *event, Listener *listener)
 {
     cassert_no_null(sender);
-    cassert_unref(sender->type == ekGUI_COMPONENT_CUSTOMVIEW, sender);
+    cassert_unref(sender->type == ekGUI_TYPE_CUSTOMVIEW, sender);
     if (listener != NULL)
     {
         vkey_t key = ENUM_MAX(vkey_t);
@@ -318,7 +367,7 @@ static bool_t i_key_event(OSControl *sender, const uint32_t type, GdkEventKey *e
         register uint32_t i, n = kNUM_VKEYS;
         register const guint *keys = kVIRTUAL_KEY;
 
-        // Letter events as uppercase
+        /* Letter events as uppercase */
         if (kval >= 97 && kval <= 122)
         {
             kval -= 32;
@@ -386,7 +435,7 @@ static bool_t i_key_event(OSControl *sender, const uint32_t type, GdkEventKey *e
 bool_t _oslistener_key_down(OSControl *sender, GdkEventKey *event, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
-    return i_key_event(sender, ekEVKEYDOWN, event, listeners->OnKeyDown);
+    return i_key_event(sender, ekGUI_EVENT_KEYDOWN, event, listeners->OnKeyDown);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -394,30 +443,7 @@ bool_t _oslistener_key_down(OSControl *sender, GdkEventKey *event, ViewListeners
 bool_t _oslistener_key_up(OSControl *sender, GdkEventKey *event, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
-    return i_key_event(sender, ekEVKEYUP, event, listeners->OnKeyUp);
+    return i_key_event(sender, ekGUI_EVENT_KEYUP, event, listeners->OnKeyUp);
 }
 
 /*---------------------------------------------------------------------------*/
-
-//void _oslistener_key_flags_changed(const NSView *view, NSEvent *theEvent, ViewListeners *listeners)
-//{
-//    cassert_no_null(listeners);
-//    cassert_no_null(theEvent);
-//    if (listeners->is_enabled == YES)
-//    {
-//        NSUInteger flags;
-//        BOOL alt_down, control_down;
-//        flags = [theEvent modifierFlags];
-//        alt_down = (BOOL)((flags & NSAlternateKeyMask) == NSAlternateKeyMask);
-//        control_down = (BOOL)((flags & NSControlKeyMask) == NSControlKeyMask);
-//        if (alt_down == YES && listeners->OnKeyDown_listener.object != NULL)
-//            i_launch_key_event(view, ekGUI_EVENT_KEY_DOWN, ekGUI_KEY_ALT, &listeners->OnKeyDown_listener);
-//        if (alt_down == NO && listeners->OnKeyUp_listener.object != NULL)
-//            i_launch_key_event(view, ekGUI_EVENT_KEY_UP, ekGUI_KEY_ALT, &listeners->OnKeyUp_listener);
-//        if (control_down == YES && listeners->OnKeyDown_listener.object != NULL)
-//            i_launch_key_event(view, ekGUI_EVENT_KEY_DOWN, ekGUI_KEY_CONTROL, &listeners->OnKeyDown_listener);
-//        if (control_down == NO && listeners->OnKeyUp_listener.object != NULL)
-//            i_launch_key_event(view, ekGUI_EVENT_KEY_UP, ekGUI_KEY_CONTROL, &listeners->OnKeyUp_listener);
-//    }
-//}
-

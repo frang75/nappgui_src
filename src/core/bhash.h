@@ -14,11 +14,11 @@
 
 __EXTERN_C
 
-uint32_t bhash_from_block(const byte_t *data, const uint32_t size);
+_core_api uint32_t bhash_from_block(const byte_t *data, const uint32_t size);
 
-uint32_t bhash_append_uint32(const uint32_t hash, const uint32_t value); 
+_core_api uint32_t bhash_append_uint32(const uint32_t hash, const uint32_t value); 
 
-uint32_t bhash_append_real32(const uint32_t hash, const real32_t value);
+_core_api uint32_t bhash_append_real32(const uint32_t hash, const real32_t value);
 
 __END_C
 

@@ -53,7 +53,7 @@ static const uint32_t i_NUM_ROWS = 4;
 /*---------------------------------------------------------------------------*/
 
 static void i_OnDraw(App *app, Event *e)
-{    
+{
     const EvDraw *params = event_params(e, EvDraw);
     uint32_t i = 0;
 
@@ -72,7 +72,7 @@ static void i_OnDraw(App *app, Event *e)
             draw_rect(params->ctx, ekFILLSK, x, y, width, height);
         }
     }
-    
+
     {
         real32_t x = (app->player_pos - app->brick_width) * params->width;
         real32_t y = (1 - i_BRICK_HEIGHT - i_BRICK_SEPARATION) * params->height;
@@ -119,11 +119,11 @@ static void i_OnStart(App *app, Event *e)
     Label *label = label_create();
     Button *button = button_push();
     view_size(view, s2df(258, 344));
-    view_OnDraw(view, listener(app, i_OnDraw, App)); 
+    view_OnDraw(view, listener(app, i_OnDraw, App));
     slider_OnMoved(slider, listener(app, i_OnSlider, App));
     label_text(label, "Use the slider!");
     button_text(button, "Start");
-    button_OnClick(button, listener(app, i_OnStart, App));    
+    button_OnClick(button, listener(app, i_OnStart, App));
     layout_view(layout, view, 0, 0);
     layout_slider(layout, slider, 0, 1);
     layout_label(layout, label, 0, 2);
@@ -146,7 +146,7 @@ static void i_init_game(App *app)
     real32_t hoffset;
     Brick *brick = NULL;
     uint32_t j, i;
-    
+
     app->color[0] = color_rgb(255, 0, 0);
     app->color[1] = color_rgb(0, 255, 0);
     app->color[2] = color_rgb(0, 0, 255);
@@ -161,7 +161,7 @@ static void i_init_game(App *app)
     for (j = 0; j < i_NUM_ROWS; ++j)
     {
         real32_t woffset = i_BRICK_SEPARATION;
-        
+
         for (i = 0; i < i_BRICKS_PER_ROW; ++i)
         {
             brick->x = woffset;
@@ -171,10 +171,10 @@ static void i_init_game(App *app)
             woffset += app->brick_width + i_BRICK_SEPARATION;
             brick++;
         }
-        
+
         hoffset += i_BRICK_HEIGHT + i_BRICK_SEPARATION;
     }
-    
+
     app->player_pos = slider_get_value(app->slider);
     app->ball_x = .5f;
     app->ball_y = .5f;
@@ -199,7 +199,7 @@ static App *i_create(void)
 {
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
-    app->window = window_create(ekWNSRES);
+    app->window = window_create(ekWINDOW_STDRES);
     window_panel(app->window, panel);
     window_origin(app->window, v2df(200, 200));
     window_title(app->window, "Bricks - A 2D Game");
@@ -241,22 +241,22 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
         real32_t step = (real32_t)(ctime - prtime);
         bool_t collide;
         uint32_t i;
-    
-        // Update ball position
+
+        /* Update ball position */
         app->ball_x += step * app->ball_speed * app->ball_dir.x;
         app->ball_y += step * app->ball_speed * app->ball_dir.y;
-    
-        // Collision with limits
+
+        /* Collision with limits */
         if (app->ball_x + i_BALL_RADIUS >= 1.f && app->ball_dir.x >= 0.f)
             app->ball_dir.x = - app->ball_dir.x;
-    
+
         if (app->ball_x - i_BALL_RADIUS <= 0.f && app->ball_dir.x <= 0.f)
             app->ball_dir.x = - app->ball_dir.x;
 
         if (app->ball_y - i_BALL_RADIUS <= 0.f && app->ball_dir.y <= 0.f)
             app->ball_dir.y = - app->ball_dir.y;
-    
-        // Collision with bricks
+
+        /* Collision with bricks */
         collide = FALSE;
         for (i = 0; i < NUM_BRICKS; ++i)
         {
@@ -277,7 +277,7 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
             }
         }
 
-        // Collision with player
+        /* Collision with player */
         {
             Brick player;
             player.x = app->player_pos - app->brick_width;
@@ -290,7 +290,7 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
             }
         }
 
-        // Game Over
+        /* Game Over */
         if (app->ball_y + i_BALL_RADIUS >= 1.f)
         {
             i_init_game(app);

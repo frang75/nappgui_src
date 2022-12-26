@@ -196,7 +196,7 @@ static bool_t i_check_nfa(const NFA *nfa)
 
 /*---------------------------------------------------------------------------*/
 
-NFA *nfa_string(const char_t *str)
+NFA *_nfa_string(const char_t *str)
 {
     NFA *nfa = heap_new0(NFA);
     register uint32_t codepoint = unicode_to_u32(str, ekUTF8);
@@ -223,7 +223,7 @@ NFA *nfa_string(const char_t *str)
 
 /*---------------------------------------------------------------------------*/
 
-void nfa_destroy(NFA **nfa)
+void _nfa_destroy(NFA **nfa)
 {
     cassert_no_null(nfa);
     cassert_no_null(*nfa);
@@ -707,7 +707,7 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
             nfa1 = arrpt_last(stack, NFA);
             i_nfa_union(nfa1, nfa2);
             cassert(i_check_nfa(nfa1) == TRUE);
-            nfa_destroy(&nfa2);
+            _nfa_destroy(&nfa2);
             break;
         }
         
@@ -719,7 +719,7 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
             nfa1 = arrpt_last(stack, NFA);
             i_nfa_concat(nfa1, nfa2);
             cassert(i_check_nfa(nfa1) == TRUE);
-            nfa_destroy(&nfa2);
+            _nfa_destroy(&nfa2);
             break;
         }
 
@@ -746,7 +746,7 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
 
 /*---------------------------------------------------------------------------*/
 
-NFA *nfa_regex(const char_t *regex, const bool_t verbose)
+NFA *_nfa_regex(const char_t *regex, const bool_t verbose)
 {
     ArrSt(NToken) *tokens = i_tokens_unix_regex(regex);
     NFA *nfa = NULL;
@@ -835,7 +835,7 @@ static void i_add_closure(const ArrSt(Trans) *ttable, ArrSt(uint32_t) *states, c
 
 /*---------------------------------------------------------------------------*/
 
-void nfa_start(NFA *nfa)
+void _nfa_start(NFA *nfa)
 {
     cassert_no_null(nfa);
     if (nfa->current == NULL)
@@ -854,7 +854,7 @@ void nfa_start(NFA *nfa)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t nfa_next(NFA *nfa, const uint32_t codepoint)
+bool_t _nfa_next(NFA *nfa, const uint32_t codepoint)
 {
     cassert_no_null(nfa);
     arrst_clear(nfa->temp, NULL, uint32_t);
@@ -870,7 +870,7 @@ bool_t nfa_next(NFA *nfa, const uint32_t codepoint)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t nfa_accept(NFA *nfa)
+bool_t _nfa_accept(NFA *nfa)
 {
     register uint32_t accept;
     cassert_no_null(nfa);

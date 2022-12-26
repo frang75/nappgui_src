@@ -10,23 +10,17 @@
 
 /* Drawing custom GUI controls */
 
-#include "draw.h"
-#include "draw.inl"
-#include "dctx.inl"
 #include "osdrawctrl.h"
 #include "osglobals.inl"
 #include "cassert.h"
+#include "draw.h"
+#include "dctxh.h"
 #include "font.h"
-#include "image.inl"
 #include "color.h"
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
 #endif
-
-#include "dctx_gtk.inl"
-#include "draw_gtk.inl"
-#include "draw2d_gtk.ixx"
 
 /*---------------------------------------------------------------------------*/
 
@@ -41,7 +35,7 @@ Font *osdrawctrl_font(const DCtx *ctx)
 uint32_t osdrawctrl_row_padding(const DCtx *ctx)
 {
     unref(ctx);
-    return 2;
+    return 4;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -62,65 +56,157 @@ uint32_t osdrawctrl_check_height(const DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-multisel_t osdrawctrl_multisel(const DCtx *ctx, const vkey_t key)
+ctrl_msel_t osdrawctrl_multisel(const DCtx *ctx, const vkey_t key)
 {
     unref(ctx);
     if (key == ekKEY_LCTRL || key == ekKEY_RCTRL)
-        return ekMULTISEL_SINGLE;
+        return ekCTRL_MSEL_SINGLE;
     else if (key == ekKEY_LSHIFT || key == ekKEY_RSHIFT)
-        return ekMULTISEL_BURST;
-    return ekMULTISEL_NO;
+        return ekCTRL_MSEL_BURST;
+    return ekCTRL_MSEL_NO;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_clear(DCtx *ctx)
+void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const enum_t nonused)
 {
     GtkStyleContext *c = osglobals_entry_context();
-    //uint32_t w, h;
-    cassert_no_null(ctx);
-    //dctx_size(ctx, &w, &h);
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
+    real32_t offset_x, offset_y;
+    const double i_CORNER_OFFSET = 10;
+    unref(nonused);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    cairo_save(cairo);
+    cairo_rectangle(cairo, (double)x + offset_x, (double)y + offset_y, (double)width, (double)height);
+    cairo_clip(cairo);
     gtk_style_context_save(c);
     gtk_style_context_set_state(c, GTK_STATE_FLAG_NORMAL);
-    gtk_render_background(c, ctx->cairo, ctx->scroll_x, ctx->scroll_y, ctx->clip_width, ctx->clip_height);
+    gtk_render_background(c, cairo, (gdouble)x + offset_x - i_CORNER_OFFSET, (gdouble)y + offset_y - i_CORNER_OFFSET, (gdouble)width + 2 * i_CORNER_OFFSET, (gdouble)height + 2 * i_CORNER_OFFSET);
     gtk_style_context_restore(c);
+    cairo_restore(cairo);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_fill(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    GtkStyleContext *c = osglobals_table_context();
+    static const uint32_t backoffset = 10;
+    GtkStyleContext *c = osglobals_button_context();
+    color_t border = osglobals_border_color();
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
     GtkStateFlags flags = 0;
+    real32_t r, g, b, a;
 
-    cassert_no_null(ctx);
-
-    switch (state) {
-    case ekCSTATE_NORMAL:
+    switch(state) {
+    case ekCTRL_STATE_NORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         flags = GTK_STATE_FLAG_NORMAL;
         break;
 
-    case ekCSTATE_HOT:
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
         flags = GTK_STATE_FLAG_PRELIGHT;
         break;
 
-    case ekCSTATE_PRESSED:
+    case ekCTRL_STATE_PRESSED:
+    case ekCTRL_STATE_BKPRESSED:
+    #if GTK_CHECK_VERSION(3, 14, 0)
+        flags = GTK_STATE_FLAG_CHECKED;
+    #else
+        flags = GTK_STATE_FLAG_SELECTED;
+    #endif
+        break;
+
+    case ekCTRL_STATE_DISABLED:
+        flags = GTK_STATE_FLAG_INSENSITIVE;
+        break;
+
+    cassert_default();
+    }
+
+    /* Preserve cairo context */
+    cairo_save(cairo);
+    cairo_set_antialias(cairo, CAIRO_ANTIALIAS_NONE);
+
+    /* Avoid drawing outside the header rectangle */
+    cairo_rectangle(cairo, (double)x, (double)y, (double)width, (double)height);
+    cairo_clip(cairo);
+
+    /* Background offset avoid roundness/alpha in button context borders */
+    gtk_style_context_save(c);
+    gtk_style_context_set_state(c, flags);
+    gtk_render_background(c, cairo, (double)x - backoffset, (double)y - backoffset, (double)width + 2 * backoffset, (double)height + backoffset);
+    gtk_style_context_restore(c);
+
+    /* Draw the border */
+    color_get_rgbaf(border, &r, &g, &b, &a);
+    cairo_set_source_rgba(cairo, (double)r, (double)g, (double)b, (double)a);
+    cairo_rectangle(cairo, (double)x, (double)y, (double)width, (double)height);
+    cairo_stroke(cairo);
+
+    /* Restore cairo context */
+    cairo_restore(cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const indicator_t indicator)
+{
+    static const gdouble ind_size = 8;
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
+
+    unref(height);
+    cairo_save(cairo);
+    cairo_set_antialias(cairo, CAIRO_ANTIALIAS_NONE);
+
+    if(indicator & ekINDDOWN_ARROW)
+    {
+        GtkStyleContext *c = osglobals_table_context();
+        gtk_render_arrow(c, cairo, 3.14159, (gdouble)(x + width / 2. - ind_size / 2.), y, ind_size);
+    }
+    else if(indicator & ekINDUP_ARROW)
+    {
+        GtkStyleContext *c = osglobals_table_context();
+        gtk_render_arrow(c, cairo, 0, (gdouble)(x + width / 2. - ind_size / 2.), y, ind_size);
+    }
+
+    cairo_restore(cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
+{
+    GtkStyleContext *c = osglobals_table_context();
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
+    GtkStateFlags flags = 0;
+
+    switch (state) {
+    case ekCTRL_STATE_NORMAL:
+        flags = GTK_STATE_FLAG_NORMAL;
+        break;
+
+    case ekCTRL_STATE_HOT:
+        flags = GTK_STATE_FLAG_PRELIGHT;
+        break;
+
+    case ekCTRL_STATE_PRESSED:
         flags = GTK_STATE_FLAG_SELECTED;
         break;
 
-    case ekCSTATE_BKNORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         flags = GTK_STATE_FLAG_NORMAL | GTK_STATE_FLAG_BACKDROP;
         break;
 
-    case ekCSTATE_BKHOT:
+    case ekCTRL_STATE_BKHOT:
         flags = GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_BACKDROP;
         break;
 
-    case ekCSTATE_BKPRESSED:
+    case ekCTRL_STATE_BKPRESSED:
         flags = GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_BACKDROP;
         break;
 
-    case ekCSTATE_DISABLED:
+    case ekCTRL_STATE_DISABLED:
         flags = GTK_STATE_FLAG_INSENSITIVE;
         break;
 
@@ -129,106 +215,117 @@ void osdrawctrl_fill(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32
 
     gtk_style_context_save(c);
     gtk_style_context_set_state(c, flags);
-    gtk_render_background(c, ctx->cairo, (double)x, (double)y, (double)width, (double)height);
+    gtk_render_background(c, cairo, (double)x, (double)y, (double)width, (double)height);
     gtk_style_context_restore(c);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_focus(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    GtkStyleContext *c = osglobals_table_context();
-    cassert_no_null(ctx);
+    color_t color = osglobals_text_color();
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
+    real32_t pattern[2] = {2.f, 1.f};
+    real32_t r, g, b, a;
     unref(state);
-    gtk_style_context_save(c);
-    gtk_style_context_set_state(c, GTK_STATE_FLAG_SELECTED);
-    gtk_render_focus(c, ctx->cairo, (double)x, (double)y, (double)width - 2, (double)height);
-    gtk_style_context_restore(c);
+    cairo_save(cairo);
+    cairo_set_antialias(cairo, CAIRO_ANTIALIAS_NONE);
+    draw_line_width(ctx, 1);
+    draw_line_dash(ctx, pattern, 2);
+    color_get_rgbaf(color, &r, &g, &b, &a);
+    cairo_set_source_rgba(cairo, (double)r, (double)g, (double)b, (double)a);
+    cairo_rectangle(cairo, (double)x + 2, (double)y + 2, (double)width - 4, (double)height - 4);
+    cairo_stroke(cairo);
+    cairo_restore(cairo);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_text(DCtx *ctx, const char_t *text, const uint32_t x, const uint32_t y, const cstate_t state)
+void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_t x1, const int32_t y1)
+{
+    draw_lineimp(ctx, (real32_t)x0, (real32_t)y0, (real32_t)x1, (real32_t)y1, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
     color_t color = 0;
-
-    cassert_no_null(ctx);
-    if (ctx->raster_mode == FALSE)
-        drawimp_raster_mode(ctx);
+    ellipsis_t ellipsis = dctx_text_trim(ctx);
 
     switch (state) {
-    case ekCSTATE_NORMAL:
+    case ekCTRL_STATE_NORMAL:
         color = osglobals_text_color();
         break;
 
-    case ekCSTATE_BKNORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         color = osglobals_textbackdrop_color();
         break;
 
-    case ekCSTATE_HOT:
+    case ekCTRL_STATE_HOT:
         color = osglobals_hottext_color();
         break;
 
-    case ekCSTATE_BKHOT:
+    case ekCTRL_STATE_BKHOT:
         color = osglobals_hottextbackdrop_color();
         break;
 
-    case ekCSTATE_PRESSED:
+    case ekCTRL_STATE_PRESSED:
         color = osglobals_seltext_color();
         break;
 
-    case ekCSTATE_BKPRESSED:
+    case ekCTRL_STATE_BKPRESSED:
         color = osglobals_seltextbackdrop_color();
         break;
 
-    case ekCSTATE_DISABLED:
+    case ekCTRL_STATE_DISABLED:
         color = osglobals_text_color();
         break;
 
     cassert_default();
     }
 
-    drawimp_begin_text(ctx, text, x, y);
-    drawimp_color(ctx->cairo, color, &ctx->source_color);
-    pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    draw_text_color(ctx, color);
+    draw_text_trim(ctx, ekELLIPEND);
+    dctx_text_raster(ctx, text, x, y);
+    draw_text_trim(ctx, ellipsis);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_image(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y, const cstate_t state)
+void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
-    const OSImage *osimage = osimage_from_image(image);
+    draw_image(ctx, image, (real32_t)x, (real32_t)y);
     unref(state);
-    draw_imgimp(ctx, osimage, UINT32_MAX, x, y, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_check(cairo_t *cairo, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state, const uint32_t start, const bool_t check)
+static void i_draw_check(cairo_t *cairo, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state, const uint32_t start)
 {
     GdkPixbuf *bitmap = osglobals_checks_bitmap();
     uint32_t offset = start;
 
     switch(state) {
-    case ekCSTATE_NORMAL:
-    case ekCSTATE_BKNORMAL:
+    case ekCTRL_STATE_NORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         offset += 0;
         break;
 
-    case ekCSTATE_HOT:
-    case ekCSTATE_BKHOT:
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
         offset += 1;
         break;
 
-    case ekCSTATE_PRESSED:
+    case ekCTRL_STATE_PRESSED:
         offset += 2;
         break;
 
-    case ekCSTATE_BKPRESSED:
+    case ekCTRL_STATE_BKPRESSED:
         offset += 3;
         break;
 
-    case ekCSTATE_DISABLED:
+    case ekCTRL_STATE_DISABLED:
         offset += 4;
         break;
 
@@ -244,16 +341,16 @@ static void i_draw_check(cairo_t *cairo, const uint32_t x, const uint32_t y, con
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_checkbox(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    cassert_no_null(ctx);
-    i_draw_check(ctx->cairo, x, y, width, height, state, 5, TRUE);
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
+    i_draw_check(cairo, x, y, width, height, state, 5);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_uncheckbox(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    cassert_no_null(ctx);
-    i_draw_check(ctx->cairo, x, y, width, height, state, 0, FALSE);
+    cairo_t *cairo = (cairo_t*)dctx_native(ctx);
+    i_draw_check(cairo, x, y, width, height, state, 0);
 }

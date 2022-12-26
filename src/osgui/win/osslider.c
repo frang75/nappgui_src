@@ -26,14 +26,14 @@
 #endif
 
 /* Avoid Microsoft Warnings */
-#pragma warning (push, 0) 
+#pragma warning (push, 0)
 #include <Commctrl.h>
-#pragma warning (pop) 
+#pragma warning (pop)
 
-struct _osslider_t 
+struct _osslider_t
 {
     OSControl control;
-    slider_flag_t flags;
+    uint32_t flags;
     Listener *OnMoved;
 };
 
@@ -46,7 +46,7 @@ struct _osslider_t
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSSlider *slider = (OSSlider*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    cassert_no_null(slider);  
+    cassert_no_null(slider);
 
     switch (uMsg)
     {
@@ -64,7 +64,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 /*---------------------------------------------------------------------------*/
 
-static DWORD i_slider_style(const slider_flag_t flags)
+static DWORD i_slider_style(const uint32_t flags)
 {
     DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | TBS_NOTICKS;
 
@@ -72,7 +72,7 @@ static DWORD i_slider_style(const slider_flag_t flags)
 	dwStyle |= TBS_TRANSPARENTBKGND;
 	#endif
 
-    if (slider_type(flags) == ekSLHORZ)
+    if (slider_get_type(flags) == ekSLIDER_HORZ)
         dwStyle |= TBS_HORZ;
     else
         dwStyle |= TBS_VERT;
@@ -82,12 +82,12 @@ static DWORD i_slider_style(const slider_flag_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-OSSlider *osslider_create(const slider_flag_t flags)
+OSSlider *osslider_create(const uint32_t flags)
 {
     OSSlider *slider = NULL;
     DWORD dwStyle = 0;
     slider = heap_new(OSSlider);
-    slider->control.type = ekGUI_COMPONENT_SLIDER;
+    slider->control.type = ekGUI_TYPE_SLIDER;
     slider->flags = flags;
     slider->OnMoved = NULL;
     dwStyle = i_slider_style(flags);
@@ -162,20 +162,20 @@ void osslider_position(OSSlider *slider, const real32_t position)
 real32_t osslider_get_position(const OSSlider *slider)
 {
     cassert_no_null(slider);
-    return i_get_pos(slider->control.hwnd);         
+    return i_get_pos(slider->control.hwnd);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_thickness(const fsize_t knob_size)
+static real32_t i_thickness(const gui_size_t knob_size)
 {
     switch (knob_size)
     {
-        case ekMINI:
+        case ekGUI_SIZE_MINI:
             return 15.f;
-        case ekSMALL:
+        case ekGUI_SIZE_SMALL:
             return 20.f;
-        case ekREGULAR:
+        case ekGUI_SIZE_REGULAR:
             return 20.f;
         cassert_default();
     }
@@ -185,12 +185,12 @@ static real32_t i_thickness(const fsize_t knob_size)
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_bounds(const OSSlider *slider, const real32_t length, const fsize_t knob_size, real32_t *width, real32_t *height)
+void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_size_t knob_size, real32_t *width, real32_t *height)
 {
     cassert_no_null(slider);
     cassert_no_null(width);
     cassert_no_null(height);
-    if (slider_type(slider->flags) == ekSLHORZ)
+    if (slider_get_type(slider->flags) == ekSLIDER_HORZ)
     {
         *width = length;
         *height = i_thickness(knob_size);
@@ -273,7 +273,7 @@ void _osslider_message(OSSlider *slider, WPARAM wParam)
             params.pos = i_get_pos(slider->control.hwnd);
             params.incr = 0;
             params.step = UINT32_MAX;
-            listener_event(slider->OnMoved, ekEVSLIDER, slider, &params, NULL, OSSlider, EvSlider, void);
+            listener_event(slider->OnMoved, ekGUI_EVENT_SLIDER, slider, &params, NULL, OSSlider, EvSlider, void);
         }
     }
 }

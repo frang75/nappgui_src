@@ -1,1 +1,2 @@
-processStaticLib(sewer "")
+processStaticLib(sewer "" "")
+processDynamicLib(sewer_d "" "")

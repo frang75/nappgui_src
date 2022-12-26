@@ -19,12 +19,12 @@
 #include "event.h"
 #include "font.h"
 #include "heap.h"
- 
+
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
 #endif
 
-struct _oslabel_t 
+struct _oslabel_t
 {
     OSControl control;
     Font *font;
@@ -67,7 +67,7 @@ static bool_t i_is_mouse_sensible(const OSLabel *label)
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSLabel *label = (OSLabel*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    cassert_no_null(label);  
+    cassert_no_null(label);
 
     switch (uMsg)
     {
@@ -82,7 +82,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             {
                 EvText params;
                 params.text = NULL;
-                listener_event(label->OnClick, ekEVLABEL, label, &params, NULL, OSLabel, EvText, void);
+                listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvText, void);
                 return 0;
             }
             break;
@@ -91,7 +91,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             cassert(label->mouse_inside == TRUE);
             label->mouse_inside = FALSE;
             if (label->OnMouseExit != NULL)
-                listener_event(label->OnMouseExit, ekEVEXIT, label, NULL, NULL, OSLabel, void, void);
+                listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
 
             return 0;
 
@@ -115,9 +115,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                     EvMouse params;
                     params.x = (real32_t)point.x;
                     params.y = (real32_t)point.y;
-                    params.button = ENUM_MAX(mouse_t);
+                    params.lx = params.x;
+                    params.ly = params.y;
+                    params.button = ENUM_MAX(gui_mouse_t);
                     params.count = 0;
-                    listener_event(label->OnMouseEnter, ekEVENTER, label, &params, NULL, OSLabel, EvMouse, void);
+                    listener_event(label->OnMouseEnter, ekGUI_EVENT_ENTER, label, &params, NULL, OSLabel, EvMouse, void);
                 }
             }
             return 0;
@@ -128,14 +130,14 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 /*---------------------------------------------------------------------------*/
 
-OSLabel *oslabel_create(const label_flag_t flags)
+OSLabel *oslabel_create(const uint32_t flags)
 {
     OSLabel *label = NULL;
     DWORD dwStyle = 0;
     unref(flags);
     dwStyle = i_style(ekLEFT, ekELLIPNONE);
     label = heap_new0(OSLabel);
-    label->control.type = ekGUI_COMPONENT_LABEL;
+    label->control.type = ekGUI_TYPE_LABEL;
     label->font = _osgui_create_default_font();
     label->mouse_inside = FALSE;
     label->align = ekLEFT;
@@ -328,7 +330,7 @@ COLORREF _oslabel_color(const OSLabel *label)
 HBRUSH _oslabel_background_color(const OSLabel *label, COLORREF *color)
 {
     cassert_no_null(label);
-    cassert_no_null(color);     
+    cassert_no_null(color);
     if (label->bgbrush != NULL)
     {
         *color = label->bgcolor;

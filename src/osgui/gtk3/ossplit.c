@@ -19,7 +19,6 @@
 #include "oscontrol.inl"
 #include "cassert.h"
 #include "event.h"
-#include "event.inl"
 #include "oslistener.inl"
 #include "heap.h"
 #include "r2d.h"
@@ -49,11 +48,11 @@ static void i_set_capture(GtkWidget *widget, OSSplit *split)
     else
     {
         OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
-        if (control->type == ekGUI_COMPONENT_PANEL)
+        if (control->type == ekGUI_TYPE_PANEL)
             _ospanel_set_capture((OSPanel*)control, (OSControl*)split);
-        else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
+        else if (control->type == ekGUI_TYPE_TEXTVIEW)
             _ostext_set_capture((OSText*)control, (OSControl*)split);
-        else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
+        else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
             _osview_set_capture((OSView*)control, (OSControl*)split);
     }
 }
@@ -70,17 +69,17 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
     else
     {
         OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
-        if (control->type == ekGUI_COMPONENT_PANEL)
+        if (control->type == ekGUI_TYPE_PANEL)
             _ospanel_release_capture((OSPanel*)control);
-        else if (control->type == ekGUI_COMPONENT_TEXTVIEW)
+        else if (control->type == ekGUI_TYPE_TEXTVIEW)
             _ostext_release_capture((OSText*)control);
-        else if (control->type == ekGUI_COMPONENT_CUSTOMVIEW)
+        else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
             _osview_release_capture((OSView*)control);
     }
 }
 
 /*---------------------------------------------------------------------------*/
-// https://stackoverflow.com/questions/63647507/gdkeventmotion-x-and-y-coordinates-appears-to-refer-to-location-within-a-differe
+/* https://stackoverflow.com/questions/63647507/gdkeventmotion-x-and-y-coordinates-appears-to-refer-to-location-within-a-differe */
 static void i_mouse_pos(GtkWidget *widget, GdkEventMotion *event, real32_t *x, real32_t *y)
 {
     int mouse_x = 0;
@@ -103,9 +102,9 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
         {
             EvMouse params;
             i_mouse_pos(widget, event, &params.x, &params.y);
-            params.button = ekLEFT;
+            params.button = ekGUI_MOUSE_LEFT;
             params.count = 0;
-            listener_event(view->OnDrag, ekEVDRAG, view, &params, NULL, OSSplit, EvMouse, void);
+            listener_event(view->OnDrag, ekGUI_EVENT_DRAG, view, &params, NULL, OSSplit, EvMouse, void);
         }
     }
     else
@@ -122,7 +121,7 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
                 view->inside_rect = TRUE;
             }
 
-            if (split_type(view->flags) == ekSPHORZ)
+            if (split_get_type(view->flags) == ekSPLIT_HORZ)
                 _osgui_ns_resize_cursor(widget);
             else
                 _osgui_ew_resize_cursor(widget);
@@ -146,6 +145,7 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSSplit *view)
 {
     _ossplit_OnPress(view, event);
+    unref(widget);
     return FALSE;
 }
 
@@ -153,6 +153,9 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSSplit *v
 
 static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSSplit *view)
 {
+    unref(widget);
+    unref(event);
+
     view->left_button = FALSE;
     if (view->inside_rect == TRUE)
     {
@@ -174,13 +177,13 @@ OSSplit *ossplit_create(const split_flag_t flags)
     gint pressed_signal = 0;
     gint release_signal = 0;
     view->flags = flags;
-    _oscontrol_init(&view->control, ekGUI_COMPONENT_SPLITVIEW, widget, widget, TRUE);
+    _oscontrol_init(&view->control, ekGUI_TYPE_SPLITVIEW, widget, widget, TRUE);
     _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
     return view;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 void ossplit_destroy(OSSplit **view)
@@ -251,7 +254,7 @@ void ossplit_visible(OSSplit *view, const bool_t is_visible)
 /*---------------------------------------------------------------------------*/
 
 void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
-{   
+{
     _oscontrol_set_enabled((OSControl*)view, is_enabled);
 }
 
@@ -295,7 +298,7 @@ void _ossplit_OnPress(OSSplit *view, GdkEventButton *event)
     cassert_no_null(view);
     cassert_no_null(event);
 
-    // Left button
+    /* Left button */
     if (event->button == 1)
     {
         if (view->inside_rect == TRUE)

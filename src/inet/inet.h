@@ -9,14 +9,14 @@
  *
  */
 
-/* Json parser */
+/* inet library */
 
 #include "inet.hxx"
 
 __EXTERN_C
 
-void inet_start(void);
+_inet_api void inet_start(void);
 
-void inet_finish(void);
+_inet_api void inet_finish(void);
 
 __END_C

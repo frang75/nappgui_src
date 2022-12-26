@@ -13,7 +13,7 @@
 #include "prmenu.h"
 #include "prctrl.h"
 #include "guiall.h"
-#include "res_gui.h"
+#include "res_products.h"
 
 /*---------------------------------------------------------------------------*/
 

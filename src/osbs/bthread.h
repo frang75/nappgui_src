@@ -15,19 +15,19 @@
 
 __EXTERN_C
 
-Thread *bthread_create_imp(FPtr_thread_main thmain, void *data);
+_osbs_api Thread *bthread_create_imp(FPtr_thread_main thmain, void *data);
 
-int bthread_current_id(void);
+_osbs_api int bthread_current_id(void);
 
-void bthread_close(Thread **thread);
+_osbs_api void bthread_close(Thread **thread);
 
-bool_t bthread_cancel(Thread *thread);
+_osbs_api bool_t bthread_cancel(Thread *thread);
 
-uint32_t bthread_wait(Thread *thread);
+_osbs_api uint32_t bthread_wait(Thread *thread);
 
-bool_t bthread_finish(Thread *thread, uint32_t *code);
+_osbs_api bool_t bthread_finish(Thread *thread, uint32_t *code);
 
-void bthread_sleep(const uint32_t milliseconds);
+_osbs_api void bthread_sleep(const uint32_t milliseconds);
 
 __END_C
 

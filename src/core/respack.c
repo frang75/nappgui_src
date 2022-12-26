@@ -12,12 +12,10 @@
 
 #include "respack.h"
 #include "respackh.h"
-#include "respack.inl"
 #include "arrpt.h"
 #include "arrst.h"
 #include "bfile.h"
 #include "buffer.h"
-#include "core.inl"
 #include "cassert.h"
 #include "heap.h"
 #include "hfile.h"

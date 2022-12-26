@@ -12,7 +12,7 @@
 
 #include "osglobals.h"
 #include "osgui_win.inl"
-#include "win/osimage.inl"
+#include "osimg.inl"
 #include "cassert.h"
 #include "unicode.h"
 #include "heap.h"
@@ -37,7 +37,7 @@ color_t osglobals_color(const syscolor_t *color)
     cassert_no_null(color);
 
     switch (*color) {
-    case ekSYS_DARKMODE:
+    case ekSYSCOLOR_DARKMODE:
     {
         uint32_t c = GetSysColor(COLOR_3DFACE);
         real32_t r = (real32_t)((uint8_t)(c) / 255.f);
@@ -46,19 +46,19 @@ color_t osglobals_color(const syscolor_t *color)
         return (.21 * r + .72 * g + .07 * b) < .5 ? TRUE : FALSE;
     }
 
-    case ekSYS_LABEL:
+    case ekSYSCOLOR_LABEL:
         return GetSysColor(COLOR_BTNTEXT) | (255 << 24);
 
-    case ekSYS_VIEW:
+    case ekSYSCOLOR_VIEW:
         return GetSysColor(COLOR_3DFACE) | (255 << 24);
 
-    case ekSYS_LINE:
+    case ekSYSCOLOR_LINE:
         return GetSysColor(COLOR_3DLIGHT) | (255 << 24);
 
-    case ekSYS_LINK:
+    case ekSYSCOLOR_LINK:
         return GetSysColor(COLOR_HOTLIGHT) | (255 << 24);
 
-    case ekSYS_BORDER:
+    case ekSYSCOLOR_BORDER:
         return GetSysColor(COLOR_ACTIVEBORDER) | (255 << 24);
 
     cassert_default();
@@ -95,30 +95,30 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 
 /*---------------------------------------------------------------------------*/
 
-Cursor *osglobals_cursor(const cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
+Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
 {
     HCURSOR hcursor = NULL;
     switch (cursor) {
-    case ekCARROW:
+    case ekGUI_CURSOR_ARROW:
         hcursor = LoadCursor(NULL, IDC_ARROW);
         break;
-    case ekCHAND:
+    case ekGUI_CURSOR_HAND:
         hcursor = LoadCursor(NULL, IDC_HAND);
         break;
-    case ekCIBEAM:
+    case ekGUI_CURSOR_IBEAM:
         hcursor = LoadCursor(NULL, IDC_IBEAM);
         break;
-    case ekCCROSS:
+    case ekGUI_CURSOR_CROSS:
         hcursor = LoadCursor(NULL, IDC_CROSS);
         break;
-    case ekCSIZEWE:
+    case ekGUI_CURSOR_SIZEWE:
         hcursor = LoadCursor(NULL, IDC_SIZEWE);
         break;
-    case ekCSIZENS:
+    case ekGUI_CURSOR_SIZENS:
         hcursor = LoadCursor(NULL, IDC_SIZENS);
         break;
-    case ekCUSER:
-        hcursor = osimage_hcursor(image, (uint32_t)hot_x, (uint32_t)hot_y);
+    case ekGUI_CURSOR_USER:
+        hcursor = osimg_hcursor(image, (uint32_t)hot_x, (uint32_t)hot_y);
         break;
     cassert_default();
     }

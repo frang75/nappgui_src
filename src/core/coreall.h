@@ -8,36 +8,18 @@
  *
  */
 
-/* All-in-one core headers include */
+/* Core library all-in-one headers include */
 
-/* sewer */
-#include "cassert.h"
-#include "types.h"
-#include "ptr.h"
-#include "unicode.h"
+#include "osbsall.h"
 
-/* osbs */
-#include "osbs.h"
-#include "bfile.h"
-#include "bmath.h"
-#include "bmem.h"
-#include "bmutex.h"
-#include "bproc.h"
-#include "bthread.h"
-#include "btime.h"
-#include "bsocket.h"
-#include "bstd.h"
-#include "log.h"
-
-/* core */
 #include "core.h"
 #include "arrpt.h"
 #include "arrst.h"
 #include "bhash.h"
 #include "buffer.h"
+#include "clock.h"
 #include "date.h"
 #include "dbind.h"
-#include "clock.h"
 #include "event.h"
 #include "heap.h"
 #include "hfile.h"

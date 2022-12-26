@@ -11,7 +11,7 @@
 /* High-level operations in files and directories */
 
 #include "hfile.h"
-#include "hfile.inl"
+#include "hfileh.h"
 #include "arrst.h"
 #include "bfile.h"
 #include "bstd.h"
@@ -75,7 +75,7 @@ bool_t hfile_dir_create(const char_t *pathname, ferror_t *error)
                     break;
             }
 
-            i -= 1;                
+            i -= 1;
         }
 
         while (i < size)
@@ -259,12 +259,12 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
     n1 = arrst_size(dir1, DirEntry);
     n2 = arrst_size(dir2, DirEntry);
 
-    // Two dirs with entries
+    /* Two dirs with entries */
     while (i1 < n1 && i2 < n2 && ok)
     {
         int cmp = str_cmp(files1[i1].name, tc(files2[i2].name));
 
-        // Entry with the same name in both dirs
+        /* Entry with the same name in both dirs */
         if (cmp == 0)
         {
             if (i_except(tc(files1[i1].name), except, except_size) == FALSE)
@@ -280,10 +280,10 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
                         str_destroy(&path2);
                     }
                 }
-                // This is a file
+                /* This is a file */
                 else
                 {
-                    // Source file is more recent --> Copy
+                    /* Source file is more recent --> Copy */
                     if (date_cmp(&files1[i1].date, &files2[i2].date) > 0)
                     {
                         String *path = str_cpath("%s/%s", src, tc(files1[i1].name));
@@ -297,7 +297,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
             i2 += 1;
         }
 
-        // Entry exists in src, but not in dest
+        /* Entry exists in src, but not in dest */
         else if (cmp < 0)
         {
             if (i_except(tc(files1[i1].name), except, except_size) == FALSE)
@@ -315,7 +315,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
                         str_destroy(&path2);
                     }
                 }
-                // This is a file
+                /* This is a file */
                 else
                 {
                     String *path = str_cpath("%s/%s", src, tc(files1[i1].name));
@@ -327,7 +327,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
             i1 += 1;
         }
 
-        // Entry exists in dest, but not in src
+        /* Entry exists in dest, but not in src */
         else
         {
             if (remove_in_dest == TRUE && i_except(tc(files2[i2].name), except, except_size) == FALSE)
@@ -346,7 +346,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
         }
     }
 
-    // Remaining entries in src
+    /* Remaining entries in src */
     while (i1 < n1 && ok)
     {
         if (i_except(tc(files1[i1].name), except, except_size) == FALSE)
@@ -356,13 +356,13 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
                 if (recursive == TRUE)
                 {
                     String *path1 = str_cpath("%s/%s", src, tc(files1[i1].name));
-                    String *path2 = str_cpath("%s/%s", src, tc(files2[i2].name));
+                    String *path2 = str_cpath("%s/%s", dest, tc(files1[i1].name));
                     ok = hfile_dir_sync(tc(path1), tc(path2), recursive, remove_in_dest, except, except_size, error);
                     str_destroy(&path1);
                     str_destroy(&path2);
                 }
             }
-            // This is a file
+            /* This is a file */
             else
             {
                 String *path = str_cpath("%s/%s", src, tc(files1[i1].name));
@@ -374,7 +374,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
         i1 += 1;
     }
 
-    // Remaining entries in dest
+    /* Remaining entries in dest */
     while (i2 < n2 && remove_in_dest && ok)
     {
         if (i_except(tc(files2[i2].name), except, except_size) == FALSE)
@@ -441,7 +441,7 @@ static bool_t i_read_entire_file(const char_t *pathname, byte_t *file_data, cons
     File *file = NULL;
     uint32_t bytes_readed;
     bool_t readed = FALSE;
-    
+
     file = bfile_open(pathname, ekREAD, error);
     if (__FALSE_EXPECTED(file == NULL))
         return FALSE;
@@ -633,7 +633,7 @@ static bool_t i_process_whole_directory(Listener *listener, const char_t *pathna
     Dir *dir = bfile_dir_open(pathname, error);
 
     if (__TRUE_EXPECTED(dir != NULL))
-    {	
+    {
         bool_t continue_process = TRUE;
         char_t filename[512];
         file_type_t file_type;
@@ -688,7 +688,7 @@ static bool_t i_process_whole_directory(Listener *listener, const char_t *pathna
                         params.filename = filename;
                         params.pathname = tc(fullname);
                         params.depth = depth_level;
-                        listener_event(listener, ekEENTRY, NULL, &params, &enter_subdir, void, EvFileDir, bool_t);                        
+                        listener_event(listener, ekEENTRY, NULL, &params, &enter_subdir, void, EvFileDir, bool_t);
                         if (enter_subdir == TRUE)
                         {
                             continue_process = i_process_whole_directory(listener, tc(fullname), flags, depth_level + 1, error);
@@ -725,14 +725,14 @@ bool_t hfile_dir_loop(const char_t *pathname, Listener *listener, const bool_t s
     ferror_t ferror = ekFOK;
     if (subdirs == TRUE)
         BIT_SET(flags, i_ekDIR_ENTRY);
-    
+
     if (hiddens == TRUE)
     {
         BIT_SET(flags, i_ekHIDDEN_FILES);
         if (subdirs == TRUE)
             BIT_SET(flags, i_ekHIDDEN_SUBDIRS);
     }
-    
+
     i_process_whole_directory(listener, pathname, flags, 0, &ferror);
     ptr_assign(error, ferror);
     listener_destroy(&listener);

@@ -57,7 +57,7 @@ void cassert_no_null_imp(void *ptr, const char_t *detail, const char_t *file, co
 {
     if (ptr == NULL)
         i_assert_message(0, "NULL pointer access", detail, file, line);
-} 
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -79,11 +79,12 @@ void cassert_default_imp(const char_t *file, const uint32_t line)
 
 #if defined __WINDOWS__
 
-// This function is used by C++ compiler in VS2012 and later
-// If you tried to link a >= VS2012 generated .lib in VS2010 and lower, you'll get
-// a linker error. The next lines will solve the problem
-// http://cubicspot.blogspot.com/2015/07/solving-unresolved-external-symbol.html
-
+/*
+This function is used by C++ compiler in VS2012 and later
+If you tried to link a >= VS2012 generated .lib in VS2010 and lower, you'll get
+a linker error. The next lines will solve the problem
+http://cubicspot.blogspot.com/2015/07/solving-unresolved-external-symbol.html
+ */
 #if _MSC_VER < 1700
 
 __declspec(noreturn) void __cdecl __report_rangecheckfailure(void)
@@ -91,6 +92,6 @@ __declspec(noreturn) void __cdecl __report_rangecheckfailure(void)
     cassert_msg(FALSE, "report_rangecheckfailure ERROR! Program will crash!!");
 }
 
-#endif 
+#endif
 
 #endif

@@ -15,6 +15,7 @@
 #define __DRAW2D_HXX__
 
 #include "geom2d.hxx"
+#include "draw2d.def"
 
 typedef enum _pixformat_t
 {
@@ -98,6 +99,13 @@ typedef enum _ellipsis_t
     ekELLIPEND,
     ekELLIPMLINE
 } ellipsis_t;
+
+typedef enum _indicator_t
+{
+    ekINDNONE = 0,
+    ekINDUP_ARROW,
+    ekINDDOWN_ARROW
+} indicator_t;
 
 typedef uint32_t color_t;
 typedef struct _dctx_t DCtx;

@@ -379,30 +379,33 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
     }
 
 #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-    // Synchronous request
-    bool_t end = FALSE;
-    http->delegate->auto_redirect = auto_redirect;
-	NSURLSessionTask *task = [http->session dataTaskWithRequest:http->request completionHandler:^(NSData * _Nullable ddata, NSURLResponse * _Nullable response, NSError * _Nullable lerror)
-    {
-        i_response(ddata, response, lerror, http);
-    } ];
+	{
+    	// Synchronous request
+	    bool_t end = FALSE;
+        NSURLSessionTask *task = nil;
+    	http->delegate->auto_redirect = auto_redirect;
+        task = [http->session dataTaskWithRequest:http->request completionHandler:^(NSData * _Nullable ddata, NSURLResponse * _Nullable response, NSError * _Nullable lerror)
+    	{
+        	i_response(ddata, response, lerror, http);
+	    } ];
     
-    [task resume];
+    	[task resume];
     
-    while(!end)
-    {
-        bmutex_lock(http->mutex);
-	    end = http->response;
-        bmutex_unlock(http->mutex);
+	    while(!end)
+    	{
+        	bmutex_lock(http->mutex);
+		    end = http->response;
+    	    bmutex_unlock(http->mutex);
+	    }
     }
-
 #else
-    
-    NSURLResponse *response = nil;
-    NSError *lerror = nil;
-    NSData *ddata = [NSURLConnection sendSynchronousRequest:http->request returningResponse:&response error:&lerror];
-    unref(auto_redirect);
-    i_response(ddata, response, lerror, http);
+    {
+        NSURLResponse *response = nil;
+	    NSError *lerror = nil;
+    	NSData *ddata = [NSURLConnection sendSynchronousRequest:http->request returningResponse:&response error:&lerror];
+	    unref(auto_redirect);
+    	i_response(ddata, response, lerror, http);
+    }
 #endif
 
     ptr_assign(error, http->error);

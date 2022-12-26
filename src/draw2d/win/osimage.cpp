@@ -11,10 +11,9 @@
 /* Images */
 
 #include "image.inl"
-#include "osimage.inl"
-#include "dctx.inl"
+#include "dctxh.h"
 #include "dctx_win.inl"
-#include "imgutils.inl"
+#include "imgutil.inl"
 #include "bmem.h"
 #include "buffer.h"
 #include "cassert.h"
@@ -42,10 +41,6 @@ static ULONG_PTR i_GDIPLUSTOKEN = 0L;
 struct _osimage_t
 {
     Gdiplus::Bitmap *bitmap;
-    HBITMAP hbitmap;
-    COLORREF hbitmap_background;
-    LONG hbitmap_width;
-    LONG hbitmap_height;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -86,6 +81,8 @@ typedef struct _argb_t
     uint8_t a;
 } _ARGB;
 
+/*---------------------------------------------------------------------------*/
+
 #define ARGB(r,g,b,a)\
     ((uint32_t)((((a)&0xff)<<24)|(((r)&0xff)<<16)|(((g)&0xff)<<8)|((b)&0xff)))
 
@@ -100,7 +97,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     Gdiplus::BitmapData bdata;
     byte_t *dest_data = NULL;
     uint32_t i, j, stride;
-    
+
     switch (format) {
     case ekGRAY8:
         bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, PixelFormat8bppIndexed);
@@ -118,9 +115,9 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
 
             dest_data += stride;
         }
-            
+
         bitmap->UnlockBits(&bdata);
-        bitmap->SetPalette(dctx_8bpp_grayscale_palette());
+        bitmap->SetPalette(_dctx_8bpp_grayscale_palette());
         break;
 
     case ekRGB24:
@@ -141,7 +138,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
 
             dest_data += stride;
         }
-            
+
         bitmap->UnlockBits(&bdata);
         break;
 
@@ -161,7 +158,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
 
             dest_data += stride;
         }
-            
+
         bitmap->UnlockBits(&bdata);
         break;
 
@@ -318,14 +315,7 @@ void osimage_destroy(OSImage **image)
 {
     cassert_no_null(image);
     cassert_no_null(*image);
-
     delete (*image)->bitmap;
-    if ((*image)->hbitmap != NULL)
-    {
-        BOOL ret = DeleteObject((*image)->hbitmap);
-        cassert_unref(ret != 0, ret);
-    }
-
     heap_delete(image, OSImage);
 }
 
@@ -393,7 +383,7 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
         }
 
         switch(pf) {
-        case PixelFormat1bppIndexed: ibpp = 1; break;            
+        case PixelFormat1bppIndexed: ibpp = 1; break;
         case PixelFormat4bppIndexed: ibpp = 4; break;
         case PixelFormat8bppIndexed: ibpp = 8; break;
         cassert_default();
@@ -691,7 +681,7 @@ static bool_t i_get_encoder(const codec_t codec, CLSID *clsid)
         break;
     case ekPNG:
         encoder_mime = L"image/png";
-        break; 
+        break;
     case ekBMP:
         encoder_mime = L"image/bmp";
         break;
@@ -717,9 +707,9 @@ static bool_t i_get_encoder(const codec_t codec, CLSID *clsid)
                     *clsid = pImageCodecInfo[i].Clsid;
                     found = TRUE;
                     break;
-                }    
+                }
             }
-                 
+
             heap_free((byte_t**)&pImageCodecInfo, (uint32_t)size, "ImageImpEncoder");
         }
     }
@@ -830,230 +820,4 @@ const void *osimage_native(const OSImage *osimage)
 {
     cassert_no_null(osimage);
     return osimage->bitmap;
-}
-
-/*---------------------------------------------------------------------------*/
-
-HBITMAP osimage_hbitmap(const Image *image, COLORREF background)
-{
-    Gdiplus::Bitmap *bitmap = (Gdiplus::Bitmap*)image_native(image);
-    Gdiplus::Color c;
-    HBITMAP hbitmap;
-    c.SetFromCOLORREF(background);
-    Gdiplus::Status status = bitmap->GetHBITMAP(c, &hbitmap);
-    cassert_unref(status == Gdiplus::Ok, status);
-    return hbitmap;
-}
-
-/*---------------------------------------------------------------------------*/
-
-HBITMAP osimage_hbitmap_cache(const Image *image, COLORREF background, LONG *width, LONG *height)
-{
-    const OSImage *osimage = osimage_from_image(image);
-    cassert_no_null(osimage);
-
-    if (osimage->hbitmap != NULL && osimage->hbitmap_background != background)
-    {
-        BOOL ret = DeleteObject(osimage->hbitmap);
-        cassert_unref(ret != 0, ret);
-        ((OSImage*)osimage)->hbitmap = NULL;
-    }
-
-    if (osimage->hbitmap == NULL)
-    {
-        BITMAP bm;
-        HBITMAP hbitmap = osimage_hbitmap(image, background);
-        ((OSImage*)osimage)->hbitmap = hbitmap;
-        GetObject(hbitmap, sizeof(bm), &bm);
-        ((OSImage*)osimage)->hbitmap_width = bm.bmWidth;
-        ((OSImage*)osimage)->hbitmap_height = bm.bmHeight;
-        ((OSImage*)osimage)->hbitmap_background = background;
-    }
-
-    *width = osimage->hbitmap_width;
-    *height = osimage->hbitmap_height;
-    return osimage->hbitmap;
-}
-
-/*---------------------------------------------------------------------------*/
-
-HBITMAP osimage_transparent_hbitmap(const uint32_t width, const uint32_t height)
-{
-    HBITMAP hbitmap = NULL;
-    register uint32_t size = 4 * width * height;
-    BYTE *pixel_data = (BYTE*)heap_malloc(size, "OSImageTHBitmap");
-    Gdiplus::Bitmap *bitmap = NULL;
-    register uint32_t i;
-
-    for (i = 0; i < size; i += 4)
-        *((uint32_t*)(pixel_data + i)) = 0x000000FF;
-
-    bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, (INT)width * 4, PixelFormat32bppARGB, pixel_data);
-    cassert_no_null(bitmap);
-    heap_free((byte_t**)&pixel_data, size, "OSImageTHBitmap");
-
-    {
-        Gdiplus::Status status = bitmap->GetHBITMAP(Gdiplus::Color(0, 0, 0, 0), &hbitmap);
-        cassert_unref(status == Gdiplus::Ok, status);
-    }
-
-    delete bitmap;
-    return hbitmap;
-}
-
-/*---------------------------------------------------------------------------*/
-
-//static void i_masks(HBITMAP bitmap, int cx, int cy, COLORREF transparent, HBITMAP *and_mask, HBITMAP *xor_mask)
-//{
-//    HDC hdc = GetDC(NULL);
-//    HDC hmain = CreateCompatibleDC(hdc); 
-//    HDC hand = CreateCompatibleDC(hdc); 
-//    HDC hxor = CreateCompatibleDC(hdc); 
-//  
-//    *and_mask = CreateCompatibleBitmap(hdc, cx, cy);
-//    *xor_mask = CreateCompatibleBitmap(hdc, cx, cy);
-//
-//    HBITMAP old1 = (HBITMAP)SelectObject(hmain, bitmap);
-//    HBITMAP old2 = (HBITMAP)SelectObject(hand, *and_mask);
-//    HBITMAP old3 = (HBITMAP)SelectObject(hxor, *xor_mask);
-//
-//    //Scan each pixel of the souce bitmap and create the masks
-//    COLORREF pixel;
-//    for(int x = 0; x < cx; ++x)
-//    {
-//        for(int y = 0; y < cy; ++y)
-//        {
-//            pixel = GetPixel(hmain, x, y);
-//            if(pixel == transparent)
-//            {
-//                SetPixel(hand, x, y, RGB(255,255,255));
-//                SetPixel(hxor, x, y, RGB(0,0,0));
-//            }
-//            else
-//            {
-//                SetPixel(hand, x, y, RGB(0,0,0));
-//                SetPixel(hxor, x, y, pixel);
-//            }
-//        }
-//    }
-//  
-//    SelectObject(hmain, old1);
-//    SelectObject(hand, old2);
-//    SelectObject(hxor, old3);
-//
-//    DeleteDC(hxor);
-//    DeleteDC(hand);
-//    DeleteDC(hmain);
-//    ReleaseDC(NULL, hdc);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-HCURSOR osimage_hcursor(const Image *image, const uint32_t hot_x, const uint32_t hot_y)
-{
-    // HCURSOR direct from Gdiplus::Bitmap ;-)
-    // http://csharphelper.com/blog/2017/01/convert-a-bitmap-into-a-cursor-in-c/
-    Gdiplus::Bitmap *bitmap = (Gdiplus::Bitmap*)image_native(image);
-    HICON icon = NULL;
-    ICONINFO info;
-    HCURSOR hcursor = NULL;
-    BOOL ret = FALSE;
-    Gdiplus::Status st = bitmap->GetHICON(&icon);
-    cassert_unref(st == Gdiplus::Ok, st);
-    GetIconInfo(icon, &info);
-    info.xHotspot = (DWORD)hot_x;
-    info.yHotspot = (DWORD)hot_y;
-    info.fIcon = FALSE;
-    hcursor = CreateIconIndirect(&info);
-    ret = DeleteObject(info.hbmColor);
-    cassert_unref(ret != 0, ret);
-    ret = DeleteObject(info.hbmMask);
-    cassert_unref(ret != 0, ret);
-    ret = DestroyIcon(icon);
-    cassert_unref(ret != 0, ret);
-    return hcursor;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void osimage_draw(const Image *image, HDC hdc, const uint32_t frame_index, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const BOOL gray)
-{
-    Gdiplus::Bitmap *bitmap = (Gdiplus::Bitmap*)image_native(image);
-    Gdiplus::Graphics graphics(hdc);
-
-    if (frame_index != UINT32_MAX)
-    {
-        Gdiplus::Status status = bitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)frame_index);
-        cassert_unref(status == Gdiplus::Ok, status);
-    }
-
-    // HBITMAP to Grayscale
-//    https://blogs.msdn.microsoft.com/oldnewthing/20090714-00/?p=17503/
-//void
-//PaintContent(HWND hwnd, PAINTSTRUCT *pps)
-//{
-// if (g_hbm) {
-//  BITMAP bm;
-//  if (GetObject(g_hbm, sizeof(bm), &bm) == sizeof(bm) &&
-//                bm.bmBits != NULL &&
-//                bm.bmPlanes * bm.bmBitsPixel <= 8) {
-//   struct BITMAPINFO256 {
-//    BITMAPINFOHEADER bmiHeader;
-//    RGBQUAD bmiColors[256];
-//   } bmiGray;
-//   ZeroMemory(&bmiGray, sizeof(bmiGray));
-//   HDC hdc = CreateCompatibleDC(NULL);
-//   if (hdc) {
-//    HBITMAP hbmPrev = SelectBitmap(hdc, g_hbm);
-//    UINT cColors = GetDIBColorTable(hdc, 0, 256, bmiGray.bmiColors);
-//    for (UINT iColor = 0; iColor < cColors; iColor++) {
-//     BYTE b = (BYTE)((30 * bmiGray.bmiColors[iColor].rgbRed +
-//                      59 * bmiGray.bmiColors[iColor].rgbGreen +
-//                      11 * bmiGray.bmiColors[iColor].rgbBlue) / 100);
-//     bmiGray.bmiColors[iColor].rgbRed   = b;
-//     bmiGray.bmiColors[iColor].rgbGreen = b;
-//     bmiGray.bmiColors[iColor].rgbBlue  = b;
-//    }
-//    bmiGray.bmiHeader.biSize        = sizeof(bmiGray.bmiHeader);
-//    bmiGray.bmiHeader.biWidth       = bm.bmWidth;
-//    bmiGray.bmiHeader.biHeight      = bm.bmHeight;
-//    bmiGray.bmiHeader.biPlanes      = bm.bmPlanes;
-//    bmiGray.bmiHeader.biBitCount    = bm.bmBitsPixel;
-//    bmiGray.bmiHeader.biCompression = BI_RGB;
-//    bmiGray.bmiHeader.biClrUsed     = cColors;
-//    SetDIBitsToDevice(pps->hdc, 0, 0,
-//                      bmiGray.bmiHeader.biWidth,
-//                      bmiGray.bmiHeader.biHeight, 0, 0,
-//                      0, bmiGray.bmiHeader.biHeight,
-//                      bm.bmBits,
-//                     (BITMAPINFO*)&bmiGray, DIB_RGB_COLORS);
-//
-//    BitBlt(pps->hdc, bm.bmWidth, 0, bm.bmWidth, bm.bmHeight,
-//           hdc, 0, 0, SRCCOPY);
-//    SelectBitmap(hdc, hbmPrev);
-//    DeleteDC(hdc);
-//   }
-//  }
-// }
-
-
-    if (gray == TRUE)
-    {    
-        // Gray scale conversion (.4 = Alpha)
-        Gdiplus::ColorMatrix matrix =
-        {
-            .299f, .299f, .299f,    0,   0,
-            .587f, .587f, .587f,    0,   0,
-            .114f, .114f, .114f,    0,   0,
-                0,     0,     0,   .4,   0,
-                0,     0,     0,    0,   1};
-        Gdiplus::ImageAttributes attr;
-        Gdiplus::RectF rect((Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);
-        attr.SetColorMatrix(&matrix, Gdiplus::ColorMatrixFlagsDefault, Gdiplus::ColorAdjustTypeBitmap);
-        graphics.DrawImage(bitmap, rect, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, (Gdiplus::REAL)height, Gdiplus::UnitPixel, &attr);
-    }
-    else
-    {
-        graphics.DrawImage(bitmap, (Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);
-    }
 }

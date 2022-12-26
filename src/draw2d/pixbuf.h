@@ -18,35 +18,35 @@
 
 __EXTERN_C
 
-Pixbuf *pixbuf_create(const uint32_t width, const uint32_t height, const pixformat_t format);
+_draw2d_api Pixbuf *pixbuf_create(const uint32_t width, const uint32_t height, const pixformat_t format);
 
-Pixbuf *pixbuf_copy(const Pixbuf *pixbuf);
+_draw2d_api Pixbuf *pixbuf_copy(const Pixbuf *pixbuf);
 
-Pixbuf *pixbuf_trim(const Pixbuf *pixbuf, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height);
+_draw2d_api Pixbuf *pixbuf_trim(const Pixbuf *pixbuf, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height);
 
-Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixformat_t oformat);
+_draw2d_api Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixformat_t oformat);
 
-void pixbuf_destroy(Pixbuf **pixbuf);
+_draw2d_api void pixbuf_destroy(Pixbuf **pixbuf);
 
-pixformat_t pixbuf_format(const Pixbuf *pixbuf);
+_draw2d_api pixformat_t pixbuf_format(const Pixbuf *pixbuf);
 
-uint32_t pixbuf_width(const Pixbuf *pixbuf);
+_draw2d_api uint32_t pixbuf_width(const Pixbuf *pixbuf);
 
-uint32_t pixbuf_height(const Pixbuf *pixbuf);
+_draw2d_api uint32_t pixbuf_height(const Pixbuf *pixbuf);
 
-uint32_t pixbuf_size(const Pixbuf *pixbuf);
+_draw2d_api uint32_t pixbuf_size(const Pixbuf *pixbuf);
 
-uint32_t pixbuf_dsize(const Pixbuf *pixbuf);
+_draw2d_api uint32_t pixbuf_dsize(const Pixbuf *pixbuf);
 
-const byte_t *pixbuf_cdata(const Pixbuf *pixbuf);
+_draw2d_api const byte_t *pixbuf_cdata(const Pixbuf *pixbuf);
 
-byte_t *pixbuf_data(Pixbuf *pixbuf);
+_draw2d_api byte_t *pixbuf_data(Pixbuf *pixbuf);
 
-uint32_t pixbuf_format_bpp(const pixformat_t format);
+_draw2d_api uint32_t pixbuf_format_bpp(const pixformat_t format);
 
-uint32_t pixbuf_get(const Pixbuf *pixbuf, const uint32_t x, const uint32_t y);
+_draw2d_api uint32_t pixbuf_get(const Pixbuf *pixbuf, const uint32_t x, const uint32_t y);
 
-void pixbuf_set(Pixbuf *pixbuf, const uint32_t x, const uint32_t y, const uint32_t value);
+_draw2d_api void pixbuf_set(Pixbuf *pixbuf, const uint32_t x, const uint32_t y, const uint32_t value);
 
 __END_C
 

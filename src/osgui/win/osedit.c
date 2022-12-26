@@ -38,6 +38,7 @@ struct _osedit_t
     COLORREF color;
     COLORREF bgcolor;
     HBRUSH bgbrush;
+    RECT border;
     Listener *OnFilter;
     Listener *OnChange;
     Listener *OnFocus;
@@ -55,7 +56,7 @@ static void i_launch_change_event(const OSEdit *edit)
         EvText params;
         edit_text = _oscontrol_get_text((const OSControl*)edit, &tsize);
         params.text = (const char_t*)edit_text;
-        listener_event(edit->OnChange, ekEVTXTCHANGE, edit, &params, NULL, OSEdit, EvText, void);
+        listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, NULL, OSEdit, EvText, void);
         heap_free((byte_t**)&edit_text, tsize, "OSControlGetText");
     }
 }
@@ -72,6 +73,12 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 	case WM_ERASEBKGND:
         return 1;
 
+    case WM_NCCALCSIZE:
+        return _osgui_nccalcsize(hwnd, wParam, lParam, TRUE, &edit->border);
+
+    case WM_NCPAINT:
+        return _osgui_ncpaint(hwnd, &edit->border);
+
 	case WM_PAINT:
         if (_oswindow_in_resizing(hwnd) == TRUE)
             return 0;
@@ -81,11 +88,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (edit->OnFocus != NULL)
         {
             bool_t params = TRUE;
-            listener_event(edit->OnFocus, ekEVFOCUS, edit, &params, NULL, OSEdit, bool_t, void);
+            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
         }
 
-        if (BIT_TEST(edit->flags, ekEDAUTOSEL) == TRUE)
-            SendMessage(hwnd,EM_SETSEL, 0, -1); 
+        if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
+            SendMessage(hwnd,EM_SETSEL, 0, -1);
         break;
 
     case WM_KILLFOCUS:
@@ -95,7 +102,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (edit->OnFocus != NULL)
         {
             bool_t params = FALSE;
-            listener_event(edit->OnFocus, ekEVFOCUS, edit, &params, NULL, OSEdit, bool_t, void);
+            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
         }
         break;
     }
@@ -104,8 +111,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     if (uMsg == WM_LBUTTONDOWN)
     {
-        if (BIT_TEST(edit->flags, ekEDAUTOSEL) == TRUE)
-            SendMessage(hwnd,EM_SETSEL, 0, -1); 
+        if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
+            SendMessage(hwnd,EM_SETSEL, 0, -1);
     }
 
     return res;
@@ -115,7 +122,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 static DWORD i_flags(const edit_flag_t flags)
 {
-    if (edit_type(flags) == ekEDMULT)
+    if (edit_get_type(flags) == ekEDIT_MULTI)
         return ES_MULTILINE | ES_AUTOVSCROLL;
     else
         return ES_AUTOHSCROLL;
@@ -123,13 +130,13 @@ static DWORD i_flags(const edit_flag_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-OSEdit *osedit_create(const edit_flag_t flags)
+OSEdit *osedit_create(const uint32_t flags)
 {
     OSEdit *edit = heap_new0(OSEdit);
     DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | _oscontrol_halign(ekLEFT) | i_flags(flags);
-    edit->control.type = ekGUI_COMPONENT_EDITBOX;
+    edit->control.type = ekGUI_TYPE_EDITBOX;
     edit->flags = flags;
-    _oscontrol_init((OSControl*)edit, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init((OSControl*)edit, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY /*| WS_EX_CLIENTEDGE*/), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     edit->font = _osgui_create_default_font();
     edit->launch_event = TRUE;
     _oscontrol_set_font((OSControl*)edit, edit->font);
@@ -221,9 +228,14 @@ void osedit_passmode(OSEdit *edit, const bool_t passmode)
 {
     cassert_no_null(edit);
     if (passmode == TRUE)
-        SendMessage(edit->control.hwnd, EM_SETPASSWORDCHAR, (WPARAM)L'•', (LPARAM)0);
+    {
+        wchar_t pchar = L'\x2022';
+        SendMessage(edit->control.hwnd, EM_SETPASSWORDCHAR, (WPARAM)pchar, (LPARAM)0);
+    }
     else
+    {
         SendMessage(edit->control.hwnd, EM_SETPASSWORDCHAR, (WPARAM)0, (LPARAM)0);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -242,9 +254,9 @@ void osedit_autoselect(OSEdit *edit, const bool_t autoselect)
 {
     cassert_no_null(edit);
     if (autoselect == TRUE)
-        BIT_SET(edit->flags, ekEDAUTOSEL);
+        BIT_SET(edit->flags, ekEDIT_AUTOSEL);
     else
-        BIT_CLEAR(edit->flags, ekEDAUTOSEL);
+        BIT_CLEAR(edit->flags, ekEDIT_AUTOSEL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -282,7 +294,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     {
         register uint32_t i;
         char_t text[256] = "";
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         cassert(lines < 100);
         for (i = 0; i < lines - 1; ++i)
             str_cat_c(text, 256, "O\n");
@@ -389,7 +401,7 @@ void _osedit_command(OSEdit *edit, WPARAM wParam)
             result.apply = FALSE;
             result.text[0] = '\0';
             result.cpos = UINT32_MAX;
-            listener_event(edit->OnFilter, ekEVTXTFILTER, edit, &params, &result, OSEdit, EvText, EvTextFilter);
+            listener_event(edit->OnFilter, ekGUI_EVENT_TXTFILTER, edit, &params, &result, OSEdit, EvText, EvTextFilter);
             heap_free((byte_t**)&edit_text, tsize, "OSControlGetText");
 
             if (result.apply == TRUE)

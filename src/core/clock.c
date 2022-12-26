@@ -10,7 +10,6 @@
 
 /* Clock (Frame counter) */
 
-#include "core.inl"
 #include "clock.h"
 #include "btime.h"
 #include "cassert.h"

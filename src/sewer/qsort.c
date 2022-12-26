@@ -10,7 +10,7 @@
 
 /* Quick sort with data (from glib) */
 
-// https://github.com/frida/glib/blob/master/glib/gqsort.c
+/* https://github.com/frida/glib/blob/master/glib/gqsort.c */
 
 #include "qsort.inl"
 #include "cassert.h"
@@ -147,7 +147,7 @@ typedef struct
  *
  * This is just like the standard C qsort() function, but
  * the comparison routine accepts a user data argument.
- * 
+ *
  **/
 void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t sizeof_elem, FPtr_compare_ex func_compare, const void *user_data)
 {
@@ -299,7 +299,7 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
 
         /* Insertion sort, running from left-hand-side up to right-hand-side.  */
         run_ptr = base_ptr + sizeof_elem;
-        
+
         while ((run_ptr += sizeof_elem) <= end_ptr)
         {
             tmp_ptr = run_ptr - sizeof_elem;

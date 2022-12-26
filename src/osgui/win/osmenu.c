@@ -51,7 +51,7 @@ struct _osmenu_t
 
 /*---------------------------------------------------------------------------*/
 
-OSMenu *osmenu_create(const enum_t flags)
+OSMenu *osmenu_create(const uint32_t flags)
 {
     OSMenu *menu = heap_new0(OSMenu);
     menu->hmenu = CreatePopupMenu();

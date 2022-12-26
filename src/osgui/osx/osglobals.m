@@ -15,10 +15,10 @@
 #include "osglobals.inl"
 #include "oscolor.inl"
 #include "oscontrol.inl"
-#include "image.inl"
 #include "cassert.h"
 #include "color.h"
 #include "heap.h"
+#include "image.h"
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -56,7 +56,7 @@ static void i_theme_colors(void)
     CGFloat r, g, b, a;
     oscolor_NSColor_rgba([NSColor windowBackgroundColor], &r, &g, &b, &a);
     i_DARK_MODE = (.21 * r + .72 * g + .07 * b) < .5 ? TRUE : FALSE;
-    
+
     if (i_DARK_MODE == TRUE)
     {
         i_SET_COLOR(i_TEXT_COLOR, .86, .86, .86, 1);
@@ -87,7 +87,7 @@ static void i_theme_colors(void)
         i_SET_COLOR(i_SELBGBACKDROP_COLOR, .827, .827, .827, 1);
         i_SET_COLOR(i_HOTBGBACKDROP_COLOR, .95, .96, .98, 1);
     }
-    
+
     unref(a);
 }
 
@@ -123,7 +123,7 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
     [view cacheDisplayInRect:rect toBitmapImageRep:irep];
     [image addRepresentation:irep];
     [image setSize:rect.size];
-    
+
     // Locate the exact frame of pixels block
     if (pixrect != NULL)
     {
@@ -137,7 +137,7 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
         cassert([irep bitsPerPixel] == 32);
         [irep getBitmapDataPlanes:pixplanes];
         buffer = (uint32_t*)pixplanes[0];
-        
+
         for (NSInteger j = 0; j < h; ++j)
         {
             for (NSInteger i = 0; i < w; ++i)
@@ -150,16 +150,16 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
                     if (j > yy1) yy1 = j;
                 }
             }
-            
+
             buffer += line / 4;
         }
-        
+
         pixrect->origin.x = (CGFloat)ceil((CGFloat)x0 / scale);
         pixrect->origin.y = (CGFloat)ceil((CGFloat)yy0 / scale);
         pixrect->size.width = (CGFloat)ceil((CGFloat)(x1 - x0 + 1) / scale);
         pixrect->size.height = (CGFloat)ceil((CGFloat)(yy1 - yy0 + 1) / scale);
     }
-    
+
     return image;
 }
 
@@ -175,7 +175,7 @@ static void i_init_checkbox(void)
 	cassert(i_CHECKBOX_NORMAL_IMAGE == nil);
 	cassert(i_CHECKBOX_PRESSED_IMAGE == nil);
 	cassert(i_CHECKBOX_DISABLE_IMAGE == nil);
-    
+
     [button setTitle:@""];
     [button setBezelStyle:REGULAR_SQUARE_BEZEL];
     [button setBordered:NO];
@@ -186,26 +186,26 @@ static void i_init_checkbox(void)
     [button highlight:NO];
     [button setEnabled:YES];
     i_UNCHECKBOX_NORMAL_IMAGE = i_image_from_view(button, &i_CHECKBOX_RECT);
-    
+
     [button highlight:YES];
     i_UNCHECKBOX_PRESSED_IMAGE = i_image_from_view(button, NULL);
-    
+
     [button highlight:NO];
     [button setEnabled:NO];
     i_UNCHECKBOX_DISABLE_IMAGE = i_image_from_view(button, NULL);
-    
+
     [button setState:BUTTON_ON];
     [button highlight:NO];
     [button setEnabled:YES];
     i_CHECKBOX_NORMAL_IMAGE = i_image_from_view(button, NULL);
-    
+
     [button highlight:YES];
     i_CHECKBOX_PRESSED_IMAGE = i_image_from_view(button, NULL);
-    
+
     [button highlight:NO];
     [button setEnabled:NO];
     i_CHECKBOX_DISABLE_IMAGE = i_image_from_view(button, NULL);
-    
+
     [button release];
 }
 
@@ -224,32 +224,32 @@ color_t osglobals_color(const syscolor_t *color)
 {
     cassert_no_null(color);
     switch (*color) {
-	case ekSYS_DARKMODE:
+	case ekSYSCOLOR_DARKMODE:
 		return (color_t)i_DARK_MODE;
-            
-    case ekSYS_LABEL:
+
+    case ekSYSCOLOR_LABEL:
 	#if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
     	return oscolor_from_NSColor([NSColor labelColor]);
 	#else
 	    return oscolor_from_NSColor([NSColor controlTextColor]);
 	#endif
-            
-    case ekSYS_VIEW:
+
+    case ekSYSCOLOR_VIEW:
 		return oscolor_from_NSColor([NSColor windowBackgroundColor]);
-            
-    case ekSYS_LINE:
+
+    case ekSYSCOLOR_LINE:
 		return oscolor_from_NSColor([NSColor gridColor]);
-            
-    case ekSYS_LINK:
+
+    case ekSYSCOLOR_LINK:
 	#if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     	return oscolor_from_NSColor([NSColor linkColor]);
 	#else
     	return oscolor_from_NSColor([NSColor colorWithCalibratedRed:0 green:(CGFloat).410 blue:(CGFloat).853 alpha:1]);
 	#endif
-            
-    case ekSYS_BORDER:
+
+    case ekSYSCOLOR_BORDER:
 		return oscolor_from_NSColor([NSColor gridColor]);
-            
+
 	cassert_default();
     }
 }
@@ -287,35 +287,35 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 
 /*---------------------------------------------------------------------------*/
 
-Cursor *osglobals_cursor(const cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
+Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
 {
     NSCursor *nscursor = nil;
     switch (cursor) {
-    case ekCARROW:
+    case ekGUI_CURSOR_ARROW:
         nscursor = [[NSCursor arrowCursor] retain];
         break;
-    case ekCHAND:
+    case ekGUI_CURSOR_HAND:
         nscursor = [[NSCursor openHandCursor] retain];
         break;
-    case ekCIBEAM:
+    case ekGUI_CURSOR_IBEAM:
         nscursor = [[NSCursor IBeamCursor] retain];
         break;
-    case ekCCROSS:
+    case ekGUI_CURSOR_CROSS:
         nscursor = [[NSCursor crosshairCursor] retain];
         break;
-    case ekCSIZEWE:
+    case ekGUI_CURSOR_SIZEWE:
         nscursor = [[NSCursor resizeLeftRightCursor] retain];
         break;
-    case ekCSIZENS:
+    case ekGUI_CURSOR_SIZENS:
         nscursor = [[NSCursor resizeDownCursor] retain];
         break;
-    case ekCUSER:
+    case ekGUI_CURSOR_USER:
     {
         NSImage *nsimage = (NSImage*)image_native(image);
         nscursor = [[NSCursor alloc] initWithImage:nsimage hotSpot:NSMakePoint((CGFloat)hot_x, (CGFloat)hot_y)];
         break;
     }
-        
+
     cassert_default();
     }
 
@@ -343,11 +343,11 @@ void osglobals_value(const uint32_t index, void *value)
     case 0:
         (*(uint32_t*)value) = 0;
         break;
-            
+
     case 1:
         (*(uint32_t*)value) = 0;
         break;
-            
+
     cassert_default();
     }
 }
@@ -425,50 +425,50 @@ NSRect osglobals_check_rect(void)
 
 /*---------------------------------------------------------------------------*/
 
-NSImage *osglobals_checkbox_image(const bool_t pressed, const cstate_t state)
+NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state)
 {
 	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
-    
+
     if (pressed == TRUE)
     {
         switch (state) {
-        case ekCSTATE_NORMAL:
-        case ekCSTATE_BKNORMAL:
-        case ekCSTATE_HOT:
-        case ekCSTATE_BKHOT:
+        case ekCTRL_STATE_NORMAL:
+        case ekCTRL_STATE_BKNORMAL:
+        case ekCTRL_STATE_HOT:
+        case ekCTRL_STATE_BKHOT:
             return i_CHECKBOX_NORMAL_IMAGE;
-                
-        case ekCSTATE_PRESSED:
-        case ekCSTATE_BKPRESSED:
+
+        case ekCTRL_STATE_PRESSED:
+        case ekCTRL_STATE_BKPRESSED:
             return i_CHECKBOX_PRESSED_IMAGE;
-                
-        case ekCSTATE_DISABLED:
+
+        case ekCTRL_STATE_DISABLED:
             return i_CHECKBOX_DISABLE_IMAGE;
-                
+
 		cassert_default();
         }
     }
     else
     {
         switch (state) {
-        case ekCSTATE_NORMAL:
-        case ekCSTATE_BKNORMAL:
-        case ekCSTATE_HOT:
-        case ekCSTATE_BKHOT:
+        case ekCTRL_STATE_NORMAL:
+        case ekCTRL_STATE_BKNORMAL:
+        case ekCTRL_STATE_HOT:
+        case ekCTRL_STATE_BKHOT:
             return i_UNCHECKBOX_NORMAL_IMAGE;
-                
-        case ekCSTATE_PRESSED:
-        case ekCSTATE_BKPRESSED:
+
+        case ekCTRL_STATE_PRESSED:
+        case ekCTRL_STATE_BKPRESSED:
             return i_UNCHECKBOX_PRESSED_IMAGE;
-                
-        case ekCSTATE_DISABLED:
+
+        case ekCTRL_STATE_DISABLED:
             return i_UNCHECKBOX_DISABLE_IMAGE;
-                
+
 		cassert_default();
         }
     }
-    
+
     return i_CHECKBOX_NORMAL_IMAGE;
 }
 

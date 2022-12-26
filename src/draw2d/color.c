@@ -174,9 +174,14 @@ color_t color_html(const char_t *html)
 static __INLINE color_t i_effective(color_t c)
 {
     if (i_alpha(c) == 0)
-        return draw2d_get_named_color(c);
+    {
+        cassert(c <= 0xFFFF);
+        return draw2d_get_indexed_color((uint16_t)c);
+    }
     else
+    {
         return c;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -194,7 +199,7 @@ void color_to_hsbf(const color_t color, real32_t *hue, real32_t *sat, real32_t *
     cassert_no_null(sat);
     cassert_no_null(bright);
 
-    // Very improbable
+    /* Very improbable */
     if (i_alpha(color) == 0)
     {
         register color_t c = i_effective(color);
@@ -223,7 +228,7 @@ void color_to_hsbf(const color_t color, real32_t *hue, real32_t *sat, real32_t *
     else
     {
         real32_t deltaR, deltaG, deltaB;
- 
+
         cassert(max > 0);
         *sat = delta / max;
 
@@ -235,10 +240,10 @@ void color_to_hsbf(const color_t color, real32_t *hue, real32_t *sat, real32_t *
             *hue = deltaB - deltaG;
         else if (bmath_absf(g - max) < i_TOL)
             *hue = 0.3333333f + deltaR - deltaB;
-        else if (bmath_absf(b - max) < i_TOL) 
+        else if (bmath_absf(b - max) < i_TOL)
             *hue = 0.6666667f + deltaG - deltaR;
 
-        if (*hue < 0) 
+        if (*hue < 0)
             *hue += 1.f;
         else if (*hue > 1.0f)
             *hue -= 1.f;

@@ -14,16 +14,16 @@
 
 __EXTERN_C
 
-OSMenu *osmenu_create(const enum_t flags);
+_osgui_api OSMenu *osmenu_create(const uint32_t flags);
 
-void osmenu_destroy(OSMenu **menu);
+_osgui_api void osmenu_destroy(OSMenu **menu);
 
-void osmenu_add_item(OSMenu *menu, OSMenuItem *item);
+_osgui_api void osmenu_add_item(OSMenu *menu, OSMenuItem *item);
 
-void osmenu_delete_item(OSMenu *menu, OSMenuItem *item);
+_osgui_api void osmenu_delete_item(OSMenu *menu, OSMenuItem *item);
 
-void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real32_t y);
+_osgui_api void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real32_t y);
 
-void osmenu_hide(OSMenu *menu);
+_osgui_api void osmenu_hide(OSMenu *menu);
 
 __END_C

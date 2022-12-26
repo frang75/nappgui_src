@@ -14,10 +14,10 @@
 
 __EXTERN_C
 
-device_t globals_device(void);
+_gui_api device_t globals_device(void);
 
-void globals_resolution(S2Df *resolution);
+_gui_api void globals_resolution(S2Df *resolution);
 
-V2Df globals_mouse_position(void);
+_gui_api V2Df globals_mouse_position(void);
 
 __END_C

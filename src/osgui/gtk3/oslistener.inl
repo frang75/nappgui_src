@@ -19,9 +19,7 @@ void _oslistener_init(ViewListeners *listeners);
 void _oslistener_remove(ViewListeners *listeners);
 
 void _oslistener_signal(GtkWidget *widget, bool_t add, gint *signal_id, gint signal_mask, const gchar *signal_name, GCallback callback, gpointer callback_data);
-//
-//void _oslistener_set_enabled(ViewListeners *listeners, bool_t is_enabled);
-//
+
 void _oslistener_redraw(OSControl *sender, EvDraw *params, ViewListeners *listeners);
 
 void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, GtkAdjustment *hadjust, GtkAdjustment *vadjust, ViewListeners *listeners);
@@ -39,11 +37,6 @@ void _oslistener_scroll_whell(OSControl *sender, GdkEventScroll *event, GtkAdjus
 bool_t _oslistener_key_down(OSControl *sender, GdkEventKey *event, ViewListeners *listeners);
 
 bool_t _oslistener_key_up(OSControl *sender, GdkEventKey *event, ViewListeners *listeners);
-
-/*
-void _oslistener_key_flags_changed(const HWND view, UINT event_uMsg, WPARAM event_wParam, LPARAM event_lParam, ViewListeners *listeners);
-
-*/
 
 __END_C
 

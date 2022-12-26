@@ -99,14 +99,16 @@ uint64_t btime_to_micro(const Date *date)
     struct timeval tv;
     i_date_to_tm(date, &tinfo);
 
-	// https://stackoverflow.com/questions/38298261/why-there-is-no-inverse-function-for-gmtime-in-libc
-	// This function performs the reverse translation that localtime does.
-	// The  mktime() function converts a broken-down time structure, expressed as
-    // local time, to calendar time representation. The function ignores the values
-    // supplied by the caller in the tm_wday and tm_yday fields. The value
-    // specified in the tm_isdst field informs mktime() whether or not daylight
-    // saving time (DST) is in effect for the time supplied in the tm structure:
-    // a positive value means DST is in effect;
+/*
+    https://stackoverflow.com/questions/38298261/why-there-is-no-inverse-function-for-gmtime-in-libc
+	This function performs the reverse translation that localtime does.
+	The  mktime() function converts a broken-down time structure, expressed as
+    local time, to calendar time representation. The function ignores the values
+    supplied by the caller in the tm_wday and tm_yday fields. The value
+    specified in the tm_isdst field informs mktime() whether or not daylight
+    saving time (DST) is in effect for the time supplied in the tm structure:
+    a positive value means DST is in effect;
+ */
     tinfo.tm_isdst = 1;
     tv.tv_sec = mktime(&tinfo);
     tv.tv_usec = 0;
@@ -121,7 +123,7 @@ void btime_to_date(const uint64_t micro, Date *date)
 	time_t time;
     struct tm *tinfo;
     i_micro_to_timeval(micro, &tv);
-    // https://stackoverflow.com/questions/9252849/convert-timeval-to-time-t
+    /* https://stackoverflow.com/questions/9252849/convert-timeval-to-time-t */
     time = (time_t)tv.tv_sec;
     tinfo = localtime(&time);
     i_tm_to_date(tinfo, date);

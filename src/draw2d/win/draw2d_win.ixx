@@ -21,11 +21,6 @@
 #include <gdipluspixelformats.h>
 #include "warn.hxx"
 
-struct _measurestr_t
-{
-    HDC hdc;
-};
-
 struct _dctx_t
 {
     HDC hdc;
@@ -33,6 +28,7 @@ struct _dctx_t
     uint32_t width;
     uint32_t height;
     pixformat_t format;
+    color_t line_color;
     color_t text_color;
     color_t fill_color;
     HPEN gdi_pen;
@@ -71,7 +67,8 @@ struct _dctx_t
     Gdiplus::REAL fintleading;
     align_t image_halign;
     align_t image_valign;
-    void *custom_data;
+    void *data;
+    FPtr_destroy func_destroy_data;
 };
 
 #endif

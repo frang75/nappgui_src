@@ -12,8 +12,8 @@
 
 #include "heap.h"
 #include "heap.inl"
-#include "blib.inl"
-#include "osbs.inl"
+#include "blib.h"
+#include "osbs.h"
 #include "bmem.h"
 #include "bmutex.h"
 #include "bthread.h"
@@ -143,9 +143,9 @@ static void i_new_page(const uint32_t page_size, i_Page **current_page, uint32_t
 
 static void i_init_memory(i_Memory *memory, const uint32_t page_size)
 {
-    cassert_no_null(memory);    
+    cassert_no_null(memory);
     /* Page size is power of 2 */
-    cassert((page_size != 0) && (page_size & (page_size - 1)) == 0); 
+    cassert((page_size != 0) && (page_size & (page_size - 1)) == 0);
     bmem_zero(memory, i_Memory);
     memory->main_thread_id = bthread_current_id();
     memory->mutex = bmutex_create();
@@ -189,7 +189,7 @@ static byte_t* i_malloc(i_Memory *memory, const uint32_t size, const uint32_t al
     cassert_no_null(memory);
     cassert_no_null(memory->current_page);
 
-    // Block can be stored by paged allocator
+    /* Block can be stored by paged allocator */
     if (__TRUE_EXPECTED(size + align + sizeof(i_Page) + sizeof(void*) < memory->page_size))
     {
         register uint32_t mod = memory->current_page->offset % align;
@@ -220,7 +220,7 @@ static byte_t* i_malloc(i_Memory *memory, const uint32_t size, const uint32_t al
     }
 
     cassert_fatal((mem != NULL) && ((intptr_t)mem % (intptr_t)align) == 0);
-    return mem; 
+    return mem;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,7 +228,7 @@ static byte_t* i_malloc(i_Memory *memory, const uint32_t size, const uint32_t al
 static void i_free(i_Memory *memory, byte_t *mem, const uint32_t size, const uint32_t align)
 {
     cassert_no_null(memory);
-    
+
     /* Block filled with waste */
     #if defined (__ASSERTS__)
     bmem_set1(mem, size, 0x3F);
@@ -266,7 +266,7 @@ static void i_free(i_Memory *memory, byte_t *mem, const uint32_t size, const uin
             {
                 cassert(page->next == NULL);
                 i_init_page(page);
-            }            
+            }
         }
     }
     /* Block was stored using an own block */
@@ -286,7 +286,7 @@ static byte_t* i_realloc(i_Memory *memory, byte_t *prev_mem, const uint32_t size
     cassert_no_null(memory->current_page);
 
     /* Some of new/previous block can be/is stored in paged allocator */
-    if (__TRUE_EXPECTED((prev_size + align + sizeof(i_Page) + sizeof(void*) < memory->page_size) 
+    if (__TRUE_EXPECTED((prev_size + align + sizeof(i_Page) + sizeof(void*) < memory->page_size)
         || (size + align + sizeof(i_Page) + sizeof(void*) < memory->page_size)))
     {
         register uint32_t min_size;
@@ -303,7 +303,7 @@ static byte_t* i_realloc(i_Memory *memory, byte_t *prev_mem, const uint32_t size
     }
 
     cassert_fatal((mem != NULL) && ((intptr_t)mem % (intptr_t)align) == 0);
-    return mem; 
+    return mem;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -353,8 +353,8 @@ void _heap_finish(void)
     }
     #endif
 
-    if (i_MEMORY.num_allocs != i_MEMORY.num_deallocs 
-        || i_MEMORY.total_bytes_allocated != i_MEMORY.total_bytes_deallocated 
+    if (i_MEMORY.num_allocs != i_MEMORY.num_deallocs
+        || i_MEMORY.total_bytes_allocated != i_MEMORY.total_bytes_deallocated
         || i_MEMORY.bytes_allocated > 0)
     {
         log_printf("[FAIL] Heap Global Memory Leaks!!!");
@@ -379,7 +379,7 @@ void _heap_finish(void)
             if (i_MEMORY.great_pages_alloc > 0)
             log_printf("                  %u pages greater than %u bytes", i_MEMORY.great_pages_alloc, i_MEMORY.page_size);
             log_printf("============================");
-            
+
             #if defined(__MEMORY_AUDITOR__)
             if (i_HEAP_VERBOSE == TRUE)
             {
@@ -404,7 +404,7 @@ void _heap_finish(void)
         log_printf("Config: Release");
     #endif
 	}
-    
+
     i_remove_memory(&i_MEMORY);
 }
 
@@ -433,24 +433,19 @@ void _heap_page_size(const uint32_t size)
         i_PAGESIZE = 1024;
 }
 
-/*---------------------------------------------------------------------------*/
-
-void _heap_verbose(const bool_t verbose)
-{
-    i_HEAP_VERBOSE = verbose;
-}
-
 #if defined (__MEMORY_AUDITOR__)
 
 /*---------------------------------------------------------------------------*/
 
-//static void i_dump_objects(void)
-//{
-//    register uint32_t i;
-//    log_printf("Num objects: %d", i_MEMORY.num_objects);
-//    for (i = 0; i < i_MEMORY.num_objects; ++i)
-//        log_printf("%s %d %d", i_MEMORY.objects[i].name, i_MEMORY.objects[i].num_allocs, i_MEMORY.objects[i].num_deallocs);
-//}
+/*
+static void i_dump_objects(void)
+{
+   register uint32_t i;
+   log_printf("Num objects: %d", i_MEMORY.num_objects);
+   for (i = 0; i < i_MEMORY.num_objects; ++i)
+       log_printf("%s %d %d", i_MEMORY.objects[i].name, i_MEMORY.objects[i].num_allocs, i_MEMORY.objects[i].num_deallocs);
+}
+ */
 
 /*---------------------------------------------------------------------------*/
 
@@ -556,10 +551,9 @@ static __INLINE byte_t *i_malloc_imp(const uint32_t size, const uint32_t align, 
 
 void heap_start_mt(void)
 {
-    //cassert(bthread_current_id() == i_MEMORY.main_thread_id);
     bmutex_lock(i_MEMORY.mutex);
     i_MEMORY.mtcount += 1;
-    _osbs_mutex(i_MEMORY.mutex);
+    osbs_memory_mt(i_MEMORY.mutex);
     bmutex_unlock(i_MEMORY.mutex);
 }
 
@@ -567,13 +561,33 @@ void heap_start_mt(void)
 
 void heap_end_mt(void)
 {
-    //cassert(bthread_current_id() == i_MEMORY.main_thread_id);
     bmutex_lock(i_MEMORY.mutex);
     cassert(i_MEMORY.mtcount > 0);
     i_MEMORY.mtcount -= 1;
     if (i_MEMORY.mtcount == 0)
-        _osbs_mutex(NULL);
+        osbs_memory_mt(NULL);
     bmutex_unlock(i_MEMORY.mutex);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void heap_verbose(const bool_t verbose)
+{
+    i_HEAP_VERBOSE = verbose;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void heap_stats(const bool_t stats)
+{
+    i_HEAP_STATS = stats;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t heap_leaks(void)
+{
+    return i_HEAP_LEAKS;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -623,7 +637,7 @@ static __INLINE byte_t *i_realloc_imp(byte_t *mem, const uint32_t size, const ui
 
         if (new_size > size)
         {
-            i_MEMORY.bytes_allocated += new_size - size;            
+            i_MEMORY.bytes_allocated += new_size - size;
             if (i_MEMORY.bytes_allocated > i_MEMORY.max_bytes_allocated)
                 i_MEMORY.max_bytes_allocated = i_MEMORY.bytes_allocated;
         }
@@ -778,18 +792,4 @@ void heap_auditor_delete(const char_t *name)
     #else
     unref(name);
     #endif
-}
-
-/*---------------------------------------------------------------------------*/
-
-void heap_stats(const bool_t stats)
-{
-    i_HEAP_STATS = stats;
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t heap_leaks(void)
-{
-    return i_HEAP_LEAKS;
 }

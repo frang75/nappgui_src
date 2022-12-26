@@ -15,11 +15,12 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
+#include "guictx.h"
+
 #include "cassert.h"
 #include "event.h"
 #include "ptr.h"
+#include "objh.h"
 
 struct _updown_t
 {
@@ -45,10 +46,10 @@ static void i_OnClick(UpDown *updown, Event *e)
 
 UpDown *updown_create(void)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
+    void *ositem = context->func_create[ekGUI_TYPE_UPDOWN](ekUPDOWN_FLAG);
     UpDown *updown = obj_new0(UpDown);
-    void *ositem = context->func_updown_create((const enum_t)ekUPFLAG);
-    _component_init(&updown->component, context, PARAM(type, ekGUI_COMPONENT_UPDOWN), &ositem);
+    _component_init(&updown->component, context, PARAM(type, ekGUI_TYPE_UPDOWN), &ositem);
     _component_get_size(&updown->component, &updown->size);
     context->func_updown_OnClick(updown->component.ositem, obj_listener(updown, i_OnClick, UpDown));
     return updown;
@@ -81,7 +82,7 @@ void updown_tooltip(UpDown *updown, const char_t *text)
     cassert_no_null(updown);
     if (text != NULL)
         ltext = _gui_respack_text(text, &updown->ttipid);
-    updown->component.context->func_set_tooltip[ekGUI_COMPONENT_UPDOWN](updown->component.ositem, ltext);
+    updown->component.context->func_set_tooltip[ekGUI_TYPE_UPDOWN](updown->component.ositem, ltext);
 }
 
 /*---------------------------------------------------------------------------*/

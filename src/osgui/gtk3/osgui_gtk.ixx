@@ -19,14 +19,17 @@
 #error This file is only for GTK Toolkit
 #endif
 
+#include "nowarn.hxx"
 #include <gtk/gtk.h>
+#include "warn.hxx"
 
 typedef struct _view_listeners_t ViewListeners;
+typedef struct _recti_t RectI;
 
 struct _view_listeners_t
 {
     bool_t is_enabled;
-    mouse_t button;
+    gui_mouse_t button;
     gint enter_signal;
     gint leave_signal;
     gint pressed_signal;
@@ -48,9 +51,17 @@ struct _view_listeners_t
     Listener *OnKeyUp;
 };
 
+struct _recti_t
+{
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
+
 struct _oscontrol_t
 {
-    guitype_t type;
+    gui_type_t type;
     GtkWidget *widget;
 
     #if defined (__ASSERTS__)

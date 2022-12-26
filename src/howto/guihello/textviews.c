@@ -12,13 +12,13 @@
 
 #include "textviews.h"
 #include "guiall.h"
-#include "res.h"
+#include "res_guihello.h"
 
 /*---------------------------------------------------------------------------*/
 
 static void i_set_rtf(TextView *text)
 {
-    ResPack *pack = res_respack("");
+    ResPack *pack = res_guihello_respack("");
     uint32_t size = 0;
     const byte_t *data = respack_file(pack, TEXTVIEW_RTF, &size);
     Stream *stm = stm_from_block(data, size);

@@ -13,25 +13,25 @@
 #include "window.h"
 #include "window.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
 #include "button.inl"
 #include "component.inl"
-#include "obj.inl"
 #include "panel.inl"
 #include "panel.h"
 #include "layout.inl"
 #include "layout.h"
+#include "guictx.h"
 
 #include "cassert.h"
 #include "event.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "v2d.h"
 
 struct _window_t
 {
     Object object;
-    const GuiContext *context;
+    const GuiCtx *context;
     bool_t in_will_close_event;
     bool_t is_destroyed;
     bool_t visible;
@@ -47,7 +47,7 @@ struct _window_t
 
 /*---------------------------------------------------------------------------*/
 
-static void i_detach_main_panel(Panel *main_panel, void *window_renderable_item, FPtr_set_ptr func_detach_main_panel_from_window)
+static void i_detach_main_panel(Panel *main_panel, void *window_renderable_item, FPtr_gctx_set_ptr func_detach_main_panel_from_window)
 {
     GuiComponent *panel_component;
     cassert_no_nullf(func_detach_main_panel_from_window);
@@ -67,19 +67,19 @@ static void i_destroy(Window **window)
     cassert((*window)->in_will_close_event == FALSE);
     cassert_no_null((*window)->context);
     cassert_no_nullf((*window)->context->func_window_destroy);
-    
+
     if ((*window)->visible == TRUE)
         window_hide(*window);
 
     if ((*window)->role == ekGUI_ROLE_MODAL)
         window_stop_modal(*window, 0);
-        
+
     if ((*window)->main_layout != NULL)
     {
         Panel *main_panel = layout_get_panel((*window)->main_layout, 0, 0);
 
-        // Prevent flickering in Windows because the main panel new parent will be 
-        // set to NULL (Desktop HWND) when is detached from this window.
+        /* Prevent flickering in Windows because the main panel new parent will be
+        set to NULL (Desktop HWND) when is detached from this window. */
         #if defined(__WINDOWS__)
         _panel_hide_all(main_panel);
         #endif
@@ -88,12 +88,12 @@ static void i_destroy(Window **window)
         _layout_destroy(&(*window)->main_layout);
         _panel_destroy(&main_panel);
     }
-    
+
     (*window)->context->func_window_destroy(&(*window)->ositem);
     listener_destroy(&(*window)->OnMoved);
     listener_destroy(&(*window)->OnResize);
-    listener_destroy(&(*window)->OnClose);    
-    gui_context_release((GuiContext**)(&(*window)->context));
+    listener_destroy(&(*window)->OnClose);
+    guictx_release((GuiCtx**)(&(*window)->context));
     obj_delete(window, Window);
 }
 
@@ -122,7 +122,7 @@ static void i_OnWindowMoved(Window *window, Event *event)
 {
     cassert_no_null(window);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVWNDMOVED);
+    cassert(event_type(event) == ekGUI_EVENT_WND_MOVED);
     cassert(event_sender_imp(event, NULL) == window->ositem);
     if (window->visible == TRUE && window->OnMoved != NULL)
         listener_pass_event(window->OnMoved, event, window, Window);
@@ -141,7 +141,7 @@ static void i_OnWindowResize(Window *window, Event *e)
     cassert_no_null(params);
 
 	switch (event_type(e)) {
-	case ekEVWNDSIZING:
+	case ekGUI_EVENT_WND_SIZING:
 	{
 		S2Df reqsize;
 		S2Df finsize;
@@ -155,10 +155,8 @@ static void i_OnWindowResize(Window *window, Event *e)
 		break;
 	}
 
-	case ekEVWNDSIZE:
+	case ekGUI_EVENT_WND_SIZE:
 	{
-		//S2Df size = s2df(params->width, params->height);
-		//_component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &size);
 		_layout_locate(window->main_layout);
 		if (window->OnResize != NULL)
 			listener_pass_event(window->OnResize, e, window, Window);
@@ -179,13 +177,13 @@ static void i_OnWindowClose(Window *window, Event *event)
     cassert(window->in_will_close_event == FALSE);
     cassert(window->is_destroyed == FALSE);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVWNDCLOSE);
+    cassert(event_type(event) == ekGUI_EVENT_WND_CLOSE);
     cassert(event_sender_imp(event, NULL) == window->ositem);
-    
+
     window->in_will_close_event = TRUE;
 
     switch (params->origin) {
-    case ekCLBUTTON:
+    case ekGUI_CLOSE_BUTTON:
         if (window->OnClose != NULL)
         {
             listener_pass_event(window->OnClose, event, window, Window);
@@ -212,8 +210,8 @@ static void i_OnWindowClose(Window *window, Event *event)
 
         break;
 
-    case ekCLESC:
-        if (window->flags & ekWNESC)
+    case ekGUI_CLOSE_ESC:
+        if (window->flags & ekWINDOW_ESC)
         {
             *event_result(event, bool_t) = TRUE;
             if (window->OnClose != NULL)
@@ -226,8 +224,8 @@ static void i_OnWindowClose(Window *window, Event *event)
         }
         break;
 
-    case ekCLINTRO:
-        if (window->flags & ekWNRETURN)
+    case ekGUI_CLOSE_INTRO:
+        if (window->flags & ekWINDOW_RETURN)
         {
             *event_result(event, bool_t) = TRUE;
             if (window->OnClose != NULL)
@@ -240,13 +238,13 @@ static void i_OnWindowClose(Window *window, Event *event)
         }
         break;
 
-    case ekCLDEACT:
+    case ekGUI_CLOSE_DEACT:
         closed = FALSE;
         break;
 
     cassert_default();
     }
-    
+
     if (closed == TRUE)
     {
         if (window->visible == TRUE)
@@ -257,7 +255,7 @@ static void i_OnWindowClose(Window *window, Event *event)
 
         cassert(window->visible == FALSE);
         window->in_will_close_event = FALSE;
-    
+
         if (window->is_destroyed == TRUE)
             i_destroy(&window);
     }
@@ -274,29 +272,16 @@ static void i_OnWindowClose(Window *window, Event *event)
 static Window *i_create_window(const uint32_t flags)
 {
     Window *window = obj_new0(Window);
-    window->context = gui_context_retain(gui_context_get_current());
-    window->ositem = window->context->func_window_create((enum_t)flags);
+    window->context = guictx_retain(guictx_get_current());
+    window->ositem = window->context->func_window_create(flags);
     window->flags = flags;
     window->role = ENUM_MAX(gui_role_t);
     window->context->func_window_OnResize(window->ositem, obj_listener(window, i_OnWindowResize, Window));
     window->context->func_window_OnClose(window->ositem, obj_listener(window, i_OnWindowClose, Window));
-    window->context->func_window_set_property(window->ositem, ekGUI_PROPERTY_CHILDREN, NULL);
+    window->context->func_window_set_property(window->ositem, ekGUI_PROP_CHILDREN, NULL);
     _gui_add_window(window);
     return window;
 }
-
-/*---------------------------------------------------------------------------*/
-
-//static Window *i_create_window_managed(void *native_ptr)
-//{
-//    Window *window = obj_new0(Window);
-//    window->context = gui_context_retain(gui_context_get_current());
-//    window->ositem = window->context->func_window_managed(native_ptr);
-//    window->flags = UINT32_MAX;
-//    window->role = ENUM_MAX(gui_role_t);
-//    _gui_add_window(window);
-//    return window;
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -311,7 +296,6 @@ static void i_main_layout_compose(Window *window, const S2Df *content_required_s
     window->context->func_window_set_taborder(window->ositem, NULL);
     _layout_taborder(window->main_layout, window);
     window->context->func_window_set_size(window->ositem, main_layout_size.width, main_layout_size.height);
-    //_component_set_frame(_panel_get_component(window->main_panel), &kV2D_ZEROf, &main_panel_size);
     _layout_locate(window->main_layout);
 }
 
@@ -356,45 +340,10 @@ void window_panel(Window *window, Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-//Window *window_create(const uint32_t flags, Panel **main_panel);
-//Window *window_create(const uint32_t flags, Panel **main_panel)
-//{
-//    Window *window = i_create_window(flags);
-//    i_attach_main_panel(window, NULL, main_panel);
-//    return window;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//func(window_create_sized).Crea una nueva ventana, indicando el tama�o del �rea de cliente.
-//fret(Window*).La ventana reci�n creada.
-//fpar(const uint32_t,flags).Combinaci�n de valores <lt>window_flag_t</lt>.
-//fpar(const S2Df,content_size).Tama�o del panel principal.
-//fpar(Panel**,main_panel).Panel principal, que integra el contenido de la ventana.
-//fnote.El panel principal se expandir� hasta alcanzar el tama�o <c>content_size</c>. Ver <lh>Expansi�n de celdas</lh>.
-
-//Window *window_create_sized(const uint32_t flags, const S2Df content_size, Panel **main_panel);
-//Window *window_create_sized(const uint32_t flags, const S2Df content_size, Panel **main_panel)
-//{
-//    Window *window = i_create_window(flags);
-//    i_attach_main_panel(window, (content_size.width > 0 && content_size.height > 0) ? &content_size : NULL, main_panel);
-//    return window;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//Window *window_managed(void *native_ptr);
-//Window *window_managed(void *native_ptr)
-//{
-//    return i_create_window_managed(native_ptr);
-//}
-
-/*---------------------------------------------------------------------------*/
-
 void window_OnMoved(Window *window, Listener *listener)
 {
     component_update_listener(
-                    window, &window->OnMoved, listener, i_OnWindowMoved, 
+                    window, &window->OnMoved, listener, i_OnWindowMoved,
                     window->context->func_window_OnMoved,
                     Window);
 }
@@ -560,6 +509,16 @@ void window_stop_modal(Window *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
+void window_hotkey(Window *window, const vkey_t key, const uint32_t modifiers, Listener *listener)
+{
+    cassert_no_null(window);
+    cassert_no_null(window->context);
+    cassert_no_nullf(window->context->func_window_hotkey);
+    window->context->func_window_hotkey(window->ositem, key, modifiers, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void window_update(Window *window)
 {
     _window_update(window);
@@ -602,7 +561,7 @@ void window_stop_sheet(Window *window, Window *owner_window)
 void window_set_origin_in_screen_center(Window *window);
 void window_set_origin_in_screen_center(Window *window)
 {
-    real32_t screen_width, screen_height; 
+    real32_t screen_width, screen_height;
     real32_t window_width, window_height;
     real32_t x, y;
     cassert_no_null(window);
@@ -623,7 +582,7 @@ void window_set_origin_in_screen_center(Window *window)
 void window_set_origin_in_screen_width_center(Window *window, const real32_t y);
 void window_set_origin_in_screen_width_center(Window *window, const real32_t y)
 {
-    real32_t screen_width, screen_height; 
+    real32_t screen_width, screen_height;
     real32_t window_width, window_height;
     real32_t x;
     cassert_no_null(window);
@@ -643,7 +602,7 @@ void window_set_origin_in_screen_width_center(Window *window, const real32_t y)
 void window_set_origin_in_screen_width_right(Window *window, const real32_t offset_x, const real32_t y);
 void window_set_origin_in_screen_width_right(Window *window, const real32_t offset_x, const real32_t y)
 {
-    real32_t screen_width, screen_height; 
+    real32_t screen_width, screen_height;
     real32_t window_width, window_height;
     real32_t x;
     cassert_no_null(window);
@@ -672,7 +631,7 @@ void window_origin(Window *window, const V2Df origin)
 void window_size(Window *window, const S2Df size)
 {
     cassert_no_null(window);
-    cassert(window->flags & ekWNRES);
+    cassert(window->flags & ekWINDOW_RESIZE);
     i_main_layout_compose(window, &size);
 }
 
@@ -724,7 +683,7 @@ S2Df window_get_client_size(const Window *window)
     cassert_no_null(window);
     panel = layout_get_panel(window->main_layout, 0, 0);
     component = _panel_get_component(panel);
-    window->context->func_get_size[ekGUI_COMPONENT_PANEL](component->ositem, &size.width, &size.height);
+    window->context->func_get_size[ekGUI_TYPE_PANEL](component->ositem, &size.width, &size.height);
     return size;
 }
 
@@ -746,25 +705,27 @@ void window_defbutton(Window *window, Button *button)
 
 /*---------------------------------------------------------------------------*/
 
-void window_cursor(Window *window, const cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
+void window_cursor(Window *window, const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
 {
-    const Cursor *oscursor = _gui_cursor(cursor, image, hot_x, hot_y);
     cassert_no_null(window);
-    window->context->func_window_set_cursor(window->ositem, (Cursor*)oscursor);
+    if (cursor != ekGUI_CURSOR_ARROW)
+    {
+        const Cursor *oscursor = _gui_cursor(cursor, image, hot_x, hot_y);
+        window->context->func_window_set_cursor(window->ositem, (Cursor*)oscursor);
+    }
+    else
+    {
+        window->context->func_window_set_cursor(window->ositem, NULL);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-/*
-//void* window_imp_imp(Window *window);
-//#define window_imp(window, type)\
-//    (type*)window_imp_imp(window)
-//void* window_imp_imp(Window *window)
-//{
-//    cassert_no_null(window);
-//    return window->ositem;
-//}
-*/
+void *window_imp(const Window *window)
+{
+    cassert_no_null(window);
+    return window->ositem;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -793,46 +754,15 @@ gui_role_t _window_role(const Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-//void *window_get_object_by_tag_imp(const Window *window, const uint32_t tag, const char_t *type);
-//#define window_get_object_by_tag(window, tag, type)\
-//    (type*)window_get_object_by_tag_imp(window, tag, #type)
-//void *window_get_object_by_tag_imp(const Window *window, const uint32_t tag, const char_t *type)
-//{
-//    cassert_no_null(window);
-//    return _panel_get_object_by_tag(window->main_panel, tag, type);
-//}
-*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-//void *window_set_property_imp(Window *window, const gui_property_t property, void *value);
-//#define window_set_property(window, property, value, type_property, type_return)\
-//    (\
-//        ((type_property*)value == value),\
-//        (type_return*)window_set_property_imp(window, property, (void*)value)\
-//    )
-//void* window_set_property_imp(Window *window, const gui_property_t property, void *value)
-//{
-//    cassert_no_null(window);
-//    cassert_no_null(window->context);
-//    cassert_no_nullf(window->context->func_window_set_property);
-//    return window->context->func_window_set_property(window->ositem, property, value);
-//}
-*/
-
-/*---------------------------------------------------------------------------*/
-
 void _window_update(Window *window)
 {
     cassert_no_null(window);
-    if (window->flags & ekWNRES)
+    if (window->flags & ekWINDOW_RESIZE)
     {
         S2Df current_panel_size;
         Panel *main_panel = layout_get_panel(window->main_layout, 0, 0);
         GuiComponent *component = _panel_get_component(main_panel);
-        window->context->func_get_size[ekGUI_COMPONENT_PANEL](component->ositem, &current_panel_size.width, &current_panel_size.height);
+        window->context->func_get_size[ekGUI_TYPE_PANEL](component->ositem, &current_panel_size.width, &current_panel_size.height);
         i_main_layout_compose(window, &current_panel_size);
     }
     else

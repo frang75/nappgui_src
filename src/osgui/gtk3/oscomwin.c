@@ -45,6 +45,8 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     bool_t dirmode = FALSE;
     gint res;
 
+    unref(start_dir);
+
     if (size == 1 && str_equ_c(ftypes[0], "..DIR..") == TRUE)
     {
         action = open ? GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER : GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER;
@@ -65,7 +67,8 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
     if (!dirmode && size > 0)
     {
-        for (uint32_t i = 0; i < size; ++i)
+        uint32_t i = 0;
+        for (i = 0; i < size; ++i)
         {
             String *pattern = str_printf("*.%s", ftypes[i]);
             GtkFileFilter *filter = gtk_file_filter_new();
@@ -73,7 +76,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             gtk_file_filter_add_pattern(filter, (const gchar*)tc(pattern));
             gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
             str_destroy(&pattern);
-            //g_object_unref(filter);
+            /* g_object_unref(filter); */
         }
     }
 
@@ -130,10 +133,10 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         }
     }
 
-    // With transient windows is not possible control the global window position.
-    // if (data->parent != NULL)
-    //  gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(data->parent));
-    //gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_NONE);
+    /* With transient windows is not possible control the global window position.
+    if (data->parent != NULL)
+     gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(data->parent));
+    gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_NONE); */
     gtk_window_move(GTK_WINDOW(widget), data->x, data->y + 5);
 }
 
@@ -171,7 +174,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     data.parent = parent ? ((OSControl*)parent)->widget : NULL;
     g_signal_connect(dialog, "realize", G_CALLBACK(i_OnRealize), &data);
 
-    //gtk_widget_show(dialog);
+    /* gtk_widget_show(dialog); */
     res = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if (res == -5)
@@ -179,7 +182,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         color_t selcol = 0;
         gtk_color_chooser_get_rgba(chooser, &curcol);
         selcol = _oscontrol_from_gdkrgba(&curcol);
-        listener_event(OnChange, ekEVCOLOR, NULL, &selcol, NULL, void, color_t, void);
+        listener_event(OnChange, ekGUI_EVENT_COLOR, NULL, &selcol, NULL, void, color_t, void);
     }
 
     gtk_widget_destroy(dialog);

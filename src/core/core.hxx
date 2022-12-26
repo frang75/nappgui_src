@@ -15,6 +15,7 @@
 #define __CORE_HXX__
 
 #include "osbs.hxx"
+#include "core.def"
 
 typedef enum _core_event_t
 {
@@ -168,7 +169,7 @@ typedef enum _token_t
 
     ekTLESS,        /* < */
     ekTGREAT,       /* > */
-    ekTCOMMA,       /* , */				
+    ekTCOMMA,       /* , */
     ekTPERIOD,      /* . */
     ekTSCOLON,      /* ; */
     ekTCOLON,       /* : */
@@ -179,7 +180,7 @@ typedef enum _token_t
     ekTCLOSBRAC,    /* ] */
     ekTOPENCURL,    /* { */
     ekTCLOSCURL,    /* } */
-    
+
     ekTPLUS,        /* + */
     ekTMINUS,       /* - */
     ekTASTERK,      /* * */
@@ -216,20 +217,21 @@ typedef enum _token_t
 
 } ltoken_t;
 
-typedef struct _array_t Array;
 typedef struct _buffer_t Buffer;
-typedef struct _keybuf_t KeyBuf;
-typedef struct _clock_t Clock;
-typedef struct _event_t Event;
-typedef struct _listener_t Listener;
-typedef struct _rbtree_t RBTree;
-typedef const char_t* ResId;
-typedef struct _respack ResPack;
-typedef struct _regex RegEx;
-typedef struct _stream_t Stream;
 typedef struct _string_t String;
+typedef struct _stream_t Stream;
+typedef struct _array_t Array;
+typedef struct _rbtree_t RBTree;
+typedef struct _regex RegEx;
+typedef struct _event_t Event;
+typedef struct _keybuf_t KeyBuf;
+typedef struct _listener_t Listener;
 typedef struct _direntry_t DirEntry;
 typedef struct _evfiledir_t EvFileDir;
+typedef struct _respack ResPack;
+typedef const char_t* ResId;
+typedef struct _clock_t Clock;
+typedef struct _object_t Object;
 
 #define HEAPARR         "::arr"
 #define ARRST           "ArrSt::"
@@ -266,6 +268,11 @@ struct _buffer_t
 {
     uint32_t size;
     char data[512];
+};
+
+struct _object_t
+{
+    uint32_t count;
 };
 
 struct _string_t
@@ -328,7 +335,7 @@ DeclPt(ResPack);
 struct IListener
 {
 protected:
-    Listener *listen(IListener *obj, void(IListener::*handler)(Event*));
+    _core_api Listener *listen(IListener *obj, void(IListener::*handler)(Event*));
 };
 
 typedef void(IListener::*EventHandler)(Event*);

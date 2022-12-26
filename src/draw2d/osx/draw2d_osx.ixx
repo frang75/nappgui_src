@@ -10,8 +10,8 @@
 
 /* 2D drawing support */
 
-#ifndef __DRAWLIB_OSX_IXX__
-#define __DRAWLIB_OSX_IXX__
+#ifndef __DRAW2D_OSX_IXX__
+#define __DRAW2D_OSX_IXX__
 
 #define MAX_COLORS    16
 #define MAX_RANGE     48

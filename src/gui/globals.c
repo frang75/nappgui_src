@@ -11,8 +11,7 @@
 /* System globals */
 
 #include "globals.h"
-#include "guicontexth.inl"
-#include "draw2d.ixx"
+#include "guictx.h"
 #include "cassert.h"
 #include "color.h"
 
@@ -20,7 +19,7 @@
 
 device_t globals_device(void)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_globals_device);
     return (device_t)context->func_globals_device(NULL);
@@ -30,7 +29,7 @@ device_t globals_device(void)
 
 void globals_resolution(S2Df *resolution)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_globals_resolution);
     cassert_no_null(resolution);
@@ -42,7 +41,7 @@ void globals_resolution(S2Df *resolution)
 V2Df globals_mouse_position(void)
 {
     V2Df pos;
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_globals_mouse_position);
     context->func_globals_mouse_position(NULL, &pos.x, &pos.y);
@@ -50,14 +49,3 @@ V2Df globals_mouse_position(void)
 }
 
 /*---------------------------------------------------------------------------*/
-
-//uint32_t globals_scrollbar_width(void);
-//uint32_t globals_scrollbar_width(void)
-//{
-//    uint32_t v = 0;
-//    const GuiContext *context = gui_context_get_current();
-//    cassert_no_null(context);
-//    cassert_no_nullf(context->func_globals_value);
-//    context->func_globals_value(0, (void*)&v);
-//    return v;
-//}

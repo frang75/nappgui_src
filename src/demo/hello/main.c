@@ -72,7 +72,7 @@ static App *i_create(void)
 {
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
-    app->window = window_create(ekWNSTD);
+    app->window = window_create(ekWINDOW_STD);
     window_panel(app->window, panel);
     window_title(app->window, "Hello, World!");
     window_origin(app->window, v2df(500, 200));

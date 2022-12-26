@@ -1,1 +1,1 @@
-processDesktopApp(HelloCpp "")
+processDesktopApp(HelloCpp "osapp" "")

@@ -50,10 +50,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSProgress *osprogress_create(const progress_flag_t flags)
+OSProgress *osprogress_create(const uint32_t flags)
 {
     OSXProgress *progress;
-    cassert_unref(progress_type(flags) == ekPGHORZ, flags);
+    cassert_unref(progress_get_type(flags) == ekPROGRESS_HORZ, flags);
     heap_auditor_add("OSXProgress");
     progress = [[OSXProgress alloc] initWithFrame:NSZeroRect];
     //_oscontrol_progress_set_control_size(progress, size);
@@ -104,10 +104,10 @@ void osprogress_position(OSProgress *progress, const real32_t position)
 
 /*---------------------------------------------------------------------------*/
 
-real32_t osprogress_thickness(const OSProgress *progress, const fsize_t size)
+real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 {
     unref(progress);
-    cassert_unref(size == ekREGULAR, size);
+    cassert_unref(size == ekGUI_SIZE_REGULAR, size);
     return 16;
 //    return (real32_t)i_BAR_HEIGHT[size];
 }

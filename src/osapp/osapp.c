@@ -13,8 +13,6 @@
 #include "osmain.h"
 #include "osapp.h"
 #include "osapp.inl"
-#include "menu.inl"
-#include "window.inl"
 
 #include "arrpt.h"
 #include "bfile.h"
@@ -25,17 +23,19 @@
 #include "clock.h"
 #include "event.h"
 #include "gui.h"
-#include "gui.inl"
-#include "guicontexth.inl"
+#include "guictx.h"
+
 #include "heap.h"
-#include "heap.inl"
 #include "hfile.h"
 #include "log.h"
+#include "menu.h"
 #include "osgui.h"
 #include "osguictx.h"
-#include "obj.inl"
 #include "ptr.h"
+#include "objh.h"
 #include "strings.h"
+#include "menu.h"
+#include "window.h"
 
 typedef struct i_task_t i_Task;
 typedef struct i_app_t i_App;
@@ -47,7 +47,7 @@ typedef enum _icon_t
     i_ekICON_SYSTEM         = 2
 } icon_t;
 
-typedef enum _task_state_t 
+typedef enum _task_state_t
 {
     i_ekSTATE_RUNNING       = 0,
     i_ekSTATE_WAITING       = 1,
@@ -82,11 +82,11 @@ struct i_app_t
     Clock *clock;
     Clock *app_clock;
     void *appitem;
-    GuiContext *native_gui;
+    GuiCtx *native_gui;
     FPtr_app_create func_create;
     FPtr_destroy func_destroy;
     FPtr_app_update func_update;
-    FPtr_call func_async_call;
+    FPtr_gctx_call func_async_call;
     String *locale;
     ArrPt(i_Task) *scheduler;
 };
@@ -107,7 +107,7 @@ static void i_destroy_task(i_Task **task)
 /*---------------------------------------------------------------------------*/
 
 static void i_destroy_app(i_App **app)
-{    
+{
     cassert_no_null(app);
     cassert_no_null(*app);
     cassert(arrpt_size((*app)->scheduler, i_Task) == 0);
@@ -117,13 +117,13 @@ static void i_destroy_app(i_App **app)
         cassert_no_nullf((*app)->func_destroy);
         (*app)->func_destroy(&(*app)->appitem);
     }
-    
+
     cassert_set_func(NULL, NULL);
     ptr_destopt(clock_destroy, &(*app)->clock, Clock);
     ptr_destopt(clock_destroy, &(*app)->app_clock, Clock);
     str_destroy(&(*app)->locale);
     arrpt_destroy(&(*app)->scheduler, i_destroy_task, i_Task);
-    gui_context_destroy(&(*app)->native_gui);
+    guictx_destroy(&(*app)->native_gui);
     obj_delete(app, i_App);
 }
 
@@ -151,8 +151,8 @@ static void i_terminate(const bool_t abnormal_terminate)
 
 /*---------------------------------------------------------------------------*/
 
-// This function will run in a secondary thread
-// It should not call GUI functions
+/* This function will run in a secondary thread
+It should not call GUI functions */
 static uint32_t i_dispatch_task(i_Task *task)
 {
     uint32_t rvalue = UINT32_MAX;
@@ -170,7 +170,7 @@ static uint32_t i_dispatch_task(i_Task *task)
 
 /*---------------------------------------------------------------------------*/
 
-// This function runs in the MAIN thread
+/* This function runs in the MAIN thread */
 static void i_scheduler_cycle(ArrPt(i_Task) *scheduler, const real64_t crtime)
 {
     i_Task *deleted_task = NULL;
@@ -232,10 +232,10 @@ static void i_OnTimerSignal(i_App *app)
                     app->func_update(app->appitem, prevapp_time, curapp_time);
             }
         }
-        
+
         if (app->func_async_call != NULL)
         {
-            FPtr_call func_async_call = app->func_async_call;
+            FPtr_gctx_call func_async_call = app->func_async_call;
             app->func_async_call = NULL;
             func_async_call(app->appitem);
         }
@@ -253,7 +253,7 @@ static void i_OnFinishLaunching(i_App *app)
 
     if (app->func_create != NULL)
     {
-        _gui_OnThemeChanged();
+        gui_update();
         app->appitem = app->func_create();
     }
 
@@ -265,40 +265,39 @@ static void i_OnFinishLaunching(i_App *app)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnTranslate(void *sender, Event *e)
+static void i_OnNotification(void *sender, Event *e)
 {
     i_App *app = osapp_listener(i_App);
-    const char_t *params = event_params(e, char_t);
-    osapp_set_lang(app->osapp, params);
-    osgui_redraw_menubar();
+    uint32_t type = event_type(e);
+
+    switch (type) {
+    case ekGUI_NOTIF_LANGUAGE:
+    {
+        const char_t *params = event_params(e, char_t);
+        osapp_set_lang(app->osapp, params);
+        osgui_redraw_menubar();
+        break;
+    }
+
+    case ekGUI_NOTIF_WIN_DESTROY:
+    {
+        const Window *window = event_params(e, Window);
+        OSWindow *oswindow = (OSWindow*)window_imp(window);
+        osgui_unset_menubar(NULL, oswindow);
+        break;
+    }
+
+    case ekGUI_NOTIF_MENU_DESTROY:
+    {
+        const Menu *menu = event_params(e, Menu);
+        OSMenu *osmenu = (OSMenu*)menu_imp(menu);
+        osgui_unset_menubar(osmenu, NULL);
+        break;
+    }
+
+    cassert_default();
+    }
     unref(sender);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnMenubar(void *sender, Event *e)
-{
-    void **params = (void**)event_params_imp(e, NULL);
-    OSMenu *osmenu = NULL;
-    OSWindow *oswindow = NULL;
-
-    if (params[0] != NULL)
-        osmenu = (OSMenu*)_menu_ositem((Menu*)params[0]);
-
-    if (params[1] != NULL)
-        oswindow = (OSWindow*)_window_ositem((Window*)params[1]);
-
-    osgui_unset_menubar(osmenu, oswindow);
-    unref(sender);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnFinish(void *sender, Event *e)
-{
-    osapp_finish();
-    unref(sender);
-    unref(e);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -307,7 +306,7 @@ static void i_OnTheme(void *sender, Event *e)
 {
     unref(sender);
     unref(e);
-    _gui_OnThemeChanged();
+    gui_update();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -316,8 +315,8 @@ void osmain_imp(
                 uint32_t argc,
                 char_t **argv,
                 void *instance,
-                const real64_t lframe, 
-                FPtr_app_create func_create, 
+                const real64_t lframe,
+                FPtr_app_create func_create,
                 FPtr_app_update func_update,
                 FPtr_destroy func_destroy,
                 char_t *options)
@@ -326,13 +325,13 @@ void osmain_imp(
 	void *pool = NULL;
     char_t pathname[256];
 
-	// Init platform-dependent autorelease pool (MacOSX)
+	/* Init platform-dependent autorelease pool (MacOSX) */
 	pool = osapp_init_pool();
     osgui_start();
     gui_start();
 
     if (options && str_str(options, "-hv") != NULL)
-        _heap_verbose(TRUE);
+        heap_verbose(TRUE);
 
     bfile_dir_exec(pathname, sizeof(pathname));
     app = obj_new0(i_App);
@@ -349,12 +348,10 @@ void osmain_imp(
     app->func_async_call = NULL;
     app->locale = str_c("");
     app->scheduler = arrpt_create(i_Task);
-    gui_context_set_current(app->native_gui);
+    guictx_set_current(app->native_gui);
+    gui_OnNotification(listener(NULL, i_OnNotification, void));
 
     osapp_OnThemeChanged(app->osapp, listener(NULL, i_OnTheme, void));
-    _gui_OnTranslate(listener(NULL, i_OnTranslate, void));
-    _gui_OnMenubar(listener(NULL, i_OnMenubar, void));
-    _gui_OnFinish(listener(NULL, i_OnFinish, void));
     osapp_set_lang(app->osapp, "en");
     osapp_request_user_attention(app->osapp);
 	osapp_release_pool(pool);
@@ -394,7 +391,7 @@ void osapp_menubar(Menu *menu, Window *window)
     void *oswindow = NULL;
     void *osmenu = NULL;
     cassert_no_null(menu);
-    oswindow = _window_ositem(window);
-    osmenu = _menu_ositem(menu);
+    oswindow = window_imp(window);
+    osmenu = menu_imp(menu);
     osgui_set_menubar((OSMenu*)osmenu, (OSWindow*)oswindow);
 }

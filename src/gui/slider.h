@@ -15,19 +15,19 @@
 
 __EXTERN_C
 
-Slider *slider_create(void);
+_gui_api Slider *slider_create(void);
 
-Slider *slider_vertical(void);
+_gui_api Slider *slider_vertical(void);
 
-void slider_OnMoved(Slider *slider, Listener *listener);
+_gui_api void slider_OnMoved(Slider *slider, Listener *listener);
 
-void slider_tooltip(Slider *slider, const char_t *text);
+_gui_api void slider_tooltip(Slider *slider, const char_t *text);
 
-void slider_steps(Slider *slider, const uint32_t steps);
+_gui_api void slider_steps(Slider *slider, const uint32_t steps);
 
-void slider_value(Slider *slider, const real32_t value);
+_gui_api void slider_value(Slider *slider, const real32_t value);
 
-real32_t slider_get_value(const Slider *slider);
+_gui_api real32_t slider_get_value(const Slider *slider);
 
 __END_C
 

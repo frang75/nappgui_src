@@ -66,22 +66,11 @@ void font_destroy(Font **font)
     }
 }
 
-///*---------------------------------------------------------------------------*/
-//
-//static Font *i_create_init_font(const uint32_t family, const char_t *fname, const real32_t size, const uint32_t style)
-//{
-//    OSFont *osfont;
-//    cassert(size >= 1);
-//    osfont = osfont_create(fname, size, style);
-//    return i_create_font(1, family, style, size, &osfont);
-//}
-
 /*---------------------------------------------------------------------------*/
 
 Font *font_create(const char_t *family, const real32_t size, const uint32_t style)
 {
     uint32_t ffamily = draw2d_register_font(family);
-    //const char_t *fname = _draw2d_font_family(ffamily);
     return i_create_font(ffamily, size, style);
 }
 
@@ -89,7 +78,6 @@ Font *font_create(const char_t *family, const real32_t size, const uint32_t styl
 
 Font *font_system(const real32_t size, const uint32_t style)
 {
-    //const char_t *ffamily = _draw2d_font_family((uint32_t)ekFONT_FAMILY_SYSTEM);
     return i_create_font((uint32_t)ekFONT_FAMILY_SYSTEM, size, style);
 }
 
@@ -97,7 +85,6 @@ Font *font_system(const real32_t size, const uint32_t style)
 
 Font *font_monospace(const real32_t size, const uint32_t style)
 {
-    //const char_t *ffamily = _draw2d_font_family((uint32_t)ekFONT_FAMILY_MONOSPACE);
     return i_create_font((uint32_t)ekFONT_FAMILY_MONOSPACE, size, style);
 }
 
@@ -105,9 +92,7 @@ Font *font_monospace(const real32_t size, const uint32_t style)
 
 Font *font_with_style(const Font *font, const uint32_t style)
 {
-//    const char_t *ffamily = NULL;
     cassert_no_null(font);
-  //  ffamily = _draw2d_font_family(font->family);
     return i_create_font(font->family, font->size, style);
 }
 
@@ -196,24 +181,7 @@ void font_extents(const Font *font, const char_t *text, const real32_t refwidth,
 
 /*---------------------------------------------------------------------------*/
 
-real32_t font_internal_leading(const Font *font)
-{
-    cassert_no_null(font);
-    if (font->internal_leading < 0)
-    {
-        i_osfont((Font*)font);
-        osfont_metrics(font->osfont, &((Font*)font)->internal_leading, &((Font*)font)->cell_size);
-    }
-    return font->internal_leading;
-}
-
-/*---------------------------------------------------------------------------*/
-
-//func(font_native).Devuelve un puntero al objeto nativo que implementa la fuente.
-//fret(void*).El objeto nativo. Ser� <c>HFont</c> en Windows, <c>NSFont</c> en macOS y <c>PangoFontDescription</c> en Linux/Gtk.
-//fpar(const Font*,font).La fuente.
-//fnote.Utiliza este puntero para crear c�digo especializado, dependiente de plataforma.
-void *font_native(const Font *font)
+const void *font_native(const Font *font)
 {
     cassert_no_null(font);
     i_osfont((Font*)font);

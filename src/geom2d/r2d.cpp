@@ -16,28 +16,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
-R2D<real>::R2D()
-{
-    pos.x = 0;
-    pos.y = 0;
-    size.width = 0;
-    size.height = 0;
-}
-
-/*---------------------------------------------------------------------------*/
-
-template<typename real>
-R2D<real>::R2D(const real x, const real y, const real width, const real height)
-{
-    pos.x = x;
-    pos.y = y;
-    size.width = width;
-    size.height = height;
-}
-
-/*---------------------------------------------------------------------------*/
-
 R2Df r2df(const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     R2Df rect;

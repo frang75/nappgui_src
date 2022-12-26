@@ -15,13 +15,13 @@
 
 __EXTERN_C
 
-void *json_read_imp(Stream *stm, const JsonOpts *opts, const char_t *type);
+_inet_api void *json_read_imp(Stream *stm, const JsonOpts *opts, const char_t *type);
 
-void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const char_t *type);
+_inet_api void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const char_t *type);
 
-void json_destroy_imp(void **data, const char_t *type);
+_inet_api void json_destroy_imp(void **data, const char_t *type);
 
-void json_destopt_imp(void **data, const char_t *type);
+_inet_api void json_destopt_imp(void **data, const char_t *type);
 
 __END_C
 

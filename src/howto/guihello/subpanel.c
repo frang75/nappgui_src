@@ -38,7 +38,7 @@ Panel *subpanels(void)
     layout_hmargin(layout2, 0, 10);
     layout_vmargin(layout2, 0, 10);
     layout_margin4(layout2, 5, 10, 10, 10);
-    layout_skcolor(layout2, gui_label_color());
+    layout_skcolor(layout2, gui_line_color());
     panel_layout(panel2, layout2);
 
     layout_label(layout1, label1, 0, 0);

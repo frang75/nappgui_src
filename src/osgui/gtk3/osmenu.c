@@ -60,6 +60,7 @@ static uint32_t i_num_children(GtkContainer *container)
 static void i_OnDestroy(GtkWidget *obj, OSMenu *menu)
 {
     cassert(menu->is_alive == TRUE);
+    unref(obj);
     menu->is_alive = FALSE;
 }
 

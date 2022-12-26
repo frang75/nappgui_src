@@ -150,7 +150,7 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
         return;
     }
 
-    // Seems that CURLOPT_FOLLOWLOCATION fails
+    /* Seems that CURLOPT_FOLLOWLOCATION fails */
     res = curl_easy_setopt(http->curl, CURLOPT_FOLLOWLOCATION, auto_redirect ? 1L : 0L);
     cassert_unref(res == CURLE_OK, res);
 
@@ -171,7 +171,7 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
     {
         res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDSIZE, size);
         cassert_unref(res == CURLE_OK, res);
-        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, data);
+        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, (char*)data);
         cassert_unref(res == CURLE_OK, res);
     }
 
@@ -212,7 +212,7 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
     }
     else
     {
-        // TODO: Error codes
+        /* TODO: Error codes */
         ptr_assign(error, ekISERVER);
     }
 }

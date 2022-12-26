@@ -15,25 +15,25 @@
 
 __EXTERN_C
 
-PopUp *popup_create(void);
+_gui_api PopUp *popup_create(void);
 
-void popup_OnSelect(PopUp *popup, Listener *listener);
+_gui_api void popup_OnSelect(PopUp *popup, Listener *listener);
 
-void popup_tooltip(PopUp *popup, const char_t *text);
+_gui_api void popup_tooltip(PopUp *popup, const char_t *text);
 
-void popup_add_elem(PopUp *popup, const char_t *text, const Image *image);
+_gui_api void popup_add_elem(PopUp *popup, const char_t *text, const Image *image);
 
-void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image);
+_gui_api void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image);
 
-void popup_clear(PopUp *popup);
+_gui_api void popup_clear(PopUp *popup);
 
-uint32_t popup_count(const PopUp *popup);
+_gui_api uint32_t popup_count(const PopUp *popup);
 
-void popup_list_height(PopUp *popup, const uint32_t elems);
+_gui_api void popup_list_height(PopUp *popup, const uint32_t elems);
 
-void popup_selected(PopUp *popup, const uint32_t index);
+_gui_api void popup_selected(PopUp *popup, const uint32_t index);
 
-uint32_t popup_get_selected(const PopUp *popup);
+_gui_api uint32_t popup_get_selected(const PopUp *popup);
 
 __END_C
 

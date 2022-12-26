@@ -109,8 +109,8 @@ static void i_download(App *app)
         String *sres = NULL;
         String *sformat = NULL;
 
-        // Full check of read/write pixels
-        // We create again the same image, based on pixel info
+        /* Full check of read/write pixels
+        We create again the same image, based on pixel info */
         if (image_get_codec(image) != ekGIF)
         {
             Pixbuf *pixels = image_pixels(image, ekFIMAGE);
@@ -164,7 +164,7 @@ static void i_add_files(ListBox *listbox)
     register uint32_t i, n = sizeof(i_FILES) / sizeof(char_t*);
     for (i = 0; i < n; ++i)
         listbox_add_elem(listbox, i_FILES[i], NULL);
-    listbox_select(listbox, 0, TRUE);    
+    listbox_select(listbox, 0, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,7 +228,7 @@ static App *i_create(void)
 {
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
-    app->window = window_create(ekWNSTD);
+    app->window = window_create(ekWINDOW_STD);
     app->selected = 0;
     inet_start();
     i_download(app);

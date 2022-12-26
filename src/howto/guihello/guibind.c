@@ -33,7 +33,7 @@ struct _basictypes_t
     uint16_t uint16_val;
     real32_t real32_val;
     myenum_t enum_val;
-    state_t enum3_val;
+    gui_state_t enum3_val;
     String* str_val;
 };
 
@@ -105,7 +105,7 @@ static void i_value_labels(Layout* layout)
     cell_dbind(layout_cell(layout, 2, 0), BasicTypes, String*, str_val);
     cell_dbind(layout_cell(layout, 2, 1), BasicTypes, String*, str_val);
     cell_dbind(layout_cell(layout, 2, 2), BasicTypes, bool_t, bool_val);
-    cell_dbind(layout_cell(layout, 2, 3), BasicTypes, state_t, enum3_val);
+    cell_dbind(layout_cell(layout, 2, 3), BasicTypes, gui_state_t, enum3_val);
     cell_dbind(layout_cell(layout, 2, 4), BasicTypes, uint16_t, uint16_val);
     cell_dbind(layout_cell(layout, 2, 5), BasicTypes, myenum_t, enum_val);
     cell_dbind(layout_cell(layout, 2, 6), BasicTypes, myenum_t, enum_val);
@@ -141,7 +141,7 @@ static Layout *i_layout(void)
     cell_dbind(layout_cell(layout, 1, 0), BasicTypes, String*, str_val);
     cell_dbind(layout_cell(layout, 1, 1), BasicTypes, String*, str_val);
     cell_dbind(layout_cell(layout, 1, 2), BasicTypes, bool_t, bool_val);
-    cell_dbind(layout_cell(layout, 1, 3), BasicTypes, state_t, enum3_val);
+    cell_dbind(layout_cell(layout, 1, 3), BasicTypes, gui_state_t, enum3_val);
     cell_dbind(layout_cell(layout, 1, 4), BasicTypes, uint16_t, uint16_val);
     cell_dbind(layout_cell(layout, 1, 5), BasicTypes, myenum_t, enum_val);
     cell_dbind(layout_cell(layout, 1, 6), BasicTypes, myenum_t, enum_val);
@@ -162,13 +162,13 @@ Panel* guibind(void)
     data->bool_val = TRUE;
     data->uint16_val = 4;
     data->real32_val = 15.5f;
-    data->enum3_val = ekMIXED;
+    data->enum3_val = ekGUI_MIXED;
     data->enum_val = ekCYAN;
     data->str_val = str_c("Text String");
 
-    dbind_enum(state_t, ekOFF, "");
-    dbind_enum(state_t, ekON, "");
-    dbind_enum(state_t, ekMIXED, "");
+    dbind_enum(gui_state_t, ekGUI_OFF, "");
+    dbind_enum(gui_state_t, ekGUI_ON, "");
+    dbind_enum(gui_state_t, ekGUI_MIXED, "");
     dbind_enum(myenum_t, ekRED, "Red");
     dbind_enum(myenum_t, ekBLUE, "Blue");
     dbind_enum(myenum_t, ekGREEN, "Green");
@@ -180,7 +180,7 @@ Panel* guibind(void)
     dbind(BasicTypes, bool_t, bool_val);
     dbind(BasicTypes, uint16_t, uint16_val);
     dbind(BasicTypes, real32_t, real32_val);
-    dbind(BasicTypes, state_t, enum3_val);
+    dbind(BasicTypes, gui_state_t, enum3_val);
     dbind(BasicTypes, myenum_t, enum_val);
     dbind(BasicTypes, String*, str_val);
     dbind_range(BasicTypes, real32_t, real32_val, -50, 50);

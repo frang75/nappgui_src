@@ -14,6 +14,7 @@
 #include "osgui_win.inl"
 #include "cassert.h"
 #include "heap.h"
+#include "ptr.h"
 
 struct _osscroll_t
 {
@@ -123,32 +124,30 @@ void osscroll_visible_area(OSScroll *scroll, int *x, int *y, int *width, int *he
     cassert_no_null(y);
     cassert_no_null(width);
     cassert_no_null(height);
-    cassert_no_null(total_width);
-    cassert_no_null(total_height);
     if (scroll->hscroll != NULL)
     {
         *x = GetScrollPos(scroll->hscroll, i_horbar(scroll));
         *width = scroll->view_width;
-        *total_width = scroll->content_width;
+        ptr_assign(total_width, scroll->content_width);
     }
     else
     {
         *x = 0;
         *width = scroll->view_width;
-        *total_width = scroll->view_width;
+        ptr_assign(total_width, scroll->view_width);
     }
 
     if (scroll->vscroll != NULL)
     {
         *y = GetScrollPos(scroll->vscroll, i_verbar(scroll));
         *height = scroll->view_height;
-        *total_height = scroll->content_height;
+        ptr_assign(total_height, scroll->content_height);
     }
     else
     {
         *y = 0;
         *height = scroll->view_height;
-        *total_height = scroll->view_height;
+        ptr_assign(total_height, scroll->view_height);
     }
 }
 
@@ -361,14 +360,58 @@ void osscroll_message(OSScroll *scroll, WPARAM wParam, UINT nMsg, const bool_t u
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_set(OSScroll *scroll, const real32_t x, const real32_t y)
+void osscroll_set(OSScroll *scroll, const int x, const int y, const bool_t update_children)
 {
-    cassert_no_null(scroll);
-    if (x >= 0 && scroll->hscroll != NULL)
-        SetScrollPos(scroll->hscroll, i_horbar(scroll), (int)x, TRUE);
+    int lx = x;
+    int ly = y;
 
-    if (y >= 0 && scroll->vscroll != NULL)
-        SetScrollPos(scroll->vscroll, i_verbar(scroll), (int)y, TRUE);
+    cassert_no_null(scroll);
+
+    if (lx != INT_MAX)
+    {
+        if (lx < 0)
+            lx = 0;
+        else if (lx > scroll->content_width - scroll->view_width)
+            lx = scroll->content_width - scroll->view_width;
+    }
+
+    if (ly != INT_MAX)
+    {
+        if (ly < 0)
+            ly = 0;
+        else if (ly > scroll->content_height - scroll->view_height)
+            ly = scroll->content_height - scroll->view_height;
+    }
+
+    if (update_children == TRUE)
+    {
+        int dx = 0;
+        int dy = 0;
+
+        if (lx != INT_MAX && scroll->hscroll != NULL)
+        {
+            int cx = GetScrollPos(scroll->hscroll, i_horbar(scroll));
+            SetScrollPos(scroll->hscroll, i_horbar(scroll), lx, TRUE);
+            dx = cx - lx;
+        }
+
+        if (ly != INT_MAX && scroll->vscroll != NULL)
+        {
+            int cy = GetScrollPos(scroll->vscroll, i_verbar(scroll));
+            SetScrollPos(scroll->vscroll, i_verbar(scroll), ly, TRUE);
+            dy = cy - ly;
+        }
+
+        ScrollWindowEx(scroll->hwnd, dx, dy, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+    }
+    else
+    {
+        if (lx != INT_MAX && scroll->hscroll != NULL)
+            SetScrollPos(scroll->hscroll, i_horbar(scroll), lx, TRUE);
+
+        if (ly != INT_MAX && scroll->vscroll != NULL)
+            SetScrollPos(scroll->vscroll, i_verbar(scroll), ly, TRUE);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -464,7 +507,7 @@ void osscroll_content_size(OSScroll *scroll, const real32_t width, const real32_
     scroll->content_height = (int)height;
     scroll->line_width = (int)line_width;
     scroll->line_height = (int)line_height;
-    //i_update_bars(scroll);
+    i_update_bars(scroll);
 }
 
 /*---------------------------------------------------------------------------*/

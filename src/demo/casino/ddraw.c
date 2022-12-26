@@ -16,6 +16,9 @@
 /*---------------------------------------------------------------------------*/
 
 static const real32_t i_MAX_PADDING = 0.2f;
+const real32_t kDEF_PADDING = .15f;
+const real32_t kDEF_CORNER = .15f;
+const real32_t kDEF_RADIUS = .35f;
 
 /*---------------------------------------------------------------------------*/
 
@@ -27,7 +30,7 @@ void die_draw(DCtx *ctx, const real32_t x, const real32_t y, const real32_t widt
     real32_t rc, rr;
     real32_t p1, p2, p3;
 
-    dsize = width < height ? width : height;    
+    dsize = width < height ? width : height;
     dsize -= bmath_floorf(2.f * dsize * padding * i_MAX_PADDING);
     dx = x + .5f * (width - dsize);
     dy = y + .5f * (height - dsize);

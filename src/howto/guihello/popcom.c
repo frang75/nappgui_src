@@ -12,7 +12,7 @@
 
 #include "popcom.h"
 #include "guiall.h"
-#include "res.h"
+#include "res_guihello.h"
 
 /*---------------------------------------------------------------------------*/
 

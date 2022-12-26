@@ -504,7 +504,7 @@ static Layout *i_left_layout(App *app)
     cell_dbind(layout_cell(layout1, 0, 2), App, bool_t, show_triangles);
     cell_dbind(layout_cell(layout1, 0, 3), App, bool_t, show_convex_parts);
     layout_dbind(layout1, listener(app, i_OnOpt, App), App);
-    layout_dbind_obj(layout1, app, App);        
+    layout_dbind_obj(layout1, app, App);
     return layout1;
 }
 
@@ -747,7 +747,7 @@ static void i_OnDraw(App *app, Event *e)
     arrst_foreach(shape, app->shapes, Shape)
         draw_fill_color(p->ctx, i_color(shape->collisions, shape->mouse));
         draw_line_color(p->ctx, i_color(shape->collisions, shape->mouse));
-        
+
         switch(shape->type) {
         case ekPOINT:
             i_draw_point(p->ctx, &shape->body.pnt);
@@ -995,7 +995,7 @@ Window *col2dhello_window(App *app)
 {
     Panel *panel = panel_create();
     Layout *layout = i_layout(app);
-    Window *window = window_create(ekWNSRES);
+    Window *window = window_create(ekWINDOW_STDRES);
     panel_layout(panel, layout);
     window_panel(window, panel);
     return window;

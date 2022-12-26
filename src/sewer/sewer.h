@@ -15,9 +15,9 @@
 
 __EXTERN_C
 
-void sewer_start(void);
+_sewer_api void sewer_start(void);
 
-void sewer_finish(void);
+_sewer_api void sewer_finish(void);
 
 __END_C
 

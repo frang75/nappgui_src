@@ -1,1 +1,0 @@
-processCommandApp(nrc "utils/nlib")

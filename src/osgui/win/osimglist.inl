@@ -12,9 +12,9 @@
 
 #include "osgui_win.ixx"
 
-#pragma warning (push, 0) 
+#include "nowarn.hxx"
 #include <Commctrl.h>
-#pragma warning (pop)
+#include "warn.hxx"
 
 #define HIMAGELIST_CREATED   1
 #define HIMAGELIST_DELETED   2

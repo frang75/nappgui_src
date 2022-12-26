@@ -13,7 +13,7 @@
 #include "dgui.h"
 #include "ddraw.h"
 #include "guiall.h"
-#include "all.h"
+#include "res_die.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -151,12 +151,12 @@ static void i_OnLang(App *app, Event *e)
 
 Window *dgui_window(App *app)
 {
-    gui_respack(all_respack);
+    gui_respack(res_die_respack);
     gui_language("");
 
     {
         Panel *panel = i_panel(app);
-        Window *window = window_create(ekWNSRES);
+        Window *window = window_create(ekWINDOW_STDRES);
         window_panel(window, panel);
         window_title(window, TEXT_TITLE);
         return window;

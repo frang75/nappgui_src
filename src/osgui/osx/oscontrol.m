@@ -13,13 +13,11 @@
 #include "osgui_osx.inl"
 #include "osgui.inl"
 #include "oscontrol.inl"
+#include "oscolor.inl"
 #include "cassert.h"
 #include "color.h"
-#include "osx/oscolor.inl"
 #include "font.h"
-#include "font.inl"
 #include "image.h"
-#include "image.inl"
 #include "ptr.h"
 #include "unicode.h"
 
@@ -93,27 +91,27 @@ NSTextAlignment _oscontrol_text_alignment(const align_t halign)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE NSControlSize i_control_size(const fsize_t size)
+static __INLINE NSControlSize i_control_size(const gui_size_t size)
 {
 #if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     switch (size)
     {
-        case ekMINI:
+        case ekGUI_SIZE_MINI:
             return NSControlSizeMini;
-        case ekSMALL:
+        case ekGUI_SIZE_SMALL:
             return NSControlSizeSmall;
-        case ekREGULAR:
+        case ekGUI_SIZE_REGULAR:
             return NSControlSizeRegular;
         cassert_default();
     }
 #else
     switch (size)
     {
-        case ekMINI:
+        case ekGUI_SIZE_MINI:
             return NSMiniControlSize;
-        case ekSMALL:
+        case ekGUI_SIZE_SMALL:
             return NSSmallControlSize;
-        case ekREGULAR:
+        case ekGUI_SIZE_REGULAR:
             return NSRegularControlSize;
         cassert_default();
     }
@@ -124,7 +122,7 @@ static __INLINE NSControlSize i_control_size(const fsize_t size)
 
 /*---------------------------------------------------------------------------*/
 
-NSControlSize _oscontrol_size(const fsize_t size)
+NSControlSize _oscontrol_size(const gui_size_t size)
 {
     return i_control_size(size);
 }
@@ -133,13 +131,13 @@ NSControlSize _oscontrol_size(const fsize_t size)
 
 void _oscontrol_size_from_font(NSCell *cell, const Font *font)
 {
-    fsize_t size = _osgui_size_font(font_size(font));
+    gui_size_t size = _osgui_size_font(font_size(font));
     [cell setControlSize:i_control_size(size)];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_cell_set_control_size(NSCell *cell, const fsize_t size)
+void _oscontrol_cell_set_control_size(NSCell *cell, const gui_size_t size)
 {
     cassert_no_null(cell);
     [cell setControlSize:i_control_size(size)];
@@ -269,14 +267,14 @@ static NSColor *i_control_color(NSControl *control, const color_t color)
 
 static NSDictionary *i_text_attribs(NSControl *control, const align_t align, const color_t color, const uint32_t fstyle, NSFont *font)
 {
+    id keys[5];
     id objects[5];
-    id keys[] = {
-                NSUnderlineStyleAttributeName,
-                NSStrikethroughStyleAttributeName,
-                NSParagraphStyleAttributeName,
-                NSForegroundColorAttributeName,
-                NSFontAttributeName};
-    
+
+    keys[0] = NSUnderlineStyleAttributeName;
+    keys[1] = NSStrikethroughStyleAttributeName;
+    keys[2] = NSParagraphStyleAttributeName;
+    keys[3] = NSForegroundColorAttributeName;
+    keys[4] = NSFontAttributeName;
     objects[0] = (fstyle & ekFUNDERLINE) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
     objects[1] = (fstyle & ekFSTRIKEOUT) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
     
@@ -421,7 +419,7 @@ void _oscontrol_textfield_deselect(NSTextField *control)
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_progress_set_control_size(NSProgressIndicator *progress, const fsize_t size)
+void _oscontrol_progress_set_control_size(NSProgressIndicator *progress, const gui_size_t size)
 {
     cassert_no_null(progress);
     [progress setControlSize:i_control_size(size)];

@@ -18,13 +18,9 @@ uint32_t draw2d_register_font(const char_t *font_family);
 
 const char_t *draw2d_font_family(const uint32_t family);
 
-void draw2d_set_named_color(const uint32_t index, const color_t color);
-
-color_t draw2d_get_named_color(const uint32_t index);
+color_t draw2d_get_indexed_color(const uint16_t index);
 
 void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const bool_t newlines, const char_t *str, const real32_t refwidth, real32_t *width, real32_t *height);
-
-void draw2d_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height);
 
 __END_C
 

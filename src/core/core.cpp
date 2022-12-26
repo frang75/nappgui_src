@@ -12,41 +12,24 @@
 
 #include "osbs.h"
 #include "core.h"
-#include "core.inl"
 #include "heap.inl"
 #include "dbind.inl"
 #include "stream.inl"
 #include "bmem.h"
+#include "blib.h"
 #include "bproc.h"
-#include "bstd.h"
 #include "cassert.h"
-#include "heap.h"
 #include "log.h"
+
+static uint32_t i_NUM_USERS = 0;
 
 /*---------------------------------------------------------------------------*/
 
-class Core
+static void i_core_atexit(void)
 {
-public:
-    static uint32_t NUM_USERS;
-
-    //Core()
-    //{
-    //    log_printf("Starting Core");        
-    //}
-    
-    ~Core()
-    {
-        if (NUM_USERS != 0)
-        {
-            core_finish();
-            //log_printf("Error! core is not properly closed (%d)\n", NUM_USERS);
-        }
-    }
-};
-
-static Core i_CORE;
-uint32_t Core::NUM_USERS = 0;
+    if (i_NUM_USERS != 0)
+        log_printf("Error! core is not properly closed (%d)\n", i_NUM_USERS);
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -69,23 +52,25 @@ static void i_assert_to_log(void *item, const uint32_t group, const char_t *capt
 
 void core_start(void)
 {
-    if (i_CORE.NUM_USERS == 0)
+    if (i_NUM_USERS == 0)
     {
         osbs_start();
         _heap_start();
         _stm_start();
         _dbind_start();
         cassert_set_func(NULL, i_assert_to_log);
-        i_CORE.NUM_USERS = 1;
-        #if defined (__APPLE__) || defined (__LINUX__)
+        blib_atexit(i_core_atexit);
+
+        i_NUM_USERS = 1;
+    #if defined (__APPLE__) || defined (__LINUX__)
         cassert(sizeof(EventHandler) == 2 * sizeof(void*));
-        #else
+    #else
         cassert(sizeof(EventHandler) == sizeof(void*));
-        #endif
+    #endif
     }
     else
     {
-        i_CORE.NUM_USERS += 1;
+        i_NUM_USERS += 1;
     }
 }
 
@@ -93,10 +78,10 @@ void core_start(void)
 
 void core_finish(void)
 {
-    cassert(i_CORE.NUM_USERS > 0);
-    if (i_CORE.NUM_USERS == 1)
+    cassert(i_NUM_USERS > 0);
+    if (i_NUM_USERS == 1)
     {
-        i_CORE.NUM_USERS = 0;
+        i_NUM_USERS = 0;
         _dbind_finish();
         _stm_finish();
         _heap_finish();
@@ -104,6 +89,6 @@ void core_finish(void)
     }
     else
     {
-        i_CORE.NUM_USERS -= 1;
+        i_NUM_USERS -= 1;
     }
 }

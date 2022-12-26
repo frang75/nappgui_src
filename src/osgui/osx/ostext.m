@@ -30,7 +30,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXTextView : NSTextView 
+@interface OSXTextView : NSTextView
 {
     @public
     char_t ffamily[64];
@@ -100,7 +100,7 @@
         EvText params;
         params.text = NULL;
         params.cpos = 0;
-        listener_event(self->OnTextChange_listener, ekEVTXTCHANGE, (OSText*)self, &params, NULL, OSText, EvText, void);
+        listener_event(self->OnTextChange_listener, ekGUI_EVENT_TXTCHANGE, (OSText*)self, &params, NULL, OSText, EvText, void);
     }
 }
 
@@ -108,7 +108,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSText *ostext_create(const tview_flag_t flags)
+OSText *ostext_create(const uint32_t flags)
 {
     OSXTextView *view = [[OSXTextView alloc] initWithFrame:NSZeroRect];
     unref(flags);
@@ -144,9 +144,11 @@ OSText *ostext_create(const tview_flag_t flags)
         delegate->OnTextChange_listener = NULL;
         [view setDelegate:delegate];
     }
-    
-    NSColor *color = oscolor_NSColor(1); // ekSYS_LABEL
-    [view->dict setValue:color forKey:NSForegroundColorAttributeName];
+
+    {
+        NSColor *color = oscolor_NSColor(1); /* ekSYS_LABEL */
+        [view->dict setValue:color forKey:NSForegroundColorAttributeName];
+    }
 
     return (OSText*)view->scroll;
 }
@@ -166,7 +168,7 @@ void ostext_destroy(OSText **view)
     listener_destroy(&delegate->OnTextChange_listener);
     [lview setDelegate:nil];
     [delegate release];
-    [lview release];    
+    [lview release];
     [(*(NSScrollView**)view) release];
 }
 
@@ -184,7 +186,7 @@ void ostext_OnTextChange(OSText *view, Listener *listener)
 {
     OSXTextViewDelegate *delegate = i_get_delegate(view);
     cassert_no_null(delegate);
-    listener_update(&delegate->OnTextChange_listener, listener);    
+    listener_update(&delegate->OnTextChange_listener, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -367,17 +369,19 @@ static void i_change_paragraph(OSXTextView *lview)
     if (lview->pbefore >= REAL32_MAX + 1e3f)
         return;
 
-    NSMutableParagraphStyle *par = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
-    [par setAlignment:_oscontrol_text_alignment(lview->palign)];
-    [par setLineSpacing:(CGFloat)lview->pspacing];
-    [par setParagraphSpacing:(CGFloat)lview->pafter];
-    [par setParagraphSpacingBefore:(CGFloat)lview->pbefore];
-    [lview->dict setValue:par forKey:NSParagraphStyleAttributeName];
+    {
+        NSMutableParagraphStyle *par = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+        [par setAlignment:_oscontrol_text_alignment(lview->palign)];
+        [par setLineSpacing:(CGFloat)lview->pspacing];
+        [par setParagraphSpacing:(CGFloat)lview->pafter];
+        [par setParagraphSpacingBefore:(CGFloat)lview->pbefore];
+        [lview->dict setValue:par forKey:NSParagraphStyleAttributeName];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_param(OSText *view, const guiprop_t param, const void *value)
+void ostext_property(OSText *view, const gui_prop_t param, const void *value)
 {
     OSXTextView *lview = nil;
     cassert_no_null(view);
@@ -385,7 +389,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
     cassert_no_null(lview);
             
     switch (param) {
-    case ekGUI_TEXT_FAMILY:
+    case ekGUI_PROP_FAMILY:
         if (str_equ_c(lview->ffamily, (const char_t*)value) == FALSE)
         {
             str_copy_c(lview->ffamily, sizeof(lview->ffamily), (const char_t*)value);
@@ -393,10 +397,10 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_UNITS:
+    case ekGUI_PROP_UNITS:
         break;
 
-    case ekGUI_TEXT_SIZE:
+    case ekGUI_PROP_SIZE:
         if (lview->fsize != *((real32_t*)value))
         {
             lview->fsize = *((real32_t*)value);
@@ -404,7 +408,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_STYLE:
+    case ekGUI_PROP_STYLE:
         if (lview->fstyle != *((uint32_t*)value))
         {
             lview->fstyle = *((uint32_t*)value);
@@ -412,7 +416,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_COLOR:
+    case ekGUI_PROP_COLOR:
     {
         NSColor *color = nil;
         if (*(color_t*)value == kCOLOR_TRANSPARENT)
@@ -423,14 +427,14 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         break;
     }
 
-    case ekGUI_TEXT_BGCOLOR:
+    case ekGUI_PROP_BGCOLOR:
     {
         NSColor *color = oscolor_NSColor(*(color_t*)value);
         [lview->dict setValue:color forKey:NSBackgroundColorAttributeName];
         break;
     }
 
-    case ekGUI_TEXT_PGCOLOR:
+    case ekGUI_PROP_PGCOLOR:
         if (*(color_t*)value != kCOLOR_TRANSPARENT)
         {
             NSColor *color = oscolor_NSColor(*(color_t*)value);
@@ -443,7 +447,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_PARALIGN:
+    case ekGUI_PROP_PARALIGN:
         if (lview->palign != *((align_t*)value))
         {
             lview->palign = *((align_t*)value);
@@ -451,7 +455,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_LSPACING:
+    case ekGUI_PROP_LSPACING:
         if (lview->pspacing != *((real32_t*)value))
         {
             lview->pspacing = *((real32_t*)value);
@@ -459,7 +463,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_AFPARSPACE:
+    case ekGUI_PROP_AFPARSPACE:
         if (lview->pafter != *((real32_t*)value))
         {
             lview->pafter = *((real32_t*)value);
@@ -467,7 +471,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_BFPARSPACE:
+    case ekGUI_PROP_BFPARSPACE:
         if (lview->pbefore != *((real32_t*)value))
         {
             lview->pbefore = *((real32_t*)value);
@@ -475,7 +479,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_VSCROLL:
+    case ekGUI_PROP_VSCROLL:
     {
         NSRange edrange = NSMakeRange([[lview string] length], 0);
         [lview scrollRangeToVisible:edrange];
@@ -574,7 +578,7 @@ void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32
     view_rect = [(NSScrollView*)view documentVisibleRect];
     /* view_rect.origin.y += 2.f;
        view_rect.size.width -= 5.f; */
-    [lview setFrame:view_rect];    
+    [lview setFrame:view_rect];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -594,4 +598,5 @@ void _ostext_detach_and_destroy(OSText **view, OSPanel *panel)
     ostext_detach(*view, panel);
     ostext_destroy(view);
 }
+
 

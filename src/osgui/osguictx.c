@@ -11,7 +11,7 @@
 /* Native Gui Context */
 
 #include "osguictx.h"
-#include "guicontext.inl"
+#include "guictx.h"
 
 #include "oslabel.h"
 #include "osbutton.h"
@@ -35,13 +35,13 @@
 
 /*---------------------------------------------------------------------------*/
 
-GuiContext *osguictx(void)
+GuiCtx *osguictx(void)
 {
-    GuiContext *context;
+    GuiCtx *context;
 
-    context = gui_context_create();
+    context = guictx_create();
 
-    gui_context_append_label_manager(
+    guictx_append_label_manager(
                         context,
                         oslabel_create,
                         oslabel_destroy,
@@ -64,7 +64,7 @@ GuiContext *osguictx(void)
                         oslabel_frame,
                         OSLabel, OSPanel, Font);
 
-    gui_context_append_button_manager(
+    guictx_append_button_manager(
                         context,
                         osbutton_create,
                         osbutton_destroy,
@@ -86,7 +86,7 @@ GuiContext *osguictx(void)
                         osbutton_frame,
                         OSButton, OSPanel, Image, Font);
 
-    gui_context_append_popup_manager(
+    guictx_append_popup_manager(
                         context,
                         ospopup_create,
                         ospopup_destroy,
@@ -107,7 +107,7 @@ GuiContext *osguictx(void)
                         ospopup_frame,
                         OSPopUp, OSPanel, Image, Font);
 
-    gui_context_append_edit_manager(
+    guictx_append_edit_manager(
                         context,
                         osedit_create,
                         osedit_destroy,
@@ -133,7 +133,7 @@ GuiContext *osguictx(void)
                         osedit_frame,
                         OSEdit, OSPanel, Font);
 
-    gui_context_append_combo_manager(
+    guictx_append_combo_manager(
                         context,
                         oscombo_create,
                         oscombo_destroy,
@@ -161,7 +161,7 @@ GuiContext *osguictx(void)
                         oscombo_frame,
                         OSCombo, OSPanel, Image, Font);
 
-    gui_context_append_updown_manager(
+    guictx_append_updown_manager(
                         context,
                         osupdown_create,
                         osupdown_destroy,
@@ -176,7 +176,7 @@ GuiContext *osguictx(void)
                         osupdown_frame,
                         OSUpDown, OSPanel);
 
-    gui_context_append_slider_manager(
+    guictx_append_slider_manager(
                         context,
                         osslider_create,
                         osslider_destroy,
@@ -195,7 +195,7 @@ GuiContext *osguictx(void)
                         osslider_frame,
                         OSSlider, OSPanel);
 
-    gui_context_append_progress_manager(
+    guictx_append_progress_manager(
                         context,
                         osprogress_create,
                         osprogress_destroy,
@@ -210,11 +210,12 @@ GuiContext *osguictx(void)
                         osprogress_frame,
                         OSProgress, OSPanel);
 
-    gui_context_append_view_manager(
+    guictx_append_view_manager(
                         context,
                         osview_create,
                         osview_destroy,
                         osview_OnDraw,
+                        osview_OnOverlay,
                         osview_OnEnter,
                         osview_OnExit,                        
                         osview_OnMoved,
@@ -251,7 +252,7 @@ GuiContext *osguictx(void)
                         osview_frame,
                         OSView, OSPanel);
 
-    gui_context_append_text_manager(
+    guictx_append_text_manager(
                         context,
                         ostext_create,
                         ostext_destroy,
@@ -259,7 +260,7 @@ GuiContext *osguictx(void)
                         ostext_insert_text,
                         ostext_set_text,
                         ostext_set_rtf,
-                        ostext_param,
+                        ostext_property,
                         ostext_editable,
                         ostext_get_text,
                         ostext_set_need_display,
@@ -272,7 +273,7 @@ GuiContext *osguictx(void)
                         ostext_frame,
                         OSText, OSPanel);
 
-    gui_context_append_split_manager(
+    guictx_append_split_manager(
                         context,
                         ossplit_create,
                         ossplit_destroy,
@@ -289,7 +290,7 @@ GuiContext *osguictx(void)
                         ossplit_frame,
                         OSSplit, OSPanel);
 
-    gui_context_append_panel_manager(
+    guictx_append_panel_manager(
                         context,
                         ospanel_create,
                         ospanel_destroy,
@@ -306,7 +307,7 @@ GuiContext *osguictx(void)
                         ospanel_frame,
                         OSPanel);
 
-    gui_context_append_window_manager(
+    guictx_append_window_manager(
                         context,
                         oswindow_create,
                         oswindow_managed,
@@ -320,6 +321,7 @@ GuiContext *osguictx(void)
                         oswindow_z_order,
                         oswindow_alpha,
                         oswindow_enable_mouse_events,
+                        oswindow_hotkey,
                         oswindow_taborder,
                         oswindow_focus,
                         oswindow_attach_panel,
@@ -339,7 +341,7 @@ GuiContext *osguictx(void)
                         oswindow_property,
                         OSWindow, OSPanel, OSButton);
 
-    gui_context_append_menu_manager(
+    guictx_append_menu_manager(
                         context,
                         osmenu_create,
                         osmenu_destroy,
@@ -349,7 +351,7 @@ GuiContext *osguictx(void)
                         osmenu_hide,
                         OSMenu, OSMenuItem, OSWindow);
 
-    gui_context_append_menuitem_manager(
+    guictx_append_menuitem_manager(
                         context,
                         osmenuitem_create,
                         osmenuitem_destroy,
@@ -364,13 +366,13 @@ GuiContext *osguictx(void)
                         osmenuitem_unset_submenu,
                         OSMenuItem, OSMenu, Image);
 
-    gui_context_append_comwin_manager(
+    guictx_append_comwin_manager(
                         context,
                         oscomwin_file,
                         oscomwin_color,
                         OSWindow);
 
-    gui_context_append_globals_manager(
+    guictx_append_globals_manager(
                         context,
                         osglobals_device,
                         osglobals_color,
@@ -381,7 +383,7 @@ GuiContext *osguictx(void)
                         osglobals_value,
                         Image);
 
-    gui_context_append_drawctrl_manager(
+    guictx_append_drawctrl_manager(
                         context,
                         osdrawctrl_font,
                         osdrawctrl_row_padding,
@@ -389,8 +391,11 @@ GuiContext *osguictx(void)
                         osdrawctrl_check_height,
                         osdrawctrl_multisel,
                         osdrawctrl_clear,
+                        osdrawctrl_header,
+                        osdrawctrl_indicator,
                         osdrawctrl_fill,
                         osdrawctrl_focus,
+                        osdrawctrl_line,
                         osdrawctrl_text,
                         osdrawctrl_image,
                         osdrawctrl_checkbox,

@@ -1,1 +1,0 @@
-processStaticLib(nlib "core")

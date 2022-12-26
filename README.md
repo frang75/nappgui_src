@@ -11,27 +11,17 @@ Cross-Platform C SDK. Build portable desktop applications for Windows, macOS and
 
 ### Open the Developer Command Prompt
 ```
-(from C:\)
-
-// Clone the NAppGUI repo
-git clone --depth 1 https://github.com/frang75/nappgui_src.git nappgui_sdk
-
-// Create a build directory
-mkdir nappgui_build
-cd nappgui_build
-
-// Generate the Visual Studio Solution
-cmake -G "Visual Studio 16 2019" ../nappgui_sdk/src
-
-// Build the examples
-msbuild NAppGUI.sln
+git clone --depth 1 https://github.com/frang75/nappgui_src.git
+cd nappgui_src
+cmake -S ./src -B ./build
+cmake --build ./build --config Debug
 
 // Run examples in 'demo' and 'howto' folders
-.\demo\die\Debug\Die.exe
-.\demo\bricks\Debug\Bricks.exe
-.\demo\products\Debug\Products.exe
-.\howto\col2dhello\Debug\Col2dHello.exe
-.\howto\guihello\Debug\GuiHello.exe
+.\build\Debug\bin\Die.exe
+.\build\Debug\bin\Bricks.exe
+.\build\Debug\bin\Products.exe
+.\build\Debug\bin\Col2dHello.exe
+.\build\Debug\bin\GuiHello.exe
 ...
 ```
 ![Running demo project in Windows](https://nappgui.com/img/start/run_demo_windows.png)
@@ -44,27 +34,17 @@ msbuild NAppGUI.sln
 
 ### Open the Terminal
 ```
-(from your home dir ~/)
-
-// Clone the NAppGUI repo
-git clone --depth 1 https://github.com/frang75/nappgui_src.git nappgui_sdk
-
-// Create a build directory
-mkdir nappgui_build
-cd nappgui_build
-
-// Generate the Xcode project
-cmake -G "Xcode" ../nappgui_sdk/src
-
-// Build the examples
-xcodebuild
+git clone --depth 1 https://github.com/frang75/nappgui_src.git
+cd nappgui_src
+cmake -G Xcode -S ./src -B ./build
+cmake --build ./build --config Debug
 
 // Run examples in 'demo' and 'howto' folders
-./demo/die/Debug/Die.app/Contents/MacOS/Die
-./demo/bricks/Debug/Bricks.app/Contents/MacOS/Bricks
-./demo/products/Debug/Products.app/Contents/MacOS/Products
-./howto/col2dhello/Debug/Col2dHello.app/Contents/MacOS/Col2dHello
-./howto/guihello/Debug/GuiHello.app/Contents/MacOS/GuiHello
+./build/Debug/bin/Die.app/Contents/MacOS/Die
+./build/Debug/bin/Bricks.app/Contents/MacOS/Bricks
+./build/Debug/bin/Products.app/Contents/MacOS/Products
+./build/Debug/bin/Col2dHello.app/Contents/MacOS/Col2dHello
+./build/Debug/bin/GuiHello.app/Contents/MacOS/GuiHello
 ...
 ```
 ![Running demo project in macOS](https://nappgui.com/img/start/run_demo_macos.png)
@@ -74,10 +54,8 @@ xcodebuild
 ### Prerequisites
 ```
 // Development tools
-sudo apt-get install gcc
-sudo apt-get install g++
+sudo apt-get install build-essential
 sudo apt-get install git
-sudo apt-get install make
 sudo apt-get install cmake
 
 // Development libraries
@@ -87,27 +65,17 @@ sudo apt-get install libcurl4-openssl-dev
 ```
 ### Open the Terminal
 ```
-(from your home dir ~/)
-
-// Clone the NAppGUI repo
-git clone --depth 1 https://github.com/frang75/nappgui_src.git nappgui_sdk
-
-// Create a build directory
-mkdir nappgui_build
-cd nappgui_build
-
-// Generate the Makefiles
-cmake -G "Unix Makefiles" ../nappgui_sdk/src
-
-// Build the examples
-make
+git clone --depth 1 https://github.com/frang75/nappgui_src.git
+cd nappgui_src
+cmake -S ./src -B ./build -DCMAKE_BUILD_CONFIG=Debug
+cmake --build ./build -j 4
 
 // Run examples in 'demo' and 'howto' folders
-./demo/die/Debug/Die
-./demo/bricks/Debug/Bricks
-./demo/products/Debug/Products
-./howto/col2dhello/Debug/Col2dHello
-./howto/guihello/Debug/GuiHello
+./build/Debug/bin/Die
+./build/Debug/bin/Bricks
+./build/Debug/bin/Products
+./build/Debug/bin/Col2dHello
+./build/Debug/bin/GuiHello
 ...
 ```
 ![Running demo project in Linux](https://nappgui.com/img/start/run_demo_linux.png)
@@ -115,5 +83,5 @@ make
 ## More info
 - [NAppGUI Quick Start](https://nappgui.com/en/start/quick.html)
 - [NAppGUI Hello World](https://nappgui.com/en/start/hello.html)
-- [Create a new project](https://nappgui.com/en/start/newprj.html)
-- [About Portability](https://nappgui.com/en/start/win_mac_linux.html)
+- [Create a new project](https://nappgui.com/en/guide/newprj.html)
+- [About Portability](https://nappgui.com/en/guide/win_mac_linux.html)

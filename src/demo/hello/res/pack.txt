@@ -1,4 +1,0 @@
-VENDOR=NAppGUI
-VERSION=1.0
-DESC=HelloWorld program for NAppGUI SDK.
-

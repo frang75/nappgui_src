@@ -11,7 +11,7 @@
 /* Sockets base API */
 
 #include "bsocket.h"
-#include "blib.inl"
+#include "blib.h"
 #include "bstd.h"
 #include "osbs.h"
 #include "cassert.h"

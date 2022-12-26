@@ -14,7 +14,7 @@
 #include "guiall.h"
 #include "httpreq.h"
 #include "json.h"
-#include "res_gui.h"
+#include "res_products.h"
 
 typedef struct _pjson_t PJson;
 

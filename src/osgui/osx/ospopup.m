@@ -20,7 +20,6 @@
 #include "event.h"
 #include "heap.h"
 #include "image.h"
-#include "image.inl"
 #include "ptr.h"
 
 #if !defined (__MACOS__)
@@ -29,7 +28,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXPopUp : NSPopUpButton 
+@interface OSXPopUp : NSPopUpButton
 {
     @public
     OSTextAttr attrs;
@@ -49,10 +48,10 @@
     if ([self isEnabled] == YES && self->OnSelect_listener != NULL)
     {
         EvButton params;
-        params.state = ekON;
+        params.state = ekGUI_ON;
         params.index = (uint32_t)[self indexOfSelectedItem];
         params.text = NULL; /*(const char_t*)[[self titleOfSelectedItem] UTF8String];*/
-        listener_event(self->OnSelect_listener, ekEVPOPUP, (OSPopUp*)sender, &params, NULL, OSPopUp, EvButton, void);
+        listener_event(self->OnSelect_listener, ekGUI_EVENT_POPUP, (OSPopUp*)sender, &params, NULL, OSPopUp, EvButton, void);
     }
 }
 
@@ -60,7 +59,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSPopUp *ospopup_create(const popup_flag_t flags)
+OSPopUp *ospopup_create(const uint32_t flags)
 {
     OSXPopUp *popup = nil;
     NSPopUpButtonCell *cell = nil;
@@ -74,7 +73,7 @@ OSPopUp *ospopup_create(const popup_flag_t flags)
     cell = [popup cell];
     /*[cell setBezelStyle:NSShadowlessSquareBezelStyle];*/
     [cell setArrowPosition:NSPopUpArrowAtBottom];
-    _oscontrol_cell_set_control_size(cell, ekREGULAR);
+    _oscontrol_cell_set_control_size(cell, ekGUI_SIZE_REGULAR);
     [popup setPullsDown:NO];
     [popup setTarget:popup];
     [popup setAction:@selector(onSelectionChange:)];
@@ -137,13 +136,13 @@ static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_elem(OSPopUp *popup, const op_t op, const uint32_t idx, const char_t *text, const Image *image)
+void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const char_t *text, const Image *image)
 {
-    if (op == ekOPADD)
+    if (op == ekCTRL_OP_ADD)
     {
         i_add_elem(popup, text, image);
     }
-    else if (op == ekOPSET)
+    else if (op == ekCTRL_OP_SET)
     {
         NSArray *items = nil;
         NSMenuItem *item = nil;

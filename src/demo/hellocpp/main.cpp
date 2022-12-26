@@ -9,7 +9,7 @@
  */
 
 /* NAppGUI C++ Hello World */
-    
+
 #include "nappgui.h"
 
 class App;
@@ -96,7 +96,7 @@ void App::i_OnClose(Event *e)
 MainWindow::MainWindow(App *app)
 {
     Panel *panel = i_panel();
-    this->window = window_create(ekWNSTD);
+    this->window = window_create(ekWINDOW_STD);
     this->clicks = 0;
     window_panel(this->window, panel);
     window_title(this->window, "Hello, C++!");

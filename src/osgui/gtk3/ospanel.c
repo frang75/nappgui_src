@@ -8,7 +8,7 @@
  *
  */
 
-/* Operating System native view */
+/* Operating System native panel */
 
 #include "ospanel.h"
 #include "ospanel.inl"
@@ -69,6 +69,8 @@ DeclSt(Area);
 static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
 {
     cassert_no_null(panel);
+    unref(widget);
+
     if (panel->areas == NULL)
         return FALSE;
 
@@ -114,15 +116,17 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
 
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSPanel *panel)
 {
+    unref(widget);
+
     if (panel->capture != NULL)
     {
-        if (panel->capture->type == ekGUI_COMPONENT_SPLITVIEW)
+        if (panel->capture->type == ekGUI_TYPE_SPLITVIEW)
             _ossplit_OnPress((OSSplit*)panel->capture, event);
 
         return TRUE;
     }
-    // The handler will be called before the default handler of the signal.
-    // This is the default behaviour
+    /* The handler will be called before the default handler of the signal.
+    This is the default behaviour */
     else
     {
         return FALSE;
@@ -138,16 +142,17 @@ OSPanel *ospanel_create(const uint32_t flags)
     g_signal_connect(G_OBJECT(widget), "draw", G_CALLBACK(i_OnDraw), panel);
     g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), panel);
 
-    if (flags & ekHSCROLL || flags & ekVSCROLL)
+    if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
     {
         GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
         panel->content = widget;
         gtk_widget_show(panel->content);
-        _oscontrol_init(&panel->control, ekGUI_COMPONENT_PANEL, scroll, scroll, FALSE);
+        _oscontrol_init(&panel->control, ekGUI_TYPE_PANEL, scroll, scroll, FALSE);
         gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+        g_object_set_data(G_OBJECT(widget), "OSControl", &panel->control);
         gtk_container_add(GTK_CONTAINER(panel->control.widget), panel->content);
 
-        // A parent widget can "capture" the mouse
+        /* A parent widget can "capture" the mouse */
         {
             GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(panel->control.widget));
             GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(panel->control.widget));
@@ -161,12 +166,12 @@ OSPanel *ospanel_create(const uint32_t flags)
     }
     else
     {
-        _oscontrol_init(&panel->control, ekGUI_COMPONENT_PANEL, widget, widget, TRUE);
+        _oscontrol_init(&panel->control, ekGUI_TYPE_PANEL, widget, widget, TRUE);
     }
 
     return panel;
 }
-    
+
 /*---------------------------------------------------------------------------*/
 
 void ospanel_destroy(OSPanel **panel)
@@ -179,8 +184,8 @@ void ospanel_destroy(OSPanel **panel)
 
     if ((*panel)->content != NULL)
     {
-        // The object is unref when removed
-        //g_object_ref((*view)->area);
+        /* The object is unref when removed
+        g_object_ref((*view)->area); */
         gtk_container_remove(GTK_CONTAINER((*panel)->control.widget), (*panel)->content);
     }
 
@@ -234,7 +239,7 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 {
     cassert_no_null(panel);
 
-    // In GTK scrollbars are overlapping
+    /* In GTK scrollbars are overlapping */
     if (width != NULL)
         *width = 0;
 
@@ -249,6 +254,8 @@ void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t h
     cassert_no_null(panel);
     cassert(panel->content != NULL);
     cassert(GTK_IS_SCROLLED_WINDOW(panel->control.widget) == TRUE);
+    unref(line_width);
+    unref(line_height);
     gtk_layout_set_size(GTK_LAYOUT(panel->content), (guint)width, (guint)height);
 }
 
@@ -284,7 +291,7 @@ void ospanel_visible(OSPanel *panel, const bool_t is_visible)
 /*---------------------------------------------------------------------------*/
 
 void ospanel_enabled(OSPanel *panel, const bool_t is_enabled)
-{   
+{
     _oscontrol_set_enabled((OSControl*)panel, is_enabled);
 }
 
@@ -327,52 +334,50 @@ static void i_destroy_child(GtkWidget *widget, gpointer data)
     OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
     cassert_no_null(control);
     switch (control->type) {
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
         _oslabel_detach_and_destroy((OSLabel**)&control, panel);
         break;
-    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_TYPE_BUTTON:
         _osbutton_detach_and_destroy((OSButton**)&control, panel);
         break;
-    case ekGUI_COMPONENT_POPUP:
+    case ekGUI_TYPE_POPUP:
         _ospopup_detach_and_destroy((OSPopUp**)&control, panel);
         break;
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
         _osedit_detach_and_destroy((OSEdit**)&control, panel);
         break;
-    case ekGUI_COMPONENT_COMBOBOX:
+    case ekGUI_TYPE_COMBOBOX:
         _oscombo_detach_and_destroy((OSCombo**)&control, panel);
         break;
-    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_TYPE_SLIDER:
         _osslider_detach_and_destroy((OSSlider**)&control, panel);
         break;
-    case ekGUI_COMPONENT_UPDOWN:
+    case ekGUI_TYPE_UPDOWN:
         _osupdown_detach_and_destroy((OSUpDown**)&control, panel);
         break;
-    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_TYPE_PROGRESS:
         _osprogress_detach_and_destroy((OSProgress**)&control, panel);
         break;
-    case ekGUI_COMPONENT_TEXTVIEW:
+    case ekGUI_TYPE_TEXTVIEW:
         _ostext_detach_and_destroy((OSText**)&control, panel);
         break;
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
         _osview_detach_and_destroy((OSView**)&control, panel);
         break;
-    case ekGUI_COMPONENT_PANEL:
+    case ekGUI_TYPE_PANEL:
         ospanel_detach((OSPanel*)control, panel);
         _ospanel_destroy((OSPanel**)&control);
         break;
-
-    case ekGUI_COMPONENT_SPLITVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
         _ossplit_detach_and_destroy((OSSplit**)&control, panel);
         break;
-
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-    case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+    case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
@@ -417,4 +422,39 @@ void _ospanel_release_capture(OSPanel *panel)
 {
     cassert_no_null(panel);
     panel->capture = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_scroll_frame(const OSPanel *panel, RectI *rect)
+{
+    real32_t w, h;
+    cassert_no_null(panel);
+    cassert_no_null(rect);
+    if (panel->hadjust != NULL)
+        rect->left = (int)gtk_adjustment_get_value(panel->hadjust);
+    else
+        rect->left = 0;
+
+    if (panel->vadjust != NULL)
+        rect->top = (int)gtk_adjustment_get_value(panel->vadjust);
+    else
+        rect->top = 0;
+
+    _oscontrol_get_size(&panel->control, &w, &h);
+    rect->right = rect->left + (int)w;
+    rect->bottom = rect->top + (int)h;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_scroll(OSPanel *panel, const int x, const int y)
+{
+    cassert_no_null(panel);
+
+    if (panel->hadjust != NULL)
+        gtk_adjustment_set_value(panel->hadjust, (gdouble)x);
+
+    if (panel->vadjust != NULL)
+        gtk_adjustment_set_value(panel->vadjust, (gdouble)y);
 }

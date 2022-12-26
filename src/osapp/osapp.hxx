@@ -15,6 +15,7 @@
 #define __OSAPP_HXX__
 
 #include "gui.hxx"
+#include "osapp.def"
 
 typedef uint32_t(*FPtr_task_main)(void *data);
 #define FUNC_CHECK_TASK_MAIN(func, type)\

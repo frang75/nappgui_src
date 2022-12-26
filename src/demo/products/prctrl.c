@@ -15,7 +15,7 @@
 #include "nappgui.h"
 #include "httpreq.h"
 #include "json.h"
-#include "res_gui.h"
+#include "res_products.h"
 
 typedef enum _status_t
 {
@@ -61,10 +61,10 @@ struct _ctrl_t
     Cell *minus_cell;
     Cell *filter_cell;
     Cell *slider_cell;
-    Cell *counter_cell;    
+    Cell *counter_cell;
     Cell *code_cell;
     Cell *desc_cell;
-    Cell *price_cell;    
+    Cell *price_cell;
     Cell *lang_cell;
     Cell *setting_cell;
     Cell *user_cell;
@@ -147,7 +147,7 @@ static void i_update_product(Ctrl *ctrl)
         product = model_product(ctrl->model, ctrl->selected);
         bstd_sprintf(msg, 64, "[%d/%d]", ctrl->selected + 1, total);
         label_text(counter, msg);
-        slider_value(slider, (real32_t)ctrl->selected / (real32_t)(total > 1 ? total - 1 : 1));        
+        slider_value(slider, (real32_t)ctrl->selected / (real32_t)(total > 1 ? total - 1 : 1));
         enabled = TRUE;
         for (i = 0; i < n; ++i)
             ctrl->stats[i] = bmath_randf(2.f, i_MAX_STATS - 2.f);
@@ -230,16 +230,16 @@ void ctrl_run(Ctrl *ctrl)
     ctrl->status = ekWAIT_LOGIN;
     setting_button = cell_button(ctrl->setting_cell);
     layout_show_col(ctrl->main_layout, 1, TRUE);
-    button_state(setting_button, ekON);
-    menuitem_state(ctrl->setting_item, ekON);
+    button_state(setting_button, ekGUI_ON);
+    menuitem_state(ctrl->setting_item, ekGUI_ON);
     lang_popup = cell_popup(ctrl->lang_cell);
     lang_index = popup_get_selected(lang_popup);
     lang_item = menu_get_item(ctrl->lang_menu, lang_index);
-    menuitem_state(lang_item, ekON);
+    menuitem_state(lang_item, ekGUI_ON);
     menuitem_enabled(ctrl->login_item, TRUE);
     menuitem_enabled(ctrl->logout_item, FALSE);
     menuitem_enabled(ctrl->import_item, FALSE);
-    menuitem_enabled(ctrl->export_item, FALSE);    
+    menuitem_enabled(ctrl->export_item, FALSE);
     i_status(ctrl);
     cell_focus(ctrl->user_cell);
     i_update_product(ctrl);
@@ -739,7 +739,7 @@ static void i_OnLogin(Ctrl *ctrl, Event *e)
         i_status(ctrl);
         osapp_task(ctrl, 0, i_login_begin, NULL, i_login_end, Ctrl);
     }
-    
+
     unref(e);
 }
 
@@ -804,8 +804,8 @@ void ctrl_logout_item(Ctrl *ctrl, MenuItem *item)
 
 static void i_OnSetting(Ctrl *ctrl, Event *e)
 {
-    state_t state = ekON;
-    if (event_type(e) == ekEVBUTTON)
+    gui_state_t state = ekGUI_ON;
+    if (event_type(e) == ekGUI_EVENT_BUTTON)
     {
         const EvButton *params = event_params(e, EvButton);
         state = params->state;
@@ -813,14 +813,14 @@ static void i_OnSetting(Ctrl *ctrl, Event *e)
     else
     {
         Button *button = cell_button(ctrl->setting_cell);
-        cassert(event_type(e) == ekEVMENU);
+        cassert(event_type(e) == ekGUI_EVENT_MENU);
         state = button_get_state(button);
-        state = state == ekON ? ekOFF : ekON;
+        state = state == ekGUI_ON ? ekGUI_OFF : ekGUI_ON;
         button_state(button, state);
     }
 
     menuitem_state(ctrl->setting_item, state);
-    layout_show_col(ctrl->main_layout, 1, state == ekON ? TRUE : FALSE);
+    layout_show_col(ctrl->main_layout, 1, state == ekGUI_ON ? TRUE : FALSE);
     layout_update(ctrl->main_layout);
 }
 
@@ -897,7 +897,7 @@ static void i_OnLang(Ctrl *ctrl, Event *e)
     MenuItem *item = NULL;
     uint32_t lang_id = 0;
     static const char_t *LANGS[] = { "en_US", "es_ES", "pt_PT", "it_IT", "vi_VN", "ru_RU", "ja_JP" };
-    if (event_type(e) == ekEVPOPUP)
+    if (event_type(e) == ekGUI_EVENT_POPUP)
     {
         const EvButton *params = event_params(e, EvButton);
         item = menu_get_item(ctrl->lang_menu, params->index);
@@ -907,14 +907,14 @@ static void i_OnLang(Ctrl *ctrl, Event *e)
     {
         const EvMenu *params = event_params(e, EvMenu);
         PopUp *popup = cell_popup(ctrl->lang_cell);
-        cassert(event_type(e) == ekEVMENU);
+        cassert(event_type(e) == ekGUI_EVENT_MENU);
         popup_selected(popup, params->index);
         item = event_sender(e, MenuItem);
         lang_id = params->index;
     }
 
     menu_off_items(ctrl->lang_menu);
-    menuitem_state(item, ekON);
+    menuitem_state(item, ekGUI_ON);
     gui_language(LANGS[lang_id]);
 }
 
@@ -931,13 +931,13 @@ void ctrl_lang_cell(Ctrl *ctrl, Cell *cell)
 
 void ctrl_lang_menu(Ctrl *ctrl, Menu *menu)
 {
-    uint32_t i, n = menu_size(menu);        
+    uint32_t i, n = menu_size(menu);
     for (i = 0; i < n; ++i)
     {
         MenuItem *item = menu_get_item(menu, i);
         menuitem_OnClick(item, listener(ctrl, i_OnLang, Ctrl));
     }
-    ctrl->lang_menu = menu;    
+    ctrl->lang_menu = menu;
 }
 
 /*---------------------------------------------------------------------------*/

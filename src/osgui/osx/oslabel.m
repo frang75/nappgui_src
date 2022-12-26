@@ -11,22 +11,21 @@
 /* Cocoa text label */
 
 #include "osgui_osx.inl"
-#include "osx/draw2d_osx.inl"
-#include "osx/draw2d_osx.ixx"
 #include "oslabel.h"
 #include "oslabel.inl"
-#include "dctx.h"
-#include "dctx.inl"
-#include "draw.h"
-#include "font.h"
-#include "t2d.h"
 #include "oscontrol.inl"
 #include "ospanel.inl"
+
 #include "cassert.h"
 #include "color.h"
+#include "dctx.h"
+#include "dctxh.h"
+#include "draw.h"
 #include "event.h"
+#include "font.h"
 #include "heap.h"
 #include "strings.h"
+#include "t2d.h"
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -61,9 +60,9 @@
         EvMouse params;
         params.x = 1e8f;
         params.y = 1e8f;
-        params.button = ENUM_MAX(mouse_t);
+        params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
-        listener_event(self->OnMouseEntered, ekEVENTER, (OSLabel*)self, &params, NULL, OSLabel, EvMouse, void);
+        listener_event(self->OnMouseEntered, ekGUI_EVENT_ENTER, (OSLabel*)self, &params, NULL, OSLabel, EvMouse, void);
     }
 }
 
@@ -73,7 +72,7 @@
 {
     unref(theEvent);
     if (self->OnMouseExited != NULL)
-        listener_event(self->OnMouseExited, ekEVEXIT, (OSLabel*)self, NULL, NULL, OSLabel, void, void);
+        listener_event(self->OnMouseExited, ekGUI_EVENT_EXIT, (OSLabel*)self, NULL, NULL, OSLabel, void, void);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -86,7 +85,7 @@
         EvText params;
         params.text = NULL;
         params.cpos = 0;
-        listener_event(self->OnClick, ekEVLABEL, (OSLabel*)self, &params, NULL, OSLabel, EvText, void);
+        listener_event(self->OnClick, ekGUI_EVENT_LABEL, (OSLabel*)self, &params, NULL, OSLabel, EvText, void);
     }
 }
 
@@ -108,7 +107,7 @@
     dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, FALSE);
     if (self->bgcolor != kCOLOR_TRANSPARENT)
     {
-        draw_shape_fill_color(self->ctx, self->bgcolor);
+        draw_fill_color(self->ctx, self->bgcolor);
         draw_rect(self->ctx, ekFILL, 0, 0, (real32_t)rect.size.width, (real32_t)rect.size.height);
     }
     draw_text(self->ctx, tc(self->text), 0, 0);
@@ -119,20 +118,20 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSLabel *oslabel_create(const label_flag_t flags)
+OSLabel *oslabel_create(const uint32_t flags)
 {
     OSXLabel *label;
     unref(flags);
     heap_auditor_add("OSXLabel");
     label = [[OSXLabel alloc] initWithFrame:NSZeroRect];
     _oscontrol_init(label);
-    label->ctx = dctx_create(NULL);
-    label->ctx->is_flipped = [label isFlipped];
+    label->ctx = dctx_create();
+    dctx_set_flipped(label->ctx, (bool_t)[label isFlipped]);
     label->text = str_c("");
     label->bgcolor = kCOLOR_TRANSPARENT;
     //draw_font(label->ctx, kFONT_DEFAULT);
     draw_text_align(label->ctx, ekLEFT, ekTOP);
-    draw_text_color(label->ctx, ekSYS_LABEL);
+    draw_text_color(label->ctx, ekSYSCOLOR_LABEL);
     draw_text_width(label->ctx, -1);
     draw_text_halign(label->ctx, ekLEFT);
     label->tracking_area = nil;
@@ -186,19 +185,19 @@ static bool_t i_is_mouse_sensible(OSXLabel *label)
 static void i_update_tracking_area(OSXLabel *label)
 {
     bool_t with_area = i_is_mouse_sensible(label);
-    
+
     if (label->tracking_area != nil && with_area == TRUE)
     {
         NSSize required_size = [label frame].size;
         NSSize current_size = [label->tracking_area rect].size;
         if (NSEqualSizes(required_size, current_size) == NO)
-        {    
+        {
             [label removeTrackingArea:label->tracking_area];
             [label->tracking_area release];
             label->tracking_area = [[NSTrackingArea alloc] initWithRect:NSMakeRect(0.f, 0.f, required_size.width, required_size.height) options:(NSTrackingAreaOptions)(NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways) owner:label userInfo:nil];
             [label addTrackingArea:label->tracking_area];
         }
-        
+
         return;
     }
 
@@ -208,7 +207,7 @@ static void i_update_tracking_area(OSXLabel *label)
         [label->tracking_area release];
         label->tracking_area = nil;
     }
-    
+
     if (with_area == TRUE)
     {
         NSSize size = [label frame].size;
@@ -283,7 +282,7 @@ void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis)
 {
     OSXLabel *llabel = (OSXLabel*)label;
     cassert_no_null(llabel);
-    draw_text_wrap(llabel->ctx, ellipsis);
+    draw_text_trim(llabel->ctx, ellipsis);
     [llabel setNeedsDisplay:YES];
 }
 

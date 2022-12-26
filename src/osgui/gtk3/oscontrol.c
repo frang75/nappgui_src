@@ -13,18 +13,17 @@
 #include "oscontrol.inl"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
-#include "bstd.h"
-#include "cassert.h"
-#include "color.h"
-#include "font.h"
-#include "font.inl"
-#include "ptr.h"
-#include "stream.h"
-#include "strings.h"
 #include "osedit.inl"
 #include "oscombo.inl"
 #include "osview.inl"
 #include "oswindow.inl"
+#include "bstd.h"
+#include "cassert.h"
+#include "color.h"
+#include "font.h"
+#include "ptr.h"
+#include "stream.h"
+#include "strings.h"
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -51,7 +50,7 @@ static gboolean i_OnFocusOut(GtkWidget *widget, GdkEvent *e, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_init(OSControl *control, const guitype_t type, GtkWidget *widget, GtkWidget *focus_widget, const bool_t show)
+void _oscontrol_init(OSControl *control, const gui_type_t type, GtkWidget *widget, GtkWidget *focus_widget, const bool_t show)
 {
     cassert_no_null(control);
     control->type = type;
@@ -60,16 +59,17 @@ void _oscontrol_init(OSControl *control, const guitype_t type, GtkWidget *widget
     control->is_alive = TRUE;
     #endif
     g_signal_connect(focus_widget, "grab-focus", G_CALLBACK(i_OnFocus), (gpointer)control);
-    //g_signal_connect(focus_widget, "focus-in-event", G_CALLBACK(i_OnFocusIn), (gpointer)control);
+    /* g_signal_connect(focus_widget, "focus-in-event", G_CALLBACK(i_OnFocusIn), (gpointer)control); */
     g_signal_connect(focus_widget, "focus-out-event", G_CALLBACK(i_OnFocusOut), (gpointer)control);
     g_object_ref(control->widget);
     g_object_set_data(G_OBJECT(control->widget), "OSControl", control);
     gtk_widget_hide(control->widget);
     unref(show);
-//    if (show == TRUE)
-//        gtk_widget_show(control->widget);
-//    else
-//        gtk_widget_hide(control->widget);
+/*    if (show == TRUE)
+       gtk_widget_show(control->widget);
+   else
+       gtk_widget_hide(control->widget);
+ */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -96,6 +96,7 @@ static uint32_t i_num_children(GtkContainer *container)
 
 static void i_OnDestroy(GtkWidget *obj, OSControl *control)
 {
+    unref(obj);
     if (control->type < GUI_CONTEXT_NUM_COMPONENTS)
     {
         cassert(control->is_alive == TRUE);
@@ -112,15 +113,16 @@ void _oscontrol_destroy(OSControl *control)
     #if defined (__ASSERTS__)
     cassert(control->is_alive == TRUE);
     g_signal_connect(control->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)control);
-//    if (GTK_IS_LAYOUT(control->widget) || GTK_IS_WINDOW(control->widget) || GTK_IS_SCROLLED_WINDOW(control->widget))
-//    {
-//        cassert(i_num_children(GTK_CONTAINER(control->widget)) == 0);
-//    }
+    /* if (GTK_IS_LAYOUT(control->widget) || GTK_IS_WINDOW(control->widget) || GTK_IS_SCROLLED_WINDOW(control->widget))
+    {
+       cassert(i_num_children(GTK_CONTAINER(control->widget)) == 0);
+    }
+    */
     #endif
 
     g_object_unref(control->widget);
     #if defined (__ASSERTS__)
-    //cassert(control->is_alive == FALSE);
+    /* cassert(control->is_alive == FALSE); */
     #endif
 }
 
@@ -130,13 +132,13 @@ void _oscontrol_set_focus(OSControl *control)
 {
     cassert_no_null(control);
     switch (control->type) {
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
         _osedit_set_focus((OSEdit*)control);
         break;
-    case ekGUI_COMPONENT_COMBOBOX:
+    case ekGUI_TYPE_COMBOBOX:
         _oscombo_set_focus((OSCombo*)control);
         break;
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
         _osview_set_focus((OSView*)control);
         break;
     default:
@@ -150,16 +152,16 @@ void _oscontrol_unset_focus(OSControl *control)
 {
     cassert_no_null(control);
     switch (control->type) {
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
         _osedit_unset_focus((OSEdit*)control);
         break;
-    case ekGUI_COMPONENT_COMBOBOX:
+    case ekGUI_TYPE_COMBOBOX:
         _oscombo_unset_focus((OSCombo*)control);
         break;
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
         _osview_unset_focus((OSView*)control);
         break;
-    case ekGUI_COMPONENT_WINDOW:
+    case ekGUI_TYPE_WINDOW:
         _oswindow_unset_focus((OSWindow*)control);
         break;
     default:
@@ -328,27 +330,27 @@ void _oscontrol_widget_font(GtkWidget *widget, const char_t *css_type, const Fon
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_css_sel(const guitype_t type)
+static const char_t *i_css_sel(const gui_type_t type)
 {
     switch (type) {
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
         return "label";
-    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_TYPE_BUTTON:
         return "button";
-    case ekGUI_COMPONENT_POPUP:
-    case ekGUI_COMPONENT_COMBOBOX:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_COMBOBOX:
         return "combobox";
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
         return "entry";
-    case ekGUI_COMPONENT_SLIDER:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-    case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_SLIDER:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+    case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
     cassert_default();
     }
 
@@ -415,10 +417,7 @@ void _oscontrol_set_css(GtkWidget *widget, const char_t *css)
 
 void _oscontrol_text_bounds(const OSControl *control, PangoLayout *layout, const char_t *text, const Font *font, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    //StringSizeData data;
     int w, h;
-    // Show label bounds
-    //cassert(FALSE);
 
     if (layout == NULL)
     {
@@ -441,8 +440,10 @@ void _oscontrol_text_bounds(const OSControl *control, PangoLayout *layout, const
     *width = (real32_t)w;
     *height = (real32_t)h;
     unref(control);
-    //data.layout = kPANGO_LAYOUT;
-    //_osgui_text_bounds(&data, text, refwidth, width, height);
+    /*
+    data.layout = kPANGO_LAYOUT;
+    _osgui_text_bounds(&data, text, refwidth, width, height);
+    */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -483,7 +484,7 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
     *y = (real32_t)alloc.y;
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height)
 {
@@ -491,7 +492,7 @@ void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *he
     _oscontrol_widget_size(control->widget, width, height);
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 void _oscontrol_widget_size(GtkWidget *widget, real32_t *width, real32_t *height)
 {
@@ -510,7 +511,7 @@ void _oscontrol_widget_size(GtkWidget *widget, real32_t *width, real32_t *height
     *height = (real32_t)alloc.height;
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 void _oscontrol_set_position(OSControl *control, const int x, const int y)
 {
@@ -520,20 +521,18 @@ void _oscontrol_set_position(OSControl *control, const int x, const int y)
 	cassert(FALSE);
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     GtkWidget *parent;
-    //const gchar *type;
     const gchar *ptype;
     cassert_no_null(control);
 	parent = gtk_widget_get_parent(control->widget);
     cassert_no_null(parent);
-    //type = G_OBJECT_TYPE_NAME(control->widget);
 	ptype = G_OBJECT_TYPE_NAME(parent);
-	// GtkLayout inside GtkLayout
-	// https://stackoverflow.com/questions/47879677/is-it-possible-to-put-gtklayouts-inside-gtklayout
+    /* 	GtkLayout inside GtkLayout
+	https://stackoverflow.com/questions/47879677/is-it-possible-to-put-gtklayouts-inside-gtklayout */
 	if (str_equ_c(ptype, "GtkLayout"))
 	{
 	    gtk_layout_move(GTK_LAYOUT(parent), control->widget, (gint)x, (gint)y);
@@ -543,12 +542,12 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
 	{
 	    cassert(str_equ_c(ptype, "GtkBox"));
         cassert(str_equ_c(G_OBJECT_TYPE_NAME(control->widget), "GtkLayout") || str_equ_c(G_OBJECT_TYPE_NAME(control->widget), "GtkScrolledWindow"));
-	    cassert(control->type == ekGUI_COMPONENT_PANEL);
+	    cassert(control->type == ekGUI_TYPE_PANEL);
 	    cassert(x == 0.f);
 	    cassert(y == 0.f);
-	    //gtk_widget_set_size_request(control->widget, (gint)width, (gint)height);
-        //gtk_widget_set_size_request(control->widget, 0, 0);
-        //gtk_layout_set_size(GTK_LAYOUT(control->widget), (gint)width, (gint)height);
+	    /* gtk_widget_set_size_request(control->widget, (gint)width, (gint)height);
+        gtk_widget_set_size_request(control->widget, 0, 0);
+        gtk_layout_set_size(GTK_LAYOUT(control->widget), (gint)width, (gint)height); */
     }
 }
 

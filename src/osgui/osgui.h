@@ -14,15 +14,25 @@
 
 __EXTERN_C
 
-void osgui_start(void);
+_osgui_api void osgui_start(void);
 
-void osgui_finish(void);
+_osgui_api void osgui_finish(void);
 
-void osgui_set_menubar(OSMenu *menu, OSWindow *window);
+_osgui_api void osgui_set_menubar(OSMenu *menu, OSWindow *window);
 
-void osgui_unset_menubar(OSMenu *menu, OSWindow *window);
+_osgui_api void osgui_unset_menubar(OSMenu *menu, OSWindow *window);
 
-void osgui_redraw_menubar(void);
+_osgui_api void osgui_redraw_menubar(void);
+
+_osgui_api bool_t osgui_message(void *msg);
+
+_osgui_api bool_t osgui_is_initialized(void);
+
+_osgui_api void osgui_initialize(void);
+
+_osgui_api void osgui_terminate(void);
+
+_osgui_api void osgui_set_app(void *app, void *icon);
 
 __END_C
 

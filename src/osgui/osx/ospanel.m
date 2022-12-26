@@ -108,16 +108,16 @@ OSPanel *ospanel_create(const uint32_t flags)
     panel->areas = NULL;
     panel->content_size = CGSizeMake(-1, -1);
     [panel setAutoresizesSubviews:NO];
-    
-    if (flags & ekHSCROLL || flags & ekVSCROLL)
+
+    if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
     {
         NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
         [scroll setDrawsBackground:NO];
         [scroll setDocumentView:panel];
-        [scroll setHasHorizontalScroller:(flags & ekHSCROLL) ? YES : NO];
-        [scroll setHasVerticalScroller:(flags & ekVSCROLL) ? YES : NO];
+        [scroll setHasHorizontalScroller:(flags & ekVIEW_HSCROLL) ? YES : NO];
+        [scroll setHasVerticalScroller:(flags & ekVIEW_VSCROLL) ? YES : NO];
         [scroll setAutohidesScrollers:YES];
-        [scroll setBorderType:(flags & ekBORDER) ? NSGrooveBorder : NSNoBorder];
+        [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
         panel->scroll = scroll;
         return (OSPanel*)scroll;
     }
@@ -160,7 +160,7 @@ void ospanel_destroy(OSPanel **panel)
 {
     OSXPanel *lpanel;
     NSScrollView *scroll = nil;
-    
+
     cassert_no_null(panel);
     lpanel = i_get_panel(*panel);
     cassert_no_null(lpanel);
@@ -187,55 +187,55 @@ static void i_destroy_child(NSView *child, OSPanel *panel)
         _oslabel_detach_and_destroy((OSLabel**)&child, panel);
         return;
     }
-    
+
     if (_osbutton_is(child) == YES)
     {
         _osbutton_detach_and_destroy((OSButton**)&child, panel);
         return;
     }
-    
+
     if (_ospopup_is(child) == YES)
     {
         _ospopup_detach_and_destroy((OSPopUp**)&child, panel);
         return;
     }
-    
+
     if (_osedit_is(child) == YES)
     {
         _osedit_detach_and_destroy((OSEdit**)&child, panel);
         return;
     }
-    
+
     if (_oscombo_is(child) == YES)
     {
         _oscombo_detach_and_destroy((OSCombo**)&child, panel);
         return;
     }
-    
+
     if (_osslider_is(child) == YES)
     {
         _osslider_detach_and_destroy((OSSlider**)&child, panel);
         return;
     }
-    
+
     if (_osupdown_is(child) == YES)
     {
         _osupdown_detach_and_destroy((OSUpDown**)&child, panel);
         return;
     }
-    
+
     if (_osprogress_is(child) == YES)
     {
         _osprogress_detach_and_destroy((OSProgress**)&child, panel);
         return;
     }
-    
+
     if (_ostext_is(child) == YES)
     {
         _ostext_detach_and_destroy((OSText**)&child, panel);
         return;
     }
-    
+
     if (_osview_is(child) == YES)
     {
         _osview_detach_and_destroy((OSView**)&child, panel);
@@ -269,7 +269,7 @@ void _ospanel_destroy(OSPanel **panel)
         i_destroy_child((NSView*)[subviews objectAtIndex:0], *panel);
         cassert([subviews count] == num_elems - i - 1);
     }
-    
+
     ospanel_destroy(panel);
 }
 
@@ -282,10 +282,10 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
     if (obj != NULL)
     {
         Area *area = NULL;
-        
+
         if (lpanel->areas == NULL)
             lpanel->areas = arrst_create(Area);
-        
+
         arrst_foreach(larea, lpanel->areas, Area)
         if (larea->obj == obj)
         {
@@ -293,7 +293,7 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
             break;
         }
         arrst_end();
-        
+
         if (area == NULL)
         {
             area = arrst_new(lpanel->areas, Area);
@@ -301,27 +301,27 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
             area->bgcolor = nil;
             area->skcolor = nil;
         }
-        
+
         area->rect.origin.x = (CGFloat)x;
         area->rect.origin.y = (CGFloat)y;
         area->rect.size.width = (CGFloat)width;
         area->rect.size.height = (CGFloat)height;
-        
+
         if (area->bgcolor != nil)
         {
             [area->bgcolor release];
             area->bgcolor = nil;
         }
-        
+
         if (area->skcolor != nil)
         {
             [area->skcolor release];
             area->skcolor = nil;
         }
-        
+
         if (bgcolor != 0)
             area->bgcolor = [_oscontrol_color(bgcolor) retain];
-        
+
         if (skcolor != 0)
             area->skcolor = [_oscontrol_color(skcolor) retain];
     }
@@ -339,7 +339,7 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
     if ([(NSView*)panel isKindOfClass:[NSScrollView class]])
     {
         NSScrollView *scroll = (NSScrollView*)panel;
-        
+
         if (width)
         {
             NSScroller *scroller = [scroll verticalScroller];
@@ -360,7 +360,7 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
     {
         if (width)
             *width = 16;
-        
+
         if (height)
             *height = 16;
     }

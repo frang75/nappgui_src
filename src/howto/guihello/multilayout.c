@@ -9,7 +9,7 @@
  */
 
 /* Panels with multiple layouts */
-    
+
 #include "multilayout.h"
 #include "guiall.h"
 
@@ -101,7 +101,7 @@ Panel *multilayouts(void)
     Layout *layout2 = layout_create(2, 1);
     button_text(button1, "Layout1");
     button_text(button2, "Layout2");
-    button_state(button1, ekON);
+    button_state(button1, ekGUI_ON);
     button_OnClick(button1, listener(panel2, i_OnLayout, Panel));
     layout_button(layout2, button1, 0, 0);
     layout_button(layout2, button2, 1, 0);

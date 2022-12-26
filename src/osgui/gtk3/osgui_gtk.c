@@ -17,14 +17,13 @@
 #include "ospanel.inl"
 #include "osmenu.inl"
 #include "oswindow.inl"
-#include "osfont.inl"
 #include "arrpt.h"
 #include "bstd.h"
 #include "cassert.h"
 #include "core.h"
+#include "dctxh.h"
 #include "heap.h"
 #include "image.h"
-#include "image.inl"
 #include "strings.h"
 #include "unicode.h"
 
@@ -321,7 +320,7 @@ void _osgui_pre_initialize(void)
     kPANGO_FROM_PIXELS = 1.f / (dpi / 72.f) * (real32_t)PANGO_SCALE;
     kREGISTER_ICONS = NULL;
 
-    // Set the default font
+    /* Set the default font */
     {
         GtkSettings *settings = gtk_settings_get_default();
         GValue dfont = G_VALUE_INIT;
@@ -329,7 +328,7 @@ void _osgui_pre_initialize(void)
         g_value_init(&dfont, G_TYPE_STRING);
         g_object_get_property(G_OBJECT(settings), "gtk-font-name", &dfont);
         fdesc = pango_font_description_from_string(g_value_get_string(&dfont));
-        osfont_set_default(fdesc);
+        dctx_set_default_osfont(NULL, fdesc);
         g_value_unset(&dfont);
         pango_font_description_free(fdesc);
     }

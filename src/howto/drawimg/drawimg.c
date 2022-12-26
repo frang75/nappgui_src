@@ -11,7 +11,7 @@
 /* Drawing on an image */
 
 #include "nappgui.h"
-#include "allres.h"
+#include "res_drawimg.h"
 
 typedef struct _app_t App;
 
@@ -34,20 +34,6 @@ struct _app_t
 static uint32_t i_WIDTH[4] = {600, 300, 150, 75};
 static uint32_t i_HEIGHT[4] = {400, 200, 100, 50};
 static real32_t i_SCALE[4] = {1, .5f, .25f, .125f};
-
-/*---------------------------------------------------------------------------*/
-
-//static void i_dbind(void)
-//{
-//    dbind_enum(codec_t, ekJPG, "JPG");
-//    dbind_enum(codec_t, ekPNG, "PNG");
-//    dbind_enum(codec_t, ekBMP, "BMP");
-//    dbind_enum(codec_t, ekBMP, "ekGIF");
-//    dbind(App, String*, exp_path);
-//    dbind(App, codec_t, exp_codec);
-//    dbind(App, uint32_t, exp_bpp);
-//    dbind(App, bool_t, exp_alpha);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -130,12 +116,9 @@ static Layout *i_filename_layout(void)
     Layout *layout = layout_create(2, 1);
     Edit *edit = edit_create();
     Button *button = button_push();
-    //Image *image = image_system(".");
-    //button_image(button, image);
     button_text(button, "Open");
     layout_edit(layout, edit, 0, 0);
     layout_button(layout, button, 1, 0);
-    //image_destroy(&image);
     return layout;
 }
 
@@ -182,7 +165,7 @@ static void i_OnCancel(App *app, Event *e)
 
 static Window *i_export_window(App *app)
 {
-    Window *window = window_create(ekWNTITLE | ekWNCLOSE);
+    Window *window = window_create(ekWINDOW_TITLE | ekWINDOW_CLOSE);
     Panel *panel = panel_create();
     Layout *layout1 = layout_create(3, 4);
     Layout *layout2 = i_filename_layout();
@@ -303,7 +286,7 @@ static Layout *i_img_layout(App *app)
     button_text(button3, "150x100");
     button_text(button4, "75x50");
     button_text(button5, "Export...");
-    button_state(button1, ekON);
+    button_state(button1, ekGUI_ON);
     button_OnClick(button1, listener(app, i_OnResolution, App));
     button_OnClick(button5, listener(app, i_OnExport, App));
     layout_label(layout, label, 0, 0);
@@ -379,7 +362,7 @@ static Panel *i_panel(App *app)
     view_size(view, s2df(600, 400));
     imageview_size(iview, s2df(600, 400));
     view_OnDraw(view, listener(app, i_OnDraw, App));
-    imageview_scale(iview, ekASPECT);
+    imageview_scale(iview, ekGUI_SCALE_ASPECT);
     layout_layout(layout1, layout2, 0, 0);
     layout_view(layout1, view, 0, 1);
     layout_imageview(layout1, iview, 1, 1);
@@ -408,9 +391,9 @@ static App *i_create(void)
 {
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
-    gui_respack(allres_respack);
+    gui_respack(res_drawimg_respack);
     gui_language("");
-    app->window = window_create(ekWNSTD);
+    app->window = window_create(ekWINDOW_STD);
     app->font = font_system(25.f, 0);
     app->res = 0;
     app->angle = 0;

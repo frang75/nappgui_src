@@ -8,7 +8,7 @@
  *
  */
 
-/* NAppGUI Hello World */
+/* Dice application */
 
 #include "nappgui.h"
 #include "ddraw.h"
@@ -30,9 +30,9 @@ static void i_OnRedraw(App *app, Event *e)
     color_t green = color_rgb(102, 153, 26);
     real32_t w = params->width / 3;
     real32_t h = params->height / 2;
-    real32_t p = .15f;
-    real32_t c = .15f;
-    real32_t r = .35f;
+    real32_t p = kDEF_PADDING;
+    real32_t c = kDEF_CORNER;
+    real32_t r = kDEF_RADIUS;
     draw_clear(params->ctx, green);
     die_draw(params->ctx, 0.f, 0.f, w, h, p, c, r, app->face[0]);
     die_draw(params->ctx, w, 0.f, w, h, p, c, r, app->face[1]);
@@ -95,8 +95,8 @@ static void i_OnClose(App *app, Event *e)
 static App *i_create(void)
 {
     App *app = heap_new0(App);
-    Panel *panel = i_panel(app);    
-    app->window = window_create(ekWNSTD);
+    Panel *panel = i_panel(app);
+    app->window = window_create(ekWINDOW_STD);
     window_panel(app->window, panel);
     window_title(app->window, "Dice");
     window_origin(app->window, v2df(500.f, 200.f));

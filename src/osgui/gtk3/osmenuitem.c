@@ -135,7 +135,7 @@ static const guint i_VIRTUAL_KEY[] =
     GDK_KEY_Up              /*ekKEY_UP              = 96*/
 };
 
-struct _osmenuitem_t 
+struct _osmenuitem_t
 {
     GtkWidget *widget;
     GtkWidget *box;
@@ -161,6 +161,7 @@ struct _osmenuitem_t
 static void i_OnDestroy(GtkWidget *obj, OSMenuItem *item)
 {
     cassert(item->is_alive == TRUE);
+    unref(obj);
     item->is_alive = FALSE;
 }
 
@@ -171,13 +172,14 @@ static void i_OnDestroy(GtkWidget *obj, OSMenuItem *item)
 static void i_OnClick(GtkMenuItem *widget, OSMenuItem *item)
 {
     cassert_no_null(item);
+    unref(widget);
     if (item->OnClick != NULL && item->launch_event == TRUE)
     {
         EvMenu params;
         params.index = UINT32_MAX;
-        params.state = ekON;//i_state(type, state);
+        params.state = ekGUI_ON;
         params.str = NULL;
-        listener_event(item->OnClick, ekEVMENU, item, &params, NULL, OSMenuItem, EvMenu, void);
+        listener_event(item->OnClick, ekGUI_EVENT_MENU, item, &params, NULL, OSMenuItem, EvMenu, void);
     }
 }
 
@@ -186,7 +188,7 @@ static void i_OnClick(GtkMenuItem *widget, OSMenuItem *item)
 OSMenuItem *osmenuitem_create(const menu_flag_t flag)
 {
     OSMenuItem *item = heap_new0(OSMenuItem);
-    if (flag == ekMNITEM)
+    if (flag == ekMENU_ITEM)
     {
         item->widget = gtk_menu_item_new();
         item->box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
@@ -205,7 +207,7 @@ OSMenuItem *osmenuitem_create(const menu_flag_t flag)
     }
     else
     {
-        cassert(flag == ekMNSEPARATOR);
+        cassert(flag == ekMENU_SEPARATOR);
         item->widget = gtk_separator_menu_item_new();
         item->key = ENUM_MAX(vkey_t);
     }
@@ -268,11 +270,8 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-//static Image *kIMAGE = NULL;
 void osmenuitem_image(OSMenuItem *item, const Image *image)
 {
-//    if (kIMAGE == NULL)
-//        kIMAGE = image_copy(image);
     const char_t *icon_name = _osgui_register_icon(image);
     cassert_no_null(item);
     if (item->icon == NULL)
@@ -323,11 +322,11 @@ void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_state(OSMenuItem *item, const state_t state)
+void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
 {
     cassert_no_null(item);
     switch(state) {
-    case ekOFF:
+    case ekGUI_OFF:
         /*if (item->check != NULL)
         {
             gtk_container_remove(GTK_CONTAINER(item->box), item->check);
@@ -335,26 +334,26 @@ void osmenuitem_state(OSMenuItem *item, const state_t state)
         }*/
         break;
 
-    case ekON:
-    case ekMIXED:
-//        if (item->check == NULL && kIMAGE)
-//        {
-//            const char_t *icon_name = _osgui_register_icon(kIMAGE);
-//
-//            item->check = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
-//            gtk_box_pack_end(GTK_BOX(item->box), item->check, FALSE, TRUE, 20);
-//            gtk_widget_queue_draw(item->widget);
-//
-//            //gtk_container_add(GTK_CONTAINER(item->box), item->check);
-//        }
+    case ekGUI_ON:
+    case ekGUI_MIXED:
+/*        if (item->check == NULL && kIMAGE)
+       {
+           const char_t *icon_name = _osgui_register_icon(kIMAGE);
+
+           item->check = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
+           gtk_box_pack_end(GTK_BOX(item->box), item->check, FALSE, TRUE, 20);
+           gtk_widget_queue_draw(item->widget);
+
+           gtk_container_add(GTK_CONTAINER(item->box), item->check);
+       }
+ */
         break;
     cassert_default();
     }
 
-
-    //item->launch_event = FALSE;
-    //gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->widget), (state == ekON) ? TRUE : FALSE);
-    //item->launch_event = TRUE;
+    /* item->launch_event = FALSE;
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->widget), (state == ekGUI_ON) ? TRUE : FALSE);
+    item->launch_event = TRUE; */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -392,49 +391,49 @@ GtkWidget *_osmenuitem_bar_widget(OSMenuItem *item)
     cassert_no_null(item);
     /* GtkCheckMenuItem shows an ugly checkbox in menubar items.
        This hack converts a GtkCheckMenuItem into a simple GtkMenuItem */
-//    if (str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkCheckMenuItem") == TRUE)
-//    {
-//        GtkWidget *widget = gtk_menu_item_new();
-//        g_signal_connect(G_OBJECT(widget), "activate", G_CALLBACK(i_OnClick), (gpointer)item);
-//        gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), widget);
-//        if (item->accel != NULL)
-//        {
-//            if (item->key != ENUM_MAX2(vkey_t))
-//            {
-//                gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
-//                cassert_unref(ok == TRUE, ok);
-//                gtk_widget_add_accelerator(widget, "activate", item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers), GTK_ACCEL_VISIBLE);
-//            }
-//        }
-//
-//        g_object_ref(item->box);
-//        gtk_container_remove(GTK_CONTAINER(item->widget), item->box);
-//        gtk_container_add(GTK_CONTAINER(widget), item->box);
-//        g_object_unref(item->box);
-//
-//        if (item->sub_menu != NULL)
-//        {
-//            GtkWidget *mwidget = _osmenu_widget(item->sub_menu);
-//            g_object_ref(mwidget);
-//            gtk_menu_item_set_submenu(GTK_MENU_ITEM(item->widget), NULL);
-//            gtk_menu_item_set_submenu(GTK_MENU_ITEM(widget), mwidget);
-//            g_object_unref(mwidget);
-//        }
-//
-//        #if defined (__ASSERTS__)
-//        item->is_alive = TRUE;
-//        g_signal_connect(item->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)item);
-//        #endif
-//        g_object_unref(item->widget);
-//        cassert(item->is_alive == FALSE);
-//
-//        item->widget = widget;
-//    }
-//    else
-//    {
-//        cassert(str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkMenuItem") == TRUE);
-//    }
+/*    if (str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkCheckMenuItem") == TRUE)
+   {
+       GtkWidget *widget = gtk_menu_item_new();
+       g_signal_connect(G_OBJECT(widget), "activate", G_CALLBACK(i_OnClick), (gpointer)item);
+       gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), widget);
+       if (item->accel != NULL)
+       {
+           if (item->key != ENUM_MAX2(vkey_t))
+           {
+               gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
+               cassert_unref(ok == TRUE, ok);
+               gtk_widget_add_accelerator(widget, "activate", item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers), GTK_ACCEL_VISIBLE);
+           }
+       }
 
+       g_object_ref(item->box);
+       gtk_container_remove(GTK_CONTAINER(item->widget), item->box);
+       gtk_container_add(GTK_CONTAINER(widget), item->box);
+       g_object_unref(item->box);
+
+       if (item->sub_menu != NULL)
+       {
+           GtkWidget *mwidget = _osmenu_widget(item->sub_menu);
+           g_object_ref(mwidget);
+           gtk_menu_item_set_submenu(GTK_MENU_ITEM(item->widget), NULL);
+           gtk_menu_item_set_submenu(GTK_MENU_ITEM(widget), mwidget);
+           g_object_unref(mwidget);
+       }
+
+       #if defined (__ASSERTS__)
+       item->is_alive = TRUE;
+       g_signal_connect(item->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)item);
+       #endif
+       g_object_unref(item->widget);
+       cassert(item->is_alive == FALSE);
+
+       item->widget = widget;
+   }
+   else
+   {
+       cassert(str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkMenuItem") == TRUE);
+   }
+ */
     return item->widget;
 }
 

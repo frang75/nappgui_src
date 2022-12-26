@@ -658,6 +658,34 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
             *error = ekSNOHOST;
     }
 
-    return FALSE;
+    return 0;
 }
 
+/*---------------------------------------------------------------------------*/
+
+const char_t* bsocket_host_name(char_t* buffer, const uint32_t size)
+{
+    if (gethostname((char*)buffer, (int)size) == 0)
+        return buffer;
+    else
+        return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t* bsocket_host_name_ip(const uint32_t ip, char_t *buffer, const uint32_t size)
+{
+    //struct in_addr ipa;
+    struct sockaddr_in sa;
+    //struct hostent *host = NULL;
+    sa.sin_family = AF_INET;
+    sa.sin_addr.s_addr = htonl(ip);
+
+    //ipa.S_un.S_addr = htonl(ip);
+    #include "nowarn.hxx"
+    if (getnameinfo((struct sockaddr*)&sa, sizeof(sa), buffer, size, NULL, 0, 0) == 0)
+        return buffer;    
+    #include "warn.hxx"
+
+    return NULL;
+}

@@ -15,20 +15,21 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
+#include "guictx.h"
+
 #include "cassert.h"
 #include "color.h"
 #include "event.h"
 #include "font.h"
 #include "ptr.h"
+#include "objh.h"
 #include "strings.h"
 #include "s2d.h"
 
 struct _edit_t
 {
     GuiComponent component;
-    edit_flag_t flags;
+    uint32_t flags;
     S2Df size;
     bool_t is_focused;
     bool_t is_placeholder_active;
@@ -77,7 +78,7 @@ static void i_OnFilter(Edit *edit, Event *e)
 
         if (edit->OnFilter != NULL)
             listener_pass_event(edit->OnFilter, e, edit, Edit);
-    }        
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -87,7 +88,7 @@ static void i_OnChange(Edit *edit, Event *e)
     const EvText *params = event_params(e, EvText);
     cassert_no_null(edit);
     cassert_no_null(params);
-    cassert(event_type(e) == ekEVTXTCHANGE);
+    cassert(event_type(e) == ekGUI_EVENT_TXTCHANGE);
     cassert(event_sender_imp(e, NULL) == edit->component.ositem);
     str_upd(&edit->text, params->text);
 
@@ -99,9 +100,9 @@ static void i_OnChange(Edit *edit, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Edit *i_create(const align_t halign, const edit_flag_t flags)
+static Edit *i_create(const align_t halign, const uint32_t flags)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     Edit *edit = obj_new0(Edit);
     void *ositem = NULL;
     edit->flags = flags;
@@ -112,10 +113,10 @@ static Edit *i_create(const align_t halign, const edit_flag_t flags)
     edit->bg_color = kCOLOR_TRANSPARENT;
     edit->bg_focus_color = kCOLOR_TRANSPARENT;
     edit->placeholder_color = kCOLOR_TRANSPARENT;
-    ositem = context->func_edit_create((enum_t)flags);
+    ositem = context->func_create[ekGUI_TYPE_EDITBOX](flags);
     context->func_edit_set_font(ositem, edit->font);
     context->func_edit_set_align(ositem, (enum_t)halign);
-    _component_init(&edit->component, context, PARAM(type, ekGUI_COMPONENT_EDITBOX), &ositem);
+    _component_init(&edit->component, context, PARAM(type, ekGUI_TYPE_EDITBOX), &ositem);
     context->func_edit_OnFilter(edit->component.ositem, obj_listener(edit, i_OnFilter, Edit));
     context->func_edit_OnChange(edit->component.ositem, obj_listener(edit, i_OnChange, Edit));
     return edit;
@@ -125,14 +126,14 @@ static Edit *i_create(const align_t halign, const edit_flag_t flags)
 
 Edit *edit_create(void)
 {
-    return i_create(ekLEFT, ekEDSING);
+    return i_create(ekLEFT, ekEDIT_SINGLE);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Edit *edit_multiline(void)
 {
-    return i_create(ekLEFT, ekEDMULT);
+    return i_create(ekLEFT, ekEDIT_MULTI);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -169,7 +170,7 @@ static void i_update_placeholder(Edit *edit)
     {
         if (_gui_effective_alt_font(edit->font, edit->placeholder_font) == TRUE)
             edit->component.context->func_edit_set_font(edit->component.ositem, edit->font);
-        
+
         if (edit->placeholder_color != UINT32_MAX)
         {
             if (edit->is_focused == TRUE && edit->focus_color != UINT32_MAX)
@@ -202,9 +203,11 @@ void edit_text(Edit *edit, const char_t *text)
 void edit_font(Edit *edit, const Font *font)
 {
     cassert_no_null(edit);
-    _gui_update_font(&edit->font, &edit->placeholder_font, font);
-    edit->component.context->func_edit_set_font(edit->component.ositem, edit->font);
-    i_update_placeholder(edit);
+    if (_gui_update_font(&edit->font, &edit->placeholder_font, font) == TRUE)
+    {
+        edit->component.context->func_edit_set_font(edit->component.ositem, edit->font);
+        i_update_placeholder(edit);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -247,7 +250,7 @@ void edit_tooltip(Edit *edit, const char_t *text)
     cassert_no_null(edit);
     if (text != NULL)
         ltext = _gui_respack_text(text, &edit->ttipid);
-    edit->component.context->func_set_tooltip[ekGUI_COMPONENT_EDITBOX](edit->component.ositem, ltext);
+    edit->component.context->func_set_tooltip[ekGUI_TYPE_EDITBOX](edit->component.ositem, ltext);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -331,7 +334,7 @@ void edit_bgcolor_focus(Edit *edit, const color_t color)
     edit->bg_focus_color = color;
     i_update_focus_listener(edit);
     if (edit->is_focused)
-        edit->component.context->func_edit_set_bg_color(edit->component.ositem, color);    
+        edit->component.context->func_edit_set_bg_color(edit->component.ositem, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -409,7 +412,7 @@ void _edit_locale(Edit *edit)
     if (edit->ttipid != NULL)
     {
         const char_t *text = _gui_respack_text(edit->ttipid, NULL);
-        edit->component.context->func_set_tooltip[ekGUI_COMPONENT_EDITBOX](edit->component.ositem, text);
+        edit->component.context->func_set_tooltip[ekGUI_TYPE_EDITBOX](edit->component.ositem, text);
     }
 }
 
@@ -418,7 +421,7 @@ void _edit_locale(Edit *edit)
 bool_t _edit_is_multiline(const Edit *edit)
 {
     cassert_no_null(edit);
-    if (edit_type(edit->flags) == ekEDMULT)
+    if (edit_get_type(edit->flags) == ekEDIT_MULTI)
         return TRUE;
     else
         return FALSE;
