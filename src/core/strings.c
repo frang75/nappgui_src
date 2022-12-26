@@ -12,8 +12,7 @@
 
 #include "strings.h"
 #include "arrpt.h"
-#include "core.inl"
-#include "blib.inl"
+#include "blib.h"
 #include "bmem.h"
 #include "bstd.h"
 #include "cassert.h"
@@ -354,12 +353,12 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
     uint32_t count = 0;             /* number of replacements */
     uint32_t len_new = 0;           /* length of new string */
     String *lstr = NULL;
-    
+
     cassert_no_null(str);
     cassert_no_null(*str);
     cassert_no_null(replace);
     cassert_no_null(with);
-    
+
     len_inp = blib_strlen(i_DATA(*str));
     if (len_inp == 0)
         return;
@@ -367,7 +366,7 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
     len_rep = blib_strlen(replace);
     if (len_rep == 0)
         return;
-    
+
     /* Count the number of replacements needed */
     {
         const char_t *src = NULL;  /* the next insert point */
@@ -395,7 +394,7 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
     len_new += 1;
     lstr = i_create_string(len_new, NULL);
 
-    /* First time through the loop, all the variable are set correctly from here on. 
+    /* First time through the loop, all the variable are set correctly from here on.
        src points to the end of the result string
        ins points to the next occurrence of rep in orig
        orig points to the remainder of orig after "end of rep"
@@ -426,10 +425,10 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
 
             src += len_front + len_rep;     /* move to next "end of replacement" */
         }
-        
+
         str_copy_c(dest, len_new, src);
     }
-    
+
     str_destroy(str);
     *str = lstr;
 }
@@ -659,18 +658,6 @@ bool_t str_is_sufix(const char_t *str, const char_t *sufix)
 
 /*---------------------------------------------------------------------------*/
 
-//compare_t str_dcompare(const String **str1, const String **str2);
-//compare_t str_dcompare(const String **str1, const String **str2)
-//{
-//    cassert_no_null(str1);
-//    cassert_no_null(str2);
-//    cassert_no_null(*str1);
-//    cassert_no_null(*str2);
-//    return bstr_cmp((const byte_t*)i_DATA(*str1), (const byte_t*)i_DATA(*str2));
-//}
-
-/*---------------------------------------------------------------------------*/
-
 int str_scmp(const String *str1, const String *str2)
 {
     cassert_no_null(str1);
@@ -790,40 +777,6 @@ bool_t str_equ_end(const char_t *str, const char_t *end)
         return FALSE;
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-//bool_t str_equals_c_ignore_case(const char_t *str1, const char_t *str2);
-//bool_t str_equals_c_ignore_case(const char_t *str1, const char_t *str2)
-//{
-//    register char_t c1, c2;
-//    for (;; ++str1, ++str2)
-//    {
-//        c1 = *str1;
-//        c2 = *str1;
-//
-//        if (c1 == '\0' || c2 == '\0')
-//            return (c1 == c2) ? TRUE : FALSE;
-//
-//        if (c1 >= 'A' && c1 <= 'Z')
-//            c1 += 32;
-//        if (c2 >= 'A' && c2 <= 'Z')
-//            c2 += 32;
-//
-//        if (c1 != c2)
-//            return FALSE;
-//    }
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//bool_t str_equ_cn(const char_t *str1, const char_t *str2, const uint32_t n);
-//bool_t str_equ_cn(const char_t *str1, const char_t *str2, const uint32_t n)
-//{
-//    cassert(bmem_size((const byte_t*)str1) >= n);
-//    cassert(bmem_size((const byte_t*)str2) >= n);
-//    return bstr_cmp_n((const byte_t*)str1, (const byte_t*)str2, n) == ekEQUALS;
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -1019,7 +972,7 @@ void str_split_pathname(const char_t *pathname, String **path, String **file)
             *file = str_c(pathname);
     }
 }
-   
+
 /*---------------------------------------------------------------------------*/
 
 void str_split_pathext(const char_t *pathname, String **path, String **file, String **ext)
@@ -1044,7 +997,6 @@ void str_split_pathext(const char_t *pathname, String **path, String **file, Str
     fileext = str_filext(filename);
     if (fileext != NULL)
     {
-        //fileext -= 1;
         if (file != NULL)
             *file = str_cn(filename, (uint32_t)(fileext - filename - 1));
 
@@ -1107,37 +1059,38 @@ static __INLINE bool_t i_ok(const char_t *str, const bool_t allow_minus)
     unref(allow_minus);
     return TRUE;
 
-//    if (errno == ERANGE)
-//    {
-//        return FALSE;
-//    }
-//    else
-//    {
-//        while (*str == ' ')
-//            str += 1;
-//
-//        if (*str == '-')
-//        {
-//            if (allow_minus == FALSE)
-//                return FALSE;
-//            str += 1;
-//        }
-//
-//        while (*str == ' ')
-//            str += 1;
-//
-//        while (*str != '\0' && !(*str == ' ' || *str == '\t' || *str == '\n' || *str == '\v' || *str == '\f' || *str == '\r'))
-//        {
-//            if (*str < '0' || *str > '9')
-//            {
-//                return FALSE;
-//            }
-//
-//            str += 1;
-//        }
-//
-//        return TRUE;
-//    }
+/*    if (errno == ERANGE)
+   {
+       return FALSE;
+   }
+   else
+   {
+       while (*str == ' ')
+           str += 1;
+
+       if (*str == '-')
+       {
+           if (allow_minus == FALSE)
+               return FALSE;
+           str += 1;
+       }
+
+       while (*str == ' ')
+           str += 1;
+
+       while (*str != '\0' && !(*str == ' ' || *str == '\t' || *str == '\n' || *str == '\v' || *str == '\f' || *str == '\r'))
+       {
+           if (*str < '0' || *str > '9')
+           {
+               return FALSE;
+           }
+
+           str += 1;
+       }
+
+       return TRUE;
+   }
+ */
 }
 
 /*---------------------------------------------------------------------------*/

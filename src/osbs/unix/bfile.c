@@ -469,6 +469,7 @@ static bool_t i_file_stat(const int err, const struct stat *info, file_type_t *f
                 break;
             case ENOTDIR:
                 *error = ekFNOPATH;
+                break;
             default:
                 cassert_msg(FALSE, "file_stat: undefined");
                 *error = ekFUNDEF;
@@ -635,6 +636,7 @@ bool_t bfile_delete(const char_t *filepath, ferror_t *error)
                     break;
                 case ENOTDIR:
                     *error = ekFNOPATH;
+                    break;
                 default:
                     cassert_msg(FALSE, "file_delete: undefined");
                     *error = ekFUNDEF;

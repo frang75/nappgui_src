@@ -14,28 +14,7 @@
 #define __GUI_IXX__
 
 #include "gui.hxx"
-#include "draw2dh.ixx"
-#include "draw2d.ixx"
-#include "core.ixx"
-
-//enum(lunit_t).Unidades de interfaz.
-//enumv(ekPIXELS).Píxeles.
-//enumv(ekEM).1em = Dimensiones del carácter 'M' U+004D utilizando la fuente estándar del sistema. La conversión a píxeles en anchura no tiene porqué coincidir con la altura.
-//typedef enum _lunit_t
-//{
-//    ekPIXELS = 1,
-//    ekEM,
-//} lunit_t;
-
-enum _gview_t
-{
-    ekVOPENGL   = 0x1,
-    ekHSCROLL   = 0x2,
-    ekVSCROLL   = 0x4,
-    ekBORDER    = 0x8,
-    ekNOERASE   = 0x20,
-    ekCONTROL   = 0x40
-};
+#include "coreh.hxx"
 
 enum _gievent_t
 {
@@ -79,8 +58,8 @@ union _tag_t
 struct _gui_component_t
 {
     Object object;
-    GuiContext *context;
-    guitype_t type;
+    GuiCtx *context;
+    gui_type_t type;
     Cell *parent;
     Tag tag;
     void *ositem;
@@ -94,7 +73,7 @@ DeclPt(MenuItem);
 
 struct _colitem_t
 {
-    op_t op;
+    ctrl_op_t op;
     uint32_t index;
     const char_t *text;
     align_t align;

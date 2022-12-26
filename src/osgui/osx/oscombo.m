@@ -24,7 +24,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXCombo : NSComboBox 
+@interface OSXCombo : NSComboBox
 {
     @public
     OSTextAttr attrs;
@@ -47,9 +47,9 @@
     if ([self isEnabled] == YES && self->OnFocus != NULL)
     {
         bool_t params = TRUE;
-        listener_event(self->OnFocus, ekEVFOCUS, (OSCombo*)self, &params, NULL, OSCombo, bool_t, void);
+        listener_event(self->OnFocus, ekGUI_EVENT_FOCUS, (OSCombo*)self, &params, NULL, OSCombo, bool_t, void);
     }
-    
+
     return [super becomeFirstResponder];
 }
 
@@ -69,7 +69,7 @@
         result.apply = FALSE;
         result.text[0] = '\0';
         result.cpos = UINT32_MAX;
-        listener_event(self->OnFilter, ekEVTXTFILTER, (OSCombo*)self, &params, &result, OSCombo, EvText, EvTextFilter);
+        listener_event(self->OnFilter, ekGUI_EVENT_TXTFILTER, (OSCombo*)self, &params, &result, OSCombo, EvText, EvTextFilter);
 
         if (result.apply == TRUE)
             _oscontrol_set_text(self, &self->attrs, result.text);
@@ -95,16 +95,16 @@
     {
         EvText params;
         params.text = (const char_t*)[[self stringValue] UTF8String];
-        listener_event(self->OnChange, ekEVTXTCHANGE, (OSCombo*)self, &params, NULL, OSCombo, EvText, void);
+        listener_event(self->OnChange, ekGUI_EVENT_TXTCHANGE, (OSCombo*)self, &params, NULL, OSCombo, EvText, void);
     }
-    
+
     [[self window] endEditingFor:nil];
     self->is_editing = NO;
 
     if ([self isEnabled] == YES && self->OnFocus != NULL)
     {
         bool_t params = FALSE;
-        listener_event(self->OnFocus, ekEVFOCUS, (OSCombo*)self, &params, NULL, OSCombo, bool_t, void);
+        listener_event(self->OnFocus, ekGUI_EVENT_FOCUS, (OSCombo*)self, &params, NULL, OSCombo, bool_t, void);
     }
 
     {
@@ -115,7 +115,7 @@
         {
             [[self window] keyDown:(NSEvent*)231];
             nextView = self;
-        }        
+        }
         else if (whyEnd == NSTabTextMovement)
         {
             nextView = [self nextValidKeyView];
@@ -160,7 +160,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSCombo *oscombo_create(const combo_flag_t flags)
+OSCombo *oscombo_create(const uint32_t flags)
 {
     OSXCombo *combo = nil;
     NSComboBoxCell *cell = nil;
@@ -178,7 +178,7 @@ OSCombo *oscombo_create(const combo_flag_t flags)
     _oscontrol_set_font(combo, &combo->attrs, combo->attrs.font);
     cell = [combo cell];
     [cell setStringValue:@""];
-    _oscontrol_cell_set_control_size(cell, ekREGULAR);
+    _oscontrol_cell_set_control_size(cell, ekGUI_SIZE_REGULAR);
     //[combo setTarget:combo];
     //[combo setAction:@selector(onSelectionChange:)];
     [combo setUsesDataSource:NO];
@@ -250,7 +250,7 @@ void oscombo_text(OSCombo *combo, const char_t *text)
 
 void oscombo_tooltip(OSCombo *combo, const char_t *text)
 {
-    _oscontrol_tooltip_set((OSXCombo*)combo, text);    
+    _oscontrol_tooltip_set((OSXCombo*)combo, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -292,40 +292,39 @@ void oscombo_bgcolor(OSCombo *combo, const color_t color)
     cassert_no_null(combo);
     if (color != 0)
         nscolor = _oscontrol_color(color);
-    else 
+    else
         nscolor = [NSColor textBackgroundColor];
     [(OSXCombo*)combo setBackgroundColor:nscolor];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_elem(OSCombo *combo, const op_t op, const uint32_t idx, const char_t *text, const Image *image)
+void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const char_t *text, const Image *image)
 {
     cassert_no_null(combo);
     unref(image);
-    if (op != ekOPDEL)
+    if (op != ekCTRL_OP_DEL)
     {
-        NSString *str = [[NSString alloc] initWithUTF8String:(const char*)text];    
+        NSString *str = [[NSString alloc] initWithUTF8String:(const char*)text];
 
-        switch (op)
-        {
-            case ekOPADD:
-                [(NSComboBox*)combo addItemWithObjectValue:str];
-                break;
-            case ekOPINS:
-                [(NSComboBox*)combo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
-                break;        
-            case ekOPSET:
-                [(NSComboBox*)combo removeItemAtIndex:(NSInteger)idx];
-                [(NSComboBox*)combo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
-                break;        
-            case ekOPDEL:
-            cassert_default();
+        switch (op) {
+        case ekCTRL_OP_ADD:
+            [(NSComboBox*)combo addItemWithObjectValue:str];
+            break;
+        case ekCTRL_OP_INS:
+            [(NSComboBox*)combo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
+            break;
+        case ekCTRL_OP_SET:
+            [(NSComboBox*)combo removeItemAtIndex:(NSInteger)idx];
+            [(NSComboBox*)combo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
+            break;
+        case ekCTRL_OP_DEL:
+        cassert_default();
         }
 
         [str release];
     }
-    else 
+    else
     {
         [(NSComboBox*)combo removeItemAtIndex:(NSInteger)idx];
     }

@@ -15,20 +15,20 @@
 
 __EXTERN_C
 
-KeyBuf *keybuf_create(void);
+_core_api KeyBuf *keybuf_create(void);
 
-void keybuf_destroy(KeyBuf **buffer);
+_core_api void keybuf_destroy(KeyBuf **buffer);
 
-void keybuf_OnUp(KeyBuf *buffer, const vkey_t key);
+_core_api void keybuf_OnUp(KeyBuf *buffer, const vkey_t key);
 
-void keybuf_OnDown(KeyBuf *buffer, const vkey_t key);
+_core_api void keybuf_OnDown(KeyBuf *buffer, const vkey_t key);
 
-void keybuf_clear(KeyBuf *buffer);
+_core_api void keybuf_clear(KeyBuf *buffer);
 
-bool_t keybuf_pressed(const KeyBuf *buffer, const vkey_t key);
+_core_api bool_t keybuf_pressed(const KeyBuf *buffer, const vkey_t key);
 
-const char_t* keybuf_str(const vkey_t key);
+_core_api const char_t* keybuf_str(const vkey_t key);
 
-void keybuf_dump(const KeyBuf *buffer);
+_core_api void keybuf_dump(const KeyBuf *buffer);
 
 __END_C

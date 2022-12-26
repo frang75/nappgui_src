@@ -11,6 +11,7 @@
 /* Basic standard functions */
 
 #include "bstd.h"
+#include "blib.h"
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
@@ -189,14 +190,7 @@ bool_t bstd_ewrite(const byte_t *data, const uint32_t size, uint32_t *wsize)
 
 /*---------------------------------------------------------------------------*/
 
-void bstd_abort(void)
-{
-    abort();
-}
-
-/*---------------------------------------------------------------------------*/
-
-void bstd_debug_break(void)
+void blib_debug_break(void)
 {
     raise(SIGSTOP);
 }

@@ -33,6 +33,7 @@
 #define WCHAR_BUFFER_SIZE		512
 
 typedef struct _view_listeners_t ViewListeners;
+typedef struct _osimgdata_t OSImgData;
 typedef struct _osimglist_t OSImgList;
 typedef struct _osscroll_t OSScroll;
 typedef struct _osdraw_t OSDraw;
@@ -41,7 +42,7 @@ struct _view_listeners_t
 {
     BOOL is_mouse_inside;
     BOOL enabled;
-	mouse_t button;
+	gui_mouse_t button;
     LONG OnMouseMoved_event_source;
     real32_t mouse_down_x;
     real32_t mouse_down_y;
@@ -61,7 +62,7 @@ struct _view_listeners_t
 
 struct _oscontrol_t
 {
-    guitype_t type;
+    gui_type_t type;
     HWND hwnd;
     HWND tooltip_hwnd;
     WNDPROC def_wnd_proc;
@@ -79,6 +80,8 @@ struct _osdraw_t
 {
     HTHEME button_theme;
     HTHEME list_theme;
+    HTHEME header_theme;
+    SIZE sort_size;
 };
 
 #endif

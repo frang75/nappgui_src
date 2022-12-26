@@ -13,16 +13,15 @@
 #include "panel.h"
 #include "panel.inl"
 #include "component.inl"
-#include "dbind.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
 #include "layout.inl"
-#include "obj.inl"
 #include "window.inl"
+#include "guictx.h"
 
 #include "arrpt.h"
 #include "cassert.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "strings.h"
 #include "v2d.h"
@@ -39,7 +38,7 @@ struct _panel_t
     S2Df control_size;
     S2Df content_size;
     void *data;
-    FPtr_destroy func_data_destroy;
+    FPtr_destroy func_destroy_data;
     ArrPt(GuiComponent) *visible_children;
     ArrPt(GuiComponent) *children;
 };
@@ -51,7 +50,7 @@ void _panel_destroy(Panel **panel)
     GuiComponent *component;
     cassert_no_null(panel);
     cassert_no_null(*panel);
-    component = &(*panel)->component;    
+    component = &(*panel)->component;
     _component_destroy(&component);
 }
 
@@ -61,13 +60,13 @@ void _panel_destroy_all(Panel **panel)
 {
     cassert_no_null(panel);
     cassert_no_null(*panel);
-    
+
     if ((*panel)->data != NULL)
     {
-        if ((*panel)->func_data_destroy != NULL)
-            (*panel)->func_data_destroy(&(*panel)->data);
+        if ((*panel)->func_destroy_data != NULL)
+            (*panel)->func_destroy_data(&(*panel)->data);
     }
-    
+
     _component_destroy_imp(&(*panel)->component);
     arrpt_destroy(&(*panel)->layouts, _layout_destroy, Layout);
     arrpt_destroy(&(*panel)->children, _component_destroy, GuiComponent);
@@ -79,15 +78,15 @@ void _panel_destroy_all(Panel **panel)
 
 static Panel *i_create(const uint32_t flags)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     Panel *panel = obj_new0(Panel);
-    void *ositem = context->func_panel_create(flags);
-    _component_init(&panel->component, context, PARAM(type, ekGUI_COMPONENT_PANEL), &ositem);
+    void *ositem = context->func_create[ekGUI_TYPE_PANEL](flags);
+    _component_init(&panel->component, context, PARAM(type, ekGUI_TYPE_PANEL), &ositem);
     panel->layouts = arrpt_create(Layout);
     panel->visible_layout = UINT32_MAX;
     panel->active_layout = UINT32_MAX;
     panel->natural_size = s2df(-1.f, -1.f);
-    panel->control_size = s2df((flags & ekHSCROLL) ? 256.f : -1.f, (flags & ekVSCROLL) ? 256.f : -1.f);
+    panel->control_size = s2df((flags & ekVIEW_HSCROLL) ? 256.f : -1.f, (flags & ekVIEW_VSCROLL) ? 256.f : -1.f);
     panel->content_size = s2df(-1.f, -1.f);
     panel->flags = flags;
     panel->children = arrpt_create(GuiComponent);
@@ -107,20 +106,20 @@ Panel *panel_create(void)
 Panel *panel_scroll(const bool_t hscroll, const bool_t vscroll)
 {
     uint32_t flags = 0;
-    flags |= (hscroll == TRUE) ? ekHSCROLL : 0;
-    flags |= (vscroll == TRUE) ? ekVSCROLL : 0;
+    flags |= (hscroll == TRUE) ? ekVIEW_HSCROLL : 0;
+    flags |= (vscroll == TRUE) ? ekVIEW_VSCROLL : 0;
     return i_create(flags);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void panel_data_imp(Panel *panel, void **data, FPtr_destroy func_data_destroy)
+void panel_data_imp(Panel *panel, void **data, FPtr_destroy func_destroy_data)
 {
     cassert_no_null(panel);
     cassert(panel->data == NULL);
-    cassert(panel->func_data_destroy == NULL);
+    cassert(panel->func_destroy_data == NULL);
     panel->data = ptr_dget_no_null(data, void);
-    panel->func_data_destroy = func_data_destroy;
+    panel->func_destroy_data = func_destroy_data;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -227,7 +226,7 @@ static void i_detach_component(GuiComponent *panel_component, GuiComponent *comp
     _component_panels(component, &num_panels, panels);
     for (i = 0; i < num_panels; ++i)
         _panel_detach_components(panels[i]);
-    
+
     _component_detach_from_panel(panel_component, component);
 }
 
@@ -248,7 +247,7 @@ void _panel_attach_component(Panel *panel, GuiComponent *component)
 
 void _panel_detach_components(Panel *panel)
 {
-    cassert_no_null(panel);    
+    cassert_no_null(panel);
     arrpt_foreach(child, panel->children, GuiComponent)
         i_detach_component(&panel->component, child);
     arrpt_end();
@@ -287,18 +286,18 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
             break;
         }
     arrpt_end()*/
-    
+
     if (exists == FALSE)
     {
         register uint32_t index;
 
-        // Prevent flickering in Windows because destroyed component new parent 
-        // will be set to NULL (Desktop HWND) when is detached from this panel.
+        /* Prevent flickering in Windows because destroyed component new parent
+        will be set to NULL (Desktop HWND) when is detached from this panel. */
         #if defined(__WINDOWS__)
         i_hide_component(component);
         #endif
 
-        _component_set_parent_window(component, NULL);        
+        _component_set_parent_window(component, NULL);
         i_detach_component(&panel->component, component);
         index = arrpt_find(panel->children, component, GuiComponent);
         cassert(index != UINT32_MAX);
@@ -331,7 +330,7 @@ void _panel_invalidate_layout(Panel *panel, Layout *layout)
             panel->visible_layout = UINT32_MAX;
     }
 
-    //panel->component.context->func_panel_set_need_display(panel->component.ositem);
+    /* panel->component.context->func_panel_set_need_display(panel->component.ositem); */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -425,85 +424,8 @@ Window *_panel_get_window(Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-Layout *_panel_get_component_layout(const Panel *panel, const GuiComponent *component);
-Layout *_panel_get_component_layout(const Panel *panel, const GuiComponent *component)
-{
-    Layout *layout = NULL;
-    cassert_no_null(panel);
-    layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
-    return _layout_search_component(layout, component);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-//void _panel_add_with_OnHide(Panel *panel, ArrPt(GuiComponent) *components);
-//void _panel_add_with_OnHide(Panel *panel, ArrPt(GuiComponent) *components)
-//{
-//    register GuiComponent **component;
-//    register uint32_t i, num_elems;
-//    cassert_no_null(panel);
-//    component = arrpt_all(panel->visible_children, GuiComponent);
-//    num_elems = arrpt_size(panel->visible_children, GuiComponent);
-//    for (i = 0; i < num_elems; ++i, ++component)
-//    {
-//        Panel *panels[GUI_COMPONENT_MAX_PANELS];
-//        uint32_t j, num_panels;
-//        cassert_no_null(component);
-//        cassert_no_null(*component);
-//        if (_component_with_OnHide_event(*component) == TRUE)
-//        {
-//            cassert(arrpt_find(components, *component, GuiComponent) == UINT32_MAX);
-//            arrpt_append(components, *component, GuiComponent);
-//        }
-//        
-//        _component_panels(*component, &num_panels, panels);
-//        for (j = 0; j < num_panels; ++j)
-//            _panel_add_with_OnHide(panels[j], components);
-//    }
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void _panel_remove_with_OnHide(Panel *panel, ArrPt(GuiComponent) *components);
-//void _panel_remove_with_OnHide(Panel *panel, ArrPt(GuiComponent) *components)
-//{
-//    if (arrpt_size(components, GuiComponent) > 0)
-//    {
-//        register GuiComponent **component;
-//        register uint32_t i, num_elems;
-//        cassert_no_null(panel);
-//        component = arrpt_all(panel->visible_children, GuiComponent);
-//        num_elems = arrpt_size(panel->visible_children, GuiComponent);
-//        for (i = 0; i < num_elems; ++i, ++component)
-//        {
-//            Panel *panels[GUI_COMPONENT_MAX_PANELS];
-//            uint32_t j, num_panels;
-//            cassert_no_null(component);
-//            cassert_no_null(*component);
-//            if (_component_with_OnHide_event(*component) == TRUE)
-//            {
-//                uint32_t index;
-//                index = arrpt_find(components, *component, GuiComponent);
-//                if (index != UINT32_MAX)
-//                {
-//                    arrpt_delete(components, index, NULL, GuiComponent);
-//                    if (arrpt_size(components, GuiComponent) == 0)
-//                        return;
-//                }
-//            }
-//
-//            _component_panels(*component, &num_panels, panels);
-//            for (j = 0; j < num_panels; ++j)
-//                _panel_remove_with_OnHide(panels[j], components);
-//        }
-//    }
-//}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_activate_layout(
-                        ArrPt(Layout) *layouts, 
+                        ArrPt(Layout) *layouts,
                         const uint32_t active_layout,
                         uint32_t *visible_layout,
                         ArrPt(GuiComponent) **visible_children)
@@ -596,7 +518,7 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
     if (di == 0)
     {
         cursize = panel->natural_size.width;
-    
+
         if (panel->control_size.width > 0)
         {
             cassert_unref(current_size == panel->control_size.width, current_size);
@@ -614,7 +536,7 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
     {
         cassert(di == 1);
         cursize = panel->natural_size.height;
-    
+
         if (panel->control_size.height > 0)
         {
             cassert(current_size == panel->control_size.height);
@@ -637,8 +559,8 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
         *final_size = required_size;
     else
         *final_size = laysize;
-   
-    if (panel->flags & ekHSCROLL || panel->flags & ekVSCROLL)
+
+    if (panel->flags & ekVIEW_HSCROLL || panel->flags & ekVIEW_VSCROLL)
     {
         if (di == 0)
         {
@@ -699,5 +621,5 @@ ArrPt(Layout) *_panel_layouts(const Panel *panel)
 bool_t _panel_with_scroll(const Panel *panel)
 {
     cassert_no_null(panel);
-    return (bool_t)((panel->flags & ekHSCROLL) != 0 || (panel->flags & ekVSCROLL) != 0);
+    return (bool_t)((panel->flags & ekVIEW_HSCROLL) != 0 || (panel->flags & ekVIEW_VSCROLL) != 0);
 }

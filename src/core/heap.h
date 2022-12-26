@@ -15,31 +15,33 @@
 
 __EXTERN_C
 
-void heap_start_mt(void);
+_core_api void heap_start_mt(void);
 
-void heap_end_mt(void);
+_core_api void heap_end_mt(void);
 
-byte_t *heap_malloc_imp(const uint32_t size, const char_t *name, const bool_t equal_sized);
+_core_api void heap_verbose(const bool_t verbose);
 
-byte_t *heap_calloc_imp(const uint32_t size, const char_t *name, const bool_t equal_sized);
+_core_api void heap_stats(const bool_t stats);
 
-byte_t *heap_realloc(byte_t *mem, const uint32_t size, const uint32_t new_size, const char_t *name);
+_core_api bool_t heap_leaks(void);
 
-byte_t *heap_aligned_malloc_imp(const uint32_t size, const uint32_t align, const char_t *name, const bool_t equal_sized);
+_core_api byte_t *heap_malloc_imp(const uint32_t size, const char_t *name, const bool_t equal_sized);
 
-byte_t *heap_aligned_calloc_imp(const uint32_t size, const uint32_t align, const char_t *name, const bool_t equal_sized);
+_core_api byte_t *heap_calloc_imp(const uint32_t size, const char_t *name, const bool_t equal_sized);
 
-byte_t *heap_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t new_size, const uint32_t align, const char_t *name);
+_core_api byte_t *heap_realloc(byte_t *mem, const uint32_t size, const uint32_t new_size, const char_t *name);
 
-void heap_free(byte_t **mem, const uint32_t size, const char_t *name);
+_core_api byte_t *heap_aligned_malloc_imp(const uint32_t size, const uint32_t align, const char_t *name, const bool_t equal_sized);
 
-void heap_auditor_add(const char_t *name);
+_core_api byte_t *heap_aligned_calloc_imp(const uint32_t size, const uint32_t align, const char_t *name, const bool_t equal_sized);
 
-void heap_auditor_delete(const char_t *name);
+_core_api byte_t *heap_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t new_size, const uint32_t align, const char_t *name);
 
-void heap_stats(const bool_t stats);
+_core_api void heap_free(byte_t **mem, const uint32_t size, const char_t *name);
 
-bool_t heap_leaks(void);
+_core_api void heap_auditor_add(const char_t *name);
+
+_core_api void heap_auditor_delete(const char_t *name);
 
 __END_C
 

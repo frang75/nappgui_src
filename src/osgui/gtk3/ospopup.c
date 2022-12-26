@@ -29,7 +29,7 @@
 #error This file is only for GTK Toolkit
 #endif
 
-struct _ospopup_t 
+struct _ospopup_t
 {
     OSControl control;
     uint32_t fsize;
@@ -52,22 +52,22 @@ static void i_OnSelect(GtkComboBox *widget, gpointer data)
     if (popup->launch_event == TRUE && popup->OnSelect != NULL)
     {
         EvButton params;
-        params.state = ekON;
+        params.state = ekGUI_ON;
         params.index = (uint32_t)gtk_combo_box_get_active(widget);
         params.text = NULL;
-        listener_event(popup->OnSelect, ekEVPOPUP, popup, &params, NULL, OSPopUp, EvButton, void);
+        listener_event(popup->OnSelect, ekGUI_EVENT_POPUP, popup, &params, NULL, OSPopUp, EvButton, void);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-OSPopUp *ospopup_create(const popup_flag_t flags)
+OSPopUp *ospopup_create(const uint32_t flags)
 {
     OSPopUp *popup = heap_new0(OSPopUp);
     GtkWidget *widget = gtk_combo_box_new();
     Font *font = _osgui_create_default_font();
-    cassert_unref(flags == ekPUFLAG, flags);
-    // GtkCellView->GtkBox->GtkToggleButton
+    cassert_unref(flags == ekPOPUP_FLAG, flags);
+    /* GtkCellView->GtkBox->GtkToggleButton */
 #if GTK_CHECK_VERSION(3, 16, 0)
     popup->button = gtk_bin_get_child(GTK_BIN(widget));
     popup->button = gtk_widget_get_parent(gtk_widget_get_parent(popup->button));
@@ -87,7 +87,7 @@ OSPopUp *ospopup_create(const popup_flag_t flags)
     gtk_cell_renderer_set_padding(popup->txtcell, 0, 0);
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(widget), popup->txtcell, "text", 1, NULL);
     g_signal_connect (widget, "changed", G_CALLBACK(i_OnSelect), (gpointer)popup);
-    _oscontrol_init(&popup->control, ekGUI_COMPONENT_POPUP, widget, popup->button, TRUE);
+    _oscontrol_init(&popup->control, ekGUI_TYPE_POPUP, widget, popup->button, TRUE);
     _oscontrol_set_font((OSControl*)popup, font, &popup->font);
     popup->fsize = (uint32_t)(font_size(font) + 2.5f);
     font_destroy(&font);
@@ -129,14 +129,11 @@ void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_elem(OSPopUp *popup, const op_t op, const uint32_t index, const char_t *text, const Image *image)
+void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
     uint32_t imgw, imgh;
     gint current;
     cassert_no_null(popup);
-    //if (op == ekGUI_SET)
-      //  return;
-
     current = gtk_combo_box_get_active(GTK_COMBO_BOX(popup->control.widget));
     _oscombo_elem(GTK_COMBO_BOX(popup->control.widget), op, index, text, image, popup->texts, popup->images, &imgw, &imgh);
 
@@ -186,7 +183,7 @@ void ospopup_selected(OSPopUp *popup, const uint32_t index)
 {
     cassert_no_null(popup);
     popup->launch_event = FALSE;
-    
+
     if (index != UINT32_MAX)
         gtk_combo_box_set_active(GTK_COMBO_BOX(popup->control.widget), (gint)index);
     else
@@ -213,6 +210,7 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
     cassert_no_null(popup);
     cassert_no_null(width);
     cassert_no_null(height);
+    unref(text);
     gtk_widget_set_size_request(popup->control.widget, -1, -1);
     gtk_widget_get_preferred_size(popup->control.widget, &minsize, NULL);
     *width = (real32_t)minsize.width;

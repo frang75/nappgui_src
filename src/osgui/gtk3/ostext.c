@@ -12,16 +12,14 @@
 
 #include "ostext.h"
 #include "ostext.inl"
-#include "osfont.inl"
 #include "osglobals.inl"
-#include "draw_gtk.inl"
 #include "oscontrol.inl"
 #include "ospanel.inl"
 #include "ossplit.inl"
 #include "cassert.h"
 #include "color.h"
 #include "event.h"
-#include "font.inl"
+#include "font.h"
 #include "heap.h"
 #include "strings.h"
 
@@ -50,6 +48,23 @@ struct _ostext_t
     Listener *OnChange;
 };
 
+static real32_t i_PANGO_TO_PIXELS = -1;
+
+/*---------------------------------------------------------------------------*/
+
+static real32_t i_device_to_pixels(void)
+{
+    if (i_PANGO_TO_PIXELS < 0)
+    {
+        /* This object is owned by Pango and must not be freed */
+        PangoFontMap *fontmap = pango_cairo_font_map_get_default();
+        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap*)fontmap);
+        i_PANGO_TO_PIXELS = (dpi / 72.f) / PANGO_SCALE;
+    }
+
+    return i_PANGO_TO_PIXELS;
+}
+
 /*---------------------------------------------------------------------------*/
 
 static void i_OnTViewDestroy(GtkWidget *obj, gpointer data)
@@ -61,39 +76,25 @@ static void i_OnTViewDestroy(GtkWidget *obj, gpointer data)
     unref(control);
 }
 
-//static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSText *view)
-//{
-//    //_oslistener_mouse_moved((OSControl*)view, event, NULL, NULL, &view->listeners);
-//    return FALSE;
-//}
-
 /*---------------------------------------------------------------------------*/
 
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSText *view)
 {
+    unref(widget);
     if (view->capture != NULL)
     {
-        if (view->capture->type == ekGUI_COMPONENT_SPLITVIEW)
+        if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
         {
             _ossplit_OnPress((OSSplit*)view->capture, event);
 
         }
-//    // Left button
-//    if (event->button == 1)
-//    {
-//        if (view->inside_rect == TRUE)
-//        {
-//            gtk_grab_add(widget);
-//            bstd_printf("PRESSED!!!!!!!!!!!!!!\n");
-//            view->left_button = TRUE;
-//            return FALSE;
-//        }
-//    }
 
         return TRUE;
     }
-    // The handler will be called before the default handler of the signal.
-    // This is the default behaviour
+    /*
+    The handler will be called before the default handler of the signal.
+    This is the default behaviour
+    */
     else
     {
         return FALSE;
@@ -102,13 +103,13 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSText *vi
 
 /*---------------------------------------------------------------------------*/
 
-//#include "oslistener.inl"
-
-OSText *ostext_create(const tview_flag_t flags)
+OSText *ostext_create(const uint32_t flags)
 {
     OSText *view = heap_new0(OSText);
-    GtkWidget *widget = gtk_scrolled_window_new(NULL, NULL);
-    _oscontrol_init(&view->control, ekGUI_COMPONENT_TEXTVIEW, widget, widget, TRUE);
+    GtkWidget *scrolled = gtk_scrolled_window_new(NULL, NULL);
+    GtkWidget *top = NULL;
+    GtkWidget *focus = NULL;
+    unref(flags);
     view->family[0] = '\0';
     view->size = 1e10f;
     view->units = UINT32_MAX;
@@ -121,30 +122,58 @@ OSText *ostext_create(const tview_flag_t flags)
     view->afspace = 0;
     view->curtag = NULL;
     view->tview = gtk_text_view_new();
-//    gint moved_signal = 0;
-//    _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     g_signal_connect(view->tview, "destroy", G_CALLBACK(i_OnTViewDestroy), (gpointer)view);
 
-
-    // A parent widget can "capture" the mouse
+    /* A parent widget can "capture" the mouse */
     {
-        GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(widget));
-        GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(widget));
+        GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(scrolled));
+        GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(scrolled));
         g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
         g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
-        g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(scrolled), "button-press-event", G_CALLBACK(i_OnPressed), view);
         g_signal_connect(G_OBJECT(view->tview), "button-press-event", G_CALLBACK(i_OnPressed), view);
     }
 
-
-    //g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel);
+    /* g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), panel); */
 
     gtk_widget_show(view->tview);
     view->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
     gtk_text_view_set_editable(GTK_TEXT_VIEW(view->tview), FALSE);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view->tview),GTK_WRAP_WORD);
-    gtk_container_add(GTK_CONTAINER(view->control.widget), view->tview);
+    gtk_container_add(GTK_CONTAINER(scrolled), view->tview);
+    top = scrolled;
+    focus = scrolled;
+
+    /* Creating the frame (border) view */
+    {
+        GtkWidget *frame = gtk_frame_new(NULL);
+        cassert(gtk_widget_get_has_window(frame) == FALSE);
+        gtk_container_add(GTK_CONTAINER(frame), top);
+        gtk_widget_show(top);
+        g_object_set_data(G_OBJECT(scrolled), "OSControl", &view->control);
+        top = frame;
+    }
+
+    _oscontrol_init(&view->control, ekGUI_TYPE_TEXTVIEW, top, focus, TRUE);
     return view;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_scrolled_window(const OSText *view)
+{
+    GtkWidget *scrolled = NULL;
+    cassert_no_null(view);
+
+    scrolled = view->control.widget;
+
+    {
+        cassert(GTK_IS_FRAME(scrolled) == TRUE);
+        scrolled = gtk_bin_get_child(GTK_BIN(scrolled));
+    }
+
+    cassert(GTK_IS_SCROLLED_WINDOW(scrolled));
+    return scrolled;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -154,7 +183,7 @@ void ostext_destroy(OSText **view)
     cassert_no_null(view);
     cassert_no_null(*view);
     listener_destroy(&(*view)->OnChange);
-    gtk_container_remove(GTK_CONTAINER((*view)->control.widget), (*view)->tview);
+    gtk_container_remove(GTK_CONTAINER(i_scrolled_window(*view)), (*view)->tview);
     _oscontrol_destroy(*(OSControl**)view);
     heap_delete(view, OSText);
 }
@@ -180,7 +209,7 @@ static __INLINE gint i_size_pango(const real32_t size, const uint32_t units)
     else
     {
         cassert((units & ekFPIXELS) == ekFPIXELS);
-        val = (gint)(size / osfont_device_to_pixels());
+        val = (gint)(size / i_device_to_pixels());
     }
 
     return val;
@@ -373,11 +402,11 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_param(OSText *view, const guiprop_t param, const void *value)
+void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
 {
     cassert_no_null(view);
-    switch (param) {
-    case ekGUI_TEXT_FAMILY:
+    switch (prop) {
+    case ekGUI_PROP_FAMILY:
         if (str_cmp_c(view->family, (const char_t*)value) != 0)
         {
             str_copy_c(view->family, sizeof(view->family), (const char_t*)value);
@@ -385,7 +414,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_UNITS:
+    case ekGUI_PROP_UNITS:
         if (view->units != *((const uint32_t*)value))
         {
             view->units = *((const uint32_t*)value);
@@ -393,7 +422,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_SIZE:
+    case ekGUI_PROP_SIZE:
         if (view->size != *((real32_t*)value))
         {
             view->size = *((real32_t*)value);
@@ -401,7 +430,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_STYLE:
+    case ekGUI_PROP_STYLE:
         if (view->style != *((uint32_t*)value))
         {
             view->style = *((uint32_t*)value);
@@ -409,7 +438,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_COLOR:
+    case ekGUI_PROP_COLOR:
         if (view->color != *((color_t*)value))
         {
             view->color = *((color_t*)value);
@@ -417,7 +446,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_BGCOLOR:
+    case ekGUI_PROP_BGCOLOR:
         if (view->bgcolor != *((color_t*)value))
         {
             view->bgcolor = *((color_t*)value);
@@ -425,7 +454,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_PGCOLOR:
+    case ekGUI_PROP_PGCOLOR:
         if (view->pgcolor != NULL)
         {
             _oscontrol_remove_provider(view->tview, view->pgcolor);
@@ -436,7 +465,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
             _oscontrol_widget_bg_color(view->tview, "textview", *(color_t*)value, &view->pgcolor);
         break;
 
-    case ekGUI_TEXT_PARALIGN:
+    case ekGUI_PROP_PARALIGN:
         if (view->align != *((align_t*)value))
         {
             view->align = *((align_t*)value);
@@ -444,16 +473,15 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_LSPACING:
+    case ekGUI_PROP_LSPACING:
     {
         real32_t spacing = *((real32_t*)value);
         gint lspacing = 0;
         if (spacing > 1)
         {
-            real32_t internal_leading, cell_size;
-            OSFont *font = osfont_create(view->family, view->size, view->style | view->units);
-            osfont_metrics(font, &internal_leading, &cell_size);
-            osfont_destroy(&font);
+            Font *font = font_create(view->family, view->size, view->style | view->units);
+            real32_t cell_size = font_height(font);
+            font_destroy(&font);
             lspacing = (spacing - 1) * cell_size;
         }
 
@@ -466,7 +494,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         break;
     }
 
-    case ekGUI_TEXT_AFPARSPACE:
+    case ekGUI_PROP_AFPARSPACE:
     {
         gint lspace = i_size_pango(*((real32_t*)value), view->units) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->afspace)
@@ -478,7 +506,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         break;
     }
 
-    case ekGUI_TEXT_BFPARSPACE:
+    case ekGUI_PROP_BFPARSPACE:
     {
         gint lspace = i_size_pango(*((real32_t*)value), view->units) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->bfspace)
@@ -490,7 +518,7 @@ void ostext_param(OSText *view, const guiprop_t param, const void *value)
         break;
     }
 
-    case ekGUI_TEXT_VSCROLL:
+    case ekGUI_PROP_VSCROLL:
     {
         GtkAdjustment *vadj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(view->control.widget));
         register gdouble max = gtk_adjustment_get_upper(vadj);

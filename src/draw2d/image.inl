@@ -14,8 +14,6 @@
 
 __EXTERN_C
 
-const void *image_native(const Image *image);
-
 void osimage_alloc_globals(void);
 
 void osimage_dealloc_globals(void);

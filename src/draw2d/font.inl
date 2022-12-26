@@ -24,15 +24,11 @@ void osfont_destroy(OSFont **font);
 
 const char_t *osfont_family(const char_t *family);
 
-void *font_native(const Font *font);
-
-real32_t font_height(const Font *font);
-
-real32_t font_internal_leading(const Font *font);
-
 void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *cell_size);
 
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
+
+const void *osfont_native(const OSFont *font);
 
 __END_C
 

@@ -9,12 +9,13 @@
  *
  */
 
-/* Operating System Basic Services */
+/* Osbs library (Operating System Basic Services) */
 
 #ifndef __OSBS_HXX__
 #define __OSBS_HXX__
 
 #include "sewer.hxx"
+#include "osbs.def"
 
 typedef enum _platform_t
 {
@@ -143,6 +144,7 @@ typedef struct _dir_t Dir;
 typedef struct _file_t File;
 typedef struct _mutex_t Mutex;
 typedef struct _process_t Proc;
+typedef struct _dlib_t DLib;
 typedef struct _thread_t Thread;
 typedef struct _socket_t Socket;
 
@@ -150,20 +152,17 @@ typedef uint32_t(*FPtr_thread_main)(void *data);
 #define FUNC_CHECK_THREAD_MAIN(func, type)\
     (void)((uint32_t(*)(type*))func == func)
 
+typedef void(*FPtr_libproc)(void);
+
 struct _date_t
 {
     int16_t year;
-    uint8_t month;  
+    uint8_t month;
     uint8_t wday;
     uint8_t mday;
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
-};
-
-struct _procopt_t
-{
-    uint32_t unused;
 };
 
 #endif

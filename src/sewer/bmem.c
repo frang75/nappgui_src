@@ -181,7 +181,7 @@ bool_t bmem_overlaps(const byte_t *mem1, const byte_t *mem2, const uint32_t size
             return TRUE;
         else
             return FALSE;
-    } 
+    }
     else
     {
         return TRUE;
@@ -252,6 +252,16 @@ void bmem_rev8(byte_t *mem)
 
 /*---------------------------------------------------------------------------*/
 
+void bmem_revcopy(byte_t *dest, const byte_t *src, const uint32_t size)
+{
+    register uint32_t i;
+    dest += size - 1;
+    for (i = 0; i < size; ++i, src++, dest--)
+        *dest = *src;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void bmem_rev_elems_imp(byte_t *data, const uint32_t num_elems, const uint32_t elem_size)
 {
     register uint32_t i, j, m;
@@ -269,16 +279,6 @@ void bmem_rev_elems_imp(byte_t *data, const uint32_t num_elems, const uint32_t e
             end[j] = t;
         }
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void bmem_revcopy(byte_t *dest, const byte_t *src, const uint32_t size)
-{
-    register uint32_t i;
-    dest += size - 1;
-    for (i = 0; i < size; ++i, src++, dest--)
-        *dest = *src;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -307,42 +307,5 @@ void bmem_shuffle(byte_t *mem, const uint32_t size, const uint32_t esize)
         bmem_swap(mem + i * esize, mem + j * esize, esize);
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-//compare_t bmem_compare(const byte_t *mem1, const byte_t *mem2);
-//compare_t bmem_compare(const byte_t *mem1, const byte_t *mem2)
-//{
-//    int res;
-//    cassert_no_null(mem1);
-//    cassert_no_null(mem2);
-//    res = strcmp((const char*)mem1, (const char*)mem2);
-//    if (res < 0)
-//        return ekFIRST_SMALLER;
-//    else if (res > 0)
-//        return ekSECOND_SMALLER;
-//    else
-//        return ekEQUALS;
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//compare_t bmem_compare_n(const byte_t *mem1, const byte_t *mem2, const uint32_t size);
-//compare_t bmem_compare_n(const byte_t *mem1, const byte_t *mem2, const uint32_t size)
-//{
-//    int res;
-//    cassert_no_null(mem1);
-//    cassert_no_null(mem2);
-//    cassert(size > 0);
-//    res = memcmp((const void*)mem1, (const void*)mem2, (size_t)size);
-//    if (res < 0)
-//        return ekFIRST_SMALLER;
-//    else if (res > 0)
-//        return ekSECOND_SMALLER;
-//    else
-//        return ekEQUALS;
-//}
-
-
 
 

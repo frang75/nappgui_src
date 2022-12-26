@@ -65,7 +65,7 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
                 register uint32_t tsize;
                 tsize = unicode_convers(ftypes[i], (char_t*)type, ekUTF8, ekUTF16, sizeof(type));
                 cassert(tsize < sizeof(type));
-                tsize += 4; // "*." 
+                tsize += 4; // "*."
                 if (lbufsize > tsize * 2)
                 {
                     register int bytes;
@@ -209,7 +209,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
         ofn.lpstrFilter = file_types;
         ofn.lpstrCustomFilter = NULL;
         ofn.nMaxCustFilter = 0;
-        ofn.nFilterIndex = 1;           
+        ofn.nFilterIndex = 1;
         ofn.lpstrFile = file;
         ofn.lpstrFile[0] = '\0';
         ofn.nMaxFile = sizeof(file);
@@ -237,7 +237,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
         else
         {
             return NULL;
-        }            
+        }
     }
 }
 
@@ -316,7 +316,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
 
     col.hInstance = NULL;
     col.rgbResult = _oscontrol_colorref(current);
-    
+
     for (i = 0; i < 16; ++i)
     {
         if (i < n)
@@ -344,7 +344,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     if (ChooseColor(&col) == TRUE)
     {
         color_t c = _oscontrol_from_colorref(col.rgbResult);
-        listener_event(OnChange, ekEVCOLOR, NULL, &c, NULL, void, color_t, void);
+        listener_event(OnChange, ekGUI_EVENT_COLOR, NULL, &c, NULL, void, color_t, void);
     }
 
     listener_destroy(&OnChange);

@@ -30,7 +30,7 @@
 #error This file is only for GTK Toolkit
 #endif
 
-struct _osedit_t 
+struct _osedit_t
 {
     OSControl control;
     uint32_t fstyle;
@@ -66,6 +66,8 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSEdit *edit)
 {
     /* It seems gtk_widget_get_preferred_size don't compute font changes
      * until draw is made */
+    unref(widget);
+    unref(cr);
     edit->fsize_render = edit->fsize;
     return FALSE;
 }
@@ -130,7 +132,7 @@ static void i_OnChange(GtkEditable *editable, OSEdit *edit)
         result.apply = FALSE;
         result.text[0] = '\0';
         result.cpos = UINT32_MAX;
-        listener_event(edit->OnFilter, ekEVTXTFILTER, edit, &params, &result, OSEdit, EvText, EvTextFilter);
+        listener_event(edit->OnFilter, ekGUI_EVENT_TXTFILTER, edit, &params, &result, OSEdit, EvText, EvTextFilter);
         if (allocated)
             g_free((gchar*)params.text);
 
@@ -157,7 +159,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSEdit *ed
     cassert_no_null(event);
     cassert_unref(edit->control.widget == widget, widget);
     cassert(edit->tview == NULL);
-    if (event->button == 1 && BIT_TEST(edit->flags, ekEDAUTOSEL) == TRUE)
+    if (event->button == 1 && BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
     {
         gtk_editable_select_region(GTK_EDITABLE(edit->control.widget), 0, -1);
         gtk_widget_grab_focus(edit->control.widget);
@@ -176,8 +178,8 @@ OSEdit *osedit_create(const edit_flag_t flags)
     GtkWidget *widget;
     edit->flags = flags;
 
-    switch (edit_type(flags)) {
-    case ekEDSING:
+    switch (edit_get_type(flags)) {
+    case ekEDIT_SINGLE:
         widget = gtk_entry_new();
         gtk_entry_set_width_chars(GTK_ENTRY(widget), 0);
         _oscontrol_widget_font(widget, CSS_ENTRY, font, &edit->font);
@@ -186,7 +188,7 @@ OSEdit *osedit_create(const edit_flag_t flags)
         g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)edit);
         break;
 
-    case ekEDMULT:
+    case ekEDIT_MULTI:
     {
         GtkBorder padding;
         String *css1 = NULL;
@@ -204,7 +206,7 @@ OSEdit *osedit_create(const edit_flag_t flags)
         css2 = str_printf("%s text {background-image:none;background-color:transparent;}", CSS_TEXTVIEW);
         _oscontrol_set_css(edit->tview, tc(css1));
         _oscontrol_set_css(edit->tview, tc(css2));
-        
+
         gtk_text_view_set_left_margin(GTK_TEXT_VIEW(edit->tview), padding.left);
         gtk_text_view_set_right_margin(GTK_TEXT_VIEW(edit->tview), padding.right);
 
@@ -225,7 +227,7 @@ OSEdit *osedit_create(const edit_flag_t flags)
     edit->fsize_render = edit->fsize;
     edit->ccolor = kCOLOR_TRANSPARENT;
     edit->launch_event = TRUE;
-    _oscontrol_init(&edit->control, ekGUI_COMPONENT_EDITBOX, widget, edit->tview ? edit->tview : widget, TRUE);
+    _oscontrol_init(&edit->control, ekGUI_TYPE_EDITBOX, widget, edit->tview ? edit->tview : widget, TRUE);
     font_destroy(&font);
     return edit;
 }
@@ -239,8 +241,8 @@ void osedit_destroy(OSEdit **edit)
 
     if ((*edit)->tview != NULL)
     {
-        // Is destroyed by scrolled window
-        // g_object_unref((*edit)->tview);
+        /* Is destroyed by scrolled window
+        g_object_unref((*edit)->tview); */
     }
 
     if ((*edit)->bgcolor != NULL)
@@ -249,8 +251,8 @@ void osedit_destroy(OSEdit **edit)
         (*edit)->bgcolor = NULL;
     }
 
-    // (*edit)->color Not g_object_unref
-    // (*edit)->font  Not g_object_unref
+    /* (*edit)->color Not g_object_unref
+    (*edit)->font  Not g_object_unref */
 
     listener_destroy(&(*edit)->OnFilter);
     listener_destroy(&(*edit)->OnChange);
@@ -294,7 +296,7 @@ void osedit_text(OSEdit *edit, const char_t *text)
     {
         GtkTextBuffer *tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(edit->tview));
         String *markup = NULL;
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
 
     #if GTK_CHECK_VERSION(3, 22, 0)
 
@@ -327,11 +329,11 @@ void osedit_text(OSEdit *edit, const char_t *text)
         gtk_text_buffer_set_text(tbuf, (const gchar*)text, -1);
 
     #endif
-    
+
     }
     else
     {
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         gtk_entry_set_text(GTK_ENTRY(edit->control.widget), (const gchar*)text);
     }
 
@@ -358,13 +360,13 @@ void osedit_font(OSEdit *edit, const Font *font)
     edit->fsize = (uint32_t)font_size(font);
     if (edit->tview != NULL)
     {
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         _oscontrol_remove_provider(edit->tview, edit->font);
         _oscontrol_widget_font(edit->tview, CSS_TEXTVIEW, font, &edit->font);
     }
     else
     {
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         _oscontrol_remove_provider(edit->control.widget, edit->font);
         _oscontrol_widget_font(edit->control.widget, CSS_ENTRY, font, &edit->font);
     }
@@ -399,7 +401,7 @@ void osedit_align(OSEdit *edit, const align_t align)
     else
     {
         gfloat a = 0.f;
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         switch (align) {
         case ekLEFT:
             a = 0.f;
@@ -425,12 +427,12 @@ void osedit_passmode(OSEdit *edit, const bool_t passmode)
     cassert_no_null(edit);
     if (edit->tview != NULL)
     {
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         cassert_msg(FALSE, "Not implemented");
     }
     else
     {
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         gtk_entry_set_visibility(GTK_ENTRY(edit->control.widget), (gboolean)!passmode);
     }
 }
@@ -442,12 +444,12 @@ void osedit_editable(OSEdit *edit, const bool_t is_editable)
     cassert_no_null(edit);
     if (edit->tview != NULL)
     {
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         gtk_text_view_set_editable(GTK_TEXT_VIEW(edit->tview), (gboolean)is_editable);
     }
     else
     {
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         gtk_editable_set_editable(GTK_EDITABLE(edit->control.widget), (gboolean)is_editable);
     }
 }
@@ -458,9 +460,9 @@ void osedit_autoselect(OSEdit *edit, const bool_t autoselect)
 {
     cassert_no_null(edit);
     if (autoselect == TRUE)
-        BIT_SET(edit->flags, ekEDAUTOSEL);
+        BIT_SET(edit->flags, ekEDIT_AUTOSEL);
     else
-        BIT_CLEAR(edit->flags, ekEDAUTOSEL);
+        BIT_CLEAR(edit->flags, ekEDIT_AUTOSEL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -472,7 +474,7 @@ static void i_set_color(OSEdit *edit, const color_t color)
     cassert_no_null(edit);
     if (edit->tview != NULL)
     {
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         widget = edit->tview;
     #if GTK_CHECK_VERSION(3, 24, 0)
         type = "textview text";
@@ -482,7 +484,7 @@ static void i_set_color(OSEdit *edit, const color_t color)
     }
     else
     {
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         widget = edit->control.widget;
         type = CSS_ENTRY;
     }
@@ -512,7 +514,7 @@ void osedit_bgcolor(OSEdit *edit, const color_t color)
     cassert_no_null(edit);
     if (edit->tview != NULL)
     {
-        cassert(edit_type(edit->flags) == ekEDMULT);
+        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         if (edit->bgcolor != NULL)
         {
             g_object_unref(edit->bgcolor);
@@ -532,7 +534,7 @@ void osedit_bgcolor(OSEdit *edit, const color_t color)
     }
     else
     {
-        cassert(edit_type(edit->flags) == ekEDSING);
+        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
         if (edit->bgcolor != NULL)
         {
             _oscontrol_remove_provider(edit->control.widget, edit->bgcolor);
@@ -633,7 +635,7 @@ void _osedit_set_focus(OSEdit *edit)
     if (edit->OnFocus != NULL)
     {
         bool_t params = TRUE;
-        listener_event(edit->OnFocus, ekEVFOCUS, edit, &params, NULL, OSEdit, bool_t, void);
+        listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
     }
 }
 
@@ -647,7 +649,7 @@ void _osedit_unset_focus(OSEdit *edit)
         EvText params;
         bool_t allocated;
         params.text = (const char_t*)i_text(edit, &allocated);
-        listener_event(edit->OnChange, ekEVTXTCHANGE, edit, &params, NULL, OSEdit, EvText, void);
+        listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, NULL, OSEdit, EvText, void);
         if (allocated)
             g_free((gchar*)params.text);
     }
@@ -655,7 +657,7 @@ void _osedit_unset_focus(OSEdit *edit)
     if (edit->OnFocus != NULL)
     {
         bool_t params = FALSE;
-        listener_event(edit->OnFocus, ekEVFOCUS, edit, &params, NULL, OSEdit, bool_t, void);
+        listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
     }
 
     if (edit->tview == NULL)
@@ -685,7 +687,7 @@ void _osedit_detach_and_destroy(OSEdit **edit, OSPanel *panel)
 bool_t _osedit_autoselect(const OSEdit *edit)
 {
     cassert_no_null(edit);
-    return BIT_TEST(edit->flags, ekEDAUTOSEL);
+    return BIT_TEST(edit->flags, ekEDIT_AUTOSEL);
 }
 
 /*---------------------------------------------------------------------------*/

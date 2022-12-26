@@ -34,7 +34,7 @@ static Date i_add_micros(const Date *date, int64_t micros)
 {
     uint64_t dmicros = btime_to_micro(date);
     Date ndate;
-    
+
     if (micros > 0)
         dmicros += (uint64_t)micros;
     else
@@ -122,7 +122,7 @@ bool_t date_between(const Date *date, const Date *from, const Date *to)
     int f = date_cmp(date, from);
     int t = date_cmp(date, to);
 
-    // 'from' is more recent date --> swap
+    /* 'from' is more recent date --> swap */
     if (c < 0)
     {
         int s = f;

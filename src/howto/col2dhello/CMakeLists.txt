@@ -1,1 +1,1 @@
-processDesktopApp(Col2dHello "")
+processDesktopApp(Col2dHello "osapp" "")

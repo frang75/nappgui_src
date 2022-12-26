@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-void _oscontrol_init(OSControl *control, const guitype_t type, GtkWidget *widget, GtkWidget *focus_widget, const bool_t show);
+void _oscontrol_init(OSControl *control, const gui_type_t type, GtkWidget *widget, GtkWidget *focus_widget, const bool_t show);
 
 void _oscontrol_destroy(OSControl *control);
 

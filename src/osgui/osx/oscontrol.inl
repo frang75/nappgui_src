@@ -18,12 +18,12 @@ void _oscontrol_origin_in_screen_coordinates(const NSRect *frame, CGFloat *x, CG
 
 NSTextAlignment _oscontrol_text_alignment(const align_t halign);
 
-NSControlSize _oscontrol_size(const fsize_t size);
+NSControlSize _oscontrol_size(const gui_size_t size);
 
 void _oscontrol_size_from_font(NSCell *cell, const Font *font);
 
 //// DEPRECATED FUERA!!!!!!!!
-void _oscontrol_cell_set_control_size(NSCell *cell, const fsize_t size);
+void _oscontrol_cell_set_control_size(NSCell *cell, const gui_size_t size);
 ////
 
 void _oscontrol_cell_set_image(NSCell *cell, const Image *image);
@@ -51,7 +51,7 @@ void _oscontrol_set_text_color(NSTextField *control, OSTextAttr *attrs, const co
 void _oscontrol_textfield_deselect(NSTextField *control);
 
 //// DEPRECATED FUERA!!!!!!!!
-void _oscontrol_progress_set_control_size(NSProgressIndicator *progress, const fsize_t size);
+void _oscontrol_progress_set_control_size(NSProgressIndicator *progress, const gui_size_t size);
 /////
 
 //// DEPRECATED FUERA!!!!!!!!

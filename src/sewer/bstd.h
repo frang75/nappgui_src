@@ -15,27 +15,23 @@
 
 __EXTERN_C
 
-uint32_t bstd_sprintf(char_t *str, const uint32_t size, const char_t *format, ...) __PRINTF(3, 4);
+_sewer_api uint32_t bstd_sprintf(char_t *str, const uint32_t size, const char_t *format, ...) __PRINTF(3, 4);
 
-uint32_t bstd_vsprintf(char_t *str, const uint32_t size, const char_t *format, va_list args);
+_sewer_api uint32_t bstd_vsprintf(char_t *str, const uint32_t size, const char_t *format, va_list args);
 
-uint32_t bstd_printf(const char_t *format, ...) __PRINTF(1, 2);
+_sewer_api uint32_t bstd_printf(const char_t *format, ...) __PRINTF(1, 2);
 
-uint32_t bstd_eprintf(const char_t *format, ...) __PRINTF(1, 2);
+_sewer_api uint32_t bstd_eprintf(const char_t *format, ...) __PRINTF(1, 2);
 
-uint32_t bstd_writef(const char_t *str);
+_sewer_api uint32_t bstd_writef(const char_t *str);
 
-uint32_t bstd_ewritef(const char_t *str);
+_sewer_api uint32_t bstd_ewritef(const char_t *str);
 
-bool_t bstd_read(byte_t *data, const uint32_t size, uint32_t *rsize);
+_sewer_api bool_t bstd_read(byte_t *data, const uint32_t size, uint32_t *rsize);
 
-bool_t bstd_write(const byte_t *data, const uint32_t size, uint32_t *wsize);
+_sewer_api bool_t bstd_write(const byte_t *data, const uint32_t size, uint32_t *wsize);
 
-bool_t bstd_ewrite(const byte_t *data, const uint32_t size, uint32_t *wsize);
-
-void bstd_abort(void);
-
-void bstd_debug_break(void);
+_sewer_api bool_t bstd_ewrite(const byte_t *data, const uint32_t size, uint32_t *wsize);
 
 __END_C
 

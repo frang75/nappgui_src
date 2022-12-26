@@ -15,12 +15,12 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
+#include "guictx.h"
 
 #include "cassert.h"
 #include "event.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 
 struct _slider_t
@@ -29,8 +29,8 @@ struct _slider_t
     real32_t current_pos;
     S2Df size;
     ResId ttipid;
-    slider_flag_t flags;
-    fsize_t knob_size;
+    uint32_t flags;
+    gui_size_t knob_size;
     Listener *OnMoved;
 };
 
@@ -48,12 +48,12 @@ void _slider_destroy(Slider **slider)
 /*---------------------------------------------------------------------------*/
 
 static void i_OnSliderMoved(Slider *slider, Event *e)
-{    
+{
     const EvSlider *p = event_params(e, EvSlider);
     cassert_no_null(slider);
     cassert_no_null(slider->component.context);
     cassert(event_sender_imp(e, NULL) == slider->component.ositem);
-    cassert(event_type(e) == ekEVSLIDER);
+    cassert(event_type(e) == ekGUI_EVENT_SLIDER);
     cassert(p->incr == 0);
     cassert(p->step == UINT32_MAX);
 
@@ -71,17 +71,15 @@ static void i_OnSliderMoved(Slider *slider, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Slider *i_create(const slider_flag_t flags, const fsize_t knob_size)
+static Slider *i_create(const uint32_t flags, const gui_size_t knob_size)
 {
-    Slider *slider = NULL;
+    const GuiCtx *context = guictx_get_current();
     void *ositem = NULL;
-    const GuiContext *context = gui_context_get_current();
+    Slider *slider = NULL;
     cassert_no_null(context);
-    cassert_no_nullf(context->func_slider_create);
-    cassert_no_nullf(context->func_slider_OnMoved);
     slider = obj_new0(Slider);
-    ositem = context->func_slider_create((const enum_t)flags);
-    _component_init(&slider->component, context, ekGUI_COMPONENT_SLIDER, &ositem);
+    ositem = context->func_create[ekGUI_TYPE_SLIDER](flags);
+    _component_init(&slider->component, context, ekGUI_TYPE_SLIDER, &ositem);
     slider->current_pos = 0;
     slider->size = s2df(-1, -1);
     slider->flags = flags;
@@ -95,14 +93,14 @@ static Slider *i_create(const slider_flag_t flags, const fsize_t knob_size)
 
 Slider *slider_create(void)
 {
-    return i_create(ekSLHORZ, ekREGULAR);
+    return i_create(ekSLIDER_HORZ, ekGUI_SIZE_REGULAR);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Slider *slider_vertical(void)
 {
-    return i_create(ekSLVERT, ekREGULAR);
+    return i_create(ekSLIDER_VERT, ekGUI_SIZE_REGULAR);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -121,7 +119,7 @@ void slider_tooltip(Slider *slider, const char_t *text)
     cassert_no_null(slider);
     if (text != NULL)
         ltext = _gui_respack_text(text, &slider->ttipid);
-    slider->component.context->func_set_tooltip[ekGUI_COMPONENT_SLIDER](slider->component.ositem, ltext);
+    slider->component.context->func_set_tooltip[ekGUI_TYPE_SLIDER](slider->component.ositem, ltext);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -129,7 +127,7 @@ void slider_tooltip(Slider *slider, const char_t *text)
 void slider_steps(Slider *slider, const uint32_t steps)
 {
     cassert_no_null(slider);
-    cassert(steps > 1); 
+    cassert(steps > 1);
     slider->component.context->func_slider_set_tickmarks(slider->component.ositem, steps, FALSE);
 }
 
@@ -141,12 +139,12 @@ void slider_value(Slider *slider, const real32_t value)
     cassert_no_null(slider);
     cassert_no_null(slider->component.context);
     cassert_no_nullf(slider->component.context->func_slider_set_position);
-    
+
     if (v < 0.f)
         v = 0.f;
     else if (v > 1.f)
         v = 1.f;
-    
+
     slider->current_pos = v;
     slider->component.context->func_slider_set_position(slider->component.ositem, v);
 }
@@ -157,9 +155,9 @@ real32_t slider_get_value(const Slider *slider)
 {
     cassert_no_null(slider);
     return slider->current_pos;
-    //cassert_no_null(slider->component.context);
-    //cassert_no_nullf(slider->component.context->func_slider_get_position);
-    //return slider->component.context->func_slider_get_position(slider->component.ositem);
+    /* cassert_no_null(slider->component.context);
+    cassert_no_nullf(slider->component.context->func_slider_get_position);
+    return slider->component.context->func_slider_get_position(slider->component.ositem); */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -192,7 +190,7 @@ void _slider_dimension(Slider *slider, const uint32_t i, real32_t *dim0, real32_
 bool_t _slider_is_horizontal(const Slider *slider)
 {
     cassert_no_null(slider);
-    return (bool_t)(slider_type(slider->flags) == ekSLHORZ);
+    return (bool_t)(slider_get_type(slider->flags) == ekSLIDER_HORZ);
 }
 
 /*---------------------------------------------------------------------------*/

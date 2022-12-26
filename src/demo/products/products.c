@@ -16,7 +16,7 @@
 #include "prctrl.h"
 #include "prview.h"
 #include "inet.h"
-#include "res_gui.h"
+#include "res_products.h"
 
 typedef struct _app_t App;
 struct _app_t
@@ -52,7 +52,7 @@ static App *i_create(void)
     kSTATSK = gui_alt_color(color_bgr(0xFF8034), color_bgr(0xFF8034));
     kTXTRED = gui_alt_color(color_bgr(0xFF0000), color_bgr(0xEB665A));
     inet_start();
-    gui_respack(res_gui_respack);
+    gui_respack(res_products_respack);
     gui_language("");
     gui_OnThemeChanged(listener(app, i_OnThemeChanged, App));
     model_bind();

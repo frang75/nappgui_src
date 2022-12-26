@@ -20,7 +20,7 @@ Font *_gui_create_default_font(void);
 
 bool_t _gui_effective_alt_font(const Font *font, const Font *alt_font);
 
-void _gui_update_font(Font **font, Font **alt_font, const Font *new_font);
+bool_t _gui_update_font(Font **font, Font **alt_font, const Font *new_font);
 
 void _gui_add_transition_imp(void *owner, Listener *listener);
 
@@ -38,17 +38,7 @@ const char_t *_gui_respack_text(const ResId id, ResId *store_id);
 
 const Image *_gui_respack_image(const ResId id, ResId *store_id);
 
-const Cursor *_gui_cursor(const cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);
-
-void _gui_OnThemeChanged(void);
-
-void _gui_OnTranslate(Listener *listener);
-
-void _gui_OnMenubar(Listener *listener);
-
-void _gui_OnFinish(Listener *listener);
-
-void gui_update_transitions(const real64_t prtime, const real64_t crtime);
+const Cursor *_gui_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);
 
 #define GUI_COMPONENT_MAX_PANELS    2
 

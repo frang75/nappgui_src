@@ -28,5 +28,7 @@ bool_t _oswindow_proccess_message(MSG *msg, HACCEL accelerator_table);
 
 bool_t _oswindow_in_resizing(HWND child_hwnd);
 
+void _oswindow_focus(OSControl *control);
+
 __END_C
 

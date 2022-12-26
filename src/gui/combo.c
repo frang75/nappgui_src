@@ -14,8 +14,7 @@
 #include "combo.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
+#include "guictx.h"
 
 #include "arrpt.h"
 #include "cassert.h"
@@ -23,6 +22,7 @@
 #include "font.h"
 #include "image.h"
 #include "ptr.h"
+#include "objh.h"
 #include "v2d.h"
 #include "s2d.h"
 #include "strings.h"
@@ -91,7 +91,7 @@ static void i_OnChange(Combo *combo, Event *event)
     const EvText *params = event_params(event, EvText);
     cassert_no_null(combo);
     cassert_no_null(params);
-    cassert(event_type(event) == ekEVTXTCHANGE);
+    cassert(event_type(event) == ekGUI_EVENT_TXTCHANGE);
     cassert(combo->component.ositem == event_sender_imp(event, NULL));
     str_upd(&combo->text, params->text);
     if (combo->OnChange != NULL)
@@ -150,7 +150,7 @@ static void i_OnFocus(Combo *combo, Event *event)
 
 Combo *combo_create(void)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     Combo *combo = obj_new0(Combo);
     void *ositem = NULL;
     combo->text = str_c("");
@@ -162,12 +162,12 @@ Combo *combo_create(void)
     combo->bg_color = UINT32_MAX;
     combo->bg_focus_color = UINT32_MAX;
     combo->placeholder_color = UINT32_MAX;
-    ositem = context->func_combo_create((const enum_t)ekCBFLAG);
+    ositem = context->func_create[ekGUI_TYPE_COMBOBOX](ekCOMBO_FLAG);
     context->func_combo_set_font(ositem, combo->font);
-    _component_init(&combo->component, context, PARAM(type, ekGUI_COMPONENT_COMBOBOX), &ositem);
+    _component_init(&combo->component, context, PARAM(type, ekGUI_TYPE_COMBOBOX), &ositem);
     context->func_combo_OnFilter(combo->component.ositem, obj_listener(combo, i_OnFilter, Combo));
     context->func_combo_OnChange(combo->component.ositem, obj_listener(combo, i_OnChange, Combo));
-    //context->func_combo_set_OnSelect(combo->component.ositem, obj_listener(combo, i_OnSelect, Combo));
+    /* context->func_combo_set_OnSelect(combo->component.ositem, obj_listener(combo, i_OnSelect, Combo)); */
     return combo;
 }
 
@@ -234,7 +234,7 @@ static void i_update_placeholder(Combo *combo)
     {
         if (_gui_effective_alt_font(combo->font, combo->placeholder_font) == TRUE)
             combo->component.context->func_combo_set_font(combo->component.ositem, combo->font);
-        
+
         if (combo->placeholder_color != UINT32_MAX)
         {
             if (combo->is_focused == TRUE && combo->focus_color != UINT32_MAX)
@@ -288,7 +288,7 @@ void combo_tooltip(Combo *combo, const char_t *text)
     cassert_no_null(combo);
     if (text != NULL)
         ltext = _gui_respack_text(text, &combo->ttipid);
-    combo->component.context->func_set_tooltip[ekGUI_COMPONENT_COMBOBOX](combo->component.ositem, ltext);
+    combo->component.context->func_set_tooltip[ekGUI_TYPE_COMBOBOX](combo->component.ositem, ltext);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -408,7 +408,7 @@ static void i_delete_duplicates(GuiComponent *component, ArrPt(String) *texts, A
         {
             arrpt_delete(texts, i, str_destroy, String);
             arrpt_delete(images, i, image_destroy, Image);
-            component->context->func_combo_set_elem(component->ositem, ekOPDEL, i, NULL, NULL);
+            component->context->func_combo_set_elem(component->ositem, ekCTRL_OP_DEL, i, NULL, NULL);
             num_elems--;
         }
         else
@@ -458,12 +458,12 @@ void combo_add_elem(Combo *combo, const char_t *text, const Image *image)
         const Image *limage = NULL;
         Image *cimage;
         ltext = str_c(text);
-        limage = _gui_respack_image((const ResId)image, NULL);
+        limage = _gui_respack_image((ResId)image, NULL);
         cimage = limage ? image_copy(limage) : NULL;
         arrpt_append(combo->texts, ltext, String);
         arrpt_append(combo->images, cimage, Image);
-        combo->component.context->func_combo_set_elem(combo->component.ositem, ekOPADD, UINT32_MAX, text, cimage);
-        //i_update_selection(&combo->component, combo->texts, tc(combo->text));
+        combo->component.context->func_combo_set_elem(combo->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, text, cimage);
+        /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
     }
 }
 
@@ -481,8 +481,8 @@ void combo_set_elem(Combo *combo, const uint32_t index, const char_t *text, cons
     ptr_destopt(image_destroy, limage, Image);
     *ltext = str_c(text);
     *limage = ptr_copyopt(image_copy, image, Image);
-    combo->component.context->func_combo_set_elem(combo->component.ositem, ekOPSET, index, text, image);
-//    i_update_selection(&combo->component, combo->texts, tc(combo->text));
+    combo->component.context->func_combo_set_elem(combo->component.ositem, ekCTRL_OP_SET, index, text, image);
+   /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -503,28 +503,28 @@ void combo_ins_elem(Combo *combo, const uint32_t index, const char_t *text, cons
     {
         String *ltext = NULL;
         Image *limage = NULL;
-        op_t op;
+        ctrl_op_t op;
         uint32_t lindex;
         ltext = str_c(text);
         limage = ptr_copyopt(image_copy, image, Image);
 
         if (index < arrpt_size(combo->texts, String))
         {
-            op = ekOPINS;
+            op = ekCTRL_OP_INS;
             lindex = index;
             arrpt_insert(combo->texts, index, ltext, String);
             arrpt_insert(combo->images, index, limage, Image);
         }
         else
         {
-            op = ekOPADD;
+            op = ekCTRL_OP_ADD;
             lindex = UINT32_MAX;
             arrpt_append(combo->texts, ltext, String);
             arrpt_append(combo->images, limage, Image);
         }
 
         combo->component.context->func_combo_set_elem(combo->component.ositem, op, lindex, text, image);
-        //i_update_selection(&combo->component, combo->texts, tc(combo->text));
+        /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
     }
 }
 
@@ -535,8 +535,8 @@ void combo_del_elem(Combo *combo, const uint32_t index)
     cassert_no_null(combo);
     arrpt_delete(combo->texts, index, str_destroy, String);
     arrpt_delete(combo->images, index, image_destroy, Image);
-    combo->component.context->func_combo_set_elem(combo->component.ositem, ekOPDEL, index, NULL, NULL);
-//    i_update_selection(&combo->component, combo->texts, tc(combo->text));
+    combo->component.context->func_combo_set_elem(combo->component.ositem, ekCTRL_OP_DEL, index, NULL, NULL);
+   /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -613,6 +613,6 @@ void _combo_locale(Combo *combo)
     if (combo->ttipid != NULL)
     {
         const char_t *text = _gui_respack_text(combo->ttipid, NULL);
-        combo->component.context->func_set_tooltip[ekGUI_COMPONENT_COMBOBOX](combo->component.ositem, text);
+        combo->component.context->func_set_tooltip[ekGUI_TYPE_COMBOBOX](combo->component.ositem, text);
     }
 }

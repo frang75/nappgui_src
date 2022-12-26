@@ -17,6 +17,7 @@
 #include "font.h"
 #include "font.inl"
 #include "draw2d.inl"
+#include "draw.inl"
 #include "arrpt.h"
 #include "cassert.h"
 #include "strings.h"
@@ -195,11 +196,21 @@ void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *ce
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     MeasureStr data;
-    id objects[] = { (NSFont*)font };
-    id keys[] = { NSFontAttributeName };
+    id objects[1];
+    id keys[1];
     NSUInteger count = sizeof(objects) / sizeof(id);
+    objects[0] = (NSFont*)font;
+    keys[0] = NSFontAttributeName;
+    cassert(count == 1);
     data.dict = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
-    draw2d_extents(&data, draw2d_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+    draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const void *osfont_native(const OSFont *font)
+{
+    return (void*)font;
 }
 
 /*---------------------------------------------------------------------------*/

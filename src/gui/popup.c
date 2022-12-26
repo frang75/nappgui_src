@@ -15,8 +15,7 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
+#include "guictx.h"
 
 #include "arrpt.h"
 #include "arrst.h"
@@ -25,6 +24,7 @@
 #include "font.h"
 #include "image.h"
 #include "ptr.h"
+#include "objh.h"
 #include "v2d.h"
 #include "s2d.h"
 #include "strings.h"
@@ -92,12 +92,12 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
 
 PopUp *popup_create(void)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     Font *font = _gui_create_default_font();
     PopUp *popup = obj_new0(PopUp);
-    void *ositem = context->func_popup_create((const enum_t)ekPUFLAG);
+    void *ositem = context->func_create[ekGUI_TYPE_POPUP](ekPOPUP_FLAG);
     context->func_popup_set_font(ositem, font);
-    _component_init(&popup->component, context, PARAM(type, ekGUI_COMPONENT_POPUP), &ositem);
+    _component_init(&popup->component, context, PARAM(type, ekGUI_TYPE_POPUP), &ositem);
     popup->elems = arrst_create(PElem);
     context->func_popup_OnChange(popup->component.ositem, obj_listener(popup, i_OnSelectionChange, PopUp));
     font_destroy(&font);
@@ -120,7 +120,7 @@ void popup_tooltip(PopUp *popup, const char_t *text)
     cassert_no_null(popup);
     if (text != NULL)
         ltext = _gui_respack_text(text, &popup->ttipid);
-    popup->component.context->func_set_tooltip[ekGUI_COMPONENT_POPUP](popup->component.ositem, ltext);
+    popup->component.context->func_set_tooltip[ekGUI_TYPE_POPUP](popup->component.ositem, ltext);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -136,10 +136,10 @@ void popup_add_elem(PopUp *popup, const char_t *text, const Image *image)
     cassert_no_nullf(popup->component.context->func_popup_list_height);
     elem = arrst_new(popup->elems, PElem);
     ltext = _gui_respack_text(text, &elem->resid);
-    limage = _gui_respack_image((const ResId)image, NULL);
+    limage = _gui_respack_image((ResId)image, NULL);
     elem->image = limage ? image_copy(limage) : NULL;
     elem->text = str_c(ltext);
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekOPADD, UINT32_MAX, tc(elem->text), elem->image);
+    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
     popup->component.context->func_popup_list_height(popup->component.ositem, arrst_size(popup->elems, PElem));
 }
 
@@ -153,7 +153,7 @@ void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, cons
     cassert_no_nullf(popup->component.context->func_popup_set_elem);
     elem = arrst_get(popup->elems, index, PElem);
     str_upd(&elem->text, text);
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekOPSET, index, text, image);
+    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, index, text, image);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -167,7 +167,7 @@ void popup_clear(PopUp *popup)
     n = arrst_size(popup->elems, PElem);
     arrst_clear(popup->elems, i_remove_elem, PElem);
     for (i = 0; i < n; ++i)
-        popup->component.context->func_popup_set_elem(popup->component.ositem, ekOPDEL, 0, NULL, NULL);
+        popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_DEL, 0, NULL, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -250,7 +250,7 @@ void _popup_add_enum_item(PopUp *popup, const char_t *text)
     elem = arrst_new(popup->elems, PElem);
     elem->text = str_c(text);
     elem->image = NULL;
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekOPADD, UINT32_MAX, tc(elem->text), elem->image);
+    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -310,6 +310,6 @@ void _popup_locale(PopUp *popup)
     arrst_foreach(elem, popup->elems, PElem)
         const char_t *text = _gui_respack_text(elem->resid, NULL);
         str_upd(&elem->text, text);
-        popup->component.context->func_popup_set_elem(popup->component.ositem, ekOPSET, elem_i, text, elem->image);
+        popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
     arrst_end();
 }

@@ -32,7 +32,7 @@ void _view_OnResize(View *view, const S2Df *size);
 
 void view_screen_rect(const View *view, R2Df *rect);
 
-GuiContext *_view_context(View *view);
+GuiCtx *_view_context(View *view);
 
 Cell *_view_cell(View *view);
 
@@ -42,9 +42,9 @@ void *_view_get_native_imp(View *view);
 
 void view_OnNotify(View *view, Listener *listener);
 
-void view_OnEmpty(View *view, FPtr_call func_empty);
+void view_OnEmpty(View *view, FPtr_gctx_call func_empty);
 
-void view_OnUInt32(View *view, FPtr_set_uint32 func_uint32);
+void view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32);
 
 void view_OnImage(View *view, FPtr_set_image func_image);
 

@@ -1,1 +1,1 @@
-processDesktopApp(DrawHello "")
+processDesktopApp(DrawHello "osapp" "")

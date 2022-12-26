@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-void _component_init(GuiComponent *component, const GuiContext *context, const guitype_t type, void **ositem);
+void _component_init(GuiComponent *component, const GuiCtx *context, const gui_type_t type, void **ositem);
 
 void _component_destroy_imp(GuiComponent *component);
 
@@ -64,7 +64,7 @@ void _component_update_listener_imp(
                         Listener **listener,
                         Listener *new_listener,
                         FPtr_event_handler func_event_handler,
-                        FPtr_set_listener func_set_listener);
+                        FPtr_gctx_set_listener func_set_listener);
 
 const char_t *_component_type(const GuiComponent *component);
 

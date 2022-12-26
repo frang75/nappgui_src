@@ -48,6 +48,13 @@ void _bmem_finish(void)
 
 /*---------------------------------------------------------------------------*/
 
+void _bmem_atexit(void)
+{
+
+}
+
+/*---------------------------------------------------------------------------*/
+
 byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
 {
     byte_t *mem = NULL;

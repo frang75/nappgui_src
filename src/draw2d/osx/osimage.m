@@ -15,7 +15,7 @@
 #include "warn.hxx"
 
 #include "image.inl"
-#include "dctx.inl"
+#include "dctxh.h"
 #include "bmem.h"
 #include "buffer.h"
 #include "cassert.h"
@@ -23,7 +23,6 @@
 #include "pixbuf.h"
 #include "ptr.h"
 #include "stream.h"
-
 #include "draw2d_osx.ixx"
 
 #if !defined (__MACOS__)
@@ -154,9 +153,11 @@ OSImage *osimage_create_from_type(const char_t *file_type)
 
     /* osimage_from_file 'NSIconRepImageRep' with 3 (more than 1) representations */
 #if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
-    UTType *type = [UTType typeWithIdentifier:nsfile_type];
-    if (type != nil)
-        image = [[NSWorkspace sharedWorkspace] iconForContentType:type];
+    {
+        UTType *type = [UTType typeWithIdentifier:nsfile_type];
+        if (type != nil)
+            image = [[NSWorkspace sharedWorkspace] iconForContentType:type];
+    }
 #else
     image = [[NSWorkspace sharedWorkspace] iconForFileType:nsfile_type];
 #endif

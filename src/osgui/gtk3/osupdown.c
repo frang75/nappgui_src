@@ -93,9 +93,9 @@ static void i_OnClick(OSUpDown *updown, const uint32_t index)
     {
         EvButton params;
         params.text = "";
-        params.state = ekON;
+        params.state = ekGUI_ON;
         params.index = index;
-        listener_event(updown->OnClick, ekEVUPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
+        listener_event(updown->OnClick, ekGUI_EVENT_UPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
     }
 }
 
@@ -158,6 +158,7 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSUpDown *upd
 static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSUpDown *updown)
 {
     cassert_no_null(updown);
+    unref(event);
     updown->state = ekNORMAL;
     gtk_widget_queue_draw(widget);
     return TRUE;
@@ -165,11 +166,12 @@ static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSUpDown *u
 
 /*---------------------------------------------------------------------------*/
 
-OSUpDown *osupdown_create(const updown_flag_t flags)
+OSUpDown *osupdown_create(const uint32_t flags)
 {
     OSUpDown *updown = heap_new0(OSUpDown);
     GtkWidget *widget = gtk_drawing_area_new();
-    _oscontrol_init(&updown->control, ekGUI_COMPONENT_UPDOWN, widget, widget, TRUE);
+    unref(flags);
+    _oscontrol_init(&updown->control, ekGUI_TYPE_UPDOWN, widget, widget, TRUE);
     gtk_widget_add_events(widget, GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     g_signal_connect(widget, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)updown);
     g_signal_connect(widget, "leave-notify-event", G_CALLBACK(i_OnExit), (gpointer)updown);

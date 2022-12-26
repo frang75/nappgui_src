@@ -15,10 +15,11 @@
 
 __EXTERN_C
 
-void draw2d_start(void);
+_draw2d_api void draw2d_start(void);
 
-void draw2d_finish(void);
-
-#define resid_image(resid) (const Image*)(resid)
+_draw2d_api void draw2d_finish(void);
 
 __END_C
+
+#define resid_image(resid) \
+    (const Image*)(resid)

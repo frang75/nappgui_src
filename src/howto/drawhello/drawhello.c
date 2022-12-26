@@ -11,7 +11,7 @@
 /* Drawing primitives */
 
 #include "nappgui.h"
-#include "all.h"
+#include "res_drawhello.h"
 
 typedef struct _app_t App;
 
@@ -179,7 +179,7 @@ static void i_draw_gradient(DCtx *ctx, const real32_t gradient, const bool_t bac
     }
 
     draw_fill_linear(ctx, c, stop, 2, 0, 0, gx, gy);
-    
+
     if (back == TRUE)
         draw_rect(ctx, ekFILL, 0, 0, 600, 400);
 
@@ -321,7 +321,7 @@ static void i_draw_local_gradient(DCtx *ctx, const real32_t gradient)
     draw_fill_matrix(ctx, &matrix);
     draw_line_width(ctx, 10);
     draw_line_color(ctx, kCOLOR_BLACK);
-    draw_ellipse(ctx, ekSKFILL, 0, 0, 100, 50); 
+    draw_ellipse(ctx, ekSKFILL, 0, 0, 100, 50);
     draw_matrixf(ctx, &matrix);
     draw_line_width(ctx, 3);
     draw_line_color(ctx, color_rgb(200, 200, 200));
@@ -512,6 +512,7 @@ static void i_text_newline(DCtx *ctx)
 static void i_text_block(DCtx *ctx)
 {
     const char_t *text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+    real32_t dash[2] = {1, 1};
     real32_t width1, height1;
     real32_t width2, height2;
     real32_t width3, height3;
@@ -539,14 +540,15 @@ static void i_text_block(DCtx *ctx)
     draw_circle(ctx, ekFILL, 250, 25, 3);
     draw_circle(ctx, ekFILL, 25, 200, 3);
     draw_circle(ctx, ekFILL, 25, 315, 3);
-    draw_rect(ctx, ekSTROKE, 25, 25, width1, height1);
     draw_rect(ctx, ekSTROKE, 25, 25, 200, height1);
-    draw_rect(ctx, ekSTROKE, 250, 25, width2, height2);
     draw_rect(ctx, ekSTROKE, 250, 25, 300, height2);
-    draw_rect(ctx, ekSTROKE, 25, 200, width3, height3);
     draw_rect(ctx, ekSTROKE, 25, 200, 400, height3);
+    draw_rect(ctx, ekSTROKE, 25, 315, 500, height4);    
+    draw_line_dash(ctx, dash, 2);
+    draw_rect(ctx, ekSTROKE, 25, 25, width1, height1);
+    draw_rect(ctx, ekSTROKE, 250, 25, width2, height2);
+    draw_rect(ctx, ekSTROKE, 25, 200, width3, height3);
     draw_rect(ctx, ekSTROKE, 25, 315, width4, height4);
-    draw_rect(ctx, ekSTROKE, 25, 315, 500, height4);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -587,7 +589,7 @@ static void i_text_art(DCtx *ctx)
 
 static void i_image(DCtx *ctx)
 {
-    ResPack *pack = all_respack("");
+    ResPack *pack = res_drawhello_respack("");
     const Image *image = image_from_resource(pack, IMAGE_PNG);
     T2Df matrix;
 
@@ -622,43 +624,43 @@ static void i_OnDraw(App *app, Event *e)
     const EvDraw *p = event_params(e, EvDraw);
     draw_clear(p->ctx, color_rgb(200, 200, 200));
     switch (app->option) {
-    case 0: 
+    case 0:
         cell_enabled(app->slider, FALSE);
         label_text(app->label, "Different line styles: width, join, cap, dash...");
         i_draw_lines(p->ctx);
         break;
-    case 1: 
+    case 1:
         cell_enabled(app->slider, FALSE);
         label_text(app->label, "Basic shapes filled and stroke.");
         draw_fill_color(p->ctx, kCOLOR_BLUE);
         i_draw_shapes(p->ctx, FALSE);
         break;
-    case 2: 
+    case 2:
         cell_enabled(app->slider, TRUE);
         label_text(app->label, "Global linear gradient.");
         i_draw_gradient(p->ctx, app->gradient, TRUE, FALSE);
         break;
-    case 3: 
+    case 3:
         cell_enabled(app->slider, TRUE);
         label_text(app->label, "Shapes filled with global (identity) linear gradient.");
         i_draw_gradient(p->ctx, app->gradient, TRUE, TRUE);
         break;
-    case 4: 
+    case 4:
         cell_enabled(app->slider, TRUE);
         label_text(app->label, "Shapes filled with global (identity) linear gradient.");
         i_draw_gradient(p->ctx, app->gradient, FALSE, TRUE);
         break;
-    case 5: 
+    case 5:
         cell_enabled(app->slider, TRUE);
         label_text(app->label, "Lines with global (identity) linear gradient.");
         i_draw_lines_gradient(p->ctx, app->gradient);
         break;
-    case 6: 
+    case 6:
         cell_enabled(app->slider, TRUE);
         label_text(app->label, "Shapes filled with local (transformed) gradient.");
         i_draw_local_gradient(p->ctx, app->gradient);
         break;
-    case 7: 
+    case 7:
         cell_enabled(app->slider, FALSE);
         label_text(app->label, "Gradient wrap modes.");
         i_draw_wrap_gradient(p->ctx);
@@ -715,7 +717,7 @@ static Panel *i_panel(App *app)
 {
     Panel *panel = panel_create();
     Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(4, 1); 
+    Layout *layout2 = layout_create(4, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_multiline();
@@ -779,7 +781,7 @@ static App *i_create(void)
 {
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
-    app->window = window_create(ekWNSTD);
+    app->window = window_create(ekWINDOW_STD);
     app->gradient = 0;
     app->option = 0;
     window_panel(app->window, panel);

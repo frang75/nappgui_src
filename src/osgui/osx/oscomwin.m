@@ -217,7 +217,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 {
     NSColor *color = [sender color];
     color_t c = _oscontrol_from_NSColor(color);
-    listener_event(self->OnChange, ekEVCOLOR, NULL, &c, NULL, void, color_t, void);
+    listener_event(self->OnChange, ekGUI_EVENT_COLOR, NULL, &c, NULL, void, color_t, void);
 }
 
 - (void)dealloc
@@ -364,9 +364,9 @@ void oscommon_file(
       //  cassert(FALSE);
 
 
-        [open_panel beginSheetModalForWindow:(NSWindow*)owner_window completionHandler:^(NSInteger result) 
+        [open_panel beginSheetModalForWindow:(NSWindow*)owner_window completionHandler:^(NSInteger result)
         {
-            if (result == NSFileHandlingPanelOKButton) 
+            if (result == NSFileHandlingPanelOKButton)
             {
                 Event event;
                 EvFile params;
@@ -392,7 +392,7 @@ void oscommon_file(
         
         [save_panel beginSheetModalForWindow:(NSWindow*)owner_window completionHandler:^(NSInteger result)
         {
-            if (result == NSFileHandlingPanelOKButton) 
+            if (result == NSFileHandlingPanelOKButton)
             {
                 Event event;
                 EvFile params;
@@ -477,4 +477,5 @@ void oscommon_colour_get_origin(real32_t *x, real32_t *y)
     *x = (real32_t)origin.x;
     *y = (real32_t)origin.y;
 }*/
+
 

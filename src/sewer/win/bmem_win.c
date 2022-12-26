@@ -123,6 +123,12 @@ void _bmem_finish(void)
     #if defined (__MEMORY_SUBSYTEM_CHECKING__)
     cassert(i_mem_is_empty() == TRUE);
     #endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _bmem_atexit(void)
+{
     #if defined (__MEMORY_AUDITOR__)
     #if _MSC_VER > 1400
     _CrtDumpMemoryLeaks();

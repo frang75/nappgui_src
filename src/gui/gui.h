@@ -15,43 +15,49 @@
 
 __EXTERN_C
 
-void gui_start(void);
+_gui_api void gui_start(void);
 
-void gui_finish(void);
+_gui_api void gui_finish(void);
 
-void gui_respack(FPtr_respack func_respack);
+_gui_api void gui_respack(FPtr_respack func_respack);
 
-void gui_language(const char_t *lang);
+_gui_api void gui_language(const char_t *lang);
 
-const char_t *gui_text(const ResId id);
+_gui_api const char_t *gui_text(const ResId id);
 
-const Image *gui_image(const ResId id);
+_gui_api const Image *gui_image(const ResId id);
 
-const byte_t *gui_file(const ResId id, uint32_t *size);
+_gui_api const byte_t *gui_file(const ResId id, uint32_t *size);
 
-bool_t gui_dark_mode(void);
+_gui_api bool_t gui_dark_mode(void);
 
-color_t gui_alt_color(const color_t light_color, const color_t dark_color);
+_gui_api color_t gui_alt_color(const color_t light_color, const color_t dark_color);
 
-color_t gui_label_color(void);
+_gui_api color_t gui_label_color(void);
 
-color_t gui_view_color(void);
+_gui_api color_t gui_view_color(void);
 
-color_t gui_line_color(void);
+_gui_api color_t gui_line_color(void);
 
-color_t gui_link_color(void);
+_gui_api color_t gui_link_color(void);
 
-color_t gui_border_color(void);
+_gui_api color_t gui_border_color(void);
 
-S2Df gui_resolution(void);
+_gui_api S2Df gui_resolution(void);
 
-V2Df gui_mouse_pos(void);
+_gui_api V2Df gui_mouse_pos(void);
 
-void gui_OnThemeChanged(Listener *listener);
+_gui_api void gui_update(void);
 
-void *evbind_object_imp(Event *e, const char_t *type);
+_gui_api void gui_OnThemeChanged(Listener *listener);
 
-bool_t evbind_modify_imp(Event *e, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
+_gui_api void gui_update_transitions(const real64_t prtime, const real64_t crtime);
+
+_gui_api void gui_OnNotification(Listener *listener);
+
+_gui_api void *evbind_object_imp(Event *e, const char_t *type);
+
+_gui_api bool_t evbind_modify_imp(Event *e, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
 
 __END_C
 

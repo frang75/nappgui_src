@@ -18,27 +18,27 @@
 template<typename real>
 struct Box2D
 {
-    Box2D() { *this = *kNULL; }
+    _geom2d_api Box2D() { *this = *kNULL; }
 
-    Box2D(const real minX, const real minY, const real maxX, const real maxY) {min.x = minX, min.y = minY, max.x = maxX, max.y = maxY;}
+    _geom2d_api Box2D(const real minX, const real minY, const real maxX, const real maxY) {min.x = minX, min.y = minY, max.x = maxX, max.y = maxY;}
 
-    static Box2D<real> (*from_points)(const V2D<real> *p, const uint32_t n);
+    _geom2d_api static Box2D<real> (*from_points)(const V2D<real> *p, const uint32_t n);
 
-    static V2D<real> (*center)(const Box2D<real> *box);
+    _geom2d_api static V2D<real> (*center)(const Box2D<real> *box);
 
-    static void (*add)(Box2D<real> *box, const V2D<real> *p);
+    _geom2d_api static void (*add)(Box2D<real> *box, const V2D<real> *p);
 
-    static void (*addn)(Box2D<real> *box, const V2D<real> *p, const uint32_t n);
+    _geom2d_api static void (*addn)(Box2D<real> *box, const V2D<real> *p, const uint32_t n);
 
-    static void (*merge)(Box2D<real> *dest, const Box2D<real> *src);
+    _geom2d_api static void (*merge)(Box2D<real> *dest, const Box2D<real> *src);
 
-    static void (*segments)(const Box2D<real> *box, Seg2D<real> *segs);
+    _geom2d_api static void (*segments)(const Box2D<real> *box, Seg2D<real> *segs);
 
-    static real (*area)(const Box2D<real> *box);
+    _geom2d_api static real (*area)(const Box2D<real> *box);
 
-    static bool_t (*is_null)(const Box2D<real> *box);
+    _geom2d_api static bool_t (*is_null)(const Box2D<real> *box);
 
-    static const Box2D<real> *kNULL;
+    _geom2d_api static const Box2D<real> *kNULL;
 
     V2D<real> min;
     V2D<real> max;
@@ -47,7 +47,7 @@ struct Box2D
 template<typename real, typename real2>
 struct Box2D2
 {
-    static void (*copy)(Box2D<real> *dest, const Box2D<real2> *src);
+    _geom2d_api static void (*copy)(Box2D<real> *dest, const Box2D<real2> *src);
 };
 
 #endif

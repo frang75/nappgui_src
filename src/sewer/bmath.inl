@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-void bmath_finish(void);
+void _bmath_finish(void);
 
 __END_C
 

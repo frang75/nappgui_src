@@ -36,13 +36,13 @@ static const uint16_t i_MAX_RANGE = 32768;
 
 /*---------------------------------------------------------------------------*/
 
-OSProgress *osprogress_create(const progress_flag_t flags)
+OSProgress *osprogress_create(const uint32_t flags)
 {
     OSProgress *progress = NULL;
     DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS;
-    cassert_unref(progress_type(flags) == ekPGHORZ, flags);
+    cassert_unref(progress_get_type(flags) == ekPROGRESS_HORZ, flags);
     progress = heap_new(OSProgress);
-    progress->control.type = ekGUI_COMPONENT_PROGRESS;
+    progress->control.type = ekGUI_TYPE_PROGRESS;
     progress->last_position = 0.f;
     _oscontrol_init((OSControl*)progress, PARAM(dwExStyle, 0), dwStyle, PROGRESS_CLASS, 0, 0, NULL, kDEFAULT_PARENT_WINDOW);
     SendMessage(progress->control.hwnd, PBM_SETRANGE, (WPARAM)0, (LPARAM)MAKELONG(0, i_MAX_RANGE));
@@ -104,15 +104,15 @@ void osprogress_position(OSProgress *progress, const real32_t position)
 
 /*---------------------------------------------------------------------------*/
 
-real32_t osprogress_thickness(const OSProgress *progress, const fsize_t size)
+real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 {
     unref(progress);
     switch (size)
     {
-        case ekREGULAR:
-        case ekSMALL:
+        case ekGUI_SIZE_REGULAR:
+        case ekGUI_SIZE_SMALL:
             return 15.f;
-        case ekMINI:
+        case ekGUI_SIZE_MINI:
             return 10.f;
         cassert_default();
     }

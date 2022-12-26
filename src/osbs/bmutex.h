@@ -15,13 +15,12 @@
 
 __EXTERN_C
 
-Mutex *bmutex_create(void);
+_osbs_api Mutex *bmutex_create(void);
 
-void bmutex_close(Mutex **mutex);
+_osbs_api void bmutex_close(Mutex **mutex);
 
-void bmutex_lock(Mutex *mutex);
+_osbs_api void bmutex_lock(Mutex *mutex);
 
-void bmutex_unlock(Mutex *mutex);
+_osbs_api void bmutex_unlock(Mutex *mutex);
 
 __END_C
-

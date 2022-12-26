@@ -15,15 +15,14 @@
 #include "warn.hxx"
 
 #include "dctx.h"
+#include "dctxh.h"
 #include "dctx.inl"
 #include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "font.inl"
 #include "heap.h"
 #include "ptr.h"
 #include "draw2d_osx.ixx"
-#include "dctx_osx.inl"
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -43,107 +42,38 @@ static void i_color(const color_t c, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat
 
 /*---------------------------------------------------------------------------*/
 
-NSTextAlignment dctx_text_alignment(const align_t halign)
-{
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-    switch (halign)
-    {
-        case ekLEFT:
-            return NSTextAlignmentLeft;
-        case ekCENTER:
-            return NSTextAlignmentCenter;
-        case ekJUSTIFY:
-            return NSTextAlignmentJustified;
-        case ekRIGHT:
-            return NSTextAlignmentRight;
-        cassert_default();
-    }
-    return NSTextAlignmentLeft;
-    
-#else
-    switch (halign)
-    {
-        case ekLEFT:
-            return NSLeftTextAlignment;
-        case ekCENTER:
-            return NSCenterTextAlignment;
-        case ekJUSTIFY:
-            return NSJustifiedTextAlignment;
-        case ekRIGHT:
-            return NSRightTextAlignment;
-        cassert_default();
-    }
-
-    return NSLeftTextAlignment;
-#endif
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_init_text_attr(DCtx *ctx)
 {
+    id objects[5];
+    id keys[5];
+
     cassert(ctx->text_parag == NULL);
     cassert(ctx->text_dict == NULL);
     ctx->text_parag = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] retain];
     ctx->text_parag.lineBreakMode = NSLineBreakByWordWrapping;
-    id objects[5];
-    id keys[] = {
-                NSUnderlineStyleAttributeName,
-                NSStrikethroughStyleAttributeName,
-                NSParagraphStyleAttributeName,
-                NSForegroundColorAttributeName,
-                NSFontAttributeName};
-    
+
     objects[0] = kUNDERLINE_NONE;
     objects[1] = kUNDERLINE_NONE;
     objects[2] = ctx->text_parag;
     objects[3] = [NSColor blackColor];
     objects[4] = [NSFont systemFontOfSize:[NSFont systemFontSize]];
+    keys[0] = NSUnderlineStyleAttributeName;
+    keys[1] = NSStrikethroughStyleAttributeName;
+    keys[2] = NSParagraphStyleAttributeName;
+    keys[3] = NSForegroundColorAttributeName;
+    keys[4] = NSFontAttributeName;
 
     ctx->text_dict = [[NSMutableDictionary alloc] initWithObjects:objects forKeys:keys count:5];
 }
 
 /*---------------------------------------------------------------------------*/
 
-DCtx *dctx_create(void *custom_data)
+DCtx *dctx_create(void)
 {
     DCtx *ctx = heap_new0(DCtx);
-    cassert(custom_data == NULL);
-    unref(custom_data);
     ctx->line_width = 1;
     ctx->gradient_matrix = CGAffineTransformIdentity;
     i_init_text_attr(ctx);
-    return ctx;
-}
-
-/*---------------------------------------------------------------------------*/
-
-DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t format)
-{
-    DCtx *ctx = heap_new0(DCtx);
-    CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-    byte_t *pixdata = heap_malloc(width * height * 4, "OSXBitmapContextData");
-    NSGraphicsContext *nscontext = nil;
-    ctx->context = CGBitmapContextCreate((void*)pixdata, (size_t)width, (size_t)height, 8, (size_t)(width * 4), space, (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
-    CGColorSpaceRelease(space);
-    
-#if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-	nscontext = [NSGraphicsContext graphicsContextWithCGContext:ctx->context flipped:YES];
-#else
-    nscontext = [NSGraphicsContext graphicsContextWithGraphicsPort:ctx->context flipped:YES];
-#endif
-    
-    [NSGraphicsContext setCurrentContext:nscontext];
-    ctx->format = format;
-    ctx->width = (uint32_t)CGBitmapContextGetWidth(ctx->context);
-    ctx->height = (uint32_t)CGBitmapContextGetHeight(ctx->context);
-    ctx->is_flipped = YES;
-    ctx->origin = CGAffineTransformMake(1, 0, 0, -1, 0, (CGFloat)height);
-    ctx->line_width = 1;
-    ctx->gradient_matrix = CGAffineTransformIdentity;
-    CGContextConcatCTM(ctx->context, ctx->origin);
-    i_init_text_attr(ctx);
-    dctx_init(ctx);
     return ctx;
 }
 
@@ -153,7 +83,7 @@ void dctx_destroy(DCtx **ctx)
 {
     cassert_no_null(ctx);
     cassert_no_null(*ctx);
-        
+
     if ((*ctx)->gradient != NULL)
         CGGradientRelease((*ctx)->gradient);
 
@@ -162,7 +92,7 @@ void dctx_destroy(DCtx **ctx)
         CGContextRelease((*ctx)->context);
     	(*ctx)->context = NULL;
     }
-    
+
     [(*ctx)->text_dict release];
     [(*ctx)->text_parag release];
 
@@ -209,11 +139,141 @@ void dctx_unset_gcontext(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+void dctx_update_view(DCtx *ctx, void *view)
+{
+    unref(ctx);
+    unref(view);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_flipped(DCtx *ctx, const bool_t flipped)
+{
+    cassert_no_null(ctx);
+    ctx->is_flipped = (BOOL)flipped;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void dctx_size(const DCtx *ctx, uint32_t *width, uint32_t *height)
 {
     cassert_no_null(ctx);
     ptr_assign(width, ctx->width);
     ptr_assign(height, ctx->height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
+{
+    unref(ctx);
+    unref(offset_x);
+    unref(offset_y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t dctx_text_width(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+	return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t dctx_text_color(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+	return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t dctx_background_color(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+	return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_native(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->context;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_internal_bitmap(DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+	return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_default_osfont(DCtx *ctx, const void *font)
+{
+    unref(ctx);
+    unref(font);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_data_imp(DCtx *ctx, void *data, FPtr_destroy func_destroy_data)
+{
+    unref(ctx);
+    unref(data);
+    unref(func_destroy_data);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_get_data_imp(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t format)
+{
+    DCtx *ctx = heap_new0(DCtx);
+    CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+    byte_t *pixdata = heap_malloc(width * height * 4, "OSXBitmapContextData");
+    NSGraphicsContext *nscontext = nil;
+    ctx->context = CGBitmapContextCreate((void*)pixdata, (size_t)width, (size_t)height, 8, (size_t)(width * 4), space, (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
+    CGColorSpaceRelease(space);
+
+#if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+	nscontext = [NSGraphicsContext graphicsContextWithCGContext:ctx->context flipped:YES];
+#else
+    nscontext = [NSGraphicsContext graphicsContextWithGraphicsPort:ctx->context flipped:YES];
+#endif
+
+    [NSGraphicsContext setCurrentContext:nscontext];
+    ctx->format = format;
+    ctx->width = (uint32_t)CGBitmapContextGetWidth(ctx->context);
+    ctx->height = (uint32_t)CGBitmapContextGetHeight(ctx->context);
+    ctx->is_flipped = YES;
+    ctx->origin = CGAffineTransformMake(1, 0, 0, -1, 0, (CGFloat)height);
+    ctx->line_width = 1;
+    ctx->gradient_matrix = CGAffineTransformIdentity;
+    CGContextConcatCTM(ctx->context, ctx->origin);
+    i_init_text_attr(ctx);
+    dctx_init(ctx);
+    return ctx;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -231,25 +291,18 @@ void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
     transform.ty = (CGFloat)t2d->p.y;
     ctx->transform = transform;
     ctx->cartesian_system = cartesian;
-    
+
     if (ctx->raster_mode == FALSE)
     {
         /* Invalidate previous transform. Equivalent to hypothetical SetIdentity() */
         CGAffineTransform curtrans = CGContextGetCTM(ctx->context);
         curtrans = CGAffineTransformInvert(curtrans);
         CGContextConcatCTM(ctx->context, curtrans);
-    
+
         /* Apply new transform */
         CGContextConcatCTM(ctx->context, ctx->origin);
         CGContextConcatCTM(ctx->context, ctx->transform);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _dctx_gradient_transform(DCtx *ctx)
-{
-    unref(ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -260,9 +313,9 @@ void draw_clear(DCtx *ctx, const color_t color)
     if (color != 0)
     {
         uint32_t width, height;
-        dctx_size(ctx, &width, &height);
         CGRect rect;
         CGFloat r, g, b, a;
+        dctx_size(ctx, &width, &height);
         rect.origin.x = 0;
         rect.origin.y = 0;
         rect.size.width = (CGFloat)width;
@@ -280,6 +333,6 @@ void draw_clear(DCtx *ctx, const color_t color)
 void draw_antialias(DCtx *ctx, const bool_t on)
 {
     cassert_no_null(ctx);
-    CGContextSetShouldAntialias(ctx->context, (bool)on);
+    CGContextSetShouldAntialias(ctx->context, on);
 }
 

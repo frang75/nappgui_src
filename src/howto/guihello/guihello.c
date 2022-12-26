@@ -9,9 +9,8 @@
  */
 
 /* NAppGUI GUI Basics */
-    
+
 #include "nappgui.h"
-#include "res.h"
 #include "labels.h"
 #include "buttons.h"
 #include "sliders.h"
@@ -19,14 +18,18 @@
 #include "popcom.h"
 #include "listboxes.h"
 #include "textviews.h"
+#include "table.h"
 #include "guibind.h"
+#include "ipinput.h"
 #include "layoutbind.h"
 #include "baslayout.h"
 #include "splits.h"
 #include "sublayout.h"
 #include "subpanel.h"
+#include "modalwin.h"
 #include "multilayout.h"
 #include "scrollpanel.h"
+#include "res_guihello.h"
 
 typedef struct _app_t App;
 
@@ -34,12 +37,11 @@ struct _app_t
 {
     Window *window;
     Layout *layout;
-    Cell *listcell;
 };
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_panel(Layout *layout, const uint32_t index)
+static void i_set_panel(App *app, const uint32_t index)
 {
     Panel *panel = NULL;
     switch (index) {
@@ -71,32 +73,41 @@ static void i_set_panel(Layout *layout, const uint32_t index)
         panel = textviews();
         break;
     case 9:
-        panel = split_panel();
+        panel = table_view();
         break;
     case 10:
-        panel = guibind();
+        panel = split_panel();
         break;
     case 11:
-        panel = layoutbind();
+        panel = modal_windows(app->window);
         break;
     case 12:
-        panel = basic_layout();
+        panel = guibind();
         break;
     case 13:
-        panel = sublayouts();
+        panel = layoutbind();
         break;
     case 14:
-        panel = subpanels();
+        panel = basic_layout();
         break;
     case 15:
-        panel = multilayouts();
+        panel = sublayouts();
         break;
     case 16:
+        panel = subpanels();
+        break;
+    case 17:
+        panel = multilayouts();
+        break;
+    case 18:
         panel = scrollpanel();
+        break;
+    case 19:
+        panel = ip_input();
         break;
     }
 
-    layout_panel(layout, panel, 1, 0);
+    layout_panel(app->layout, panel, 1, 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -106,7 +117,7 @@ static void i_OnSelect(App *app, Event *e)
     const EvButton *p = event_params(e, EvButton);
     if (p->index != UINT32_MAX)
     {
-        i_set_panel(app->layout, p->index);
+        i_set_panel(app, p->index);
         window_update(app->window);
     }
 }
@@ -118,6 +129,7 @@ static Panel *i_panel(App *app)
     Panel *panel = panel_create();
     Layout *layout = layout_create(2, 1);
     ListBox *list = listbox_create();
+    app->layout = layout;
     listbox_size(list, s2df(180, 256));
     listbox_add_elem(list, "Labels single line", NULL);
     listbox_add_elem(list, "Labels multi line", NULL);
@@ -128,7 +140,9 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Form", NULL);
     listbox_add_elem(list, "Sliders", NULL);
     listbox_add_elem(list, "TextViews", NULL);
+    listbox_add_elem(list, "TableView", NULL);
     listbox_add_elem(list, "SplitViews", NULL);
+    listbox_add_elem(list, "Modal Windows", NULL);
     listbox_add_elem(list, "Data Binding", NULL);
     listbox_add_elem(list, "Struct Binding", NULL);
     listbox_add_elem(list, "Basic Layout", NULL);
@@ -136,17 +150,16 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Subpanels", NULL);
     listbox_add_elem(list, "Multi-Layouts", NULL);
     listbox_add_elem(list, "Scroll panel", NULL);
+    listbox_add_elem(list, "IP Input", NULL);
     listbox_select(list, 0, TRUE);
     listbox_OnSelect(list, listener(app, i_OnSelect, App));
     layout_listbox(layout, list, 0, 0);
-    i_set_panel(layout, 0);
+    i_set_panel(app, 0);
     panel_layout(panel, layout);
     layout_valign(layout, 0, 0, ekTOP);
     layout_valign(layout, 1, 0, ekTOP);
     layout_margin(layout, 10);
     layout_hmargin(layout, 0, 10);
-    app->layout = layout;
-    app->listcell = layout_cell(layout, 0, 0);
     return panel;
 }
 
@@ -155,7 +168,7 @@ static Panel *i_panel(App *app)
 static Window *i_window(App *app)
 {
     Panel *panel = i_panel(app);
-    Window *window = window_create(ekWNSTD);
+    Window *window = window_create(ekWINDOW_STD);
     window_panel(window, panel);
     window_title(window, "NAppGUI GUI Basics");
     return window;
@@ -175,13 +188,12 @@ static void i_OnClose(App *app, Event *e)
 static App *i_create(void)
 {
     App *app = heap_new(App);
-    gui_respack(res_respack);
+    gui_respack(res_guihello_respack);
     gui_language("");
     app->window = i_window(app);
     window_origin(app->window, v2df(500.f, 200.f));
     window_OnClose(app->window, listener(app, i_OnClose, App));
     window_show(app->window);
-    cell_focus(app->listcell);
     return app;
 }
 

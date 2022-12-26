@@ -15,10 +15,10 @@
 
 __EXTERN_C
 
-void respack_destroy(ResPack **pack);
+_core_api void respack_destroy(ResPack **pack);
 
-const char_t *respack_text(const ResPack *pack, const ResId id);
+_core_api const char_t *respack_text(const ResPack *pack, const ResId id);
 
-const byte_t *respack_file(const ResPack *pack, const ResId id, uint32_t *size);
+_core_api const byte_t *respack_file(const ResPack *pack, const ResId id, uint32_t *size);
 
 __END_C

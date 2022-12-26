@@ -11,8 +11,8 @@
 /* Buttons demo */
 
 #include "buttons.h"
-#include "res.h"
 #include "guiall.h"
+#include "res_guihello.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -44,7 +44,7 @@ static Layout *i_flatbuttons(void)
     layout_button(layout, button5, 4, 0);
     layout_button(layout, button6, 5, 0);
     return layout;
-} 
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -59,7 +59,7 @@ static Layout *i_radios(void)
     button_text(radio2, "Shaded");
     button_text(radio3, "Realistic");
     button_text(radio4, "V-Ray");
-    button_state(radio1, ekON);
+    button_state(radio1, ekGUI_ON);
     layout_button(layout, radio1, 0, 0);
     layout_button(layout, radio2, 0, 1);
     layout_button(layout, radio3, 0, 2);
@@ -84,10 +84,10 @@ static Layout *i_checks(void)
     button_text(check2, "Meshes");
     button_text(check3, "Materials");
     button_text(check4, "Lights");
-    button_state(check1, ekON);
-    button_state(check2, ekOFF);
-    button_state(check3, ekOFF);
-    button_state(check4, ekON);
+    button_state(check1, ekGUI_ON);
+    button_state(check2, ekGUI_OFF);
+    button_state(check3, ekGUI_OFF);
+    button_state(check4, ekGUI_ON);
     layout_button(layout, check1, 0, 0);
     layout_button(layout, check2, 0, 1);
     layout_button(layout, check3, 0, 2);
@@ -133,8 +133,8 @@ static Layout *i_buttons(void)
     Button *check2 = button_check3();
     button_text(check1, "Enable 3D Render");
     button_text(check2, "Enable Preview Settings");
-    button_state(check1, ekON);
-    button_state(check2, ekMIXED);
+    button_state(check1, ekGUI_ON);
+    button_state(check2, ekGUI_MIXED);
     layout_layout(layout, layout1, 0, 0);
     layout_button(layout2, check1, 0, 0);
     layout_layout(layout2, layout3, 0, 1);

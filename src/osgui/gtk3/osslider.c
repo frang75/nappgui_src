@@ -25,13 +25,13 @@
 #error This file is only for GTK Toolkit
 #endif
 
-struct _osslider_t 
+struct _osslider_t
 {
     OSControl control;
-    fsize_t size;
+    gui_size_t size;
     bool_t launch_event;
     bool_t discrete;
-    slider_flag_t flags;
+    uint32_t flags;
     Listener *OnMoved;
 };
 
@@ -54,7 +54,7 @@ static gboolean i_OnMoved(GtkRange *range, GtkScrollType step, double value, OSS
         else if (value > 1)
             params.pos = 1;
 
-        listener_event(slider->OnMoved, ekEVSLIDER, slider, &params, NULL, OSSlider, EvSlider, void);
+        listener_event(slider->OnMoved, ekGUI_EVENT_SLIDER, slider, &params, NULL, OSSlider, EvSlider, void);
         return slider->discrete;
     }
 
@@ -63,22 +63,23 @@ static gboolean i_OnMoved(GtkRange *range, GtkScrollType step, double value, OSS
 
 /*---------------------------------------------------------------------------*/
 
-OSSlider *osslider_create(const slider_flag_t flags)
+OSSlider *osslider_create(const uint32_t flags)
 {
     OSSlider *slider = heap_new0(OSSlider);
-    GtkOrientation o = slider_type(flags) == ekSLHORZ ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL;
+    GtkOrientation o = slider_get_type(flags) == ekSLIDER_HORZ ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL;
     GtkWidget *widget = gtk_scale_new_with_range(o, 0., 1., 0.1);
     gtk_scale_set_draw_value(GTK_SCALE(widget), FALSE);
     gtk_range_set_increments(GTK_RANGE(widget), .1, .1);
     g_signal_connect (widget, "change-value", G_CALLBACK(i_OnMoved), (gpointer)slider);
 
-//    if (o == GTK_ORIENTATION_HORIZONTAL)
-//        _oscontrol_set_css(widget, "scale {min-height:5px;padding-left:5px;padding-right:5px}");
-//    else
-//        _oscontrol_set_css(widget, "scale {min-height:5px;padding-top:5px;padding-bottom:5px}");
+/*    if (o == GTK_ORIENTATION_HORIZONTAL)
+       _oscontrol_set_css(widget, "scale {min-height:5px;padding-left:5px;padding-right:5px}");
+   else
+       _oscontrol_set_css(widget, "scale {min-height:5px;padding-top:5px;padding-bottom:5px}");
+ */
 
-    _oscontrol_init(&slider->control, ekGUI_COMPONENT_SLIDER, widget, widget, TRUE);
-    slider->size = ENUM_MAX(fsize_t);
+    _oscontrol_init(&slider->control, ekGUI_TYPE_SLIDER, widget, widget, TRUE);
+    slider->size = ENUM_MAX(gui_size_t);
     slider->flags = flags;
     slider->launch_event = TRUE;
     slider->discrete = FALSE;
@@ -154,21 +155,21 @@ real32_t osslider_get_position(const OSSlider *slider)
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_bounds(const OSSlider *slider, const real32_t length, const fsize_t knob_size, real32_t *width, real32_t *height)
+void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_size_t knob_size, real32_t *width, real32_t *height)
 {
     GtkRequisition s;
     cassert_no_null(slider);
     cassert_no_null(width);
     cassert_no_null(height);
-    cassert(knob_size == ekREGULAR);
+    cassert(knob_size == ekGUI_SIZE_REGULAR);
     gtk_widget_get_preferred_size(slider->control.widget, &s, NULL);
 
-    switch (slider_type(slider->flags)) {
-    case ekSLHORZ:
+    switch (slider_get_type(slider->flags)) {
+    case ekSLIDER_HORZ:
         *width = length;
         *height = (real32_t)s.height;
         break;
-    case ekSLVERT:
+    case ekSLIDER_VERT:
         *width = (real32_t)s.width;
         *height = length;
         break;

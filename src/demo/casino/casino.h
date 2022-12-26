@@ -14,8 +14,8 @@
 
 __EXTERN_C
 
-void casino_start(void);
+_casino_api void casino_start(void);
 
-void casino_finish(void);
+_casino_api void casino_finish(void);
 
 __END_C

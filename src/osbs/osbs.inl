@@ -8,13 +8,11 @@
  *
  */
 
-/* Operating System Basic Services */
+/* Osbs library (Operating System Basic Services) */
 
 #include "osbs.hxx"
 
 __EXTERN_C
-
-void _osbs_mutex(Mutex *mutex);
 
 void _osbs_start_sockets(void);
 
@@ -28,6 +26,8 @@ void _osbs_mutex_alloc(void);
 
 void _osbs_proc_alloc(void);
 
+void _osbs_dlib_alloc(void);
+
 void _osbs_thread_alloc(void);
 
 void _osbs_socket_alloc(void);
@@ -39,6 +39,8 @@ void _osbs_file_dealloc(void);
 void _osbs_mutex_dealloc(void);
 
 void _osbs_proc_dealloc(void);
+
+void _osbs_dlib_dealloc(void);
 
 void _osbs_thread_dealloc(void);
 

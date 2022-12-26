@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-GuiContext *osguictx(void);
+_osgui_api GuiCtx *osguictx(void);
 
 __END_C
 

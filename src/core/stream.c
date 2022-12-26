@@ -13,7 +13,6 @@
 #include "stream.h"
 #include "stream.inl"
 #include "lex.inl"
-#include "core.inl"
 #include "bfile.h"
 #include "bmem.h"
 #include "bstd.h"
@@ -106,7 +105,7 @@ struct _stream_t
     i_Buffer *output;
     i_Buffer *input;
     i_Channel channel;
-    
+
     LexScn *lex;
     uint32_t col;
     uint32_t row;
@@ -125,7 +124,6 @@ typedef void(*i_FPtr_cache)(Stream*, const uint32_t size);
 static void i_to_mem_fill_cache(Stream*, const uint32_t size);
 static void i_from_mem_fill_cache(Stream*, const uint32_t size);
 static void i_file_fill_cache(Stream*, const uint32_t size);
-//static void i_sock_fill_cache(Stream*, const uint32_t size);
 static void i_stdin_fill_cache(Stream*, const uint32_t size);
 
 typedef void(*i_FPtr_write)(Stream*, const byte_t *data, const uint32_t size);
@@ -276,7 +274,7 @@ void stm_close(Stream **stm)
     i_remove_buffer(&(*stm)->textline, "StreamTextLine");
     i_remove_buffer(&(*stm)->restore, "StreamRestore");
     i_close_channel(&(*stm)->channel, (*stm)->type);
-    ptr_destopt(lexscn_destroy, &(*stm)->lex, LexScn);
+    ptr_destopt(_lexscn_destroy, &(*stm)->lex, LexScn);
     heap_delete(stm, Stream);
 }
 
@@ -564,6 +562,14 @@ void stm_set_read_utf(Stream *stm, const unicode_t format)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t stm_is_memory(const Stream *stm)
+{
+    cassert_no_null(stm);
+    return (bool_t)(stm->type == i_ekTOMEMORY || stm->type == i_ekFROMMEMORY);
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint64_t stm_bytes_written(const Stream *stm)
 {
     cassert_no_null(stm);
@@ -599,7 +605,7 @@ uint32_t stm_row(const Stream *stm)
 uint32_t stm_token_col(const Stream *stm)
 {
     cassert_no_null(stm);
-    return lexscn_col(stm->lex);
+    return _lexscn_col(stm->lex);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -607,7 +613,7 @@ uint32_t stm_token_col(const Stream *stm)
 uint32_t stm_token_row(const Stream *stm)
 {
     cassert_no_null(stm);
-    return lexscn_row(stm->lex);
+    return _lexscn_row(stm->lex);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -615,7 +621,7 @@ uint32_t stm_token_row(const Stream *stm)
 const char_t *stm_token_lexeme(const Stream *stm, uint32_t *size)
 {
     cassert_no_null(stm);
-    return lexscn_lexeme(stm->lex, size);
+    return _lexscn_lexeme(stm->lex, size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -625,7 +631,7 @@ void stm_token_escapes(Stream *stm, const bool_t active_escapes)
     cassert_no_null(stm);
     stm->escapes = active_escapes;
     if (stm->lex != NULL)
-        lexscn_escapes(stm->lex, stm->escapes);
+        _lexscn_escapes(stm->lex, stm->escapes);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -635,7 +641,7 @@ void stm_token_spaces(Stream *stm, const bool_t active_spaces)
     cassert_no_null(stm);
     stm->spaces = active_spaces;
     if (stm->lex != NULL)
-        lexscn_spaces(stm->lex, stm->spaces);
+        _lexscn_spaces(stm->lex, stm->spaces);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -645,7 +651,7 @@ void stm_token_comments(Stream *stm, const bool_t active_comments)
     cassert_no_null(stm);
     stm->comments = active_comments;
     if (stm->lex != NULL)
-        lexscn_comments(stm->lex, stm->comments);
+        _lexscn_comments(stm->lex, stm->comments);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -815,7 +821,7 @@ static void i_grow_buffer(i_Buffer *output, const uint32_t size, const uint32_t 
 
         data = heap_malloc(new_size, memname);
 
-        // Exists non-readed data in buffer, we have to preserve
+        /* Exists non-readed data in buffer, we have to preserve */
         if (output->data != NULL)
         {
             const byte_t *sdata = output->data + output->roffset;
@@ -861,12 +867,12 @@ static void i_need_buffer_space(Stream *stm, i_Buffer *output, const uint32_t si
     }
     else if (stm->type == i_ekSOCKET)
     {
-        // Sockets all allways write cache-flushed
+        /* Sockets all allways write cache-flushed */
         cassert(output->woffset == 0);
-    }    
+    }
     else
     {
-        // For channel buffers --> flush to free space in cache
+        /* For channel buffers --> flush to free space in cache */
         cassert_no_nullf(i_FUNC_WRITE[stm->type]);
         cassert(output->roffset == 0);
         i_FUNC_WRITE[stm->type](stm, output->data, output->woffset);
@@ -881,28 +887,28 @@ static void i_write(Stream *stm, const byte_t *data, const uint32_t size, const 
     register i_Buffer *output;
     cassert_no_null(stm);
     cassert(size > 0);
-    
+
     if (!IS_OK(stm->state))
         return;
 
     output = stm->output;
     if (output != NULL)
     {
-        // No space in buffer
+        /* No space in buffer */
         if (output->woffset + size > output->size)
             i_need_buffer_space(stm, stm->output, size);
 
-        // No space in buffer after request
-        // So big for cache --> Direct writting to channel
+        /* No space in buffer after request
+        So big for cache --> Direct writting to channel */
         if (output->woffset + size > output->size)
         {
-            cassert(reverse == FALSE);      // So big for endianness
+            cassert(reverse == FALSE);      /* So big for endianness */
             cassert_no_nullf(i_FUNC_WRITE[stm->type]);
             cassert(output->roffset == 0);
-            cassert(output->woffset == 0);  // Has been flushed
+            cassert(output->woffset == 0);  /* Has been flushed */
             i_FUNC_WRITE[stm->type](stm, data, size);
         }
-        // Write in cache
+        /* Write in cache */
         else
         {
             byte_t *dest = output->data + output->woffset;
@@ -924,20 +930,20 @@ static void i_write(Stream *stm, const byte_t *data, const uint32_t size, const 
                 }
                 else
                 {
-                    // Ups! reverse no endianness??
+                    /* Ups! reverse no endianness?? */
                     cassert(size <= 8);
                     bmem_rev(dest, size);
                 }
             }
-            
-            // For sockets --> flush cache allways
+
+            /* For sockets --> flush cache allways */
             if (stm->type == i_ekSOCKET)
             {
                 cassert_no_nullf(i_FUNC_WRITE[stm->type]);
                 cassert(output->roffset == 0);
                 i_FUNC_WRITE[stm->type](stm, output->data, output->woffset);
                 output->woffset = 0;
-            }            
+            }
         }
 
         stm->write_offset += size;
@@ -1354,11 +1360,11 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
         register byte_t *src = stm->restore.data + stm->restore.roffset;
         if (read_restore > size)
             read_restore = size;
-        
-        // data = NULL for jump
+
+        /* data = NULL for jump */
         if (data != NULL)
             bmem_copy(data, src, read_restore);
-        
+
         readed += read_restore;
         stm->restore.roffset += read_restore;
     }
@@ -1367,7 +1373,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
     if (stm->type == i_ekSOCKET)
     {
         register uint32_t remain = size - readed;
-        
+
         if (data != NULL)
         {
             i_read_from_socket(stm, data + readed, remain);
@@ -1378,14 +1384,14 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
             byte_t waste[512];
             uint32_t i, n = remain / sizeof(waste);
             uint32_t last = remain % sizeof(waste);
-            
+
             for (i = 0; i < n; ++i)
                 i_read_from_socket(stm, waste, sizeof(waste));
 
             if (last > 0)
                 i_read_from_socket(stm, waste, last);
         }
-        
+
         readed += remain;
     }
     else
@@ -1399,7 +1405,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
         }
 
         /* Fill data buffer */
-        // readed = 0 -- readed already from 'restore' buffer */
+        /* readed = 0 -- readed already from 'restore' buffer */
         for (; readed < size; )
         {
             register uint32_t remain = size - readed;
@@ -1418,7 +1424,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
             if (remain < available)
                 available = remain;
 
-            // data = NULL for jump
+            /* data = NULL for jump */
             if (data != NULL)
                 bmem_copy(data + readed, input->data + input->roffset, available);
 
@@ -1426,7 +1432,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
             readed += available;
         }
     }
-        
+
     if (data != NULL && reverse == TRUE)
     {
         if (size == 2)
@@ -1634,12 +1640,12 @@ uint32_t stm_read_char(Stream *stm)
         {
             stm->col += 1;
         }
-        
+
         return code;
     }
     else
     {
-        //BIT_SET(stm->state, CORRUPTION_BIT);
+        /* BIT_SET(stm->state, CORRUPTION_BIT); */
         return UINT32_MAX;
     }
 }
@@ -1747,13 +1753,13 @@ ltoken_t stm_read_token(Stream *stm)
     cassert_no_null(stm);
     if (stm->lex == NULL)
     {
-        stm->lex = lexscn_create();
-        lexscn_escapes(stm->lex, stm->escapes);
-        lexscn_spaces(stm->lex, stm->spaces);
-        lexscn_comments(stm->lex, stm->comments);
+        stm->lex = _lexscn_create();
+        _lexscn_escapes(stm->lex, stm->escapes);
+        _lexscn_spaces(stm->lex, stm->spaces);
+        _lexscn_comments(stm->lex, stm->comments);
     }
 
-    return lexscn_token(stm->lex, stm);
+    return _lexscn_token(stm->lex, stm);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1922,30 +1928,6 @@ real64_t stm_read_r64_tok(Stream *stm)
 {
     return i_read_r64(stm);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//const char_t *stm_read_delim(Stream *stm, const uint32_t codepoint);
-//const char_t *stm_read_delim(Stream *stm, const uint32_t codepoint)
-//{
-//    i_Buffer *line;
-//    uint32_t code = 0;
-//    cassert_no_null(stm);
-//    if (!IS_OK(stm->state))
-//        return "";
-//
-//    line = &stm->textline;
-//    line->roffset = 0;
-//    code = stm_read_char(stm);
-//    while (code != codepoint)
-//    {
-//        i_char_to_cache(stm, code);
-//        code = stm_read_char(stm);
-//    }
-//
-//    i_char_to_cache(stm, 0);
-//    return (const char_t*)line->data;
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -2129,8 +2111,8 @@ void _stm_restore(Stream *stm, const byte_t *data, const uint32_t size)
 {
     byte_t *dest = NULL;
     cassert_no_null(stm);
-    
-    // No space in buffer
+
+    /* No space in buffer */
     if (stm->restore.woffset + size > stm->restore.size)
         i_grow_buffer(&stm->restore, size, 64, "StreamRestore");
 
@@ -2153,33 +2135,4 @@ void _stm_restore_row(Stream *stm, const uint32_t row)
 {
     cassert_no_null(stm);
     stm->row = row;
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t _stm_memory(const Stream *stm)
-{
-    cassert_no_null(stm);
-    return (bool_t)(stm->type == i_ekTOMEMORY || stm->type == i_ekFROMMEMORY);
-}
-
-/*---------------------------------------------------------------------------*/
-
-uint32_t _stm_get_roffset(const Stream *stm)
-{
-    cassert_no_null(stm);
-    cassert(stm->type == i_ekTOMEMORY || stm->type == i_ekFROMMEMORY);
-    return stm->buffer1.roffset;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _stm_set_roffset(Stream *stm, const uint32_t offset)
-{
-    uint32_t roffset;
-    cassert_no_null(stm);
-    cassert(stm->type == i_ekTOMEMORY || stm->type == i_ekFROMMEMORY);
-    roffset = stm->buffer1.roffset;
-    stm->buffer1.roffset = offset;
-    stm->read_offset -= (offset - roffset);
 }

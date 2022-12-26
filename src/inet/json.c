@@ -12,7 +12,7 @@
 
 #include "json.h"
 #include "dbind.h"
-#include "dbind.inl"
+#include "dbindh.h"
 #include "arrpt.h"
 #include "bmath.h"
 #include "bmem.h"
@@ -43,7 +43,7 @@ typedef enum _jtoken_t
 
 typedef struct i_parser_t i_Parser;
 
-struct i_parser_t 
+struct i_parser_t
 {
     Stream *stm;
     jtoken_t token;
@@ -61,7 +61,7 @@ struct i_parser_t
 static void *i_create_type(i_Parser *parser, const char_t *type);
 static bool_t i_jump_value(i_Parser *parser);
 static bool_t i_parse_object(i_Parser *parser, const char_t *subtype, void *object);
-static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const char_t *subtype, void *object);
+static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, const char_t *subtype, void *object);
 static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const void *data, const bool_t inarray);
 static void i_write_object(Stream *stm, const void *object, const char_t *type, const bool_t inarray);
 
@@ -207,7 +207,7 @@ static bool_t i_jump_array(i_Parser *parser)
 
     if (ok == FALSE)
     {
-        // Empty array
+        /* Empty array */
         if (parser->token == i_ekCLOSE_ARRAY)
             return TRUE;
         else
@@ -235,7 +235,7 @@ static bool_t i_jump_object(i_Parser *parser)
     /* For all object members */
     for (;;)
     {
-        // '}'
+        /* '}' */
         i_new_token(parser);
         if (parser->token == i_ekCLOSE_OBJECT)
         {
@@ -258,16 +258,16 @@ static bool_t i_jump_object(i_Parser *parser)
             }
         }
 
-        // "member_name"
+        /* "member_name" */
         if (parser->token != i_ekSTRING)
             return i_error(FALSE, TRUE, parser, "Expected Json 'string' (member name)");
 
-        // ":"
+        /* ":" */
         i_new_token(parser);
         if (parser->token != i_ekCOLON)
             return i_error(FALSE, TRUE, parser, "Expected Json ':' (object member)");
 
-        // "member_value"
+        /* "member_value" */
         if (i_jump_value(parser) == TRUE)
             comma_state = FALSE;
         else
@@ -322,7 +322,7 @@ static bool_t i_parse_array(i_Parser *parser, dtype_t type, const char_t *subtyp
 
     if (ok == FALSE)
     {
-        // Empty array
+        /* Empty array */
         if (parser->token == i_ekCLOSE_ARRAY)
         {
             uint32_t s = array_size(array);
@@ -362,7 +362,7 @@ static bool_t i_parse_arrptr(i_Parser *parser, const char_t *subtype, Array *arr
 
     if (obj == NULL)
     {
-        // Empty array
+        /* Empty array */
         if (parser->token == i_ekCLOSE_ARRAY)
             return TRUE;
         else
@@ -389,7 +389,7 @@ static bool_t i_parse_arrptr(i_Parser *parser, const char_t *subtype, Array *arr
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const char_t *subtype, void *object)
+static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, const char_t *subtype, void *object)
 {
     i_new_token(parser);
     switch (parser->token) {
@@ -509,7 +509,7 @@ static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const 
         case ekDTYPE_REAL32:
             if (dbind != NULL)
             {
-                *((real32_t*)object) = _dbind_string_to_real32(dbind, *((real32_t*)object), parser->number);
+                *((real32_t*)object) = dbind_string_to_real32(dbind, *((real32_t*)object), parser->number);
                 return TRUE;
             }
             else
@@ -523,7 +523,7 @@ static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const 
         case ekDTYPE_REAL64:
             if (dbind != NULL)
             {
-                *((real64_t*)object) = _dbind_string_to_real64(dbind, *((real64_t*)object), parser->number);
+                *((real64_t*)object) = dbind_string_to_real64(dbind, *((real64_t*)object), parser->number);
                 return TRUE;
             }
             else
@@ -567,7 +567,8 @@ static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const 
             uint32_t dsize = b64_decoded_size(parser->lexsize);
             byte_t *data = heap_malloc(dsize, "JsonB64Decode");
             uint32_t size = b64_decode(parser->lexeme, parser->lexsize, data);
-            _dbind_opaque(subtype, data, size, (void**)object);
+            const StBind *stbind = dbind_stbind(subtype);
+            dbind_stbind_opaque(stbind, data, size, (void**)object);
             heap_free(&data, dsize, "JsonB64Decode");
             return TRUE;
         }
@@ -663,7 +664,7 @@ static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const 
             dtype_t dtype;
             cassert(*(Array**)object != NULL);
             cassert(array_size(*(Array**)object) == 0);
-            dtype = _dbind_type(subtype, NULL, &size);
+            dtype = dbind_data_type(subtype, NULL, &size);
             cassert(size == array_esize(*(Array**)object));
             return i_parse_array(parser, dtype, subtype, *((Array**)object));
         }
@@ -684,8 +685,7 @@ static bool_t i_parse_value(i_Parser *parser, DBind *dbind, dtype_t type, const 
         }
         else if (type == ekDTYPE_OBJECT_PTR)
         {
-            uint16_t size;
-            if (_dbind_struct(subtype, &size, NULL) == TRUE)
+            if (dbind_stbind(subtype) != NULL)
             {
                 cassert(*(void**)object == NULL);
                 *(void**)object = dbind_create_imp(subtype);
@@ -719,9 +719,10 @@ static bool_t i_parse_object(i_Parser *parser, const char_t *subtype, void *obje
     /* For all object members */
     for (;;)
     {
-        DBind *mbind = NULL;
+        const StBind *mstbind = NULL;
+        const DBind *mbind = NULL;
 
-        // '}'
+        /* '}' */
         i_new_token(parser);
         if (parser->token == i_ekCLOSE_OBJECT)
         {
@@ -744,11 +745,12 @@ static bool_t i_parse_object(i_Parser *parser, const char_t *subtype, void *obje
             }
         }
 
-        // "member_name"
+        /* "member_name" */
         if (parser->token != i_ekSTRING)
             return i_error(FALSE, TRUE, parser, "Expected Json 'string' (member name)");
 
-        mbind = _dbind_member(subtype, parser->lexeme);
+        mstbind = dbind_stbind(subtype);
+        mbind = dbind_stbind_find(mstbind, parser->lexeme);
         /*if (_dbind_member(subtype, parser->lexeme, &moffset, &mtype, &msubtype) == FALSE)
         {
             String *member = str_printf("Ignored struct member '%s::%s'", subtype, parser->lexeme);
@@ -757,17 +759,17 @@ static bool_t i_parse_object(i_Parser *parser, const char_t *subtype, void *obje
             mbind = FALSE;
         }*/
 
-        // ":"
+        /* ":" */
         i_new_token(parser);
         if (parser->token != i_ekCOLON)
             return i_error(FALSE, TRUE, parser, "Expected Json ':' (object member)");
 
-        // "member_value"
+        /* "member_value" */
         if (mbind != NULL)
         {
-            uint16_t moffset = _dbind_member_offset(mbind);
-            dtype_t mtype = _dbind_member_type(mbind);
-            const char_t *msubtype = _dbind_member_subtype(mbind);
+            uint16_t moffset = dbind_offset(mbind);
+            dtype_t mtype = dbind_type(mbind);
+            const char_t *msubtype = dbind_subtype(mbind);
             if (i_parse_value(parser, mbind, mtype, msubtype, (void*)((byte_t*)object + moffset)) == TRUE)
                 comma_state = FALSE;
             else
@@ -782,24 +784,6 @@ static bool_t i_parse_object(i_Parser *parser, const char_t *subtype, void *obje
         }
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-//static void i_object_remove(void *obj, const char_t *type)
-//{
-//    uint16_t size;
-//    if (_dbind_struct(type, &size) == TRUE)
-//    {
-//        unref(obj);
-//        cassert(FALSE);
-//        // Destroy members
-//        //heap_free(obj, size, type);
-//    }
-//    else
-//    {
-//        cassert(FALSE);
-//    }
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -820,7 +804,7 @@ static void *i_create_type(i_Parser *parser, const char_t *type)
     dtype_t dtype;
     byte_t *obj = NULL;
 
-    dtype = _dbind_type(type, &subtype, &size);
+    dtype = dbind_data_type(type, &subtype, &size);
     switch (dtype)
     {
         case ekDTYPE_OBJECT:
@@ -835,7 +819,7 @@ static void *i_create_type(i_Parser *parser, const char_t *type)
             i_new_token(parser);
             if (parser->token == i_ekOPEN_ARRAY)
             {
-                dtype_t atype = _dbind_type(tc(subtype), NULL, NULL);
+                dtype_t atype = dbind_data_type(tc(subtype), NULL, NULL);
                 Array *array = (Array*)dbind_create_imp(type);
                 if (i_parse_array(parser, atype, tc(subtype), array) == TRUE)
                 {
@@ -991,8 +975,8 @@ static void i_write_string(Stream *stm, const String *str)
                 stm_writef(stm, "\\\"");
             else if (cp == '\\')
                 stm_writef(stm, "\\\\");
-            //else if (cp == '/')
-            //  stm_writef(stm, "\\/");
+            /* else if (cp == '/')
+             stm_writef(stm, "\\/"); */
             else if (cp == '\b')
                 stm_writef(stm, "\\b");
             else if (cp == '\f')
@@ -1013,7 +997,7 @@ static void i_write_string(Stream *stm, const String *str)
     else
     {
         stm_writef(stm, "null");
-    }    
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1026,7 +1010,7 @@ static void i_write_array(Stream *stm, const Array *array, const char_t *type)
         uint32_t i, n = array_size(array);
         uint32_t es = array_esize(array);
         String *subtype = NULL;
-        dtype_t atype = _dbind_type(type, &subtype, NULL);
+        dtype_t atype = dbind_data_type(type, &subtype, NULL);
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;
         stm_writef(stm, "[ ");
         for (i = 0; i < n; ++i, data += es)
@@ -1053,7 +1037,7 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
         const byte_t *data = array_all(array);
         uint32_t i, n = array_size(array);
         String *subtype = NULL;
-        dtype_t atype = _dbind_type(type, &subtype, NULL);
+        dtype_t atype = dbind_data_type(type, &subtype, NULL);
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;
         stm_writef(stm, "[ ");
         if (atype == ekDTYPE_STRING)
@@ -1100,11 +1084,11 @@ static void i_write_object(Stream *stm, const void *object, const char_t *type, 
     if (object != NULL)
     {
         uint32_t n, i;
-        bool_t ok = _dbind_struct(type, NULL, &n);
+        const StBind *stbind = dbind_stbind(type);
         dtype_t ptype = ENUM_MAX(dtype_t);
 
-        cassert_msg(ok == TRUE, "Json: Unknown struct type.");
-        unref(ok);
+        cassert_msg(stbind != NULL, "Json: Unknown struct type.");
+        n = dbind_stbind_count(stbind);
 
         stm_writef(stm, "{");
         if (inarray == TRUE)
@@ -1112,21 +1096,22 @@ static void i_write_object(Stream *stm, const void *object, const char_t *type, 
 
         for (i = 0; i < n; ++i)
         {
-            const char_t *mname;
-            uint16_t moffset;
-            dtype_t mtype;
-            const char_t *mstype;
-            ok = _dbind_member_i(type, i, &mname, &moffset, &mtype, &mstype);
-            cassert_msg(ok == TRUE, "Json: Unknown struct member.");
+            const DBind *dbind = dbind_stbind_member(stbind, i);
+            const char_t *mname = dbind_name(dbind);
+            uint16_t moffset = dbind_offset(dbind);
+            dtype_t mtype = dbind_type(dbind);
+            const char_t *mstype = dbind_subtype(dbind);
+
             if (i_with_nl(mtype) == TRUE || i_with_nl(ptype) == TRUE)
                 stm_writef(stm, "\n");
+
             stm_printf(stm, "\n\"%s\" : ", mname);
             i_write_type(stm, mtype, mstype, (const void*)((byte_t*)object + moffset), FALSE);
             if (i < n - 1)
                 stm_writef(stm, ", ");
             ptype = mtype;
-            //if (i_with_nl(mtype) == TRUE)
-            //    stm_writef(stm, "\n");
+            /* if (i_with_nl(mtype) == TRUE)
+               stm_writef(stm, "\n"); */
         }
         stm_writef(stm, " }");
     }
@@ -1230,7 +1215,7 @@ static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const
 void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const char_t *type)
 {
     String *subtype = NULL;
-    dtype_t dtype = _dbind_type(type, &subtype, NULL);
+    dtype_t dtype = dbind_data_type(type, &subtype, NULL);
     unref(opts);
     i_write_type(stm, dtype, subtype != NULL ? tc(subtype) : NULL, data, FALSE);
     stm_writef(stm, "\n");

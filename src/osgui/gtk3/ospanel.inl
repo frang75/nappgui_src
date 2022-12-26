@@ -8,7 +8,7 @@
  *
  */
 
-/* Operating System native view */
+/* Operating System native panel */
 
 #include "osgui_gtk.ixx"
 
@@ -24,5 +24,8 @@ void _ospanel_set_capture(OSPanel *panel, OSControl *control);
 
 void _ospanel_release_capture(OSPanel *panel);
 
-__END_C
+void _ospanel_scroll_frame(const OSPanel *panel, RectI *rect);
 
+void _ospanel_scroll(OSPanel *panel, const int x, const int y);
+
+__END_C

@@ -11,8 +11,9 @@
 /* Draw context */
 
 #include "dctx.h"
-#include "draw.h"
+#include "dctxh.h"
 #include "dctx.inl"
+#include "draw.h"
 #include "cassert.h"
 #include "color.h"
 #include "font.h"
@@ -106,18 +107,4 @@ void draw_matrix_cartesiand(DCtx *ctx, const T2Dd *t2d)
     dctx_transform(ctx, &ct2d, TRUE);
 }
 
-
 /*---------------------------------------------------------------------------*/
-
-//void dctx_astr_bounds(DCtx *ctx, const AString *str, const real32_t refwidth, real32_t *width, real32_t *height);
-//void dctx_astr_bounds(DCtx *ctx, const AString *str, const real32_t refwidth, real32_t *width, real32_t *height)
-//{
-//    cassert_no_null(ctx);
-//    cassert_no_null(str);
-//    unref(refwidth);
-//    cassert_no_null(width);
-//    cassert_no_null(height);
-//    //astr_slices_bounds((AString*)str, ctx);
-//
-//    //fdfg
-//}

@@ -1,0 +1,21 @@
+/* Geom2D library import/export */
+
+#if defined(GEOM2D_IMPORT)
+    #if defined(__GNUC__)
+        #define _geom2d_api
+    #elif defined(_MSC_VER)
+        #define _geom2d_api __declspec(dllimport)
+    #else
+        #error Unknown compiler
+    #endif
+#elif defined(NAPPGUI_SHARED_LIB)
+    #if defined(__GNUC__)
+        #define _geom2d_api __attribute__((visibility("default")))
+    #elif defined(_MSC_VER)
+        #define _geom2d_api __declspec(dllexport)
+    #else
+        #error Unknown compiler
+    #endif
+#else
+    #define _geom2d_api
+#endif

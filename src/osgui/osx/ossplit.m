@@ -25,10 +25,10 @@
 #error This file is only for OSX
 #endif
 
-@interface OSXSplitView : NSView 
+@interface OSXSplitView : NSView
 {
 @public
-    split_flag_t flags;
+    uint32_t flags;
     NSTrackingArea *track_area;
     NSRect divrect;
     bool_t left_button;
@@ -49,19 +49,19 @@
 static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 {
     NSPoint pt = [view convertPoint:*pt_window fromView:nil];
-        
+
     if ([view isKindOfClass:[OSXSplitView class]])
     {
         OSXSplitView *split = (OSXSplitView*)view;
         if (NSPointInRect(pt, split->divrect) == YES)
         {
-            if (split_type(split->flags) == ekSPHORZ)
+            if (split_get_type(split->flags) == ekSPLIT_HORZ)
                 return [NSCursor resizeUpDownCursor];
             else
                 return [NSCursor resizeLeftRightCursor];
         }
     }
-     
+
     for (NSView *child in [view subviews])
     {
         NSRect rect = [child frame];
@@ -101,9 +101,11 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
         {
             NSArray *children = [self subviews];
             NSUInteger count = [children count];
+            NSView *child1 = nil;
+            NSView *hit1 = nil;
             cassert(count == 1 || count == 2);
-            NSView *child1 = (NSView*)[children objectAtIndex:0];
-            NSView *hit1 = [child1 hitTest:aPoint];
+            child1 = (NSView*)[children objectAtIndex:0];
+            hit1 = [child1 hitTest:aPoint];
             if (hit1 != nil)
             {
                 return hit1;
@@ -129,7 +131,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 - (void)mouseDragged:(NSEvent*)theEvent
 {
-    // Called whenever graphics state updated (such as window resize)	
+    // Called whenever graphics state updated (such as window resize)
     // OpenGL rendering is not synchronous with other rendering on the OSX.
     // Therefore, call disableScreenUpdatesUntilFlush so the window server
     // doesn't render non-OpenGL content in the window asynchronously from
@@ -138,12 +140,12 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
     NSWindow *window = [self window];
     if (window != nil)
         [window disableScreenUpdatesUntilFlush];
-    
+
     if (self->left_button == TRUE)
     {
-        _oslistener_mouse_dragged2(self, theEvent, ekMLEFT, self->OnDrag);
+        _oslistener_mouse_dragged2(self, theEvent, ekGUI_MOUSE_LEFT, self->OnDrag);
         [window disableCursorRects];
-        if (split_type(self->flags) == ekSPHORZ)
+        if (split_get_type(self->flags) == ekSPLIT_HORZ)
             [[NSCursor resizeUpDownCursor] set];
         else
             [[NSCursor resizeLeftRightCursor] set];
@@ -192,7 +194,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
-OSSplit *ossplit_create(const split_flag_t flags)
+OSSplit *ossplit_create(const uint32_t flags)
 {
     OSXSplitView *view;
     heap_auditor_add("OSXSplit");

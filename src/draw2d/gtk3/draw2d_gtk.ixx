@@ -13,8 +13,10 @@
 #ifndef __DRAWLIB_GTK_IXX__
 #define __DRAWLIB_GTK_IXX__
 
+#include "nowarn.hxx"
 #include <cairo.h>
 #include <pango/pango.h>
+#include "warn.hxx"
 
 typedef enum _fillmode_t
 {
@@ -25,6 +27,8 @@ typedef enum _fillmode_t
 struct _dctx_t
 {
     pixformat_t format;
+    double offset_x;
+    double offset_y;
     uint32_t width;
     uint32_t height;
     cairo_t *cairo;
@@ -53,13 +57,6 @@ struct _dctx_t
     bool_t cartesian_system;
     bool_t raster_mode;
     bool_t fill_line;
-    
-    double scroll_x;
-    double scroll_y;
-    double total_width;
-    double total_height;
-    double clip_width;
-    double clip_height;
 };
 
 #endif

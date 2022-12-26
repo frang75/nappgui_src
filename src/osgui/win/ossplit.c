@@ -18,7 +18,6 @@
 #include "ospanel.inl"
 #include "cassert.h"
 #include "event.h"
-#include "event.inl"
 #include "heap.h"
 #include "ptr.h"
 
@@ -29,7 +28,7 @@
 struct _ossplit_t
 {
     OSControl control;
-    split_flag_t flags;
+    uint32_t flags;
     RECT divrect;
     OSControl* child1;
     OSControl* child2;
@@ -58,7 +57,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         ScreenToClient(split->control.hwnd, &pt);
         if (PtInRect(&split->divrect, pt) == TRUE)
         {
-            HCURSOR cursor = split_type(split->flags) == ekSPVERT ? kSIZING_VERTICAL_CURSOR : kSIZING_HORIZONTAL_CURSOR;
+            HCURSOR cursor = split_get_type(split->flags) == ekSPLIT_VERT ? kSIZING_VERTICAL_CURSOR : kSIZING_HORIZONTAL_CURSOR;
             cassert(GetCapture() != split->control.hwnd);
             SetCapture(split->control.hwnd);
             SetCursor(cursor);
@@ -84,7 +83,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left + 1, rect.bottom - rect.top + 1, SWP_NOMOVE /*| SWP_NOSIZE */| SWP_NOZORDER);
             }
         }
-        else 
+        else
         {
             POINTS point = MAKEPOINTS(lParam);
             POINT pt;
@@ -125,9 +124,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             cassert(split->left_button == TRUE);
             params.x = (real32_t)split->mouse_pos.x;
             params.y = (real32_t)split->mouse_pos.y;
+            params.lx = params.x;
+            params.ly = params.y;
             params.button = ekLEFT;
             params.count = 0;
-            listener_event(split->OnDrag, ekEVDRAG, split, &params, NULL, OSSplit, EvMouse, void);
+            listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
             split->launch_OnDrag = FALSE;
         }
 
@@ -139,10 +140,10 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 /*---------------------------------------------------------------------------*/
 
-OSSplit *ossplit_create(const split_flag_t flags)
+OSSplit *ossplit_create(const uint32_t flags)
 {
     OSSplit *view = heap_new0(OSSplit);
-    view->control.type = ekGUI_COMPONENT_SPLITVIEW;
+    view->control.type = ekGUI_TYPE_SPLITVIEW;
     view->flags = flags;
     /* WS_EX_CONTROLPARENT: Recursive TabStop navigation over view children */
     _oscontrol_init((OSControl*)view, PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);

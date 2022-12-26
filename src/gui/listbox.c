@@ -13,11 +13,11 @@
 #include "listbox.h"
 #include "listbox.inl"
 #include "cell.inl"
-#include "draw2d.inl"
 #include "drawctrl.inl"
 #include "view.h"
 #include "view.inl"
 #include "gui.inl"
+
 #include "arrpt.h"
 #include "arrst.h"
 #include "bmath.h"
@@ -25,7 +25,6 @@
 #include "color.h"
 #include "draw.h"
 #include "draw.inl"
-#include "dctx.h"
 #include "event.h"
 #include "font.h"
 #include "heap.h"
@@ -52,7 +51,6 @@ struct _pelem_t
 
 struct _ldata_t
 {
-    View *cview;
     Font *font;
     ArrSt(PElem) *elems;
     uint32_t mouse_ypos;
@@ -68,7 +66,7 @@ struct _ldata_t
     uint32_t check_yoffset;
     Listener *OnSelect;
     uint32_t selected;
-    multisel_t multisel_mode;
+    ctrl_msel_t multisel_mode;
     bool_t mouse_incheck;
     bool_t check_pressed;
     bool_t checks;
@@ -130,7 +128,7 @@ static void i_OnDraw(ListBox *box, Event *e)
     cassert_no_null(data);
 
     n = arrst_size(data->elems, PElem);
-    drawctrl_clear(p->ctx);
+    drawctrl_clear(p->ctx, 0, 0, data->control_width, data->control_height);
 
     if (n > 0)
     {
@@ -144,30 +142,30 @@ static void i_OnDraw(ListBox *box, Event *e)
         draw_font(p->ctx, data->font);
         for (i = strow; i < edrow; ++i)
         {
-            cstate_t state = data->focused == TRUE ? ekCSTATE_NORMAL : ekCSTATE_BKNORMAL;
+            ctrl_state_t state = data->focused == TRUE ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL;
             uint32_t tx = i_LEFT_PADDING;
 
             if (elems[i].select == TRUE)
             {
-                state = data->focused == TRUE ? ekCSTATE_PRESSED : ekCSTATE_BKPRESSED;
-                drawctrl_fill(p->ctx, 0, y, data->content_width, data->row_height, state);
+                state = data->focused == TRUE ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_BKPRESSED;
+                drawctrl_fill(p->ctx, 0, (int32_t)y, data->content_width, data->row_height, state);
             }
             else if (i == mouse_row)
             {
-                state = data->focused == TRUE ? ekCSTATE_HOT : ekCSTATE_BKHOT;
-                drawctrl_fill(p->ctx, 0, y, data->content_width, data->row_height, state);
+                state = data->focused == TRUE ? ekCTRL_STATE_HOT : ekCTRL_STATE_BKHOT;
+                drawctrl_fill(p->ctx, 0, (int32_t)y, data->content_width, data->row_height, state);
             }
 
             if (data->checks == TRUE)
             {
-                cstate_t cstate = ekCSTATE_NORMAL;
+                ctrl_state_t cstate = ekCTRL_STATE_NORMAL;
                 if (i == mouse_row && data->mouse_incheck == TRUE)
-                    cstate = data->check_pressed == TRUE ? ekCSTATE_PRESSED : ekCSTATE_HOT;
+                    cstate = data->check_pressed == TRUE ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_HOT;
 
                 if (elems[i].check == TRUE)
-                    drawctrl_checkbox(p->ctx, tx, y + data->check_yoffset, cstate);
+                    drawctrl_checkbox(p->ctx, (int32_t)tx, (int32_t)(y + data->check_yoffset), cstate);
                 else
-                    drawctrl_uncheckbox(p->ctx, tx, y + data->check_yoffset, cstate);
+                    drawctrl_uncheckbox(p->ctx, (int32_t)tx, (int32_t)(y + data->check_yoffset), cstate);
 
                 tx += data->check_width + i_LEFT_PADDING;
             }
@@ -175,15 +173,15 @@ static void i_OnDraw(ListBox *box, Event *e)
             if (elems[i].image != NULL)
             {
                 uint32_t yoffset = (data->row_height - elems[i].imgheight) / 2;
-                drawctrl_image(p->ctx, elems[i].image, tx, y + yoffset);
+                drawctrl_image(p->ctx, elems[i].image, (int32_t)tx, (int32_t)(y + yoffset));
                 tx += elems[i].imgwidth + i_LEFT_PADDING;
             }
-            
+
             draw_text_color(p->ctx, elems[i].color);
-            drawctrl_text(p->ctx, tc(elems[i].text), tx, y + data->text_yoffset, state);
+            drawctrl_text(p->ctx, tc(elems[i].text), (int32_t)tx, (int32_t)(y + data->text_yoffset), state);
 
             if (i == data->selected && data->focused == TRUE)
-                drawctrl_focus(p->ctx, 0, y, data->content_width, data->row_height);
+                drawctrl_focus(p->ctx, 0, (int32_t)y, data->content_width, data->row_height, state);
 
             y += data->row_height;
         }
@@ -209,12 +207,12 @@ static void i_document_size(ListBox *box, LData *data)
             data->check_width = drawctrl_check_width(NULL);
             data->check_height = drawctrl_check_height(NULL);
         }
-        
+
         if (data->check_height > data->row_height)
             data->row_height = data->check_height;
     }
 
-    arrst_foreach(elem, data->elems, PElem)   
+    arrst_foreach(elem, data->elems, PElem)
         uint32_t tw;
 
         {
@@ -233,7 +231,7 @@ static void i_document_size(ListBox *box, LData *data)
                 data->row_height = elem->imgheight;
         }
 
-        if (tw > twidth) 
+        if (tw > twidth)
             twidth = tw;
 
     arrst_end();
@@ -246,12 +244,12 @@ static void i_document_size(ListBox *box, LData *data)
     data->check_yoffset = ((uint32_t)data->row_height - (uint32_t)data->check_height) / 2;
     twidth += i_LEFT_PADDING + i_RIGHT_PADDING;
 
-    // GCC warning if not brackets
+    /* GCC warning if not brackets */
     if (data->checks == TRUE)
     {
         twidth += i_LEFT_PADDING + data->check_width;
     }
-    
+
 	if (twidth < data->control_width)
 	{
 		twidth = data->control_width;
@@ -260,7 +258,7 @@ static void i_document_size(ListBox *box, LData *data)
     theight = data->row_height * n + i_BOTTOM_PADDING;
     if (theight < data->control_height)
         theight = data->control_height;
-    
+
     data->content_width = twidth;
     view_content_size((View*)box, s2df((real32_t)twidth, (real32_t)theight), s2df(10, (real32_t)data->row_height));
 }
@@ -315,6 +313,14 @@ static void i_OnMove(ListBox *box, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnEnter(ListBox *box, Event *e)
+{
+    unref(box);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnExit(ListBox *box, Event *e)
 {
     LData *data = view_get_data((View*)box, LData);
@@ -355,8 +361,8 @@ static void i_select(ListBox *box, LData *data, const bool_t bymouse)
     if (data->selected != UINT32_MAX)
     {
         PElem *elem = arrst_get(data->elems, data->selected, PElem);
-        
-        if (bymouse == TRUE && data->multisel_mode == ekMULTISEL_SINGLE)
+
+        if (bymouse == TRUE && data->multisel_mode == ekCTRL_MSEL_SINGLE)
             elem->select = !elem->select;
         else
             elem->select = TRUE;
@@ -369,10 +375,10 @@ static void i_select(ListBox *box, LData *data, const bool_t bymouse)
     if (data->OnSelect != NULL)
     {
         EvButton params;
-        params.state = ekON;
+        params.state = ekGUI_ON;
         params.index = data->selected;
         params.text = text;
-        listener_event(data->OnSelect, ekEVLISTBOX, box, &params, NULL, ListBox, EvButton, void);
+        listener_event(data->OnSelect, ekGUI_EVENT_LISTBOX, box, &params, NULL, ListBox, EvButton, void);
     }
 }
 
@@ -384,7 +390,7 @@ static void i_OnDown(ListBox *box, Event *e)
     const EvMouse *p = event_params(e, EvMouse);
     uint32_t n = arrst_size(data->elems, PElem);
 
-    if (n > 0 && p->button == ekMLEFT)
+    if (n > 0 && p->button == ekGUI_MOUSE_LEFT)
     {
         uint32_t y = (uint32_t)p->y;
         uint32_t sel = y / data->row_height;
@@ -395,7 +401,6 @@ static void i_OnDown(ListBox *box, Event *e)
         if (sel != UINT32_MAX && data->checks == TRUE)
         {
             if (data->mouse_incheck == TRUE)
-            //if (i_mouse_in_check(data, (uint32_t)p->x, y) == TRUE)
             {
                 PElem *elem = arrst_get(data->elems, sel, PElem);
                 elem->check = !elem->check;
@@ -404,11 +409,11 @@ static void i_OnDown(ListBox *box, Event *e)
             }
         }
 
-        if (sel != data->selected || data->multisel_mode != ekMULTISEL_NO)
+        if (sel != data->selected || data->multisel_mode != ekCTRL_MSEL_NO)
         {
             data->selected = sel;
 
-            if (data->multisel == FALSE || data->multisel_mode == ekMULTISEL_NO)
+            if (data->multisel == FALSE || data->multisel_mode == ekCTRL_MSEL_NO)
                 i_clean_select(data->elems);
 
             i_select(box, data, TRUE);
@@ -425,7 +430,7 @@ static void i_OnUp(ListBox *box, Event *e)
     const EvMouse *p = event_params(e, EvMouse);
     uint32_t n = arrst_size(data->elems, PElem);
 
-    if (n > 0 && p->button == ekMLEFT)
+    if (n > 0 && p->button == ekGUI_MOUSE_LEFT)
     {
         if (data->check_pressed == TRUE)
         {
@@ -439,11 +444,7 @@ static void i_OnUp(ListBox *box, Event *e)
 
 static void i_update_sel_top(ListBox *box, LData *data, const uint32_t scroll_y)
 {
-    V2Df pos;
-
-    view_viewport((View*)box, &pos, NULL);
-
-    if (data->multisel == FALSE || data->multisel_mode != ekMULTISEL_BURST)
+    if (data->multisel == FALSE || data->multisel_mode != ekCTRL_MSEL_BURST)
         i_clean_select(data->elems);
 
     i_select(box, data, FALSE);
@@ -465,7 +466,7 @@ static void i_update_sel_bottom(ListBox *box, LData *data, const uint32_t scroll
     uint32_t ypos = (data->selected + 1) * data->row_height + i_BOTTOM_PADDING;
     real32_t scroll_height = 0;
 
-    if (data->multisel == FALSE || data->multisel_mode != ekMULTISEL_BURST)
+    if (data->multisel == FALSE || data->multisel_mode != ekCTRL_MSEL_BURST)
         i_clean_select(data->elems);
 
     i_select(box, data, FALSE);
@@ -593,7 +594,7 @@ static void i_OnKeyDown(ListBox *box, Event *e)
                 if (scroll_x > 0)
                 {
                     view_scroll_x((View*)box, (real32_t)(scroll_x > 10 ? scroll_x - 10 : 0));
-                    view_update((View*)box);                    
+                    view_update((View*)box);
                 }
             }
         }
@@ -606,7 +607,7 @@ static void i_OnKeyDown(ListBox *box, Event *e)
                 if (scroll_x < data->content_width - data->control_width + scroll_width)
                 {
                     view_scroll_x((View*)box, (real32_t)(scroll_x + 10));
-                    view_update((View*)box);                    
+                    view_update((View*)box);
                 }
             }
         }
@@ -621,8 +622,8 @@ static void i_OnKeyDown(ListBox *box, Event *e)
         }
         else if (data->multisel == TRUE)
         {
-            multisel_t msel = drawctrl_multisel(NULL, p->key);
-            if (msel != ekMULTISEL_NO)
+            ctrl_msel_t msel = drawctrl_multisel(NULL, p->key);
+            if (msel != ekCTRL_MSEL_NO)
                 data->multisel_mode = msel;
         }
     }
@@ -640,11 +641,11 @@ static void i_OnKeyUp(ListBox *box, Event *e)
     {
         if (data->multisel == TRUE)
         {
-            multisel_t msel = drawctrl_multisel(NULL, p->key);
-            if (msel != ekMULTISEL_NO)
-                data->multisel_mode = ekMULTISEL_NO;
+            ctrl_msel_t msel = drawctrl_multisel(NULL, p->key);
+            if (msel != ekCTRL_MSEL_NO)
+                data->multisel_mode = ekCTRL_MSEL_NO;
         }
-    }        
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -682,12 +683,13 @@ static void i_set_uint32(ListBox *listbox, const uint32_t value)
 
 ListBox *listbox_create(void)
 {
-    View *view = _view_create(ekHSCROLL | ekVSCROLL | ekBORDER | ekCONTROL | ekNOERASE);
+    View *view = _view_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE);
     LData *data = i_create_data();
     view_data(view, &data, i_destroy_data, LData);
     view_OnDraw(view, listener((ListBox*)view, i_OnDraw, ListBox));
     view_OnSize(view, listener((ListBox*)view, i_OnSize, ListBox));
     view_OnMove(view, listener((ListBox*)view, i_OnMove, ListBox));
+    view_OnEnter(view, listener((ListBox*)view, i_OnEnter, ListBox));
     view_OnExit(view, listener((ListBox*)view, i_OnExit, ListBox));
     view_OnFocus(view, listener((ListBox*)view, i_OnFocus, ListBox));
     view_OnDown(view, listener((ListBox*)view, i_OnDown, ListBox));
@@ -695,8 +697,8 @@ ListBox *listbox_create(void)
     view_OnKeyDown(view, listener((ListBox*)view, i_OnKeyDown, ListBox));
     view_OnKeyUp(view, listener((ListBox*)view, i_OnKeyUp, ListBox));
     _view_set_subtype(view, "ListBox");
-	view_OnUInt32(view, (FPtr_set_uint32)i_set_uint32);
-	view_OnEmpty(view, (FPtr_call)i_set_empty);
+	view_OnUInt32(view, (FPtr_gctx_set_uint32)i_set_uint32);
+	view_OnEmpty(view, (FPtr_gctx_call)i_set_empty);
     i_document_size((ListBox*)view, view_get_data(view, LData));
     return (ListBox*)view;
 }
@@ -835,7 +837,7 @@ void listbox_select(ListBox *box, const uint32_t index, const bool_t select)
     LData *data = view_get_data((View*)box, LData);
     cassert_no_null(data);
     cassert(index == UINT32_MAX || index < arrst_size(data->elems, PElem));
-    
+
     if (select == TRUE)
     {
         if (data->multisel == FALSE)

@@ -14,18 +14,20 @@
 
 __EXTERN_C
 
-device_t osglobals_device(const void *non_used);
+_osgui_api device_t osglobals_device(const void *non_used);
 
-color_t osglobals_color(const syscolor_t *color);
+_osgui_api color_t osglobals_color(const syscolor_t *color);
 
-void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height);
+_osgui_api void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height);
 
-void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y);
+_osgui_api void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y);
 
-Cursor *osglobals_cursor(const cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);
+_osgui_api Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);
 
-void osglobals_cursor_destroy(Cursor **cursor);
+_osgui_api void osglobals_cursor_destroy(Cursor **cursor);
 
-void osglobals_value(const uint32_t index, void *value);
+_osgui_api void osglobals_value(const uint32_t index, void *value);
+
+_osgui_api void osglobals_theme_changed(void);
 
 __END_C

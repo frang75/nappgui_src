@@ -32,12 +32,13 @@ struct _osprogress_t
 
 /*---------------------------------------------------------------------------*/
 
-OSProgress *osprogress_create(const progress_flag_t flags)
+OSProgress *osprogress_create(const uint32_t flags)
 {
     OSProgress *progress = heap_new0(OSProgress);
     GtkWidget *widget = gtk_progress_bar_new();
-    _oscontrol_init(&progress->control, ekGUI_COMPONENT_PROGRESS, widget, widget, TRUE);
+    _oscontrol_init(&progress->control, ekGUI_TYPE_PROGRESS, widget, widget, TRUE);
     progress->pulse_id = UINT32_MAX;
+    unref(flags);
     return progress;
 }
 
@@ -81,10 +82,10 @@ void osprogress_position(OSProgress *progress, const real32_t position)
 
 /*---------------------------------------------------------------------------*/
 
-real32_t osprogress_thickness(const OSProgress *progress, const fsize_t size)
+real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 {
     cassert_no_null(progress);
-    cassert_unref(size == ekREGULAR, size);
+    cassert_unref(size == ekGUI_SIZE_REGULAR, size);
     return (real32_t)osglobals_progress_height();
 }
 

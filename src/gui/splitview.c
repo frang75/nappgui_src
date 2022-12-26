@@ -14,15 +14,14 @@
 #include "splitview.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontext.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
 #include "panel.inl"
+#include "guictx.h"
 
 #include "bmath.h"
 #include "cassert.h"
 #include "event.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "v2d.h"
 
@@ -46,8 +45,8 @@ struct _splitview_t
 
 static real32_t i_divpos(const uint32_t flags, const real32_t pos, const real32_t size)
 {
-    // Proportional mode
-    if (BIT_TEST(flags, ekSPPROP) == TRUE)
+    /* Proportional mode */
+    if (BIT_TEST(flags, ekSPLIT_PROP) == TRUE)
     {
         cassert(pos >= 0 && pos <= 1);
         return bmath_roundf(pos * size);
@@ -55,8 +54,8 @@ static real32_t i_divpos(const uint32_t flags, const real32_t pos, const real32_
 
     cassert(pos > 1);
 
-    // Fixed left/top size
-    if (BIT_TEST(flags, ekSPLEFT) == TRUE)
+    /* Fixed left/top size */
+    if (BIT_TEST(flags, ekSPLIT_LEFT) == TRUE)
     {
         if (pos < size)
             return pos;
@@ -64,8 +63,8 @@ static real32_t i_divpos(const uint32_t flags, const real32_t pos, const real32_
             return size;
     }
 
-    // Fixed right/bottom size
-    cassert(BIT_TEST(flags, ekSPRIGHT) == TRUE);
+    /* Fixed right/bottom size */
+    cassert(BIT_TEST(flags, ekSPLIT_RIGHT) == TRUE);
     if (pos < size)
         return size - pos;
     else
@@ -81,7 +80,7 @@ static void i_frames(const SplitView *split, const S2Df *size, R2Df *rect1, R2Df
     cassert_no_null(rect1);
     cassert_no_null(rect2);
     cassert_no_null(rect_track);
-    if (split_type(split->flags) == ekSPHORZ)
+    if (split_get_type(split->flags) == ekSPLIT_HORZ)
     {
         real32_t divider_y = i_divpos(split->flags, split->div_pos, size->height);
         rect1->pos = kV2D_ZEROf;
@@ -118,19 +117,19 @@ static void i_frames(const SplitView *split, const S2Df *size, R2Df *rect1, R2Df
 static real32_t i_update_divider(const uint32_t flags, const real32_t mouse_pos, const real32_t size)
 {
     cassert(size > 0);
-    
-    // Proportional mode
-    if (BIT_TEST(flags, ekSPPROP) == TRUE)
+
+    /* Proportional mode */
+    if (BIT_TEST(flags, ekSPLIT_PROP) == TRUE)
         return mouse_pos / size;
 
-    // Fixed left/top size
-    if (BIT_TEST(flags, ekSPLEFT) == TRUE)
+    /* Fixed left/top size */
+    if (BIT_TEST(flags, ekSPLIT_LEFT) == TRUE)
         return mouse_pos;
 
-    // Fixed right/bottom size
-    cassert(BIT_TEST(flags, ekSPRIGHT) == TRUE);
+    /* Fixed right/bottom size */
+    cassert(BIT_TEST(flags, ekSPLIT_RIGHT) == TRUE);
     return size - mouse_pos;
-}   
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -142,7 +141,7 @@ static void i_resize_children(SplitView *split, const R2Df *r1, const R2Df *r2, 
     cassert_no_null(rtrack);
 
     if (split->child1 != NULL && split->child2 != NULL)
-    {    
+    {
         if (r1->size.width > 0 && r1->size.height > 0)
         {
             _component_set_frame(split->child1, &r1->pos, &r1->size);
@@ -180,14 +179,14 @@ static void i_OnDrag(SplitView *split, Event *e)
 {
     const EvMouse *params = event_params(e, EvMouse);
     cassert_no_null(split);
-    cassert(event_type(e) == ekEVDRAG);
-    cassert(params->button == ekMLEFT);
+    cassert(event_type(e) == ekGUI_EVENT_DRAG);
+    cassert(params->button == ekGUI_MOUSE_LEFT);
     if (split->is_dragging == TRUE)
     {
         real32_t mouse_pos = 0, size = 0;
         R2Df r1, r2, rtrack;
 
-        if (split_type(split->flags) == ekSPHORZ)
+        if (split_get_type(split->flags) == ekSPLIT_HORZ)
         {
             mouse_pos = params->y;
             size = split->final_size.height;
@@ -237,10 +236,10 @@ static void i_OnDrag(SplitView *split, Event *e)
 
 static SplitView *i_create(const uint32_t flags)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
+    void *ositem = context->func_create[ekGUI_TYPE_SPLITVIEW](flags);
     SplitView *split = obj_new0(SplitView);
-    void *ositem = context->func_split_create((enum_t)flags);
-    _component_init(&split->component, context, ekGUI_COMPONENT_SPLITVIEW, &ositem);
+    _component_init(&split->component, context, ekGUI_TYPE_SPLITVIEW, &ositem);
     split->init_size = s2df(128, 128);
     split->expand_size = kS2D_ZEROf;
     split->final_size = kS2D_ZEROf;
@@ -249,7 +248,7 @@ static SplitView *i_create(const uint32_t flags)
     split->div_pos = .5f;
     split->div_thick = 10;
     context->func_split_OnDrag(split->component.ositem, obj_listener(split, i_OnDrag, SplitView));
-    BIT_SET(split->flags, ekSPPROP);
+    BIT_SET(split->flags, ekSPLIT_PROP);
     return split;
 }
 
@@ -257,14 +256,14 @@ static SplitView *i_create(const uint32_t flags)
 
 SplitView *splitview_horizontal(void)
 {
-    return i_create(ekSPHORZ);
+    return i_create(ekSPLIT_HORZ);
 }
 
 /*---------------------------------------------------------------------------*/
 
 SplitView *splitview_vertical(void)
 {
-    return i_create(ekSPVERT);
+    return i_create(ekSPLIT_VERT);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -327,22 +326,22 @@ void splitview_panel(SplitView *split, Panel *panel)
 void splitview_pos(SplitView *split, const real32_t pos)
 {
     cassert_no_null(split);
-    BIT_CLEAR(split->flags, ekSPPROP);
-    BIT_CLEAR(split->flags, ekSPLEFT);
-    BIT_CLEAR(split->flags, ekSPRIGHT);
+    BIT_CLEAR(split->flags, ekSPLIT_PROP);
+    BIT_CLEAR(split->flags, ekSPLIT_LEFT);
+    BIT_CLEAR(split->flags, ekSPLIT_RIGHT);
     if (pos >= 0 && pos <= 1)
     {
-        BIT_SET(split->flags, ekSPPROP);
+        BIT_SET(split->flags, ekSPLIT_PROP);
         split->div_pos = pos;
     }
     else if (pos > 0)
     {
-        BIT_SET(split->flags, ekSPLEFT);
+        BIT_SET(split->flags, ekSPLIT_LEFT);
         split->div_pos = pos;
     }
     else
     {
-        BIT_SET(split->flags, ekSPRIGHT);
+        BIT_SET(split->flags, ekSPLIT_RIGHT);
         split->div_pos = - pos;
     }
 }
@@ -429,7 +428,7 @@ void _splitview_expand(SplitView *split, const uint32_t di, const real32_t curre
                 real32_t fsize1 = 0, fsize2 = 0;
                 _component_expand(split->child1, 0, split->chid1_dim[0], r1.size.width, &fsize1);
                 _component_expand(split->child1, 1, split->chid1_dim[1], r1.size.height, &fsize2);
-                // Split children should be 'expandibles'
+                /* Split children should be 'expandibles' */
                 cassert_unref(fsize1 == r1.size.width, fsize1);
                 cassert_unref(fsize2 == r1.size.height, fsize2);
             }
@@ -442,7 +441,7 @@ void _splitview_expand(SplitView *split, const uint32_t di, const real32_t curre
                 real32_t fsize1 = 0, fsize2 = 0;
                 _component_expand(split->child2, 0, split->chid2_dim[0], r2.size.width, &fsize1);
                 _component_expand(split->child2, 1, split->chid2_dim[1], r2.size.height, &fsize2);
-                // Split children should be 'expandibles'
+                /* Split children should be 'expandibles' */
                 cassert_unref(fsize1 == r2.size.width, fsize1);
                 cassert_unref(fsize2 == r2.size.height, fsize2);
             }
@@ -484,13 +483,13 @@ void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **pan
     cassert_no_null(panels);
     *num_panels = 0;
 
-    if (split->child1 != NULL && split->child1->type == ekGUI_COMPONENT_PANEL)
+    if (split->child1 != NULL && split->child1->type == ekGUI_TYPE_PANEL)
     {
         panels[*num_panels] = (Panel*)split->child1;
         *num_panels += 1;
     }
 
-    if (split->child2 != NULL && split->child2->type == ekGUI_COMPONENT_PANEL)
+    if (split->child2 != NULL && split->child2->type == ekGUI_TYPE_PANEL)
     {
         panels[*num_panels] = (Panel*)split->child2;
         *num_panels += 1;

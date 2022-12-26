@@ -15,8 +15,8 @@
 #include "warn.hxx"
 #include "osapp.h"
 #include "osapp.inl"
-#include "osx/osglobals.inl"
 #include "osapp_osx.inl"
+#include "osglobals.h"
 #include "cassert.h"
 #include "event.h"
 #include "log.h"
@@ -40,11 +40,11 @@
     bool_t abnormal_termination;
     bool_t theme_changed;
     void *listener;
-    
-    FPtr_call func_OnFinishLaunching;
-    FPtr_call func_OnTimerSignal;
+
+    FPtr_app_call func_OnFinishLaunching;
+    FPtr_app_call func_OnTimerSignal;
     FPtr_destroy func_destroy;
-    FPtr_void func_OnExecutionEnd;
+    FPtr_app_void func_OnExecutionEnd;
     Listener *OnThemeChanged;
 }
 
@@ -65,7 +65,7 @@
     /* Cocoa releases certain objects at the end of the runLoop. This forces
      the execution of several RunLoops after completion, to ensure that all
      objects have been released and marked in 'heap'.
-     
+
      self->func_destroy Destroys the app
      self->func_OnExecutionEnd Finishes libraries and logs
      */
@@ -82,7 +82,7 @@
         [NSApp terminate:self];
         log_printf("NSApp terminate shouldn't return");
     }
-    
+
     self->terminate_count += 1;
 }
 
@@ -101,17 +101,17 @@
         NSWindow *w = nil;
         if ([windows count] > 0)
             w = [windows objectAtIndex:0];
-        
+
         if (w != nil)
             [NSAppearance setCurrentAppearance:[w effectiveAppearance]];
         #endif
-        
+
         osglobals_theme_changed();
-        
+
         if (self->OnThemeChanged != NULL)
             listener_event(self->OnThemeChanged, 0, (OSApp*)self->listener, NULL, NULL, OSApp, void, void);
         #endif
-        
+
         self->theme_changed = FALSE;
     }
 /*
@@ -158,7 +158,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification 
+- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
 {
     unref(aNotification);
     cassert(self->timer == NULL);
@@ -279,10 +279,10 @@ OSApp *osapp_init_imp(
                     uint32_t argc,
                     char_t **argv,
                     void *instance,
-                    void *listener, 
+                    void *listener,
                     const bool_t with_run_loop,
-                    FPtr_call func_OnFinishLaunching, 
-                    FPtr_call func_OnTimerSignal)
+                    FPtr_app_call func_OnFinishLaunching,
+                    FPtr_app_call func_OnTimerSignal)
 {
     NSApplication *app;
     OSXAppDelegate *delegate;
@@ -318,7 +318,7 @@ void *osapp_init_pool(void)
 
 void osapp_release_pool(void *pool)
 {
-    [(NSAutoreleasePool*)pool drain];	
+    [(NSAutoreleasePool*)pool drain];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -336,7 +336,7 @@ void osapp_terminate_imp(
                     OSApp **app,
                     const bool_t abnormal_termination,
                     FPtr_destroy func_destroy,
-                    FPtr_void func_OnExecutionEnd)
+                    FPtr_app_void func_OnExecutionEnd)
 {
     OSXAppDelegate *delegate;
     cassert_no_null(app);
@@ -409,7 +409,7 @@ void *osapp_begin_thread(OSApp *app)
 {
     /* A secondary thread shouldn't call Cocoa */
     /* But is possible that create NSImage objects whithout any AutoreleasePool */
-    /* __NSAutoreleaseNoPool(): Object 0x10123a200 of class 
+    /* __NSAutoreleaseNoPool(): Object 0x10123a200 of class
         NSConcreteData autoreleased with no pool in place - just leaking */
     /* This snipplet avoid memory leaks */
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];

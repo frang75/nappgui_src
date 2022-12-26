@@ -66,8 +66,8 @@ template<typename real>
 static bool_t i_equals(const real value1, const real value2, const real tolerance)
 {
 	real diff = value1 - value2;
-	cassert(tolerance >= (real)0.f/*CMath<real>::k0*/);
-	if (diff < (real)0./*CMath<real>::k0*/)
+	cassert(tolerance >= 0);
+	if (diff < 0)
 		diff = - diff;
 	if (diff < tolerance)
 		return TRUE;
@@ -1034,7 +1034,7 @@ static REnv *i_GLOBAL_RENV = NULL;
 
 /*---------------------------------------------------------------------------*/
 
-void bmath_finish(void)
+void _bmath_finish(void)
 {
     if (i_GLOBAL_RENV != NULL)
         bmem_free((byte_t*)i_GLOBAL_RENV);

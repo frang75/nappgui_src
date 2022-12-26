@@ -13,10 +13,11 @@
 #include "progress.h"
 #include "progress.inl"
 #include "component.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
+#include "guictx.h"
+
 #include "cassert.h"
 #include "ptr.h"
+#include "objh.h"
 
 struct _progress_t
 {
@@ -55,22 +56,17 @@ static void i_set_progress_position(GuiComponent *component, const real32_t min_
 
 /*---------------------------------------------------------------------------*/
 
-static Progress *i_create_init_progress(const fsize_t psize)
+static Progress *i_create_init_progress(const gui_size_t psize)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
+    void *ositem = NULL;
     real32_t thickness;
     GuiComponent component;
     Progress *progress;
     cassert_no_null(context);
-    cassert_no_nullf(context->func_progress_create);
-    cassert_no_nullf(context->func_progress_get_thickness);
-
-    {
-        void *ositem = context->func_progress_create((const enum_t)ekPGHORZ);
-        _component_init(&component, context, PARAM(type, ekGUI_COMPONENT_PROGRESS), &ositem);
-    }
-
-    thickness = context->func_progress_get_thickness(component.ositem, (const enum_t)psize);
+    ositem = context->func_create[ekGUI_TYPE_PROGRESS](ekPROGRESS_HORZ);
+    _component_init(&component, context, PARAM(type, ekGUI_TYPE_PROGRESS), &ositem);
+    thickness = context->func_progress_get_thickness(component.ositem, (enum_t)psize);
     progress = i_create_progress(&component, thickness, PARAM(min_value, 0.f), PARAM(max_value, 1.f));
     i_set_progress_position(&component, progress->min_value, progress->max_value, 0.f);
     return progress;
@@ -90,13 +86,13 @@ void _progress_destroy(Progress **progress)
 
 Progress *progress_create(void)
 {
-    return i_create_init_progress(ekREGULAR);
+    return i_create_init_progress(ekGUI_SIZE_REGULAR);
 }
 
 /*---------------------------------------------------------------------------*/
 
 /*
-Progress *progress_create_spinning(const fsize_t size)
+Progress *progress_create_spinning(const gui_size_t size)
 {
     return i_create_init_progress(ekGUI_PROGRESS_STYLE_SPINNING, size, 0.f);
 }

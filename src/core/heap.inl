@@ -20,8 +20,6 @@ void _heap_finish(void);
 
 void _heap_page_size(const uint32_t size);
 
-void _heap_verbose(const bool_t verbose);
-
 __END_C
 
 

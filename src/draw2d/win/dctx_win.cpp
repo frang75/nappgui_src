@@ -11,6 +11,7 @@
 /* Draw context */
 
 #include "dctx.h"
+#include "dctxh.h"
 #include "dctx.inl"
 #include "dctx_win.inl"
 #include "cassert.h"
@@ -37,7 +38,7 @@ static Gdiplus::Color i_color(const color_t c)
 
 /*---------------------------------------------------------------------------*/
 
-DCtx *dctx_create(void *custom_data)
+DCtx *dctx_create(void)
 {
     DCtx *ctx = heap_new0(DCtx);
     ctx->pen = new Gdiplus::Pen((Gdiplus::ARGB)Gdiplus::Color::Black);
@@ -45,8 +46,298 @@ DCtx *dctx_create(void *custom_data)
     ctx->sbrush = new Gdiplus::SolidBrush((Gdiplus::ARGB)Gdiplus::Color::Black);
     ctx->lbrush = new Gdiplus::LinearGradientBrush(Gdiplus::RectF(0, 0, 1, 1e8f), 0, 0, 0);
     ctx->gradient_matrix = new Gdiplus::Matrix;
-    ctx->custom_data = custom_data;
     return ctx;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_destroy(DCtx **ctx)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(*ctx);
+
+    if ((*ctx)->font != NULL)
+    {
+        font_destroy(&(*ctx)->font);
+        delete (*ctx)->ffont;
+        delete (*ctx)->ffamily;
+    }
+    else
+    {
+        cassert((*ctx)->ffont == NULL);
+        cassert((*ctx)->ffamily == NULL);
+    }
+
+    if ((*ctx)->fpen != NULL)
+        delete (*ctx)->fpen;
+
+    delete (*ctx)->pen;
+    delete (*ctx)->tbrush;
+    delete (*ctx)->sbrush;
+    delete (*ctx)->lbrush;
+    delete (*ctx)->gradient_matrix;
+
+    if ((*ctx)->gdi_pen != NULL)
+    {
+        BOOL ok = DeleteObject((*ctx)->gdi_pen);
+        cassert_unref(ok != 0, ok);
+    }
+
+    if ((*ctx)->gdi_sbrush != NULL)
+    {
+        BOOL ok = DeleteObject((*ctx)->gdi_sbrush);
+        cassert_unref(ok != 0, ok);
+    }
+
+    if ((*ctx)->bitmap != NULL)
+    {
+        cassert_no_null((*ctx)->graphics);
+        (*ctx)->bitmap = NULL;
+        delete (*ctx)->graphics;
+    }
+    else
+    {
+        cassert((*ctx)->graphics == NULL);
+    }
+
+    if ((*ctx)->data != NULL)
+    {
+        if ((*ctx)->func_destroy_data != NULL)
+            (*ctx)->func_destroy_data(&(*ctx)->data);
+    }
+
+    heap_delete(ctx, DCtx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
+{
+    void **context = (void**)gcontext;
+    cassert_no_null(ctx);
+    cassert(ctx->graphics == NULL);
+    ctx->graphics = (Gdiplus::Graphics*)context[0];
+    ctx->hdc = (HDC)context[1];
+    ctx->background_color = background;
+    ctx->width = width;
+    ctx->height = height;
+    ctx->offset_x = (Gdiplus::REAL)offset_x;
+    ctx->offset_y = (Gdiplus::REAL)offset_y;
+    ctx->gdi_mode = FALSE;
+    if (reset == TRUE)
+        dctx_init(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_unset_gcontext(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    cassert(ctx->graphics != NULL);
+    ctx->graphics = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_update_view(DCtx *ctx, void *view)
+{
+    unref(ctx);
+    unref(view);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_flipped(DCtx* ctx, const bool_t flipped)
+{
+    unref(ctx);
+    unref(flipped);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_size(const DCtx *ctx, uint32_t *width, uint32_t *height)
+{
+    cassert_no_null(ctx);
+    ptr_assign(width, ctx->width);
+    ptr_assign(height, ctx->height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
+{
+    cassert_no_null(ctx);
+    ptr_assign(offset_x, (real32_t)ctx->offset_x);
+    ptr_assign(offset_y, (real32_t)ctx->offset_y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t dctx_text_width(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->text_width;
+}
+
+/*---------------------------------------------------------------------------*/
+
+align_t dctx_text_intalign(const DCtx* ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->text_intalign;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t dctx_text_color(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->text_color;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t dctx_background_color(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return (color_t)ctx->background_color;
+}
+
+/*---------------------------------------------------------------------------*/
+
+ellipsis_t dctx_text_trim(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return ekELLIPNONE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_native(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->hdc;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_internal_bitmap(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->bitmap;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+{
+    unref(ctx);
+    unref(text);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_image_raster(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y)
+{
+    unref(ctx);
+    unref(image);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_default_osfont(DCtx *ctx, const void *font)
+{
+    unref(ctx);
+    unref(font);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_data_imp(DCtx *ctx, void *data, FPtr_destroy func_destroy_data)
+{
+    cassert_no_null(ctx);
+    cassert(ctx->data == NULL);
+    cassert(ctx->func_destroy_data == NULL);
+    ctx->data = data;
+    ctx->func_destroy_data = func_destroy_data;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_get_data_imp(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->data;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->graphics);
+    cassert_no_null(t2d);
+    unref(cartesian);
+    ctx->graphics->ResetTransform();
+    ctx->graphics->TranslateTransform(ctx->offset_x, ctx->offset_y);
+
+    Gdiplus::Matrix mt(
+                    (Gdiplus::REAL)t2d->i.x,
+                    (Gdiplus::REAL)t2d->i.y,
+                    (Gdiplus::REAL)t2d->j.x,
+                    (Gdiplus::REAL)t2d->j.y,
+                    (Gdiplus::REAL)t2d->p.x,
+                    (Gdiplus::REAL)t2d->p.y);
+
+    ctx->graphics->MultiplyTransform(&mt);
+    _dctx_gradient_transform(ctx);
+
+    if (ctx->fpen != NULL)
+        ctx->fpen->SetBrush(ctx->current_brush);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dctx_gradient_transform(DCtx *ctx)
+{
+    if (ctx->current_brush == ctx->lbrush)
+    {
+        Gdiplus::Matrix mt, inv;
+        Gdiplus::REAL m[6];
+        cassert_no_null(ctx);
+        ctx->graphics->GetTransform(&mt);
+        mt.GetElements(m);
+        inv.SetElements(m[0], m[1], m[2], m[3], m[4], m[5]);
+        inv.Invert();
+        ctx->lbrush->SetTransform(&inv);
+        ctx->lbrush->MultiplyTransform(ctx->gradient_matrix);
+
+        if (ctx->gradient_wrap == Gdiplus::WrapModeClamp)
+        {
+            Gdiplus::REAL sc = ctx->gradient_scale * 10;
+            Gdiplus::REAL len = ctx->gradient_scale + 2 * sc;
+            ctx->lbrush->TranslateTransform(ctx->gradient_x, ctx->gradient_y);
+            ctx->lbrush->RotateTransform(ctx->gradient_angle);
+            ctx->lbrush->TranslateTransform(-sc, 0);
+            ctx->lbrush->ScaleTransform(len, 1);
+        }
+        else
+        {
+            ctx->lbrush->TranslateTransform(ctx->gradient_x, ctx->gradient_y);
+            ctx->lbrush->RotateTransform(ctx->gradient_angle);
+            ctx->lbrush->ScaleTransform(ctx->gradient_scale, 1);
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -87,175 +378,6 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_destroy(DCtx **ctx)
-{
-    cassert_no_null(ctx);
-    cassert_no_null(*ctx);
-
-    if ((*ctx)->font != NULL)
-    {
-        font_destroy(&(*ctx)->font);
-        delete (*ctx)->ffont;
-        delete (*ctx)->ffamily;
-    }
-    else
-    {
-        cassert((*ctx)->ffont == NULL);
-        cassert((*ctx)->ffamily == NULL);
-    }
-
-    if ((*ctx)->fpen != NULL)
-        delete (*ctx)->fpen;
-
-    delete (*ctx)->pen;
-    delete (*ctx)->tbrush;
-    delete (*ctx)->sbrush;
-    delete (*ctx)->lbrush;
-    delete (*ctx)->gradient_matrix;
-
-    if ((*ctx)->gdi_sbrush != NULL)
-    {
-        BOOL ok = DeleteObject((*ctx)->gdi_sbrush);
-        cassert_unref(ok != 0, ok);
-    }
-
-    if ((*ctx)->bitmap != NULL)
-    {
-        cassert_no_null((*ctx)->graphics);
-        (*ctx)->bitmap = NULL;
-        delete (*ctx)->graphics;
-    }
-    else
-    {
-        cassert((*ctx)->graphics == NULL);
-    }
-
-    heap_delete(ctx, DCtx);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
-{
-    void **context = (void**)gcontext;
-    cassert_no_null(ctx);
-    cassert(ctx->graphics == NULL);
-    ctx->graphics = (Gdiplus::Graphics*)context[0];
-    ctx->hdc = (HDC)context[1];
-    ctx->background_color = background;
-    ctx->width = width;
-    ctx->height = height;
-    ctx->offset_x = (Gdiplus::REAL)offset_x;
-    ctx->offset_y = (Gdiplus::REAL)offset_y;
-    ctx->gdi_mode = FALSE;
-    if (reset == TRUE)
-        dctx_init(ctx);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_unset_gcontext(DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    cassert(ctx->graphics != NULL);
-    ctx->graphics = NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_size(const DCtx *ctx, uint32_t *width, uint32_t *height)
-{
-    cassert_no_null(ctx);
-    ptr_assign(width, ctx->width);
-    ptr_assign(height, ctx->height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
-{
-    cassert_no_null(ctx);
-    cassert_no_null(ctx->graphics);
-    cassert_no_null(t2d);
-    unref(cartesian);
-    //Gdiplus::REAL m1[6];
-    //Gdiplus::REAL m2[6];
-    ctx->graphics->ResetTransform();
-    ctx->graphics->TranslateTransform(ctx->offset_x, ctx->offset_y);
-
-    Gdiplus::Matrix mt(
-                    (Gdiplus::REAL)t2d->i.x,
-                    (Gdiplus::REAL)t2d->i.y,
-                    (Gdiplus::REAL)t2d->j.x,
-                    (Gdiplus::REAL)t2d->j.y,
-                    (Gdiplus::REAL)t2d->p.x,
-                    (Gdiplus::REAL)t2d->p.y);
-
-    //Gdiplus::Matrix mt2;
-    //ctx->graphics->ResetTransform();
-    //ctx->graphics->RotateTransform(45);
-    //ctx->graphics->GetTransform(&mt2);
-    //mt.GetElements(m1);
-    //mt2.GetElements(m2);
-    ctx->graphics->MultiplyTransform(&mt);
-    dctx_gradient_transform(ctx);
-
-    if (ctx->fpen != NULL)
-        ctx->fpen->SetBrush(ctx->current_brush);
-
-    //if (ctx->lbrush != NULL)
-    //{
-    //    ctx->lbrush->SetTransform(ctx->gradient_matrix);
-    //    ctx->lbrush->RotateTransform(ctx->gradient_angle);
-
-    //    //Gdiplus::REAL m[6];
-    //    //Gdiplus::Matrix inv;
-    //    //ctx->lbrush->GetTransform(&inv);
-    //    //mt.GetElements(m);
-    //    ////inv.GetElements(m);
-    //    //inv.SetElements(m[0], m[1], m[2], m[3], m[4], m[5]);
-    //    //inv.Invert();
-    //    //ctx->lbrush->SetTransform(&inv);
-    //    //ctx->lbrush->RotateTransform(45);
-    //}
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_gradient_transform(DCtx *ctx)
-{
-    if (ctx->current_brush == ctx->lbrush)
-    {
-        Gdiplus::Matrix mt, inv;
-        Gdiplus::REAL m[6];
-        cassert_no_null(ctx);
-        ctx->graphics->GetTransform(&mt);
-        mt.GetElements(m);
-        inv.SetElements(m[0], m[1], m[2], m[3], m[4], m[5]);
-        inv.Invert();
-        ctx->lbrush->SetTransform(&inv);
-        ctx->lbrush->MultiplyTransform(ctx->gradient_matrix);
-
-        if (ctx->gradient_wrap == Gdiplus::WrapModeClamp)
-        {
-            Gdiplus::REAL sc = ctx->gradient_scale * 10;
-            Gdiplus::REAL len = ctx->gradient_scale + 2 * sc;
-            ctx->lbrush->TranslateTransform(ctx->gradient_x, ctx->gradient_y);
-            ctx->lbrush->RotateTransform(ctx->gradient_angle);
-            ctx->lbrush->TranslateTransform(-sc, 0);
-            ctx->lbrush->ScaleTransform(len, 1);
-        }
-        else
-        {
-            ctx->lbrush->TranslateTransform(ctx->gradient_x, ctx->gradient_y);
-            ctx->lbrush->RotateTransform(ctx->gradient_angle);
-            ctx->lbrush->ScaleTransform(ctx->gradient_scale, 1);
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_clear(DCtx *ctx, const color_t color)
 {
     uint8_t r, g, b;
@@ -274,4 +396,3 @@ void draw_antialias(DCtx *ctx, const bool_t on)
     ctx->graphics->SetSmoothingMode(on ? Gdiplus::SmoothingModeAntiAlias : Gdiplus::SmoothingModeNone);
     ctx->graphics->SetTextRenderingHint(on ? Gdiplus::TextRenderingHintClearTypeGridFit : Gdiplus::TextRenderingHintSingleBitPerPixelGridFit);
 }
-

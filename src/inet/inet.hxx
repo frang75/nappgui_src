@@ -15,6 +15,7 @@
 #define __INET_HXX__
 
 #include "core.hxx"
+#include "inet.def"
 
 typedef enum _ierror_t
 {

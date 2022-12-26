@@ -25,7 +25,6 @@
 #if defined __LINUX__
 #include <sys/syscall.h>
 long syscall(long number, ...);
-int usleep(int usec);
 #endif
 
 int pthread_tryjoin_np(pthread_t thread, void **retval);
@@ -34,11 +33,11 @@ int pthread_tryjoin_np(pthread_t thread, void **retval);
 
 Thread *bthread_create_imp(uint32_t(func_thread_main)(void*), void *data)
 {
-    pthread_t *thread;
-    int ret;
+    pthread_t *thread = (pthread_t*)malloc(sizeof(pthread_t));
 
-    thread = (pthread_t*)malloc(sizeof(pthread_t));
-    ret = pthread_create(thread, NULL, (void*(*)(void*))func_thread_main, data);
+#include "nowarn.hxx"
+    int ret = pthread_create(thread, NULL, (void*(*)(void*))func_thread_main, data);
+#include "warn.hxx"
 
     if (ret != 0)
     {
@@ -69,15 +68,6 @@ int bthread_current_id(void)
     return (int)tid;
 #endif
 }
-
-/*---------------------------------------------------------------------------*/
-
-//int bthread_id(const Thread *thread);
-//int bthread_id(const Thread *thread)
-//{
-//    cassert_no_null(thread);
-//    return (int)pthread_getunique_np(*(pthread_t*)thread);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -112,7 +102,7 @@ uint32_t bthread_wait(Thread *thread)
     result = pthread_join(*((pthread_t*)thread), &value);
     if (result == 0)
         return (uint32_t)(intptr_t)value;
-    else 
+    else
         return UINT32_MAX;
 }
 

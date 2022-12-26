@@ -80,14 +80,6 @@ Listener *listener_imp(void *object, FPtr_event_handler func_event_handler)
 
 /*---------------------------------------------------------------------------*/
 
-Listener *listener_copy(const Listener *listener)
-{
-    cassert_no_null(listener);
-    return i_create_listener(listener->object, NULL/*listener->func_release*/, listener->func_event_handler, listener->member_event_handler);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void listener_destroy(Listener **listener)
 {
     cassert_no_null(listener);
@@ -109,7 +101,7 @@ void listener_update(Listener **listener, Listener *new_listener)
 
 /*---------------------------------------------------------------------------*/
 
-void listener_retain(Listener *listener, FPtr_retain func_retain, FPtr_release func_release)
+void _listener_retain(Listener *listener, FPtr_retain func_retain, FPtr_release func_release)
 {
     cassert_no_null(listener);
     cassert_no_nullf(func_retain);

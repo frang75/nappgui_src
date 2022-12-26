@@ -11,7 +11,6 @@
 /* Gui data binding */
 
 #include "gbind.inl"
-#include "dbind.inl"
 #include "cell.h"
 #include "cell.inl"
 #include "component.inl"
@@ -30,6 +29,7 @@
 #include "bmem.h"
 #include "bstd.h"
 #include "cassert.h"
+#include "dbindh.h"
 #include "event.h"
 #include "strings.h"
 
@@ -39,36 +39,36 @@ static void i_set_bool(GuiComponent *component, const bool_t value)
 {
     cassert_no_null(component);
     switch (component->type) {
-    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_TYPE_BUTTON:
         _button_bool((Button*)component, value);
         break;
 
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
         _label_text((Label*)component, value ? "True" : "False");
         break;
 
-    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_TYPE_SLIDER:
         _slider_real32((Slider*)component, value ? 1.f : 0.f);
         break;
 
-    case ekGUI_COMPONENT_POPUP:
-    case ekGUI_COMPONENT_EDITBOX:
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_EDITBOX:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
         break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_CUSTOMVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
@@ -79,60 +79,60 @@ static void i_set_enum(GuiComponent *component, const DBind *dbind, const enum_t
 {
     cassert_no_null(component);
     switch (component->type) {
-    case ekGUI_COMPONENT_POPUP:
+    case ekGUI_TYPE_POPUP:
     {
-        uint32_t index = _dbind_enum_index(dbind, value);
+        uint32_t index = dbind_enum_index(dbind, value);
         _popup_uint32((PopUp*)component, index);
         break;
     }
 
-    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_TYPE_BUTTON:
     {
-        uint32_t index = _dbind_enum_index(dbind, value);
+        uint32_t index = dbind_enum_index(dbind, value);
         _button_uint32((Button*)component, index);
         break;
     }
 
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
     {
-        uint32_t index = _dbind_enum_index(dbind, value);
-        const char_t *text = _dbind_enum_alias(dbind, index);
+        uint32_t index = dbind_enum_index(dbind, value);
+        const char_t *text = dbind_enum_alias(dbind, index);
         _label_text((Label*)component, text);
         break;
     }
 
-    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_TYPE_SLIDER:
     {
-        uint32_t index = _dbind_enum_index(dbind, value);
-        uint32_t size = _dbind_enum_size(dbind);
+        uint32_t index = dbind_enum_index(dbind, value);
+        uint32_t size = dbind_enum_count(dbind);
         real32_t norm = (real32_t)index / (size-1);
         _slider_real32((Slider*)component, norm);
         break;
     }
 
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
 	{
-        uint32_t index = _dbind_enum_index(dbind, value);
-        _view_uint32((View*)component, index);	
+        uint32_t index = dbind_enum_index(dbind, value);
+        _view_uint32((View*)component, index);
 		break;
 	}
-    
-	case ekGUI_COMPONENT_EDITBOX:
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+
+	case ekGUI_TYPE_EDITBOX:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
         break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
@@ -143,7 +143,7 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
 {
     cassert_no_null(component);
     switch (component->type) {
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
     {
         char_t msg[64];
         bstd_sprintf(msg, 64, "%" PRId64, value);
@@ -151,19 +151,19 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
         break;
     }
 
-    case ekGUI_COMPONENT_BUTTON:
+    case ekGUI_TYPE_BUTTON:
         _button_uint32((Button*)component, value >= 0 ? (uint32_t)value : 0);
         break;
 
-    case ekGUI_COMPONENT_POPUP:
+    case ekGUI_TYPE_POPUP:
         _popup_uint32((PopUp*)component, (uint32_t)value);
         break;
 
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
         _view_uint32((View*)component, (uint32_t)value);
         break;
 
-    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_TYPE_SLIDER:
     {
         real64_t range = (real64_t)max - (real64_t)min;
         real32_t norm = (real32_t)(((real64_t)value - (real64_t)min) / range);
@@ -172,7 +172,7 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
         break;
     }
 
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
     {
         char_t msg[64];
         bstd_sprintf(msg, 64, "%" PRId64, value);
@@ -180,21 +180,21 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
         break;
     }
 
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
         break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
@@ -205,7 +205,7 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
 {
     cassert_no_null(component);
     switch (component->type) {
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
     {
         if (value != REAL32_MAX && value != REAL64_MAX)
         {
@@ -220,7 +220,7 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
         break;
     }
 
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
     {
         if (value != REAL32_MAX && value != REAL64_MAX)
         {
@@ -235,11 +235,11 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
         break;
     }
 
-    case ekGUI_COMPONENT_SLIDER:
+    case ekGUI_TYPE_SLIDER:
     {
         if (value != REAL32_MAX && value != REAL64_MAX)
         {
-            real64_t norm = (value - min) / (max - min);
+            real64_t norm = bmath_clampd((value - min) / (max - min), 0, 1);
             _slider_real32((Slider*)component, (real32_t)norm);
         }
         else
@@ -248,25 +248,25 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
         }
         break;
     }
-    
-    case ekGUI_COMPONENT_BUTTON:
-    case ekGUI_COMPONENT_POPUP:
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+
+    case ekGUI_TYPE_BUTTON:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
 		break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_CUSTOMVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
@@ -277,33 +277,33 @@ static void i_set_string(GuiComponent *component, const char_t *str)
 {
     cassert_no_null(component);
     switch (component->type) {
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
         _label_text((Label*)component, str);
         break;
 
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
         _edit_text((Edit*)component, str);
         break;
 
-    case ekGUI_COMPONENT_BUTTON:
-    case ekGUI_COMPONENT_POPUP:
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_SLIDER:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_TYPE_BUTTON:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_SLIDER:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
         break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_CUSTOMVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
@@ -314,78 +314,78 @@ static void i_set_image(GuiComponent *component, const Image *image)
 {
     cassert_no_null(component);
     switch (component->type) {
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
         _view_image((View*)component, image);
         break;
 
-    case ekGUI_COMPONENT_LABEL:
-    case ekGUI_COMPONENT_BUTTON:
-    case ekGUI_COMPONENT_POPUP:
-    case ekGUI_COMPONENT_EDITBOX:
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_SLIDER:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_TYPE_LABEL:
+    case ekGUI_TYPE_BUTTON:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_EDITBOX:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_SLIDER:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
         break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_empty(Cell *cell, DBind *dbind)
+static void i_set_empty(Cell *cell, const DBind *dbind)
 {
     GuiComponent *component = _cell_component(cell);
     switch (component->type) {
-    case ekGUI_COMPONENT_EDITBOX:
+    case ekGUI_TYPE_EDITBOX:
         _edit_text((Edit*)component, "");
         break;
 
-    case ekGUI_COMPONENT_CUSTOMVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
         _view_empty((View*)component);
         break;
 
-    case ekGUI_COMPONENT_LABEL:
+    case ekGUI_TYPE_LABEL:
         _label_text((Label*)component, "");
         break;
 
-    case ekGUI_COMPONENT_BUTTON:
-    case ekGUI_COMPONENT_POPUP:
-    case ekGUI_COMPONENT_COMBOBOX:
-    case ekGUI_COMPONENT_SLIDER:
-    case ekGUI_COMPONENT_UPDOWN:
-    case ekGUI_COMPONENT_PROGRESS:
+    case ekGUI_TYPE_BUTTON:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_SLIDER:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
         break;
 
-    case ekGUI_COMPONENT_TEXTVIEW:
-    case ekGUI_COMPONENT_TABLEVIEW:
-    case ekGUI_COMPONENT_TREEVIEW:
-	case ekGUI_COMPONENT_BOXVIEW:
-    case ekGUI_COMPONENT_SPLITVIEW:
-    case ekGUI_COMPONENT_PANEL:
-    case ekGUI_COMPONENT_LINE:
-    case ekGUI_COMPONENT_HEADER:
-    case ekGUI_COMPONENT_WINDOW:
-    case ekGUI_COMPONENT_TOOLBAR:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_TREEVIEW:
+	case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
     cassert_default();
     }
 
-    switch (_dbind_member_type(dbind)) {
+    switch (dbind_type(dbind)) {
     case ekDTYPE_OBJECT_OPAQUE:
-        if (str_equ_c(_dbind_member_subtype(dbind), "Image") == TRUE)
+        if (str_equ_c(dbind_subtype(dbind), "Image") == TRUE)
         {
-            const Image *image = (const Image*)_dbind_default_opaque(dbind);
+            const Image *image = (const Image*)dbind_opaque_default(dbind);
             i_set_image(component, image);
         }
         break;
@@ -418,7 +418,7 @@ static void i_set_empty(Cell *cell, DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_empty_cells(ArrSt(Cell) *cells, DBind *dbind)
+static void i_set_empty_cells(ArrSt(Cell) *cells, const DBind *dbind)
 {
     register uint32_t i, n = arrst_size(cells, Cell);
     for (i = 0; i < n; ++i)
@@ -430,23 +430,20 @@ static void i_set_empty_cells(ArrSt(Cell) *cells, DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
+void gbind_upd_component(Cell *cell, const StBind *stbind, const DBind *dbind, void *obj)
 {
-    cassert_unref(_dbind_get_stbind(dbind) == stbind, stbind);
+    cassert_unref(dbind_get_stbind(dbind) == stbind, stbind);
     if (obj != NULL)
     {
-        dtype_t mtype;
-        uint16_t offset;
-        uint16_t msize;
-        const char_t *subtype;
-        void *mdata;
+        dtype_t mtype = dbind_type(dbind);
+        uint16_t offset = dbind_offset(dbind);
+        uint16_t msize = dbind_sizeof(dbind);
+        const char_t *subtype = dbind_subtype(dbind);
+        void *mdata = (void*)((byte_t*)obj + offset);
         GuiComponent *component = _cell_component(cell);
-        cassert(component->type != ekGUI_COMPONENT_PANEL);
-        _dbind_member_get(dbind, &offset, &mtype, &msize, &subtype);
-        mdata = (void*)((byte_t*)obj + offset);
+        cassert(component->type != ekGUI_TYPE_PANEL);
 
         switch (mtype) {
-
         case ekDTYPE_BOOL:
             cassert_unref(msize == sizeof(bool_t), msize);
             i_set_bool(component, *((bool_t*)mdata));
@@ -456,12 +453,12 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
             cassert_unref(msize == sizeof(enum_t), msize);
             i_set_enum(component, dbind, *((enum_t*)mdata));
             break;
-        
+
         case ekDTYPE_INT8:
         {
             int8_t min, max;
             cassert_unref(msize == sizeof(int8_t), msize);
-            _dbind_int8_range(dbind, &min, &max);            
+            dbind_int8_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((int8_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -470,7 +467,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             int16_t min, max;
             cassert_unref(msize == sizeof(int16_t), msize);
-            _dbind_int16_range(dbind, &min, &max);            
+            dbind_int16_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((int16_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -479,7 +476,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             int32_t min, max;
             cassert_unref(msize == sizeof(int32_t), msize);
-            _dbind_int32_range(dbind, &min, &max);            
+            dbind_int32_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((int32_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -488,7 +485,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             int64_t min, max;
             cassert_unref(msize == sizeof(int64_t), msize);
-            _dbind_int64_range(dbind, &min, &max);            
+            dbind_int64_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((int64_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -497,7 +494,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             uint8_t min, max;
             cassert_unref(msize == sizeof(uint8_t), msize);
-            _dbind_uint8_range(dbind, &min, &max);            
+            dbind_uint8_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((uint8_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -506,7 +503,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             uint16_t min, max;
             cassert_unref(msize == sizeof(uint16_t), msize);
-            _dbind_uint16_range(dbind, &min, &max);            
+            dbind_uint16_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((uint16_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -515,7 +512,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             uint32_t min, max;
             cassert_unref(msize == sizeof(uint32_t), msize);
-            _dbind_uint32_range(dbind, &min, &max);            
+            dbind_uint32_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((uint32_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -524,7 +521,7 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
         {
             uint64_t min, max;
             cassert_unref(msize == sizeof(uint64_t), msize);
-            _dbind_uint64_range(dbind, &min, &max);            
+            dbind_uint64_range(dbind, &min, &max);
             i_set_integer(component, (int64_t)*((uint64_t*)mdata), (int64_t)min, (int64_t)max);
             break;
         }
@@ -534,9 +531,9 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
             real32_t min, max;
             real32_t *v = (real32_t*)mdata;
             cassert_unref(msize == sizeof(real32_t), msize);
-            _dbind_real32_range(dbind, &min, &max);
-            *v = _dbind_real32(dbind, *v);
-            i_set_real(component, (real64_t)*v, (real64_t)min, (real64_t)max, _dbind_real32_format(dbind));
+            dbind_real32_range(dbind, &min, &max);
+            *v = dbind_real32(dbind, *v);
+            i_set_real(component, (real64_t)*v, (real64_t)min, (real64_t)max, dbind_real32_format(dbind));
             break;
         }
 
@@ -545,9 +542,9 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
             real64_t min, max;
             real64_t *v = (real64_t*)mdata;
             cassert_unref(msize == sizeof(real64_t), msize);
-            _dbind_real64_range(dbind, &min, &max);
-            *v = _dbind_real64(dbind, *v);
-            i_set_real(component, *v, min, max, _dbind_real64_format(dbind));
+            dbind_real64_range(dbind, &min, &max);
+            *v = dbind_real64(dbind, *v);
+            i_set_real(component, *v, min, max, dbind_real64_format(dbind));
             break;
         }
 
@@ -580,18 +577,15 @@ void gbind_upd_component(Cell *cell, StBind *stbind, DBind *dbind, void *obj)
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_layout(Layout *layout, StBind *stbind, DBind *dbind, void *obj)
+void gbind_upd_layout(Layout *layout, const StBind *stbind, const DBind *dbind, void *obj)
 {
-    cassert_unref(_dbind_get_stbind(dbind) == stbind, stbind);
+    cassert_unref(dbind_get_stbind(dbind) == stbind, stbind);
     if (obj != NULL)
     {
-        dtype_t mtype;
-        uint16_t offset;
-        uint16_t msize;
-        const char_t *subtype;
-        void *mdata;
-        _dbind_member_get(dbind, &offset, &mtype, &msize, &subtype);
-        mdata = (void*)((byte_t*)obj + offset);
+        dtype_t mtype = dbind_type(dbind);
+        uint16_t offset = dbind_offset(dbind);
+        const char_t *subtype = dbind_subtype(dbind);
+        void *mdata = (void*)((byte_t*)obj + offset);
 
         switch (mtype) {
         case ekDTYPE_OBJECT:
@@ -657,25 +651,25 @@ static __INLINE bool_t i_on_change(void *obj_edit, const char_t *objtype_edit, c
 	params.objtype_edit = objtype_edit;
 	params.offset_edit = offset_edit;
 	params.size_edit = size_edit;
-    listener_event_imp(listener, ekEVOBJCHANGE, notif_layout, &params, &ok, "Layout", "EvBind", "bool_t");
+    listener_event_imp(listener, ekGUI_EVENT_OBJCHANGE, notif_layout, &params, &ok, "Layout", "EvBind", "bool_t");
     return ok;
 }
 
 /*---------------------------------------------------------------------------*/
 
-// Update an object with the result of an edit
+/* Update an object with the result of an edit */
 static bool_t i_upd_value(const byte_t *value, void *obj, const char_t *objtype, const uint16_t size, const uint16_t moffset, Layout *notif_layout)
 {
-	// Area of memory that will change
+	/* Area of memory that will change */
 	byte_t *data = (byte_t*)obj + moffset;
 
-	// The change will affect only a atomic (basic) type
+	/* The change will affect only a atomic (basic) type */
     cassert(size <= 16);
 
-	// Has memory really changed? If not, we save the process.
+	/* Has memory really changed? If not, we save the process. */
     if (bmem_cmp(data, value, size) != 0)
     {
-		// The change should be notified
+		/* The change should be notified */
 		if (notif_layout != NULL)
 		{
 			byte_t cache[16];
@@ -709,16 +703,16 @@ static bool_t i_upd_value(const byte_t *value, void *obj, const char_t *objtype,
 
 static bool_t i_upd_str(const char_t *value, void *obj, const char_t *objtype, const uint16_t size, const uint16_t moffset, Layout *notif_layout)
 {
-	// Area of memory that will change
+	/* Area of memory that will change */
 	String **data = (String**)((byte_t*)obj + moffset);
 
-	// The change will affect only a atomic String*
+	/* The change will affect only a atomic String* */
 	cassert(size == sizeof(String*));
 
-	// Has memory really changed? If not, we save the process.
+	/* Has memory really changed? If not, we save the process. */
 	if (str_equ(*data, value) == FALSE)
 	{
-		// The change should be notified
+		/* The change should be notified */
 		if (notif_layout != NULL)
 		{
 			String *cache = str_copy(*data);
@@ -750,19 +744,19 @@ static bool_t i_upd_str(const char_t *value, void *obj, const char_t *objtype, c
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_bool(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, bool_t value)
+void gbind_upd_bool(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, bool_t value)
 {
     gbind_upd_uint32(layout, dbind, obj, layout_notif, (uint32_t)value);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_uint32(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, uint32_t value)
+void gbind_upd_uint32(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, uint32_t value)
 {
-    uint16_t offset = _dbind_member_offset(dbind);
-    dtype_t mtype = _dbind_member_type(dbind);
-	StBind *stbind = _dbind_get_stbind(dbind);
-	const char_t *objtype = _dbind_stbind_type(stbind);
+    uint16_t offset = dbind_offset(dbind);
+    dtype_t mtype = dbind_type(dbind);
+	const StBind *stbind = dbind_get_stbind(dbind);
+	const char_t *objtype = dbind_stbind_type(stbind);
 	bool_t updated = FALSE;
 
     /* Update the object data */
@@ -776,77 +770,77 @@ void gbind_upd_uint32(Layout *layout, DBind *dbind, void *obj, Layout *layout_no
 
     case ekDTYPE_INT8:
     {
-        int8_t v = _dbind_int8(dbind, (int8_t)value);
+        int8_t v = dbind_int8(dbind, (int8_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int8_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT16:
     {
-        int16_t v = _dbind_int16(dbind, (int16_t)value);
+        int16_t v = dbind_int16(dbind, (int16_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int16_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT32:
     {
-        int32_t v = _dbind_int32(dbind, (int32_t)value);
+        int32_t v = dbind_int32(dbind, (int32_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int32_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT64:
     {
-        int64_t v = _dbind_int64(dbind, (int64_t)value);
+        int64_t v = dbind_int64(dbind, (int64_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int64_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT8:
     {
-        uint8_t v = _dbind_uint8(dbind, (uint8_t)value);
+        uint8_t v = dbind_uint8(dbind, (uint8_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint8_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT16:
     {
-        uint16_t v = _dbind_uint16(dbind, (uint16_t)value);
+        uint16_t v = dbind_uint16(dbind, (uint16_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint16_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT32:
     {
-        uint32_t v = _dbind_uint32(dbind, (uint32_t)value);
+        uint32_t v = dbind_uint32(dbind, (uint32_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint32_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT64:
     {
-        uint64_t v = _dbind_uint64(dbind, (uint64_t)value);
+        uint64_t v = dbind_uint64(dbind, (uint64_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint64_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_REAL32:
     {
-        real32_t v = _dbind_real32(dbind, (real32_t)value);
+        real32_t v = dbind_real32(dbind, (real32_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real32_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_REAL64:
     {
-        real64_t v = _dbind_real64(dbind, (real64_t)value);
+        real64_t v = dbind_real64(dbind, (real64_t)value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real64_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_ENUM:
     {
-        enum_t v = _dbind_enum_value(dbind, value);
+        enum_t v = dbind_enum_value(dbind, value);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(enum_t), offset, layout_notif);
         break;
     }
@@ -881,12 +875,12 @@ void gbind_upd_uint32(Layout *layout, DBind *dbind, void *obj, Layout *layout_no
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, const real32_t value)
+void gbind_upd_norm_real32(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, const real32_t value)
 {
-    uint16_t offset = _dbind_member_offset(dbind);
-    dtype_t mtype = _dbind_member_type(dbind);
-	StBind *stbind = _dbind_get_stbind(dbind);
-	const char_t *objtype = _dbind_stbind_type(stbind);
+    uint16_t offset = dbind_offset(dbind);
+    dtype_t mtype = dbind_type(dbind);
+	const StBind *stbind = dbind_get_stbind(dbind);
+	const char_t *objtype = dbind_stbind_type(stbind);
 	bool_t updated = FALSE;
     cassert(value >= 0 && value <= 1);
 
@@ -902,9 +896,9 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_REAL32:
     {
         real32_t min, max, v;
-        _dbind_real32_range(dbind, &min, &max);
+        dbind_real32_range(dbind, &min, &max);
         v = (real32_t)(min + value * (max - min));
-        v = _dbind_real32(dbind, v);
+        v = dbind_real32(dbind, v);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real32_t), offset, layout_notif);
         break;
     }
@@ -912,9 +906,9 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_REAL64:
     {
         real64_t min, max, v;
-        _dbind_real64_range(dbind, &min, &max);
+        dbind_real64_range(dbind, &min, &max);
         v = (real64_t)(min + value * (max - min));
-        v = _dbind_real64(dbind, v);
+        v = dbind_real64(dbind, v);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real64_t), offset, layout_notif);
         break;
     }
@@ -922,7 +916,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_INT8:
     {
         int8_t min, max, v;
-        _dbind_int8_range(dbind, &min, &max);
+        dbind_int8_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, int8_t);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int8_t), offset, layout_notif);
         break;
@@ -931,7 +925,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_INT16:
     {
         int16_t min, max, v;
-        _dbind_int16_range(dbind, &min, &max);
+        dbind_int16_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, int16_t);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int16_t), offset, layout_notif);
         break;
@@ -940,7 +934,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_INT32:
     {
         int32_t min, max, v;
-        _dbind_int32_range(dbind, &min, &max);
+        dbind_int32_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, int32_t);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int32_t), offset, layout_notif);
         break;
@@ -949,7 +943,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_INT64:
     {
         int64_t min, max, v;
-        _dbind_int64_range(dbind, &min, &max);
+        dbind_int64_range(dbind, &min, &max);
         if (value > .9999)
             v = max;
         else
@@ -962,7 +956,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_UINT8:
     {
         uint8_t min, max, v;
-        _dbind_uint8_range(dbind, &min, &max);
+        dbind_uint8_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, uint8_t);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint8_t), offset, layout_notif);
         break;
@@ -971,7 +965,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_UINT16:
     {
         uint16_t min, max, v;
-        _dbind_uint16_range(dbind, &min, &max);
+        dbind_uint16_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, uint16_t);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint16_t), offset, layout_notif);
         break;
@@ -980,7 +974,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_UINT32:
     {
         uint32_t min, max, v;
-        _dbind_uint32_range(dbind, &min, &max);
+        dbind_uint32_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, uint32_t);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint32_t), offset, layout_notif);
         break;
@@ -989,7 +983,7 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
     case ekDTYPE_UINT64:
     {
         uint64_t min, max, v;
-        _dbind_uint64_range(dbind, &min, &max);
+        dbind_uint64_range(dbind, &min, &max);
         v = i_from_norm(min, max, value, uint64_t);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint64_t), offset, layout_notif);
         break;
@@ -997,9 +991,9 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
 
     case ekDTYPE_ENUM:
     {
-        uint32_t esize = _dbind_enum_size(dbind);
+        uint32_t esize = dbind_enum_count(dbind);
         uint32_t index = (uint32_t)bmath_roundf(value * (esize - 1));
-        enum_t v = _dbind_enum_value(dbind, index);
+        enum_t v = dbind_enum_value(dbind, index);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(enum_t), offset, layout_notif);
         break;
     }
@@ -1029,13 +1023,13 @@ void gbind_upd_norm_real32(Layout *layout, DBind *dbind, void *obj, Layout *layo
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_string(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, const char_t *str)
+void gbind_upd_string(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, const char_t *str)
 {
-    uint16_t offset = _dbind_member_offset(dbind);
-    dtype_t mtype = _dbind_member_type(dbind);
-	StBind *stbind = _dbind_get_stbind(dbind);
-	const char_t *objtype = _dbind_stbind_type(stbind);
-	const byte_t *mdata = (byte_t*)obj + offset;		 
+    uint16_t offset = dbind_offset(dbind);
+    dtype_t mtype = dbind_type(dbind);
+	const StBind *stbind = dbind_get_stbind(dbind);
+	const char_t *objtype = dbind_stbind_type(stbind);
+	const byte_t *mdata = (byte_t*)obj + offset;
 	bool_t updated = FALSE;
 
     /* Update the object data */
@@ -1047,70 +1041,70 @@ void gbind_upd_string(Layout *layout, DBind *dbind, void *obj, Layout *layout_no
 
     case ekDTYPE_REAL32:
     {
-        real32_t v = _dbind_string_to_real32(dbind, *((real32_t*)mdata), str);
+        real32_t v = dbind_string_to_real32(dbind, *((real32_t*)mdata), str);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real32_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_REAL64:
     {
-        real64_t v = _dbind_string_to_real64(dbind, *((real64_t*)mdata), str);
+        real64_t v = dbind_string_to_real64(dbind, *((real64_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real64_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT8:
     {
-        int8_t v = _dbind_string_to_int8(dbind, *((int8_t*)mdata), str);
+        int8_t v = dbind_string_to_int8(dbind, *((int8_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int8_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT16:
     {
-        int16_t v = _dbind_string_to_int16(dbind, *((int16_t*)mdata), str);
+        int16_t v = dbind_string_to_int16(dbind, *((int16_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int16_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT32:
     {
-        int32_t v = _dbind_string_to_int32(dbind, *((int32_t*)mdata), str);
+        int32_t v = dbind_string_to_int32(dbind, *((int32_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int32_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_INT64:
     {
-        int64_t v = _dbind_string_to_int64(dbind, *((int64_t*)mdata), str);
+        int64_t v = dbind_string_to_int64(dbind, *((int64_t*)mdata), str);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int64_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT8:
     {
-        uint8_t v = _dbind_string_to_uint8(dbind, *((uint8_t*)mdata), str);
+        uint8_t v = dbind_string_to_uint8(dbind, *((uint8_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint8_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT16:
     {
-        uint16_t v = _dbind_string_to_uint16(dbind, *((uint16_t*)mdata), str);
+        uint16_t v = dbind_string_to_uint16(dbind, *((uint16_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint16_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT32:
     {
-        uint32_t v = _dbind_string_to_uint32(dbind, *((uint32_t*)mdata), str);
+        uint32_t v = dbind_string_to_uint32(dbind, *((uint32_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint32_t), offset, layout_notif);
         break;
     }
 
     case ekDTYPE_UINT64:
     {
-        uint64_t v = _dbind_string_to_uint64(dbind, *((uint64_t*)mdata), str);
+        uint64_t v = dbind_string_to_uint64(dbind, *((uint64_t*)mdata), str);
 		updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint64_t), offset, layout_notif);
         break;
     }
@@ -1137,17 +1131,20 @@ void gbind_upd_string(Layout *layout, DBind *dbind, void *obj, Layout *layout_no
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_image(Layout *layout, DBind *dbind, void *objbind, const Image *image)
+void gbind_upd_image(Layout *layout, const DBind *dbind, void *objbind, const Image *image)
 {
-    byte_t *mdata = (byte_t*)(objbind) + _dbind_member_offset(dbind);
-    dtype_t mtype = _dbind_member_type(dbind);
+    byte_t *mdata = (byte_t*)(objbind) + dbind_offset(dbind);
+    dtype_t mtype = dbind_type(dbind);
 
     /* Update the object data */
     switch (mtype) {
     case ekDTYPE_OBJECT_OPAQUE:
-        cassert(str_equ_c(_dbind_member_subtype(dbind), "Image") == TRUE);
-        _dbind_opaque_upd(_dbind_member_subtype(dbind), (void*)image, (void**)mdata);
+    {
+        const StBind *stbind = dbind_stbind(dbind_subtype(dbind));
+        cassert(str_equ_c(dbind_subtype(dbind), "Image") == TRUE);
+        dbind_stbind_opaque_upd(stbind, (void*)image, (void**)mdata);
         break;
+    }
 
     case ekDTYPE_BOOL:
     case ekDTYPE_INT8:
@@ -1175,18 +1172,18 @@ void gbind_upd_image(Layout *layout, DBind *dbind, void *objbind, const Image *i
 
     /* Update all controls related with this member */
     /* Decoment if more imgview with same image */
-    //_layout_dbind_update(layout, dbind);
+    /* _layout_dbind_update(layout, dbind); */
     unref(layout);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void gbind_upd_increment(Layout *layout, DBind *dbind, void *obj, Layout *layout_notif, const bool_t pos)
+void gbind_upd_increment(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, const bool_t pos)
 {
-    uint16_t offset = _dbind_member_offset(dbind);
-    dtype_t mtype = _dbind_member_type(dbind);
-	StBind *stbind = _dbind_get_stbind(dbind);
-	const char_t *objtype = _dbind_stbind_type(stbind);
+    uint16_t offset = dbind_offset(dbind);
+    dtype_t mtype = dbind_type(dbind);
+	const StBind *stbind = dbind_get_stbind(dbind);
+	const char_t *objtype = dbind_stbind_type(stbind);
 	byte_t *mdata = (byte_t*)(obj) + offset;
 	bool_t updated = FALSE;
 
@@ -1201,78 +1198,78 @@ void gbind_upd_increment(Layout *layout, DBind *dbind, void *obj, Layout *layout
 
     case ekDTYPE_REAL32:
 	{
-		real32_t v = _dbind_incr_real32(dbind, *((real32_t*)mdata), pos);
+		real32_t v = dbind_incr_real32(dbind, *((real32_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real32_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_REAL64:
 	{
-		real64_t v = _dbind_incr_real64(dbind, *((real64_t*)mdata), pos);
+		real64_t v = dbind_incr_real64(dbind, *((real64_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(real64_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_INT8:
 	{
-		int8_t v = _dbind_incr_int8(dbind, *((int8_t*)mdata), pos);
+		int8_t v = dbind_incr_int8(dbind, *((int8_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int8_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_INT16:
 	{
-		int16_t v = _dbind_incr_int16(dbind, *((int16_t*)mdata), pos);
+		int16_t v = dbind_incr_int16(dbind, *((int16_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int16_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_INT32:
 	{
-		int32_t v = _dbind_incr_int32(dbind, *((int32_t*)mdata), pos);
+		int32_t v = dbind_incr_int32(dbind, *((int32_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int32_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_INT64:
 	{
-		int64_t v = _dbind_incr_int64(dbind, *((int64_t*)mdata), pos);
+		int64_t v = dbind_incr_int64(dbind, *((int64_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(int64_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_UINT8:
 	{
-		uint8_t v = _dbind_incr_uint8(dbind, *((uint8_t*)mdata), pos);
+		uint8_t v = dbind_incr_uint8(dbind, *((uint8_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint8_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_UINT16:
 	{
-		uint16_t v = _dbind_incr_uint16(dbind, *((uint16_t*)mdata), pos);
+		uint16_t v = dbind_incr_uint16(dbind, *((uint16_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint16_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_UINT32:
 	{
-		uint32_t v = _dbind_incr_uint32(dbind, *((uint32_t*)mdata), pos);
+		uint32_t v = dbind_incr_uint32(dbind, *((uint32_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint32_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_UINT64:
 	{
-		uint64_t v  = _dbind_incr_uint64(dbind, *((uint64_t*)mdata), pos);
+		uint64_t v = dbind_incr_uint64(dbind, *((uint64_t*)mdata), pos);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(uint64_t), offset, layout_notif);
 		break;
 	}
 
     case ekDTYPE_ENUM:
 	{
-		uint32_t index = _dbind_enum_index(dbind, *((enum_t*)mdata));
-		uint32_t size = _dbind_enum_size(dbind);
+		uint32_t index = dbind_enum_index(dbind, *((enum_t*)mdata));
+		uint32_t size = dbind_enum_count(dbind);
 		enum_t v;
 
 		if (pos == TRUE)
@@ -1286,11 +1283,11 @@ void gbind_upd_increment(Layout *layout, DBind *dbind, void *obj, Layout *layout
 		{
 			if (index == 0)
 				index = size - 1;
-			else 
+			else
 				index--;
 		}
 
-        v = _dbind_enum_value(dbind, index);
+        v = dbind_enum_value(dbind, index);
         updated = i_upd_value((byte_t*)&v, obj, objtype, sizeof(enum_t), offset, layout_notif);
         break;
     }
@@ -1317,21 +1314,21 @@ void gbind_upd_increment(Layout *layout, DBind *dbind, void *obj, Layout *layout
 
 bool_t gbind_modify_data(const void *obj, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize, const EvBind *evbind)
 {
-	// We extract the memory area that is expected to have been modified
+	/* We extract the memory area that is expected to have been modified */
 	const byte_t *memblock = NULL;
 	uint32_t memsize = 0;
-	StBind *stbind = _dbind_stbind(type);
-	uint32_t i, n = _dbind_stbind_members(stbind);
-	cassert_unref(_dbind_stbind_size(stbind) == size, size);
+	const StBind *stbind = dbind_stbind(type);
+	uint32_t i, n = dbind_stbind_count(stbind);
+	cassert_unref(dbind_stbind_sizeof(stbind) == size, size);
 	cassert_no_null(evbind);
 
 	for (i = 0; i < n; ++i)
 	{
-		const char_t *name = NULL;
-		uint16_t offset = UINT16_MAX;
-		dtype_t dtype = ENUM_MAX(dtype_t);
-		const char_t *subtype = NULL;
-		_dbind_stbind_member_i(stbind, i, &name, &offset, &dtype, &subtype);
+        const DBind *dbind = dbind_stbind_member(stbind, i);
+		const char_t *name = dbind_name(dbind);
+		uint16_t offset = dbind_offset(dbind);
+		dtype_t dtype = dbind_type(dbind);
+		const char_t *subtype = dbind_subtype(dbind);
 		if (offset == moffset)
 		{
 			cassert_unref(str_equ_c(name, mname) == TRUE, mname);
@@ -1354,18 +1351,18 @@ bool_t gbind_modify_data(const void *obj, const char_t *type, const uint16_t siz
 
 			case ekDTYPE_OBJECT:
 				memblock = (const byte_t*)obj + offset;
-				cassert(_dbind_stbind_size(_dbind_stbind(subtype)) == msize);
+				cassert(dbind_stbind_sizeof(dbind_stbind(subtype)) == msize);
 				cassert_unref(str_equ_c(mtype, subtype) == TRUE, mtype);
 				memsize = msize;
 				break;
 
 			case ekDTYPE_OBJECT_PTR:
 			{
-				StBind *ostbind = _dbind_stbind(subtype);
+				const StBind *ostbind = dbind_stbind(subtype);
 				memblock = *(const byte_t**)(((const byte_t*)obj + offset));
 				cassert(sizeof(void*) == msize);
 				cassert_unref(str_equ_cn(mtype, subtype, str_len_c(subtype)) == TRUE, mtype);
-				memsize = _dbind_stbind_size(ostbind);
+				memsize = dbind_stbind_sizeof(ostbind);
 				break;
 			}
 
@@ -1393,6 +1390,6 @@ bool_t gbind_modify_data(const void *obj, const char_t *type, const uint16_t siz
 		const byte_t *memblock2 = (byte_t*)evbind->obj_edit + evbind->offset_edit;
 		return bmem_overlaps(memblock, memblock2, memsize, evbind->size_edit);
 	}
-	
+
 	return FALSE;
 }

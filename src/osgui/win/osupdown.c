@@ -26,9 +26,9 @@
 #endif
 
 /* Avoid Microsoft Warnings */
-#pragma warning (push, 0) 
+#pragma warning (push, 0)
 #include <Commctrl.h>
-#pragma warning (pop) 
+#pragma warning (pop)
 
 struct _osupdown_t
 {
@@ -49,7 +49,7 @@ static void i_init_updown(OSUpDown *updown, Listener **OnClick_listener)
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSUpDown *updown = (OSUpDown*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    cassert_no_null(updown);  
+    cassert_no_null(updown);
 
     switch (uMsg)
     {
@@ -67,7 +67,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 /*---------------------------------------------------------------------------*/
 // Height is the same as Edit
-/*static void i_size(const fsize_t size, real32_t *width, real32_t *height)
+/*static void i_size(const gui_size_t size, real32_t *width, real32_t *height)
 {
     switch (size)
     {
@@ -93,14 +93,14 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 /*---------------------------------------------------------------------------*/
 
-OSUpDown *osupdown_create(const updown_flag_t flags)
+OSUpDown *osupdown_create(const uint32_t flags)
 {
     OSUpDown *updown = NULL;
     DWORD dwStyle = 0;
     Listener *OnClick_listener = NULL;
     unref(flags);
     updown = heap_new(OSUpDown);
-    updown->control.type = ekGUI_COMPONENT_UPDOWN;
+    updown->control.type = ekGUI_TYPE_UPDOWN;
     dwStyle = WS_CHILD | WS_CLIPSIBLINGS | UDS_ARROWKEYS;
     _oscontrol_init((OSControl*)updown, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, UPDOWN_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     i_init_updown(updown, &OnClick_listener);
@@ -205,12 +205,12 @@ void _osupdown_OnNotification(OSUpDown *updown, const NMHDR *nmhdr, LPARAM lPara
             NMUPDOWN *lpnmud = (NMUPDOWN*)lParam;
             EvButton params;
             params.text = "";
-            params.state = ekON;
+            params.state = ekGUI_ON;
             if (lpnmud->iDelta < 0)
                 params.index = 0;
             else
                 params.index = 1;
-            listener_event(updown->OnClick_listener, ekEVUPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
+            listener_event(updown->OnClick_listener, ekGUI_EVENT_UPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
         }
     }
 }

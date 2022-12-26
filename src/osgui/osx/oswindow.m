@@ -19,6 +19,7 @@
 #include "ospanel.inl"
 #include "osview.inl"
 #include "cassert.h"
+#include "arrst.h"
 #include "event.h"
 #include "heap.h"
 #include "ptr.h"
@@ -26,6 +27,17 @@
 #if !defined (__MACOS__)
 #error This file is only for OSX
 #endif
+
+typedef struct _hotkey_t HotKey;
+
+struct _hotkey_t
+{
+    vkey_t key;
+    uint32_t modifiers;
+    Listener *listener;
+};
+
+DeclSt(HotKey);
 
 /*---------------------------------------------------------------------------*/
 
@@ -38,8 +50,9 @@
     BOOL can_become_key_window;
     BOOL launch_resize_event;
     NSResponder *keyboard_focus;
-    window_flag_t flags;
+    uint32_t flags;
     CGFloat alpha;
+    ArrSt(HotKey) *hotkeys;
     NSView *first_in_key_loop;
     NSView *current_in_key_loop;
     BOOL destroy_main_view;
@@ -61,7 +74,7 @@
     Listener *OnClose;
 }
 
-@end 
+@end
 
 /*---------------------------------------------------------------------------*/
 
@@ -110,7 +123,7 @@
         _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
         params.x = (real32_t)origin_x;
         params.y = (real32_t)origin_y;
-        listener_event(self->OnMoved, ekEVWNDMOVED, (OSWindow*)window, &params, NULL, OSWindow, EvPos, void);
+        listener_event(self->OnMoved, ekGUI_EVENT_WND_MOVED, (OSWindow*)window, &params, NULL, OSWindow, EvPos, void);
     }
 
     window->last_moved_by_interface = YES;
@@ -131,7 +144,7 @@
         params.width = (real32_t)content_frame.size.width;
         params.height = (real32_t)content_frame.size.height;
 
-        // Called whenever graphics state updated (such as window resize)	
+        // Called whenever graphics state updated (such as window resize)
         // OpenGL rendering is not synchronous with other rendering on the OSX.
         // Therefore, call disableScreenUpdatesUntilFlush so the window server
         // doesn't render non-OpenGL content in the window asynchronously from
@@ -139,8 +152,8 @@
         // includes the title bar and drawing done by the app with other APIs)
         [window disableScreenUpdatesUntilFlush];
 
-        listener_event(self->OnResize, ekEVWNDSIZING, (OSWindow*)window, &params, &result, OSWindow, EvSize, EvSize);
-        listener_event(self->OnResize, ekEVWNDSIZE, (OSWindow*)window, &result, NULL, OSWindow, EvSize, void);
+        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZING, (OSWindow*)window, &params, &result, OSWindow, EvSize, EvSize);
+        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZE, (OSWindow*)window, &result, NULL, OSWindow, EvSize, void);
         frame = [window frameRectForContentRect:NSMakeRect(0.f, 0.f, (CGFloat)result.width, (CGFloat)result.height)];
         return frame.size;
     }
@@ -152,14 +165,14 @@
 
 /*---------------------------------------------------------------------------*/
 
-static BOOL i_close(OSXWindowDelegate *delegate, OSXWindow *window, const close_t close_origin)
+static BOOL i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_close_t close_origin)
 {
     if (delegate->OnClose != NULL)
     {
         EvWinClose params;
         bool_t result = FALSE;
         params.origin = close_origin;
-        listener_event(delegate->OnClose, ekEVWNDCLOSE, (OSWindow*)window, &params, &result, OSWindow, EvWinClose, bool_t);
+        listener_event(delegate->OnClose, ekGUI_EVENT_WND_CLOSE, (OSWindow*)window, &params, &result, OSWindow, EvWinClose, bool_t);
         return (BOOL)result;
     }
     else
@@ -172,7 +185,7 @@ static BOOL i_close(OSXWindowDelegate *delegate, OSXWindow *window, const close_
 
 - (BOOL)windowShouldClose:(id)sender
 {
-    return i_close(self, sender, ekCLBUTTON);
+    return i_close(self, sender, ekGUI_CLOSE_BUTTON);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -215,7 +228,7 @@ static void i_OnFocus(NSResponder *view, const bool_t focus)
     i_OnFocus([window firstResponder], FALSE);
 }
 
-@end 
+@end
 
 /*---------------------------------------------------------------------------*/
 
@@ -257,8 +270,11 @@ static void i_OnFocus(NSResponder *view, const bool_t focus)
 -(void)cancelOperation:(id)sender
 {
     unref(sender);
-    if (i_close([self delegate], self, ekCLESC) == YES)
-        [self orderOut:nil];
+    if (self->flags & ekWINDOW_ESC)
+    {
+        if (i_close([self delegate], self, ekGUI_CLOSE_ESC) == YES)
+            [self orderOut:nil];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -276,17 +292,24 @@ static void i_OnFocus(NSResponder *view, const bool_t focus)
                 return;
         }
 
+        if (self->flags & ekWINDOW_RETURN)
+        {
+            if (i_close([self delegate], self, ekGUI_CLOSE_INTRO) == YES)
+                [self orderOut:nil];
+            return;
+        }
+
+        /*
         {
             NSResponder *resp = [self firstResponder];
             if (_osbutton_OnIntro(resp) == YES)
                 return;
         }
-        
-        if (i_close([self delegate], self, ekCLINTRO) == YES)
-            [self orderOut:nil];
+        */
     }
     else
     {
+        /* TODO: hotkeys */
         [super keyDown:theEvent];
     }
 }
@@ -295,32 +318,32 @@ static void i_OnFocus(NSResponder *view, const bool_t focus)
 
 /*---------------------------------------------------------------------------*/
 
-static NSUInteger i_window_style_mask(const window_flag_t flags)
+static NSUInteger i_window_style_mask(const uint32_t flags)
 {
     NSUInteger style_mask = 0;
 #if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-    if (flags & ekWNTITLE)
+    if (flags & ekWINDOW_TITLE)
         style_mask |= NSWindowStyleMaskTitled;
-    
-    if (flags & ekWNMIN)
+
+    if (flags & ekWINDOW_MIN)
         style_mask |= NSWindowStyleMaskMiniaturizable;
-    
-    if (flags & ekWNCLOSE)
+
+    if (flags & ekWINDOW_CLOSE)
         style_mask |= NSWindowStyleMaskClosable;
-    
-    if (flags & ekWNRES)
+
+    if (flags & ekWINDOW_RESIZE)
         style_mask |= NSWindowStyleMaskResizable;
-#else    
-    if (flags & ekWNTITLE)
+#else
+    if (flags & ekWINDOW_TITLE)
         style_mask |= NSTitledWindowMask;
 
-    if (flags & ekWNMIN)
+    if (flags & ekWINDOW_MIN)
         style_mask |= NSMiniaturizableWindowMask;
 
-    if (flags & ekWNCLOSE)
+    if (flags & ekWINDOW_CLOSE)
         style_mask |= NSClosableWindowMask;
 
-    if (flags & ekWNRES)
+    if (flags & ekWINDOW_RESIZE)
         style_mask |= NSResizableWindowMask;
 #endif
     return style_mask;
@@ -328,7 +351,7 @@ static NSUInteger i_window_style_mask(const window_flag_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-OSWindow *oswindow_create(const window_flag_t flags)
+OSWindow *oswindow_create(const uint32_t flags)
 {
     NSUInteger stylemask = 0;
     OSXWindow *window = NULL;
@@ -350,6 +373,7 @@ OSWindow *oswindow_create(const window_flag_t flags)
     delegate = [OSXWindowDelegate alloc];
     window->flags = flags;
     window->alpha = .5f;
+    window->hotkeys = NULL;
     window->first_in_key_loop = nil;
     window->current_in_key_loop = nil;
     delegate->OnMoved = NULL;
@@ -382,6 +406,13 @@ OSWindow *oswindow_managed(void *native_ptr)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_hotkey(HotKey *hotkey)
+{
+    listener_destroy(&hotkey->listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_destroy(OSWindow **window)
 {
     OSXWindow *windowp = NULL;
@@ -391,7 +422,7 @@ void oswindow_destroy(OSWindow **window)
     cassert_no_null(windowp);
     delegate = [windowp delegate];
     cassert_no_null(delegate);
-    
+
     if (windowp->destroy_main_view == YES)
     {
         OSPanel *panel = (OSPanel*)[windowp contentView];
@@ -401,8 +432,9 @@ void oswindow_destroy(OSWindow **window)
             _ospanel_destroy(&panel);
         }
     }
-    
+
     cassert([windowp contentView] == nil);
+    arrst_destopt(&windowp->hotkeys, i_remove_hotkey, HotKey);
     listener_destroy(&delegate->OnMoved);
     listener_destroy(&delegate->OnResize);
     listener_destroy(&delegate->OnClose);
@@ -454,7 +486,7 @@ void oswindow_title(OSWindow *window, const char_t *text)
     cassert_no_null(window);
 #if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     cassert(([(OSXWindow*)window styleMask] & NSWindowStyleMaskTitled) == NSWindowStyleMaskTitled);
-#else    
+#else
     cassert(([(OSXWindow*)window styleMask] & NSTitledWindowMask) == NSTitledWindowMask);
 #endif
     cassert_no_null(text);
@@ -514,6 +546,35 @@ void oswindow_enable_mouse_events(OSWindow *window, const bool_t enabled)
 
 /*---------------------------------------------------------------------------*/
 
+void oswindow_hotkey(OSWindow *window, const vkey_t key, const uint32_t modifiers, Listener *listener)
+{
+    OSXWindow *windowp = (OSXWindow*)window;
+    cassert_no_null(windowp);
+
+    if (windowp->hotkeys == NULL && listener != NULL)
+        windowp->hotkeys = arrst_create(HotKey);
+
+    /* Update the hotkey(if exists) */
+    arrst_foreach(hotkey, windowp->hotkeys, HotKey)
+        if (hotkey->key == key && hotkey->modifiers == modifiers)
+        {
+            listener_update(&hotkey->listener, listener);
+            return;
+        }
+    arrst_end();
+
+    /* Adds a new hotkey */
+    if (listener != NULL)
+    {
+        HotKey *hotkey = arrst_new(windowp->hotkeys, HotKey);
+        hotkey->key = key;
+        hotkey->modifiers = modifiers;
+        hotkey->listener = listener;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_taborder(OSWindow *window, OSControl *control)
 {
     OSXWindow *oswindow;
@@ -526,7 +587,7 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
     if (oscontrol != nil)
     {
         bool_t with_tabstop = TRUE;
-        
+
         //if ([(NSObject*)control isKindOfClass:[NSButton class]] == YES)
         //    with_tabstop = _osbutton_with_tabstop((NSButton*)control);
 
@@ -544,7 +605,7 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
             [oscontrol setNextKeyView:oswindow->first_in_key_loop];
             oswindow->current_in_key_loop = oscontrol;
         }
-    }    
+    }
     else
     {
         oswindow->first_in_key_loop = nil;
@@ -681,7 +742,7 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
         [(OSXWindow*)parent_window makeFirstResponder:front_window->keyboard_focus];
         [(OSXWindow*)parent_window setWorksWhenModal:YES];
     }
-    
+
     return (uint32_t)ret;
 }
 
@@ -795,15 +856,15 @@ void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_property(OSWindow *window, const guiprop_t property, const void *value)
+void oswindow_property(OSWindow *window, const gui_prop_t property, const void *value)
 {
     cassert_no_null(window);
     unref(value);
     switch (property)
     {
-        case ekGUI_PROPERTY_RESIZE:
+        case ekGUI_PROP_RESIZE:
             break;
-        case ekGUI_PROPERTY_CHILDREN:
+        case ekGUI_PROP_CHILDREN:
             ((OSXWindow*)window)->destroy_main_view = NO;
             break;
         cassert_default();

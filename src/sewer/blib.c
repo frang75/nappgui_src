@@ -10,10 +10,11 @@
 
 /* C library funcions */
 
-#include "blib.inl"
+#include "blib.h"
 #include "cassert.h"
 #include "ptr.h"
 #include "qsort.inl"
+#include "sewer.inl"
 
 #include "nowarn.hxx"
 #include <stdlib.h>
@@ -58,11 +59,11 @@ void blib_strncpy(char_t *dest, const uint32_t size, const char_t *src, const ui
 {
     cassert_no_null(dest);
     cassert_no_null(src);
-#if defined (__WINDOWS__)
+#if defined (_MSC_VER)
     strncpy_s((char*)dest, (rsize_t)size, (const char*)src, (rsize_t)n);
 #else
-    // char* strncpy(char*, const char*, size_t)’ output truncated before terminating nul
-    // copying 4 bytes from a string of the same length
+    /* char* strncpy(char*, const char*, size_t)ï¿½ output truncated before terminating nul
+       copying 4 bytes from a string of the same length */
     cassert_unref(n < size, size);
     memcpy((char*)dest, (const char*)src, (size_t)n);
 #endif
@@ -206,14 +207,14 @@ real64_t blib_strtod(const char_t* str, char_t** endptr, bool_t *err)
 void blib_qsort(byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_compare func_compare)
 {
     cassert_no_nullf(func_compare);
-    _qsort_ex((const void*)array, nelems, size, (FPtr_compare_ex)func_compare, NULL);
-//    qsort((void*)array, (size_t)nelems, (size_t)size, (int(*)(const void*, const void*))func_compare);
+    qsort((void*)array, (size_t)nelems, (size_t)size, func_compare);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void blib_qsort_ex(const byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_compare_ex func_compare, const byte_t *data)
 {
+    cassert_no_nullf(func_compare);
     _qsort_ex((const void*)array, nelems, size, func_compare, (const void*)data);
 }
 
@@ -232,7 +233,7 @@ bool_t blib_bsearch(const byte_t *array, const byte_t *key, const uint32_t nelem
 
     st = 0;
     ed = nelems - 1;
-        
+
     /* Check if first is bigger than 'elem' */
     compare = func_compare(array, key);
     if (compare > 0)
@@ -249,19 +250,19 @@ bool_t blib_bsearch(const byte_t *array, const byte_t *key, const uint32_t nelem
     /* Check if last is smaller than 'elem' */
     if (nelems > 1)
         compare = func_compare(array + (ed * size), key);
-    
+
     if (compare < 0)
     {
         ptr_assign(pos, nelems);
         return FALSE;
-    }    
+    }
     else if (compare == 0)
     {
         cassert(nelems > 1);
         ptr_assign(pos, ed);
         return TRUE;
     }
-    
+
     /* Always data[st] is less than 'elem' & data[ed] is greather than 'elem' */
     for(;;)
     {
@@ -308,7 +309,7 @@ bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const uint32_t ne
 
     st = 0;
     ed = nelems - 1;
-        
+
     /* Check if first is bigger than 'elem' */
     compare = func_compare(array, key, data);
     if (compare > 0)
@@ -325,19 +326,19 @@ bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const uint32_t ne
     /* Check if last is smaller than 'elem' */
     if (nelems > 1)
         compare = func_compare(array + (ed * size), key, data);
-    
+
     if (compare < 0)
     {
         ptr_assign(pos, nelems);
         return FALSE;
-    }    
+    }
     else if (compare == 0)
     {
         cassert(nelems > 1);
         ptr_assign(pos, ed);
         return TRUE;
     }
-    
+
     /* Always data[st] is less than 'elem' & data[ed] is greather than 'elem' */
     for(;;)
     {
@@ -367,4 +368,18 @@ bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const uint32_t ne
             }
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void blib_atexit(void (*func)(void))
+{
+    _sewer_atexit(func);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void blib_abort(void)
+{
+    abort();
 }

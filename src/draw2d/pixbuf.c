@@ -11,7 +11,7 @@
 /* Pixel buffers */
 
 #include "pixbuf.h"
-#include "imgutils.inl"
+#include "imgutil.inl"
 #include "bmath.h"
 #include "bmem.h"
 #include "cassert.h"
@@ -43,23 +43,23 @@ static void i_set24(byte_t *data, const uint32_t x, const uint32_t y, const uint
 static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value);
 
 static const FPtr_get i_GET[] = {
-    i_get1,     // ekINDEX1
-    i_get2,     // ekINDEX2
-    i_get4,     // ekINDEX4
-    i_get8,     // ekINDEX8
-    i_get8,     // ekGRAY8
-    i_get24,    // ekRGB24
-    i_get32     // ekRGBA32
+    i_get1,     /* ekINDEX1 */
+    i_get2,     /* ekINDEX2 */
+    i_get4,     /* ekINDEX4 */
+    i_get8,     /* ekINDEX8 */
+    i_get8,     /* ekGRAY8 */
+    i_get24,    /* ekRGB24 */
+    i_get32     /* ekRGBA32 */
 };
 
 static const FPtr_set i_SET[] = {
-    i_set1,     // ekINDEX1
-    i_set2,     // ekINDEX2
-    i_set4,     // ekINDEX4
-    i_set8,     // ekINDEX8
-    i_set8,     // ekGRAY8
-    i_set24,    // ekRGB24
-    i_set32     // ekRGBA32
+    i_set1,     /* ekINDEX1 */
+    i_set2,     /* ekINDEX2 */
+    i_set4,     /* ekINDEX4 */
+    i_set8,     /* ekINDEX8 */
+    i_set8,     /* ekGRAY8 */
+    i_set24,    /* ekRGB24 */
+    i_set32     /* ekRGBA32 */
 };
 
 /*---------------------------------------------------------------------------*/
@@ -297,7 +297,7 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             switch(oformat) {
             case ekRGBA32:
                 return imgutil_rgb_to_rgba(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
-            
+
             case ekGRAY8:
                 return imgutil_rgb_to_gray(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
 
@@ -327,7 +327,7 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
         bmem_copy(i_DATA(npixbuf), i_DATA(pixbuf), i_bufsize(pixbuf->width, pixbuf->height, pixbuf->format));
         return npixbuf;
     }
-    
+
     return NULL;
 }
 

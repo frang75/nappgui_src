@@ -15,11 +15,11 @@
 
 __EXTERN_C
 
-Progress *progress_create(void);
+_gui_api Progress *progress_create(void);
 
-void progress_undefined(Progress *progress, const bool_t running);
+_gui_api void progress_undefined(Progress *progress, const bool_t running);
 
-void progress_value(Progress *progress, const real32_t value);
+_gui_api void progress_value(Progress *progress, const real32_t value);
 
 __END_C
 

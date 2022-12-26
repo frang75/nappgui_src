@@ -26,10 +26,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXSlider : NSSlider 
+@interface OSXSlider : NSSlider
 {
     @public
-    slider_flag_t flags;
+    uint32_t flags;
     Listener *OnMoved;
 }
 @end
@@ -58,9 +58,9 @@
         params.pos = (real32_t)[sender floatValue];
         params.incr = 0;
         params.step = UINT32_MAX;
-        if (slider_type(self->flags) == ekSLVERT)
+        if (slider_get_type(self->flags) == ekSLIDER_HORZ)
             params.pos = 1.f - params.pos;
-        listener_event(self->OnMoved, ekEVSLIDER, (OSSlider*)sender, &params, NULL, OSSlider, EvSlider, void);
+        listener_event(self->OnMoved, ekGUI_EVENT_SLIDER, (OSSlider*)sender, &params, NULL, OSSlider, EvSlider, void);
     }
 }
 
@@ -83,7 +83,7 @@
 /*---------------------------------------------------------------------------*/
 
 /*
-static CGFloat i_slider_with_tickmarks_height(const fsize_t knob_size)
+static CGFloat i_slider_with_tickmarks_height(const gui_size_t knob_size)
 {
     switch(knob_size)
     {
@@ -101,7 +101,7 @@ static CGFloat i_slider_with_tickmarks_height(const fsize_t knob_size)
 
 /*---------------------------------------------------------------------------*/
 
-OSSlider *osslider_create(const slider_flag_t flags)
+OSSlider *osslider_create(const uint32_t flags)
 {
     OSXSlider *slider = nil;
     heap_auditor_add("OSXSlider");
@@ -111,12 +111,12 @@ OSSlider *osslider_create(const slider_flag_t flags)
     _oscontrol_init(slider);
     [slider setMinValue:0.];
     [slider setMaxValue:1.];
-    [slider setFloatValue:slider_type(flags) == ekSLHORZ ? 0.f : 1.f];
-    
+    [slider setFloatValue:slider_get_type(flags) == ekSLIDER_HORZ ? 0.f : 1.f];
+
 #if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-    [slider setVertical:(BOOL)(slider_type(flags) == ekSLVERT)];
+    [slider setVertical:(BOOL)(slider_get_type(flags) == ekSLIDER_VERT)];
 #endif
-    
+
     [slider setAltIncrementValue:0.01];
     [slider setTarget:slider];
     [slider setAction:@selector(onSliderMoved:)];
@@ -200,7 +200,7 @@ void osslider_position(OSSlider *slider, const real32_t position)
     real32_t pos = position;
     cassert_no_null(lslider);
     cassert(position >= 0.f && position <= 1.f);
-    if (slider_type(lslider->flags) == ekSLVERT)
+    if (slider_get_type(lslider->flags) == ekSLIDER_VERT)
         pos = 1.f - position;
     [lslider setFloatValue:pos];
 }
@@ -215,37 +215,36 @@ real32_t osslider_get_position(const OSSlider *slider)
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_slider_without_tickmarks_height(const fsize_t knob_size)
+static real32_t i_slider_without_tickmarks_height(const gui_size_t knob_size)
 {
-    switch(knob_size)
-    {
-        case ekMINI:
-            return 12.f;
-        case ekSMALL:
-            return 15.f;
-        case ekREGULAR:
-            return 25.f;
-            cassert_default();
+    switch(knob_size) {
+    case ekGUI_SIZE_MINI:
+        return 12.f;
+    case ekGUI_SIZE_SMALL:
+        return 15.f;
+    case ekGUI_SIZE_REGULAR:
+        return 25.f;
+	cassert_default();
     }
-    
+
     return 0.f;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_bounds(const OSSlider *slider, const real32_t length, const fsize_t knob_size, real32_t *width, real32_t *height)
+void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_size_t knob_size, real32_t *width, real32_t *height)
 {
     OSXSlider *lslider = (OSXSlider*)slider;
     cassert_no_null(lslider);
     cassert_no_null(width);
     cassert_no_null(height);
-    switch (slider_type(lslider->flags))
+    switch (slider_get_type(lslider->flags))
     {
-        case ekSLHORZ:
+        case ekSLIDER_HORZ:
             *width = length;
             *height = i_slider_without_tickmarks_height(knob_size);
             break;
-        case ekSLVERT:
+        case ekSLIDER_VERT:
             *width = i_slider_without_tickmarks_height(knob_size);
             *height = length;
             break;

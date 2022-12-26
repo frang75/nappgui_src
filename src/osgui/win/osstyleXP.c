@@ -177,6 +177,14 @@ void osstyleXP_CloseThemeData(void)
 
 /*---------------------------------------------------------------------------*/
 
+void osstyleXP_GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, const RECT *pBoundingRect, RECT *pContentRect)
+{
+    HRESULT res = GetThemeBackgroundContentRect(hTheme, hdc, iPartId, iStateId, pBoundingRect, pContentRect);
+    cassert_unref(res == S_OK, res);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osstyleXP_DrawThemeBackgroundNoBorder(HTHEME theme, int iPartId, int iStateId, HDC hdc, const RECT *rc)
 {
     DTBGOPTS opts;
@@ -318,12 +326,6 @@ HRESULT osstyleXP_DrawThemeBackground(OSStyleXP *style, HTHEME hTheme, HDC hdc, 
 
 /*---------------------------------------------------------------------------*/
 
-//HRESULT osstyleXP_GetThemeBackgroundContentRect(OSStyleXP *style, HTHEME hTheme, HDC hdc, int iPartId, int iStateId, const RECT *pBoundingRect, RECT *pContentRect);
-//HRESULT osstyleXP_GetThemeBackgroundContentRect(OSStyleXP *style, HTHEME hTheme, HDC hdc, int iPartId, int iStateId, const RECT *pBoundingRect, RECT *pContentRect)
-//{
-//    unref(style);
-//    return GetThemeBackgroundContentRect(hTheme, hdc, iPartId, iStateId, pBoundingRect, pContentRect);
-//}
 
 
 //CVisualStylesXP g_xpStyle;

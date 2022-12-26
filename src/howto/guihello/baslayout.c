@@ -50,14 +50,6 @@ Panel *basic_layout(void)
     layout_edit(layout, edit3, 1, 2);
     layout_edit(layout, edit4, 1, 3);
     layout_edit(layout, edit5, 1, 4);
-    //layout_hmargin(layout1, 0, 5);
-    //layout_hexpand(layout1, 1);
-    //layout_vmargin(layout1, 0, 5);
-    //layout_vmargin(layout1, 1, 5);
-    //layout_vmargin(layout1, 2, 5);
-    //layout_vmargin(layout1, 3, 5);
-    //layout_vmargin(layout1, 4, 5);
-
     panel_layout(panel, layout);
     return panel;
 }

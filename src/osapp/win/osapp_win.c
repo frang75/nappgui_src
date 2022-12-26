@@ -10,9 +10,10 @@
 
 /* Application runloop */
 
+#include "osapp.h"
 #include "osapp.inl"
 #include "osapp_win.inl"
-#include "win/osgui_win.inl"
+#include "osgui.h"
 #include "cassert.h"
 #include "event.h"
 #include "unicode.h"
@@ -35,10 +36,10 @@ struct _osapp_t
     void *listener;
     bool_t abnormal_termination;
     bool_t with_run_loop;
-    FPtr_call func_OnFinishLaunching;
-    FPtr_call func_OnTimerSignal;
+    FPtr_app_call func_OnFinishLaunching;
+    FPtr_app_call func_OnTimerSignal;
     FPtr_destroy func_destroy;
-    FPtr_void func_OnExecutionEnd;
+    FPtr_app_void func_OnExecutionEnd;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -51,10 +52,10 @@ OSApp *osapp_init_imp(
                     uint32_t argc,
                     char_t **argv,
                     void *instance,
-                    void *listener, 
+                    void *listener,
                     const bool_t with_run_loop,
-                    FPtr_call func_OnFinishLaunching, 
-                    FPtr_call func_OnTimerSignal)
+                    FPtr_app_call func_OnFinishLaunching,
+                    FPtr_app_call func_OnTimerSignal)
 {
     unref(argc);
     unref(argv);
@@ -129,7 +130,7 @@ void osapp_terminate_imp(
                     OSApp **app,
                     const bool_t abnormal_termination,
                     FPtr_destroy func_destroy,
-                    FPtr_void func_OnExecutionEnd)
+                    FPtr_app_void func_OnExecutionEnd)
 {
     cassert_no_null(app);
     cassert_no_null(*app);
@@ -206,7 +207,7 @@ void osapp_run(OSApp *app)
 		MSG msg;
 		while(GetMessage(&msg, NULL, 0, 0) > 0)
 		{
-            if (_osgui_OnMsg(&msg) == FALSE)
+            if (osgui_message((void*)&msg) == FALSE)
             {
 			    TranslateMessage(&msg);
 			    DispatchMessage(&msg);

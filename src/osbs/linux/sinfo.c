@@ -23,9 +23,7 @@
 #include <string.h>
 #define MAX_PATH 512
 
-#if defined (__LINUX__)
 ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
-#endif
 
 /*---------------------------------------------------------------------------*/
 

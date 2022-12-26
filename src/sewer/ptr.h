@@ -15,13 +15,13 @@
 
 __EXTERN_C
 
-void *ptr_dget_imp(void **dptr);
+_sewer_api void *ptr_dget_imp(void **dptr);
 
-void *ptr_dget_no_null_imp(void **dptr);
+_sewer_api void *ptr_dget_no_null_imp(void **dptr);
 
-void ptr_destopt_imp(void **dptr, FPtr_destroy func_destroy);
+_sewer_api void ptr_destopt_imp(void **dptr, FPtr_destroy func_destroy);
 
-void *ptr_copyopt_imp(void *ptr, FPtr_copy func_copy);
+_sewer_api void *ptr_copyopt_imp(void *ptr, FPtr_copy func_copy);
 
 __END_C
 

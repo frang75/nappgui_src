@@ -19,4 +19,9 @@
 #include <Windows.h>
 #include "warn.hxx"
 
+struct _measurestr_t
+{
+    HDC hdc;
+};
+
 #endif

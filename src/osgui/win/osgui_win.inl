@@ -24,7 +24,9 @@ void _osgui_remove_accelerator(WORD cmd);
 
 void _osgui_change_accelerator(BYTE fVirt, WORD key, WORD cmd);
 
-bool_t _osgui_OnMsg(MSG *msg);
+LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand, RECT *border);
+
+LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border);
 
 extern const WORD kVIRTUAL_KEY[];
 extern uint32_t kNUM_VKEYS;
@@ -35,8 +37,9 @@ extern HCURSOR kSIZING_VERTICAL_CURSOR;
 extern HBRUSH kCHESSBOARD_BRUSH;
 extern const TCHAR *kWINDOW_CLASS;
 extern const TCHAR *kVIEW_CLASS;
-//extern const TCHAR *kLISTVIEW_CLASS;
 extern const TCHAR *kRICHEDIT_CLASS;
 extern unicode_t kWINDOWS_UNICODE;
+extern int kLOG_PIXY_GUI;
+extern LONG kTWIPS_PER_PIXEL_GUI;
 
 __END_C

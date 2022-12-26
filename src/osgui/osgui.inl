@@ -24,13 +24,13 @@ void _osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width,
 
 void _osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
 
-const char_t *_osgui_component_type(const guitype_t type);
+const char_t *_osgui_component_type(const gui_type_t type);
 
-bool_t _osgui_button_text_allowed(const button_flag_t flags);
+bool_t _osgui_button_text_allowed(const uint32_t flags);
 
-bool_t _osgui_button_image_allowed(const button_flag_t flags);
+bool_t _osgui_button_image_allowed(const uint32_t flags);
 
-fsize_t _osgui_size_font(const real32_t font_size);
+gui_size_t _osgui_size_font(const real32_t font_size);
 
 Image *_osgui_scale_image(const Image *image, const Font *font);
 
@@ -39,5 +39,7 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu);
 void _osgui_detach_menubar(OSWindow *window, OSMenu *menu);
 
 void _osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu);
+
+bool_t _osgui_process_message(void *msg);
 
 __END_C

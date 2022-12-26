@@ -19,7 +19,6 @@
 #include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "font.inl"
 #include "unicode.h"
 #include "heap.h"
 #include "ptr.h"
@@ -499,7 +498,7 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
     cassert(floorf(height) == height);
 
     parent = (OSControl*)GetWindowLongPtr(GetParent(control->hwnd), GWLP_USERDATA);
-    if (parent != NULL && parent->type == ekGUI_COMPONENT_PANEL)
+    if (parent != NULL && parent->type == ekGUI_TYPE_PANEL)
         _ospanel_scroll_pos((OSPanel*)parent, &scroll_x, &scroll_y);
     
     ret = SetWindowPos(control->hwnd, NULL, (int)x - scroll_x, (int)y - scroll_y, (int)width, (int)height, SWP_NOZORDER);

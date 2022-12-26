@@ -15,6 +15,7 @@
 #include "osmenu.inl"
 #include "ospanel.inl"
 #include "oswindow.inl"
+#include "win/osstyleXP.inl"
 #include "arrst.h"
 #include "cassert.h"
 #include "core.h"
@@ -38,25 +39,6 @@
 #include <uxtheme.h>
 #include <gdiplus.h>
 #include "warn.hxx" 
-
-/* Enabling Visual Styles for WindowsXP and later */
-#if defined(_M_IX86)
-#define MANIFEST_PROCESSORARCHITECTURE "x86"
-#elif defined(_M_AMD64)
-#define MANIFEST_PROCESSORARCHITECTURE "amd64"
-#elif defined(_M_IA64)
-#define MANIFEST_PROCESSORARCHITECTURE "ia64"
-#else
-#error Unknown Architecture
-#endif
-
-#pragma comment(linker, \
-                "\"/manifestdependency:type='Win32' "\
-                "name='Microsoft.Windows.Common-Controls' "\
-                "version='6.0.0.0' "\
-                "processorArchitecture='" MANIFEST_PROCESSORARCHITECTURE "' "\
-                "publicKeyToken='6595b64144ccf1df' "\
-                "language='*'\"")
 
 /*---------------------------------------------------------------------------*/
 
@@ -200,9 +182,10 @@ HCURSOR kSIZING_VERTICAL_CURSOR = NULL;
 HBRUSH kCHESSBOARD_BRUSH = NULL;
 const TCHAR *kWINDOW_CLASS = L"com.nappgui.window";
 const TCHAR *kVIEW_CLASS = L"com.nappgui.view";
-//const TCHAR *kLISTVIEW_CLASS = L"com.nappgui.listview";
 const TCHAR *kRICHEDIT_CLASS = NULL;
 unicode_t kWINDOWS_UNICODE = ENUM_MAX(unicode_t);
+int kLOG_PIXY_GUI = 0;
+LONG kTWIPS_PER_PIXEL_GUI = 0;
 static ArrSt(ACCEL) *kACCELERATORS = NULL;
 static HACCEL kACCEL_TABLE = NULL;
 
@@ -266,42 +249,123 @@ static void i_registry_view_class(void)
 
 /*---------------------------------------------------------------------------*/
 
-//static void i_registry_custom_listview_class(void)
-//{
-//    WNDCLASSEX wc;
-//    cassert(i_INSTANCE != NULL);
-//	wc.cbSize		 = sizeof(WNDCLASSEX);
-//    wc.style		 = CS_GLOBALCLASS | CS_HREDRAW | CS_VREDRAW;
-//    wc.lpfnWndProc	 = DefWindowProc;
-//	wc.cbClsExtra	 = 0;
-//	wc.cbWndExtra	 = 0;
-//    wc.hInstance	 = i_INSTANCE;
-//	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
-//	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
-//
-//    // Avoid warning C4306: 'type cast' : conversion from 'int' to 'HBRUSH' of greater size
-//    #if defined (__x64__)
-//	wc.hbrBackground = (HBRUSH)(uint64_t)(COLOR_WINDOW+1);
-//    #else
-//	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-//    #endif 
-//
-//	wc.lpszMenuName  = NULL;
-//	wc.lpszClassName = kLISTVIEW_CLASS;
-//	wc.hIconSm		 = LoadIcon(NULL, IDI_APPLICATION);
-//
-//    {
-//        ATOM ret = 0;
-//        ret = RegisterClassEx(&wc);
-//        cassert(ret != 0);
-//    }
-//}
+// https://www.codeproject.com/Articles/13723/Themed-RichTextBox-A-RichTextBox-with-XP-styled-bo
+LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand, RECT *border)
+{
+    LRESULT res = 0;
+    RECT *window_rect = NULL;
+    RECT content_rect;
+    HDC hdc = GetWindowDC(hwnd);
+    HTHEME theme = osstyleXP_OpenTheme(hwnd, L"EDIT");
+
+    cassert_no_null(border);
+
+    // LParam points to a NCCALCSIZE_PARAMS struct
+	if(wParam == TRUE) 
+	{
+        NCCALCSIZE_PARAMS *cp = (NCCALCSIZE_PARAMS*)lParam;
+        window_rect = &cp->rgrc[0];
+	}
+    // LParam points to a RECT struct
+	else 
+	{
+        window_rect = (RECT*)lParam;
+	}
+
+    osstyleXP_GetThemeBackgroundContentRect(theme, hdc, EP_EDITTEXT, ETS_NORMAL, window_rect, &content_rect);
+
+    // shrink the client area the make more space for containing text.
+    if (expand == TRUE)
+        InflateRect(&content_rect, -1, -1);
+
+    // remember the space of the borders
+    border->left = content_rect.left - window_rect->left;
+    border->top = content_rect.top - window_rect->top;
+    border->right = window_rect->right - content_rect.right;
+    border->bottom = window_rect->bottom - content_rect.bottom;
+
+    // LParam points to a NCCALCSIZE_PARAMS struct
+	if(wParam == TRUE) 
+	{
+        NCCALCSIZE_PARAMS *cp = (NCCALCSIZE_PARAMS*)lParam;
+        cp->rgrc[0] = content_rect;
+        res = WVR_REDRAW;
+	}
+    // LParam points to a RECT struct
+	else 
+	{
+        *(RECT*)lParam = content_rect;
+        res = 0;
+	}
+
+    osstyleXP_CloseTheme(theme);
+    ReleaseDC(hwnd, hdc);
+    return res;
+}
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _osgui_OnMsg(MSG *msg)
+#if _MSC_VER > 1400
+#define _CP_BORDER CP_BORDER
+#define _CBB_NORMAL CBB_NORMAL
+#define _CBB_FOCUSED CBB_FOCUSED
+#define _CBB_DISABLED CBB_DISABLED
+#else
+#define _CP_BORDER 4
+#define _CBB_NORMAL CBXS_NORMAL
+#define _CBB_FOCUSED CBXS_PRESSED
+#define _CBB_DISABLED CBXS_DISABLED
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border)
 {
-    return _oswindow_proccess_message(msg, kACCEL_TABLE);
+	HDC hdc = GetWindowDC(hwnd);
+    HTHEME theme = NULL;
+    int partId = _CP_BORDER;
+    int stateId = _CBB_NORMAL;
+    RECT window_rect, client_rect;
+
+    if (IsWindowEnabled(hwnd) == TRUE)
+    {
+        if (GetFocus() == hwnd)
+        {
+            theme = osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
+            partId = _CP_BORDER;
+            stateId = _CBB_FOCUSED;
+        }
+        else
+        {
+            theme = osstyleXP_OpenTheme(hwnd, L"EDIT");
+            partId = EP_EDITTEXT;
+            stateId = ETS_NORMAL;
+        }
+    }
+    else
+    {
+        theme = osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
+        partId = _CP_BORDER;
+        stateId = _CBB_DISABLED;
+    }
+    
+    GetWindowRect(hwnd, &window_rect);
+    window_rect.right -= window_rect.left;
+    window_rect.bottom -= window_rect.top;
+    window_rect.left = 0;
+    window_rect.top = 0;
+
+    client_rect = window_rect;
+    client_rect.left += border->left;
+    client_rect.top += border->top;
+    client_rect.right -= border->right;
+    client_rect.bottom -= border->bottom;
+	ExcludeClipRect(hdc, client_rect.left, client_rect.top, client_rect.right, client_rect.bottom);
+
+    osstyleXP_DrawThemeBackground2(theme, partId, stateId, hdc, &window_rect);
+    osstyleXP_CloseTheme(theme);
+    ReleaseDC(hwnd, hdc);
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -352,7 +416,6 @@ void _osgui_start_imp(void)
     be added to the old parent's window procedure to pass on the notifications
     to the new parent. 
     */
-
     i_DEFAULT_OSPANEL = _ospanel_create_default();
     kDEFAULT_PARENT_WINDOW = ((OSControl*)i_DEFAULT_OSPANEL)->hwnd;
 
@@ -369,10 +432,6 @@ void _osgui_start_imp(void)
         DeleteObject(bitmap);
     }
 
-    /* ListView Class */
-    //i_registry_custom_listview_class();
-    //kLISTVIEW_CLASS = WC_LISTVIEW;
-
     /* RichText Edit Control */
     {
         HMODULE msft_mod = LoadLibrary(L"Msftedit.dll");
@@ -382,6 +441,16 @@ void _osgui_start_imp(void)
 
     /* Unicode format for Windows GUI */
     kWINDOWS_UNICODE = ekUTF16;
+
+    /* TWIPS for Font Size */
+    {
+        HWND hwnd = GetDesktopWindow();
+        HDC hdc = GetDC(hwnd);
+        kLOG_PIXY_GUI = GetDeviceCaps(hdc, LOGPIXELSY);
+        int ret = ReleaseDC(hwnd, hdc);
+        cassert_unref(ret == 1, ret);
+        kTWIPS_PER_PIXEL_GUI = 1440 / kLOG_PIXY_GUI;
+    }
 
     /* Accelerators */
     kACCELERATORS = arrst_create(ACCEL);
@@ -416,13 +485,6 @@ void _osgui_finish_imp(void)
     /* Default Parent Window */
     _ospanel_destroy_default(&i_DEFAULT_OSPANEL);
     kDEFAULT_PARENT_WINDOW = NULL;
-
-    /* ListView Control */
-    //{
-    //    BOOL ret = 0;
-    //    ret = UnregisterClass(kLISTVIEW_CLASS, NULL);
-    //    cassert(ret != 0);
-    //}
 
     /* View Class */
     {
@@ -608,6 +670,13 @@ void _osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_
 
 /*---------------------------------------------------------------------------*/
 
+bool_t _osgui_process_message(void *msg)
+{
+    return _oswindow_proccess_message((MSG*)msg, kACCEL_TABLE);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height)
 {
     SIZE word_size;
@@ -627,10 +696,3 @@ void _osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width,
 }
 
 /*---------------------------------------------------------------------------*/
-
-/*
-HCURSOR _osgui_get_size_cursor(const orient_t hv);
-HCURSOR _osgui_get_size_cursor(const orient_t hv);
-extern HCURSOR kSIZING_HORIZONTAL_CURSOR;
-extern HCURSOR kSIZING_VERTICAL_CURSOR;
-*/

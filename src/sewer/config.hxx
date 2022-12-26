@@ -67,8 +67,13 @@
     #define PRIu64              "llu"
     #define PRId64              "lld"
 #elif defined (__ARM64__)
-    #define PRIu64              "llu"
-    #define PRId64              "lld"
+    #if defined (__LINUX__)
+        #define PRIu64          "lu"
+        #define PRId64          "ld"
+    #else
+        #define PRIu64          "llu"
+        #define PRId64          "lld"
+    #endif
 #endif
 
 /*! <Compiler> */
@@ -78,16 +83,9 @@
         #error At least gcc 4.2 is required
     #endif
 
-    #if (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
-        #define __STDC_LIMIT_MACROS
-        #define __STDC_CONSTANT_MACROS
-    #endif
-
     #if defined (__DEPRECATED)
         #undef __DEPRECATED
     #endif
-
-	#pragma GCC diagnostic ignored "-Wcomment"
 
     /*! <Function attributes> */
     #define __CDECL

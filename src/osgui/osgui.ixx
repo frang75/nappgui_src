@@ -14,7 +14,6 @@
 #define __OSGUI_IXX__
 
 #include "osgui.hxx"
-#include "draw2d.ixx"
 
 typedef struct _oscolumn_t OSColumn;
 typedef struct _strsize_data_t StringSizeData;

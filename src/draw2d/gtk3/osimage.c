@@ -12,8 +12,8 @@
 
 #include "image.inl"
 #include "osimage.inl"
-#include "dctx.inl"
-#include "imgutils.inl"
+#include "imgutil.inl"
+#include "dctxh.h"
 #include "bmem.h"
 #include "buffer.h"
 #include "cassert.h"
@@ -24,7 +24,10 @@
 #include "stream.h"
 #include "unicode.h"
 #include "draw2d_gtk.ixx"
+
+#include "nowarn.hxx"
 #include <gdk/gdk.h>
+#include "warn.hxx"
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -200,7 +203,7 @@ static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
     return pixbuf;
 
 #else
-    // Only support for GdkPixbuf from file 
+    /* Only support for GdkPixbuf from file */
     const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
     GdkPixbuf *pixbuf = NULL;
     if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
@@ -226,7 +229,7 @@ static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint3
     return animation;
 
 #else
-    // Only support for GdkPixbufAnimation from file 
+    /* Only support for GdkPixbufAnimation from file */
     const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
     GdkPixbufAnimation *animation = NULL;
     if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
@@ -265,7 +268,7 @@ static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
 #else
     const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
     Buffer *buffer = NULL;
-    ok = gdk_pixbuf_save(pixbuf, tempfile, type, NULL, NULL); 
+    ok = gdk_pixbuf_save(pixbuf, tempfile, type, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
     buffer = hfile_buffer(tempfile, NULL);
     if (buffer != NULL)
@@ -324,7 +327,7 @@ OSImage *osimage_create_from_data(const byte_t *data, const uint32_t size)
 
 OSImage *osimage_create_from_type(const char_t *file_type)
 {
-    // TODO
+    /* TODO */
     unref(file_type);
     cassert(FALSE);
     return NULL;
@@ -333,16 +336,16 @@ OSImage *osimage_create_from_type(const char_t *file_type)
 /*---------------------------------------------------------------------------*/
 
 OSImage *osimage_create_scaled(const OSImage *image, const uint32_t new_width, const uint32_t new_height)
-{    
+{
     cassert_no_null(image);
     if (image->pixbuf != NULL)
     {
         GdkPixbuf *cpixbuf = gdk_pixbuf_scale_simple(image->pixbuf, (int)new_width, (int)new_height, GDK_INTERP_BILINEAR);
-        return i_osimage(cpixbuf);        
+        return i_osimage(cpixbuf);
     }
     else
     {
-        // At the moment, animations are not scaled
+        /* At the moment, animations are not scaled */
         GdkPixbufAnimation *canimation = NULL;
         cassert(image->animation != NULL);
         canimation = g_object_ref(image->animation);
@@ -370,9 +373,9 @@ OSImage *osimage_from_context(DCtx **ctx)
         gboolean alpha = gdk_pixbuf_get_has_alpha(pixbuf);
         register uint32_t i, j, offset = alpha ? 4 : 3;
         int stride = gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
-        for (j = 0; j < h; ++j)
+        for (j = 0; j < (uint32_t)h; ++j)
         {
-            for (i = 0; i < w; ++i)
+            for (i = 0; i < (uint32_t)w; ++i)
             {
                 guchar gray = (guchar)((77 * pixels[0] + 148 * pixels[1] + 30 * pixels[2]) / 255);
                 pixels[0] = gray;
@@ -505,9 +508,9 @@ static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const u
 
 /*---------------------------------------------------------------------------*/
 
-// Avoid GTimeVal deprecation warnings
-#pragma GCC diagnostic push 
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+/* Avoid GTimeVal deprecation warnings */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 static __INLINE GTimeVal i_time_init(void)
 {
@@ -531,14 +534,14 @@ static void i_time_add_ms(GTimeVal *tval, const uint32_t msecs)
 
 /*---------------------------------------------------------------------------*/
 
-// http://www.manpagez.com/html/gdk-pixbuf/gdk-pixbuf-2.34.0/gdk-pixbuf-Animations.php
-// Note that some formats, like GIF, might clamp the timeout values in the image 
-// file to avoid updates that are just too quick. The minimum timeout for GIF 
-// images is currently 20 milliseconds.
+/* http://www.manpagez.com/html/gdk-pixbuf/gdk-pixbuf-2.34.0/gdk-pixbuf-Animations.php
+Note that some formats, like GIF, might clamp the timeout values in the image
+file to avoid updates that are just too quick. The minimum timeout for GIF
+images is currently 20 milliseconds. */
 static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame)
 {
-#pragma GCC diagnostic push 
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     GTimeVal tval = i_time_init();
 #pragma GCC diagnostic pop
 
@@ -571,8 +574,8 @@ static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame
 
 static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const uint32_t frame)
 {
-#pragma GCC diagnostic push 
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations" 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     GTimeVal tval = i_time_init();
 #pragma GCC diagnostic pop
 
@@ -730,7 +733,7 @@ static __INLINE const gchar *i_codec(const codec_t codec)
     case ekGIF:
         return "gif";
     cassert_default();
-    }        
+    }
 
     return "";
 }
@@ -746,7 +749,7 @@ bool_t osimage_available_codec(const OSImage *image, const codec_t codec)
 
     unref(image);
 
-    for (slist = slist0; slist; slist = g_slist_next(slist)) 
+    for (slist = slist0; slist; slist = g_slist_next(slist))
     {
         GdkPixbufFormat *format = slist->data;
     #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 2))

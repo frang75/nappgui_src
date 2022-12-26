@@ -15,25 +15,26 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
-#include "obj.inl"
 #include "panel.inl"
 #include "window.inl"
+#include "guictx.h"
 
 #include "cassert.h"
 #include "event.h"
 #include "keybuf.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "v2d.h"
 #include "strings.h"
 
 struct _view_t
-{    
+{
     GuiComponent component;
     String *subtype;
     S2Df size;
     Listener *OnDraw;
+    Listener *OnOverlay;
     Listener *OnResize;
     Listener *OnEnter;
     Listener *OnExit;
@@ -50,8 +51,8 @@ struct _view_t
     KeyBuf *keybuf;
     void *data;
     FPtr_destroy func_destroy_data;
-    FPtr_call func_empty;
-    FPtr_set_uint32 func_uint32;
+    FPtr_gctx_call func_empty;
+    FPtr_gctx_set_uint32 func_uint32;
     FPtr_set_image func_image;
 };
 
@@ -60,8 +61,17 @@ struct _view_t
 static void i_OnDraw(View *view, Event *event)
 {
     cassert_no_null(view);
-    cassert(event_type(event) == ekEVDRAW);
+    cassert(event_type(event) == ekGUI_EVENT_DRAW);
     listener_pass_event(view->OnDraw, event, view, View);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnOverlay(View *view, Event *event)
+{
+    cassert_no_null(view);
+    cassert(event_type(event) == ekGUI_EVENT_OVERLAY);
+    listener_pass_event(view->OnOverlay, event, view, View);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -70,7 +80,7 @@ static void i_OnEnter(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVENTER);
+    cassert(event_type(event) == ekGUI_EVENT_ENTER);
     listener_pass_event(view->OnEnter, event, view, View);
 }
 
@@ -80,7 +90,7 @@ static void i_OnExit(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVEXIT);
+    cassert(event_type(event) == ekGUI_EVENT_EXIT);
     listener_pass_event(view->OnExit, event, view, View);
 }
 
@@ -90,7 +100,7 @@ static void i_OnMoved(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVMOVED);
+    cassert(event_type(event) == ekGUI_EVENT_MOVED);
     listener_pass_event(view->OnMoved, event, view, View);
 }
 
@@ -100,7 +110,7 @@ static void i_OnDown(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVDOWN);
+    cassert(event_type(event) == ekGUI_EVENT_DOWN);
     listener_pass_event(view->OnDown, event, view, View);
 }
 
@@ -110,7 +120,7 @@ static void i_OnUp(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVUP);
+    cassert(event_type(event) == ekGUI_EVENT_UP);
     listener_pass_event(view->OnUp, event, view, View);
 }
 
@@ -120,7 +130,7 @@ static void i_OnClick(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVCLICK);
+    cassert(event_type(event) == ekGUI_EVENT_CLICK);
     listener_pass_event(view->OnClick, event, view, View);
 }
 
@@ -130,7 +140,7 @@ static void i_OnDrag(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVDRAG);
+    cassert(event_type(event) == ekGUI_EVENT_DRAG);
     listener_pass_event(view->OnDrag, event, view, View);
 }
 
@@ -140,7 +150,7 @@ static void i_OnWheel(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVWHEEL);
+    cassert(event_type(event) == ekGUI_EVENT_WHEEL);
     listener_pass_event(view->OnWheel, event, view, View);
 }
 
@@ -150,7 +160,7 @@ static void i_OnKeyDown(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVKEYDOWN);
+    cassert(event_type(event) == ekGUI_EVENT_KEYDOWN);
     if (view->keybuf != NULL)
     {
         const EvKey *p = event_params(event, EvKey);
@@ -167,7 +177,7 @@ static void i_OnKeyUp(View *view, Event *event)
 {
     cassert_no_null(view);
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVKEYUP);
+    cassert(event_type(event) == ekGUI_EVENT_KEYUP);
     if (view->keybuf != NULL)
     {
         const EvKey *p = event_params(event, EvKey);
@@ -202,8 +212,8 @@ static void i_OnNotify(View *view, Event *event)
 
 static View *i_create(const uint32_t flags)
 {
-    const GuiContext *context = gui_context_get_current();
-    void *ositem = context->func_view_create((enum_t)flags);
+    const GuiCtx *context = guictx_get_current();
+    void *ositem = context->func_create[ekGUI_TYPE_CUSTOMVIEW](flags);
 
     if (ositem != NULL)
     {
@@ -211,7 +221,7 @@ static View *i_create(const uint32_t flags)
         view->size = s2df(128, 128);
         view->data = NULL;
         view->func_destroy_data = NULL;
-        _component_init(&view->component, context, PARAM(type, ekGUI_COMPONENT_CUSTOMVIEW), &ositem);
+        _component_init(&view->component, context, PARAM(type, ekGUI_TYPE_CUSTOMVIEW), &ositem);
         return view;
     }
     else
@@ -231,7 +241,7 @@ View *view_create(void)
 
 View *view_scroll(void)
 {
-    return i_create(ekHSCROLL | ekVSCROLL);
+    return i_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -240,19 +250,6 @@ View *_view_create(const uint32_t flags)
 {
     return i_create(flags);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void view_destroy(View **view);
-//void view_destroy(View **view)
-//{
-//    GuiComponent *component = NULL;
-//    cassert_no_null(view);
-//    cassert_no_null(*view);
-//    component = &(*view)->component;
-//    _component_destroy(&component);
-//    *view = NULL;
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -288,6 +285,7 @@ void _view_destroy(View **view)
     _component_destroy_imp(&(*view)->component);
     str_destopt(&(*view)->subtype);
     listener_destroy(&(*view)->OnDraw);
+    listener_destroy(&(*view)->OnOverlay);
     listener_destroy(&(*view)->OnResize);
     listener_destroy(&(*view)->OnEnter);
     listener_destroy(&(*view)->OnExit);
@@ -307,17 +305,6 @@ void _view_destroy(View **view)
 
 /*---------------------------------------------------------------------------*/
 
-//void *view_get_native_view(View *view);
-//void *view_get_native_view(View *view)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_get_native_view);
-//    return view->component.context->func_view_get_native_view(view->component.ositem);
-//}
-
-/*---------------------------------------------------------------------------*/
-
 void view_size(View *view, const S2Df size)
 {
     cassert_no_null(view);
@@ -329,6 +316,13 @@ void view_size(View *view, const S2Df size)
 void view_OnDraw(View *view, Listener *listener)
 {
     component_update_listener(view, &view->OnDraw, listener, i_OnDraw, view->component.context->func_view_OnDraw, View);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void view_OnOverlay(View *view, Listener *listener)
+{
+    component_update_listener(view, &view->OnOverlay, listener, i_OnOverlay, view->component.context->func_view_OnOverlay, View);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -443,150 +437,6 @@ void view_keybuf(View *view, KeyBuf *buffer)
 
 /*---------------------------------------------------------------------------*/
 
-//void view_set_OnMouseEnter_listener(View *view, Listener *listener);
-//void view_set_OnMouseEnter_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnMouseEnter_listener);
-//    view->component.context->func_view_set_OnMouseEnter_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnMouseExit_listener(View *view, Listener *listener);
-//void view_set_OnMouseExit_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnMouseExit_listener);
-//    view->component.context->func_view_set_OnMouseExit_listener(view->component.ositem, listener);
-//}
-
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnMouseStartDrag_listener(View *view, Listener *listener);
-//void view_set_OnMouseStartDrag_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    listener_destroy(&view->OnStartDrag_listener);
-//    view->OnStartDrag_listener = ptr_get(listener, Listener);
-//}
-
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnMouseDragging_listener(View *view, Listener *listener);
-//void view_set_OnMouseDragging_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    listener_destroy(&view->OnDrag_listener);
-//    view->OnDrag_listener = ptr_get(listener, Listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnMouseEndDrag_listener(View *view, Listener *listener);
-//void view_set_OnMouseEndDrag_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnMouseEndDrag_listener);
-//    view->component.context->func_view_set_OnMouseEndDrag_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchTap_listener(View *view, Listener *listener);
-//void view_set_OnTouchTap_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchTap_listener);
-//    view->component.context->func_view_set_OnTouchTap_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchStartDrag_listener(View *view, Listener *listener);
-//void view_set_OnTouchStartDrag_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchStartDrag_listener);
-//    view->component.context->func_view_set_OnTouchStartDrag_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchDragging_listener(View *view, Listener *listener);
-//void view_set_OnTouchDragging_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchDragging_listener);
-//    view->component.context->func_view_set_OnTouchDragging_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchEndDrag_listener(View *view, Listener *listener);
-//void view_set_OnTouchEndDrag_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchEndDrag_listener);
-//    view->component.context->func_view_set_OnTouchEndDrag_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchStartPinch_listener(View *view, Listener *listener);
-//void view_set_OnTouchStartPinch_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchStartPinch_listener);
-//    view->component.context->func_view_set_OnTouchStartPinch_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchPinching_listener(View *view, Listener *listener);
-//void view_set_OnTouchPinching_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchPinching_listener);
-//    view->component.context->func_view_set_OnTouchPinching_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_OnTouchEndPinch_listener(View *view, Listener *listener);
-//void view_set_OnTouchEndPinch_listener(View *view, Listener *listener)
-//{
-//    cassert(FALSE);
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_OnTouchEndPinch_listener);
-//    view->component.context->func_view_set_OnTouchEndPinch_listener(view->component.ositem, listener);
-//}
-
-/*---------------------------------------------------------------------------*/
-
 void _view_set_subtype(View *view, const char_t *subtype)
 {
     cassert_no_null(view);
@@ -633,7 +483,7 @@ void _view_OnResize(View *view, const S2Df *size)
         EvSize params;
         params.width = size->width;
         params.height = size->height;
-        listener_event(view->OnResize, ekEVRESIZE, view, &params, NULL, View, EvSize, void);
+        listener_event(view->OnResize, ekGUI_EVENT_RESIZE, view, &params, NULL, View, EvSize, void);
     }
 
     view->component.context->func_view_set_need_display(view->component.ositem);
@@ -646,12 +496,12 @@ void view_screen_rect(const View *view, R2Df *rect)
     cassert_no_null(view);
     cassert_no_null(rect);
     _component_get_global_origin((const GuiComponent*)view, &rect->pos);
-    _component_get_size((const GuiComponent*)view, &rect->size);    
+    _component_get_size((const GuiComponent*)view, &rect->size);
 }
 
 /*---------------------------------------------------------------------------*/
 
-GuiContext *_view_context(View *view)
+GuiCtx *_view_context(View *view)
 {
     cassert_no_null(view);
     return view->component.context;
@@ -682,7 +532,7 @@ void *_view_get_native_imp(View *view)
 
 /*---------------------------------------------------------------------------*/
 
-void view_OnEmpty(View *view, FPtr_call func_empty)
+void view_OnEmpty(View *view, FPtr_gctx_call func_empty)
 {
     cassert_no_null(view);
     view->func_empty = func_empty;
@@ -690,7 +540,7 @@ void view_OnEmpty(View *view, FPtr_call func_empty)
 
 /*---------------------------------------------------------------------------*/
 
-void view_OnUInt32(View *view, FPtr_set_uint32 func_uint32)
+void view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32)
 {
     cassert_no_null(view);
     view->func_uint32 = func_uint32;
@@ -749,55 +599,12 @@ void _view_image(View *view, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-//void _view_set_need_display(View *view);
-//void _view_set_need_display(View *view)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    cassert_no_nullf(view->component.context->func_view_set_need_display);
-//    view->component.context->func_view_set_need_display(view->component.ositem);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_launch_OnMouseMovedEvent(View *view);
-//void view_launch_OnMouseMovedEvent(View *view)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    if (view->component.context->func_view_launch_OnMouseMovedEvent != NULL)
-//        view->component.context->func_view_launch_OnMouseMovedEvent(view->component.ositem);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_event_source(View *view, const enum event_t event_type, const /*enum event_source_t*/uint32_t event_source);
-//void view_set_event_source(View *view, const enum event_t event_type, const /*enum event_source_t*/uint32_t event_source)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    if (view->component.context->func_view_set_event_source != NULL)
-//        view->component.context->func_view_set_event_source(view->component.ositem, event_type, event_source);
-//}
-
-/*---------------------------------------------------------------------------*/
-
 void view_get_size(const View *view, S2Df *size)
 {
     cassert_no_null(view);
     cassert_no_null(size);
-    view->component.context->func_get_size[ekGUI_COMPONENT_CUSTOMVIEW](view->component.ositem, &size->width, &size->height);
+    view->component.context->func_get_size[ekGUI_TYPE_CUSTOMVIEW](view->component.ositem, &size->width, &size->height);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void view_scrollbar_size(const View *view, S2Df *size);
-//void view_scrollbar_size(const View *view, S2Df *size)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(size);
-//    view->component.context->func_view_scroller_size(view->component.ositem, &size->width, &size->height);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -840,7 +647,7 @@ void view_viewport(const View *view, V2Df *pos, S2Df *size)
         view->component.context->func_view_scroll_get(view->component.ositem, &pos->x, &pos->y);
 
     if (size != NULL)
-        view->component.context->func_get_size[ekGUI_COMPONENT_CUSTOMVIEW](view->component.ositem, &size->width, &size->height);
+        view->component.context->func_get_size[ekGUI_TYPE_CUSTOMVIEW](view->component.ositem, &size->width, &size->height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -873,7 +680,7 @@ void view_update(View *view)
 
 void *view_native(View *view)
 {
-    // Get the native view 
+    /* Get the native view */
     cassert_no_null(view);
     return view->component.context->func_view_get_native_view(view->component.ositem);
 }
@@ -892,48 +699,3 @@ void view_delete_transition(View *view)
 {
     _gui_delete_transition(view, View);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void view_get_sizef(const View *view, S2Df *size);
-//void view_get_sizef(const View *view, S2Df *size)
-//{
-//    cassert_no_null(view);
-//    _component_get_size(&view->component, size);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void view_get_sizei(const View *view, S2Di *size);
-void view_get_sizei(const View *view, S2Di *size)
-{
-    S2Df sizef;
-    cassert_no_null(view);
-    cassert_no_null(size);
-    _component_get_size(&view->component, &sizef);
-    size->width = (uint32_t)(sizef.width + kONE_OVER_TWOf);
-    size->height = (uint32_t)(sizef.height + kONE_OVER_TWOf);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-//void view_set_drawable(View *view);
-//void view_set_drawable(View *view)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    if (view->component.context->func_view_set_drawable != NULL)
-//        view->component.context->func_view_set_drawable(view->component.ositem, TRUE);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void view_unset_drawable(View *view);
-//void view_unset_drawable(View *view)
-//{
-//    cassert_no_null(view);
-//    cassert_no_null(view->component.context);
-//    if (view->component.context->func_view_set_drawable != NULL)
-//        view->component.context->func_view_set_drawable(view->component.ositem, FALSE);
-//}

@@ -11,14 +11,12 @@
 /* Images */
 
 #include "draw2d.ixx"
+#include "nowarn.hxx"
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include "warn.hxx"
 
 __EXTERN_C
 
 const GdkPixbuf *osimage_pixbuf(const OSImage *image, const uint32_t frame_index);
 
 __END_C
-
-
-
-

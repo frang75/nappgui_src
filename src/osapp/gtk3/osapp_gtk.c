@@ -13,9 +13,9 @@
 #include "osapp.h"
 #include "osapp.inl"
 #include "osapp_gtk.inl"
-#include "osgui_gtk.inl"
-#include "oswindow.inl"
+#include "osgui.h"
 #include "bfile.h"
+#include "bmem.h"
 #include "cassert.h"
 #include "event.h"
 #include "strings.h"
@@ -41,16 +41,15 @@ struct _osapp_t
     bool_t abnormal_termination;
     bool_t with_run_loop;
     Listener *OnTheme;
-    FPtr_call func_OnFinishLaunching;
-    FPtr_call func_OnTimerSignal;
+    FPtr_app_call func_OnFinishLaunching;
+    FPtr_app_call func_OnTimerSignal;
     FPtr_destroy func_destroy;
-    FPtr_void func_OnExecutionEnd;
+    FPtr_app_void func_OnExecutionEnd;
 };
 
 /*---------------------------------------------------------------------------*/
 
-OSApp i_APP = { 0 };
-int putenv(char *string);
+static OSApp i_APP;
 
 /*---------------------------------------------------------------------------*/
 
@@ -60,9 +59,10 @@ OSApp *osapp_init_imp(
                     void *instance,
                     void *listener,
                     const bool_t with_run_loop,
-                    FPtr_call func_OnFinishLaunching,
-                    FPtr_call func_OnTimerSignal)
+                    FPtr_app_call func_OnFinishLaunching,
+                    FPtr_app_call func_OnTimerSignal)
 {
+    bmem_zero(&i_APP, OSApp);
     cassert(instance == NULL);
     cassert_no_null(listener);
     cassert_no_nullf(func_OnFinishLaunching);
@@ -139,7 +139,7 @@ void osapp_terminate_imp(
                     OSApp **app,
                     const bool_t abnormal_termination,
                     FPtr_destroy func_destroy,
-                    FPtr_void func_OnExecutionEnd)
+                    FPtr_app_void func_OnExecutionEnd)
 {
     cassert_no_null(app);
     cassert_no_null(*app);
@@ -152,7 +152,7 @@ void osapp_terminate_imp(
     (*app)->func_destroy = func_destroy;
     (*app)->func_OnExecutionEnd = func_OnExecutionEnd;
     (*app)->terminate = TRUE;
-    _oswindow_set_app_terminate();
+    osgui_terminate();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -162,7 +162,6 @@ uint32_t osapp_argc(OSApp *app)
     cassert_no_null(app);
     cassert(FALSE);
     return 0;
-//    return (uint32_t)app->nArgs;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -191,10 +190,10 @@ static gboolean i_OnTimer(gpointer data)
         return FALSE;
     }
 
-    // Create impostor window before app running
+    /* Create impostor window before app running */
     if (app->is_init == FALSE)
     {
-        if (_osgui_is_pre_initialized() == TRUE)
+        if (osgui_is_initialized() == TRUE)
         {
             app->func_OnFinishLaunching(app->listener);
             app->is_init = TRUE;
@@ -217,20 +216,16 @@ static void i_OnActivate(GtkApplication* gtk_app, OSApp *app)
     cassert(app->timer_id == 0);
     if (bfile_dir_exec(pathname, sizeof(pathname)) < sizeof(pathname))
     {
-        String *path;
-        String *logo;
-        str_split_pathname(pathname, &path, NULL);
-        logo = str_cpath("%s/logo.ico", tc(path));
+        String *logo = str_cpath("%s.ico", pathname);
         app->icon = gdk_pixbuf_new_from_file(tc(logo), NULL);
-        _oswindow_gtk_app(gtk_app, app->icon);
+        osgui_set_app(gtk_app, app->icon);
         str_destroy(&logo);
-        str_destroy(&path);
     }
 
-    // printf decimal separator
+    /* printf decimal separator */
     setlocale(LC_NUMERIC, "C");
 
-    _osgui_pre_initialize();
+    osgui_initialize();
     g_application_hold(G_APPLICATION(gtk_app));
 
     if (app->func_OnTimerSignal != NULL)

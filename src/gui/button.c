@@ -15,16 +15,16 @@
 #include "component.inl"
 #include "cell.inl"
 #include "gui.inl"
-#include "guicontexth.inl"
 #include "gbind.inl"
-#include "obj.inl"
 #include "panel.inl"
+#include "guictx.h"
 
 #include "cassert.h"
 #include "event.h"
 #include "font.h"
 #include "image.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "strings.h"
 #include "v2d.h"
@@ -32,7 +32,7 @@
 struct _button_t
 {
     GuiComponent component;
-    button_flag_t flags;
+    uint32_t flags;
     S2Df size;
     ResId textid;
     ResId taltid;
@@ -61,38 +61,38 @@ void _button_destroy(Button **button)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_update_button(Button *button, const state_t state)
+static __INLINE void i_update_button(Button *button, const gui_state_t state)
 {
     cassert_no_null(button);
-    if (button_type(button->flags) == ekBTFLATGLE)
+    if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
     {
         if (button->talt != NULL)
         {
-            if (state == ekON)
+            if (state == ekGUI_ON)
             {
-                button->component.context->func_set_tooltip[ekGUI_COMPONENT_BUTTON](button->component.ositem, tc(button->talt));
+                button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->talt));
             }
             else
             {
-                cassert(state == ekOFF);
-                button->component.context->func_set_tooltip[ekGUI_COMPONENT_BUTTON](button->component.ositem, tc(button->text));
+                cassert(state == ekGUI_OFF);
+                button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->text));
             }
         }
 
         if (button->imalt != NULL)
         {
-            if (state == ekON)
+            if (state == ekGUI_ON)
             {
                 button->component.context->func_button_set_image(button->component.ositem, button->imalt);
             }
             else
             {
-                cassert(state == ekOFF);
+                cassert(state == ekGUI_OFF);
                 button->component.context->func_button_set_image(button->component.ositem, button->image);
             }
         }
     }
-    else if (button_type(button->flags) == ekBTRADIO)
+    else if (button_get_type(button->flags) == ekBUTTON_RADIO)
     {
         _cell_set_radio(button->component.parent);
     }
@@ -108,15 +108,15 @@ static void i_OnClick(Button *button, Event *event)
     cassert_no_null(button);
     cassert(button->component.ositem == event_sender_imp(event, NULL));
     cassert_no_null(event);
-    cassert(event_type(event) == ekEVBUTTON);
+    cassert(event_type(event) == ekGUI_EVENT_BUTTON);
     params = event_params(event, EvButton);
     cassert_no_null(params);
     cassert(params->index == 0);
 
     i_update_button(button, params->state);
 
-    switch (button_type(button->flags)) {
-    case ekBTRADIO:
+    switch (button_get_type(button->flags)) {
+    case ekBUTTON_RADIO:
     {
         Cell* cell = _cell_radio_dbind_cell(button->component.parent);
         params->index = _cell_radio_index(button->component.parent);
@@ -130,22 +130,22 @@ static void i_OnClick(Button *button, Event *event)
         break;
     }
 
-    case ekBTCHECK2:
-    case ekBTFLATGLE:
-        _cell_upd_bool(button->component.parent, params->state == ekOFF ? FALSE : TRUE);
+    case ekBUTTON_CHECK2:
+    case ekBUTTON_FLATGLE:
+        _cell_upd_bool(button->component.parent, params->state == ekGUI_OFF ? FALSE : TRUE);
         break;
 
-    case ekBTCHECK3:
+    case ekBUTTON_CHECK3:
     {
         uint32_t v = 0;
         switch (params->state) {
-        case ekOFF:
+        case ekGUI_OFF:
             v = 0;
             break;
-        case ekON:
+        case ekGUI_ON:
             v = 1;
             break;
-        case ekMIXED:
+        case ekGUI_MIXED:
             v = 2;
             break;
             cassert_default();
@@ -158,7 +158,7 @@ static void i_OnClick(Button *button, Event *event)
     if (sender && sender->OnClick)
     {
         cassert(params->text == NULL);
-        if (button_type(button->flags) == ekBTFLATGLE && params->state == ekON && button->talt != NULL)
+        if (button_get_type(button->flags) == ekBUTTON_FLATGLE && params->state == ekGUI_ON && button->talt != NULL)
             ((EvButton*)params)->text = tc(button->talt);
         else
             ((EvButton*)params)->text = tc(button->text);
@@ -169,19 +169,19 @@ static void i_OnClick(Button *button, Event *event)
 
 /*---------------------------------------------------------------------------*/
 
-static Button *i_create(const button_flag_t flags, const align_t halign)
+static Button *i_create(const uint32_t flags, const align_t halign)
 {
-    const GuiContext *context = gui_context_get_current();
+    const GuiCtx *context = guictx_get_current();
     Button *button = obj_new0(Button);
-    void *ositem = context->func_button_create((enum_t)flags);         
-    _component_init(&button->component, context, PARAM(type, ekGUI_COMPONENT_BUTTON), &ositem);
+    void *ositem = context->func_create[ekGUI_TYPE_BUTTON](flags);
+    _component_init(&button->component, context, PARAM(type, ekGUI_TYPE_BUTTON), &ositem);
     button->flags = flags;
     button->text = str_c("");
 
-    if (button_type(flags) != ekBTFLAT && button_type(flags) != ekBTFLATGLE)
+    if (button_get_type(flags) != ekBUTTON_FLAT && button_get_type(flags) != ekBUTTON_FLATGLE)
         context->func_button_set_align(button->component.ositem, (enum_t)halign);
 
-    context->func_button_OnClick(button->component.ositem, obj_listener(button, i_OnClick, Button));    
+    context->func_button_OnClick(button->component.ositem, obj_listener(button, i_OnClick, Button));
     return button;
 }
 
@@ -189,51 +189,43 @@ static Button *i_create(const button_flag_t flags, const align_t halign)
 
 Button *button_push(void)
 {
-    return i_create(ekBTPUSH, ekCENTER);
+    return i_create(ekBUTTON_PUSH, ekCENTER);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Button *button_check(void)
 {
-    return i_create(ekBTCHECK2, ekLEFT);
+    return i_create(ekBUTTON_CHECK2, ekLEFT);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Button *button_check3(void)
 {
-    return i_create(ekBTCHECK3, ekLEFT);
+    return i_create(ekBUTTON_CHECK3, ekLEFT);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Button *button_radio(void)
 {
-    return i_create(ekBTRADIO, ekLEFT);
+    return i_create(ekBUTTON_RADIO, ekLEFT);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Button *button_flat(void)
 {
-    return i_create(ekBTFLAT, ekLEFT);
+    return i_create(ekBUTTON_FLAT, ekLEFT);
 }
 
 /*---------------------------------------------------------------------------*/
 
 Button *button_flatgle(void)
 {
-    return i_create(ekBTFLATGLE, ekCENTER);
+    return i_create(ekBUTTON_FLATGLE, ekCENTER);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//Button *button_header(void);
-//Button *button_header(void)
-//{
-//    return i_create(ekBTHEADER, ekCENTER);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -247,17 +239,17 @@ void button_OnClick(Button *button, Listener *listener)
 
 static void i_update_text(Button *button)
 {
-    switch (button_type(button->flags)) {
-    case ekBTPUSH:
-    case ekBTHEADER:
-    case ekBTCHECK2:
-    case ekBTCHECK3:
-    case ekBTRADIO:
+    switch (button_get_type(button->flags)) {
+    case ekBUTTON_PUSH:
+    case ekBUTTON_HEADER:
+    case ekBUTTON_CHECK2:
+    case ekBUTTON_CHECK3:
+    case ekBUTTON_RADIO:
         button->component.context->func_button_set_text(button->component.ositem, tc(button->text));
         break;
-    case ekBTFLAT:
-    case ekBTFLATGLE:
-        button->component.context->func_set_tooltip[ekGUI_COMPONENT_BUTTON](button->component.ositem, tc(button->text));
+    case ekBUTTON_FLAT:
+    case ekBUTTON_FLATGLE:
+        button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->text));
         break;
     cassert_default();
     }
@@ -280,7 +272,7 @@ void button_text_alt(Button *button, const char_t *text)
 {
     const char_t *ltext;
     cassert_no_null(button);
-    cassert(button_type(button->flags) == ekBTFLATGLE);
+    cassert(button_get_type(button->flags) == ekBUTTON_FLATGLE);
     ltext = _gui_respack_text(text, &button->taltid);
     str_upd(&button->talt, ltext);
 }
@@ -293,7 +285,7 @@ void button_tooltip(Button *button, const char_t *text)
     cassert_no_null(button);
     if (text != NULL)
         ltext = _gui_respack_text(text, &button->ttipid);
-    button->component.context->func_set_tooltip[ekGUI_COMPONENT_BUTTON](button->component.ositem, ltext);
+    button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, ltext);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -308,9 +300,9 @@ void button_font(Button *button, const Font *font)
 
 void button_image(Button *button, const Image *image)
 {
-    const Image *limage = _gui_respack_image((const ResId)image, NULL);
+    const Image *limage = _gui_respack_image((ResId)image, NULL);
     cassert_no_null(button);
-    cassert(button_type(button->flags) == ekBTPUSH || button_type(button->flags) == ekBTFLAT || button_type(button->flags) == ekBTFLATGLE);
+    cassert(button_get_type(button->flags) == ekBUTTON_PUSH || button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
     ptr_destopt(image_destroy, &button->image, Image);
     button->image = ptr_copyopt(image_copy, limage, Image);
     button->component.context->func_button_set_image(button->component.ositem, limage);
@@ -320,25 +312,25 @@ void button_image(Button *button, const Image *image)
 
 void button_image_alt(Button *button, const Image *image)
 {
-    const Image *limage = _gui_respack_image((const ResId)image, NULL);
+    const Image *limage = _gui_respack_image((ResId)image, NULL);
     cassert_no_null(button);
-    cassert(button_type(button->flags) == ekBTFLATGLE);
+    cassert(button_get_type(button->flags) == ekBUTTON_FLATGLE);
     ptr_destopt(image_destroy, &button->imalt, Image);
     button->imalt = ptr_copyopt(image_copy, limage, Image);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void button_state(Button *button, const state_t state)
+void button_state(Button *button, const gui_state_t state)
 {
     cassert_no_null(button);
-    if (button_type(button->flags) != ekBTRADIO)
+    if (button_get_type(button->flags) != ekBUTTON_RADIO)
     {
         button->component.context->func_button_set_state(button->component.ositem, (enum_t)state);
     }
     else
     {
-        if (state == ekON)
+        if (state == ekGUI_ON)
         {
             button->component.context->func_button_set_state(button->component.ositem, (enum_t)state);
             if (button->component.parent)
@@ -349,10 +341,26 @@ void button_state(Button *button, const state_t state)
 
 /*---------------------------------------------------------------------------*/
 
-state_t button_get_state(const Button *button)
+gui_state_t button_get_state(const Button *button)
 {
     cassert_no_null(button);
-    return (state_t)button->component.context->func_button_get_state(button->component.ositem);
+    return (gui_state_t)button->component.context->func_button_get_state(button->component.ositem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void button_tag(Button* button, const uint32_t tag)
+{
+    cassert_no_null(button);
+    _component_set_tag(&button->component, tag);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t button_get_tag(const Button* button)
+{
+    cassert_no_null(button);
+    return _component_get_tag(&button->component);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -364,8 +372,8 @@ void _button_dimension(Button *button, const uint32_t i, real32_t *dim0, real32_
     cassert_no_null(dim1);
     if (i == 0)
     {
-        if (button_type(button->flags) != ekBTFLAT
-            && button_type(button->flags) != ekBTFLATGLE)
+        if (button_get_type(button->flags) != ekBUTTON_FLAT
+            && button_get_type(button->flags) != ekBUTTON_FLATGLE)
         {
             real32_t width = -1, height = -1;
             if (button->image != NULL)
@@ -376,7 +384,7 @@ void _button_dimension(Button *button, const uint32_t i, real32_t *dim0, real32_
 
             button->component.context->func_button_bounds(button->component.ositem, tc(button->text), width, height, &button->size.width, &button->size.height);
         }
-        else 
+        else
         {
             real32_t width = (real32_t)image_width(button->image);
             real32_t height = (real32_t)image_height(button->image);
@@ -414,13 +422,13 @@ void _button_locale(Button *button)
     if (button->ttipid != NULL)
     {
         const char_t *text = _gui_respack_text(button->ttipid, NULL);
-        button->component.context->func_set_tooltip[ekGUI_COMPONENT_BUTTON](button->component.ositem, text);
+        button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, text);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-button_flag_t _button_flags(const Button *button)
+uint32_t _button_flags(const Button *button)
 {
     cassert_no_null(button);
     return button->flags;
@@ -431,7 +439,7 @@ button_flag_t _button_flags(const Button *button)
 bool_t _button_is_pushbutton(const Button *button)
 {
     cassert_no_null(button);
-    return (bool_t)(button_type(button->flags) == ekBTPUSH);
+    return (bool_t)(button_get_type(button->flags) == ekBUTTON_PUSH);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -439,7 +447,7 @@ bool_t _button_is_pushbutton(const Button *button)
 bool_t _button_is_radio(const Button *button)
 {
     cassert_no_null(button);
-    return (bool_t)(button_type(button->flags) == ekBTRADIO);
+    return (bool_t)(button_get_type(button->flags) == ekBUTTON_RADIO);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -447,17 +455,17 @@ bool_t _button_is_radio(const Button *button)
 Listener *_button_radio_listener(const Button *button)
 {
     cassert_no_null(button);
-    if (button_type(button->flags) == ekBTRADIO)
+    if (button_get_type(button->flags) == ekBUTTON_RADIO)
         return button->OnClick;
     return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _button_radio_state(Button *button, const state_t state)
+void _button_radio_state(Button *button, const gui_state_t state)
 {
     cassert_no_null(button);
-    cassert(button_type(button->flags) == ekBTRADIO);
+    cassert(button_get_type(button->flags) == ekBUTTON_RADIO);
     button->component.context->func_button_set_state(button->component.ositem, (enum_t)state);
 }
 
@@ -473,23 +481,23 @@ void _button_bool(Button *button, const bool_t value)
 void _button_uint32(Button *button, const uint32_t value)
 {
     cassert_no_null(button);
-    switch (button_type(button->flags)) {
-    case ekBTRADIO:
+    switch (button_get_type(button->flags)) {
+    case ekBUTTON_RADIO:
         _cell_set_radio_index(button->component.parent, value);
         break;
 
-    case ekBTFLATGLE:
-    case ekBTCHECK2:
-        button_state(button, value == 0 ? ekOFF : ekON);
+    case ekBUTTON_FLATGLE:
+    case ekBUTTON_CHECK2:
+        button_state(button, value == 0 ? ekGUI_OFF : ekGUI_ON);
         break;
 
-    case ekBTCHECK3:
+    case ekBUTTON_CHECK3:
     {
-        state_t st = ekMIXED;
+        gui_state_t st = ekGUI_MIXED;
         if (value == 0)
-            st = ekOFF;
+            st = ekGUI_OFF;
         else if (value == 1)
-            st = ekON;
+            st = ekGUI_ON;
         button_state(button, st);
         break;
     }

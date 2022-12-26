@@ -68,31 +68,33 @@ static serror_t i_socket_error(void)
 
 /*---------------------------------------------------------------------------*/
 
-//static void i_options(Socket *sock, const SockOpt *opts)
-//{
-//    cassert_no_null(sock);
-//    cassert_no_null(opts);
-//    if (opts->timeout_ms > 0)
-//    {
-//        #if defined(__WINDOWS__)
-//        DWORD timeout = (DWORD)opts->timeout_ms;
-//        #else
-//        struct timeval timeout;
-//        timeout.tv_sec = opts->timeout_ms / 1000;
-//        timeout.tv_usec = (opts->timeout_ms % 1000) * 1000;
-//        #endif
-//
-//        {
-//            int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
-//            cassert_unref(sok == 0, sok);
-//        }
-//
-//        {
-//            int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
-//            cassert_unref(sok == 0, sok);
-//        }
-//    }
-//}
+/*
+static void i_options(Socket *sock, const SockOpt *opts)
+{
+   cassert_no_null(sock);
+   cassert_no_null(opts);
+   if (opts->timeout_ms > 0)
+   {
+       #if defined(__WINDOWS__)
+       DWORD timeout = (DWORD)opts->timeout_ms;
+       #else
+       struct timeval timeout;
+       timeout.tv_sec = opts->timeout_ms / 1000;
+       timeout.tv_usec = (opts->timeout_ms % 1000) * 1000;
+       #endif
+
+       {
+           int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+           cassert_unref(sok == 0, sok);
+       }
+
+       {
+           int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
+           cassert_unref(sok == 0, sok);
+       }
+   }
+}
+ */
 
 /*---------------------------------------------------------------------------*/
 
@@ -126,7 +128,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
         }
         else
         {
-            // Set non-blocking
+            /* Set non-blocking */
             long arg = fcntl(skID, F_GETFL, NULL);
             if (arg < 0)
             {
@@ -152,16 +154,15 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
                 {
                     if (errno == EINPROGRESS)
                     {
-                        // connection pending
+                        /* connection pending */
                         fd_set setW;
                         struct timeval time_out = {0,0};
                         int ret = 0;
 
                         FD_ZERO(&setW);
                         FD_SET(skID, &setW);
-//                        FD_ZERO(&setE);
-//                        FD_SET(skID, &setE);
-
+                        /* FD_ZERO(&setE);
+                        FD_SET(skID, &setE); */
                         time_out.tv_sec = timeout_ms / 1000;
                         time_out.tv_usec = (timeout_ms % 1000) * 1000;
 
@@ -170,7 +171,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
                         {
                             if (FD_ISSET(skID, &setW))
                             {
-                                // connection failed
+                                /* connection failed */
                                 int err = 0;
                                 socklen_t errlen = sizeof(err);
                                 getsockopt(skID, SOL_SOCKET, SO_ERROR, (void*)&err, &errlen);
@@ -205,7 +206,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
 
     if (ok_connect != SOCKET_FAIL && timeout_ms > 0)
     {
-        // Set to blocking mode again...
+        /* Set to blocking mode again... */
         long arg = fcntl(skID, F_GETFL, NULL);
         if (arg < 0)
         {
@@ -367,7 +368,7 @@ void bsocket_close(Socket **lsocket)
 }
 
 /*---------------------------------------------------------------------------*/
-        
+
 void bsocket_local_ip(Socket *lsocket, uint32_t *ip, uint16_t *port)
 {
     struct sockaddr_in laddress;
@@ -432,31 +433,6 @@ void bsocket_write_timeout(Socket *sock, const uint32_t timeout_ms)
 
 /*---------------------------------------------------------------------------*/
 
-//uint32_t bsocket_get_timeout(Socket *socket);
-//uint32_t bsocket_get_timeout(Socket *lsocket)
-//{
-//    #if defined(__WINDOWS__)
-//    DWORD timeout = 0;
-//    int len = sizeof(DWORD);
-//    #else
-//    struct timeval timeout;
-//    socklen_t len = sizeof(struct timeval);
-//    #endif
-//
-//    int ok = SOCKET_FAIL;
-//    cassert_no_null(lsocket);
-//    ok = getsockopt((SOCKET_ID)(intptr_t)lsocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, &len);
-//    cassert(ok == 0);
-//
-//    #if defined(__WINDOWS__)
-//    return (uint32_t)timeout;
-//    #else
-//    return (uint32_t)((timeout.tv_sec * 1000) + (timeout.tv_usec / 1000));
-//    #endif
-//}
-
-/*---------------------------------------------------------------------------*/
-
 bool_t bsocket_read(Socket *lsocket, byte_t *data, const uint32_t size, uint32_t *rsize, serror_t *error)
 {
     SSIZE_T lrsize = 0;
@@ -466,7 +442,7 @@ bool_t bsocket_read(Socket *lsocket, byte_t *data, const uint32_t size, uint32_t
     cassert_no_null(data);
 
     for (;;)
-    {   
+    {
         SSIZE_T num_rbytes = 0;
         cassert((int)size > lrsize);
         num_rbytes = recv((SOCKET_ID)(intptr_t)lsocket, (char*)data, (SIZE_T)((long)size - (long)lrsize), 0);
@@ -559,27 +535,6 @@ bool_t bsocket_write(Socket *lsocket, const byte_t *data, const uint32_t size, u
 
 /*---------------------------------------------------------------------------*/
 
-//bool_t bsocket_shutdown(Socket *socket, serror_t *error);
-//bool_t bsocket_shutdown(Socket *lsocket, serror_t *error)
-//{
-//    int result = 0;
-//    cassert_no_null(lsocket);
-//    result = shutdown((SOCKET_ID)(intptr_t)lsocket, RECV_SHUTDOWN);
-//    if (result == 0)
-//    {
-//        ptr_assign(error, ekSOK);
-//        return TRUE;
-//    }
-//    else
-//    {
-//        if (error != NULL)
-//            *error = i_socket_error();
-//        return FALSE;
-//    }
-//}
-
-/*---------------------------------------------------------------------------*/
-
 uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
 {
     struct hostent *host = NULL;
@@ -601,7 +556,7 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
         if (addr_list[0] != NULL)
         {
             /* Only for debug (see ip in text) */
-            // const char *ip_str = inet_ntoa(*addr_list[0]);
+            /* const char *ip_str = inet_ntoa(*addr_list[0]); */
             ptr_assign(error, ekSOK);
             return ntohl(addr_list[0]->s_addr);
         }

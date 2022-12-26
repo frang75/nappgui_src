@@ -48,7 +48,7 @@ static const uint32_t i_HEIGHT = 601;
 static uint32_t i_inset(real64_t zreal, real64_t zimag, real64_t creal, real64_t cimag)
 {
     uint32_t i;
-    for(i = 0; i < i_ITERATIONS; ++i) 
+    for(i = 0; i < i_ITERATIONS; ++i)
     {
         real64_t ztmp, zdist;
         ztmp = zreal * zreal - zimag * zimag;
@@ -57,7 +57,7 @@ static uint32_t i_inset(real64_t zreal, real64_t zimag, real64_t creal, real64_t
         zreal = zreal + creal;
         zimag = zimag + cimag;
         zdist = zimag * zimag  + zreal * zreal;
-        if (zdist > 3) 
+        if (zdist > 3)
             return i;
     }
 
@@ -260,7 +260,7 @@ static Panel *i_panel(App *app)
     slider_OnMoved(slider, listener(app, i_OnSlider, App));
     button_text(button1, "Vert");
     button_text(button2, "Hotz");
-    button_state(button1, ekON);
+    button_state(button1, ekGUI_ON);
     button_OnClick(button1, listener(app, i_OnVertical, App));
     imageview_size(view, s2di(i_WIDTH, i_HEIGHT));
     layout_slider(layout1, slider, 0, 0);
@@ -303,7 +303,7 @@ static App *i_create(void)
 {
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
-    app->window = window_create(ekWNSTD);
+    app->window = window_create(ekWINDOW_STD);
     app->clock = clock_create(0);
     i_image(app);
     window_panel(app->window, panel);

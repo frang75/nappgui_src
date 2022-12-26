@@ -26,9 +26,9 @@ void oslistener_mouse_exit(OSControl *sender, ViewListeners *listeners);
 
 void oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real32_t x, const real32_t y, const OSScroll *scroll, ViewListeners *listeners);
 
-void oslistener_mouse_down(OSControl *sender, const mouse_t button, const real32_t x, const real32_t y, const OSScroll *scroll, ViewListeners *listeners);
+void oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const real32_t x, const real32_t y, const OSScroll *scroll, ViewListeners *listeners);
 
-void oslistener_mouse_up(OSControl *sender, const mouse_t button, const real32_t x, const real32_t y, const OSScroll *scroll, ViewListeners *listeners);
+void oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const real32_t x, const real32_t y, const OSScroll *scroll, ViewListeners *listeners);
 
 void oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lParam, const OSScroll *scroll, ViewListeners *listeners);
 

@@ -22,7 +22,7 @@ void _oscombo_unset_focus(OSCombo *combo);
 
 GtkWidget *_oscombo_focus(OSCombo *combo);
 
-void _oscombo_elem(GtkComboBox *combo, const op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) *texts, ArrPt(Image) *images, uint32_t *imgwidth, uint32_t *imgheight);
+void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) *texts, ArrPt(Image) *images, uint32_t *imgwidth, uint32_t *imgheight);
 
 __END_C
 

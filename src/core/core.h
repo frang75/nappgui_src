@@ -15,8 +15,8 @@
 
 __EXTERN_C
 
-void core_start(void);
+_core_api void core_start(void);
 
-void core_finish(void);
+_core_api void core_finish(void);
 
 __END_C

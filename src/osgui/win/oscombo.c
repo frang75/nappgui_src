@@ -88,6 +88,14 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		case WM_ERASEBKGND:
 			return 1;
 
+        //case WM_NCCALCSIZE:
+        //    _osgui_nccalcsize(hwnd, wParam, lParam, FALSE, &combo->border);
+        //    return CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+
+        //case WM_NCPAINT:
+        //    CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+        //    return _osgui_ncpaint(hwnd, &combo->border);
+
 		case WM_SETFOCUS:
         {
             cassert_no_null(combo);
@@ -141,7 +149,7 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
             if (combo->OnFocus != NULL)
             {
                 bool_t params = TRUE;
-                listener_event(combo->OnFocus, ekEVFOCUS, combo, &params, NULL, OSCombo, bool_t, void);
+                listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
             }
             break;
 
@@ -155,14 +163,14 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
                 EvText params;
                 combo_text = _oscontrol_get_text((const OSControl*)combo, &tsize);
                 params.text = (const char_t*)combo_text;
-                listener_event(combo->OnChange, ekEVTXTCHANGE, combo, &params, NULL, OSCombo, EvText, void);
+                listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, NULL, OSCombo, EvText, void);
                 heap_free((byte_t**)&combo_text, tsize, "OSControlGetText");
             }
 
             if (combo->OnFocus != NULL)
             {
                 bool_t params = FALSE;
-                listener_event(combo->OnFocus, ekEVFOCUS, combo, &params, NULL, OSCombo, bool_t, void);
+                listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
             }
 
             break;
@@ -173,10 +181,10 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 
 /*---------------------------------------------------------------------------*/
 
-OSCombo *oscombo_create(const combo_flag_t flags)
+OSCombo *oscombo_create(const uint32_t flags)
 {
     OSCombo *combo = heap_new0(OSCombo);
-    combo->control.type = ekGUI_COMPONENT_COMBOBOX;
+    combo->control.type = ekGUI_TYPE_COMBOBOX;
     _oscontrol_init((OSControl*)combo, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWN, WC_COMBOBOXEX, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     combo->font = _osgui_create_default_font();
     combo->launch_event = TRUE;
@@ -396,7 +404,7 @@ void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_h
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_elem(OSCombo *combo, const op_t op, const uint32_t index, const char_t *text, const Image *image)
+void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
     cassert_no_null(combo);
     _oscombo_elem(combo->control.hwnd, combo->image_list, op, index, text, image);
@@ -554,7 +562,7 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
             result.apply = FALSE;
             result.text[0] = '\0';
             result.cpos = UINT32_MAX;
-            listener_event(combo->OnFilter, ekEVTXTFILTER, combo, &params, &result, OSCombo, EvText, EvTextFilter);
+            listener_event(combo->OnFilter, ekGUI_EVENT_TXTFILTER, combo, &params, &result, OSCombo, EvText, EvTextFilter);
             heap_free((byte_t**)&combo_text, tsize, "OSControlGetText");
 
             if (result.apply == TRUE)
@@ -594,7 +602,7 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
         //    event.params_type = "EvButton";
         //    event.result_type = "";
         //    #endif
-        //    params.state = ekON;
+        //    params.state = ekGUI_ON;
         //    params.index = (uint16_t)SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
         //    i = SendMessage(combo->combo_hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
         //    n = SendMessage(combo->combo_hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
@@ -615,9 +623,9 @@ HWND _oscombo_focus(OSCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
-void _oscombo_elem(HWND hwnd, OSImgList *imglist, const op_t op, const uint32_t index, const char_t *text, const Image *image)
+void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
-    if (op != ekOPDEL)
+    if (op != ekCTRL_OP_DEL)
     {
         uint32_t num_bytes = 0;
         WCHAR *wtext = NULL;
@@ -643,19 +651,19 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const op_t op, const uint32_t 
         }
 
         switch (op) {
-        case ekOPADD:
+        case ekCTRL_OP_ADD:
             cbbi.iItem = -1;
             msg = CBEM_INSERTITEM;
             break;
-        case ekOPINS:
+        case ekCTRL_OP_INS:
             cbbi.iItem = (INT_PTR)index;
             msg = CBEM_INSERTITEM;
             break;
-        case ekOPSET:
+        case ekCTRL_OP_SET:
             cbbi.iItem = (INT_PTR)index;
             msg = CBEM_SETITEM;
             break;
-        case ekOPDEL:
+        case ekCTRL_OP_DEL:
         cassert_default();
         }
 

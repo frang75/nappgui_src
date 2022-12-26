@@ -15,25 +15,25 @@
 
 __EXTERN_C
 
-MenuItem *menuitem_create(void);
+_gui_api MenuItem *menuitem_create(void);
 
-MenuItem *menuitem_separator(void);
+_gui_api MenuItem *menuitem_separator(void);
 
-void menuitem_OnClick(MenuItem *item, Listener *listener);
+_gui_api void menuitem_OnClick(MenuItem *item, Listener *listener);
 
-void menuitem_enabled(MenuItem *item, const bool_t enabled);
+_gui_api void menuitem_enabled(MenuItem *item, const bool_t enabled);
 
-void menuitem_visible(MenuItem *item, const bool_t visible);
+_gui_api void menuitem_visible(MenuItem *item, const bool_t visible);
 
-void menuitem_text(MenuItem *item, const char_t *text);
+_gui_api void menuitem_text(MenuItem *item, const char_t *text);
 
-void menuitem_image(MenuItem *item, const Image *image);
+_gui_api void menuitem_image(MenuItem *item, const Image *image);
 
-void menuitem_key(MenuItem *item, const vkey_t key, const uint32_t modifiers);
+_gui_api void menuitem_key(MenuItem *item, const vkey_t key, const uint32_t modifiers);
 
-void menuitem_submenu(MenuItem *item, Menu **submenu);
+_gui_api void menuitem_submenu(MenuItem *item, Menu **submenu);
 
-void menuitem_state(MenuItem *item, const state_t state);
+_gui_api void menuitem_state(MenuItem *item, const gui_state_t state);
 
 __END_C
 

@@ -19,21 +19,21 @@
 template<typename real>
 struct R2D
 {
-    R2D();
+    _geom2d_api R2D() {pos.x = 0, pos.y = 0, size.width = 0, size.height = 0;}
 
-    R2D(const real x, const real y, const real width, const real height);
+    _geom2d_api R2D(const real x, const real y, const real width, const real height) {pos.x = x, pos.y = y, size.width = width, size.height = height;}
 
-    static V2D<real>(*center)(const R2D* r2d);
+    _geom2d_api static V2D<real>(*center)(const R2D* r2d);
 
-    static bool_t(*collide)(const R2D *r2d1, const R2D *r2d2);
+    _geom2d_api static bool_t(*collide)(const R2D *r2d1, const R2D *r2d2);
 
-    static bool_t(*contains)(const R2D *r2d, const real x, const real y);
+    _geom2d_api static bool_t(*contains)(const R2D *r2d, const real x, const real y);
 
-    static bool_t(*clip)(const R2D *viewport, const R2D *r2d);
+    _geom2d_api static bool_t(*clip)(const R2D *viewport, const R2D *r2d);
 
-    static void(*join)(R2D *r2d, const R2D *src);
+    _geom2d_api static void(*join)(R2D *r2d, const R2D *src);
 
-    static const R2D<real> *kZERO;
+    _geom2d_api static const R2D<real> *kZERO;
 
     V2D<real> pos;
     S2D<real> size;

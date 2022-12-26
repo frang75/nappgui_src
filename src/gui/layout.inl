@@ -34,7 +34,7 @@ void _layout_locate(Layout *layout);
 
 void _layout_taborder(const Layout *layout, Window *window);
 
-void _layout_dbind_update(Layout *layout, DBind *dbind);
+void _layout_dbind_update(Layout *layout, const DBind *dbind);
 
 ArrSt(Cell) *_layout_cells(Layout *layout);
 

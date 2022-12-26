@@ -103,19 +103,11 @@ struct ArrP2
 /*---------------------------------------------------------------------------*/
 
 template<typename type> 
-static const char_t* i_arrpttype(void)
-{
-	static char_t dtype[64];
-	bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
-	return dtype;
-}
-
-/*---------------------------------------------------------------------------*/
-
-template<typename type> 
 ArrPt<type>* ArrPt<type>::create(void)
 {
-	return (ArrPt<type>*)array_create(sizeof(type*), i_arrpttype<type>());
+	char_t dtype[64];
+	bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
+	return (ArrPt<type>*)array_create(sizeof(type*), dtype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -123,7 +115,9 @@ ArrPt<type>* ArrPt<type>::create(void)
 template<typename type> 
 ArrPt<type>* ArrPt<type>::copy(const ArrPt<type> *array, type*(*func_copy)(const type*))
 {
-    return (ArrPt<type>*)array_copy_ptr((Array*)array, (FPtr_copy)func_copy, i_arrpttype<type>());
+	char_t dtype[64];
+	bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
+    return (ArrPt<type>*)array_copy_ptr((Array*)array, (FPtr_copy)func_copy, dtype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -131,7 +125,9 @@ ArrPt<type>* ArrPt<type>::copy(const ArrPt<type> *array, type*(*func_copy)(const
 template<typename type> 
 ArrPt<type>* ArrPt<type>::read(Stream *stm, type*(*func_read)(Stream*))
 {
-	return (ArrPt<type>*)array_read_ptr(stm, (FPtr_read)func_read, i_arrpttype<type>());
+	char_t dtype[64];
+	bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
+	return (ArrPt<type>*)array_read_ptr(stm, (FPtr_read)func_read, dtype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -139,7 +135,9 @@ ArrPt<type>* ArrPt<type>::read(Stream *stm, type*(*func_read)(Stream*))
 template<typename type> 
 void ArrPt<type>::destroy(ArrPt<type> **array, void(*func_destroy)(type**))
 {
-    array_destroy_ptr((Array**)array, (FPtr_destroy)func_destroy, i_arrpttype<type>());
+	char_t dtype[64];
+	bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
+    array_destroy_ptr((Array**)array, (FPtr_destroy)func_destroy, dtype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -147,7 +145,9 @@ void ArrPt<type>::destroy(ArrPt<type> **array, void(*func_destroy)(type**))
 template<typename type> 
 void ArrPt<type>::destopt(ArrPt<type> **array, void(*func_destroy)(type**))
 {
-    array_destopt_ptr((Array**)array, (FPtr_destroy)func_destroy, i_arrpttype<type>());
+	char_t dtype[64];
+	bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
+    array_destopt_ptr((Array**)array, (FPtr_destroy)func_destroy, dtype);
 }
 
 /*---------------------------------------------------------------------------*/

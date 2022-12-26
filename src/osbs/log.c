@@ -12,7 +12,7 @@
 
 #include "log.h"
 #include "log.inl"
-#include "blib.inl"
+#include "blib.h"
 #include "cassert.h"
 #include "bfile.h"
 #include "bmutex.h"

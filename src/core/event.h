@@ -15,23 +15,23 @@
 
 __EXTERN_C
 
-Listener *listener_imp(void *object, FPtr_event_handler func_event_handler);
+_core_api Listener *listener_imp(void *object, FPtr_event_handler func_event_handler);
 
-void listener_destroy(Listener **listener);
+_core_api void listener_destroy(Listener **listener);
 
-void listener_update(Listener **listener, Listener *new_listener);
+_core_api void listener_update(Listener **listener, Listener *new_listener);
 
-void listener_event_imp(Listener *listener, const uint32_t type, void *sender, void *params, void *result, const char_t *sender_type, const char_t *params_type, const char_t *result_type);
+_core_api void listener_event_imp(Listener *listener, const uint32_t type, void *sender, void *params, void *result, const char_t *sender_type, const char_t *params_type, const char_t *result_type);
 
-void listener_pass_event_imp(Listener *listener, Event *event, void *sender, const char_t *sender_type);
+_core_api void listener_pass_event_imp(Listener *listener, Event *event, void *sender, const char_t *sender_type);
 
-uint32_t event_type(const Event *event);
+_core_api uint32_t event_type(const Event *event);
 
-void *event_sender_imp(Event *event, const char_t *type);
+_core_api void *event_sender_imp(Event *event, const char_t *type);
 
-void *event_params_imp(Event *event, const char_t *type);
+_core_api void *event_params_imp(Event *event, const char_t *type);
 
-void *event_result_imp(Event *event, const char_t *type);
+_core_api void *event_result_imp(Event *event, const char_t *type);
 
 __END_C
 

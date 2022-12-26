@@ -15,29 +15,29 @@
 
 __EXTERN_C
 
-void *cell_control_imp(Cell *cell, const char_t *type);
+_gui_api void *cell_control_imp(Cell *cell, const char_t *type);
 
-Layout *cell_layout(Cell *cell);
+_gui_api Layout *cell_layout(Cell *cell);
 
-void cell_enabled(Cell *cell, const bool_t enabled);
+_gui_api void cell_enabled(Cell *cell, const bool_t enabled);
 
-void cell_visible(Cell *cell, const bool_t visible);
+_gui_api void cell_visible(Cell *cell, const bool_t visible);
 
-void cell_focus(Cell *cell);
+_gui_api void cell_focus(Cell *cell);
 
-void cell_padding(Cell *cell, const real32_t pall);
+_gui_api void cell_padding(Cell *cell, const real32_t pall);
 
-void cell_padding2(Cell *cell, const real32_t ptb, const real32_t plr);
+_gui_api void cell_padding2(Cell *cell, const real32_t ptb, const real32_t plr);
 
-void cell_padding4(Cell *cell, const real32_t pt, const real32_t pr, const real32_t pb, const real32_t pl);
+_gui_api void cell_padding4(Cell *cell, const real32_t pt, const real32_t pr, const real32_t pb, const real32_t pl);
 
-void cell_dbind_imp(
+_gui_api void cell_dbind_imp(
             Cell *cell,
-            const char_t *type, 
+            const char_t *type,
             const uint16_t size,
-            const char_t *mname, 
-            const char_t *mtype, 
-            const uint16_t moffset, 
+            const char_t *mname,
+            const char_t *mtype,
+            const uint16_t moffset,
             const uint16_t msize);
 
 __END_C
@@ -57,6 +57,9 @@ __END_C
 #define cell_combo(cell)\
     (Combo*)cell_control_imp(cell, "Combo")
 
+#define cell_listbox(cell)\
+    (ListBox*)cell_control_imp(cell, "ListBox")
+
 #define cell_updown(cell)\
     (UpDown*)cell_control_imp(cell, "UpDown")
 
@@ -74,6 +77,15 @@ __END_C
 
 #define cell_imageview(cell)\
     (ImageView*)cell_control_imp(cell, "ImageView")
+
+#define cell_tableview(cell)\
+    (TableView*)cell_control_imp(cell, "TableView")
+
+#define cell_splitview(cell)\
+    (SplitView*)cell_control_imp(cell, "SplitView")
+
+#define cell_panel(cell)\
+    (Panel*)cell_control_imp(cell, "Panel")
 
 #define cell_dbind(cell, type, mtype, mname)\
     (\

@@ -14,7 +14,7 @@
 #include "osmenuitem.inl"
 #include "osmenu.inl"
 #include "osgui_win.inl"
-#include "win/osimage.inl"
+#include "osimg.inl"
 
 #include "bstd.h"
 #include "cassert.h"
@@ -28,8 +28,8 @@
 #error This file is only for Windows
 #endif
 
-static const char_t *i_KEY_TEXT[] = 
-{ 
+static const char_t *i_KEY_TEXT[] =
+{
     "",            /*ekKEY_UNASSIGNED      = 0*/
     "A",           /*ekKEY_A               = 1*/
     "S",           /*ekKEY_S               = 2*/
@@ -106,7 +106,7 @@ static const char_t *i_KEY_TEXT[] =
     "5",           /*ekKEY_NUMPAD5         = 67*/
     "6",           /*ekKEY_NUMPAD6         = 68*/
     "7",           /*ekKEY_NUMPAD7         = 69*/
-    
+
     "8",           /*ekKEY_NUMPAD8         = 70*/
     "9",           /*ekKEY_NUMPAD9         = 71*/
     "F5",          /*ekKEY_F5              = 72*/
@@ -138,7 +138,7 @@ static const char_t *i_KEY_TEXT[] =
     "↑"            /*ekKEY_UP              = 96*/
 };
 
-struct _osmenuitem_t 
+struct _osmenuitem_t
 {
     OSMenu *menu;
     OSMenu *sub_menu;
@@ -176,19 +176,19 @@ static __INLINE OSMenuItem *i_create(const uint16_t id, const uint8_t state, con
 
 /*---------------------------------------------------------------------------*/
 
-OSMenuItem *osmenuitem_create(const menu_flag_t flag)
+OSMenuItem *osmenuitem_create(const uint32_t flags)
 {
-    if (flag == ekMNITEM)
+    if (flags == ekMENU_ITEM)
     {
         uint16_t id = i_GLOBAL_MENU_ID;
         cassert(i_GLOBAL_MENU_ID < 0xFFF0);
         i_GLOBAL_MENU_ID += 1;
-        return i_create(id, ekOFF, "");
+        return i_create(id, ekGUI_OFF, "");
     }
     else
     {
         uint16_t id = i_GLOBAL_MENU_ID;
-        cassert(flag == ekMNSEPARATOR);
+        cassert(flags == ekMENU_SEPARATOR);
         cassert(i_GLOBAL_MENU_ID < 0xFFF0);
         i_GLOBAL_MENU_ID += 1;
         return i_create(id, UINT8_MAX, NULL);
@@ -225,14 +225,14 @@ void osmenuitem_OnClick(OSMenuItem *item, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static UINT i_item_type(const state_t state)
+static UINT i_item_type(const gui_state_t state)
 {
     switch(state)
     {
-        case ekON:
-        case ekOFF:
+        case ekGUI_ON:
+        case ekGUI_OFF:
             return MFT_STRING;
-        case ekMIXED:
+        case ekGUI_MIXED:
             return MFT_STRING | MFT_RADIOCHECK;
         cassert_default();
     }
@@ -242,7 +242,7 @@ static UINT i_item_type(const state_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static UINT i_item_state(const state_t state, const bool_t enabled)
+static UINT i_item_state(const gui_state_t state, const bool_t enabled)
 {
     UINT ustate = 0;
 
@@ -253,11 +253,11 @@ static UINT i_item_state(const state_t state, const bool_t enabled)
 
     switch(state)
     {
-        case ekON:
-        case ekMIXED:
+        case ekGUI_ON:
+        case ekGUI_MIXED:
             ustate |= MFS_CHECKED;
             break;
-        case ekOFF:
+        case ekGUI_OFF:
             ustate |= MFS_UNCHECKED;
             break;
         cassert_default();
@@ -281,7 +281,7 @@ void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
             BOOL ok = FALSE;
             info.fMask = MIIM_STATE;
             info.cbSize = sizeof(MENUITEMINFO);
-            info.fState = i_item_state((state_t)item->state, item->enabled);
+            info.fState = i_item_state((gui_state_t)item->state, item->enabled);
             ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
             cassert(ok == TRUE);
         }
@@ -397,7 +397,7 @@ void osmenuitem_image(OSMenuItem *item, const Image *image)
     }
 
     if (image != NULL)
-        item->hbitmap = osimage_hbitmap(image, 0);
+        item->hbitmap = osimg_hbitmap(image, 0);
 
     if (item->menu != NULL && item->visible == TRUE)
     {
@@ -463,7 +463,7 @@ void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifie
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_state(OSMenuItem *item, const state_t state)
+void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
 {
 	cassert_no_null(item);
     cassert(item->state != UINT8_MAX);
@@ -476,8 +476,8 @@ void osmenuitem_state(OSMenuItem *item, const state_t state)
             BOOL ok = FALSE;
             info.fMask = MIIM_FTYPE | MIIM_STATE;
             info.cbSize = sizeof(MENUITEMINFO);
-            info.fType = i_item_type((state_t)item->state);
-            info.fState = i_item_state((state_t)item->state, item->enabled);
+            info.fType = i_item_type((gui_state_t)item->state);
+            info.fState = i_item_state((gui_state_t)item->state, item->enabled);
             ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
             cassert(ok == TRUE);
         }
@@ -524,8 +524,8 @@ void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
             WCHAR item_text[512];
             i_item_text(tc(item->text), item->key, item->modifiers, item_text, 512);
             info.fMask = MIIM_FTYPE | MIIM_STRING | MIIM_STATE | MIIM_DATA | MIIM_ID;
-            info.fType = i_item_type((state_t)item->state);
-            info.fState = i_item_state((state_t)item->state, item->enabled);
+            info.fType = i_item_type((gui_state_t)item->state);
+            info.fState = i_item_state((gui_state_t)item->state, item->enabled);
             info.dwTypeData = item_text;
             info.dwItemData = (ULONG_PTR)item;
             info.wID = item->id;
@@ -571,18 +571,18 @@ bool_t _osmenuitem_remove_from_hmenu(OSMenuItem *item, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_state(UINT type, UINT state)
+static gui_state_t i_state(UINT type, UINT state)
 {
     if (type == (MFT_STRING | MFT_RADIOCHECK))
-        return ekMIXED;
+        return ekGUI_MIXED;
 
     cassert(type == MFT_STRING);
 
     if ((state & MFS_CHECKED) == MFS_CHECKED)
-        return ekON;
+        return ekGUI_ON;
 
     cassert((state & MFS_UNCHECKED) == MFS_UNCHECKED);
-    return ekOFF;
+    return ekGUI_OFF;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -597,7 +597,7 @@ void _osmenuitem_click(OSMenuItem *item, UINT id, UINT type, UINT state)
         params.index = UINT32_MAX;
         params.state = i_state(type, state);
         params.str = NULL;
-        listener_event(item->OnClick, ekEVMENU, item, &params, NULL, OSMenuItem, EvMenu, void);
+        listener_event(item->OnClick, ekGUI_EVENT_MENU, item, &params, NULL, OSMenuItem, EvMenu, void);
     }
 }
 
@@ -675,4 +675,4 @@ void _osmenuitem_draw_image(OSMenuItem *item, UINT id, UINT state, HDC hdc, cons
     //    }
     //}
 }
-            
+

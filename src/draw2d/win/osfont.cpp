@@ -12,8 +12,9 @@
 
 #include "font.h"
 #include "font.inl"
+#include "draw.inl"
 #include "draw2d.inl"
-#include "draw2d_win.inl"
+#include "draw_win.inl"
 #include "arrpt.h"
 #include "arrst.h"
 #include "cassert.h"
@@ -22,11 +23,7 @@
 #include "strings.h"
 #include "unicode.h"
 
-#include "nowarn.hxx"
-#include <Windows.h>
-#include <gdiplus.h>
-#include "warn.hxx"
-#include "draw2d_win.ixx"
+#include "draw2d_gdi.ixx"
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -248,19 +245,27 @@ void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *ce
     ReleaseDC(hwnd, hdc);
 }
 
-
 /*---------------------------------------------------------------------------*/
 
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     MeasureStr data;
+    HGDIOBJ cfont = NULL; 
     int ret = 0;
     data.hdc = GetDC(NULL);
-    HGDIOBJ cfont = SelectObject(data.hdc, (HFONT)font);
-    draw2d_extents(&data, draw2d_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+    cfont = SelectObject(data.hdc, (HFONT)font);
+    draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
     SelectObject(data.hdc, cfont);
     ret = ReleaseDC(NULL, data.hdc);
     cassert_unref(ret == 1, ret);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const void *osfont_native(const OSFont *font)
+{
+    cassert_no_null(font);
+    return (HFONT)font;
 }
 
 /*---------------------------------------------------------------------------*/

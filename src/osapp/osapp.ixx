@@ -18,6 +18,12 @@
 
 typedef struct _osapp_t OSApp;
 
-typedef void(*FPtr_void)(void);
+typedef void(*FPtr_app_call)(void *item);
+#define FUNC_CHECK_APP_CALL(func, type)\
+    (void)((void(*)(type*))func == func)
+
+typedef void(*FPtr_app_void)(void);
+#define FUNC_CHECK_APP_VOID(func)\
+    (void)((void(*)(void))func == func)
 
 #endif

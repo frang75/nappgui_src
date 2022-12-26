@@ -14,6 +14,7 @@
 #define __CASINO_HXX__
 
 #include "draw2d.hxx"
+#include "casino.def"
 
 /* TODO: Define data types here */
 

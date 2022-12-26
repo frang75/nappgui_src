@@ -11,12 +11,12 @@
 /* Draw context */
 
 #include "dctx.h"
+#include "dctxh.h"
 #include "dctx.inl"
 #include "dctx_gtk.inl"
 #include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "font.inl"
 #include "heap.h"
 #include "ptr.h"
 
@@ -24,73 +24,15 @@
 #error This file is only for GTK Toolkit
 #endif
 
-//#include <gtk/gtk.h>
 #include "draw2d_gtk.ixx"
 
 /*---------------------------------------------------------------------------*/
 
-DCtx *dctx_create(void *custom_data)
+DCtx *dctx_create(void)
 {
     DCtx *ctx = heap_new0(DCtx);
-    cassert_unref(custom_data == NULL, custom_data);
-    //ctx->widget = (GtkWidget*)view;
-//    GdkWindow *window = gtk_widget_get_window(GTK_WIDGET(view));
-//    int w = gtk_widget_get_allocated_width((GtkWidget*)view);
-//    int h = gtk_widget_get_allocated_height((GtkWidget*)view);
-//    ctx->surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR, w, h);
-    //ctx->font = font_system(font_regular_size(), 0);
     cairo_matrix_init_identity(&ctx->transform);
     cairo_matrix_init_identity(&ctx->pattern_matrix);
-    return ctx;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_update_view(DCtx *ctx, void *view)
-{
-    cassert_no_null(ctx);
-    unref(view);
-    //ctx->widget = (GtkWidget*)view;
-    /*GdkWindow *window = gtk_widget_get_window(GTK_WIDGET(view));
-    int w = gtk_widget_get_allocated_width((GtkWidget*)view);
-    int h = gtk_widget_get_allocated_height((GtkWidget*)view);
-    cassert_no_null(ctx->surface);
-    cassert(ctx->cairo == NULL);
-    cairo_surface_destroy(ctx->surface);
-    ctx->surface = gdk_window_create_similar_surface(window, CAIRO_CONTENT_COLOR, w, h);*/
-}
-
-/*---------------------------------------------------------------------------*/
-
-DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t format)
-{
-    DCtx *ctx = heap_new0(DCtx);
-    cairo_format_t pf = CAIRO_FORMAT_INVALID;
-
-    switch (format) {
-//    case ekINDEX1:
-//    case ekINDEX4:
-//    case ekINDEX8:
-//    case ekGRAY4:
-    case ekGRAY8:
-    case ekRGB24:
-        pf = CAIRO_FORMAT_RGB24;
-        break;
-    case ekRGBA32:
-        pf = CAIRO_FORMAT_ARGB32;
-        break;
-    cassert_default();
-    }
-
-    ctx->format = format;
-    ctx->width = width;
-    ctx->height = height;
-    ctx->surface = cairo_image_surface_create(pf, (int)width, (int)height);
-    ctx->cairo = cairo_create(ctx->surface);
-    cairo_matrix_init_identity(&ctx->origin);
-    cairo_matrix_init_identity(&ctx->transform);
-    cairo_matrix_init_identity(&ctx->pattern_matrix);
-    dctx_init(ctx);
     return ctx;
 }
 
@@ -114,11 +56,11 @@ void dctx_destroy(DCtx **ctx)
     if ((*ctx)->lpattern != NULL)
         cairo_pattern_destroy((*ctx)->lpattern);
 
-    if ((*ctx)->layout != NULL)
-        g_object_unref((*ctx)->layout);
-
     if ((*ctx)->font != NULL)
         font_destroy(&(*ctx)->font);
+
+    if ((*ctx)->layout != NULL)
+        g_object_unref((*ctx)->layout);
 
     heap_delete(ctx, DCtx);
 }
@@ -127,24 +69,18 @@ void dctx_destroy(DCtx **ctx)
 
 void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
 {
-    void **dctx = (void**)gcontext;
     cassert_no_null(ctx);
     cassert_no_null(gcontext);
     unref(background);
-    unref(offset_x);
-    unref(offset_y);
+    ctx->offset_x = (double)offset_x;
+    ctx->offset_y = (double)offset_y;
     ctx->width = width;
     ctx->height = height;
-    ctx->cairo = (cairo_t*)dctx[0];
-    ctx->scroll_x = *(double*)dctx[1];
-    ctx->scroll_y = *(double*)dctx[2];
-    ctx->total_width = *(double*)dctx[3];
-    ctx->total_height = *(double*)dctx[4];
-    ctx->clip_width = *(double*)dctx[5];
-    ctx->clip_height = *(double*)dctx[6];
-
+    ctx->cairo = (cairo_t*)gcontext;
+    cairo_translate(ctx->cairo, - (double)offset_x, - (double)offset_y);
     cairo_get_matrix(ctx->cairo, &ctx->origin);
     ctx->raster_mode = FALSE;
+
     if (reset == TRUE)
         dctx_init(ctx);
 }
@@ -155,7 +91,25 @@ void dctx_unset_gcontext(DCtx *ctx)
 {
     cassert_no_null(ctx);
     cassert_unref(ctx->cairo != NULL, ctx);
+    cairo_translate(ctx->cairo, ctx->offset_x, ctx->offset_y);
     ctx->cairo = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_update_view(DCtx *ctx, void *view)
+{
+    cassert_no_null(ctx);
+    unref(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_flipped(DCtx *ctx, const bool_t flipped)
+{
+    unref(ctx);
+    unref(flipped);
+    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -165,6 +119,89 @@ void dctx_size(const DCtx *ctx, uint32_t *width, uint32_t *height)
     cassert_no_null(ctx);
     ptr_assign(width, ctx->width);
     ptr_assign(height, ctx->height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(offset_x);
+    cassert_no_null(offset_y);
+    *offset_x = (real32_t)ctx->offset_x;
+    *offset_y = (real32_t)ctx->offset_y;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t dctx_text_width(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+align_t dctx_text_intalign(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return ekLEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t dctx_text_color(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t dctx_background_color(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_native(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return (void*)ctx->cairo;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_internal_bitmap(DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_data_imp(DCtx *ctx, void *data, FPtr_destroy func_destroy_data)
+{
+    unref(ctx);
+    unref(data);
+    unref(func_destroy_data);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void *dctx_get_data_imp(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -207,17 +244,45 @@ void _dctx_gradient_transform(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-cairo_t *_dctx_cairo(DCtx *ctx)
+DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t format)
 {
-    cassert_no_null(ctx);
-    return ctx->cairo;
+    DCtx *ctx = heap_new0(DCtx);
+    cairo_format_t pf = CAIRO_FORMAT_INVALID;
+
+    switch (format) {
+    case ekGRAY8:
+    case ekRGB24:
+        pf = CAIRO_FORMAT_RGB24;
+        break;
+    case ekRGBA32:
+        pf = CAIRO_FORMAT_ARGB32;
+        break;
+    case ekINDEX1:
+    case ekINDEX2:
+    case ekINDEX4:
+    case ekINDEX8:
+    cassert_default();
+    }
+
+    ctx->format = format;
+    ctx->offset_x = 0;
+    ctx->offset_y = 0;
+    ctx->width = width;
+    ctx->height = height;
+    ctx->surface = cairo_image_surface_create(pf, (int)width, (int)height);
+    ctx->cairo = cairo_create(ctx->surface);
+    cairo_matrix_init_identity(&ctx->origin);
+    cairo_matrix_init_identity(&ctx->transform);
+    cairo_matrix_init_identity(&ctx->pattern_matrix);
+    dctx_init(ctx);
+    return ctx;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static __INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
 {
-    //if (color != *source_color)
+    /*if (color != *source_color)*/
     {
         real32_t r, g, b, a;
         color_get_rgbaf(color, &r, &g, &b, &a);
@@ -250,5 +315,3 @@ void draw_antialias(DCtx *ctx, const bool_t on)
 
     cairo_set_antialias(ctx->cairo, anti);
 }
-
-

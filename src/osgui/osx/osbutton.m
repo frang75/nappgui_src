@@ -33,8 +33,8 @@
 @interface OSXButtonCell : NSButtonCell
 {
     @public
-    button_flag_t flags;
-    fsize_t size;
+    uint32_t flags;
+    gui_size_t size;
     real32_t text_width;
     Image *image;
 }
@@ -42,10 +42,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXButton : NSButton 
+@interface OSXButton : NSButton
 {
     @public
-    button_flag_t flags;
+    uint32_t flags;
     OSTextAttr attrs;
     Listener *OnClick;
 }
@@ -57,7 +57,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static state_t i_get_state(const OSXButton *button)
+static gui_state_t i_get_state(const OSXButton *button)
 {
 #if defined (MAC_OS_X_VERSION_10_13) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_13
     NSControlStateValue state = 0;
@@ -65,33 +65,33 @@ static state_t i_get_state(const OSXButton *button)
     state = [button state];
     if (state == NSControlStateValueOn)
     {
-        return ekON;
+        return ekGUI_ON;
     }
     else if (state == NSControlStateValueOff)
     {
-        return ekOFF;
+        return ekGUI_OFF;
     }
     else
     {
         cassert(state == NSControlStateValueMixed);
-        return ekMIXED;
+        return ekGUI_MIXED;
     }
 #else
     NSInteger state = 0;
     cassert_no_null(button);
-    state = [button state];    
+    state = [button state];
     if (state == NSOnState)
     {
-        return ekON;
+        return ekGUI_ON;
     }
     else if (state == NSOffState)
     {
-        return ekOFF;
+        return ekGUI_OFF;
     }
     else
     {
         cassert(state == NSMixedState);
-        return ekMIXED;
+        return ekGUI_MIXED;
     }
 #endif
 }
@@ -102,24 +102,28 @@ static void i_OnClick(OSXButton *button)
 {
     if ([button isEnabled] == YES)
     {
-        state_t state = i_get_state(button);
-        if (button_type(button->flags) == ekBTFLATGLE)
+        gui_state_t state = i_get_state(button);
+        
+        [[button window] endEditingFor:nil];
+        [[button window] makeFirstResponder:button];
+
+        if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
         {
             switch (state) {
-            case ekON:
+            case ekGUI_ON:
                 [[button cell] setShowsBorderOnlyWhileMouseInside:NO];
                 break;
-            case ekOFF:
+            case ekGUI_OFF:
                 [[button cell] setShowsBorderOnlyWhileMouseInside:YES];
                 break;
             cassert_default();
             }
         }
-        else if (button_type(button->flags) == ekBTCHECK3)
+        else if (button_get_type(button->flags) == ekBUTTON_CHECK3)
         {
-            if (state == ekMIXED)
+            if (state == ekGUI_MIXED)
             {
-                state = ekON;
+                state = ekGUI_ON;
                 osbutton_state((OSButton*)button, state);
             }
         }
@@ -130,7 +134,7 @@ static void i_OnClick(OSXButton *button)
             params.index = 0;
             params.state = state;
             params.text = NULL;//(const char_t*)[[self title] UTF8String];
-            listener_event(button->OnClick, ekEVBUTTON, (OSButton*)button, &params, NULL, OSButton, EvButton, void);
+            listener_event(button->OnClick, ekGUI_EVENT_BUTTON, (OSButton*)button, &params, NULL, OSButton, EvButton, void);
         }
     }
 }
@@ -445,9 +449,9 @@ static void i_OnClick(OSXButton *button)
 
 - (NSRect)drawTitle:(NSAttributedString*)title withFrame:(NSRect)frame inView:(NSView*)controlView
 {
-    if (button_type(self->flags) == ekBTPUSH)
+    if (button_get_type(self->flags) == ekBUTTON_PUSH)
     {
-        if (size == ekMINI)
+        if (size == ekGUI_SIZE_MINI)
         {
             NSImage *nsimage = [self image];
             if (nsimage != nil)
@@ -459,15 +463,15 @@ static void i_OnClick(OSXButton *button)
             }
         }
     }
-    
+
     return [super drawTitle:title withFrame:frame inView:controlView];
 }
 
 /*---------------------------------------------------------------------------*/
 
 - (void)drawImage:(NSImage*)nsimage withFrame:(NSRect)frame inView:(NSView *)controlView
-{    
-    if (button_type(self->flags) == ekBTPUSH)
+{
+    if (button_get_type(self->flags) == ekBUTTON_PUSH)
     {
         NSBitmapImageRep *image_rep = nil;
         NSInteger width, height;
@@ -480,11 +484,11 @@ static void i_OnClick(OSXButton *button)
         offset_x = ((NSInteger)rframe.size.width - (NSInteger)self->text_width) / 2;
         offset_y = ((NSInteger)rframe.size.height - height) / 2;
 
-        if (self->size == ekREGULAR)
+        if (self->size == ekGUI_SIZE_REGULAR)
             offset_y -= 1;
-        else if (self->size == ekSMALL)
+        else if (self->size == ekGUI_SIZE_SMALL)
             offset_y -= 1;
-        
+
         frame.size.width = (CGFloat)width;
         frame.size.height = (CGFloat)height;
         frame.origin.x = (CGFloat)offset_x;
@@ -499,20 +503,20 @@ static void i_OnClick(OSXButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-static NSRect i_pushbutton_cell_frame(NSRect rect, const fsize_t size)
+static NSRect i_pushbutton_cell_frame(NSRect rect, const gui_size_t size)
 {
     switch (size)
     {
-        case ekMINI:
+        case ekGUI_SIZE_MINI:
             rect.origin.y -= 0.f;
             break;
-        case ekREGULAR:
+        case ekGUI_SIZE_REGULAR:
             rect.origin.x -= 5.f;
             rect.origin.y -= 1.f;
             rect.size.width += 10.f;
             rect.size.height += 4.f;
             break;
-        case ekSMALL:
+        case ekGUI_SIZE_SMALL:
             rect.origin.x -= 5.f;
             rect.origin.y += 1.f;
             rect.size.width += 10.f;
@@ -520,7 +524,7 @@ static NSRect i_pushbutton_cell_frame(NSRect rect, const fsize_t size)
         default:
             break;
     }
-    
+
     return rect;
 }
 
@@ -530,7 +534,7 @@ static NSRect i_pushbutton_cell_frame(NSRect rect, const fsize_t size)
 
 -(void)drawFocusRingMaskWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
-    if (button_type(self->flags) == ekBTPUSH)
+    if (button_get_type(self->flags) == ekBUTTON_PUSH)
         cellFrame = i_pushbutton_cell_frame(cellFrame, self->size);
     [super drawFocusRingMaskWithFrame:cellFrame inView:controlView];
 }
@@ -539,22 +543,22 @@ static NSRect i_pushbutton_cell_frame(NSRect rect, const fsize_t size)
 
 /*---------------------------------------------------------------------------*/
 
--(void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView 
+-(void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
     /*NSFrameRect(cellFrame);*/
-    if (button_type(self->flags) == ekBTPUSH)
+    if (button_get_type(self->flags) == ekBUTTON_PUSH)
     {
         cellFrame = i_pushbutton_cell_frame(cellFrame, self->size);
     }
-    else if (button_type(self->flags) == ekBTFLAT
-             || button_type(self->flags) == ekBTFLATGLE)
+    else if (button_get_type(self->flags) == ekBUTTON_FLAT
+             || button_get_type(self->flags) == ekBUTTON_FLATGLE)
     {
         cellFrame.origin.x -= 2.f;
         cellFrame.origin.y -= 2.f;
         cellFrame.size.width += 4.f;
         cellFrame.size.height += 4.f;
     }
-        
+
     [super drawWithFrame:cellFrame inView:controlView];
 }
 
@@ -707,7 +711,7 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
     //
     // This avoid the automatic radiobutton grouping in OSX 10.8 and later.
     // It's assing a different ACTION selector for each radio button in superview
-    if (button_type(button->flags) == ekBTRADIO)
+    if (button_get_type(button->flags) == ekBUTTON_RADIO)
     {
         NSUInteger radio_index = 0;
         NSArray *children = [parent_view subviews];
@@ -719,7 +723,7 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
             if ([child isKindOfClass:[OSXButton class]])
             {
                 OSXButton *child_button = (OSXButton*)child;
-                if (button_type(child_button->flags) == ekBTRADIO)
+                if (button_get_type(child_button->flags) == ekBUTTON_RADIO)
                 {
                     i_set_button_action(child_button, radio_index);
                     radio_index += 1;
@@ -753,20 +757,20 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
 #define RADIO_BUTTON NSRadioButton
 #endif
 
-static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const button_flag_t flags)
+static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint32_t flags)
 {
-    switch (button_type(flags))
+    switch (button_get_type(flags))
     {
-        case ekBTPUSH:
+        case ekBUTTON_PUSH:
             [cell setBezelStyle:ROUNDED_BEZEL];
             [cell setBordered:YES];
             [cell setShowsBorderOnlyWhileMouseInside:NO];
             [cell setImagePosition:NSNoImage];
             [button setButtonType:PUSH_IN_BUTTON];
             break;
-            
-        case ekBTCHECK2:
-        case ekBTCHECK3:
+
+        case ekBUTTON_CHECK2:
+        case ekBUTTON_CHECK3:
             [cell setBezelStyle:REGULAR_SQUARE_BEZEL];
             [cell setBordered:NO];
             // macos 10.15 Catalina hides the check image
@@ -774,10 +778,10 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const butt
             [cell setShowsBorderOnlyWhileMouseInside:NO];
             [cell setImageScaling:NSImageScaleNone];
             [button setButtonType:SWITCH_BUTTON];
-            [button setAllowsMixedState:button_type(flags) == ekBTCHECK3 ? YES : NO];
+            [button setAllowsMixedState:button_get_type(flags) == ekBUTTON_CHECK3 ? YES : NO];
             break;
 
-        case ekBTRADIO:
+        case ekBUTTON_RADIO:
             [cell setBezelStyle:REGULAR_SQUARE_BEZEL];
             [cell setBordered:NO];
             [cell setShowsBorderOnlyWhileMouseInside:NO];
@@ -785,7 +789,7 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const butt
             [button setButtonType:RADIO_BUTTON];
             break;
 
-        case ekBTFLAT:
+        case ekBUTTON_FLAT:
             [cell setBezelStyle:REGULAR_SQUARE_BEZEL];
             [cell setBordered:YES];
             [cell setShowsBorderOnlyWhileMouseInside:YES];
@@ -793,21 +797,21 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const butt
             [button setButtonType:PUSH_IN_BUTTON];
             break;
 
-        case ekBTFLATGLE:
+        case ekBUTTON_FLATGLE:
             [cell setBezelStyle:REGULAR_SQUARE_BEZEL];
             [cell setBordered:YES];
             [cell setShowsBorderOnlyWhileMouseInside:YES];
             [cell setImageScaling:NSImageScaleNone];
             [button setButtonType:PUSH_IN_BUTTON];
             break;
-            
+
         cassert_default();
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-OSButton *osbutton_create(const button_flag_t flags)
+OSButton *osbutton_create(const uint32_t flags)
 {
     OSXButton *button = nil;
     OSXButtonCell *cell = nil;
@@ -837,16 +841,16 @@ OSButton *osbutton_create(const button_flag_t flags)
     else
     {
         bmem_zero(&button->attrs, OSTextAttr);
-        cell->size = ENUM_MAX(fsize_t);
+        cell->size = ENUM_MAX(gui_size_t);
     }
-    
+
     return (OSButton*)button;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_destroy(OSButton **button)
-{	
+{
     OSXButton *buttonp = nil;
     OSXButtonCell *cell = nil;
     cassert_no_null(button);
@@ -900,7 +904,7 @@ void osbutton_font(OSButton *button, const Font *font)
     _oscontrol_set_font(lbutton, &lbutton->attrs, font);
     _oscontrol_size_from_font([lbutton cell], lbutton->attrs.font);
     cell->size = _osgui_size_font(font_size(lbutton->attrs.font));
-    if (button_type(lbutton->flags) == ekBTPUSH)
+    if (button_get_type(lbutton->flags) == ekBUTTON_PUSH)
     {
         if (cell->image != NULL)
         {
@@ -932,7 +936,7 @@ void osbutton_image(OSButton *button, const Image *image)
     cassert_no_null(lbutton);
     cassert(_osgui_button_image_allowed(lbutton->flags) == TRUE);
     cell = [lbutton cell];
-    if (button_type(cell->flags) == ekBTPUSH)
+    if (button_get_type(cell->flags) == ekBUTTON_PUSH)
     {
         ptr_destopt(image_destroy, &cell->image, Image);
         if (image != NULL)
@@ -944,11 +948,11 @@ void osbutton_image(OSButton *button, const Image *image)
         {
             [cell setImagePosition:NSNoImage];
         }
-        
+
         _oscontrol_cell_set_image(cell, cell->image);
     }
-    else if (button_type(cell->flags) == ekBTFLAT
-          || button_type(cell->flags) == ekBTFLATGLE)
+    else if (button_get_type(cell->flags) == ekBUTTON_FLAT
+          || button_get_type(cell->flags) == ekBUTTON_FLATGLE)
     {
         _oscontrol_cell_set_image(cell, image);
     }
@@ -970,20 +974,20 @@ void osbutton_image(OSButton *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_state(OSButton *button, const state_t state)
+void osbutton_state(OSButton *button, const gui_state_t state)
 {
 #if defined (MAC_OS_X_VERSION_10_13) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_13
     NSControlStateValue nsstate = NSControlStateValueOn;
     cassert_no_null(button);
     switch(state)
     {
-        case ekON:
+        case ekGUI_ON:
             nsstate = NSControlStateValueOn;
             break;
-        case ekOFF:
+        case ekGUI_OFF:
             nsstate = NSControlStateValueOff;
             break;
-        case ekMIXED:
+        case ekGUI_MIXED:
             nsstate = NSControlStateValueMixed;
             break;
         cassert_default();
@@ -992,24 +996,24 @@ void osbutton_state(OSButton *button, const state_t state)
     NSInteger nsstate = NSOnState;
     switch(state)
     {
-        case ekON:
+        case ekGUI_ON:
             nsstate = NSOnState;
             break;
-        case ekOFF:
+        case ekGUI_OFF:
             nsstate = NSOffState;
             break;
-        case ekMIXED:
+        case ekGUI_MIXED:
             nsstate = NSMixedState;
             break;
         cassert_default();
     }
-#endif    
+#endif
     [(OSXButton*)button setState:nsstate];
 }
 
 /*---------------------------------------------------------------------------*/
 
-state_t osbutton_get_state(const OSButton *button)
+gui_state_t osbutton_get_state(const OSButton *button)
 {
     return i_get_state((const OSXButton*)button);
 }
@@ -1022,10 +1026,10 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     cassert_no_null(lbutton);
     cassert_no_null(width);
     cassert_no_null(height);
-    
-    switch (button_type(lbutton->flags))
+
+    switch (button_get_type(lbutton->flags))
     {
-        case ekBTPUSH:
+        case ekBUTTON_PUSH:
         {
             real32_t margin_width, margin_height;
             register OSXButtonCell *cell = [lbutton cell];
@@ -1034,59 +1038,58 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             _oscontrol_text_bounds(lbutton->attrs.font, "OO", -1.f, &margin_width, &margin_height);
             *width += margin_width;
             cell->text_width = *width;
-            
+
             if (cell->image != NULL)
                imgwidth = image_width(cell->image);
 
-            switch(cell->size)
-            {
-                case ekREGULAR:
-                    if (imgwidth > 0)
-                        *width += (real32_t)imgwidth + 4.f;
-                    *height = 22.f;
-                    break;
-                case ekSMALL:
-                    if (imgwidth > 0)
-                        *width += (real32_t)imgwidth + 4.f;
-                    *height = 20.f;
-                    break;
-                case ekMINI:
-                    if (imgwidth > 0)
-                        *width += (real32_t)imgwidth + 2.f;
-                    else
-                        *width += 2.f;
-                    *height = 16.f;
-                    break;
+            switch(cell->size) {
+            case ekGUI_SIZE_REGULAR:
+                if (imgwidth > 0)
+                    *width += (real32_t)imgwidth + 4.f;
+                *height = 22.f;
+                break;
+            case ekGUI_SIZE_SMALL:
+                if (imgwidth > 0)
+                    *width += (real32_t)imgwidth + 4.f;
+                *height = 20.f;
+                break;
+            case ekGUI_SIZE_MINI:
+                if (imgwidth > 0)
+                    *width += (real32_t)imgwidth + 2.f;
+                else
+                    *width += 2.f;
+                *height = 16.f;
+                break;
             }
             break;
         }
-            
-        case ekBTCHECK2:
-        case ekBTCHECK3:
-        case ekBTRADIO:
+
+        case ekBUTTON_CHECK2:
+        case ekBUTTON_CHECK3:
+        case ekBUTTON_RADIO:
         {
             register OSXButtonCell *cell = [lbutton cell];
             _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
             switch(cell->size)
             {
-                case ekREGULAR:
+                case ekGUI_SIZE_REGULAR:
                     *width += 22.f;
                     *height = 18.f;
                     break;
-                case ekSMALL:
+                case ekGUI_SIZE_SMALL:
                     *width += 22.f;
                     *height = 16.f;
                     break;
-                case ekMINI:
+                case ekGUI_SIZE_MINI:
                     *width += 22.f;
                     *height = 12.f;
                     break;
             }
             break;
         }
-            
-        case ekBTFLAT:
-        case ekBTFLATGLE:
+
+        case ekBUTTON_FLAT:
+        case ekBUTTON_FLATGLE:
             *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
             *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
             if (refwidth <= 16.f)
@@ -1094,7 +1097,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             if (refheight <= 16.f)
                 *height += 4.f;
             break;
-            
+
         cassert_default();
     }
 }
@@ -1173,13 +1176,13 @@ BOOL _osbutton_OnIntro(NSResponder *resp)
     if ([resp isKindOfClass:[OSXButton class]])
     {
         OSXButton *button = (OSXButton*)resp;
-        if (button_type(button->flags) == ekBTPUSH)
+        if (button_get_type(button->flags) == ekBUTTON_PUSH)
         {
             i_OnClick(button);
             return YES;
         }
     }
-    
+
     return NO;
 }
 

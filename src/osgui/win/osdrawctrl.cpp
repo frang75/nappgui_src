@@ -10,17 +10,14 @@
 
 /* Drawing custom GUI controls */
 
-#include "draw2d.ixx"
-#include "win/dctx_win.inl"
-#include "win/osimage.inl"
-#include "dctx.inl"
+#include "osimg.inl"
 #include "osdrawctrl.h"
 #include "osdrawctrl.inl"
 #include "osstyleXP.inl"
+#include "dctxh.h"
 #include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "font.inl"
 #include "unicode.h"
 
 #if !defined(__WINDOWS__)
@@ -76,7 +73,7 @@ Font *osdrawctrl_font(const DCtx *ctx)
 uint32_t osdrawctrl_row_padding(const DCtx *ctx)
 {
     unref(ctx);
-    return 0;
+    return 4;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -101,49 +98,46 @@ uint32_t osdrawctrl_check_height(const DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-multisel_t osdrawctrl_multisel(const DCtx *ctx, const vkey_t key)
+ctrl_msel_t osdrawctrl_multisel(const DCtx *ctx, const vkey_t key)
 {
     unref(ctx);
     if (key == ekKEY_LCTRL || key == ekKEY_RCTRL)
-        return ekMULTISEL_SINGLE;
+        return ekCTRL_MSEL_SINGLE;
     else if (key == ekKEY_LSHIFT || key == ekKEY_RSHIFT)
-        return ekMULTISEL_BURST;
-    return ekMULTISEL_NO;
+        return ekCTRL_MSEL_BURST;
+    return ekCTRL_MSEL_NO;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_clear(DCtx *ctx)
+void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const enum_t nonused)
 {
-    //OSDraw *osdraw = (OSDraw*)ctx->custom_data;
     RECT rect;
-    uint32_t w, h;
-    dctx_set_gdi_mode(ctx);
-    dctx_size(ctx, &w, &h);
-    rect.left = 0;
-    rect.top = 0;
-    rect.right = (LONG)w;
-    rect.bottom = (LONG)h;
-    FillRect(ctx->hdc, &rect, GetSysColorBrush(COLOR_WINDOW));    
-    //osstyleXP_DrawThemeBackgroundNoBorder(osdraw->list_theme, 0, 0, ctx->hdc, &rect);
+    dctx_set_raster_mode(ctx);
+    rect.left = (LONG)x;
+    rect.top = (LONG)y;
+    rect.right = (LONG)(x + width);
+    rect.bottom = (LONG)(y + height);
+    FillRect((HDC)dctx_native(ctx), &rect, GetSysColorBrush(COLOR_WINDOW));
+    unref(nonused);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE int i_state(const cstate_t state)
+static __INLINE int i_list_state(const ctrl_state_t state)
 {
     switch (state) {
-    case ekCSTATE_NORMAL:
-    case ekCSTATE_BKNORMAL:
+    case ekCTRL_STATE_NORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         return DLISS_NORMAL;
-    case ekCSTATE_HOT:
-    case ekCSTATE_BKHOT:
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
         return DLISS_HOT;
-    case ekCSTATE_PRESSED:
+    case ekCTRL_STATE_PRESSED:
         return DLISS_SELECTED;
-    case ekCSTATE_BKPRESSED:
+    case ekCTRL_STATE_BKPRESSED:
         return DLISS_SELECTEDNOTFOCUS;
-    case ekCSTATE_DISABLED:
+    case ekCTRL_STATE_DISABLED:
         return DLISS_DISABLED;
     cassert_default();
     }
@@ -153,123 +147,254 @@ static __INLINE int i_state(const cstate_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE HTHEME i_list_theme(DCtx *ctx)
+static __INLINE int i_header_state(const ctrl_state_t state)
 {
-    cassert_no_null(ctx);
-    cassert_no_null(ctx->custom_data);
-    return ((OSDraw*)ctx->custom_data)->list_theme;
+    switch (state) {
+    case ekCTRL_STATE_NORMAL:
+    case ekCTRL_STATE_BKNORMAL:
+        return HIS_NORMAL;
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
+        return HIS_HOT;
+    case ekCTRL_STATE_PRESSED:
+    case ekCTRL_STATE_BKPRESSED:
+        return HIS_PRESSED;
+    case ekCTRL_STATE_DISABLED:
+        return HIS_NORMAL;
+    cassert_default();
+    }
+
+    return HIS_NORMAL;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static __INLINE HTHEME i_button_theme(DCtx *ctx)
 {
-    cassert_no_null(ctx);
-    cassert_no_null(ctx->custom_data);
-    return ((OSDraw*)ctx->custom_data)->button_theme;
+    OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
+    cassert_no_null(custom_data);
+    return custom_data->button_theme;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_fill(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+static __INLINE HTHEME i_list_theme(DCtx *ctx)
+{
+    OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
+    cassert_no_null(custom_data);
+    return custom_data->list_theme;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE HTHEME i_header_theme(DCtx *ctx)
+{
+    OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
+    cassert_no_null(custom_data);
+    return custom_data->header_theme;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE SIZE i_sort_size(DCtx *ctx)
+{
+    SIZE *sz = NULL;
+    OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
+    cassert_no_null(custom_data);
+    sz = &custom_data->sort_size;
+    if (sz->cx == -1)
+        GetThemePartSize(custom_data->header_theme, (HDC)dctx_native(ctx), HP_HEADERSORTARROW, HSAS_SORTEDDOWN, NULL, TS_DRAW, sz);
+    return *sz;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
     RECT rect;
-    int istate = i_state(state);    
-    dctx_set_gdi_mode(ctx);
-    rect.left = (LONG)x + (LONG)ctx->offset_x;
-    rect.top = (LONG)y + (LONG)ctx->offset_y;
+    real32_t offset_x = 0, offset_y = 0;
+    int istate = i_header_state(state);    
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    rect.left = (LONG)x + (LONG)offset_x + 1;
+    rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, ctx->hdc, &rect);
+    osstyleXP_DrawThemeBackground2(i_header_theme(ctx), HP_HEADERITEM, istate, (HDC)dctx_native(ctx), &rect);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_focus(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const indicator_t indicator)
+{
+    int istate = 0;
+
+    if (indicator & ekINDDOWN_ARROW)
+        istate = HSAS_SORTEDDOWN;
+    else if (indicator & ekINDUP_ARROW)
+        istate = HSAS_SORTEDUP;
+
+    if (istate != 0)
+    {
+        RECT rect;
+        real32_t offset_x = 0, offset_y = 0;
+        HTHEME theme = i_header_theme(ctx);
+        SIZE sz = i_sort_size(ctx);
+        dctx_set_raster_mode(ctx);
+        dctx_offset(ctx, &offset_x, &offset_y);
+        rect.left = (LONG)x + (LONG)offset_x + 1;
+        rect.top = (LONG)y + (LONG)offset_y + 1;
+        rect.right = rect.left + (LONG)width;
+        rect.bottom = rect.top + sz.cy;
+        unref(height);
+        osstyleXP_DrawThemeBackground2(theme, HP_HEADERSORTARROW, istate, (HDC)dctx_native(ctx), &rect);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
     RECT rect;
+    real32_t offset_x = 0, offset_y = 0;
+    int istate = i_list_state(state);    
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    rect.left = (LONG)x + (LONG)offset_x;
+    rect.top = (LONG)y + (LONG)offset_y;
+    rect.right = rect.left + (LONG)width;
+    rect.bottom = rect.top + (LONG)height;
+    osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, (HDC)dctx_native(ctx), &rect);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
+{
+    RECT rect;
+    real32_t offset_x = 0, offset_y = 0;
     unref(state);
-    rect.left = (LONG)x + (LONG)ctx->offset_x;
-    rect.top = (LONG)y + (LONG)ctx->offset_y;
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    rect.left = (LONG)x + (LONG)offset_x;
+    rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    DrawFocusRect(ctx->hdc, &rect);
+    DrawFocusRect((HDC)dctx_native(ctx), &rect);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_text(DCtx *ctx, const char_t *text, const uint32_t x, const uint32_t y, const cstate_t state)
+void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_t x1, const int32_t y1)
+{
+    HDC hdc = NULL;
+    real32_t offset_x = 0, offset_y = 0;
+    cassert_no_null(ctx);
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    hdc = (HDC)dctx_native(ctx);
+    MoveToEx(hdc, (int)(x0 + offset_x), (int)(y0 + offset_y), NULL);
+    LineTo(hdc, (int)(x1 + offset_x), (int)(y1 + offset_y));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
     RECT rect;
+    real32_t offset_x = 0, offset_y = 0;
+    real32_t text_width = dctx_text_width(ctx);
+    HDC hdc = (HDC)dctx_native(ctx);
     uint32_t num_bytes = 0;
     WCHAR wtext[1024];
+    UINT format = DT_SINGLELINE | DT_END_ELLIPSIS;
 
-    dctx_set_gdi_mode(ctx);
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
 
     // For GDI-based raster text in bitmap context, we have to 'delete' the GDI object
     // Check 'Using GDI+ on a GDI HDC'
-    cassert(ctx->bitmap == NULL);
+    cassert(dctx_internal_bitmap(ctx) == NULL);
 
-    rect.left = (LONG)x + (LONG)ctx->offset_x;
-    rect.right = ctx->text_width > 0 ? rect.left + (LONG)ctx->text_width : 10000;
-    rect.top = (LONG)y + (LONG)ctx->offset_y;
+    rect.left = (LONG)x + (LONG)offset_x;
+    rect.right = text_width > 0 ? rect.left + (LONG)text_width : 10000;
+    rect.top = (LONG)y + (LONG)offset_y;
     rect.bottom = rect.top + 10000;
     num_bytes = unicode_convers(text, (char_t*)wtext, ekUTF8, ekUTF16, sizeof(wtext));
     unref(num_bytes);
 
-    if (ctx->text_color == kCOLOR_DEFAULT)
+    switch(dctx_text_intalign(ctx)) {
+    case ekLEFT:
+    case ekJUSTIFY:
+        format |= DT_LEFT;
+        break;
+    case ekCENTER:
+        format |= DT_CENTER;
+        break;
+    case ekRIGHT:
+        format |= DT_RIGHT;
+        break;
+    }
+
+    if (dctx_text_color(ctx) == kCOLOR_DEFAULT)
     {
-        int istate = i_state(state);
-        osstyleXP_DrawThemeText2(i_list_theme(ctx), ctx->hdc, LVP_LISTITEM, istate, wtext, -1, DT_LEFT | DT_END_ELLIPSIS, &rect);
+        int istate = i_list_state(state);
+        osstyleXP_DrawThemeText2(i_list_theme(ctx), hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
     }
     else
     {
-        DrawTextW(ctx->hdc, wtext, -1, &rect, DT_LEFT | DT_END_ELLIPSIS);
+        DrawTextW(hdc, wtext, -1, &rect, format);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_image(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y, const cstate_t state)
+void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
     HBITMAP hbitmap;
+    real32_t offset_x = 0, offset_y = 0;
+    HDC hdc = (HDC)dctx_native(ctx);
     HDC memhdc = NULL;
     LONG width, height;
     unref(state);
-    dctx_set_gdi_mode(ctx);
-    hbitmap = osimage_hbitmap_cache(image, ctx->background_color, &width, &height);
-    memhdc = CreateCompatibleDC(ctx->hdc);
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    hbitmap = osimg_hbitmap_cache(image, (COLORREF)dctx_background_color(ctx), &width, &height);
+    memhdc = CreateCompatibleDC(hdc);
     SelectObject(memhdc, hbitmap);
-    BitBlt(ctx->hdc, (int)x + (int)ctx->offset_x, (int)y + (int)ctx->offset_y, width, height, memhdc, 0, 0, SRCCOPY);
+    BitBlt(hdc, (int)x + (int)offset_x, (int)y + (int)offset_y, width, height, memhdc, 0, 0, SRCCOPY);
     DeleteDC(memhdc);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_checkbox(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    int istate = 0;
+int istate = 0;
     RECT rect;
+    real32_t offset_x = 0, offset_y = 0;
+    HDC hdc = (HDC)dctx_native(ctx);
 
-    dctx_set_gdi_mode(ctx);
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
 
     switch (state) {
-    case ekCSTATE_NORMAL:
-    case ekCSTATE_BKNORMAL:
+    case ekCTRL_STATE_NORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         istate = CBS_CHECKEDNORMAL;
         break;
 
-    case ekCSTATE_HOT:
-    case ekCSTATE_BKHOT:
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
         istate = CBS_CHECKEDHOT;
         break;
 
-    case ekCSTATE_PRESSED:
-    case ekCSTATE_BKPRESSED:
+    case ekCTRL_STATE_PRESSED:
+    case ekCTRL_STATE_BKPRESSED:
         istate = CBS_CHECKEDPRESSED;
         break;
 
-    case ekCSTATE_DISABLED:
+    case ekCTRL_STATE_DISABLED:
         istate = CBS_CHECKEDDISABLED;
         break;
 
@@ -278,39 +403,42 @@ void osdrawctrl_checkbox(DCtx *ctx, const uint32_t x, const uint32_t y, const ui
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
     cassert((LONG)height == kCHECKBOX_HEIGHT);
-    rect.left = (LONG)x + (LONG)ctx->offset_x;
-    rect.top = (LONG)y + (LONG)ctx->offset_y;
+    rect.left = (LONG)x + (LONG)offset_x;
+    rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, ctx->hdc, &rect);
+    osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_uncheckbox(DCtx *ctx, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height, const cstate_t state)
+void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
     int istate = 0;
     RECT rect;
+    real32_t offset_x = 0, offset_y = 0;
+    HDC hdc = (HDC)dctx_native(ctx);
 
-    dctx_set_gdi_mode(ctx);
+    dctx_set_raster_mode(ctx);
+    dctx_offset(ctx, &offset_x, &offset_y);
 
     switch (state) {
-    case ekCSTATE_NORMAL:
-    case ekCSTATE_BKNORMAL:
+    case ekCTRL_STATE_NORMAL:
+    case ekCTRL_STATE_BKNORMAL:
         istate = CBS_UNCHECKEDNORMAL;
         break;
 
-    case ekCSTATE_HOT:
-    case ekCSTATE_BKHOT:
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
         istate = CBS_UNCHECKEDHOT;
         break;
 
-    case ekCSTATE_PRESSED:
-    case ekCSTATE_BKPRESSED:
+    case ekCTRL_STATE_PRESSED:
+    case ekCTRL_STATE_BKPRESSED:
         istate = CBS_UNCHECKEDPRESSED;
         break;
 
-    case ekCSTATE_DISABLED:
+    case ekCTRL_STATE_DISABLED:
         istate = CBS_UNCHECKEDDISABLED;
         break;
 
@@ -319,16 +447,16 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const uint32_t x, const uint32_t y, const 
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
     cassert((LONG)height == kCHECKBOX_HEIGHT);
-    rect.left = (LONG)x + (LONG)ctx->offset_x;
-    rect.top = (LONG)y + (LONG)ctx->offset_y;
+    rect.left = (LONG)x + (LONG)offset_x;
+    rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, ctx->hdc, &rect);
+    osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_header(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image)
+void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image)
 {
     BOOL use_style = FALSE;
 

@@ -20,7 +20,7 @@ typedef enum _state_t
     stZERO,
     stINTEGER,
     stREAL
-} state_t;
+} gui_state_t;
 
 /*---------------------------------------------------------------------------*/
 
@@ -29,7 +29,7 @@ void tfilter_number(const char_t *src, char_t *dest, const uint32_t size, const 
     uint32_t csize, i = 0;
     uint32_t codepoint = unicode_to_u32b(src, ekUTF8, &csize);
     uint32_t decimals = 0;
-    state_t state = stSTART;
+    gui_state_t state = stSTART;
     bool_t valid = FALSE;
     while (codepoint != 0)
     {

@@ -22,7 +22,7 @@ NSSize osglobals_check_size(void);
 
 NSRect osglobals_check_rect(void);
 
-NSImage *osglobals_checkbox_image(const bool_t pressed, const cstate_t state);
+NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state);
 
 const CGFloat *osglobals_text_color(void);
 
@@ -47,6 +47,3 @@ const CGFloat *osglobals_backbackdrop_color(void);
 const CGFloat *osglobals_hotbgbackdrop_color(void);
 
 const CGFloat *osglobals_selbgbackdrop_color(void);
-
-void osglobals_theme_changed(void);
-

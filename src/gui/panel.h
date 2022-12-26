@@ -15,27 +15,27 @@
 
 __EXTERN_C
 
-Panel *panel_create(void);
+_gui_api Panel *panel_create(void);
 
-Panel *panel_scroll(const bool_t hscroll, const bool_t vscroll);
+_gui_api Panel *panel_scroll(const bool_t hscroll, const bool_t vscroll);
 
-void panel_data_imp(Panel *panel, void **data, FPtr_destroy func_destroy_item);
+_gui_api void panel_data_imp(Panel *panel, void **data, FPtr_destroy func_destroy_data);
 
-void *panel_get_data_imp(const Panel *panel);
+_gui_api void *panel_get_data_imp(const Panel *panel);
 
-void panel_size(Panel *panel, const S2Df size);
+_gui_api void panel_size(Panel *panel, const S2Df size);
 
-uint32_t panel_layout(Panel *panel, Layout *layout);
+_gui_api uint32_t panel_layout(Panel *panel, Layout *layout);
 
-Layout *panel_get_layout(Panel *panel, const uint32_t index);
+_gui_api Layout *panel_get_layout(Panel *panel, const uint32_t index);
 
-void panel_visible_layout(Panel *panel, const uint32_t index);
+_gui_api void panel_visible_layout(Panel *panel, const uint32_t index);
 
-void panel_update(Panel *panel);
+_gui_api void panel_update(Panel *panel);
 
-real32_t panel_scroll_width(const Panel *panel);
+_gui_api real32_t panel_scroll_width(const Panel *panel);
 
-real32_t panel_scroll_height(const Panel *panel);
+_gui_api real32_t panel_scroll_height(const Panel *panel);
 
 __END_C
 

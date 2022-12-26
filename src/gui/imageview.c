@@ -17,7 +17,6 @@
 #include "gui.inl"
 #include "image.h"
 #include "layout.h"
-#include "obj.inl"
 
 #include "bmath.h"
 #include "cassert.h"
@@ -27,6 +26,7 @@
 #include "event.h"
 #include "heap.h"
 #include "ptr.h"
+#include "objh.h"
 #include "s2d.h"
 #include "t2d.h"
 
@@ -37,7 +37,7 @@ struct _vimgdata_t
     Image *image;
     uint32_t frame;
     real64_t ftime;
-    scale_t scale;
+    gui_scale_t scale;
     bool_t mouse_over;
     Listener *OnOverDraw;
 };
@@ -55,40 +55,52 @@ static void i_destroy_data(VImgData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_image_transform(T2Df *t2d, const scale_t scale, const real32_t view_width, const real32_t view_height, const real32_t img_width, const real32_t img_height)
+static void i_image_transform(T2Df *t2d, const gui_scale_t scale, const real32_t view_width, const real32_t view_height, const real32_t img_width, const real32_t img_height)
 {
-    real32_t ratio = 1.f;    
-    if (scale != ekSNONE)
+    real32_t ratio_x = 1.f;
+    real32_t ratio_y = 1.f;
+    if (scale != ekGUI_SCALE_NONE)
     {
-        real32_t ratio1 = 1.f, ratio2 = 1.f;
-        ratio1 = view_width / img_width;
-        ratio2 = view_height / img_height;
-        ratio = (ratio1 < ratio2) ? ratio1 : ratio2;
+        ratio_x = view_width / img_width;
+        ratio_y = view_height / img_height;
 
         switch (scale)
         {
-        case ekAUTO:
-        case ekASPECTDW:
-            if (ratio > 1.f)
-                ratio = 1.f;
-            break;
-        case ekASPECT:
+        case ekGUI_SCALE_AUTO:
             break;
 
-        case ekSNONE:
+        case ekGUI_SCALE_ASPECTDW:
+            if (ratio_x < ratio_y)
+                ratio_y = ratio_x;
+            else
+                ratio_x = ratio_y;
+
+            if (ratio_x > 1.f)
+            {
+                ratio_x = 1.f;
+                ratio_y = 1.f;
+            }
+            break;
+
+        case ekGUI_SCALE_ASPECT:
+            if (ratio_x < ratio_y)
+                ratio_y = ratio_x;
+            else
+                ratio_x = ratio_y;
+            break;
+
+        case ekGUI_SCALE_NONE:
         cassert_default();
         }
     }
 
     {
-        real32_t fimg_width = bmath_roundf(ratio * img_width);
-        real32_t fimg_height = bmath_roundf(ratio * img_height);
+        real32_t fimg_width = bmath_roundf(ratio_x * img_width);
+        real32_t fimg_height = bmath_roundf(ratio_y * img_height);
         real32_t fx = bmath_floorf(.5f * (view_width - fimg_width));
         real32_t fy = bmath_floorf(.5f * (view_height - fimg_height));
-        //cassert(fimg_width <= view_width);
-        //cassert(fimg_height <= view_height);
         t2d_movef(t2d, kT2D_IDENTf, fx, fy);
-        t2d_scalef(t2d, t2d, ratio, ratio);
+        t2d_scalef(t2d, t2d, ratio_x, ratio_y);
     }
 }
 
@@ -99,7 +111,7 @@ static void i_OnRedraw(View *view, Event *e)
     VImgData *data = NULL;
     const EvDraw *params = NULL;
     cassert_no_null(view);
-    cassert(event_type(e) == ekEVDRAW);
+    cassert(event_type(e) == ekGUI_EVENT_DRAW);
     data = view_get_data(view, VImgData);
     cassert_no_null(data);
     params = event_params(e, EvDraw);
@@ -130,7 +142,7 @@ ImageView *imageview_create(void)
     S2Df size = { 64.f, 64.f };
     View *view = NULL;
     data->frame = UINT32_MAX;
-    data->scale = ekSNONE;
+    data->scale = ekGUI_SCALE_NONE;
     view = view_create();
     view_data(view, &data, i_destroy_data, VImgData);
     _view_set_subtype(view, "ImageView");
@@ -149,7 +161,7 @@ void imageview_size(ImageView *view, S2Df size)
 
 /*---------------------------------------------------------------------------*/
 
-void imageview_scale(ImageView *view, const scale_t scale)
+void imageview_scale(ImageView *view, const gui_scale_t scale)
 {
     VImgData *data = view_get_data((View*)view, VImgData);
     cassert_no_null(data);
@@ -172,7 +184,7 @@ static void i_OnAnimation(View *view, Event *event)
             data->frame = 0;
         l = image_frame_length(data->image, data->frame);
         data->ftime = params->crtime + (real64_t)l;
-        view_update(view);            
+        view_update(view);
     }
 }
 
@@ -189,7 +201,7 @@ void imageview_image(ImageView *view, const Image *image)
         data->image = ptr_copyopt(image_copy, limage, Image);
         data->frame = UINT32_MAX;
         view_delete_transition((View*)view);
-        
+
         if (limage != NULL)
         {
             uint32_t num_frames = image_num_frames(data->image);
@@ -200,7 +212,7 @@ void imageview_image(ImageView *view, const Image *image)
                 view_add_transition((View*)view, obj_listener((View*)view, i_OnAnimation, View));
             }
 
-            if (data->scale == ekAUTO)
+            if (data->scale == ekGUI_SCALE_AUTO)
             {
                 S2Df size;
                 size.width = (real32_t)image_width(data->image);
@@ -261,7 +273,7 @@ void imageview_frame(CView *view, const uint32_t frame)
     cassert_no_null(view);
     data = view_data(view, i_Data);
     cassert_no_null(data);
-    data->frame = frame;    
+    data->frame = frame;
 }*/
 
 /*---------------------------------------------------------------------------*/
@@ -292,7 +304,7 @@ void imageview_animation(CView *view, const bool_t animation, Listener *listener
     cassert_no_null(data);
     listener_update(&data->OnTransition, listener);
     view_unregister_transition(view);
-    
+
     if (animation == TRUE)
     {
         uint32_t num_frames = 0;
@@ -302,7 +314,7 @@ void imageview_animation(CView *view, const bool_t animation, Listener *listener
             if (data->frame == UINT32_MAX)
                 data->frame = 0;
             data->frame_time_stamp = 0.;
-            view_register_transition(view, obj_listener(view, i_OnAnimation, CView));            
+            view_register_transition(view, obj_listener(view, i_OnAnimation, CView));
         }
     }
 }*/

@@ -11,6 +11,7 @@
 /* Basic standard functions */
 
 #include "bstd.h"
+#include "blib.h"
 #include "bmem.h"
 #include "cassert.h"
 #include "ptr.h"
@@ -280,14 +281,7 @@ bool_t bstd_ewrite(const byte_t *data, const uint32_t size, uint32_t *wsize)
 
 /*---------------------------------------------------------------------------*/
 
-void bstd_abort(void)
-{
-    abort();
-}
-
-/*---------------------------------------------------------------------------*/
-
-void bstd_debug_break(void)
+void blib_debug_break(void)
 {
 #if (VS_PLATFORM > 800)
     if (IsDebuggerPresent() != 0)

@@ -1,0 +1,21 @@
+/* casino library import/export */
+
+#if defined(CASINO_IMPORT)
+    #if defined(__GNUC__)
+        #define _casino_api
+    #elif defined(_MSC_VER)
+        #define _casino_api __declspec(dllimport)
+    #else
+        #error Unknown compiler
+    #endif
+#elif defined(NAPPGUI_SHARED_LIB)
+    #if defined(__GNUC__)
+        #define _casino_api __attribute__((visibility("default")))
+    #elif defined(_MSC_VER)
+        #define _casino_api __declspec(dllexport)
+    #else
+        #error Unknown compiler
+    #endif
+#else
+    #define _casino_api
+#endif

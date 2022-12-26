@@ -12,4 +12,4 @@
 
 #include "gui.hxx"
 
-Panel *table(void);
+Panel *table_view(void);

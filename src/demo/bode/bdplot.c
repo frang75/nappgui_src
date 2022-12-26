@@ -217,20 +217,20 @@ static void i_x_steps(const Graph *graph, const R2Df *rect, const real32_t x_inc
     num_x_cuts = bmath_floorf(num_x_cuts);
     if (num_x_cuts == 0.f)
         num_x_cuts = 1.f;
-    
+
     *x_increment = (graph->box.max.x - graph->box.min.x) / num_x_cuts;
     *x_increment = bmath_round_stepf(*x_increment, x_increment_step);
     if (*x_increment == .0f)
         *x_increment = x_increment_step;
     cassert(*x_increment >= x_increment_step);
-    
+
     *min_x_value = bmath_round_stepf(graph->box.min.x, *x_increment);
-    
+
     if (*min_x_value < graph->box.min.x)
         *min_x_value += *x_increment;
-    
+
     cassert(*min_x_value >= graph->box.min.x);
-    
+
     num_steps = (graph->box.max.x - *min_x_value) / *x_increment;
     *num_x_steps = (uint32_t)bmath_floorf(num_steps);
 }
@@ -250,7 +250,7 @@ static void i_y_steps(const Graph *graph, const R2Df *rect, const real32_t y_inc
     num_y_cuts = bmath_floorf(num_y_cuts);
     if (num_y_cuts == 0.f)
         num_y_cuts = 1.f;
-    
+
     *y_increment = (graph->box.max.y - graph->box.min.y) / num_y_cuts;
     *y_increment = bmath_round_stepf(*y_increment, y_increment_step);
     if (*y_increment == .0f)
@@ -258,12 +258,12 @@ static void i_y_steps(const Graph *graph, const R2Df *rect, const real32_t y_inc
     cassert(*y_increment >= y_increment_step);
 
     *min_y_value = bmath_round_stepf(graph->box.min.y, *y_increment);
-    
+
     if (*min_y_value < graph->box.min.y)
         *min_y_value += *y_increment;
-    
+
     cassert(*min_y_value >= graph->box.min.y);
-    
+
     num_steps = (graph->box.max.y - *min_y_value) / *y_increment;
     *num_y_steps = (uint32_t)bmath_floorf(num_steps);
 }
@@ -296,14 +296,14 @@ static bool_t i_xy_from_canvas(const Graph *graph, const R2Df *rect, const real3
                 break;
             }
         }
-        
-        // p->x == v2d[0].x
+
+        /* p->x == v2d[0].x */
         if (index == 0)
         {
             p->y = graph->points[0].y;
             return TRUE;
         }
-        // v2d[index-1].x < p->x < v2d[index].x
+        /* v2d[index-1].x < p->x < v2d[index].x */
         else if (index < graph->n - 1)
         {
             register real32_t x0 = graph->points[index-1].x;
@@ -313,7 +313,7 @@ static bool_t i_xy_from_canvas(const Graph *graph, const R2Df *rect, const real3
             p->y = y0 + (p->x - x0) * ((y1 - y0) / (x1 - x0));
             return TRUE;
         }
-        // p->x is out of graph limits
+        /* p->x is out of graph limits */
         else
         {
             return FALSE;
@@ -334,11 +334,11 @@ static bool_t i_xy_to_canvas(const Graph *graph, const R2Df *rect, const V2Df *p
     norm.x = (p->x - graph->box.min.x) / (graph->box.max.x - graph->box.min.x);
     if (norm.x < 0.f || norm.x > 1.f)
         return FALSE;
-    
+
     norm.y = (p->y - graph->box.min.y) / (graph->box.max.y - graph->box.min.y);
     if (norm.y < 0.f || norm.y > 1.f)
         return FALSE;
-    
+
     canvas_p->x = rect->pos.x + norm.x * rect->size.width;
     canvas_p->y = rect->pos.y + norm.y * rect->size.height;
     return TRUE;
@@ -356,7 +356,7 @@ static bool_t i_x_to_canvas(const Graph *graph, const R2Df *rect, const real32_t
     norm = (x - graph->box.min.x) / (graph->box.max.x - graph->box.min.x);
     if (norm < 0.f || norm > 1.f)
         return FALSE;
-    
+
     *canvas_x = rect->pos.x + norm * rect->size.width;
     return TRUE;
 }
@@ -373,7 +373,7 @@ static bool_t i_y_to_canvas(const Graph *graph, const R2Df *rect, const real32_t
     norm = (y - graph->box.min.y) / (graph->box.max.y - graph->box.min.y);
     if (norm < 0.f || norm > 1.f)
         return FALSE;
-    
+
     *canvas_y = rect->pos.y + norm * rect->size.height;
     return TRUE;
 }
@@ -424,7 +424,7 @@ static bool_t i_eval_inverse(const Graph *graph, const real32_t y, real32_t *x)
             return TRUE;
         }
     }
-    
+
     return FALSE;
 }
 
@@ -510,7 +510,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
 
         draw_line_color(ctx, plot->colaxis2);
         draw_line_dash(ctx, pattern, 2);
-        
+
         graph_x = min_db_grid_x_value;
         p0.y = iframe.pos.y;
         p1.y = iframe.pos.y + iframe.size.height - 10.f;
@@ -527,17 +527,17 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_x += x_db_grid_increment;
         }
-       
+
         if (db_canvas_point.x != REAL32_MAX)
         {
             p0.x = p1.x = db_canvas_point.x;
             p1.y = iframe.pos.y + iframe.size.height;
             draw_line(ctx, p0.x, p0.y, p1.x, p1.y);
         }
-        
+
         graph_y = min_db_grid_y_value;
         p0.x = iframe.pos.x + 10.f;
         p1.x = iframe.pos.x + iframe.size.width;
@@ -554,10 +554,10 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_y += y_db_grid_increment;
         }
-        
+
         draw_line_dash(ctx, NULL, 0);
     }
 
@@ -603,7 +603,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             draw_line_color(ctx, plot->colgrap22);
             draw_line(ctx, p0.x, p0.y, p1.x, p1.y);
 
-            // Vertical -180º cutting edge
+            /* Vertical -180º cutting edge */
             if (i_eval_inverse(&plot->graph.phase, -180.f, &x_180) == TRUE)
             {
                 real32_t canvas_x = 0;
@@ -641,7 +641,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
         draw_text_align(ctx, align, ekBOTTOM);
         draw_text(ctx, text, db_canvas_point.x, height - db_canvas_point.y);
     }
-        
+
     if (phase_canvas_point.x != REAL32_MAX)
     {
         char_t text[16];
@@ -656,14 +656,13 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
 
     /* Axes */
     {
-        //Font font;
         real32_t graph_x, graph_y;
         V2Df p0, p1;
         register uint32_t i;
-        
+
         draw_line_color(ctx, plot->colaxis1);
         draw_text_color(ctx, plot->colaxis1);
-        
+
         {
             V2Df pa0, pa1, pa2, pa3;
             pa0.x = iframe.pos.x;
@@ -678,7 +677,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             draw_line(ctx, pa0.x, pa0.y, pa2.x, pa2.y);
             draw_line(ctx, pa1.x, pa1.y, pa3.x, pa3.y);
         }
-        
+
         if (db_canvas_point.x != REAL32_MAX)
         {
             char_t text[16];
@@ -688,7 +687,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             bstd_sprintf(text, sizeof(text), "%.3f", db_point.x);
             draw_text_align(ctx, align, ekTOP);
         }
-        
+
         graph_x = min_db_grid_x_value;
         p0.y = height - iframe.pos.y;
         p1.y = height - (iframe.pos.y + 10.f);
@@ -710,15 +709,15 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_x += x_db_grid_increment;
         }
-        
+
         graph_y = min_db_grid_y_value;
         p0.x = iframe.pos.x;
         p1.x = iframe.pos.x + 10.f;
         draw_text_align(ctx, ekRIGHT, ekCENTER);
-        
+
         for (i = 0; i <= num_db_grid_y_steps; ++i)
         {
             real32_t canvas_y = 0.f;
@@ -737,15 +736,15 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_y += y_db_grid_increment;
         }
-        
+
         graph_y = min_phase_grid_y_value;
         p0.x = iframe.pos.x + iframe.size.width;
         p1.x = p0.x - 10.f;
         draw_text_align(ctx, ekLEFT, ekCENTER);
-        
+
         for (i = 0; i <= num_phase_grid_y_steps; ++i)
         {
             real32_t canvas_y = 0.f;
@@ -762,12 +761,11 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_y += y_phase_grid_increment;
         }
     }
 
-    //if (width > 230.f)
     {
         V2Df text_pos;
         text_pos.x = LMARGIN;
@@ -817,10 +815,10 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
         V2Df p0, p1;
         real32_t pattern[2] = {2.f, 2.f};
         register uint32_t i;
-        
+
         draw_line_color(ctx, plot->colaxis2);
         draw_line_dash(ctx, pattern, 2);
-        
+
         graph_x = min_simu_grid_x_value;
         p0.y = iframe.pos.y;
         p1.y = iframe.pos.y + iframe.size.height - 10.f;
@@ -837,17 +835,17 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_x += x_simu_grid_increment;
         }
-        
+
         if (simu_canvas_point.x != REAL32_MAX)
         {
             p0.x = p1.x = simu_canvas_point.x;
             p1.y = iframe.pos.y + iframe.size.height;
             draw_line(ctx, p0.x, p0.y, p1.x, p1.y);
         }
-        
+
         graph_y = min_simu_grid_y_value;
         p0.x = iframe.pos.x + 10.f;
         p1.x = iframe.pos.x + iframe.size.width;
@@ -864,10 +862,10 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_y += y_simu_grid_increment;
         }
-        
+
         draw_line_dash(ctx, NULL, 0);
     }
 
@@ -899,10 +897,10 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
         real32_t graph_x, graph_y;
         V2Df p0, p1;
         register uint32_t i;
-        
+
         draw_line_color(ctx, plot->colaxis1);
         draw_text_color(ctx, plot->colaxis1);
-        
+
         {
             V2Df pa0, pa1, pa2, pa3;
             pa0.x = iframe.pos.x;
@@ -932,7 +930,7 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             draw_line(ctx, pa0.x, pa0.y, pa2.x, pa2.y);
             draw_line(ctx, pa1.x, pa1.y, pa3.x, pa3.y);
         }
-        
+
         if (simu_canvas_point.x != REAL32_MAX)
         {
             char_t text[16];
@@ -965,7 +963,7 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_x += x_simu_grid_increment;
         }
 
@@ -973,7 +971,7 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
         p0.x = iframe.pos.x;
         p1.x = iframe.pos.x + 10.f;
         draw_text_align(ctx, ekRIGHT, ekCENTER);
-        
+
         for (i = 0; i <= num_simu_grid_y_steps; ++i)
         {
             real32_t canvas_y = 0.f;
@@ -992,7 +990,7 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
             {
                 cassert(FALSE);
             }
-            
+
             graph_y += y_simu_grid_increment;
         }
     }

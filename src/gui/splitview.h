@@ -15,21 +15,21 @@
 
 __EXTERN_C
 
-SplitView *splitview_horizontal(void);
+_gui_api SplitView *splitview_horizontal(void);
 
-SplitView *splitview_vertical(void);
+_gui_api SplitView *splitview_vertical(void);
 
-void splitview_size(SplitView *split, const S2Df size);
+_gui_api void splitview_size(SplitView *split, const S2Df size);
 
-void splitview_view(SplitView *split, View *view);
+_gui_api void splitview_view(SplitView *split, View *view);
 
-void splitview_text(SplitView *split, TextView *view);
+_gui_api void splitview_text(SplitView *split, TextView *view);
 
-void splitview_split(SplitView *split, SplitView *child);
+_gui_api void splitview_split(SplitView *split, SplitView *child);
 
-void splitview_panel(SplitView *split, Panel *panel);
+_gui_api void splitview_panel(SplitView *split, Panel *panel);
 
-void splitview_pos(SplitView *split, const real32_t pos);
+_gui_api void splitview_pos(SplitView *split, const real32_t pos);
 
 __END_C
 

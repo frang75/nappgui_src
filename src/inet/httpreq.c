@@ -12,7 +12,6 @@
 
 #include "httpreq.h"
 #include "oshttpreq.inl"
-#include "inet.inl"
 #include "url.h"
 #include "arrst.h"
 #include "bsocket.h"
@@ -128,29 +127,13 @@ static void i_clear_response(Http *http)
     arrst_clear(http->headers, i_remove_field, Field);
 }
 
-///*---------------------------------------------------------------------------*/
-//
-//static Stream *i_uri_param(const char_t *uri, const ArrSt(Field) *params)
-//{
-//    Stream *stm = stm_memory(1024);
-//    stm_writef(stm, uri);
-//    stm_writef(stm, "?");
-//    arrst_foreach(param, params, Field)
-//        stm_printf(stm, "%s=%s", tc(param->name), tc(param->value));
-//        if (param_i < param_total - 1)
-//            stm_writef(stm, "&");
-//    arrst_end();
-//    stm_write_char(stm, 0);
-//    return stm;
-//}
-
 /*---------------------------------------------------------------------------*/
 
 bool_t http_get(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
 {
     cassert_no_null(http);
     i_clear_response(http);
-    oshttp_get(http->oshttp, path, data, size, TRUE, &http->error);    
+    oshttp_get(http->oshttp, path, data, size, TRUE, &http->error);
     ptr_assign(error, http->error);
     return http->error == ekIOK ? TRUE : FALSE;
 }
@@ -185,8 +168,8 @@ static bool_t i_response(Http *http)
 
                     if (str_empty_c(line) == FALSE)
                     {
-                        // The headers could contain several responses (redirection)
-                        // We get the last one
+                        /* The headers could contain several responses (redirection)
+                        We get the last one */
                         if (str_str(line, ":") == NULL)
                         {
                             const char_t *st = line;
@@ -361,7 +344,7 @@ Stream *http_dget(const char_t *url, uint32_t *result, ierror_t *error)
     uint16_t port = url_port(uurl);
     Http *http = NULL;
     Stream *stm = NULL;
-    
+
     ptr_assign(error, ekIOK);
 
     if (str_equ_nocase(sh, "http") == TRUE)
@@ -404,7 +387,7 @@ bool_t http_exists(const char_t *url)
     const char_t *host = url_host(uurl);
     uint16_t port = url_port(uurl);
     Http *http = NULL;
-    
+
     if (str_equ_nocase(sh, "http") == TRUE)
         http = http_create(host, port);
     else if (str_equ_nocase(sh, "https") == TRUE)
