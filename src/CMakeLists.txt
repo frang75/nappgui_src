@@ -21,6 +21,7 @@ staticLib("osapp" "osapp" "osgui;gui" NRC_NONE)
 staticLib("casino" "demo/casino" "draw2d" NRC_EMBEDDED)
 
 # Executables
+commandApp("nrc" "utils/nrc" "core" NRC_NONE)
 desktopApp("Bode" "demo/bode" "osapp" NRC_EMBEDDED)
 desktopApp("Bricks" "demo/bricks" "osapp" NRC_EMBEDDED)
 desktopApp("Die" "demo/die" "osapp;casino" NRC_EMBEDDED)
