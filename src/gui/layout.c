@@ -1926,10 +1926,9 @@ void cell_dbind_imp(
 {
     const StBind *stbind = dbind_stbind(type);
     const DBind *dbind = dbind_stbind_find(stbind, mname);
-    uint16_t stsize = dbind_stbind_sizeof(stbind);
     cassert_no_null(cell);
     cassert_no_null(dbind);
-    cassert_unref(stsize == size, stsize);
+    cassert_unref(dbind_stbind_sizeof(stbind) == size, size);
     cassert_unref(dbind_data_type(mtype, NULL, NULL) == dbind_type(dbind), mtype);
     cassert_unref(dbind_offset(dbind) == moffset, moffset);
     cassert_unref(dbind_sizeof(dbind) == msize, msize);

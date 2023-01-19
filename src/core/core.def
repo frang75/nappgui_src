@@ -1,21 +1,27 @@
 /* Core library import/export */
 
-#if defined(CORE_IMPORT)
-    #if defined(__GNUC__)
-        #define _core_api
-    #elif defined(_MSC_VER)
-        #define _core_api __declspec(dllimport)
+#if defined(NAPPGUI_SHARED)
+    #if defined(NAPPGUI_BUILD_CORE_LIB)
+        #define NAPPGUI_CORE_EXPORT_DLL
     #else
-        #error Unknown compiler
+        #define NAPPGUI_CORE_IMPORT_DLL
     #endif
-#elif defined(NAPPGUI_SHARED_LIB)
-    #if defined(__GNUC__)
+#endif
+
+#if defined(__GNUC__)
+    #if defined(NAPPGUI_CORE_EXPORT_DLL)
         #define _core_api __attribute__((visibility("default")))
-    #elif defined(_MSC_VER)
+    #else
+        #define _core_api
+    #endif
+#elif defined(_MSC_VER)
+    #if defined(NAPPGUI_CORE_IMPORT_DLL)
+        #define _core_api __declspec(dllimport)
+    #elif defined(NAPPGUI_CORE_EXPORT_DLL)
         #define _core_api __declspec(dllexport)
     #else
-        #error Unknown compiler
+        #define _core_api
     #endif
 #else
-    #define _core_api
+    #error Unknown compiler
 #endif

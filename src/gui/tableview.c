@@ -1172,20 +1172,33 @@ static void i_OnKeyDown(TableView *view, Event *e)
         if (p->key == ekKEY_UP)
         {
             bool_t update = FALSE;
+            uint32_t strow = UINT32_MAX;
+            uint32_t edrow = UINT32_MAX;
             if (data->focus_row == UINT32_MAX)
             {
                 data->focus_row = 0;
+                strow = 0;
                 update = TRUE;
             }
             else if (data->focus_row > 0)
             {
+                if (data->multisel == TRUE)
+                {
+                    edrow = data->focus_row;
+                    strow = data->focus_row - 1;
+                }
+                else
+                {
+                    strow = data->focus_row - 1;
+                }
+
                 data->focus_row -= 1;
                 update = TRUE;
             }
 
             if (update == TRUE)
             {
-                i_select(view, data, data->focus_row, UINT32_MAX, FALSE);
+                i_select(view, data, strow, edrow, FALSE);
                 i_update_sel_top(view, data, scroll_y);
                 view_update((View*)view);
             }
@@ -1193,20 +1206,33 @@ static void i_OnKeyDown(TableView *view, Event *e)
         else if (p->key == ekKEY_DOWN)
         {
             bool_t update = FALSE;
+            uint32_t strow = UINT32_MAX;
+            uint32_t edrow = UINT32_MAX;
             if (data->focus_row == UINT32_MAX)
             {
                 data->focus_row = 0;
+                strow = 0;
                 update = TRUE;
             }
             else if (data->focus_row < n - 1)
             {
+                if (data->multisel == TRUE)
+                {
+                    edrow = data->focus_row;
+                    strow = data->focus_row + 1;
+                }
+                else
+                {
+                    strow = data->focus_row + 1;
+                }
+
                 data->focus_row += 1;
                 update = TRUE;
             }
 
             if (update == TRUE)
             {
-                i_select(view, data, data->focus_row, UINT32_MAX, FALSE);
+                i_select(view, data, strow, edrow, FALSE);
                 i_update_sel_bottom(view, data, scroll_y);
                 view_update((View*)view);
             }

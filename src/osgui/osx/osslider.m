@@ -58,8 +58,6 @@
         params.pos = (real32_t)[sender floatValue];
         params.incr = 0;
         params.step = UINT32_MAX;
-        if (slider_get_type(self->flags) == ekSLIDER_HORZ)
-            params.pos = 1.f - params.pos;
         listener_event(self->OnMoved, ekGUI_EVENT_SLIDER, (OSSlider*)sender, &params, NULL, OSSlider, EvSlider, void);
     }
 }

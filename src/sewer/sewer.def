@@ -1,21 +1,27 @@
 /* Sewer library import/export */
 
-#if defined(SEWER_IMPORT)
-    #if defined(__GNUC__)
-        #define _sewer_api
-    #elif defined(_MSC_VER)
-        #define _sewer_api __declspec(dllimport)
+#if defined(NAPPGUI_SHARED)
+    #if defined(NAPPGUI_BUILD_SEWER_LIB)
+        #define NAPPGUI_SEWER_EXPORT_DLL
     #else
-        #error Unknown compiler
+        #define NAPPGUI_SEWER_IMPORT_DLL
     #endif
-#elif defined(NAPPGUI_SHARED_LIB)
-    #if defined(__GNUC__)
+#endif
+
+#if defined(__GNUC__)
+    #if defined(NAPPGUI_SEWER_EXPORT_DLL)
         #define _sewer_api __attribute__((visibility("default")))
-    #elif defined(_MSC_VER)
+    #else
+        #define _sewer_api
+    #endif
+#elif defined(_MSC_VER)
+    #if defined(NAPPGUI_SEWER_IMPORT_DLL)
+        #define _sewer_api __declspec(dllimport)
+    #elif defined(NAPPGUI_SEWER_EXPORT_DLL)
         #define _sewer_api __declspec(dllexport)
     #else
-        #error Unknown compiler
+        #define _sewer_api
     #endif
 #else
-    #define _sewer_api
+    #error Unknown compiler
 #endif

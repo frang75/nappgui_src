@@ -462,7 +462,7 @@ static void i_impostor_window(void)
 device_t osglobals_device(const void *non_used)
 {
     cassert(FALSE);
-    cassert(non_used == NULL);
+    cassert_unref(non_used == NULL, non_used);
     return ekDESKTOP;
 }
 

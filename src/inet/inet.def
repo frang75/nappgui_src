@@ -1,21 +1,27 @@
 /* inet library import/export */
 
-#if defined(INET_IMPORT)
-    #if defined(__GNUC__)
-        #define _inet_api
-    #elif defined(_MSC_VER)
-        #define _inet_api __declspec(dllimport)
+#if defined(NAPPGUI_SHARED)
+    #if defined(NAPPGUI_BUILD_INET_LIB)
+        #define NAPPGUI_INET_EXPORT_DLL
     #else
-        #error Unknown compiler
+        #define NAPPGUI_INET_IMPORT_DLL
     #endif
-#elif defined(NAPPGUI_SHARED_LIB)
-    #if defined(__GNUC__)
+#endif
+
+#if defined(__GNUC__)
+    #if defined(NAPPGUI_INET_EXPORT_DLL)
         #define _inet_api __attribute__((visibility("default")))
-    #elif defined(_MSC_VER)
+    #else
+        #define _inet_api
+    #endif
+#elif defined(_MSC_VER)
+    #if defined(NAPPGUI_INET_IMPORT_DLL)
+        #define _inet_api __declspec(dllimport)
+    #elif defined(NAPPGUI_INET_EXPORT_DLL)
         #define _inet_api __declspec(dllexport)
     #else
-        #error Unknown compiler
+        #define _inet_api
     #endif
 #else
-    #define _inet_api
+    #error Unknown compiler
 #endif

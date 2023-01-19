@@ -2861,8 +2861,8 @@ static __INLINE int64_t i_int(const DBind* dbind, const dtype_t type, const int6
 {
     cassert_no_null(dbind);
     cassert_unref(dbind->type == type, type);
-    cassert(dbind->attr.intt.min >= min);
-    cassert(dbind->attr.intt.max <= max);
+    cassert_unref(dbind->attr.intt.min >= min, min);
+    cassert_unref(dbind->attr.intt.max <= max, max);
     if (value < dbind->attr.intt.min)
         return dbind->attr.intt.min;
     else if (value > dbind->attr.intt.max)
