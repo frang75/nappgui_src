@@ -39,7 +39,7 @@ struct _osslider_t
 
 static gboolean i_OnMoved(GtkRange *range, GtkScrollType step, double value, OSSlider *slider)
 {
-    cassert(slider->control.widget == GTK_WIDGET(range));
+    cassert_unref(slider->control.widget == GTK_WIDGET(range), range);
     unref(step);
 
     if (slider->launch_event == TRUE && slider->OnMoved != NULL)
@@ -161,7 +161,7 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
     cassert_no_null(slider);
     cassert_no_null(width);
     cassert_no_null(height);
-    cassert(knob_size == ekGUI_SIZE_REGULAR);
+    cassert_unref(knob_size == ekGUI_SIZE_REGULAR, knob_size);
     gtk_widget_get_preferred_size(slider->control.widget, &s, NULL);
 
     switch (slider_get_type(slider->flags)) {

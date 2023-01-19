@@ -228,7 +228,7 @@ void _osmenu_attach_to_item(OSMenu *menu, OSMenuItem *item, GtkMenuItem *menuite
 void _osmenu_detach_from_item(OSMenu *menu, OSMenuItem *item, GtkMenuItem *menuitem)
 {
     cassert_no_null(menu);
-    cassert(menu->parent == item);
+    cassert_unref(menu->parent == item, item);
     menu->parent = NULL;
     cassert(menu->is_popup == TRUE);
     cassert(gtk_menu_item_get_submenu(menuitem) == menu->widget);

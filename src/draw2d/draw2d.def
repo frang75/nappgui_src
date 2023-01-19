@@ -1,21 +1,27 @@
 /* Draw2d library import/export */
 
-#if defined(DRAW2D_IMPORT)
-    #if defined(__GNUC__)
-        #define _draw2d_api
-    #elif defined(_MSC_VER)
-        #define _draw2d_api __declspec(dllimport)
+#if defined(NAPPGUI_SHARED)
+    #if defined(NAPPGUI_BUILD_DRAW2D_LIB)
+        #define NAPPGUI_DRAW2D_EXPORT_DLL
     #else
-        #error Unknown compiler
+        #define NAPPGUI_DRAW2D_IMPORT_DLL
     #endif
-#elif defined(NAPPGUI_SHARED_LIB)
-    #if defined(__GNUC__)
+#endif
+
+#if defined(__GNUC__)
+    #if defined(NAPPGUI_DRAW2D_EXPORT_DLL)
         #define _draw2d_api __attribute__((visibility("default")))
-    #elif defined(_MSC_VER)
+    #else
+        #define _draw2d_api
+    #endif
+#elif defined(_MSC_VER)
+    #if defined(NAPPGUI_DRAW2D_IMPORT_DLL)
+        #define _draw2d_api __declspec(dllimport)
+    #elif defined(NAPPGUI_DRAW2D_EXPORT_DLL)
         #define _draw2d_api __declspec(dllexport)
     #else
-        #error Unknown compiler
+        #define _draw2d_api
     #endif
 #else
-    #define _draw2d_api
+    #error Unknown compiler
 #endif

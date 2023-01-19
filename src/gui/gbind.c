@@ -1325,13 +1325,12 @@ bool_t gbind_modify_data(const void *obj, const char_t *type, const uint16_t siz
 	for (i = 0; i < n; ++i)
 	{
         const DBind *dbind = dbind_stbind_member(stbind, i);
-		const char_t *name = dbind_name(dbind);
 		uint16_t offset = dbind_offset(dbind);
 		dtype_t dtype = dbind_type(dbind);
 		const char_t *subtype = dbind_subtype(dbind);
 		if (offset == moffset)
 		{
-			cassert_unref(str_equ_c(name, mname) == TRUE, mname);
+			cassert_unref(str_equ_c(dbind_name(dbind), mname) == TRUE, mname);
 			switch(dtype) {
 			case ekDTYPE_BOOL:
 			case ekDTYPE_INT8:

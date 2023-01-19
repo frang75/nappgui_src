@@ -63,7 +63,7 @@ OSApp *osapp_init_imp(
                     FPtr_app_call func_OnTimerSignal)
 {
     bmem_zero(&i_APP, OSApp);
-    cassert(instance == NULL);
+    cassert_unref(instance == NULL, instance);
     cassert_no_null(listener);
     cassert_no_nullf(func_OnFinishLaunching);
     cassert(i_APP.listener == NULL);
