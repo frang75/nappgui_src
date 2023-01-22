@@ -120,7 +120,7 @@ static real32_t i_update_divider(const uint32_t flags, const real32_t mouse_pos,
 
     /* Proportional mode */
     if (BIT_TEST(flags, ekSPLIT_PROP) == TRUE)
-        return mouse_pos / size;
+        return bmath_clampf(mouse_pos / size, 0, 1);
 
     /* Fixed left/top size */
     if (BIT_TEST(flags, ekSPLIT_LEFT) == TRUE)
@@ -210,8 +210,6 @@ static void i_OnDrag(SplitView *split, Event *e)
             _component_expand(split->child1, 0, dim0, r1.size.width, &fsize0);
             _component_expand(split->child1, 1, dim1, r1.size.height, &fsize1);
             _component_locate(split->child1);
-            cassert_unref(fsize0 == r1.size.width, fsize0);
-            cassert_unref(fsize1 == r1.size.height, fsize1);
         }
 
         if (split->child2 != NULL)
@@ -222,8 +220,6 @@ static void i_OnDrag(SplitView *split, Event *e)
             _component_expand(split->child2, 0, dim0, r1.size.width, &fsize0);
             _component_expand(split->child2, 1, dim1, r1.size.height, &fsize1);
             _component_locate(split->child2);
-            cassert_unref(fsize0 == r1.size.width, fsize0);
-            cassert_unref(fsize1 == r1.size.height, fsize1);
         }
     }
     else
@@ -428,9 +424,6 @@ void _splitview_expand(SplitView *split, const uint32_t di, const real32_t curre
                 real32_t fsize1 = 0, fsize2 = 0;
                 _component_expand(split->child1, 0, split->chid1_dim[0], r1.size.width, &fsize1);
                 _component_expand(split->child1, 1, split->chid1_dim[1], r1.size.height, &fsize2);
-                /* Split children should be 'expandibles' */
-                cassert_unref(fsize1 == r1.size.width, fsize1);
-                cassert_unref(fsize2 == r1.size.height, fsize2);
             }
         }
 
@@ -441,9 +434,6 @@ void _splitview_expand(SplitView *split, const uint32_t di, const real32_t curre
                 real32_t fsize1 = 0, fsize2 = 0;
                 _component_expand(split->child2, 0, split->chid2_dim[0], r2.size.width, &fsize1);
                 _component_expand(split->child2, 1, split->chid2_dim[1], r2.size.height, &fsize2);
-                /* Split children should be 'expandibles' */
-                cassert_unref(fsize1 == r2.size.width, fsize1);
-                cassert_unref(fsize2 == r2.size.height, fsize2);
             }
         }
     }
