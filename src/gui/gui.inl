@@ -40,7 +40,7 @@ const Image *_gui_respack_image(const ResId id, ResId *store_id);
 
 const Cursor *_gui_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);
 
-#define GUI_COMPONENT_MAX_PANELS    2
+#define GUI_COMPONENT_MAX_PANELS    32
 
 __END_C
 
