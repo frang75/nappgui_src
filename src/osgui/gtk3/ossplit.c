@@ -48,12 +48,15 @@ static void i_set_capture(GtkWidget *widget, OSSplit *split)
     else
     {
         OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
-        if (control->type == ekGUI_TYPE_PANEL)
-            _ospanel_set_capture((OSPanel*)control, (OSControl*)split);
-        else if (control->type == ekGUI_TYPE_TEXTVIEW)
-            _ostext_set_capture((OSText*)control, (OSControl*)split);
-        else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-            _osview_set_capture((OSView*)control, (OSControl*)split);
+        if (control != NULL)
+        {
+            if (control->type == ekGUI_TYPE_PANEL)
+                _ospanel_set_capture((OSPanel*)control, (OSControl*)split);
+            else if (control->type == ekGUI_TYPE_TEXTVIEW)
+                _ostext_set_capture((OSText*)control, (OSControl*)split);
+            else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
+                _osview_set_capture((OSView*)control, (OSControl*)split);
+        }
     }
 }
 
@@ -69,12 +72,15 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
     else
     {
         OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
-        if (control->type == ekGUI_TYPE_PANEL)
-            _ospanel_release_capture((OSPanel*)control);
-        else if (control->type == ekGUI_TYPE_TEXTVIEW)
-            _ostext_release_capture((OSText*)control);
-        else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-            _osview_release_capture((OSView*)control);
+        if (control != NULL)
+        {
+            if (control->type == ekGUI_TYPE_PANEL)
+                _ospanel_release_capture((OSPanel*)control);
+            else if (control->type == ekGUI_TYPE_TEXTVIEW)
+                _ostext_release_capture((OSText*)control);
+            else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
+                _osview_release_capture((OSView*)control);
+        }
     }
 }
 

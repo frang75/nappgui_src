@@ -217,8 +217,8 @@ static void i_OnDrag(SplitView *split, Event *e)
             real32_t dim0 = 0, dim1 = 0, fsize0 = 0, fsize1 = 0;
             _component_dimension(split->child2, 0, &dim0, &dim1);
             _component_dimension(split->child2, 1, &dim0, &dim1);
-            _component_expand(split->child2, 0, dim0, r1.size.width, &fsize0);
-            _component_expand(split->child2, 1, dim1, r1.size.height, &fsize1);
+            _component_expand(split->child2, 0, dim0, r2.size.width, &fsize0);
+            _component_expand(split->child2, 1, dim1, r2.size.height, &fsize1);
             _component_locate(split->child2);
         }
     }
@@ -466,22 +466,45 @@ void _splitview_OnResize(SplitView *split, const S2Df *size)
 
 /*---------------------------------------------------------------------------*/
 
-void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **panels)
+static void i_accum_panels(const SplitView* split, uint32_t* num_panels, Panel** panels)
 {
     cassert_no_null(split);
     cassert_no_null(num_panels);
     cassert_no_null(panels);
+
+    if (split->child1 != NULL)
+    {
+        if (split->child1->type == ekGUI_TYPE_PANEL)
+        {
+            panels[*num_panels] = (Panel*)split->child1;
+            *num_panels += 1;
+            cassert(*num_panels < GUI_COMPONENT_MAX_PANELS);
+        }
+        else if(split->child1->type == ekGUI_TYPE_SPLITVIEW)
+        {
+            i_accum_panels((SplitView*)split->child1, num_panels, panels);
+        }
+    }
+
+    if (split->child2 != NULL)
+    {
+        if (split->child2->type == ekGUI_TYPE_PANEL)
+        {
+            panels[*num_panels] = (Panel*)split->child2;
+            *num_panels += 1;
+            cassert(*num_panels < GUI_COMPONENT_MAX_PANELS);
+        }
+        else if(split->child2->type == ekGUI_TYPE_SPLITVIEW)
+        {
+            i_accum_panels((SplitView*)split->child2, num_panels, panels);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **panels)
+{
     *num_panels = 0;
-
-    if (split->child1 != NULL && split->child1->type == ekGUI_TYPE_PANEL)
-    {
-        panels[*num_panels] = (Panel*)split->child1;
-        *num_panels += 1;
-    }
-
-    if (split->child2 != NULL && split->child2->type == ekGUI_TYPE_PANEL)
-    {
-        panels[*num_panels] = (Panel*)split->child2;
-        *num_panels += 1;
-    }
+    i_accum_panels(split, num_panels, panels);
 }
