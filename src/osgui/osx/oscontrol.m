@@ -196,7 +196,6 @@ void _oscontrol_text_bounds(const Font *font, const char_t *text, const real32_t
     strikeout = (style & ekFSTRIKEOUT) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
     data.dict = [[NSDictionary alloc] initWithObjectsAndKeys:font_native(font), NSFontAttributeName, undertype, NSUnderlineStyleAttributeName, strikeout, NSStrikethroughStyleAttributeName, nil];
     _osgui_text_bounds(&data, text, refwidth, width, height);
-    *width += 6;
     [data.dict release];
 }
 

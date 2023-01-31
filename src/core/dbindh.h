@@ -43,6 +43,8 @@ _core_api void dbind_stbind_opaque(const StBind *stbind, const byte_t *data, con
 
 _core_api void dbind_stbind_opaque_upd(const StBind *stbind, void *new_obj, void **obj);
 
+_core_api void dbind_stbind_opaque_write(const StBind *stbind, const void *obj, Stream *stm);
+
 
 _core_api dtype_t dbind_type(const DBind *dbind);
 
