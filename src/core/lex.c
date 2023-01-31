@@ -127,7 +127,7 @@ void _lexscn_comments(LexScn *lex, const bool_t activate)
 static uint32_t i_get_char(LexScn *lex, Stream *stm)
 {
     uint32_t col = stm_col(stm);
-    uint32_t row = stm_col(stm);
+    uint32_t row = stm_row(stm);
     uint32_t code = stm_read_char(stm);
     cassert_no_null(lex);
 
@@ -753,14 +753,16 @@ ltoken_t _lexscn_token(LexScn *lex, Stream *stm)
     lex->trow = stm_row(stm);
     lex->lexi = 0;
     code = i_get_char(lex, stm);
+
+    if (code == 0)
+    {
+        token = ekTEOF;
+        break;
+    }
+
     for (;;)
     {
         uint8_t charst = VALID_CHAR;
-        if (code == 0)
-        {
-            token = ekTEOF;
-            break;
-        }
 
         if (code == UINT32_MAX)
         {
@@ -844,6 +846,9 @@ ltoken_t _lexscn_token(LexScn *lex, Stream *stm)
         if (state == stEND)
             break;
 
+        if (code == 0)
+            break;
+
         code = i_get_char(lex, stm);
     }
 
@@ -865,9 +870,7 @@ ltoken_t _lexscn_token(LexScn *lex, Stream *stm)
     else
     {
         break;
-    }
-
-    }
+    } }
 
     lex->lexeme[lex->lexi] = '\0';
     return token;

@@ -16,6 +16,7 @@
 #include "osgui.inl"
 #include "oscontrol.inl"
 #include "ospanel.inl"
+#include "osglobals.inl"
 #include "bmem.h"
 #include "cassert.h"
 #include "event.h"
@@ -1069,19 +1070,20 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         case ekBUTTON_RADIO:
         {
             register OSXButtonCell *cell = [lbutton cell];
+            static const real32_t i_CHECK_TEXT_SEP = 5.f;
             _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
             switch(cell->size)
             {
                 case ekGUI_SIZE_REGULAR:
-                    *width += 22.f;
+                    *width += (real32_t)osglobals_check_width() + i_CHECK_TEXT_SEP;
                     *height = 18.f;
                     break;
                 case ekGUI_SIZE_SMALL:
-                    *width += 22.f;
+                    *width += (real32_t)osglobals_check_width() + i_CHECK_TEXT_SEP;
                     *height = 16.f;
                     break;
                 case ekGUI_SIZE_MINI:
-                    *width += 22.f;
+                    *width += (real32_t)osglobals_check_width() + i_CHECK_TEXT_SEP;
                     *height = 12.f;
                     break;
             }

@@ -62,8 +62,9 @@ static void *i_create_type(i_Parser *parser, const char_t *type);
 static bool_t i_jump_value(i_Parser *parser);
 static bool_t i_parse_object(i_Parser *parser, const char_t *subtype, void *object);
 static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, const char_t *subtype, void *object);
-static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const void *data, const bool_t inarray);
-static void i_write_object(Stream *stm, const void *object, const char_t *type, const bool_t inarray);
+static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const void *data, const bool_t doubleptr);
+static void i_write_object(Stream *stm, const void *object, const char_t *type);
+static void i_write_opaque(Stream *stm, const void *object, const char_t *type);
 
 /*---------------------------------------------------------------------------*/
 
@@ -916,6 +917,10 @@ static void *i_create_type(i_Parser *parser, const char_t *type)
             i_parse_value(parser, NULL, dtype, NULL, (String**)&obj);
             break;
 
+        case ekDTYPE_OBJECT_OPAQUE:
+            i_parse_value(parser, NULL, dtype, tc(subtype), &obj);
+            break;
+
         case ekDTYPE_OBJECT_PTR:
         {
             String *err = str_printf("Unexpected double pointer to object '%s'", tc(subtype));
@@ -932,8 +937,6 @@ static void *i_create_type(i_Parser *parser, const char_t *type)
             break;
         }
 
-
-        case ekDTYPE_OBJECT_OPAQUE:
         cassert_default();
     }
 
@@ -1015,7 +1018,7 @@ static void i_write_array(Stream *stm, const Array *array, const char_t *type)
         stm_writef(stm, "[ ");
         for (i = 0; i < n; ++i, data += es)
         {
-            i_write_type(stm, atype, stype, (const void*)data, TRUE);
+            i_write_type(stm, atype, stype, (const void*)data, FALSE);
             if (i < n - 1)
                 stm_writef(stm, ", ");
         }
@@ -1044,7 +1047,6 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
         {
             for (i = 0; i < n; ++i, data += sizeof(void*))
             {
-                stm_writef(stm, "\n");
                 i_write_string(stm, *(String**)data);
                 if (i < n - 1)
                     stm_writef(stm, ", ");
@@ -1054,7 +1056,16 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
         {
             for (i = 0; i < n; ++i, data += sizeof(void*))
             {
-                i_write_object(stm, *(const void**)data, stype, TRUE);
+                i_write_object(stm, *(const void**)data, stype);
+                if (i < n - 1)
+                    stm_writef(stm, ", ");
+            }
+        }
+        else if (atype == ekDTYPE_OBJECT_OPAQUE)
+        {
+            for (i = 0; i < n; ++i, data += sizeof(void*))
+            {
+                i_write_opaque(stm, *(const void**)data, stype);
                 if (i < n - 1)
                     stm_writef(stm, ", ");
             }
@@ -1075,24 +1086,17 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-#define i_with_nl(t) (t == ekDTYPE_OBJECT || t == ekDTYPE_OBJECT_PTR || t == ekDTYPE_ARRAY || t == ekDTYPE_ARRPTR)
-
-/*---------------------------------------------------------------------------*/
-
-static void i_write_object(Stream *stm, const void *object, const char_t *type, const bool_t inarray)
+static void i_write_object(Stream *stm, const void *object, const char_t *type)
 {
     if (object != NULL)
     {
         uint32_t n, i;
         const StBind *stbind = dbind_stbind(type);
-        dtype_t ptype = ENUM_MAX(dtype_t);
 
         cassert_msg(stbind != NULL, "Json: Unknown struct type.");
         n = dbind_stbind_count(stbind);
 
         stm_writef(stm, "{");
-        if (inarray == TRUE)
-            stm_writef(stm, "\n");
 
         for (i = 0; i < n; ++i)
         {
@@ -1102,17 +1106,12 @@ static void i_write_object(Stream *stm, const void *object, const char_t *type, 
             dtype_t mtype = dbind_type(dbind);
             const char_t *mstype = dbind_subtype(dbind);
 
-            if (i_with_nl(mtype) == TRUE || i_with_nl(ptype) == TRUE)
-                stm_writef(stm, "\n");
-
-            stm_printf(stm, "\n\"%s\" : ", mname);
-            i_write_type(stm, mtype, mstype, (const void*)((byte_t*)object + moffset), FALSE);
+            stm_printf(stm, "\"%s\" : ", mname);
+            i_write_type(stm, mtype, mstype, (const void*)((byte_t*)object + moffset), TRUE);
             if (i < n - 1)
                 stm_writef(stm, ", ");
-            ptype = mtype;
-            /* if (i_with_nl(mtype) == TRUE)
-               stm_writef(stm, "\n"); */
         }
+
         stm_writef(stm, " }");
     }
     else
@@ -1123,7 +1122,37 @@ static void i_write_object(Stream *stm, const void *object, const char_t *type, 
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const void *data, const bool_t inarray)
+static void i_write_opaque(Stream *stm, const void *object, const char_t *type)
+{
+    if (object != NULL)
+    {
+        const StBind *stbind = dbind_stbind(type);
+        Stream *objstm = stm_memory(1024);
+        const byte_t *data = NULL;
+        char_t *b64data = NULL;
+        uint32_t size = 0, b64size = 0;
+        cassert_msg(stbind != NULL, "Json: Unknown opaque type.");
+        dbind_stbind_opaque_write(stbind, object, objstm);
+        data = stm_buffer(objstm);
+        size = stm_buffer_size(objstm);
+        b64size = b64_encoded_size(size);
+        b64data = (char_t*)heap_malloc(b64size, "JsonB64Encode");
+        b64_encode(data, size, b64data, b64size);
+        stm_writef(stm, "\"");
+        stm_writef(stm, b64data);
+        stm_writef(stm, "\"");
+        heap_free((byte_t**)&b64data, b64size, "JsonB64Encode");
+        stm_close(&objstm);
+    }
+    else
+    {
+        stm_writef(stm, "null");
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const void *data, const bool_t doubleptr)
 {
     cassert_no_null(data);
     switch (type)
@@ -1179,32 +1208,51 @@ static void i_write_type(Stream *stm, dtype_t type, const char_t *subtype, const
         case ekDTYPE_REAL64:
             stm_printf(stm, "%f", *(real64_t*)data);
             break;
+
         case ekDTYPE_ENUM:
             stm_printf(stm, "%u", *(enum_t*)data);
             break;
 
         case ekDTYPE_STRING:
         case ekDTYPE_STRING_PTR:
-            i_write_string(stm, *(String**)data);
+            if (doubleptr == TRUE)
+                i_write_string(stm, *(String**)data);
+            else
+                i_write_string(stm, (String*)data);
             break;
 
         case ekDTYPE_ARRAY:
-            i_write_array(stm, *(Array**)data, subtype);
+            if (doubleptr == TRUE)
+                i_write_array(stm, *(Array**)data, subtype);
+            else
+                i_write_array(stm, (Array*)data, subtype);
             break;
 
         case ekDTYPE_ARRPTR:
-            i_write_arrpt(stm, *(Array**)data, subtype);
+            if (doubleptr == TRUE)
+                i_write_arrpt(stm, *(Array**)data, subtype);
+            else
+                i_write_arrpt(stm, (Array*)data, subtype);
             break;
 
         case ekDTYPE_OBJECT:
-            i_write_object(stm, data, subtype, inarray);
+            i_write_object(stm, data, subtype);
             break;
 
         case ekDTYPE_OBJECT_PTR:
-            i_write_object(stm, *(const void**)data, subtype, inarray);
+            if (doubleptr == TRUE)
+                i_write_object(stm, *(const void**)data, subtype);
+            else
+                i_write_object(stm, data, subtype);
             break;
 
         case ekDTYPE_OBJECT_OPAQUE:
+            if (doubleptr == TRUE)
+                i_write_opaque(stm, *(const void**)data, subtype);
+            else
+                i_write_opaque(stm, data, subtype);
+            break;
+
         case ekDTYPE_UNKNOWN:
         cassert_default();
     }
@@ -1218,7 +1266,6 @@ void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const c
     dtype_t dtype = dbind_data_type(type, &subtype, NULL);
     unref(opts);
     i_write_type(stm, dtype, subtype != NULL ? tc(subtype) : NULL, data, FALSE);
-    stm_writef(stm, "\n");
     str_destopt(&subtype);
 }
 

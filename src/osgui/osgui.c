@@ -281,7 +281,7 @@ static void i_new_line(StringSizeData *data, real32_t *current_width, real32_t *
     {
         real32_t word_width = 0.f, word_height = 0.f;
         _osgui_word_size(data, "A", &word_width, &word_height);
-        *current_width_without_spaces = word_width;
+        *current_width_without_spaces = 0;
         *current_height = word_height;
     }
     else

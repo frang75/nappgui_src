@@ -587,7 +587,16 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
                 if (subtype != NULL)
                     *subtype = str_c(mtype);
 
-                return ekDTYPE_OBJECT;
+                if (stbind->members != NULL)
+                {
+                    cassert(arrst_size(stbind->members, DBind) > 0);
+                    return ekDTYPE_OBJECT;
+                }
+                else
+                {
+					cassert(stbind->size == sizeof(void*));
+                    return ekDTYPE_OBJECT_OPAQUE;
+                }
             }
             else
             {
@@ -1581,9 +1590,17 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
     case ekDTYPE_ENUM:
         heap_free(data, sizeof(enum_t), tc(subtype));
         break;
+    case ekDTYPE_OBJECT_OPAQUE:
+    {
+        StBind *stbind = i_find_stbind(tc(subtype), NULL);
+        cassert_no_null(stbind);
+        cassert_no_nullf(stbind->func_destroy);
+        stbind->func_destroy((void**)data);
+        break;
+    }
+
     case ekDTYPE_STRING_PTR:
     case ekDTYPE_OBJECT_PTR:
-    case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
         cassert_msg(FALSE, "Dbind: Unexpected type in destructor.");
         break;
@@ -2621,6 +2638,16 @@ void dbind_stbind_opaque_upd(const StBind *stbind, void *new_obj, void **obj)
         cassert_no_nullf(stbind->func_copy);
         *obj = stbind->func_copy(new_obj);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dbind_stbind_opaque_write(const StBind *stbind, const void *obj, Stream *stm)
+{
+    cassert_no_null(stbind);
+    cassert(stbind->members == NULL);
+    cassert_no_nullf(stbind->func_write);
+    stbind->func_write(stm, obj);
 }
 
 /*---------------------------------------------------------------------------*/
