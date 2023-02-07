@@ -97,24 +97,29 @@
 
 static void OSX_becomeFirstResponder(OSXEdit *edit, NSTextField *field)
 {
-    NSText *text = nil;
-
-    if ([field isEnabled] == YES && edit->OnFocus != NULL)
+    cassert_no_null(field);
+    if ([field isEnabled] == YES)
     {
-        bool_t params = TRUE;
-        listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, (OSEdit*)edit, &params, NULL, OSEdit, bool_t, void);
-    }
+        NSWindow *window = [field window];
+        NSText *text = [window fieldEditor:YES forObject:field];
+        
+        _oswindow_focus_edit(window, (NSView*)edit);
 
-    text = [[field window] fieldEditor:YES forObject:field];
+        if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
+        {
+            [text selectAll:nil];
+        }
+        else
+        {
+            NSRange range = [text selectedRange];
+            [text setSelectedRange:NSMakeRange(range.length, 0)];
+        }
 
-    if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
-    {
-        [text selectAll:nil];
-    }
-    else
-    {
-        NSRange range = [text selectedRange];
-        [text setSelectedRange:NSMakeRange(range.length, 0)];
+        if (edit->OnFocus != NULL)
+        {
+            bool_t params = TRUE;
+            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, (OSEdit*)edit, &params, NULL, OSEdit, bool_t, void);
+        }
     }
 }
 
@@ -126,9 +131,10 @@ static void OSX_textDidChange(OSXEdit *edit, NSTextField *field)
     {
         EvText params;
         EvTextFilter result;
+        NSWindow *window = [field window];
         NSText *text = NULL;
         params.text = (const char_t*)[[field stringValue] UTF8String];
-        text = [[field window] fieldEditor:YES forObject:field];
+        text = [window fieldEditor:YES forObject:field];
         params.cpos = (uint32_t)[text selectedRange].location;
         result.apply = FALSE;
         result.text[0] = '\0';
@@ -138,10 +144,14 @@ static void OSX_textDidChange(OSXEdit *edit, NSTextField *field)
         if (result.apply == TRUE)
             _oscontrol_set_text(field, &edit->attrs, result.text);
 
-        if (result.cpos != UINT32_MAX)
-            [text setSelectedRange:NSMakeRange((NSUInteger)result.cpos, 0)];
-        else
-            [text setSelectedRange:NSMakeRange((NSUInteger)params.cpos, 0)];
+        /* The focused editBox can be changed in 'ekGUI_EVENT_TXTFILTER' event */
+        if (_oswindow_get_focus_edit(window) == edit)
+        {
+        	if (result.cpos != UINT32_MAX)
+            	[text setSelectedRange:NSMakeRange((NSUInteger)result.cpos, 0)];
+	        else
+            	[text setSelectedRange:NSMakeRange((NSUInteger)params.cpos, 0)];
+        }
     }
 }
 
@@ -149,42 +159,49 @@ static void OSX_textDidChange(OSXEdit *edit, NSTextField *field)
 
 static void OSX_textDidEndEditing(OSXEdit *edit, NSTextField *field, NSNotification *notification)
 {
-    if ([field isEnabled] == YES && edit->OnChange != NULL
-        && _oswindow_in_destroy([field window]) == NO)
+    cassert_no_null(field);
+    if ([field isEnabled] == YES)
     {
-        EvText params;
-        params.text = (const char_t*)[[field stringValue] UTF8String];
-        listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, (OSEdit*)edit, &params, NULL, OSEdit, EvText, void);
-    }
+        NSWindow *window = [field window];
+        
+        _oswindow_focus_edit(window, nil);
 
-    [[field window] endEditingFor:nil];
-
-    if (edit->OnFocus != NULL)
-    {
-        bool_t params = FALSE;
-        listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, (OSEdit*)edit, &params, NULL, OSEdit, bool_t, void);
-    }
-
-    {
-        unsigned int whyEnd = [[[notification userInfo] objectForKey:@"NSTextMovement"] unsignedIntValue];
-        NSView *nextView = nil;
-
-        if (whyEnd == NSReturnTextMovement)
+        if (edit->OnChange != NULL && _oswindow_in_destroy(window) == NO)
         {
-            [[edit window] keyDown:(NSEvent*)231];
-            nextView = edit;
+            EvText params;
+            params.text = (const char_t*)[[field stringValue] UTF8String];
+            listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, (OSEdit*)edit, &params, NULL, OSEdit, EvText, void);
         }
-        else if (whyEnd == NSTabTextMovement)
+        
+        [window endEditingFor:field];
+        
+        if (edit->OnFocus != NULL)
         {
-            nextView = [edit nextValidKeyView];
+            bool_t params = FALSE;
+            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, (OSEdit*)edit, &params, NULL, OSEdit, bool_t, void);
         }
-        else if (whyEnd == NSBacktabTextMovement)
+        
         {
-            nextView = [edit previousValidKeyView];
+            unsigned int whyEnd = [[[notification userInfo] objectForKey:@"NSTextMovement"] unsignedIntValue];
+            NSView *nextView = nil;
+            
+            if (whyEnd == NSReturnTextMovement)
+            {
+                [[edit window] keyDown:(NSEvent*)231];
+                nextView = edit;
+            }
+            else if (whyEnd == NSTabTextMovement)
+            {
+                nextView = [edit nextValidKeyView];
+            }
+            else if (whyEnd == NSBacktabTextMovement)
+            {
+                nextView = [edit previousValidKeyView];
+            }
+            
+            if (nextView != nil)
+                [[edit window] makeFirstResponder:nextView];
         }
-
-        if (nextView != nil)
-            [[edit window] makeFirstResponder:nextView];
     }
 }
 
@@ -196,9 +213,8 @@ static void OSX_textDidEndEditing(OSXEdit *edit, NSTextField *field, NSNotificat
 
 -(BOOL)becomeFirstResponder
 {
-    BOOL ret = [super becomeFirstResponder];
     OSX_becomeFirstResponder((OSXEdit*)self->parent, self);
-    return ret;
+    return [super becomeFirstResponder];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -233,9 +249,8 @@ static void OSX_textDidEndEditing(OSXEdit *edit, NSTextField *field, NSNotificat
 
 -(BOOL)becomeFirstResponder
 {
-    BOOL ret = [super becomeFirstResponder];
     OSX_becomeFirstResponder((OSXEdit*)self->parent, self);
-    return ret;
+    return [super becomeFirstResponder];
 }
 
 /*---------------------------------------------------------------------------*/

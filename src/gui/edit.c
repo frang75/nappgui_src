@@ -71,10 +71,15 @@ static void i_OnFilter(Edit *edit, Event *e)
     EvTextFilter *result = event_result(e, EvTextFilter);
     const EvText *params = event_params(e, EvText);
     cassert_no_null(edit);
-    result->apply = _cell_filter_str(edit->component.parent, params->text, result->text, sizeof(result->text));
+    result->apply = FALSE;
+    
+    if (edit->component.parent != NULL)
+        result->apply = _cell_filter_str(edit->component.parent, params->text, result->text, sizeof(result->text));
+
     if (result->apply == FALSE)
     {
-        _cell_upd_string(edit->component.parent, params->text);
+        if (edit->component.parent != NULL)
+            _cell_upd_string(edit->component.parent, params->text);
 
         if (edit->OnFilter != NULL)
             listener_pass_event(edit->OnFilter, e, edit, Edit);
@@ -92,7 +97,8 @@ static void i_OnChange(Edit *edit, Event *e)
     cassert(event_sender_imp(e, NULL) == edit->component.ositem);
     str_upd(&edit->text, params->text);
 
-    _cell_upd_string(edit->component.parent, params->text);
+    if (edit->component.parent != NULL)
+        _cell_upd_string(edit->component.parent, params->text);
 
     if (edit->OnChange != NULL)
         listener_pass_event(edit->OnChange, e, edit, Edit);
@@ -266,16 +272,21 @@ static void i_OnFocus(Edit *edit, Event *event)
 
         if (edit->focus_color != UINT32_MAX)
             edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->focus_color);
+
         if (edit->bg_focus_color != UINT32_MAX)
             edit->component.context->func_edit_set_bg_color(edit->component.ositem, edit->bg_focus_color);
 
-        if (_cell_filter_str(edit->component.parent, tc(edit->text), filter, sizeof(filter)) == TRUE)
-            edit->component.context->func_edit_set_text(edit->component.ositem, filter);
+        if (edit->component.parent != NULL)
+        {
+            if (_cell_filter_str(edit->component.parent, tc(edit->text), filter, sizeof(filter)) == TRUE)
+                edit->component.context->func_edit_set_text(edit->component.ositem, filter);
+        }
     }
     else
     {
         if (edit->focus_color != UINT32_MAX)
             edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->color);
+
         if (edit->bg_focus_color != UINT32_MAX)
             edit->component.context->func_edit_set_bg_color(edit->component.ositem, edit->bg_color);
     }

@@ -960,6 +960,18 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
+void oswindow_tabstop(OSWindow* window, const bool_t next)
+{
+    HWND hwnd = GetFocus();
+    cassert_no_null(window);
+    if (next == TRUE)
+        i_set_next_tabstop(window->tabstops, hwnd, &window->ctabstop);
+    else
+        i_set_previous_tabstop(window->tabstops, hwnd, &window->ctabstop);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_focus(OSWindow *window, OSControl *control)
 {
     cassert_no_null(window);

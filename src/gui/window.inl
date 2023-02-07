@@ -24,6 +24,8 @@ bool_t _window_is_visible(const Window *window);
 
 void _window_taborder(Window *window, void *ositem);
 
+void _window_tabstop(Window *window, const bool_t next);
+
 #endif
 
 void _window_locale(Window *window);

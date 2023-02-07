@@ -1132,6 +1132,7 @@ void guictx_append_window_manager_imp(
                         FPtr_gctx_set_bool func_window_enable_mouse_events,
                         FPtr_gctx_set_hotkey func_window_hotkey,
                         FPtr_gctx_set_ptr func_window_set_taborder,
+                        FPtr_gctx_set_bool func_window_tabstop,
                         FPtr_gctx_set_ptr func_window_set_focus,
                         FPtr_gctx_set_ptr func_attach_main_panel_to_window,
                         FPtr_gctx_set_ptr func_detach_main_panel_from_window,
@@ -1164,6 +1165,7 @@ void guictx_append_window_manager_imp(
     cassert(context->func_window_enable_mouse_events == NULL);
     cassert(context->func_window_hotkey == NULL);
     cassert(context->func_window_set_taborder == NULL);
+    cassert(context->func_window_tabstop == NULL);
     cassert(context->func_window_set_focus == NULL);
     cassert(context->func_attach_main_panel_to_window == NULL);
     cassert(context->func_detach_main_panel_from_window == NULL);
@@ -1194,6 +1196,7 @@ void guictx_append_window_manager_imp(
     cassert_no_nullf(func_window_enable_mouse_events);
     cassert_no_nullf(func_window_hotkey);
     cassert_no_nullf(func_window_set_taborder);
+    cassert_no_nullf(func_window_tabstop);
     cassert_no_nullf(func_window_set_focus);
     cassert_no_nullf(func_attach_main_panel_to_window);
     cassert_no_nullf(func_detach_main_panel_from_window);
@@ -1224,6 +1227,7 @@ void guictx_append_window_manager_imp(
     context->func_window_enable_mouse_events = func_window_enable_mouse_events;
     context->func_window_hotkey = func_window_hotkey;
     context->func_window_set_taborder = func_window_set_taborder;
+    context->func_window_tabstop = func_window_tabstop;
     context->func_window_set_focus = func_window_set_focus;
     context->func_attach_main_panel_to_window = func_attach_main_panel_to_window;
     context->func_detach_main_panel_from_window = func_detach_main_panel_from_window;
