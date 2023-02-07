@@ -323,6 +323,7 @@ GuiCtx *osguictx(void)
                         oswindow_enable_mouse_events,
                         oswindow_hotkey,
                         oswindow_taborder,
+                        oswindow_tabstop,
                         oswindow_focus,
                         oswindow_attach_panel,
                         oswindow_detach_panel,

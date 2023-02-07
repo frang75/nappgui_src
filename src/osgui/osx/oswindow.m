@@ -55,6 +55,7 @@ DeclSt(HotKey);
     ArrSt(HotKey) *hotkeys;
     NSView *first_in_key_loop;
     NSView *current_in_key_loop;
+    NSView *current_edit_focus;
     BOOL destroy_main_view;
     OSButton *defbutton;
 }
@@ -376,6 +377,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->hotkeys = NULL;
     window->first_in_key_loop = nil;
     window->current_in_key_loop = nil;
+    window->current_edit_focus = nil;
     delegate->OnMoved = NULL;
     delegate->OnResize = NULL;
     delegate->OnClose = NULL;
@@ -610,6 +612,40 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
     {
         oswindow->first_in_key_loop = nil;
         oswindow->current_in_key_loop = nil;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_tabstop(OSWindow *window, const bool_t next)
+{
+    OSXWindow *oswindow =(OSXWindow*)window;
+    NSView *oscontrol = nil;
+
+    cassert_no_null(oswindow);
+    
+    if (oswindow->current_edit_focus != nil)
+    {
+        oscontrol = oswindow->current_edit_focus;
+        [oswindow endEditingFor:oscontrol];
+    }
+    else
+    {
+        oscontrol = (NSView*)[oswindow firstResponder];
+    }
+
+    if (oscontrol != nil)
+    {
+        NSView *focus = nil;
+        cassert([(NSObject*)oscontrol isKindOfClass:[NSView class]] == YES);
+
+        if (next == TRUE)
+            focus = [oscontrol nextValidKeyView];
+        else
+            focus = [oscontrol previousValidKeyView];
+
+        if (focus != nil)
+            [oswindow makeFirstResponder:focus];
     }
 }
 
@@ -887,3 +923,18 @@ NSView *_oswindow_main_view(OSWindow *window)
     return [(OSXWindow*)window contentView];
 }
 
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_focus_edit(NSWindow *window, NSView *edit)
+{
+    cassert_no_null(window);
+    ((OSXWindow*)window)->current_edit_focus = edit;
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSView *_oswindow_get_focus_edit(NSWindow *window)
+{
+    cassert_no_null(window);
+    return ((OSXWindow*)window)->current_edit_focus;
+}

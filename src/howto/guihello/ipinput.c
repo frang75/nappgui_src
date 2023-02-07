@@ -18,7 +18,6 @@
 static void i_OnEditFilter(Layout* layout, Event* e)
 {
     const EvText *p = event_params(e, EvText);
-    Edit *edit = event_sender(e, Edit);
     EvTextFilter *filter = event_result(e, EvTextFilter);
     uint32_t i, j = 0, n = str_len_c(p->text);
 
@@ -29,31 +28,15 @@ static void i_OnEditFilter(Layout* layout, Event* e)
             filter->text[j++] = p->text[i];
     }
 
+    if (j > 3)
+        j = 3;
+
     filter->text[j] = '\0';
     filter->apply = TRUE;
 
-    /* We wrote the third character */
-    if(j == 3)
-    {
-        /* Getting the IP sublayout */
-        Layout *sublayout = layout_get_layout(layout, 0, 0);
-
-        /* We finish the input in first edit */
-        if (edit == layout_get_edit(sublayout, 0, 0))
-            cell_focus(layout_cell(sublayout, 2, 0));
-
-        /* We finish the input in second edit */
-        if (edit == layout_get_edit(sublayout, 2, 0))
-            cell_focus(layout_cell(sublayout, 4, 0));
-
-        /* We finish the input in third edit */
-        if (edit == layout_get_edit(sublayout, 4, 0))
-            cell_focus(layout_cell(sublayout, 6, 0));
-
-        /* We finish the input in fourth edit --> We move to "Connect" button */
-        if (edit == layout_get_edit(sublayout, 6, 0))
-            cell_focus(layout_cell(layout, 0, 1));
-    }
+    /* We wrote the third character --> Jump to next control */
+    if (j == 3)
+        layout_next_tabstop(layout);
 }
 
 /*---------------------------------------------------------------------------*/

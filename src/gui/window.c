@@ -519,6 +519,36 @@ void window_hotkey(Window *window, const vkey_t key, const uint32_t modifiers, L
 
 /*---------------------------------------------------------------------------*/
 
+void window_next_tabstop(Window *window)
+{
+    cassert_no_null(window);
+    cassert_no_null(window->context);
+    cassert_no_nullf(window->context->func_window_tabstop);
+    window->context->func_window_tabstop(window->ositem, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void window_previous_tabstop(Window *window)
+{
+    cassert_no_null(window);
+    cassert_no_null(window->context);
+    cassert_no_nullf(window->context->func_window_tabstop);
+    window->context->func_window_tabstop(window->ositem, FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _window_tabstop(Window* window, const bool_t next)
+{
+    cassert_no_null(window);
+    cassert_no_null(window->context);
+    cassert_no_nullf(window->context->func_window_tabstop);
+    window->context->func_window_tabstop(window->ositem, next);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void window_update(Window *window)
 {
     _window_update(window);

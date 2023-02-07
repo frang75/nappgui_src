@@ -59,6 +59,10 @@ _gui_api void layout_taborder(Layout *layout, const gui_orient_t order);
 
 _gui_api void layout_tabstop(Layout *layout, const uint32_t col, const uint32_t row, const bool_t tabstop);
 
+_gui_api void layout_next_tabstop(Layout *layout);
+
+_gui_api void layout_previous_tabstop(Layout *layout);
+
 _gui_api void layout_hsize(Layout *layout, const uint32_t col, const real32_t width);
 
 _gui_api void layout_vsize(Layout *layout, const uint32_t row, const real32_t height);

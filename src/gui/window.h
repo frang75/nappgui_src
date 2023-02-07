@@ -39,6 +39,10 @@ _gui_api void window_stop_modal(Window *window, const uint32_t return_value);
 
 _gui_api void window_hotkey(Window *window, const vkey_t key, const uint32_t modifiers, Listener *listener);
 
+_gui_api void window_next_tabstop(Window *window);
+
+_gui_api void window_previous_tabstop(Window *window);
+
 _gui_api void window_update(Window *window);
 
 _gui_api void window_origin(Window *window, const V2Df origin);

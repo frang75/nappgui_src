@@ -728,6 +728,19 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
+void oswindow_tabstop(OSWindow *window, const bool_t next)
+{
+    GtkWidget *tabstop = NULL;
+    cassert_no_null(window);
+    tabstop = gtk_window_get_focus(GTK_WINDOW(window->control.widget));
+    if (next == TRUE)
+        i_set_next_tabstop(window->tabstops, tabstop, &window->ctabstop);
+    else
+        i_set_previous_tabstop(window->tabstops, tabstop, &window->ctabstop);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_focus(OSWindow *window, OSControl *control)
 {
     register GtkWidget *widget = i_focus_widget(control);

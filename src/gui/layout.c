@@ -586,6 +586,24 @@ void layout_tabstop(Layout *layout, const uint32_t col, const uint32_t row, cons
 
 /*---------------------------------------------------------------------------*/
 
+void layout_next_tabstop(Layout* layout)
+{
+    Panel *panel = _layout_panel(layout);
+    Window *window = _panel_get_window(panel);
+    _window_tabstop(window, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void layout_previous_tabstop(Layout* layout)
+{
+    Panel *panel = _layout_panel(layout);
+    Window *window = _panel_get_window(panel);
+    _window_tabstop(window, FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_hsize(Layout *layout, const uint32_t col, const real32_t width)
 {
     i_LineDim *dim = NULL;
