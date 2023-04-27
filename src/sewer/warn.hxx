@@ -32,10 +32,6 @@
 #undef _CRT_SECURE_NO_WARNINGS
 #endif
 
-#if defined (__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
-#if defined (__clang__)
+#if defined (__GNUC__) || defined (__clang__)
 #pragma GCC diagnostic pop
 #endif

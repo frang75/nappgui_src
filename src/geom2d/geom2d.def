@@ -8,7 +8,7 @@
     #endif
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
     #if defined(NAPPGUI_GEOM2D_EXPORT_DLL)
         #define _geom2d_api __attribute__((visibility("default")))
     #else

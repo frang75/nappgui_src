@@ -107,4 +107,3 @@
 /* #pragma clang diagnostic ignored "-Wdeprecated-implementations" */
 
 #endif
-

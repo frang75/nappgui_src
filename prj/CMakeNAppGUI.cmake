@@ -31,7 +31,7 @@ include(${CMAKE_PRJ_PATH}/CMakeVSWarnings.cmake)
 include(${CMAKE_PRJ_PATH}/CMakeXCWarnings.cmake)
 include(${CMAKE_PRJ_PATH}/CMakeVSCheckVersion.cmake)
 include(${CMAKE_PRJ_PATH}/CMakeXCCheckVersion.cmake)
-include(${CMAKE_PRJ_PATH}/CMakeGCCheckVersion.cmake)
+include(${CMAKE_PRJ_PATH}/CMakeNonMSVCCheckVersion.cmake)
 include(${CMAKE_PRJ_PATH}/CMakeCompilers.cmake)
 include(${CMAKE_PRJ_PATH}/CMakeFunctions.cmake)
 

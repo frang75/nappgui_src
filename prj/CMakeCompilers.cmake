@@ -272,7 +272,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(CMAKE_ECLIPSE_GENERATE_LINKED_RESOURCES FALSE)
 
     # GCC Version
-    checkGCCVersion()
+    checkNonMSVCVersion()
     message(STATUS "- Linux Platform: ${LSB_RELEASE_ID_SHORT} ${LSB_RELEASE_VERSION_SHORT}")
     message(STATUS "- GCC compiler: ${CMAKE_CXX_COMPILER_VERSION}")
 
@@ -359,7 +359,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
     elseif (${CMAKE_TOOLKIT} STREQUAL "GTK3")
         message(STATUS "- Toolkit: Gtk+3")
-        set(NAPPGUI_COMPILER_TOOLSET ${GCC_VERSION}_gtk3)
+        set(NAPPGUI_COMPILER_TOOLSET ${COMPILER_VERSION}_gtk3)
 
     else()
         message(FATAL_ERROR "Unknown toolkit ${CMAKE_TOOLKIT}")

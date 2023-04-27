@@ -77,9 +77,10 @@
 #endif
 
 /*! <Compiler> */
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 
-    #if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 2)
+    #if defined(__clang__)
+    #elif (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 2)
         #error At least gcc 4.2 is required
     #endif
 
@@ -102,7 +103,7 @@
 	#define __DEPRECATED                    __attribute__((__deprecated__))
     #define __SENTINEL                      __attribute__((__sentinel__))
 
-#if (__GNUC__ == 4)
+#if (__GNUC__ == 4 || defined(__clang__))
     #define __PRINTF(format_idx, arg_idx)
 #else
     #define __PRINTF(format_idx, arg_idx)   __attribute__((__format__ (__printf__, format_idx, arg_idx)))
@@ -111,7 +112,7 @@
     #define __SCANF(format_idx, arg_idx)    __attribute__((__format__ (__scanf__, format_idx, arg_idx)))
     #define __TYPECHECK                     __attribute__((unused))
 
-    #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+    #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || defined(__clang__)
         #define __ALLOC_SIZE(x)             __attribute__((__alloc_size__(x)))
         #define __ALLOC_SIZE2(x,y)          __attribute__((__alloc_size__(x,y)))
     #else
