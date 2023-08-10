@@ -36,10 +36,10 @@ if (WIN32)
     set(NAPPGUI_DYNAMIC_LIB_SUFFIX ".dll")
     unset(CMAKE_INSTALL_PREFIX CACHE)
 
-    if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
+    if (CMAKE_SIZEOF_VOID_P STREQUAL 4)
         set(NAPPGUI_HOST "x86")
         set(NAPPGUI_ARCH "x86")
-    elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
+    elseif (CMAKE_SIZEOF_VOID_P STREQUAL 8)
         set(NAPPGUI_HOST "x64")
         set(NAPPGUI_ARCH "x64")
     else ()
@@ -67,20 +67,20 @@ if (WIN32)
         removeFlag(CMAKE_C_FLAGS_RELEASEWITHASSERT "/MD")
         removeFlag(CMAKE_C_FLAGS_RELEASE "/MD")
         removeFlag(CMAKE_C_FLAGS_DEBUG "/MDd")
-        if (${NAPPGUI_RUNTIME_LIBRARY} STREQUAL "static")
+        if (NAPPGUI_RUNTIME_LIBRARY STREQUAL "static")
             addFlag(CMAKE_CXX_FLAGS_RELEASEWITHASSERT "/MT")
             addFlag(CMAKE_CXX_FLAGS_RELEASE "/MT")
             addFlag(CMAKE_CXX_FLAGS_DEBUG "/MTd")
             addFlag(CMAKE_C_FLAGS_RELEASEWITHASSERT "/MT")
             addFlag(CMAKE_C_FLAGS_RELEASE "/MT")
             addFlag(CMAKE_C_FLAGS_DEBUG "/MTd")
-        elseif (${NAPPGUI_RUNTIME_LIBRARY} STREQUAL "dynamic")
+        elseif (NAPPGUI_RUNTIME_LIBRARY STREQUAL "dynamic")
             addFlag(CMAKE_CXX_FLAGS_RELEASEWITHASSERT "/MD")
             addFlag(CMAKE_CXX_FLAGS_RELEASE "/MD")
-            addFlag(CMAKE_CXX_FLAGS_DEBUG "/MDd")
+            # addFlag(CMAKE_CXX_FLAGS_DEBUG "/MDd")  # Was `MDd` but D9025 makes it this
             addFlag(CMAKE_C_FLAGS_RELEASEWITHASSERT "/MD")
             addFlag(CMAKE_C_FLAGS_RELEASE "/MD")
-            addFlag(CMAKE_C_FLAGS_DEBUG "/MDd")
+            # addFlag(CMAKE_C_FLAGS_DEBUG "/MTd") # Was `MDd` but D9025 makes it this
         else()
             message(FATAL_ERROR "Unknown NAPPGUI_RUNTIME_LIBRARY property")
         endif()
@@ -98,10 +98,10 @@ if (WIN32)
         # set_property(CACHE CMAKE_PACKAGE_GEN PROPERTY STRINGS "NSIS;TGZ")
 
         # Enhaced instruction set x86 Processors
-        if (${NAPPGUI_ARCH} STREQUAL "x86")
-            if (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v80")
+        if (NAPPGUI_ARCH STREQUAL "x86")
+            if (CMAKE_VS_PLATFORM_TOOLSET STREQUAL "v80")
                 # Not Set in VS2005 is /arch:IA32
-            elseif (${CMAKE_VS_PLATFORM_TOOLSET} STREQUAL "v90")
+            elseif (CMAKE_VS_PLATFORM_TOOLSET STREQUAL "v90")
                 add_definitions(/arch:SSE)
             else()
                 add_definitions(/arch:SSE2)
@@ -116,7 +116,7 @@ if (WIN32)
 
 # Apple configuration
 #------------------------------------------------------------------------------
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
     set(NAPPGUI_STATIC_LIB_PREFIX "lib")
     set(NAPPGUI_STATIC_LIB_SUFFIX ".a")
@@ -208,11 +208,11 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
     # Build architecture
     set(CMAKE_OSX_ARCHITECTURES ${CMAKE_ARCHITECTURE})
-    if (${CMAKE_OSX_ARCHITECTURES} STREQUAL "i386")
+    if (CMAKE_OSX_ARCHITECTURES STREQUAL "i386")
         set(NAPPGUI_ARCH x86)
-    elseif (${CMAKE_OSX_ARCHITECTURES} STREQUAL "x86_64")
+    elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
         set(NAPPGUI_ARCH x64)
-    elseif (${CMAKE_OSX_ARCHITECTURES} STREQUAL "arm64")
+    elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
         set(NAPPGUI_ARCH arm)
     endif()
     message(STATUS "- Build architecture: ${CMAKE_OSX_ARCHITECTURES}")
@@ -220,11 +220,11 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     # Host architecture
     set(HOST_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
 
-    if (${HOST_ARCH} STREQUAL "i386")
+    if (HOST_ARCH STREQUAL "i386")
         set(NAPPGUI_HOST x86)
-    elseif (${HOST_ARCH} STREQUAL "x86_64")
+    elseif (HOST_ARCH STREQUAL "x86_64")
         set(NAPPGUI_HOST x64)
-    elseif (${HOST_ARCH} STREQUAL "arm64")
+    elseif (HOST_ARCH STREQUAL "arm64")
         set(NAPPGUI_HOST arm64)
     else()
         message("- Unknown host architecture")
@@ -251,7 +251,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
 # Linux configuration
 #------------------------------------------------------------------------------
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
     set(NAPPGUI_STATIC_LIB_PREFIX "lib")
     set(NAPPGUI_STATIC_LIB_SUFFIX ".a")
@@ -280,29 +280,29 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic -fPIE -Wno-long-long -Wno-overlength-strings -Wno-comment")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -fPIE")
 
-    if(${CMAKE_VERSION} VERSION_LESS "3.1.0" OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "5.0.0")
+    if(CMAKE_VERSION VERSION_LESS "3.1.0" OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "5.0.0")
     	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu90")
     endif()
 
     # Host architecture
     set(HOST_ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
 
-    if (${HOST_ARCH} STREQUAL "i386" OR ${HOST_ARCH} STREQUAL "i486" OR ${HOST_ARCH} STREQUAL "i586" OR ${HOST_ARCH} STREQUAL "i686")
+    if (HOST_ARCH STREQUAL "i386" OR HOST_ARCH STREQUAL "i486" OR HOST_ARCH STREQUAL "i586" OR HOST_ARCH STREQUAL "i686")
         set(NAPPGUI_HOST x86)
         set(CMAKE_ARCHITECTURE "i386" CACHE STRING "Processor architecture")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS i386)
 
-    elseif (${HOST_ARCH} STREQUAL "x86_64")
+    elseif (HOST_ARCH STREQUAL "x86_64")
         set(NAPPGUI_HOST x64)
         set(CMAKE_ARCHITECTURE "x64" CACHE STRING "Processor architecture")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS i386 x64)
 
-    elseif (${HOST_ARCH} STREQUAL "aarch64")
+    elseif (HOST_ARCH STREQUAL "aarch64")
         set(NAPPGUI_HOST arm64)
         set(CMAKE_ARCHITECTURE "arm64" CACHE STRING "Processor architecture")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS arm64)
 
-    elseif (${HOST_ARCH} STREQUAL "armv7")
+    elseif (HOST_ARCH STREQUAL "armv7")
         set(NAPPGUI_HOST arm)
         set(CMAKE_ARCHITECTURE "arm" CACHE STRING "Processor architecture")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS arm)
@@ -354,10 +354,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set_property(CACHE CMAKE_TOOLKIT PROPERTY STRINGS "GTK3")
 
     # GTK3 Toolkit
-    if (${CMAKE_TOOLKIT} STREQUAL "None")
+    if (CMAKE_TOOLKIT STREQUAL "None")
         message(STATUS "- Toolkit: None (command line projects only).")
 
-    elseif (${CMAKE_TOOLKIT} STREQUAL "GTK3")
+    elseif (CMAKE_TOOLKIT STREQUAL "GTK3")
         message(STATUS "- Toolkit: Gtk+3")
         set(NAPPGUI_COMPILER_TOOLSET ${COMPILER_VERSION}_gtk3)
 

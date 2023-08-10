@@ -35,34 +35,34 @@ endfunction()
 function(isSourceSubDir subDirName _ret)
 
     string(TOLOWER ${subDirName} subDirLower)
-    if (${subDirLower} STREQUAL win)
+    if (subDirLower STREQUAL win)
 	    if (WIN32)
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
-    elseif (${subDirLower} STREQUAL unix)
-	    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin"
-            OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    elseif (subDirLower STREQUAL unix)
+	    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin"
+            OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
-    elseif (${subDirLower} STREQUAL osx)
-	    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    elseif (subDirLower STREQUAL osx)
+	    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
-    elseif (${subDirLower} STREQUAL linux)
-        if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    elseif (subDirLower STREQUAL linux)
+        if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
-    elseif (${subDirLower} STREQUAL gtk3)
+    elseif (subDirLower STREQUAL gtk3)
         if (CMAKE_TOOLKIT)
-            if (${CMAKE_TOOLKIT} STREQUAL "GTK3")
+            if (CMAKE_TOOLKIT STREQUAL "GTK3")
                 set(${_ret} TRUE PARENT_SCOPE)
             else()
                 set(${_ret} FALSE PARENT_SCOPE)
@@ -70,7 +70,7 @@ function(isSourceSubDir subDirName _ret)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
-    elseif (${subDirLower} STREQUAL res)
+    elseif (subDirLower STREQUAL res)
         set(${_ret} FALSE PARENT_SCOPE)
     else ()
         set(${_ret} TRUE PARENT_SCOPE)
@@ -151,7 +151,7 @@ function(getRecursiveSourceFiles targetName dir group publicHeaders)
             # VisualStudio 2005 treat all .def files as module definitions
             # Even if you mark then as headers
             # .def files will not be shown as source files in VS2005
-            if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 8 2005" AND ${extLower} STREQUAL ".def")
+            if (CMAKE_GENERATOR STREQUAL "Visual Studio 8 2005" AND extLower STREQUAL ".def")
                 set(index -1)
             else()
                 list (FIND SRC_EXTENSION "*${extLower}" index)
@@ -166,7 +166,7 @@ function(getRecursiveSourceFiles targetName dir group publicHeaders)
                 list (FIND HEADER_EXTENSION "*${extLower}" index)
                 if (${index} GREATER -1)
                     set_source_files_properties(${dir}/${child} PROPERTIES HEADER_FILE_ONLY ON)
-                    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+                    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
                         set_source_files_properties(${dir}/${child} PROPERTIES XCODE_EXPLICIT_FILE_TYPE sourcecode.c.h)
                     endif()
                 endif()
@@ -218,7 +218,7 @@ function(getResourceFiles targetName targetType dir _ret _include_dir)
 
     # Target Resources
     set(nrc_mode ${NAPPGUI_CACHE_TARGET_NRC_MODE_${targetName}})
-    if (NOT ${nrc_mode} STREQUAL "NRC_NONE")
+    if (NOT nrc_mode STREQUAL "NRC_NONE")
         getSubDirectories(${resPath} resPackDirs)
 
         # Clean the resource destiny directory
@@ -245,10 +245,10 @@ function(getResourceFiles targetName targetType dir _ret _include_dir)
                 list(APPEND res_files ${resLocalPathFiles})
             endforeach()
 
-            if (${nrc_mode} STREQUAL "NRC_EMBEDDED")
+            if (nrc_mode STREQUAL "NRC_EMBEDDED")
                 set(NRC_OPTION "-dc")
             # '*.res' package will be copied in executable location
-            elseif (${nrc_mode} STREQUAL "NRC_PACKED")
+            elseif (nrc_mode STREQUAL "NRC_PACKED")
                 set(NRC_OPTION "-dp")
             else()
                 message (FATAL_ERROR "Unknown nrc mode")
@@ -324,7 +324,7 @@ function(installResourcePacks targetName targetType sourceDir)
 
     set(nrc_mode ${NAPPGUI_CACHE_TARGET_NRC_MODE_${targetName}})
     if (nrc_mode)
-    if (${nrc_mode} STREQUAL "NRC_PACKED")
+    if (nrc_mode STREQUAL "NRC_PACKED")
         set(resPath ${sourceDir}/res)
         set(DEST_RESDIR ${CMAKE_CURRENT_BINARY_DIR}/resgen)
 
@@ -334,11 +334,11 @@ function(installResourcePacks targetName targetType sourceDir)
             set(resRelative "res")
             add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${targetName}>/${resRelative})
 
-        elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             # For macOS bundles, resource dir is created in 'macOSBundle'
             set(resRelative "../resources")
 
-        elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             set(resRelative "res")
             add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${targetName}>/${resRelative})
 
@@ -591,7 +591,7 @@ function(processTarget targetName targetType dependList)
 
     # GTK Include directories
     if (CMAKE_TOOLKIT)
-        if (${CMAKE_TOOLKIT} STREQUAL "GTK3")
+        if (CMAKE_TOOLKIT STREQUAL "GTK3")
             if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/gtk3)
                 # Use the package PkgConfig to detect GTK+ headers/library files
                 find_package(PkgConfig REQUIRED)
@@ -628,7 +628,7 @@ endfunction()
 
 function(targetRPath targetName isMacOsBundle rpath)
 
-    if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         set(RUNPATH "\${ORIGIN}")
 
         foreach(path ${rpath})
@@ -642,7 +642,7 @@ function(targetRPath targetName isMacOsBundle rpath)
         set_property(TARGET ${targetName} PROPERTY BUILD_WITH_INSTALL_RPATH TRUE)
         set_property(TARGET ${targetName} PROPERTY INSTALL_RPATH "${RUNPATH}")
 
-	elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         # otool -L libdraw2d.dylib
         # @rpath/libgeom2d.dylib (compatibility version 0.0.0, current version 0.0.0)
         # Force to use paths relative to @rpath in dylibs and execs
@@ -675,65 +675,65 @@ function(targetOptions targetName options)
 
     foreach(opt ${options})
 
-        if (${opt} STREQUAL "C90")
+        if (opt STREQUAL "C90")
             set(c_lang_standard "90")
 
-        elseif(${opt} STREQUAL "C99")
+        elseif(opt STREQUAL "C99")
             set(c_lang_standard "99")
 
-        elseif(${opt} STREQUAL "C11")
+        elseif(opt STREQUAL "C11")
             set(c_lang_standard "11")
 
-        elseif(${opt} STREQUAL "C17")
+        elseif(opt STREQUAL "C17")
             # New in version 3.21.
-            if(${CMAKE_VERSION} VERSION_GREATER "3.20.999")
+            if(CMAKE_VERSION VERSION_GREATER "3.20.999")
                 set(c_lang_standard "17")
             else()
                 set(c_lang_standard "11")
             endif()
 
-        elseif(${opt} STREQUAL "C23")
+        elseif(opt STREQUAL "C23")
             # New in version 3.21.
-            if(${CMAKE_VERSION} VERSION_GREATER "3.20.999")
+            if(CMAKE_VERSION VERSION_GREATER "3.20.999")
                 set(c_lang_standard "23")
             else()
                 set(c_lang_standard "11")
             endif()
 
-        elseif(${opt} STREQUAL "C++98")
+        elseif(opt STREQUAL "C++98")
             set(cxx_lang_standard "98")
 
-        elseif(${opt} STREQUAL "C++11")
+        elseif(opt STREQUAL "C++11")
             set(cxx_lang_standard "11")
 
-        elseif(${opt} STREQUAL "C++14")
+        elseif(opt STREQUAL "C++14")
             set(cxx_lang_standard "14")
 
-        elseif(${opt} STREQUAL "C++17")
+        elseif(opt STREQUAL "C++17")
             # New in version 3.8.
-            if(${CMAKE_VERSION} VERSION_GREATER "3.7.999")
+            if(CMAKE_VERSION VERSION_GREATER "3.7.999")
                 set(cxx_lang_standard "17")
             else()
                 set(cxx_lang_standard "14")
             endif()
 
-        elseif(${opt} STREQUAL "C++20")
+        elseif(opt STREQUAL "C++20")
             # New in version 3.12.
-            if(${CMAKE_VERSION} VERSION_GREATER "3.11.999")
+            if(CMAKE_VERSION VERSION_GREATER "3.11.999")
                 set(cxx_lang_standard "20")
-            elseif(${CMAKE_VERSION} VERSION_GREATER "3.7.999")
+            elseif(CMAKE_VERSION VERSION_GREATER "3.7.999")
                 set(cxx_lang_standard "17")
             else()
                 set(cxx_lang_standard "14")
             endif()
 
-        elseif(${opt} STREQUAL "C++23")
+        elseif(opt STREQUAL "C++23")
             # New in version 3.20.
-            if(${CMAKE_VERSION} VERSION_GREATER "3.19.999")
+            if(CMAKE_VERSION VERSION_GREATER "3.19.999")
                 set(cxx_lang_standard "23")
-            elseif(${CMAKE_VERSION} VERSION_GREATER "3.11.999")
+            elseif(CMAKE_VERSION VERSION_GREATER "3.11.999")
                 set(cxx_lang_standard "20")
-            elseif(${CMAKE_VERSION} VERSION_GREATER "3.7.999")
+            elseif(CMAKE_VERSION VERSION_GREATER "3.7.999")
                 set(cxx_lang_standard "17")
             else()
                 set(cxx_lang_standard "14")
@@ -744,7 +744,7 @@ function(targetOptions targetName options)
     endforeach()
 
     # Language standard support in CMake 3.1
-    if(${CMAKE_VERSION} VERSION_GREATER "3.0.999")
+    if(CMAKE_VERSION VERSION_GREATER "3.0.999")
         set_property(TARGET ${targetName} PROPERTY C_STANDARD ${c_lang_standard})
         set_property(TARGET ${targetName} PROPERTY CXX_STANDARD ${cxx_lang_standard})
     endif()
@@ -759,7 +759,7 @@ function(processStaticLib libName dependList)
     processTarget("${libName}" "STATIC_LIB" "${dependencies}")
 
     # In Linux, static libs must link with other libs
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         targetLinkWithLibraries(${libName} "${dependencies}")
     endif()
 
@@ -791,7 +791,7 @@ function(bundleProp bundleName property value)
     # Fails in XCode 3.2, 4
     # /bin/bash -c "plutil -replace NSHumanReadableCopyright -string 2019\ NAppGUI .../Info.plist"
     # unrecognized option: -replace
-    if(${XCODE_VERSION} VERSION_GREATER "5.99")
+    if(XCODE_VERSION VERSION_GREATER "5.99")
         add_custom_command(TARGET ${bundleName} POST_BUILD COMMAND /bin/bash -c \"plutil -replace ${property} -string "${value}" $<TARGET_FILE_DIR:${bundleName}>/../Info.plist\")
     endif()
 endfunction()
@@ -877,7 +877,7 @@ function(getRecursiveTargetLinks targetName dependList)
 		# Dependency is a Target of this solution
 		if (TARGET ${depend})
             get_target_property(TARGET_TYPE ${depend} TYPE)
-            if (${TARGET_TYPE} STREQUAL "STATIC_LIBRARY" OR ${TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
+            if (TARGET_TYPE STREQUAL "STATIC_LIBRARY" OR TARGET_TYPE STREQUAL "SHARED_LIBRARY")
                 appendLinkDependency(${targetName} ${depend})
                 getDirectDepends(${depend} childDependList)
             else()
@@ -940,7 +940,7 @@ function(targetDependOnLib targetName libName _ret)
     targetSourceDir(${targetName} targetDir)
     targetSourceDir(${libName} libDir)
 
-    if (${targetDir} STREQUAL "${libDir}")
+    if (targetDir STREQUAL "${libDir}")
         set(${_ret} "YES" PARENT_SCOPE)
         return()
     endif()
@@ -956,7 +956,7 @@ function(targetDependOnLib targetName libName _ret)
         endif()
 
         targetSourceDir(${dependName} dependDir)
-        if (${dependDir} STREQUAL "${libDir}")
+        if (dependDir STREQUAL "${libDir}")
             set(${_ret} "YES" PARENT_SCOPE)
             return()
         endif()
@@ -1000,13 +1000,13 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
                 if (WIN32)
                     set(linkerName ${CMAKE_LIB_PATH}/${toolset}/$<CONFIG>/${NAPPGUI_STATIC_LIB_PREFIX}${dependName}${NAPPGUI_STATIC_LIB_SUFFIX})
 
-                elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+                elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
                     set(linkerName ${CMAKE_BIN_PATH}/${toolset}/$<CONFIG>/${NAPPGUI_DYNAMIC_LIB_PREFIX}${dependName}${NAPPGUI_DYNAMIC_LIB_SUFFIX})
 
                 endif()
 
                 # Copy the precompiled shared library into executable directory
-                if (${TARGET_TYPE} STREQUAL "EXECUTABLE")
+                if (TARGET_TYPE STREQUAL "EXECUTABLE")
                     installPrecompiledSharedLibrary(${targetName} ${dependName})
                 endif()
 
@@ -1017,7 +1017,7 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
                 set(linkerName ${depend})
                 set(dependName ${depend})
                 get_target_property(DEPEND_TARGET_TYPE ${depend} TYPE)
-                if (${DEPEND_TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
+                if (DEPEND_TARGET_TYPE STREQUAL "SHARED_LIBRARY")
                     set(DEPEND_IS_SHAREDLIB TRUE)
                 endif()
 
@@ -1042,12 +1042,12 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
     endif()
 
     # Target should link with math
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_link_libraries(${targetName} "m")
     endif()
 
     # Target should link with pthread
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         targetDependOnLib(${targetName} "osbs" _depends)
         if (_depends)
             find_package(Threads)
@@ -1062,8 +1062,8 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
     endif()
 
     # Target should link with GTK3
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        if (${CMAKE_TOOLKIT} STREQUAL "GTK3")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        if (CMAKE_TOOLKIT STREQUAL "GTK3")
             targetDependOnLib(${targetName} "draw2d" _depends)
             if (_depends)
                 # Use the package PkgConfig to detect GTK+ headers/library files
@@ -1075,7 +1075,7 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
     endif()
 
     # Target should link with libCurl
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         targetDependOnLib(${targetName} "inet" _depends)
         if (_depends)
             find_package(CURL)
@@ -1088,18 +1088,18 @@ function(targetLinkWithLibraries targetName firstLevelDepends)
     endif()
 
     # Target should link with Cocoa
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         targetDependOnLib(${targetName} "draw2d" _depends1)
         targetDependOnLib(${targetName} "inet" _depends2)
         if (_depends1 OR _depends2)
-            if (NOT ${TARGET_TYPE} STREQUAL "STATIC_LIBRARY")
+            if (NOT TARGET_TYPE STREQUAL "STATIC_LIBRARY")
     			target_link_libraries(${targetName} ${COCOA_LIB})
             endif()
         endif()
 	endif()
 
     # In GCC the g++ linker must be used
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         set_target_properties(${targetName} PROPERTIES LINKER_LANGUAGE CXX)
     endif()
 
@@ -1143,7 +1143,7 @@ function(installerScript targetName platform generator config)
     #file(APPEND ${SCRIPT} "set(CPACK_PACKAGE_FILE_NAME \"\${CPACK_PACKAGE_NAME}-\${CPACK_PACKAGE_VERSION}-\${CPACK_SYSTEM_NAME}\")\n")
     file(APPEND ${SCRIPT} "set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY \"\${PACK_VENDOR}/\${CPACK_PACKAGE_NAME}-${NAPPGUI_ARCH}\")\n")
 
-    if (${generator} STREQUAL "NSIS")
+    if (generator STREQUAL "NSIS")
         file(APPEND ${SCRIPT} "\n")
         file(APPEND ${SCRIPT} "# NSIS generator specific options\n")
         file(APPEND ${SCRIPT} "set(CPACK_NSIS_PACKAGE_NAME \"\${CPACK_PACKAGE_FILE_NAME}\")\n")
@@ -1153,7 +1153,7 @@ function(installerScript targetName platform generator config)
         file(APPEND ${SCRIPT} "set(CPACK_PACKAGE_ICON \"${CMAKE_CURRENT_SOURCE_DIR}/res\\\\banner.bmp\")\n")
         file(APPEND ${SCRIPT} "set(CPACK_RESOURCE_FILE_LICENSE \"${CMAKE_CURRENT_SOURCE_DIR}/res/license.txt\")\n")
 
-        if (${NAPPGUI_ARCH} STREQUAL "x64")
+        if (NAPPGUI_ARCH STREQUAL "x64")
             file(APPEND ${SCRIPT} "set(CPACK_NSIS_INSTALL_ROOT \"\$PROGRAMFILES64\\\\\${CPACK_PACKAGE_VENDOR}\\\\\${CPACK_PACKAGE_NAME}\")\n")
         else()
             file(APPEND ${SCRIPT} "set(CPACK_NSIS_INSTALL_ROOT \"\$PROGRAMFILES\\\\\${CPACK_PACKAGE_VENDOR}\\\\\${CPACK_PACKAGE_NAME}\")\n")
@@ -1163,11 +1163,11 @@ function(installerScript targetName platform generator config)
         file(APPEND ${SCRIPT} "set(CPACK_NSIS_MENU_LINKS \"\${CPACK_PACKAGE_NAME}.exe\" \"\${CPACK_PACKAGE_NAME} (${NAPPGUI_ARCH})\")\n")
         file(APPEND ${SCRIPT} "set(CPACK_NSIS_DEFINES \"!define MUI_STARTMENUPAGE_DEFAULTFOLDER \\\\\${CPACK_PACKAGE_VENDOR}\\\\\${CPACK_PACKAGE_NAME}\")\n")
 
-    elseif (${generator} STREQUAL "DragNDrop")
+    elseif (generator STREQUAL "DragNDrop")
         file(APPEND ${SCRIPT} "set(CPACK_DMG_VOLUME_NAME \"\${CPACK_PACKAGE_NAME}\")\n")
         add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/res/license.txt ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)
 
-    elseif (${generator} STREQUAL "TGZ")
+    elseif (generator STREQUAL "TGZ")
         add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/res/license.txt ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>)
     endif()
 
@@ -1196,7 +1196,7 @@ function(processInstaller targetName)
             installerScript(${targetName} "win" ${CMAKE_PACKAGE_GEN} "ReleaseWithAssert")
             add_custom_command(TARGET ${targetName} POST_BUILD COMMAND cd ${CMAKE_PACKAGE_PATH}/$<CONFIG> & cpack --config ${CMAKE_CURRENT_BINARY_DIR}/CPack-${targetName}-$<CONFIG>.cmake)
 
-        elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             installerScript(${targetName} "macos" ${CMAKE_PACKAGE_GEN} "Debug")
             installerScript(${targetName} "macos" ${CMAKE_PACKAGE_GEN} "Release")
             installerScript(${targetName} "macos" ${CMAKE_PACKAGE_GEN} "ReleaseWithAssert")
@@ -1227,11 +1227,11 @@ function(processDesktopApp appName dependList options)
 		set_target_properties(${appName} PROPERTIES LINK_FLAGS_RELASE "/SUBSYSTEM:WINDOWS")
 		set_target_properties(${appName} PROPERTIES LINK_FLAGS_RELASEWITHASSERT "/SUBSYSTEM:WINDOWS")
         set(macOSBundle NO)
-    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         macOSBundle(${appName} "${dependencies}")
         set(macOSBundle YES)
 
-    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         linuxBundle(${appName} "${dependencies}")
         set(macOSBundle NO)
 
@@ -1275,10 +1275,10 @@ function(processCommandApp appName dependList options)
         set_target_properties(${appName} PROPERTIES LINK_FLAGS_RELASE "/SUBSYSTEM:CONSOLE")
         set_target_properties(${appName} PROPERTIES LINK_FLAGS_RELEASEWITHASSERT "/SUBSYSTEM:CONSOLE")
 
-    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         macOSCommand("${appName}" "${dependencies}")
 
-    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         linuxCommand("${appName}" "${dependencies}")
 
     else()

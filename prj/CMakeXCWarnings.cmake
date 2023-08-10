@@ -154,7 +154,7 @@ macro(configureMacOSClang)
     endif()
 
     # C/C++ Compiler Flags
-    if(${XCODE_VERSION} VERSION_GREATER "7.99.99")
+    if(XCODE_VERSION VERSION_GREATER "7.99.99")
 
         set(IDE_PROPERTIES ${IDE_PROPERTIES}
             XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_WEAK          "YES")
