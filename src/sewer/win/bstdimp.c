@@ -33,10 +33,10 @@ uint32_t bstd_sprintf(char_t *str, const uint32_t size, const char_t *format, ..
     int length;
     va_list args;
     va_start(args, format);
-	#pragma warning(disable : 4996)
-	/* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
-    length = vsnprintf((char*)str, (size_t)size, (const char*)format, args);
-	#pragma warning(default: 4996)
+#pragma warning(disable : 4996)
+    /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
+    length = vsnprintf((char *)str, (size_t)size, (const char *)format, args);
+#pragma warning(default : 4996)
     va_end(args);
     cassert(length >= 0);
     return (uint32_t)length;
@@ -48,12 +48,12 @@ uint32_t bstd_vsprintf(char_t *str, const uint32_t size, const char_t *format, v
 {
     int length;
     cassert_no_null(format);
-	#pragma warning(disable : 4996)
-	/* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
-    length = vsnprintf((char*)str, (size_t)size, (const char*)format, args);
-	#pragma warning(default: 4996)
+#pragma warning(disable : 4996)
+    /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
+    length = vsnprintf((char *)str, (size_t)size, (const char *)format, args);
+#pragma warning(default : 4996)
     cassert(length >= 0);
-    return (uint32_t)length;    
+    return (uint32_t)length;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -70,10 +70,10 @@ uint32_t bstd_printf(const char_t *format, ...)
     {
         va_list args;
         va_start(args, format);
-		#pragma warning(disable : 4996)
-		/* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
-		length = vsnprintf(NULL, 0, format, args);
-		#pragma warning(default: 4996)
+#pragma warning(disable : 4996)
+        /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
+        length = vsnprintf(NULL, 0, format, args);
+#pragma warning(default : 4996)
         va_end(args);
     }
 
@@ -83,7 +83,7 @@ uint32_t bstd_printf(const char_t *format, ...)
     }
     else
     {
-        dbuffer = (char*)bmem_malloc(length + 1);
+        dbuffer = (char *)bmem_malloc(length + 1);
         buffer = dbuffer;
     }
 
@@ -100,19 +100,19 @@ uint32_t bstd_printf(const char_t *format, ...)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
-        unicode_convers((const char_t*)buffer, (char_t*)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
+        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
         OutputDebugString(wbuffer);
     }
     else
     {
-        WCHAR *wbuffer = (WCHAR*)bmem_malloc((length + 1) * sizeof(WCHAR));
-        unicode_convers((const char_t*)buffer, (char_t*)wbuffer, ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = (WCHAR *)bmem_malloc((length + 1) * sizeof(WCHAR));
+        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
-        bmem_free((byte_t*)wbuffer);
+        bmem_free((byte_t *)wbuffer);
     }
 
     if (dbuffer != NULL)
-        bmem_free((byte_t*)dbuffer);
+        bmem_free((byte_t *)dbuffer);
 
     return (uint32_t)length;
 }
@@ -131,10 +131,10 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     {
         va_list args;
         va_start(args, format);
-		#pragma warning(disable : 4996)
-		/* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
+#pragma warning(disable : 4996)
+        /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
         length = vsnprintf(NULL, 0, format, args);
-		#pragma warning(default: 4996)
+#pragma warning(default : 4996)
         va_end(args);
     }
 
@@ -144,7 +144,7 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     }
     else
     {
-        dbuffer = (char*)bmem_malloc(length + 1);
+        dbuffer = (char *)bmem_malloc(length + 1);
         buffer = dbuffer;
     }
 
@@ -161,19 +161,19 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
-        unicode_convers((const char_t*)buffer, (char_t*)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
+        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
         OutputDebugString(wbuffer);
     }
     else
     {
-        WCHAR *wbuffer = (WCHAR*)bmem_malloc((length + 1) * sizeof(WCHAR));
-        unicode_convers((const char_t*)buffer, (char_t*)wbuffer, ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = (WCHAR *)bmem_malloc((length + 1) * sizeof(WCHAR));
+        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
-        bmem_free((byte_t*)wbuffer);
+        bmem_free((byte_t *)wbuffer);
     }
 
     if (dbuffer != NULL)
-        bmem_free((byte_t*)dbuffer);
+        bmem_free((byte_t *)dbuffer);
 
     return (uint32_t)length;
 }
@@ -191,15 +191,15 @@ uint32_t bstd_writef(const char_t *str)
     if (size < 1024)
     {
         WCHAR wbuffer[1024];
-        unicode_convers((const char_t*)str, (char_t*)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
+        unicode_convers((const char_t *)str, (char_t *)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
         OutputDebugString(wbuffer);
     }
     else
     {
-        WCHAR *wbuffer = (WCHAR*)bmem_malloc((uint32_t)(size + 1) * sizeof(WCHAR));
-        unicode_convers((const char_t*)str, (char_t*)wbuffer, ekUTF8, ekUTF16, (uint32_t)(size + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = (WCHAR *)bmem_malloc((uint32_t)(size + 1) * sizeof(WCHAR));
+        unicode_convers((const char_t *)str, (char_t *)wbuffer, ekUTF8, ekUTF16, (uint32_t)(size + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
-        bmem_free((byte_t*)wbuffer);
+        bmem_free((byte_t *)wbuffer);
     }
 
     return (uint32_t)size;
@@ -242,7 +242,7 @@ bool_t bstd_write(const byte_t *data, const uint32_t size, uint32_t *wsize)
 #if defined __DEBUG__
     {
         unicode_t format = ENUM_MAX(unicode_t);
-        if (unicode_valid_str_n((const char_t*)data, size, ekUTF8) == TRUE)
+        if (unicode_valid_str_n((const char_t *)data, size, ekUTF8) == TRUE)
             format = ekUTF8;
 
         if (format != ENUM_MAX(unicode_t))
@@ -250,16 +250,16 @@ bool_t bstd_write(const byte_t *data, const uint32_t size, uint32_t *wsize)
             if (size < 1024)
             {
                 WCHAR wbuffer[1024];
-                uint32_t n = unicode_convers_n((const char_t*)data, (char_t*)wbuffer, ekUTF8, ekUTF16, size, sizeof(wbuffer));
-                cassert (n % sizeof(WCHAR) == 0);
+                uint32_t n = unicode_convers_n((const char_t *)data, (char_t *)wbuffer, ekUTF8, ekUTF16, size, sizeof(wbuffer));
+                cassert(n % sizeof(WCHAR) == 0);
                 OutputDebugString(wbuffer);
             }
             else
             {
-                WCHAR *wbuffer = (WCHAR*)bmem_malloc((size + 1) * sizeof(WCHAR));
-                unicode_convers((const char_t*)data, (char_t*)wbuffer, ekUTF8, ekUTF16, (size + 1) * sizeof(WCHAR));
+                WCHAR *wbuffer = (WCHAR *)bmem_malloc((size + 1) * sizeof(WCHAR));
+                unicode_convers((const char_t *)data, (char_t *)wbuffer, ekUTF8, ekUTF16, (size + 1) * sizeof(WCHAR));
                 OutputDebugString(wbuffer);
-                bmem_free((byte_t*)wbuffer);
+                bmem_free((byte_t *)wbuffer);
             }
         }
     }
@@ -283,7 +283,7 @@ bool_t bstd_ewrite(const byte_t *data, const uint32_t size, uint32_t *wsize)
 
 void blib_debug_break(void)
 {
-#if (VS_PLATFORM > 800)
+#if (_MSC_VER > 1400)
     if (IsDebuggerPresent() != 0)
         DebugBreak();
 #else

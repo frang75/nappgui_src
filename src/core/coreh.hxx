@@ -42,16 +42,16 @@ typedef enum _dtype_t
 typedef struct _dbind_t DBind;
 typedef struct _stbind_t StBind;
 
-typedef void*(*FPtr_data)(const byte_t *data, const uint32_t size);
-#define FUNC_CHECK_DATA(func, type)\
-    (void)((type*(*)(const byte_t*, const uint32_t))func == func)
+typedef void *(*FPtr_data)(const byte_t *data, const uint32_t size);
+#define FUNC_CHECK_DATA(func, type) \
+    (void)((type * (*)(const byte_t *, const uint32_t)) func == func)
 
-typedef Buffer*(*FPtr_buffer)(const void *obj);
-#define FUNC_CHECK_BUFFER(func, type)\
-    (void)((Buffer*(*)(const type*))func == func)
+typedef Buffer *(*FPtr_buffer)(const void *obj);
+#define FUNC_CHECK_BUFFER(func, type) \
+    (void)((Buffer * (*)(const type *)) func == func)
 
-typedef void*(*FPtr_create_from_data)(const byte_t *data, const uint32_t size);
-#define FUNC_CHECK_CREATE_FROM_DATA(func, type)\
-    (void)((type*(*)(const byte_t*, const uint32_t))func == func)
+typedef void *(*FPtr_create_from_data)(const byte_t *data, const uint32_t size);
+#define FUNC_CHECK_CREATE_FROM_DATA(func, type) \
+    (void)((type * (*)(const byte_t *, const uint32_t)) func == func)
 
 #endif

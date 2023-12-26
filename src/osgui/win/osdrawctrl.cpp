@@ -12,13 +12,13 @@
 
 #include "osimg.inl"
 #include "osdrawctrl.h"
-#include "osdrawctrl.inl"
+#include "osdrawctrl_win.inl"
 #include "osstyleXP.inl"
-#include "dctxh.h"
-#include "cassert.h"
-#include "color.h"
-#include "font.h"
-#include "unicode.h"
+#include <draw2d/color.h>
+#include <draw2d/dctxh.h>
+#include <draw2d/font.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -113,11 +113,13 @@ ctrl_msel_t osdrawctrl_multisel(const DCtx *ctx, const vkey_t key)
 void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const enum_t nonused)
 {
     RECT rect;
+    real32_t offset_x = 0, offset_y = 0;
     dctx_set_raster_mode(ctx);
-    rect.left = (LONG)x;
-    rect.top = (LONG)y;
-    rect.right = (LONG)(x + width);
-    rect.bottom = (LONG)(y + height);
+    dctx_offset(ctx, &offset_x, &offset_y);
+    rect.left = (LONG)x + (LONG)offset_x;
+    rect.top = (LONG)y + (LONG)offset_y;
+    rect.right = rect.left + (LONG)width;
+    rect.bottom = rect.top + (LONG)height;
     FillRect((HDC)dctx_native(ctx), &rect, GetSysColorBrush(COLOR_WINDOW));
     unref(nonused);
 }
@@ -126,7 +128,8 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 
 static __INLINE int i_list_state(const ctrl_state_t state)
 {
-    switch (state) {
+    switch (state)
+    {
     case ekCTRL_STATE_NORMAL:
     case ekCTRL_STATE_BKNORMAL:
         return DLISS_NORMAL;
@@ -139,7 +142,7 @@ static __INLINE int i_list_state(const ctrl_state_t state)
         return DLISS_SELECTEDNOTFOCUS;
     case ekCTRL_STATE_DISABLED:
         return DLISS_DISABLED;
-    cassert_default();
+        cassert_default();
     }
 
     return DLISS_NORMAL;
@@ -149,7 +152,8 @@ static __INLINE int i_list_state(const ctrl_state_t state)
 
 static __INLINE int i_header_state(const ctrl_state_t state)
 {
-    switch (state) {
+    switch (state)
+    {
     case ekCTRL_STATE_NORMAL:
     case ekCTRL_STATE_BKNORMAL:
         return HIS_NORMAL;
@@ -161,7 +165,7 @@ static __INLINE int i_header_state(const ctrl_state_t state)
         return HIS_PRESSED;
     case ekCTRL_STATE_DISABLED:
         return HIS_NORMAL;
-    cassert_default();
+        cassert_default();
     }
 
     return HIS_NORMAL;
@@ -213,7 +217,7 @@ void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32
 {
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
-    int istate = i_header_state(state);    
+    int istate = i_header_state(state);
     dctx_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
     rect.left = (LONG)x + (LONG)offset_x + 1;
@@ -257,7 +261,7 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
 {
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
-    int istate = i_list_state(state);    
+    int istate = i_list_state(state);
     dctx_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
     rect.left = (LONG)x + (LONG)offset_x;
@@ -320,10 +324,11 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
     rect.right = text_width > 0 ? rect.left + (LONG)text_width : 10000;
     rect.top = (LONG)y + (LONG)offset_y;
     rect.bottom = rect.top + 10000;
-    num_bytes = unicode_convers(text, (char_t*)wtext, ekUTF8, ekUTF16, sizeof(wtext));
+    num_bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, sizeof(wtext));
     unref(num_bytes);
 
-    switch(dctx_text_intalign(ctx)) {
+    switch (dctx_text_intalign(ctx))
+    {
     case ekLEFT:
     case ekJUSTIFY:
         format |= DT_LEFT;
@@ -370,7 +375,7 @@ void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int3
 
 void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-int istate = 0;
+    int istate = 0;
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
     HDC hdc = (HDC)dctx_native(ctx);
@@ -378,7 +383,8 @@ int istate = 0;
     dctx_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
 
-    switch (state) {
+    switch (state)
+    {
     case ekCTRL_STATE_NORMAL:
     case ekCTRL_STATE_BKNORMAL:
         istate = CBS_CHECKEDNORMAL;
@@ -398,7 +404,7 @@ int istate = 0;
         istate = CBS_CHECKEDDISABLED;
         break;
 
-    cassert_default();
+        cassert_default();
     }
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
@@ -422,7 +428,8 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
     dctx_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
 
-    switch (state) {
+    switch (state)
+    {
     case ekCTRL_STATE_NORMAL:
     case ekCTRL_STATE_BKNORMAL:
         istate = CBS_UNCHECKEDNORMAL;
@@ -442,7 +449,7 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
         istate = CBS_UNCHECKEDDISABLED;
         break;
 
-    cassert_default();
+        cassert_default();
     }
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
@@ -470,7 +477,8 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
         DWORD flags;
         RECT rect2;
 
-        switch (align) {
+        switch (align)
+        {
         case ekLEFT:
         case ekJUSTIFY:
             flags = DT_LEFT;
@@ -481,7 +489,7 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
         case ekRIGHT:
             flags = DT_RIGHT;
             break;
-        cassert_default();
+            cassert_default();
         }
 
         flags |= DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS;
@@ -496,11 +504,10 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
         rect2.bottom = rect2.top + 10;
         osstyleXP_DrawThemeText(hdc, HP_HEADERSORTARROW, HSAS_SORTEDUP, L"W", UINT32_MAX, flags, rect);
 
-    //LOGFONT lf;
-    //SelectObject(hdc, tv->font);
-    //res = GetThemeFont(i_STYLEXP.theme, hdc, iPartId, iStateId, TMT_FONT, &lf);
-    //cassert_unref(res == S_OK, res);
-
+        //LOGFONT lf;
+        //SelectObject(hdc, tv->font);
+        //res = GetThemeFont(i_STYLEXP.theme, hdc, iPartId, iStateId, TMT_FONT, &lf);
+        //cassert_unref(res == S_OK, res);
     }
     else
     {
@@ -527,12 +534,12 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
 
     if (image != NULL)
     {
-    //    uint32_t width, height;
-    //    uint32_t offset_x, offset_y;
-    //    image_size(image, &width, &height);
-    //    offset_x = (rect.right - rect.left - width) / 2;
-    //    offset_y = (rect.bottom - rect.top - height) / 2;
-    //    osimage_draw(image, hdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)width, (real32_t)height, !enabled);
+        //    uint32_t width, height;
+        //    uint32_t offset_x, offset_y;
+        //    image_size(image, &width, &height);
+        //    offset_x = (rect.right - rect.left - width) / 2;
+        //    offset_y = (rect.bottom - rect.top - height) / 2;
+        //    osimage_draw(image, hdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)width, (real32_t)height, !enabled);
     }
 
     if (use_style == TRUE)

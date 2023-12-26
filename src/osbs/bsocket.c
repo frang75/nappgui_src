@@ -10,11 +10,11 @@
 
 /* Sockets base API */
 
-#include "bsocket.h"
-#include "blib.h"
-#include "bstd.h"
 #include "osbs.h"
-#include "cassert.h"
+#include "bsocket.h"
+#include <sewer/blib.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -25,7 +25,7 @@ static uint8_t i_ip_number(const char_t **ip)
     uint64_t n;
     uint32_t i = 0;
 
-    while(*st >= '0' && *st <= '9' && i < 3)
+    while (*st >= '0' && *st <= '9' && i < 3)
     {
         value[i] = *st;
         st += 1;
@@ -57,7 +57,7 @@ uint32_t bsocket_str_ip(const char_t *ip)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t* bsocket_ip_str(const uint32_t ip)
+const char_t *bsocket_ip_str(const uint32_t ip)
 {
     uint8_t a, b, c, d;
     static char_t i_NTOA[32];
@@ -208,4 +208,3 @@ void bsocket_ntoh8(byte_t *dest, const byte_t *src)
         dest[7] = src[7];
     }
 }
-

@@ -14,17 +14,16 @@
 #include "dctxh.h"
 #include "dctx.inl"
 #include "dctx_gtk.inl"
-#include "cassert.h"
+#include "draw2d_gtk.ixx"
 #include "color.h"
 #include "font.h"
-#include "heap.h"
-#include "ptr.h"
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <core/heap.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
 #endif
-
-#include "draw2d_gtk.ixx"
 
 /*---------------------------------------------------------------------------*/
 
@@ -76,8 +75,8 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     ctx->offset_y = (double)offset_y;
     ctx->width = width;
     ctx->height = height;
-    ctx->cairo = (cairo_t*)gcontext;
-    cairo_translate(ctx->cairo, - (double)offset_x, - (double)offset_y);
+    ctx->cairo = (cairo_t *)gcontext;
+    cairo_translate(ctx->cairo, -(double)offset_x, -(double)offset_y);
     cairo_get_matrix(ctx->cairo, &ctx->origin);
     ctx->raster_mode = FALSE;
 
@@ -173,7 +172,7 @@ color_t dctx_background_color(const DCtx *ctx)
 void *dctx_native(DCtx *ctx)
 {
     cassert_no_null(ctx);
-    return (void*)ctx->cairo;
+    return (void *)ctx->cairo;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -249,7 +248,8 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     DCtx *ctx = heap_new0(DCtx);
     cairo_format_t pf = CAIRO_FORMAT_INVALID;
 
-    switch (format) {
+    switch (format)
+    {
     case ekGRAY8:
     case ekRGB24:
         pf = CAIRO_FORMAT_RGB24;
@@ -261,7 +261,7 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     case ekINDEX2:
     case ekINDEX4:
     case ekINDEX8:
-    cassert_default();
+        cassert_default();
     }
 
     ctx->format = format;

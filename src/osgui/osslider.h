@@ -30,7 +30,6 @@ _osgui_api real32_t osslider_get_position(const OSSlider *slider);
 
 _osgui_api void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_size_t knob_size, real32_t *width, real32_t *height);
 
-
 _osgui_api void osslider_attach(OSSlider *slider, OSPanel *panel);
 
 _osgui_api void osslider_detach(OSSlider *slider, OSPanel *panel);

@@ -13,7 +13,7 @@
 #ifndef __OSGUI_HXX__
 #define __OSGUI_HXX__
 
-#include "guictx.hxx"
+#include <draw2d/guictx.hxx>
 #include "osgui.def"
 
 typedef struct _oscontrol_t OSControl;

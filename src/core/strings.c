@@ -12,29 +12,29 @@
 
 #include "strings.h"
 #include "arrpt.h"
-#include "blib.h"
-#include "bmem.h"
-#include "bstd.h"
-#include "cassert.h"
 #include "heap.h"
-#include "osbs.h"
-#include "ptr.h"
 #include "stream.h"
-#include "unicode.h"
+#include <osbs/osbs.h>
+#include <sewer/blib.h>
+#include <sewer/bmem.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 /*---------------------------------------------------------------------------*/
 
-#define i_SIZE(str) *((uint32_t*)str)
-#define i_DATA(str) ((char_t*)((char_t*)str + sizeof(uint32_t)))
+#define i_SIZE(str) *((uint32_t *)str)
+#define i_DATA(str) ((char_t *)((char_t *)str + sizeof(uint32_t)))
 
 /*---------------------------------------------------------------------------*/
 
 static String *i_create_string(const uint32_t length, const char_t *data)
 {
-    String *str = (String*)heap_malloc(length + sizeof32(uint32_t), "String");
+    String *str = (String *)heap_malloc(length + sizeof32(uint32_t), "String");
     i_SIZE(str) = length;
     if (data != NULL)
-        bmem_copy((byte_t*)i_DATA(str), (const byte_t*)data, length);
+        bmem_copy((byte_t *)i_DATA(str), (const byte_t *)data, length);
     return str;
 }
 
@@ -44,7 +44,7 @@ void str_destroy(String **str)
 {
     cassert_no_null(str);
     cassert_no_null(*str);
-    heap_free((byte_t**)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
+    heap_free((byte_t **)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -53,7 +53,7 @@ void str_destopt(String **str)
 {
     cassert_no_null(str);
     if (*str != NULL)
-        heap_free((byte_t**)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
+        heap_free((byte_t **)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -85,7 +85,7 @@ String *str_cn(const char_t *str, const uint32_t n)
 {
     String *lstr = i_create_string(n + 1, NULL);
     if (n > 0)
-        bmem_copy((byte_t*)i_DATA(lstr), (const byte_t*)str, n);
+        bmem_copy((byte_t *)i_DATA(lstr), (const byte_t *)str, n);
     i_DATA(lstr)[n] = '\0';
     return lstr;
 }
@@ -180,7 +180,7 @@ String *str_printf(const char_t *format, ...)
     }
     else
     {
-        data_alloc = (char_t*)heap_malloc(length, "StringPrintf");
+        data_alloc = (char_t *)heap_malloc(length, "StringPrintf");
         data = data_alloc;
     }
 
@@ -197,7 +197,7 @@ String *str_printf(const char_t *format, ...)
     str = i_create_string(length, data);
 
     if (data_alloc != NULL)
-        heap_free((byte_t**)&data_alloc, length, "StringPrintf");
+        heap_free((byte_t **)&data_alloc, length, "StringPrintf");
 
     return str;
 }
@@ -229,7 +229,7 @@ String *str_path(const platform_t platform, const char_t *format, ...)
     }
     else
     {
-        data_alloc = (char_t*)heap_malloc(length, "StringPath");
+        data_alloc = (char_t *)heap_malloc(length, "StringPath");
         data = data_alloc;
     }
 
@@ -246,7 +246,7 @@ String *str_path(const platform_t platform, const char_t *format, ...)
     str = i_create_string(length, data);
 
     if (data_alloc != NULL)
-        heap_free((byte_t**)&data_alloc, length, "StringPath");
+        heap_free((byte_t **)&data_alloc, length, "StringPath");
 
     if (platform == ekWINDOWS)
         str_subs(str, '/', '\\');
@@ -283,7 +283,7 @@ String *str_cpath(const char_t *format, ...)
     }
     else
     {
-        data_alloc = (char_t*)heap_malloc(length, "StringPath");
+        data_alloc = (char_t *)heap_malloc(length, "StringPath");
         data = data_alloc;
     }
 
@@ -300,7 +300,7 @@ String *str_cpath(const char_t *format, ...)
     str = i_create_string(length, data);
 
     if (data_alloc != NULL)
-        heap_free((byte_t**)&data_alloc, length, "StringPath");
+        heap_free((byte_t **)&data_alloc, length, "StringPath");
 
     if (osbs_platform() == ekWINDOWS)
         str_subs(str, '/', '\\');
@@ -312,14 +312,15 @@ String *str_cpath(const char_t *format, ...)
 
 /*---------------------------------------------------------------------------*/
 
-String *str_relpath(const char_t *path1, const char_t *path2)
+String *str_relpath(const platform_t platform, const char_t *path1, const char_t *path2)
 {
     register uint32_t prefix = str_prefix(path1, path2);
+    String *str = NULL;
     if (prefix > 0)
     {
         register uint32_t s1 = str_len_c(path1);
         register uint32_t i, n = 0;
-        String *str = str_c("");
+        str = str_c("");
 
         prefix -= 1;
         while (path1[prefix] != '/' && path1[prefix] != '\\')
@@ -334,24 +335,38 @@ String *str_relpath(const char_t *path1, const char_t *path2)
 
         for (i = 0; i < n; ++i)
             str_cat(&str, "../");
+
         str_cat(&str, path2 + prefix + 1);
-        return str;
     }
     else
     {
-        return str_c(path2);
+        str = str_c(path2);
     }
+
+    if (platform == ekWINDOWS)
+        str_subs(str, '/', '\\');
+    else
+        str_subs(str, '\\', '/');
+
+    return str;
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *str_crelpath(const char_t *path1, const char_t *path2)
+{
+    return str_relpath(osbs_platform(), path1, path2);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_replace(String **str, const char_t *replace, const char_t *with)
 {
-    uint32_t len_inp = 0;           /* length of input */
-    uint32_t len_rep = 0;           /* length of rep (the string to remove) */
-    uint32_t len_with = 0;          /* length of with (the string to replace rep with) */
-    uint32_t count = 0;             /* number of replacements */
-    uint32_t len_new = 0;           /* length of new string */
+    uint32_t len_inp = 0;  /* length of input */
+    uint32_t len_rep = 0;  /* length of rep (the string to remove) */
+    uint32_t len_with = 0; /* length of with (the string to replace rep with) */
+    uint32_t count = 0;    /* number of replacements */
+    uint32_t len_new = 0;  /* length of new string */
     String *lstr = NULL;
 
     cassert_no_null(str);
@@ -369,7 +384,7 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
 
     /* Count the number of replacements needed */
     {
-        const char_t *src = NULL;  /* the next insert point */
+        const char_t *src = NULL; /* the next insert point */
         const char_t *tmp = NULL;
         src = i_DATA(*str);
         tmp = blib_strstr(src, replace);
@@ -404,8 +419,8 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
         char_t *dest = i_DATA(lstr);
         while (count--)
         {
-            const char_t *ins = NULL;       /* the next insert point */
-            uint32_t len_front = 0;         /* distance between rep and end of last rep */
+            const char_t *ins = NULL; /* the next insert point */
+            uint32_t len_front = 0;   /* distance between rep and end of last rep */
             ins = blib_strstr(src, replace);
             len_front = (uint32_t)(ins - src);
 
@@ -423,7 +438,7 @@ static void i_replace(String **str, const char_t *replace, const char_t *with)
                 len_new -= len_with;
             }
 
-            src += len_front + len_rep;     /* move to next "end of replacement" */
+            src += len_front + len_rep; /* move to next "end of replacement" */
         }
 
         str_copy_c(dest, len_new, src);
@@ -442,12 +457,12 @@ String *str_repl(const char_t *str, ...)
     va_start(params, str);
     for (;;)
     {
-        const char_t *replace = (const char_t*)va_arg(params, char*);
+        const char_t *replace = (const char_t *)va_arg(params, char *);
         const char_t *with = NULL;
         if (replace == NULL)
             break;
 
-        with = (const char_t*)va_arg(params, char*);
+        with = (const char_t *)va_arg(params, char *);
         if (with != NULL)
             i_replace(&rstr, replace, with);
     }
@@ -468,7 +483,7 @@ String *str_fill(const uint32_t n, const char_t c)
 {
     String *str = i_create_string(n + 1, NULL);
     if (n > 0)
-        bmem_set1((byte_t*)i_DATA(str), n, (byte_t)c);
+        bmem_set1((byte_t *)i_DATA(str), n, (byte_t)c);
     i_DATA(str)[n] = '\0';
     return str;
 }
@@ -483,7 +498,7 @@ String *str_read(Stream *stream)
     if (length > 0)
     {
         lstr = i_create_string(length, NULL);
-        stm_read(stream, (byte_t*)i_DATA(lstr), length);
+        stm_read(stream, (byte_t *)i_DATA(lstr), length);
         cassert(i_DATA(lstr)[length - 1] == '\0');
     }
     else
@@ -500,7 +515,7 @@ void str_write(Stream *stream, const String *str)
 {
     cassert_no_null(str);
     stm_write_u32(stream, i_SIZE(str));
-    stm_write(stream, (const byte_t*)i_DATA(str), i_SIZE(str));
+    stm_write(stream, (const byte_t *)i_DATA(str), i_SIZE(str));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -508,7 +523,7 @@ void str_write(Stream *stream, const String *str)
 void str_writef(Stream *stream, const String *str)
 {
     cassert_no_null(str);
-    stm_write(stream, (const byte_t*)i_DATA(str), i_SIZE(str) - 1);
+    stm_write(stream, (const byte_t *)i_DATA(str), i_SIZE(str) - 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -542,8 +557,8 @@ void str_cat(String **dest, const char_t *src)
         else
         {
             uint32_t s = i_SIZE(*dest);
-            *dest = (String*)heap_realloc(*(byte_t**)dest, s + (uint32_t)sizeof(uint32_t), s + len + (uint32_t)sizeof(uint32_t), "String");
-            bmem_copy((byte_t*)i_DATA(*dest) + s - 1, (const byte_t*)src, len);
+            *dest = (String *)heap_realloc(*(byte_t **)dest, s + (uint32_t)sizeof(uint32_t), s + len + (uint32_t)sizeof(uint32_t), "String");
+            bmem_copy((byte_t *)i_DATA(*dest) + s - 1, (const byte_t *)src, len);
             i_DATA(*dest)[s + len - 1] = '\0';
             i_SIZE(*dest) = s + len;
         }
@@ -567,7 +582,7 @@ void str_upd(String **str, const char_t *new_str)
         return;
 
     if (*str != NULL)
-        heap_free((byte_t**)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
+        heap_free((byte_t **)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
 
     if (new_str != NULL)
     {
@@ -620,7 +635,8 @@ uint32_t str_prefix(const char_t *str1, const char_t *str2)
     register uint32_t i = 0;
     cassert_no_null(str1);
     cassert_no_null(str2);
-    for (; *str1 != '\0' && *str2 != '\0' && *str1 == *str2; i++, str1++, str2++);
+    for (; *str1 != '\0' && *str2 != '\0' && *str1 == *str2; i++, str1++, str2++)
+        ;
     return i;
 }
 
@@ -630,7 +646,8 @@ bool_t str_is_prefix(const char_t *str, const char_t *prefix)
 {
     cassert_no_null(str);
     cassert_no_null(prefix);
-    for (; *str != '\0' && *prefix != '\0' && *str == *prefix; str++, prefix++);
+    for (; *str != '\0' && *prefix != '\0' && *str == *prefix; str++, prefix++)
+        ;
     return (bool_t)(*prefix == 0);
 }
 
@@ -652,7 +669,8 @@ bool_t str_is_sufix(const char_t *str, const char_t *sufix)
     estr = str + len - 1;
     esufix = sufix + len2 - 1;
 
-    for(; esufix != sufix && *estr == *esufix; estr -= 1, esufix -= 1);
+    for (; esufix != sufix && *estr == *esufix; estr -= 1, esufix -= 1)
+        ;
     return (bool_t)(*esufix == *estr);
 }
 
@@ -923,10 +941,8 @@ bool_t str_split_trim(const char_t *str, const char_t *substr, String **left, St
     {
         if (left != NULL)
         {
-            char_t t = *fstr;
-            *fstr = '\0';
-            *left = str_trim(str);
-            *fstr = t;
+            uint32_t n = (uint32_t)(fstr - str);
+            *left = str_trim_n(str, n);
         }
 
         if (right != NULL)
@@ -947,6 +963,67 @@ bool_t str_split_trim(const char_t *str, const char_t *substr, String **left, St
 
         return FALSE;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+ArrPt(String) * str_splits(const char_t *str, const char_t *substr, const bool_t trim)
+{
+    ArrPt(String) *strs = arrpt_create(String);
+    cassert_no_null(str);
+    if (substr != NULL)
+    {
+        uint32_t sn = blib_strlen(substr);
+        char_t *fstr = blib_strstr(str, substr);
+        while (fstr != NULL)
+        {
+            uint32_t n = (uint32_t)(fstr - str);
+            String *sstr = NULL;
+
+            if (trim == TRUE)
+                sstr = str_trim_n(str, n);
+            else
+                sstr = str_cn(str, n);
+
+            if (str_empty(sstr) == TRUE)
+                str_destroy(&sstr);
+            else
+                arrpt_append(strs, sstr, String);
+
+            fstr += sn;
+            str = fstr;
+            fstr = blib_strstr(str, substr);
+        }
+
+        /* Compute the last string */
+        if (trim == TRUE)
+        {
+            String *sstr = str_trim(str);
+            if (str_empty(sstr) == TRUE)
+                str_destroy(&sstr);
+            else
+                arrpt_append(strs, sstr, String);
+        }
+        else
+        {
+            if (str_empty_c(str) == FALSE)
+            {
+                String *sstr = str_c(str);
+                arrpt_append(strs, sstr, String);
+            }
+        }
+    }
+    else
+    {
+        String *sstr = NULL;
+        if (trim == TRUE)
+            sstr = str_trim(str);
+        else
+            sstr = str_c(str);
+        arrpt_append(strs, sstr, String);
+    }
+
+    return strs;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1042,11 +1119,9 @@ const char_t *str_filext(const char_t *pathname)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t str_find(const ArrPt(String) *array, const char_t *str)
+uint32_t str_find(const ArrPt(String) * array, const char_t *str)
 {
-    arrpt_foreach_const(astr, array, String)
-        if (str_equ(astr, str) == TRUE)
-            return astr_i;
+    arrpt_foreach_const(astr, array, String) if (str_equ(astr, str) == TRUE) return astr_i;
     arrpt_end();
     return UINT32_MAX;
 }
@@ -1059,7 +1134,7 @@ static __INLINE bool_t i_ok(const char_t *str, const bool_t allow_minus)
     unref(allow_minus);
     return TRUE;
 
-/*    if (errno == ERANGE)
+    /*    if (errno == ERANGE)
    {
        return FALSE;
    }

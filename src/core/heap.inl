@@ -10,7 +10,7 @@
 
 /* Basic memory system */
 
-#include "config.hxx"
+#include <sewer/config.hxx>
 
 __EXTERN_C
 
@@ -21,6 +21,3 @@ void _heap_finish(void);
 void _heap_page_size(const uint32_t size);
 
 __END_C
-
-
-

@@ -13,23 +13,23 @@
 #include "ospanel.h"
 #include "ospanel.inl"
 #include "osgui_win.inl"
-#include "oslabel.inl"
-#include "osbutton.inl"
+#include "oscontrol_win.inl"
+#include "osbutton_win.inl"
+#include "oscombo_win.inl"
+#include "osedit_win.inl"
+#include "oslabel_win.inl"
+#include "ospopup_win.inl"
+#include "osslider_win.inl"
+#include "osscroll_win.inl"
+#include "ostext_win.inl"
+#include "osupdown_win.inl"
 #include "oscontrol.inl"
-#include "oscombo.inl"
-#include "osview.inl"
-#include "osedit.inl"
-#include "ospopup.inl"
-#include "osprogress.inl"
-#include "osslider.inl"
-#include "ostext.inl"
-#include "osupdown.inl"
-#include "osscroll.inl"
-#include "arrst.h"
-#include "cassert.h"
-#include "color.h"
-#include "heap.h"
-#include "ptr.h"
+#include "osscrolls.inl"
+#include <draw2d/color.h>
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -49,11 +49,12 @@ struct _area_t
 struct _ospanel_t
 {
     OSControl control;
-    OSScroll *scroll;
+    OSScrolls *scroll;
     HDC memhdc;
     HBITMAP dbuffer;
     uint32_t flags;
-    ArrSt(Area) *areas;
+    RECT border;
+    ArrSt(Area) * areas;
 };
 
 DeclSt(Area);
@@ -62,11 +63,9 @@ DeclSt(Area);
 
 static void i_remove_area(Area *area)
 {
-    if (area->bgbrush != NULL)
-        DeleteObject(area->bgbrush);
-
-    if (area->skbrush != NULL)
-        DeleteObject(area->skbrush);
+    cassert_no_null(area);
+    _oscontrol_destroy_brush(&area->bgbrush);
+    _oscontrol_destroy_brush(&area->skbrush);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -92,15 +91,20 @@ static __INLINE void i_area(HDC hdc, const Area *area)
 
 /*---------------------------------------------------------------------------*/
 
-static HBRUSH i_brush(HWND hwnd, const ArrSt(Area) *areas, COLORREF *c)
+static HBRUSH i_brush(OSControl *control, const ArrSt(Area) * areas, COLORREF *c)
 {
+    OSFrame rect;
     RECT rc;
-    _oscontrol_get_local_frame(hwnd, &rc);
+    oscontrol_frame(control, &rect);
+    rc.left = rect.left;
+    rc.right = rect.right;
+    rc.top = rect.top;
+    rc.bottom = rect.bottom;
+
     arrst_foreach_const(area, areas, Area)
-        POINT pt;
-        pt.x = rc.left + 1;
-        pt.y = rc.top + 1;
-        if (PtInRect(&area->rect, pt) == TRUE)
+    {
+        RECT inter;
+        if (IntersectRect(&inter, &area->rect, &rc) == TRUE)
         {
             if (area->bgbrush != NULL)
             {
@@ -108,6 +112,7 @@ static HBRUSH i_brush(HWND hwnd, const ArrSt(Area) *areas, COLORREF *c)
                 return area->bgbrush;
             }
         }
+    }
     arrst_end();
     return NULL;
 }
@@ -116,33 +121,34 @@ static HBRUSH i_brush(HWND hwnd, const ArrSt(Area) *areas, COLORREF *c)
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSPanel *panel = (OSPanel*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSPanel *panel = (OSPanel *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(panel);
 
-	switch(uMsg) {
-    case WM_COMMAND:
+    switch (uMsg)
     {
-        OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
+    case WM_COMMAND: {
+        OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         cassert_no_null(control);
-        switch (control->type) {
+        switch (control->type)
+        {
         case ekGUI_TYPE_BUTTON:
-            _osbutton_command((OSButton*)control, wParam);
+            _osbutton_command((OSButton *)control, wParam, TRUE);
             break;
 
         case ekGUI_TYPE_EDITBOX:
-            _osedit_command((OSEdit*)control, wParam);
+            _osedit_command((OSEdit *)control, wParam);
             break;
 
         case ekGUI_TYPE_TEXTVIEW:
-            _ostext_command((OSText*)control, wParam);
+            _ostext_command((OSText *)control, wParam);
             break;
 
         case ekGUI_TYPE_POPUP:
-            _ospopup_command((OSPopUp*)control, wParam);
+            _ospopup_command((OSPopUp *)control, wParam);
             break;
 
         case ekGUI_TYPE_COMBOBOX:
-            _oscombo_command((OSCombo*)control, wParam);
+            _oscombo_command((OSCombo *)control, wParam);
             break;
 
         case ekGUI_TYPE_LABEL:
@@ -151,7 +157,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         case ekGUI_TYPE_PROGRESS:
         case ekGUI_TYPE_TABLEVIEW:
         case ekGUI_TYPE_TREEVIEW:
-	    case ekGUI_TYPE_BOXVIEW:
+        case ekGUI_TYPE_BOXVIEW:
         case ekGUI_TYPE_SPLITVIEW:
         case ekGUI_TYPE_CUSTOMVIEW:
         case ekGUI_TYPE_PANEL:
@@ -159,75 +165,71 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         case ekGUI_TYPE_HEADER:
         case ekGUI_TYPE_WINDOW:
         case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+            cassert_default();
         }
-            
+
         return 0;
     }
-        
+
     case WM_VSCROLL:
     case WM_HSCROLL:
         if ((HWND)lParam != NULL)
         {
-            OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
+            OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
             if (control->type == ekGUI_TYPE_SLIDER)
-                _osslider_message((OSSlider*)control, wParam);
+                _osslider_message((OSSlider *)control, wParam);
         }
         else
         {
-            osscroll_message(panel->scroll, wParam, uMsg, TRUE);
+            gui_scroll_t event = osscroll_event(wParam);
+            if (event != ENUM_MAX(gui_scroll_t))
+            {
+                gui_orient_t orient = uMsg == WM_HSCROLL ? ekGUI_HORIZONTAL : ekGUI_VERTICAL;
+                osscrolls_event(panel->scroll, orient, event, TRUE);
+            }
         }
         break;
 
-    /*case WM_PAINT:
-        {
-            BOOL ret;
-            RECT frame, rect;
-            HDC hdc;
-            PAINTSTRUCT ps;
-            //Gdiplus::Color c(0, 120, 215);
-            ret = GetClientRect(hwnd, &frame);
-	        cassert(ret != 0);
-            rect = frame;
-            hdc = BeginPaint(panel->control.hwnd, &ps);
-            FillRect(hdc, &rect, CreateSolidBrush(RGB(255, 200, 200)));
-            EndPaint(hwnd, &ps);
-        }
-        return 0;*/
+    case WM_NCCALCSIZE:
+        if (panel->flags & ekVIEW_BORDER)
+            _osgui_nccalcsize(hwnd, wParam, lParam, FALSE, 0, &panel->border);
+        break;
 
-    case WM_MEASUREITEM:
-    {
+    case WM_NCPAINT:
+        if (panel->flags & ekVIEW_BORDER)
+            _osgui_ncpaint(hwnd, &panel->border, NULL);
+        break;
+
+    case WM_MEASUREITEM: {
         cassert(FALSE);
         break;
     }
 
-    case WM_NOTIFY:
-    {
-        const NMHDR *nmhdr = (const NMHDR*)lParam;
-        OSControl *control = (OSControl*)GetWindowLongPtr(nmhdr->hwndFrom, GWLP_USERDATA);
+    case WM_NOTIFY: {
+        const NMHDR *nmhdr = (const NMHDR *)lParam;
+        OSControl *control = (OSControl *)GetWindowLongPtr(nmhdr->hwndFrom, GWLP_USERDATA);
         cassert_no_null(control);
         if (control->type == ekGUI_TYPE_UPDOWN)
-            _osupdown_OnNotification((OSUpDown*)control, nmhdr, lParam);
+            _osupdown_OnNotification((OSUpDown *)control, nmhdr, lParam);
         return 0;
     }
 
-    /* The TBS_TRANSPARENTBKGND style probably doesn't work right because you don't 
+    /* The TBS_TRANSPARENTBKGND style probably doesn't work right because you don't
     implement WM_PRINTCLIENT in the parent. */
     case WM_PRINTCLIENT:
         return 0;
 
-    case WM_CTLCOLORSTATIC:
-    {
+    case WM_CTLCOLORSTATIC: {
         HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
-		OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
+        OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_LABEL)
             {
                 COLORREF color, bgcolor;
                 HBRUSH bgbrush;
-                color = _oslabel_color((OSLabel*)control);
-                bgbrush = _oslabel_background_color((OSLabel*)control, &bgcolor);
+                color = _oslabel_color((OSLabel *)control);
+                bgbrush = _oslabel_background_color((OSLabel *)control, &bgcolor);
 
                 if (color != 0)
                     SetTextColor((HDC)wParam, color);
@@ -238,26 +240,25 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                     return (LRESULT)bgbrush;
                 }
             }
-        }
 
-        if (panel->areas != NULL)
-        {
-            COLORREF bgcolor;
-            HBRUSH brush = i_brush((HWND)lParam, panel->areas, &bgcolor);
-            if (brush != NULL)
+            if (panel->areas != NULL)
             {
-                SetBkColor((HDC)wParam, bgcolor);
-                return (LRESULT)brush;
+                COLORREF bgcolor;
+                HBRUSH brush = i_brush(control, panel->areas, &bgcolor);
+                if (brush != NULL)
+                {
+                    SetBkColor((HDC)wParam, bgcolor);
+                    return (LRESULT)brush;
+                }
             }
         }
 
-		return (LRESULT)defbrush;
+        return (LRESULT)defbrush;
     }
-        
-    case WM_CTLCOLOREDIT:
-    {
+
+    case WM_CTLCOLOREDIT: {
         HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
-        OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
+        OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         HDC hdc = (HDC)wParam;
         cassert_no_null(control);
         if (control->type == ekGUI_TYPE_EDITBOX)
@@ -265,8 +266,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             COLORREF color = UINT32_MAX, bgcolor = UINT32_MAX;
             HBRUSH bgbrush = NULL;
 
-            color = _osedit_color((OSEdit*)control);
-            bgbrush = _osedit_background_color((OSEdit*)control, &bgcolor);
+            color = _osedit_color((OSEdit *)control);
+            bgbrush = _osedit_background_color((OSEdit *)control, &bgcolor);
 
             if (color != 0)
                 SetTextColor(hdc, color);
@@ -285,26 +286,22 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         return (LRESULT)defbrush;
     }
 
-    case WM_CTLCOLORBTN:
-    {
-        OSControl *control = (OSControl*)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
+    case WM_CTLCOLORBTN: {
+        OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         cassert_unref(control->type != ekGUI_TYPE_COMBOBOX, control);
         break;
     }
 
     case WM_MOUSEWHEEL:
         if (panel->scroll != NULL)
-            osscroll_wheel(panel->scroll, wParam, TRUE);
-
+        {
+            gui_scroll_t event = ekGUI_SCROLL_STEP_LEFT;
+            if (GET_WHEEL_DELTA_WPARAM(wParam) < 0)
+                event = ekGUI_SCROLL_STEP_RIGHT;
+            osscrolls_event(panel->scroll, ekGUI_VERTICAL, event, TRUE);
+        }
         break;
-
-    //case WM_PAINT:
-    //    if (panel->scroll != NULL)
-    //    {
-    //        int j = 1;
-    //    }
-    //    break;
-	}
+    }
 
     {
         LRESULT res = CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -317,9 +314,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             if (panel->scroll != NULL)
             {
-                int x = osscroll_x_pos(panel->scroll);
-                int y = osscroll_y_pos(panel->scroll);
-                SetWindowOrgEx((HDC)wParam, x, y, NULL);
+                uint32_t x = osscrolls_x_pos(panel->scroll);
+                uint32_t y = osscrolls_y_pos(panel->scroll);
+                SetWindowOrgEx((HDC)wParam, (int)x, (int)y, NULL);
             }
 
             if (n == 1)
@@ -367,13 +364,13 @@ OSPanel *ospanel_create(const uint32_t flags)
         dwStyle |= WS_VSCROLL;
 
     panel->control.type = ekGUI_TYPE_PANEL;
-    _oscontrol_init((OSControl*)panel, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kVIEW_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init((OSControl *)panel, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kVIEW_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
 
     if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
-        panel->scroll = osscroll_create(panel->control.hwnd, FALSE, FALSE);
+        panel->scroll = osscrolls_create((OSControl *)panel, (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
 
     panel->flags = flags;
-	return panel;
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -401,10 +398,10 @@ void ospanel_destroy(OSPanel **panel)
         arrst_destroy(&(*panel)->areas, i_remove_area, Area);
 
     if ((*panel)->scroll != NULL)
-        osscroll_destroy(&(*panel)->scroll);
+        osscrolls_destroy(&(*panel)->scroll);
 
-    cassert(_oscontrol_num_children((*panel)->control.hwnd) == 0);
-    _oscontrol_destroy((OSControl*)(*panel));
+    cassert(_oscontrol_num_children((OSControl *)(*panel)) == 0);
+    _oscontrol_destroy((OSControl *)(*panel));
     heap_delete(panel, OSPanel);
 }
 
@@ -416,16 +413,15 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
     if (obj != NULL)
     {
         Area *area = NULL;
-        
+
         if (panel->areas == NULL)
             panel->areas = arrst_create(Area);
-        
-        arrst_foreach(larea, panel->areas, Area)
-            if (larea->obj == obj)
-            {
-                area = larea;
-                break;
-            }
+
+        arrst_foreach(larea, panel->areas, Area) if (larea->obj == obj)
+        {
+            area = larea;
+            break;
+        }
         arrst_end();
 
         if (area == NULL)
@@ -456,10 +452,10 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 {
     cassert_no_null(panel);
     if (width != NULL)
-        *width = (real32_t)osscroll_bar_width(panel->scroll, FALSE);
+        *width = (real32_t)osscrolls_bar_width(panel->scroll, FALSE);
 
     if (height != NULL)
-        *height = (real32_t)osscroll_bar_height(panel->scroll, FALSE);
+        *height = (real32_t)osscrolls_bar_height(panel->scroll, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -467,7 +463,7 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
     cassert_no_null(panel);
-    osscroll_content_size(panel->scroll, width, height, line_width, line_height);
+    osscrolls_content_size(panel->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -485,60 +481,53 @@ void ospanel_attach(OSPanel *panel, OSPanel *parent_panel)
 {
     cassert_no_null(panel);
     cassert_no_null(parent_panel);
-    _oscontrol_attach_to_parent((OSControl*)panel, (OSControl*)parent_panel);
+    _oscontrol_attach_to_parent((OSControl *)panel, (OSControl *)parent_panel);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _oscontrol_detach_from_parent((OSControl*)panel, (OSControl*)parent_panel);
+    _oscontrol_detach_from_parent((OSControl *)panel, (OSControl *)parent_panel);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_visible(OSPanel *panel, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl*)panel, visible);
+    _oscontrol_set_visible((OSControl *)panel, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_enabled(OSPanel *panel, const bool_t enabled)
-{   
-    _oscontrol_set_enabled((OSControl*)panel, enabled);
+{
+    _oscontrol_set_enabled((OSControl *)panel, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)panel, width, height);
+    _oscontrol_get_size((const OSControl *)panel, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)panel, x, y);
+    _oscontrol_get_origin((const OSControl *)panel, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)panel, x, y, width, height);
+    cassert_no_null(panel);
+    _oscontrol_set_frame((OSControl *)panel, x, y, width, height);
     if (panel->scroll != NULL)
-        osscroll_control_size(panel->scroll, width, height);
+        osscrolls_control_size(panel->scroll, (uint32_t)width, (uint32_t)height);
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void ospanel_position(OSPanel *panel, const real32_t x, const real32_t y);
-//void ospanel_position(OSPanel *panel, const real32_t x, const real32_t y)
-//{
-//    _oscontrol_set_position((OSControl*)panel, (int)x, (int)y);
-//}
 
 /*---------------------------------------------------------------------------*/
 
@@ -546,8 +535,8 @@ OSPanel *_ospanel_create_default(void)
 {
     OSPanel *panel = heap_new0(OSPanel);
     panel->control.type = ekGUI_TYPE_PANEL;
-    _oscontrol_init_hidden((OSControl*)panel, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS), kVIEW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
-	return panel;
+    _oscontrol_init_hidden((OSControl *)panel, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS), kVIEW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
+    return panel;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -561,58 +550,10 @@ void _ospanel_destroy_default(OSPanel **panel)
 
 static BOOL CALLBACK i_destroy_child(HWND hwnd, LPARAM lParam)
 {
-    OSControl *control = (OSControl*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSControl *control = OSControlPtr(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     if (control != NULL)
-    {
-        switch (control->type) {
-        case ekGUI_TYPE_LABEL:
-            _oslabel_detach_and_destroy((OSLabel**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_BUTTON:
-            _osbutton_detach_and_destroy((OSButton**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_POPUP:
-            _ospopup_detach_and_destroy((OSPopUp**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_EDITBOX:
-            _osedit_detach_and_destroy((OSEdit**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_COMBOBOX:
-            _oscombo_detach_and_destroy((OSCombo**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_SLIDER:
-            _osslider_detach_and_destroy((OSSlider**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_UPDOWN:
-            _osupdown_detach_and_destroy((OSUpDown**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_PROGRESS:
-            _osprogress_detach_and_destroy((OSProgress**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_TEXTVIEW:
-            _ostext_detach_and_destroy((OSText**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_CUSTOMVIEW:
-            _osview_detach_and_destroy((OSView**)&control, (OSPanel*)lParam);
-            break;
-        case ekGUI_TYPE_PANEL:
-            ospanel_detach((OSPanel*)control, (OSPanel*)lParam);
-            _ospanel_destroy((OSPanel**)&control);
-            break;
-
-        case ekGUI_TYPE_TABLEVIEW:
-        case ekGUI_TYPE_TREEVIEW:
-	    case ekGUI_TYPE_BOXVIEW:
-        case ekGUI_TYPE_SPLITVIEW:
-        case ekGUI_TYPE_LINE:
-        case ekGUI_TYPE_HEADER:
-        case ekGUI_TYPE_WINDOW:
-        case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
-        }
-    }
-
-    return TRUE;    
+        oscontrol_detach_and_destroy(&control, OSPanelPtr(lParam));
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -632,7 +573,7 @@ void _ospanel_resize_double_buffer(OSPanel *panel, LONG width, LONG height)
     HDC hdc = NULL;
     cassert_no_null(panel);
     hdc = GetDC(panel->control.hwnd);
-    if __FALSE_EXPECTED((panel->memhdc == NULL))
+    if __FALSE_EXPECTED ((panel->memhdc == NULL))
     {
         cassert(panel->dbuffer == NULL);
         panel->memhdc = CreateCompatibleDC(hdc);
@@ -655,7 +596,7 @@ void _ospanel_resize_double_buffer(OSPanel *panel, LONG width, LONG height)
 
 static BOOL CALLBACK i_draw_rect(HWND hwnd, LPARAM lParam)
 {
-    OSControl *control = (OSControl*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSControl *control = (OSControl *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(control);
 
     if (control->type != ekGUI_TYPE_PANEL)
@@ -717,24 +658,24 @@ HDC _ospanel_paint_double_buffer(OSPanel *panel, const uint32_t resize_strategy,
 
 void _ospanel_attach_control(OSPanel *panel, OSControl *control)
 {
-    _oscontrol_attach_to_parent(control, (OSControl*)panel);
+    _oscontrol_attach_to_parent(control, (OSControl *)panel);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _ospanel_detach_control(OSPanel *panel, OSControl *control)
 {
-    _oscontrol_detach_from_parent(control, (OSControl*)panel);
+    _oscontrol_detach_from_parent(control, (OSControl *)panel);
 }
 
 /*---------------------------------------------------------------------------*/
 
-COLORREF _ospanel_background_color(OSPanel *panel, HWND child_hwnd)
+COLORREF _ospanel_background_color(OSPanel *panel, OSControl *control)
 {
     if (panel->areas != NULL)
     {
         COLORREF c;
-        if (i_brush(child_hwnd, panel->areas, &c) != NULL)
+        if (i_brush(control, panel->areas, &c) != NULL)
             return c;
     }
 
@@ -743,7 +684,7 @@ COLORREF _ospanel_background_color(OSPanel *panel, HWND child_hwnd)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _ospanel_with_scroll(const OSPanel *panel)
+bool_t ospanel_with_scroll(const OSPanel *panel)
 {
     cassert_no_null(panel);
     return (bool_t)(panel->scroll != NULL);
@@ -758,8 +699,8 @@ void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y)
     cassert_no_null(scroll_y);
     if (panel->scroll != NULL)
     {
-        *scroll_x = osscroll_x_pos(panel->scroll);
-        *scroll_y = osscroll_y_pos(panel->scroll);
+        *scroll_x = (int)osscrolls_x_pos(panel->scroll);
+        *scroll_y = (int)osscrolls_y_pos(panel->scroll);
     }
     else
     {
@@ -770,23 +711,23 @@ void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y)
 
 /*---------------------------------------------------------------------------*/
 
-void _ospanel_scroll_frame(const OSPanel *panel, RECT *rect)
+void ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
 {
-    int x, y, w, h;
+    uint32_t x, y, w, h;
     cassert_no_null(panel);
     cassert_no_null(rect);
-    osscroll_visible_area(panel->scroll, &x, &y, &w, &h, NULL, NULL);
-    rect->left = (LONG)x;
-    rect->top = (LONG)y;
-    rect->right = (LONG)(x + w);
-    rect->bottom = (LONG)(y + h);
+    osscrolls_visible_area(panel->scroll, &x, &y, &w, &h, NULL, NULL);
+    rect->left = (int32_t)x;
+    rect->top = (int32_t)y;
+    rect->right = (int32_t)(x + w);
+    rect->bottom = (int32_t)(y + h);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _ospanel_scroll(OSPanel *panel, const int x, const int y)
+void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 {
     cassert_no_null(panel);
     if (panel->scroll != NULL)
-        osscroll_set(panel->scroll, x, y, TRUE);
+        osscrolls_set(panel->scroll, (uint32_t)x, (uint32_t)y, TRUE);
 }

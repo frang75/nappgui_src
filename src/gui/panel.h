@@ -19,6 +19,8 @@ _gui_api Panel *panel_create(void);
 
 _gui_api Panel *panel_scroll(const bool_t hscroll, const bool_t vscroll);
 
+_gui_api Panel *panel_custom(const bool_t hscroll, const bool_t vscroll, const bool_t border);
+
 _gui_api void panel_data_imp(Panel *panel, void **data, FPtr_destroy func_destroy_data);
 
 _gui_api void *panel_get_data_imp(const Panel *panel);
@@ -39,14 +41,11 @@ _gui_api real32_t panel_scroll_height(const Panel *panel);
 
 __END_C
 
-#define panel_data(panel, data, func_destroy_data, type)\
-    (\
-        (void)((type**)data == data),\
-        FUNC_CHECK_DESTROY(func_destroy_data, type),\
-        panel_data_imp(panel, (void**)data, (FPtr_destroy)func_destroy_data)\
-    )
+#define panel_data(panel, data, func_destroy_data, type) \
+    (                                                    \
+        (void)((type **)data == data),                   \
+        FUNC_CHECK_DESTROY(func_destroy_data, type),     \
+        panel_data_imp(panel, (void **)data, (FPtr_destroy)func_destroy_data))
 
-#define panel_get_data(panel, type)\
-    (type*)panel_get_data_imp(panel)
-
-
+#define panel_get_data(panel, type) \
+    (type *)panel_get_data_imp(panel)

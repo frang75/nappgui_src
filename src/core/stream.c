@@ -13,38 +13,38 @@
 #include "stream.h"
 #include "stream.inl"
 #include "lex.inl"
-#include "bfile.h"
-#include "bmem.h"
-#include "bstd.h"
-#include "bsocket.h"
-#include "cassert.h"
 #include "heap.h"
-#include "log.h"
-#include "osbs.h"
-#include "ptr.h"
 #include "strings.h"
-#include "unicode.h"
+#include <osbs/osbs.h>
+#include <osbs/bfile.h>
+#include <osbs/bsocket.h>
+#include <osbs/log.h>
+#include <sewer/bmem.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 /* Stream state */
-#define END_BIT             1
-#define CORRUPTION_BIT      2
-#define BROKEN_BIT          3
-#define WRITE_ENDIAN_BIT    16
-#define READ_ENDIAN_BIT     17
-#define WRITE_UTF8_BIT      18
-#define WRITE_UTF16_BIT     19
-#define READ_UTF8_BIT       20
-#define READ_UTF16_BIT      21
+#define END_BIT 1
+#define CORRUPTION_BIT 2
+#define BROKEN_BIT 3
+#define WRITE_ENDIAN_BIT 16
+#define READ_ENDIAN_BIT 17
+#define WRITE_UTF8_BIT 18
+#define WRITE_UTF16_BIT 19
+#define READ_UTF8_BIT 20
+#define READ_UTF16_BIT 21
 
-#define REV_OUT(state)      BIT_TEST(state, WRITE_ENDIAN_BIT)
-#define REV_IN(state)       BIT_TEST(state, READ_ENDIAN_BIT)
-#define IS_OK(state)        !(BIT_TEST(state, END_BIT) || BIT_TEST(state, CORRUPTION_BIT) || BIT_TEST(state, BROKEN_BIT))
-#define IS_EMPTY(str)       ((str)[0] == '\0')
-#define DISK_CACHE          2048
-#define MEM_CACHE           2048
-#define SOCK_WRITE_CACHE	512
-#define STD_CACHE           2048
-#define PIPE_CACHE          2048
+#define REV_OUT(state) BIT_TEST(state, WRITE_ENDIAN_BIT)
+#define REV_IN(state) BIT_TEST(state, READ_ENDIAN_BIT)
+#define IS_OK(state) !(BIT_TEST(state, END_BIT) || BIT_TEST(state, CORRUPTION_BIT) || BIT_TEST(state, BROKEN_BIT))
+#define IS_EMPTY(str) ((str)[0] == '\0')
+#define DISK_CACHE 2048
+#define MEM_CACHE 2048
+#define SOCK_WRITE_CACHE 512
+#define STD_CACHE 2048
+#define PIPE_CACHE 2048
 Stream *kSTDIN = NULL;
 Stream *kSTDOUT = NULL;
 Stream *kSTDERR = NULL;
@@ -52,16 +52,16 @@ Stream *kDEVNULL = NULL;
 
 typedef enum i_type_t
 {
-    i_ekTOMEMORY        = 0,
-    i_ekFROMMEMORY      = 1,
-    i_ekTOFILE          = 2,
-    i_ekFROMFILE        = 3,
-    i_ekSOCKET          = 4,
-    i_ekTOSTDOUT        = 5,
-    i_ekTOSTDERR        = 6,
-    i_ekFROMSTDIN       = 7,
+    i_ekTOMEMORY = 0,
+    i_ekFROMMEMORY = 1,
+    i_ekTOFILE = 2,
+    i_ekFROMFILE = 3,
+    i_ekSOCKET = 4,
+    i_ekTOSTDOUT = 5,
+    i_ekTOSTDERR = 6,
+    i_ekFROMSTDIN = 7,
 
-    i_ekDEVNULL         = 0xFF
+    i_ekDEVNULL = 0xFF
 } type_t;
 
 typedef struct i_file_t i_File;
@@ -89,8 +89,7 @@ struct i_socket_t
     serror_t sock_err;
 };
 
-typedef union i_channel_t
-{
+typedef union i_channel_t {
     i_File file;
     i_Socket sock;
 } i_Channel;
@@ -120,37 +119,37 @@ struct _stream_t
 
 /*---------------------------------------------------------------------------*/
 
-typedef void(*i_FPtr_cache)(Stream*, const uint32_t size);
-static void i_to_mem_fill_cache(Stream*, const uint32_t size);
-static void i_from_mem_fill_cache(Stream*, const uint32_t size);
-static void i_file_fill_cache(Stream*, const uint32_t size);
-static void i_stdin_fill_cache(Stream*, const uint32_t size);
+typedef void (*i_FPtr_cache)(Stream *, const uint32_t size);
+static void i_to_mem_fill_cache(Stream *, const uint32_t size);
+static void i_from_mem_fill_cache(Stream *, const uint32_t size);
+static void i_file_fill_cache(Stream *, const uint32_t size);
+static void i_stdin_fill_cache(Stream *, const uint32_t size);
 
-typedef void(*i_FPtr_write)(Stream*, const byte_t *data, const uint32_t size);
-static void i_file_write(Stream*, const byte_t *data, const uint32_t size);
-static void i_sock_write(Stream*, const byte_t *data, const uint32_t size);
-static void i_stdout_write(Stream*, const byte_t *data, const uint32_t size);
-static void i_stderr_write(Stream*, const byte_t *data, const uint32_t size);
+typedef void (*i_FPtr_write)(Stream *, const byte_t *data, const uint32_t size);
+static void i_file_write(Stream *, const byte_t *data, const uint32_t size);
+static void i_sock_write(Stream *, const byte_t *data, const uint32_t size);
+static void i_stdout_write(Stream *, const byte_t *data, const uint32_t size);
+static void i_stderr_write(Stream *, const byte_t *data, const uint32_t size);
 
 static const i_FPtr_cache i_FUNC_FILL[] = {
-                                            i_to_mem_fill_cache,    /* i_ekTOMEMORY */
-                                            i_from_mem_fill_cache,  /* i_ekFROMMEMORY */
-                                            NULL,                   /* i_ekTOFILE */
-                                            i_file_fill_cache,      /* i_ekFROMFILE */
-                                            NULL,      				/* i_ekSOCKET */
-                                            NULL,                   /* i_ekTOSTDOUT */
-                                            NULL,                   /* i_ekTOSTDERR */
-                                            i_stdin_fill_cache };   /* i_ekFROMSTDIN */
+    i_to_mem_fill_cache,   /* i_ekTOMEMORY */
+    i_from_mem_fill_cache, /* i_ekFROMMEMORY */
+    NULL,                  /* i_ekTOFILE */
+    i_file_fill_cache,     /* i_ekFROMFILE */
+    NULL,                  /* i_ekSOCKET */
+    NULL,                  /* i_ekTOSTDOUT */
+    NULL,                  /* i_ekTOSTDERR */
+    i_stdin_fill_cache};   /* i_ekFROMSTDIN */
 
 static const i_FPtr_write i_FUNC_WRITE[] = {
-                                            NULL,                   /* i_ekTOMEMORY */
-                                            NULL,                   /* i_ekFROMMEMORY */
-                                            i_file_write,           /* i_ekTOFILE */
-                                            NULL,                   /* i_ekFROMFILE */
-                                            i_sock_write,           /* i_ekSOCKET */
-                                            i_stdout_write,         /* i_ekTOSTDOUT */
-                                            i_stderr_write,         /* i_ekTOSTDERR */
-                                            NULL };                 /* i_ekFROMSTDIN */
+    NULL,           /* i_ekTOMEMORY */
+    NULL,           /* i_ekFROMMEMORY */
+    i_file_write,   /* i_ekTOFILE */
+    NULL,           /* i_ekFROMFILE */
+    i_sock_write,   /* i_ekSOCKET */
+    i_stdout_write, /* i_ekTOSTDOUT */
+    i_stderr_write, /* i_ekTOSTDERR */
+    NULL};          /* i_ekFROMSTDIN */
 
 /*---------------------------------------------------------------------------*/
 
@@ -175,7 +174,7 @@ static void i_init_const_buffer(i_Buffer *buffer, const byte_t *data, const uint
     cassert(size > 0);
     buffer->dynamic_alloc = FALSE;
     buffer->size = size;
-    buffer->data = (byte_t*)data;
+    buffer->data = (byte_t *)data;
     buffer->roffset = 0;
     buffer->woffset = 0;
 }
@@ -241,22 +240,22 @@ static void i_close_channel(i_Channel *channel, const type_t type)
 {
     switch (type)
     {
-        case i_ekTOFILE:
-        case i_ekFROMFILE:
-            bfile_close(&channel->file.file);
-            break;
+    case i_ekTOFILE:
+    case i_ekFROMFILE:
+        bfile_close(&channel->file.file);
+        break;
 
-        case i_ekSOCKET:
-            bsocket_close(&channel->sock.socket);
-            break;
+    case i_ekSOCKET:
+        bsocket_close(&channel->sock.socket);
+        break;
 
-        case i_ekFROMMEMORY:
-        case i_ekTOMEMORY:
-        case i_ekTOSTDOUT:
-        case i_ekTOSTDERR:
-        case i_ekFROMSTDIN:
-        case i_ekDEVNULL:
-            break;
+    case i_ekFROMMEMORY:
+    case i_ekTOMEMORY:
+    case i_ekTOSTDOUT:
+    case i_ekTOSTDERR:
+    case i_ekFROMSTDIN:
+    case i_ekDEVNULL:
+        break;
 
         cassert_default();
     }
@@ -521,18 +520,18 @@ void stm_set_write_utf(Stream *stm, const unicode_t format)
     cassert_no_null(stm);
     switch (format)
     {
-        case ekUTF8:
-            BIT_SET(stm->state, WRITE_UTF8_BIT);
-            BIT_CLEAR(stm->state, WRITE_UTF16_BIT);
-            break;
-        case ekUTF16:
-            BIT_CLEAR(stm->state, WRITE_UTF8_BIT);
-            BIT_SET(stm->state, WRITE_UTF16_BIT);
-            break;
-        case ekUTF32:
-            BIT_CLEAR(stm->state, WRITE_UTF8_BIT);
-            BIT_CLEAR(stm->state, WRITE_UTF16_BIT);
-            break;
+    case ekUTF8:
+        BIT_SET(stm->state, WRITE_UTF8_BIT);
+        BIT_CLEAR(stm->state, WRITE_UTF16_BIT);
+        break;
+    case ekUTF16:
+        BIT_CLEAR(stm->state, WRITE_UTF8_BIT);
+        BIT_SET(stm->state, WRITE_UTF16_BIT);
+        break;
+    case ekUTF32:
+        BIT_CLEAR(stm->state, WRITE_UTF8_BIT);
+        BIT_CLEAR(stm->state, WRITE_UTF16_BIT);
+        break;
         cassert_default();
     }
 }
@@ -544,18 +543,18 @@ void stm_set_read_utf(Stream *stm, const unicode_t format)
     cassert_no_null(stm);
     switch (format)
     {
-        case ekUTF8:
-            BIT_SET(stm->state, READ_UTF8_BIT);
-            BIT_CLEAR(stm->state, READ_UTF16_BIT);
-            break;
-        case ekUTF16:
-            BIT_CLEAR(stm->state, READ_UTF8_BIT);
-            BIT_SET(stm->state, READ_UTF16_BIT);
-            break;
-        case ekUTF32:
-            BIT_CLEAR(stm->state, READ_UTF8_BIT);
-            BIT_CLEAR(stm->state, READ_UTF16_BIT);
-            break;
+    case ekUTF8:
+        BIT_SET(stm->state, READ_UTF8_BIT);
+        BIT_CLEAR(stm->state, READ_UTF16_BIT);
+        break;
+    case ekUTF16:
+        BIT_CLEAR(stm->state, READ_UTF8_BIT);
+        BIT_SET(stm->state, READ_UTF16_BIT);
+        break;
+    case ekUTF32:
+        BIT_CLEAR(stm->state, READ_UTF8_BIT);
+        BIT_CLEAR(stm->state, READ_UTF16_BIT);
+        break;
         cassert_default();
     }
 }
@@ -700,7 +699,7 @@ String *stm_str(const Stream *stm)
 {
     uint32_t s = stm_buffer_size(stm);
     const byte_t *b = stm_buffer(stm);
-    return str_cn((const char_t*)b, s);
+    return str_cn((const char_t *)b, s);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -713,7 +712,7 @@ const byte_t *stm_buffer(const Stream *stm)
     if (stm->buffer1.woffset > stm->buffer1.roffset)
         return stm->buffer1.data + stm->buffer1.roffset;
     else
-        return (const byte_t*)"";
+        return (const byte_t *)"";
 }
 
 /*---------------------------------------------------------------------------*/
@@ -902,10 +901,10 @@ static void i_write(Stream *stm, const byte_t *data, const uint32_t size, const 
         So big for cache --> Direct writting to channel */
         if (output->woffset + size > output->size)
         {
-            cassert(reverse == FALSE);      /* So big for endianness */
+            cassert(reverse == FALSE); /* So big for endianness */
             cassert_no_nullf(i_FUNC_WRITE[stm->type]);
             cassert(output->roffset == 0);
-            cassert(output->woffset == 0);  /* Has been flushed */
+            cassert(output->woffset == 0); /* Has been flushed */
             i_FUNC_WRITE[stm->type](stm, data, size);
         }
         /* Write in cache */
@@ -980,13 +979,13 @@ static void i_write_utf16(Stream *stm, const char_t *str)
         bytes = unicode_to_char(codepoint, utf16, ekUTF16);
         if (bytes == 2)
         {
-            i_write(stm, (const byte_t*)utf16, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+            i_write(stm, (const byte_t *)utf16, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         }
         else
         {
             cassert(bytes == 4);
-            i_write(stm, (const byte_t*)utf16, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
-            i_write(stm, (const byte_t*)utf16 + 2, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+            i_write(stm, (const byte_t *)utf16, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+            i_write(stm, (const byte_t *)utf16 + 2, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         }
 
         str = unicode_next(str, ekUTF8);
@@ -1002,7 +1001,7 @@ static void i_write_utf32(Stream *stm, const char_t *str)
     cassert_no_null(stm);
     while (IS_OK(stm->state) && codepoint != 0)
     {
-        i_write(stm, (const byte_t*)&codepoint, 4, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+        i_write(stm, (const byte_t *)&codepoint, 4, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         str = unicode_next(str, ekUTF8);
         codepoint = unicode_to_u32(str, ekUTF8);
     }
@@ -1072,11 +1071,11 @@ uint32_t stm_printf(Stream *stm, const char_t *format, ...)
         /* Temporal buffer */
         if (length < stm->textline.size)
         {
-            data = (char_t*)stm->textline.data;
+            data = (char_t *)stm->textline.data;
         }
         else
         {
-            data_alloc = (char_t*)heap_malloc(length, "StreamPrintf");
+            data_alloc = (char_t *)heap_malloc(length, "StreamPrintf");
             data = data_alloc;
         }
 
@@ -1093,14 +1092,14 @@ uint32_t stm_printf(Stream *stm, const char_t *format, ...)
         cassert(data[length - 1] == '\0');
 
         if (BIT_TEST(stm->state, WRITE_UTF8_BIT) == TRUE)
-            i_write(stm, (const byte_t*)data, length - 1, FALSE);
+            i_write(stm, (const byte_t *)data, length - 1, FALSE);
         else if (BIT_TEST(stm->state, WRITE_UTF16_BIT) == TRUE)
             i_write_utf16(stm, data);
         else
             i_write_utf32(stm, data);
 
         if (data_alloc != NULL)
-            heap_free((byte_t**)&data_alloc, length, "StreamPrintf");
+            heap_free((byte_t **)&data_alloc, length, "StreamPrintf");
 
         return length - 1;
     }
@@ -1126,7 +1125,7 @@ uint32_t stm_writef(Stream *stm, const char_t *str)
         if (size > 0)
         {
             if (BIT_TEST(stm->state, WRITE_UTF8_BIT) == TRUE)
-                i_write(stm, (const byte_t*)str, size, FALSE);
+                i_write(stm, (const byte_t *)str, size, FALSE);
             else if (BIT_TEST(stm->state, WRITE_UTF16_BIT) == TRUE)
                 i_write_utf16(stm, str);
             else
@@ -1166,77 +1165,77 @@ static void i_write_binary(Stream *stm, const byte_t *value, const uint32_t size
 
 void stm_write_bool(Stream *stm, const bool_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i8(Stream *stm, const int8_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i16(Stream *stm, const int16_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i32(Stream *stm, const int32_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i64(Stream *stm, const int64_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u8(Stream *stm, const uint8_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u16(Stream *stm, const uint16_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u32(Stream *stm, const uint32_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u64(Stream *stm, const uint64_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_r32(Stream *stm, const real32_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_r64(Stream *stm, const real64_t value)
 {
-    i_write_binary(stm, (const byte_t*)&value, sizeof(value));
+    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1406,7 +1405,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
 
         /* Fill data buffer */
         /* readed = 0 -- readed already from 'restore' buffer */
-        for (; readed < size; )
+        for (; readed < size;)
         {
             register uint32_t remain = size - readed;
             uint32_t available = input->woffset - input->roffset;
@@ -1493,7 +1492,7 @@ void stm_skip_bom(Stream *stm)
         uint32_t size;
         size = unicode_to_char(code, data, ekUTF8);
         cassert(size >= 1 && size <= 4);
-        _stm_restore(stm, (const byte_t*)data, size);
+        _stm_restore(stm, (const byte_t *)data, size);
         _stm_restore_col(stm, pcol);
         _stm_restore_row(stm, prow);
     }
@@ -1540,9 +1539,7 @@ static uint32_t i_read_utf8(Stream *stm)
         byte_t value1[2] = {0, 0};
         uint32_t code;
         i_read(stm, value1, 2, FALSE);
-        code = ((uint32_t)(value0 & 0x0F) << 12)
-             | ((uint32_t)(value1[0] & 0x3F) << 6)
-             | (uint32_t)(value1[1] & 0x3F);
+        code = ((uint32_t)(value0 & 0x0F) << 12) | ((uint32_t)(value1[0] & 0x3F) << 6) | (uint32_t)(value1[1] & 0x3F);
         cassert(code >= 0x0800 && code <= 0xFFFF);
         return code;
     }
@@ -1553,10 +1550,7 @@ static uint32_t i_read_utf8(Stream *stm)
         byte_t value1[3] = {0, 0, 0};
         uint32_t code;
         i_read(stm, value1, 3, FALSE);
-        code = ((uint32_t)(value0 & 0x07) << 18)
-             | ((uint32_t)(value1[0] & 0x3F) << 12)
-             | ((uint32_t)(value1[1] & 0x3F) << 6)
-             |  (uint32_t)(value1[2] & 0x3F);
+        code = ((uint32_t)(value0 & 0x07) << 18) | ((uint32_t)(value1[0] & 0x3F) << 12) | ((uint32_t)(value1[1] & 0x3F) << 6) | (uint32_t)(value1[2] & 0x3F);
         cassert(code >= 0x010000 && code <= 0x1FFFFF);
         return code;
     }
@@ -1573,13 +1567,13 @@ static uint32_t i_read_utf8(Stream *stm)
 static uint32_t i_read_utf16(Stream *stm)
 {
     uint16_t value0 = 0;
-    i_read(stm, (byte_t*)&value0, 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&value0, 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
 
     /* Subrogate pairs */
     if (value0 >= 0xD800 && value0 <= 0xDBFF)
     {
         uint16_t value1 = 0;
-        i_read(stm, (byte_t*)&value1, 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
+        i_read(stm, (byte_t *)&value1, 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
         cassert(value1 >= 0xDC00 && value1 <= 0xDFFF);
         return ((uint32_t)value0 << 10) + (uint32_t)value1 - 0x35FDC00;
     }
@@ -1610,7 +1604,7 @@ static void i_char_to_cache(Stream *stm, const uint32_t code)
         }
     }
 
-    line->roffset += unicode_to_char(code, (char_t*)(line->data + line->roffset), ekUTF8);
+    line->roffset += unicode_to_char(code, (char_t *)(line->data + line->roffset), ekUTF8);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1627,7 +1621,7 @@ uint32_t stm_read_char(Stream *stm)
     else if (BIT_TEST(stm->state, READ_UTF16_BIT) == TRUE)
         code = i_read_utf16(stm);
     else
-        i_read(stm, (byte_t*)&code, 4, BIT_TEST(stm->state, READ_ENDIAN_BIT));
+        i_read(stm, (byte_t *)&code, 4, BIT_TEST(stm->state, READ_ENDIAN_BIT));
 
     if (unicode_valid(code) == TRUE)
     {
@@ -1669,7 +1663,7 @@ const char_t *stm_read_chars(Stream *stm, const uint32_t n)
     }
 
     i_char_to_cache(stm, 0);
-    return (const char_t*)line->data;
+    return (const char_t *)line->data;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1707,7 +1701,7 @@ const char_t *stm_read_line(Stream *stm)
             return NULL;
     }
 
-    return (const char_t*)line->data;
+    return (const char_t *)line->data;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1718,7 +1712,7 @@ static uint32_t i_skip_spaces(Stream *stm)
     cassert_no_null(stm);
     code = stm_read_char(stm);
     while (unicode_isspace(code) == TRUE)
-       code = stm_read_char(stm);
+        code = stm_read_char(stm);
     return code;
 }
 
@@ -1743,7 +1737,7 @@ const char_t *stm_read_trim(Stream *stm)
     }
 
     i_char_to_cache(stm, 0);
-    return (const char_t*)line->data;
+    return (const char_t *)line->data;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1780,7 +1774,7 @@ static int64_t i_read_i64(Stream *stm)
         int64_t number = str_to_i64(stm_token_lexeme(stm, NULL), 10, NULL);
 
         if (minus == TRUE)
-            return - number;
+            return -number;
         else
             return number;
     }
@@ -1820,7 +1814,7 @@ static real64_t i_read_r64(Stream *stm)
         real64_t number = str_to_r64(stm_token_lexeme(stm, NULL), NULL);
 
         if (minus == TRUE)
-            return - number;
+            return -number;
         else
             return number;
     }
@@ -1934,7 +1928,7 @@ real64_t stm_read_r64_tok(Stream *stm)
 bool_t stm_read_bool(Stream *stm)
 {
     bool_t v = FALSE;
-    i_read(stm, (byte_t*)&v, sizeof(bool_t), FALSE);
+    i_read(stm, (byte_t *)&v, sizeof(bool_t), FALSE);
     if (v != 0 && v != 1)
     {
         log_printf("Error reading boolean.");
@@ -1949,7 +1943,7 @@ bool_t stm_read_bool(Stream *stm)
 int8_t stm_read_i8(Stream *stm)
 {
     int8_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(int8_t), FALSE);
+    i_read(stm, (byte_t *)&v, sizeof(int8_t), FALSE);
     return v;
 }
 
@@ -1958,7 +1952,7 @@ int8_t stm_read_i8(Stream *stm)
 int16_t stm_read_i16(Stream *stm)
 {
     int16_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(int16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(int16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -1967,7 +1961,7 @@ int16_t stm_read_i16(Stream *stm)
 int32_t stm_read_i32(Stream *stm)
 {
     int32_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(int32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(int32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -1976,7 +1970,7 @@ int32_t stm_read_i32(Stream *stm)
 int64_t stm_read_i64(Stream *stm)
 {
     int64_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(int64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(int64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -1985,7 +1979,7 @@ int64_t stm_read_i64(Stream *stm)
 uint8_t stm_read_u8(Stream *stm)
 {
     uint8_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(uint8_t), FALSE);
+    i_read(stm, (byte_t *)&v, sizeof(uint8_t), FALSE);
     return v;
 }
 
@@ -1994,7 +1988,7 @@ uint8_t stm_read_u8(Stream *stm)
 uint16_t stm_read_u16(Stream *stm)
 {
     uint16_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(uint16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(uint16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2003,7 +1997,7 @@ uint16_t stm_read_u16(Stream *stm)
 uint32_t stm_read_u32(Stream *stm)
 {
     uint32_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(uint32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(uint32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2012,7 +2006,7 @@ uint32_t stm_read_u32(Stream *stm)
 uint64_t stm_read_u64(Stream *stm)
 {
     uint64_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(uint64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(uint64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2021,7 +2015,7 @@ uint64_t stm_read_u64(Stream *stm)
 real32_t stm_read_r32(Stream *stm)
 {
     real32_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(real32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(real32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2030,7 +2024,7 @@ real32_t stm_read_r32(Stream *stm)
 real64_t stm_read_r64(Stream *stm)
 {
     real64_t v = 0;
-    i_read(stm, (byte_t*)&v, sizeof(real64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, (byte_t *)&v, sizeof(real64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 

@@ -19,9 +19,9 @@ _geom2d_api R2Df r2df(const real32_t x, const real32_t y, const real32_t width, 
 
 _geom2d_api R2Dd r2dd(const real64_t x, const real64_t y, const real64_t width, const real64_t height);
 
-_geom2d_api V2Df r2d_centerf(const R2Df* r2d);
+_geom2d_api V2Df r2d_centerf(const R2Df *r2d);
 
-_geom2d_api V2Dd r2d_centerd(const R2Dd* r2d);
+_geom2d_api V2Dd r2d_centerd(const R2Dd *r2d);
 
 _geom2d_api bool_t r2d_collidef(const R2Df *r2d1, const R2Df *r2d2);
 

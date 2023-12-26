@@ -13,12 +13,12 @@
 #include "oscomwin.h"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
-#include "oscontrol.inl"
-#include "cassert.h"
-#include "color.h"
-#include "event.h"
-#include "strings.h"
-#include "unicode.h"
+#include "oscontrol_gtk.inl"
+#include <draw2d/color.h>
+#include <core/event.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -59,11 +59,11 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     }
 
     dialog = gtk_file_chooser_dialog_new(
-                /*"Open File"*/NULL,
-                parent ? GTK_WINDOW(((OSControl*)parent)->widget) : NULL, action,
-                "_Cancel", GTK_RESPONSE_CANCEL,
-                open ? "_Open" : "_Save", GTK_RESPONSE_ACCEPT,
-                NULL);
+        /*"Open File"*/ NULL,
+        parent ? GTK_WINDOW(((OSControl *)parent)->widget) : NULL, action,
+        "_Cancel", GTK_RESPONSE_CANCEL,
+        open ? "_Open" : "_Save", GTK_RESPONSE_ACCEPT,
+        NULL);
 
     if (!dirmode && size > 0)
     {
@@ -72,8 +72,8 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
         {
             String *pattern = str_printf("*.%s", ftypes[i]);
             GtkFileFilter *filter = gtk_file_filter_new();
-            gtk_file_filter_set_name(filter, (const gchar*)tc(pattern));
-            gtk_file_filter_add_pattern(filter, (const gchar*)tc(pattern));
+            gtk_file_filter_set_name(filter, (const gchar *)tc(pattern));
+            gtk_file_filter_add_pattern(filter, (const gchar *)tc(pattern));
             gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter);
             str_destroy(&pattern);
             /* g_object_unref(filter); */
@@ -94,7 +94,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     }
 
     gtk_widget_destroy(dialog);
-    return (const char_t*)kFILENAME;
+    return (const char_t *)kFILENAME;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -108,7 +108,8 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         gint width, height;
         gtk_window_get_size(GTK_WINDOW(widget), &width, &height);
 
-        switch (data->halign) {
+        switch (data->halign)
+        {
         case ekLEFT:
         case ekJUSTIFY:
             break;
@@ -120,7 +121,8 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
             break;
         }
 
-        switch (data->valign) {
+        switch (data->valign)
+        {
         case ekTOP:
         case ekJUSTIFY:
             break;
@@ -171,7 +173,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     data.y = (gint)y;
     data.halign = halign;
     data.valign = valign;
-    data.parent = parent ? ((OSControl*)parent)->widget : NULL;
+    data.parent = parent ? ((OSControl *)parent)->widget : NULL;
     g_signal_connect(dialog, "realize", G_CALLBACK(i_OnRealize), &data);
 
     /* gtk_widget_show(dialog); */
@@ -190,4 +192,3 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
 }
 
 /*---------------------------------------------------------------------------*/
-

@@ -13,8 +13,8 @@
 
 #include "draw2d.hxx"
 
-#define pixbuf_get1(data, x, y, width)\
-        (uint32_t)((data[((y) * (width) + (x)) / 8] >> (byte_t)(((y) * (width) + (x)) % 8)) & 1)
+#define pixbuf_get1(data, x, y, width) \
+    (uint32_t)((data[((y) * (width) + (x)) / 8] >> (byte_t)(((y) * (width) + (x)) % 8)) & 1)
 
 __EXTERN_C
 
@@ -49,4 +49,3 @@ _draw2d_api uint32_t pixbuf_get(const Pixbuf *pixbuf, const uint32_t x, const ui
 _draw2d_api void pixbuf_set(Pixbuf *pixbuf, const uint32_t x, const uint32_t y, const uint32_t value);
 
 __END_C
-

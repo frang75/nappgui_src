@@ -21,6 +21,8 @@ _gui_api void tableview_OnData(TableView *view, Listener *listener);
 
 _gui_api void tableview_OnSelect(TableView *view, Listener *listener);
 
+_gui_api void tableview_OnRowClick(TableView *view, Listener *listener);
+
 _gui_api void tableview_OnHeaderClick(TableView *view, Listener *listener);
 
 _gui_api void tableview_font(TableView *view, const Font *font);
@@ -49,6 +51,12 @@ _gui_api void tableview_header_clickable(TableView *view, const bool_t clickable
 
 _gui_api void tableview_header_resizable(TableView *view, const bool_t resizable);
 
+_gui_api void tableview_header_height(TableView *view, const real32_t height);
+
+_gui_api void tableview_row_height(TableView *view, const real32_t height);
+
+_gui_api void tableview_hkey_scroll(TableView *view, const bool_t force_column, const real32_t scroll);
+
 _gui_api void tableview_multisel(TableView *view, const bool_t multisel, const bool_t preserve);
 
 _gui_api void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines);
@@ -61,7 +69,12 @@ _gui_api void tableview_deselect(TableView *view, const uint32_t *rows, const ui
 
 _gui_api void tableview_deselect_all(TableView *view);
 
-_gui_api const ArrSt(uint32_t) *tableview_selected(const TableView *view);
+_gui_api const ArrSt(uint32_t) * tableview_selected(const TableView *view);
+
+_gui_api void tableview_focus_row(TableView *view, const uint32_t row, const align_t align);
+
+_gui_api uint32_t tableview_get_focus_row(const TableView *view);
+
+_gui_api void tableview_scroll_visible(TableView *view, const bool_t horizontal, const bool_t vertical);
 
 __END_C
-

@@ -40,18 +40,16 @@ const Image *_gui_respack_image(const ResId id, ResId *store_id);
 
 const Cursor *_gui_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);
 
-#define GUI_COMPONENT_MAX_PANELS    32
+#define GUI_COMPONENT_MAX_PANELS 32
 
 __END_C
 
-#define _gui_add_transition(owner, listener, type)\
-    (\
-        (void)((type*)owner == owner),\
-        _gui_add_transition_imp((void*)owner, listener)\
-    )
+#define _gui_add_transition(owner, listener, type) \
+    (                                              \
+        (void)((type *)owner == owner),            \
+        _gui_add_transition_imp((void *)owner, listener))
 
-#define _gui_delete_transition(owner, type)\
-    (\
-        (void)((type*)owner == owner),\
-        _gui_delete_transition_imp((void*)owner)\
-    )
+#define _gui_delete_transition(owner, type) \
+    (                                       \
+        (void)((type *)owner == owner),     \
+        _gui_delete_transition_imp((void *)owner))

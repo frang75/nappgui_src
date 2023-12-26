@@ -13,10 +13,11 @@
 #ifndef __BASEARCH_HXX__
 #define __BASEARCH_HXX__
 
-#if defined (_WINDOWS)
+/* clang-format off */
 
+#if defined (_WINDOWS)
     #if defined (_MSC_VER) && _MSC_VER <= 1500
-    #define __STDC_LIMIT_MACROS
+        #define __STDC_LIMIT_MACROS
     #endif
 
     #define __WINDOWS__
@@ -28,11 +29,10 @@
     #else
         #error Unknown processor
     #endif
-    #define on_platform(w, a, l)    (w)
 
 #elif defined (__APPLE__)
     #include <TargetConditionals.h>
-    
+
     #if TARGET_OS_MAC == 1
         #define __UNIX__
         #if TARGET_OS_IPHONE == 1
@@ -58,16 +58,14 @@
         #error APPLE Machine not supported
     #endif
 
-    #define on_platform(w, a, l)    (a)
-
 #elif defined(__linux__)
-	#define __UNIX__
+    #define __UNIX__
     #define __LINUX__
     #define __DESKTOP__
 
-	#if defined(__GTK3_TOOLKIT__)
-    #define __GTK3__
-	#endif
+    #if defined(__GTK3_TOOLKIT__)
+        #define __GTK3__
+    #endif
 
     #if defined (__i386__)
         #define __x86__
@@ -80,8 +78,6 @@
     #else
         #error Unknown processor
     #endif
-
-    #define on_platform(w, a, l)    (l)
 
 #else
     #error Unknown configuration

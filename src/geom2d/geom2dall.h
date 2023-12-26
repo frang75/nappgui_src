@@ -10,8 +10,6 @@
 
 /* Geom2D library all-in-one headers include */
 
-#include "coreall.h"
-
 #include "box2d.h"
 #include "cir2d.h"
 #include "col2d.h"
@@ -23,4 +21,4 @@
 #include "t2d.h"
 #include "tri2d.h"
 #include "v2d.h"
-
+#include <core/coreall.h>

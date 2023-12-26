@@ -11,17 +11,17 @@
 /* Operating System split view */
 
 #include "ossplit.h"
-#include "ossplit.inl"
-#include "ospanel.inl"
-#include "ostext.inl"
-#include "osview.inl"
-#include "osgui_gtk.inl"
-#include "oscontrol.inl"
-#include "cassert.h"
-#include "event.h"
 #include "oslistener.inl"
-#include "heap.h"
-#include "r2d.h"
+#include "ossplit_gtk.inl"
+#include "ospanel_gtk.inl"
+#include "ostext_gtk.inl"
+#include "osview_gtk.inl"
+#include "osgui_gtk.inl"
+#include "oscontrol_gtk.inl"
+#include <geom2d/r2d.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -47,15 +47,15 @@ static void i_set_capture(GtkWidget *widget, OSSplit *split)
     }
     else
     {
-        OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
+        OSControl *control = (OSControl *)g_object_get_data(G_OBJECT(widget), "OSControl");
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_PANEL)
-                _ospanel_set_capture((OSPanel*)control, (OSControl*)split);
+                _ospanel_set_capture((OSPanel *)control, (OSControl *)split);
             else if (control->type == ekGUI_TYPE_TEXTVIEW)
-                _ostext_set_capture((OSText*)control, (OSControl*)split);
+                _ostext_set_capture((OSText *)control, (OSControl *)split);
             else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-                _osview_set_capture((OSView*)control, (OSControl*)split);
+                _osview_set_capture((OSView *)control, (OSControl *)split);
         }
     }
 }
@@ -71,15 +71,15 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
     }
     else
     {
-        OSControl *control = (OSControl*)g_object_get_data(G_OBJECT(widget), "OSControl");
+        OSControl *control = (OSControl *)g_object_get_data(G_OBJECT(widget), "OSControl");
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_PANEL)
-                _ospanel_release_capture((OSPanel*)control);
+                _ospanel_release_capture((OSPanel *)control);
             else if (control->type == ekGUI_TYPE_TEXTVIEW)
-                _ostext_release_capture((OSText*)control);
+                _ostext_release_capture((OSText *)control);
             else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-                _osview_release_capture((OSView*)control);
+                _osview_release_capture((OSView *)control);
         }
     }
 }
@@ -240,44 +240,44 @@ void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const
 
 void ossplit_attach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)view);
+    _ospanel_attach_control(panel, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_detach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)view);
+    _ospanel_detach_control(panel, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_visible(OSSplit *view, const bool_t is_visible)
 {
-    _oscontrol_set_visible((OSControl*)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((OSControl*)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)view, width, height);
+    _oscontrol_get_size((const OSControl *)view, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 {
-	unref(view);
-	unref(x);
-	unref(y);
+    unref(view);
+    unref(x);
+    unref(y);
     cassert_msg(FALSE, "Not implemented");
 }
 
@@ -285,16 +285,7 @@ void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 
 void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)view, x, y, width, height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel)
-{
-    cassert_no_null(view);
-    ossplit_detach(*view, panel);
-    ossplit_destroy(view);
+    _oscontrol_set_frame((OSControl *)view, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

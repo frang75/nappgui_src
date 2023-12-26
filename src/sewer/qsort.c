@@ -16,16 +16,16 @@
 #include "cassert.h"
 #include "nowarn.hxx"
 
-typedef void(*i_SWAP)(char *a, char *b, uint32_t size);
+typedef void (*i_SWAP)(char *a, char *b, uint32_t size);
 
 /*---------------------------------------------------------------------------*/
 
 static __INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
 {
-    register uint32_t n1 = size / (uint32_t)sizeof(void*);
+    register uint32_t n1 = size / (uint32_t)sizeofptr;
     register uint32_t i;
-    register void **_a = (void**)a;
-    register void **_b = (void**)b;
+    register void **_a = (void **)a;
+    register void **_b = (void **)b;
     register void *swap;
     for (i = 0; i < n1; ++i, ++_a, ++_b)
     {
@@ -39,9 +39,9 @@ static __INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
 
 static __INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
 {
-    register void *swap = *(void**)a;
-    *((void**)a) = *((void**)b);
-    *((void**)b) = swap;
+    register void *swap = *(void **)a;
+    *(void **)a = *(void **)b;
+    *(void **)b = swap;
     unref(size);
 }
 
@@ -49,10 +49,10 @@ static __INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
 
 static __INLINE void i_SWAP_GENERAL(char *a, char *b, uint32_t size)
 {
-    register uint32_t n1 = size / (uint32_t)sizeof(void*);
+    register uint32_t n1 = size / (uint32_t)sizeofptr;
     register uint32_t i;
-    register void **_a = (void**)a;
-    register void **_b = (void**)b;
+    register void **_a = (void **)a;
+    register void **_b = (void **)b;
     register void *swap;
     register char swapc;
     for (i = 0; i < n1; ++i, ++_a, ++_b)
@@ -62,9 +62,9 @@ static __INLINE void i_SWAP_GENERAL(char *a, char *b, uint32_t size)
         *_b = swap;
     }
 
-    a += n1 * sizeof(void*);
-    b += n1 * sizeof(void*);
-    n1 = size % (uint32_t)sizeof(void*);
+    a += n1 * sizeofptr;
+    b += n1 * sizeofptr;
+    n1 = size % (uint32_t)sizeofptr;
     for (i = 0; i < n1; ++i, ++a, ++b)
     {
         swapc = *a;
@@ -106,12 +106,11 @@ typedef struct
    log(MAX_THRESH)).  Since total_elements has type size_t, we get as
    upper bound for log (total_elements):
    bits per byte (CHAR_BIT) * sizeof(size_t).  */
-#define CHAR_BIT    8
-#define STACK_SIZE	(CHAR_BIT * sizeof(uint32_t))
-#define PUSH(low, high)	((void) ((top->lo = (low)), (top->hi = (high)), ++top))
-#define	POP(low, high)	((void) (--top, (low = top->lo), (high = top->hi)))
-#define	STACK_NOT_EMPTY	(stack < top)
-
+#define CHAR_BIT 8
+#define STACK_SIZE (CHAR_BIT * sizeof(uint32_t))
+#define PUSH(low, high) ((void)((top->lo = (low)), (top->hi = (high)), ++top))
+#define POP(low, high) ((void)(--top, (low = top->lo), (high = top->hi)))
+#define STACK_NOT_EMPTY (stack < top)
 
 /* Order size using quicksort.  This implementation incorporates
    four optimizations discussed in Sedgewick:
@@ -152,7 +151,7 @@ typedef struct
 void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t sizeof_elem, FPtr_compare_ex func_compare, const void *user_data)
 {
     register i_SWAP SWAP_FUNC;
-    register char *base_ptr = (char*)data;
+    register char *base_ptr = (char *)data;
     uint32_t max_thresh = MAX_THRESH * sizeof_elem;
 
     cassert_no_null(base_ptr);
@@ -163,9 +162,9 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
     if (total_elems == 0)
         return;
 
-    if (sizeof_elem == sizeof(void*))
+    if (sizeof_elem == sizeofptr)
         SWAP_FUNC = i_SWAP_PTR;
-    else if (sizeof_elem % (uint32_t)sizeof(void*) == 0)
+    else if (sizeof_elem % (uint32_t)sizeofptr == 0)
         SWAP_FUNC = i_SWAP_ALIGN;
     else
         SWAP_FUNC = i_SWAP_GENERAL;
@@ -177,7 +176,7 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
         stack_node stack[STACK_SIZE];
         stack_node *top = stack;
 
-        PUSH (NULL, NULL);
+        PUSH(NULL, NULL);
 
         while (STACK_NOT_EMPTY)
         {
@@ -192,31 +191,31 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
 
             char *mid = lo + sizeof_elem * ((uint32_t)(hi - lo) / sizeof_elem >> 1);
 
-            if (func_compare((void*)mid, (void*)lo, user_data) < 0)
+            if (func_compare((void *)mid, (void *)lo, user_data) < 0)
                 SWAP_FUNC(mid, lo, sizeof_elem);
 
-            if ((func_compare)((void*) hi, (void*) mid, user_data) < 0)
+            if ((func_compare)((void *)hi, (void *)mid, user_data) < 0)
                 SWAP_FUNC(mid, hi, sizeof_elem);
             else
                 goto jump_over;
 
-            if (func_compare((void*)mid, (void*)lo, user_data) < 0)
+            if (func_compare((void *)mid, (void *)lo, user_data) < 0)
                 SWAP_FUNC(mid, lo, sizeof_elem);
 
-            jump_over:;
+        jump_over:;
 
-                left_ptr  = lo + sizeof_elem;
-                right_ptr = hi - sizeof_elem;
+            left_ptr = lo + sizeof_elem;
+            right_ptr = hi - sizeof_elem;
 
             /* Here's the famous ``collapse the walls'' section of quicksort.
             Gotta like those tight inner loops!  They are the main reason
             that this algorithm runs much faster than others. */
             do
             {
-                while (func_compare((void*)left_ptr, (void*)mid, user_data) < 0)
+                while (func_compare((void *)left_ptr, (void *)mid, user_data) < 0)
                     left_ptr += sizeof_elem;
 
-                while (func_compare((void*) mid, (void*)right_ptr, user_data) < 0)
+                while (func_compare((void *)mid, (void *)right_ptr, user_data) < 0)
                     right_ptr -= sizeof_elem;
 
                 if (left_ptr < right_ptr)
@@ -237,36 +236,35 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
                     right_ptr -= sizeof_elem;
                     break;
                 }
-            }
-            while (left_ptr <= right_ptr);
+            } while (left_ptr <= right_ptr);
 
             /* Set up pointers for next iteration.  First determine whether
             left and right partitions are below the threshold size.  If so,
             ignore one or both.  Otherwise, push the larger partition's
             bounds on the stack and continue sorting the smaller one. */
 
-            if ((uint32_t) (right_ptr - lo) <= max_thresh)
+            if ((uint32_t)(right_ptr - lo) <= max_thresh)
             {
                 /* Ignore both small partitions. */
-                if ((uint32_t) (hi - left_ptr) <= max_thresh)
-                    POP (lo, hi);
+                if ((uint32_t)(hi - left_ptr) <= max_thresh)
+                    POP(lo, hi);
                 /* Ignore small left partition. */
                 else
                     lo = left_ptr;
             }
             /* Ignore small right partition. */
-            else if ((uint32_t) (hi - left_ptr) <= max_thresh)
+            else if ((uint32_t)(hi - left_ptr) <= max_thresh)
                 hi = right_ptr;
             /* Push larger left partition indices. */
             else if ((right_ptr - lo) > (hi - left_ptr))
             {
-                PUSH (lo, right_ptr);
+                PUSH(lo, right_ptr);
                 lo = left_ptr;
             }
             /* Push larger right partition indices. */
             else
             {
-                PUSH (left_ptr, hi);
+                PUSH(left_ptr, hi);
                 hi = right_ptr;
             }
         }
@@ -278,7 +276,7 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
     of the array to sort, and END_PTR points at the very last element in
     the array (*not* one beyond it!). */
 
-    #define min(x, y) ((x) < (y) ? (x) : (y))
+#define min(x, y) ((x) < (y) ? (x) : (y))
 
     {
         char *const end_ptr = &base_ptr[sizeof_elem * (total_elems - 1)];
@@ -291,7 +289,7 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
         and the operation speeds up insertion sort's inner loop. */
 
         for (run_ptr = tmp_ptr + sizeof_elem; run_ptr <= thresh; run_ptr += sizeof_elem)
-            if (func_compare((void*)run_ptr, (void*)tmp_ptr, user_data) < 0)
+            if (func_compare((void *)run_ptr, (void *)tmp_ptr, user_data) < 0)
                 tmp_ptr = run_ptr;
 
         if (tmp_ptr != base_ptr)
@@ -304,7 +302,7 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
         {
             tmp_ptr = run_ptr - sizeof_elem;
 
-            while (func_compare((void*)run_ptr, (void*)tmp_ptr, user_data) < 0)
+            while (func_compare((void *)run_ptr, (void *)tmp_ptr, user_data) < 0)
                 tmp_ptr -= sizeof_elem;
 
             tmp_ptr += sizeof_elem;
@@ -329,4 +327,3 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
         }
     }
 }
-

@@ -10,14 +10,13 @@
 
 /* Operating System native progress indicator */
 
-#include "osgui_osx.inl"
 #include "osprogress.h"
-#include "osprogress.inl"
+#include "osprogress_osx.inl"
+#include "oscontrol_osx.inl"
+#include "ospanel_osx.inl"
 #include "osgui.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "heap.h"
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -25,7 +24,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXProgress : NSProgressIndicator 
+@interface OSXProgress : NSProgressIndicator
 {
     @public
     void *non_used;
@@ -56,13 +55,12 @@ OSProgress *osprogress_create(const uint32_t flags)
     cassert_unref(progress_get_type(flags) == ekPROGRESS_HORZ, flags);
     heap_auditor_add("OSXProgress");
     progress = [[OSXProgress alloc] initWithFrame:NSZeroRect];
-    //_oscontrol_progress_set_control_size(progress, size);
+    _oscontrol_init(progress);
     [progress setStyle:STYLE_BAR];
     [progress setUsesThreadedAnimation:NO];
-    [progress setHidden:YES];
     [progress setIndeterminate:NO];
     [progress setMinValue:0.];
-    [progress setMaxValue:1.];    
+    [progress setMaxValue:1.];
     return (OSProgress*)progress;
 }
 
@@ -97,7 +95,7 @@ void osprogress_position(OSProgress *progress, const real32_t position)
         cassert(position <= 1.f);
         if ([(OSXProgress*)progress isIndeterminate] == YES)
             [(OSXProgress*)progress setIndeterminate:NO];
-        
+
         [(OSXProgress*)progress setDoubleValue:(double)position];
     }
 }
@@ -168,13 +166,3 @@ BOOL _osprogress_is(NSView *view)
 {
     return [view isKindOfClass:[OSXProgress class]];
 }
-
-/*---------------------------------------------------------------------------*/
-
-void _osprogress_detach_and_destroy(OSProgress **progress, OSPanel *panel)
-{
-    cassert_no_null(progress);
-    osprogress_detach(*progress, panel);
-    osprogress_destroy(progress);
-}
-

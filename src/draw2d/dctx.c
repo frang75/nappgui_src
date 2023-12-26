@@ -14,11 +14,11 @@
 #include "dctxh.h"
 #include "dctx.inl"
 #include "draw.h"
-#include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "t2d.h"
-#include "strings.h"
+#include <core/strings.h>
+#include <geom2d/t2d.h>
+#include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 

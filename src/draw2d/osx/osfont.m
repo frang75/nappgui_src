@@ -10,18 +10,18 @@
 
 /* Font native implementation */
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
+#include "draw2d_osx.ixx"
 
 #include "font.h"
 #include "font.inl"
 #include "draw2d.inl"
 #include "draw.inl"
-#include "arrpt.h"
-#include "cassert.h"
-#include "strings.h"
-#include "draw2d_osx.ixx"
+#include <core/arrpt.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -73,15 +73,15 @@ static NSFont *i_convent_to_italic(NSFont *font, const CGFloat height, NSFontMan
     NSFont *italic_font = nil;
     NSFontTraitMask fontTraits = (NSFontTraitMask)0;
     cassert_no_null(font);
-    
+
     italic_font = [font_manager convertFont:font toHaveTrait:NSItalicFontMask];
     fontTraits = [font_manager traitsOfFont:italic_font];
-    
+
     if ((fontTraits & NSItalicFontMask) == 0)
     {
         NSAffineTransform *font_transform = [NSAffineTransform transform];
         [font_transform scaleBy:height];
-        
+
         {
             NSAffineTransformStruct data;
             NSAffineTransform *italic_transform = nil;
@@ -95,10 +95,10 @@ static NSFont *i_convent_to_italic(NSFont *font, const CGFloat height, NSFontMan
             [italic_transform setTransformStruct:data];
             [font_transform appendTransform:italic_transform];
         }
-        
+
         italic_font = [NSFont fontWithDescriptor:[italic_font fontDescriptor] textTransform:font_transform];
     }
-    
+
     return italic_font;
 }
 
@@ -109,7 +109,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     const char_t *name = NULL;
     NSFont *nsfont = nil;
     cassert(size > 0.f);
-    
+
     if (str_equ_c(family, "__SYSTEM__") == TRUE)
     {
         if (style & ekFBOLD)
@@ -125,7 +125,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     {
         name = family;
     }
-    
+
     if (nsfont == nil)
     {
         NSFontManager *fontManager = [NSFontManager sharedFontManager];
@@ -142,10 +142,10 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
             NSFontManager *fontManager = [NSFontManager sharedFontManager];
             nsfont = i_convent_to_italic(nsfont, (CGFloat)size, fontManager);
         }
-        
+
         [nsfont retain];
     }
-    
+
     return (OSFont*)nsfont;
 }
 
@@ -184,10 +184,10 @@ void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *ce
 	//NSRect rect = [nsfont boundingRectForFont];
     CGFloat ascender = [nsfont ascender];
     CGFloat descender = - [nsfont descender];
-    //CGFloat leading = [nsfont leading];
+    CGFloat leading = [nsfont leading];
     cassert_no_null(internal_leading);
     cassert_no_null(cell_size);
-    *internal_leading = 1;
+    *internal_leading = (real32_t)leading;
     *cell_size = (real32_t)(ascender + descender);
 }
 
@@ -231,7 +231,7 @@ bool_t font_exists_family(const char_t *ffamily)
         if (str_equ_c(ffamily, family_str) == TRUE)
             return TRUE;
     }
-    
+
     return FALSE;
 }
 
@@ -255,6 +255,6 @@ ArrPt(String) *font_installed_families(void)
         String *ffamily = str_c(family_str);
         arrpt_append(font_families, ffamily, String);
     }
-    
+
     return font_families;
 }

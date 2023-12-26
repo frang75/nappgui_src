@@ -18,15 +18,23 @@ HINSTANCE _osgui_instance(void);
 
 BOOL _osgui_hit_test(HWND hwnd);
 
-void _osgui_add_accelerator(BYTE fVirt, WORD key, WORD cmd);
+uint16_t _osgui_unique_child_id(void);
+
+void _osgui_add_accelerator(BYTE fVirt, WORD key, WORD cmd, HWND hwnd);
 
 void _osgui_remove_accelerator(WORD cmd);
 
 void _osgui_change_accelerator(BYTE fVirt, WORD key, WORD cmd);
 
-LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand, RECT *border);
+HACCEL _osgui_accel_table(void);
 
-LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border);
+HWND _osgui_hwnd_accelerator(WORD cmd);
+
+LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand, INT ypadding, RECT *border);
+
+LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border, HBRUSH padding_bgcolor);
+
+vkey_t _osgui_vkey(const WORD key);
 
 extern const WORD kVIRTUAL_KEY[];
 extern uint32_t kNUM_VKEYS;

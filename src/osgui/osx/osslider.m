@@ -10,15 +10,16 @@
 
 /* Operating System native slider */
 
-#include "osgui_osx.inl"
 #include "osslider.h"
 #include "osslider.inl"
+#include "osslider_osx.inl"
+#include "oscontrol_osx.inl"
+#include "ospanel_osx.inl"
+#include "oswindow_osx.inl"
 #include "osgui.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -74,6 +75,14 @@
 -(BOOL)becomeFirstResponder
 {
     return YES;
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void) mouseDown:(NSEvent*)theEvent
+{
+    if (_oswindow_mouse_down((OSControl*)self) == TRUE)
+        [super mouseDown:theEvent];
 }
 
 @end
@@ -304,13 +313,4 @@ void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const 
 BOOL _osslider_is(NSView *view)
 {
     return [view isKindOfClass:[OSXSlider class]];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osslider_detach_and_destroy(OSSlider **slider, OSPanel *panel)
-{
-    cassert_no_null(slider);
-    osslider_detach(*slider, panel);
-    osslider_destroy(slider);
 }

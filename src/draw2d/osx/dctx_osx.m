@@ -10,19 +10,19 @@
 
 /* Draw context */
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
+#include "draw2d_osx.ixx"
 
 #include "dctx.h"
 #include "dctxh.h"
 #include "dctx.inl"
-#include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "heap.h"
-#include "ptr.h"
-#include "draw2d_osx.ixx"
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -116,12 +116,12 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
 {
     cassert_no_null(ctx);
     cassert(ctx->context == NULL);
-    unref(offset_x);
-    unref(offset_y);
     unref(background);
     ctx->width = width;
     ctx->height = height;
     ctx->context = i_CGContext((NSGraphicsContext*)gcontext);
+    CGContextSaveGState(ctx->context);
+    CGContextTranslateCTM(ctx->context, -(CGFloat)offset_x, -(CGFloat)offset_y);
     ctx->origin = CGContextGetCTM(ctx->context);
     ctx->raster_mode = FALSE;
     if (reset == TRUE)
@@ -134,6 +134,7 @@ void dctx_unset_gcontext(DCtx *ctx)
 {
     cassert_no_null(ctx);
     cassert(ctx->context != NULL);
+    CGContextRestoreGState(ctx->context);
     ctx->context = NULL;
 }
 

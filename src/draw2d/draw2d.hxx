@@ -14,7 +14,7 @@
 #ifndef __DRAW2D_HXX__
 #define __DRAW2D_HXX__
 
-#include "geom2d.hxx"
+#include <geom2d/geom2d.hxx>
 #include "draw2d.def"
 
 typedef enum _pixformat_t
@@ -40,16 +40,16 @@ typedef enum _codec_t
 
 typedef enum _fstyle_t
 {
-    ekFNORMAL       = 0,
-    ekFBOLD         = 1,
-    ekFITALIC       = 2,
-    ekFSTRIKEOUT    = 4,
-    ekFUNDERLINE    = 8,
-    ekFSUBSCRIPT    = 16,
-    ekFSUPSCRIPT    = 32,
+    ekFNORMAL = 0,
+    ekFBOLD = 1,
+    ekFITALIC = 2,
+    ekFSTRIKEOUT = 4,
+    ekFUNDERLINE = 8,
+    ekFSUBSCRIPT = 16,
+    ekFSUPSCRIPT = 32,
 
-    ekFPIXELS       = 0,
-    ekFPOINTS       = 64
+    ekFPIXELS = 0,
+    ekFPOINTS = 64
 } fstyle_t;
 
 typedef enum _linecap_t

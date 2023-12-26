@@ -15,16 +15,15 @@
 #include "dctxh.h"
 #include "dctx_win.inl"
 #include "draw_win.inl"
+#include "font.inl"
 #include "image.inl"
-#include "bmath.h"
-#include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "font.inl"
-#include "heap.h"
-#include "image.inl"
-#include "v2d.h"
-#include "unicode.h"
+#include <geom2d/v2d.h>
+#include <core/heap.h>
+#include <sewer/bmath.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -83,7 +82,7 @@ void draw_dealloc_globals(void)
     //    heap_free((byte_t**)&i_kGRAY4_PALETTE, sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
 
     if (i_kGRAY8_PALETTE != NULL)
-        heap_free((byte_t**)&i_kGRAY8_PALETTE, sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
+        heap_free((byte_t **)&i_kGRAY8_PALETTE, sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -104,19 +103,19 @@ void draw_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-Gdiplus::ColorPalette* _dctx_8bpp_grayscale_palette(void)
+Gdiplus::ColorPalette *_dctx_8bpp_grayscale_palette(void)
 {
     if (i_kGRAY8_PALETTE == NULL)
     {
         register uint32_t i = 0;
-        i_kGRAY8_PALETTE = (Gdiplus::ColorPalette*)heap_malloc(sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
+        i_kGRAY8_PALETTE = (Gdiplus::ColorPalette *)heap_malloc(sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
         i_kGRAY8_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
         i_kGRAY8_PALETTE->Count = 256;
         for (i = 0; i < 256; ++i)
             i_kGRAY8_PALETTE->Entries[i] = Gdiplus::Color::MakeARGB(255, (BYTE)i, (BYTE)i, (BYTE)i);
     }
 
-	return i_kGRAY8_PALETTE;
+    return i_kGRAY8_PALETTE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,7 +136,8 @@ static __INLINE void i_set_gdiplus_mode(DCtx *ctx)
 
 static __INLINE UINT i_gdi_halign(const align_t align)
 {
-    switch (align) {
+    switch (align)
+    {
     case ekLEFT:
     case ekJUSTIFY:
         return TA_LEFT;
@@ -145,7 +145,7 @@ static __INLINE UINT i_gdi_halign(const align_t align)
         return TA_CENTER;
     case ekRIGHT:
         return TA_RIGHT;
-    cassert_default();
+        cassert_default();
     }
 
     return TA_LEFT;
@@ -155,7 +155,8 @@ static __INLINE UINT i_gdi_halign(const align_t align)
 
 static __INLINE UINT i_gdi_valign(const align_t align)
 {
-    switch (align) {
+    switch (align)
+    {
     case ekTOP:
     case ekJUSTIFY:
         return TA_TOP;
@@ -163,7 +164,7 @@ static __INLINE UINT i_gdi_valign(const align_t align)
         return TA_BASELINE;
     case ekBOTTOM:
         return TA_BOTTOM;
-    cassert_default();
+        cassert_default();
     }
 
     return TA_TOP;
@@ -216,9 +217,9 @@ void draw_polyline(DCtx *ctx, bool_t closed, const V2Df *points, const uint32_t 
     cassert_no_null(points);
     cassert(sizeof(V2Df) == sizeof(Gdiplus::PointF));
     i_set_gdiplus_mode(ctx);
-    ctx->graphics->DrawLines(ctx->current_pen, (const Gdiplus::PointF*)points, (INT)n);
+    ctx->graphics->DrawLines(ctx->current_pen, (const Gdiplus::PointF *)points, (INT)n);
     if (closed == TRUE)
-        ctx->graphics->DrawLine(ctx->current_pen, (Gdiplus::REAL)points[n-1].x, (Gdiplus::REAL)points[n-1].y, (Gdiplus::REAL)points[0].x, (Gdiplus::REAL)points[0].y);
+        ctx->graphics->DrawLine(ctx->current_pen, (Gdiplus::REAL)points[n - 1].x, (Gdiplus::REAL)points[n - 1].y, (Gdiplus::REAL)points[0].x, (Gdiplus::REAL)points[0].y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -305,14 +306,15 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 static __INLINE Gdiplus::LineCap i_linecap(const linecap_t cap)
 {
-    switch (cap) {
+    switch (cap)
+    {
     case ekLCFLAT:
         return Gdiplus::LineCapFlat;
     case ekLCSQUARE:
         return Gdiplus::LineCapSquare;
     case ekLCROUND:
         return Gdiplus::LineCapRound;
-    cassert_default();
+        cassert_default();
     };
 
     return Gdiplus::LineCapFlat;
@@ -330,14 +332,15 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 static __INLINE Gdiplus::LineJoin i_linejoin(const linejoin_t join)
 {
-    switch (join) {
+    switch (join)
+    {
     case ekLJMITER:
         return Gdiplus::LineJoinMiter;
     case ekLJROUND:
         return Gdiplus::LineJoinRound;
     case ekLJBEVEL:
         return Gdiplus::LineJoinBevel;
-    cassert_default();
+        cassert_default();
     };
 
     return Gdiplus::LineJoinMiter;
@@ -358,13 +361,13 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
     cassert_no_null(ctx);
     if (pattern != NULL)
     {
-        Gdiplus::Status status = ctx->pen->SetDashPattern((Gdiplus::REAL*)pattern, (INT)n);
+        Gdiplus::Status status = ctx->pen->SetDashPattern((Gdiplus::REAL *)pattern, (INT)n);
         ctx->pen->SetDashStyle(Gdiplus::DashStyleCustom);
         cassert_unref(status == Gdiplus::Ok, status);
 
         if (ctx->fpen != NULL)
         {
-            ctx->fpen->SetDashPattern((Gdiplus::REAL*)pattern, (INT)n);
+            ctx->fpen->SetDashPattern((Gdiplus::REAL *)pattern, (INT)n);
             ctx->fpen->SetDashStyle(Gdiplus::DashStyleCustom);
         }
     }
@@ -383,22 +386,23 @@ static __INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const d
     cassert_no_null(path);
     i_set_gdiplus_mode(ctx);
 
-    switch (op) {
+    switch (op)
+    {
     case ekSTROKE:
-	    ctx->graphics->DrawPath(ctx->current_pen, path);
+        ctx->graphics->DrawPath(ctx->current_pen, path);
         break;
     case ekFILL:
-	    ctx->graphics->FillPath(ctx->current_brush, path);
+        ctx->graphics->FillPath(ctx->current_brush, path);
         break;
     case ekSKFILL:
-	    ctx->graphics->DrawPath(ctx->current_pen, path);
-	    ctx->graphics->FillPath(ctx->current_brush, path);
+        ctx->graphics->DrawPath(ctx->current_pen, path);
+        ctx->graphics->FillPath(ctx->current_brush, path);
         break;
     case ekFILLSK:
-	    ctx->graphics->FillPath(ctx->current_brush, path);
-	    ctx->graphics->DrawPath(ctx->current_pen, path);
+        ctx->graphics->FillPath(ctx->current_brush, path);
+        ctx->graphics->DrawPath(ctx->current_pen, path);
         break;
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -406,7 +410,7 @@ static __INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const d
 
 void draw_rect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-	Gdiplus::GraphicsPath path;
+    Gdiplus::GraphicsPath path;
     Gdiplus::REAL x0, x1, y0, y1;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
@@ -417,7 +421,7 @@ void draw_rect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y,
     path.AddLine(x0, y0, x1, y0);
     path.AddLine(x1, y0, x1, y1);
     path.AddLine(x1, y1, x0, y1);
-	path.CloseFigure();
+    path.CloseFigure();
     i_draw_path(ctx, &path, op);
 }
 
@@ -425,7 +429,7 @@ void draw_rect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y,
 
 void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const real32_t radius)
 {
-	Gdiplus::GraphicsPath path;
+    Gdiplus::GraphicsPath path;
     Gdiplus::REAL radi2 = radius * 2.f;
     Gdiplus::REAL x1 = x + radius;
     Gdiplus::REAL x2 = x + width - radi2;
@@ -435,15 +439,15 @@ void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
     Gdiplus::REAL y3 = y + height;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
-	path.AddLine(x1, y, x2, y);
-	path.AddArc(x2, y, radi2, radi2, 270.f, 90.f);
-	path.AddLine(x3, y1, x3, y2);
-	path.AddArc(x2, y2, radi2, radi2, 0.f, 90.f);
-	path.AddLine(x2, y3, x1, y3);
-	path.AddArc(x, y2, radi2, radi2, 90.f, 90.f);
-	path.AddLine(x, y2, x, y1);
-	path.AddArc(x, y, radi2, radi2, 180.f, 90.f);
-	path.CloseFigure();
+    path.AddLine(x1, y, x2, y);
+    path.AddArc(x2, y, radi2, radi2, 270.f, 90.f);
+    path.AddLine(x3, y1, x3, y2);
+    path.AddArc(x2, y2, radi2, radi2, 0.f, 90.f);
+    path.AddLine(x2, y3, x1, y3);
+    path.AddArc(x, y2, radi2, radi2, 90.f, 90.f);
+    path.AddLine(x, y2, x, y1);
+    path.AddArc(x, y, radi2, radi2, 180.f, 90.f);
+    path.CloseFigure();
     i_draw_path(ctx, &path, op);
 }
 
@@ -451,7 +455,7 @@ void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
 
 void draw_circle(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t radius)
 {
-	Gdiplus::GraphicsPath path;
+    Gdiplus::GraphicsPath path;
     Gdiplus::RectF rect;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
@@ -467,7 +471,7 @@ void draw_circle(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t 
 
 void draw_ellipse(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t radx, const real32_t rady)
 {
-	Gdiplus::GraphicsPath path;
+    Gdiplus::GraphicsPath path;
     Gdiplus::RectF rect;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
@@ -483,13 +487,13 @@ void draw_ellipse(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
 
 void draw_polygon(DCtx *ctx, const drawop_t op, const V2Df *points, const uint32_t n)
 {
-	Gdiplus::GraphicsPath path;
+    Gdiplus::GraphicsPath path;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     cassert_no_null(points);
     cassert(sizeof(V2Df) == sizeof(Gdiplus::PointF));
-    path.AddLines((const Gdiplus::PointF*)points, (INT)n);
-	path.CloseFigure();
+    path.AddLines((const Gdiplus::PointF *)points, (INT)n);
+    path.CloseFigure();
     i_draw_path(ctx, &path, op);
 }
 
@@ -536,7 +540,7 @@ static void i_set_gradient_colors(DCtx *ctx)
         stops[0] = 0;
 
         for (INT i = 0; i < ctx->gradient_n; ++i)
-            stops[i+1] = st + (ctx->gradient_stops[i+1] * norm);
+            stops[i + 1] = st + (ctx->gradient_stops[i + 1] * norm);
 
         stops[ctx->gradient_n + 1] = 1;
 
@@ -570,12 +574,12 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
 
     for (i = 0; i < n; ++i)
     {
-        ctx->gradient_colors[i+1] = i_color(color[i]);
-        ctx->gradient_stops[i+1] = (Gdiplus::REAL)stop[i];
+        ctx->gradient_colors[i + 1] = i_color(color[i]);
+        ctx->gradient_stops[i + 1] = (Gdiplus::REAL)stop[i];
     }
 
-    ctx->gradient_colors[n+1] = i_color(color[n-1]);
-    ctx->gradient_stops[n+1] = 1;
+    ctx->gradient_colors[n + 1] = i_color(color[n - 1]);
+    ctx->gradient_stops[n + 1] = 1;
     ctx->gradient_n = (INT)n;
     i_set_gradient_colors(ctx);
     ctx->current_brush = ctx->lbrush;
@@ -591,12 +595,12 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 {
     cassert_no_null(ctx);
     ctx->gradient_matrix->SetElements(
-                    (Gdiplus::REAL)t2d->i.x,
-                    (Gdiplus::REAL)t2d->i.y,
-                    (Gdiplus::REAL)t2d->j.x,
-                    (Gdiplus::REAL)t2d->j.y,
-                    (Gdiplus::REAL)t2d->p.x,
-                    (Gdiplus::REAL)t2d->p.y);
+        (Gdiplus::REAL)t2d->i.x,
+        (Gdiplus::REAL)t2d->i.y,
+        (Gdiplus::REAL)t2d->j.x,
+        (Gdiplus::REAL)t2d->j.y,
+        (Gdiplus::REAL)t2d->p.x,
+        (Gdiplus::REAL)t2d->p.y);
 
     _dctx_gradient_transform(ctx);
 
@@ -608,14 +612,15 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 
 static __INLINE Gdiplus::WrapMode i_wrap(const fillwrap_t wrap)
 {
-    switch (wrap) {
+    switch (wrap)
+    {
     case ekFCLAMP:
         return Gdiplus::WrapModeClamp;
     case ekFTILE:
         return Gdiplus::WrapModeTile;
     case ekFFLIP:
         return Gdiplus::WrapModeTileFlipX;
-    cassert_default();
+        cassert_default();
     }
 
     return Gdiplus::WrapModeClamp;
@@ -644,7 +649,7 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
     INT lstyle;
 
     family = font_family(font);
-    unicode_convers(family, (char_t*)wfamily, ekUTF8, ekUTF16, sizeof(wfamily));
+    unicode_convers(family, (char_t *)wfamily, ekUTF8, ekUTF16, sizeof(wfamily));
 
     style = font_style(font);
     lstyle = 0;
@@ -680,7 +685,7 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
     //if (style & ekFCELL)
     //    *fintleading = (Gdiplus::REAL)font_internal_leading(font);
     //else
-        *fintleading = 0;
+    *fintleading = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -711,7 +716,8 @@ void draw_font(DCtx *ctx, const Font *font)
 
 static Gdiplus::StringAlignment i_align(const align_t align)
 {
-    switch (align) {
+    switch (align)
+    {
     case ekLEFT:
     case ekJUSTIFY:
         return Gdiplus::StringAlignmentNear;
@@ -719,7 +725,7 @@ static Gdiplus::StringAlignment i_align(const align_t align)
         return Gdiplus::StringAlignmentCenter;
     case ekRIGHT:
         return Gdiplus::StringAlignmentFar;
-    cassert_default();
+        cassert_default();
     }
 
     return Gdiplus::StringAlignmentNear;
@@ -778,10 +784,12 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
         size.Width = out.Width;
         size.Height = out.Height;
 
-        switch(ctx->text_halign) {
+        switch (ctx->text_halign)
+        {
         case ekLEFT:
         case ekJUSTIFY:
-            switch (ctx->text_intalign) {
+            switch (ctx->text_intalign)
+            {
             case ekLEFT:
             case ekJUSTIFY:
                 break;
@@ -792,12 +800,13 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekRIGHT:
                 origin.X += out.Width;
                 break;
-            cassert_default();
+                cassert_default();
             }
             break;
 
         case ekCENTER:
-            switch (ctx->text_intalign) {
+            switch (ctx->text_intalign)
+            {
             case ekLEFT:
             case ekJUSTIFY:
                 origin.X -= out.Width / 2;
@@ -809,12 +818,13 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekRIGHT:
                 origin.X += out.Width / 2;
                 break;
-            cassert_default();
+                cassert_default();
             }
             break;
 
         case ekRIGHT:
-            switch (ctx->text_intalign) {
+            switch (ctx->text_intalign)
+            {
             case ekLEFT:
             case ekJUSTIFY:
                 origin.X -= out.Width;
@@ -827,14 +837,15 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
                 break;
             case ekRIGHT:
                 break;
-            cassert_default();
+                cassert_default();
             }
             break;
 
-        cassert_default();
+            cassert_default();
         }
 
-        switch (ctx->text_valign) {
+        switch (ctx->text_valign)
+        {
         case ekTOP:
         case ekJUSTIFY:
             break;
@@ -844,7 +855,7 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
         case ekBOTTOM:
             origin.Y -= out.Height;
             break;
-        cassert_default();
+            cassert_default();
         }
         //switch (ctx->text_intalign) {
         //case ekLEFT:
@@ -883,12 +894,12 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     }
     else
     {
-        wtext_alloc = (WCHAR*)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText");
+        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText");
         wtext = wtext_alloc;
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t*)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -901,7 +912,8 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     }
     else
     {
-        switch (ctx->text_ellipsis) {
+        switch (ctx->text_ellipsis)
+        {
         case ekELLIPNONE:
         case ekELLIPBEGIN:
             format.SetTrimming(Gdiplus::StringTrimmingCharacter);
@@ -915,14 +927,14 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
         case ekELLIPMLINE:
             format.SetTrimming(Gdiplus::StringTrimmingNone);
             break;
-        cassert_default();
+            cassert_default();
         }
 
         ctx->graphics->DrawString(wtext, -1, ctx->ffont, rect, &format, ctx->tbrush);
     }
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t**)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawText");
+        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawText");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -945,12 +957,12 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     }
     else
     {
-        wtext_alloc = (WCHAR*)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText");
+        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText");
         wtext = wtext_alloc;
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t*)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -969,14 +981,14 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     // Fancy Text --> Use Path
     else
     {
-	    Gdiplus::GraphicsPath path;
+        Gdiplus::GraphicsPath path;
         Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
         path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, Gdiplus::PointF(rect.X, rect.Y), &format);
         i_draw_path(ctx, &path, op);
     }
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t**)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawText");
+        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawText");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1043,12 +1055,12 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     }
     else
     {
-        wtext_alloc = (WCHAR*)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawExtents");
+        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawExtents");
         wtext = wtext_alloc;
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t*)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -1061,7 +1073,7 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     *height = bmath_ceilf((real32_t)out.Height);
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t**)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawExtents");
+        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawExtents");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1085,7 +1097,7 @@ void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, re
     cassert_no_null(width);
     cassert_no_null(height);
     num_chars = unicode_nchars(word, ekUTF8);
-    num_bytes = unicode_convers(word, (char_t*)wword, ekUTF8, ekUTF16, sizeof(wword));
+    num_bytes = unicode_convers(word, (char_t *)wword, ekUTF8, ekUTF16, sizeof(wword));
     cassert(num_bytes < sizeof(wword));
     ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
     cassert(ret != 0);
@@ -1095,7 +1107,7 @@ void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, re
 
 /*---------------------------------------------------------------------------*/
 
-void draw_lineimp(DCtx* ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const bool_t raster)
+void draw_lineimp(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const bool_t raster)
 {
     unref(ctx);
     unref(x0);
@@ -1114,7 +1126,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     cassert_unref(raster == FALSE, raster);
-    bitmap = (Gdiplus::Bitmap*)osimage_native(image);
+    bitmap = (Gdiplus::Bitmap *)osimage_native(image);
     i_set_gdiplus_mode(ctx);
 
     if (frame_index != UINT32_MAX)
@@ -1128,7 +1140,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
     Gdiplus::REAL width = (Gdiplus::REAL)bitmap->GetWidth();
     Gdiplus::REAL height = (Gdiplus::REAL)bitmap->GetHeight();
 
-    switch (ctx->image_halign) {
+    switch (ctx->image_halign)
+    {
     case ekLEFT:
     case ekJUSTIFY:
         break;
@@ -1140,7 +1153,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         break;
     }
 
-    switch (ctx->image_valign) {
+    switch (ctx->image_valign)
+    {
     case ekTOP:
     case ekJUSTIFY:
         break;

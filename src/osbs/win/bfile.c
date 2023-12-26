@@ -12,19 +12,19 @@
 
 #include "osbs.inl"
 #include "bfile.h"
-#include "bmem.h"
-#include "cassert.h"
-#include "ptr.h"
-#include "unicode.h"
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
 #include <ShlObj.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 struct _dir_t
 {
@@ -69,7 +69,7 @@ uint32_t bfile_dir_work(char_t *pathname, const uint32_t size)
 {
     WCHAR pathnamew[MAX_PATH + 1];
     GetCurrentDirectory(sizeof(pathnamew), pathnamew);
-    return unicode_convers((const char_t*)pathnamew, pathname, ekUTF16, ekUTF8, size);
+    return unicode_convers((const char_t *)pathnamew, pathname, ekUTF16, ekUTF8, size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -77,7 +77,7 @@ uint32_t bfile_dir_work(char_t *pathname, const uint32_t size)
 bool_t bfile_dir_set_work(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];
-    unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (SetCurrentDirectory(pathnamew) != 0)
     {
         ptr_assign(error, ekFOK);
@@ -96,7 +96,7 @@ uint32_t bfile_dir_home(char_t *pathname, const uint32_t size)
 {
     WCHAR wname[MAX_PATH + 1];
     if (SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, wname) == S_OK)
-        return unicode_convers((const char_t*)wname, pathname, ekUTF16, ekUTF8, size);
+        return unicode_convers((const char_t *)wname, pathname, ekUTF16, ekUTF8, size);
     pathname[0] = '\0';
     return 1;
 }
@@ -107,7 +107,7 @@ uint32_t bfile_dir_data(char_t *pathname, const uint32_t size)
 {
     WCHAR wname[MAX_PATH + 1];
     if (SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, wname) == S_OK)
-        return unicode_convers((const char_t*)wname, pathname, ekUTF16, ekUTF8, size);
+        return unicode_convers((const char_t *)wname, pathname, ekUTF16, ekUTF8, size);
     pathname[0] = '\0';
     return 1;
 }
@@ -118,7 +118,7 @@ uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
 {
     TCHAR wname[MAX_PATH + 1];
     GetModuleFileName(NULL, wname, MAX_PATH + 1);
-    return unicode_convers((const char_t*)wname, pathname, ekUTF16, ekUTF8, size);
+    return unicode_convers((const char_t *)wname, pathname, ekUTF16, ekUTF8, size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -126,7 +126,7 @@ uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
 bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         if (CreateDirectory(pathnamew, NULL) != 0)
@@ -152,7 +152,7 @@ bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 Dir *bfile_dir_open(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 10];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         HANDLE handle;
@@ -161,7 +161,7 @@ Dir *bfile_dir_open(const char_t *pathname, ferror_t *error)
         handle = FindFirstFile(pathnamew, &find);
         if (handle != INVALID_HANDLE_VALUE)
         {
-            Dir *dir = (Dir*)bmem_malloc(sizeof(Dir));
+            Dir *dir = (Dir *)bmem_malloc(sizeof(Dir));
             _osbs_directory_alloc();
             dir->handle = handle;
             dir->find = find;
@@ -191,7 +191,7 @@ void bfile_dir_close(Dir **dir)
     cassert_no_null(*dir);
     ok = FindClose((*dir)->handle);
     cassert_unref(ok == TRUE, ok);
-    bmem_free((byte_t*)*dir);
+    bmem_free((byte_t *)*dir);
     *dir = NULL;
     _osbs_directory_dealloc();
 }
@@ -220,10 +220,12 @@ static file_type_t i_file_type(DWORD file_attrs)
 static void i_file_date(FILETIME *ftime, Date *date)
 {
     BOOL ok;
+    FILETIME ft;
     SYSTEMTIME st;
     cassert_no_null(ftime);
     cassert_no_null(date);
-    ok = FileTimeToSystemTime(ftime, &st);
+    ok = FileTimeToLocalFileTime(ftime, &ft);
+    FileTimeToSystemTime(&ft, &st);
     cassert_unref(ok == TRUE, ok);
     date->wday = (week_day_t)st.wDayOfWeek;
     date->mday = (uint8_t)st.wDay;
@@ -243,7 +245,7 @@ bool_t bfile_dir_get(Dir *dir, char_t *name, const uint32_t size, file_type_t *t
     {
         if (name != NULL)
         {
-            uint32_t nb = unicode_convers((const char_t*)dir->find.cFileName, name, ekUTF16, ekUTF8, size);
+            uint32_t nb = unicode_convers((const char_t *)dir->find.cFileName, name, ekUTF16, ekUTF8, size);
             if (nb == size)
             {
                 ptr_assign(error, ekFBIGNAME);
@@ -293,7 +295,7 @@ bool_t bfile_dir_get(Dir *dir, char_t *name, const uint32_t size, file_type_t *t
 bool_t bfile_dir_delete(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         BOOL result = RemoveDirectory(pathnamew);
@@ -320,7 +322,7 @@ bool_t bfile_dir_delete(const char_t *pathname, ferror_t *error)
 File *bfile_create(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         HANDLE file = CreateFile(pathnamew, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -328,7 +330,7 @@ File *bfile_create(const char_t *pathname, ferror_t *error)
         {
             _osbs_file_alloc();
             ptr_assign(error, ekFOK);
-            return (File*)file;
+            return (File *)file;
         }
         else
         {
@@ -349,7 +351,7 @@ File *bfile_open(const char_t *pathname, const file_mode_t mode, ferror_t *error
 {
     /*#C.h2("OJO!!! comprobar bloqueo en archivos escritura")*/
     WCHAR pathnamew[MAX_PATH + 1];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         DWORD access = 0;
@@ -363,7 +365,7 @@ File *bfile_open(const char_t *pathname, const file_mode_t mode, ferror_t *error
         case ekAPPEND:
             access = GENERIC_READ | GENERIC_WRITE;
             break;
-        cassert_default();
+            cassert_default();
         }
 
         file = CreateFile(pathnamew, access, 0 /*dwSharedMode*/, NULL /*lpSecurityAttributes */, OPEN_EXISTING, 0, NULL /*hTemplateFile*/);
@@ -376,12 +378,12 @@ File *bfile_open(const char_t *pathname, const file_mode_t mode, ferror_t *error
 
             ptr_assign(error, ekFOK);
 
-            #if defined (__x64__)
+#if defined(__x64__)
             // Avoid warning C4306: 'type cast' : conversion from 'HFILE' to 'File *' of greater size
-            return (File*)(uint64_t)file;
-            #else
-            return (File*)file;
-            #endif
+            return (File *)(uint64_t)file;
+#else
+            return (File *)file;
+#endif
         }
         else
         {
@@ -401,10 +403,10 @@ File *bfile_open(const char_t *pathname, const file_mode_t mode, ferror_t *error
 void bfile_close(File **file)
 {
     BOOL ok;
-	cassert_no_null(file);
-	cassert_no_null(*file);
+    cassert_no_null(file);
+    cassert_no_null(*file);
     ok = CloseHandle((HANDLE)*file);
-	cassert(ok != 0);
+    cassert(ok != 0);
     _osbs_file_dealloc();
     *file = NULL;
 }
@@ -456,7 +458,7 @@ static bool_t i_file_stat(HANDLE file, file_type_t *file_type, uint64_t *file_si
 bool_t bfile_lstat(const char_t *pathname, file_type_t *type, uint64_t *size, Date *updated, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         WIN32_FILE_ATTRIBUTE_DATA attribs;
@@ -514,30 +516,30 @@ bool_t bfile_fstat(const File *file, file_type_t *type, uint64_t *size, Date *up
 
         switch (ltype)
         {
-            case FILE_TYPE_DISK:
-                *type = ekARCHIVE;
+        case FILE_TYPE_DISK:
+            *type = ekARCHIVE;
+            break;
+        case FILE_TYPE_CHAR:
+            *type = ekOTHERFILE;
+            break;
+        case FILE_TYPE_PIPE:
+            *type = ekOTHERFILE;
+            break;
+        case FILE_TYPE_UNKNOWN:
+            *type = ekOTHERFILE;
+            if (GetLastError() != 0)
+            {
                 break;
-            case FILE_TYPE_CHAR:
-                *type = ekOTHERFILE;
-                break;
-            case FILE_TYPE_PIPE:
-                *type = ekOTHERFILE;
-                break;
-            case FILE_TYPE_UNKNOWN:
-                *type = ekOTHERFILE;
-                if (GetLastError() != 0)
-                {
-                    break;
-                }
-                else
-                {
-                    i_file_error(error);
-                    return FALSE;
-                }
+            }
+            else
+            {
+                i_file_error(error);
+                return FALSE;
+            }
 
-            default:
-                cassert_msg(FALSE, "file_fstat: unknown type");
-                *type = ekOTHERFILE;
+        default:
+            cassert_msg(FALSE, "file_fstat: unknown type");
+            *type = ekOTHERFILE;
         }
     }
 
@@ -566,7 +568,7 @@ bool_t bfile_fstat(const File *file, file_type_t *type, uint64_t *size, Date *up
     }
 
     ptr_assign(error, ekFOK);
-	return TRUE;
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -575,8 +577,8 @@ bool_t bfile_read(File *file, byte_t *data, const uint32_t size, uint32_t *rsize
 {
     DWORD lrsize = 0;
     BOOL ok;
-	cassert_no_null(file);
-	cassert_no_null(data);
+    cassert_no_null(file);
+    cassert_no_null(data);
     ok = ReadFile((HANDLE)file, (LPVOID)data, (DWORD)size, &lrsize, NULL);
     if (ok != 0)
     {
@@ -607,8 +609,8 @@ bool_t bfile_write(File *file, const byte_t *data, const uint32_t size, uint32_t
 {
     DWORD lwsize = 0;
     BOOL ok;
-	cassert_no_null(file);
-	cassert_no_null(data);
+    cassert_no_null(file);
+    cassert_no_null(data);
     ok = WriteFile((HANDLE)file, (LPVOID)data, (DWORD)size, &lwsize, NULL);
     if (ok != 0)
     {
@@ -634,7 +636,8 @@ bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, fe
     cassert_no_null(file);
 
     li.QuadPart = (LONGLONG)offset;
-    switch (whence) {
+    switch (whence)
+    {
     case ekSEEKSET:
         method = FILE_BEGIN;
         break;
@@ -644,7 +647,7 @@ bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, fe
     case ekSEEKEND:
         method = FILE_END;
         break;
-    cassert_default();
+        cassert_default();
     }
 
     ret = SetFilePointer((HANDLE)file, li.LowPart, &li.HighPart, method);
@@ -666,7 +669,7 @@ bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, fe
         }
 
         return FALSE;
-   }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -685,7 +688,7 @@ uint64_t bfile_pos(const File *file)
 bool_t bfile_delete(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];
-    uint32_t num_bytes = unicode_convers(pathname, (char_t*)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    uint32_t num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         if (DeleteFile(pathnamew) != 0)

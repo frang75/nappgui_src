@@ -70,4 +70,3 @@ _sewer_api uint32_t unicode_tolower(const uint32_t codepoint);
 _sewer_api uint32_t unicode_toupper(const uint32_t codepoint);
 
 __END_C
-

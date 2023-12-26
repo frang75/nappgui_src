@@ -13,11 +13,11 @@
 #include "nfa.inl"
 #include "arrpt.h"
 #include "arrst.h"
-#include "bmem.h"
-#include "cassert.h"
 #include "heap.h"
 #include "stream.h"
-#include "unicode.h"
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 typedef struct _ntoken_t NToken;
 typedef struct _trans_t Trans;
@@ -48,9 +48,9 @@ struct _trans_t
 
 struct _nfa_t
 {
-    ArrSt(Trans) *ttable;
-    ArrSt(uint32_t) *current;
-    ArrSt(uint32_t) *temp;
+    ArrSt(Trans) * ttable;
+    ArrSt(uint32_t) * current;
+    ArrSt(uint32_t) * temp;
 };
 
 #define MIN_UNICODE 5
@@ -61,57 +61,57 @@ DeclSt(symbol_t);
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_tokens(Stream *stm, const ArrSt(NToken) *tokens)
+static void i_write_tokens(Stream *stm, const ArrSt(NToken) * tokens)
 {
-    arrst_foreach_const(token, tokens, NToken)
-        switch (token->symbol) {
-        case ekCHAR:
-            if (token->from == MIN_UNICODE && token->to == MAX_UNICODE)
-            {
-                stm_writef(stm, "[.]");
-            }
-            else if (token->from == '*' && token->to == '*')
-            {
-                stm_writef(stm, "[*]");
-            }
+    arrst_foreach_const(token, tokens, NToken) switch (token->symbol)
+    {
+    case ekCHAR:
+        if (token->from == MIN_UNICODE && token->to == MAX_UNICODE)
+        {
+            stm_writef(stm, "[.]");
+        }
+        else if (token->from == '*' && token->to == '*')
+        {
+            stm_writef(stm, "[*]");
+        }
+        else
+        {
+            if (token->from == '\n')
+                stm_writef(stm, "[\\n]");
             else
+                stm_write_char(stm, token->from);
+
+            if (token->from != token->to)
             {
-                if (token->from == '\n')
+                cassert(token->from < token->to);
+                stm_write_char(stm, '-');
+                if (token->to == '\n')
                     stm_writef(stm, "[\\n]");
                 else
-                    stm_write_char(stm, token->from);
-
-                if (token->from != token->to)
-                {
-                    cassert(token->from < token->to);
-                    stm_write_char(stm, '-');
-                    if (token->to == '\n')
-                        stm_writef(stm, "[\\n]");
-                    else
-                        stm_write_char(stm, token->to);
-                }
+                    stm_write_char(stm, token->to);
             }
-            break;
+        }
+        break;
 
-        case ekOR:
-            stm_write_char(stm, '|');
-            break;
+    case ekOR:
+        stm_write_char(stm, '|');
+        break;
 
-        case ekCONCAT:
-            stm_write_char(stm, '&');
-            break;
+    case ekCONCAT:
+        stm_write_char(stm, '&');
+        break;
 
-        case ekCLOSURE:
-            stm_write_char(stm, '*');
-            break;
+    case ekCLOSURE:
+        stm_write_char(stm, '*');
+        break;
 
-        case ekLEFT_PAR:
-        case ekRIGH_PAR:
-            stm_write_char(stm, token->from);
-            break;
+    case ekLEFT_PAR:
+    case ekRIGH_PAR:
+        stm_write_char(stm, token->from);
+        break;
 
         cassert_default();
-        }
+    }
     arrst_end();
 
     stm_write_char(stm, '\n');
@@ -123,49 +123,48 @@ static void i_write_tokens(Stream *stm, const ArrSt(NToken) *tokens)
 static void i_write_nfa(Stream *stm, const NFA *nfa)
 {
     cassert_no_null(nfa);
-    arrst_foreach(trans, nfa->ttable, Trans)
-        if (trans->symbol != UINT32_MAX)
+    arrst_foreach(trans, nfa->ttable, Trans) if (trans->symbol != UINT32_MAX)
+    {
+        if (trans->extra == 0)
         {
-            if (trans->extra == 0)
-            {
-                cassert(trans_i == trans_total - 1);
-                cassert(trans->state == UINT32_MAX);
-                stm_printf(stm, "%d [ACCEPT]\n", trans_i);
-            }
-            else if (trans->symbol == MIN_UNICODE && trans->extra == MAX_UNICODE)
-            {
-                stm_printf(stm, "%d [.] --> %d\n", trans_i, trans->state);
-            }
-            else if (trans->extra > trans->symbol)
-            {
-                stm_printf(stm, "%d [%c-%c] --> %d\n", trans_i, trans->symbol, trans->extra, trans->state);
-            }
-            else
-            {
-                cassert(trans->extra == trans->symbol);
-                if (trans->symbol == '\n')
-                    stm_printf(stm, "%d [\\n] --> %d\n", trans_i, trans->state);
-                else
-                    stm_printf(stm, "%d [%c] --> %d\n", trans_i, trans->symbol, trans->state);
-            }
+            cassert(trans_i == trans_total - 1);
+            cassert(trans->state == UINT32_MAX);
+            stm_printf(stm, "%d [ACCEPT]\n", trans_i);
+        }
+        else if (trans->symbol == MIN_UNICODE && trans->extra == MAX_UNICODE)
+        {
+            stm_printf(stm, "%d [.] --> %d\n", trans_i, trans->state);
+        }
+        else if (trans->extra > trans->symbol)
+        {
+            stm_printf(stm, "%d [%c-%c] --> %d\n", trans_i, trans->symbol, trans->extra, trans->state);
         }
         else
         {
-            if (trans->extra != UINT32_MAX)
-            {
-                stm_printf(stm, "%d [ε1] --> %d [ε2] --> %d\n", trans_i, trans->state, trans->extra);
-            }
+            cassert(trans->extra == trans->symbol);
+            if (trans->symbol == '\n')
+                stm_printf(stm, "%d [\\n] --> %d\n", trans_i, trans->state);
             else
-            {
-                stm_printf(stm, "%d [ε] --> %d\n", trans_i, trans->state);
-            }
+                stm_printf(stm, "%d [%c] --> %d\n", trans_i, trans->symbol, trans->state);
         }
+    }
+    else
+    {
+        if (trans->extra != UINT32_MAX)
+        {
+            stm_printf(stm, "%d [ε1] --> %d [ε2] --> %d\n", trans_i, trans->state, trans->extra);
+        }
+        else
+        {
+            stm_printf(stm, "%d [ε] --> %d\n", trans_i, trans->state);
+        }
+    }
     arrst_end();
 }
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
 
 static bool_t i_is_last(const Trans *trans)
 {
@@ -174,7 +173,7 @@ static bool_t i_is_last(const Trans *trans)
     if (trans->state == UINT32_MAX)
         return (bool_t)(trans->symbol == 0 && trans->extra == 0);
     /* Closure NFA */
-    else 
+    else
         return (bool_t)(trans->symbol == UINT32_MAX && trans->extra == UINT32_MAX);
 }
 
@@ -183,9 +182,7 @@ static bool_t i_is_last(const Trans *trans)
 static bool_t i_check_nfa(const NFA *nfa)
 {
     Trans *ltrans = NULL;
-    arrst_foreach(trans, nfa->ttable, Trans)
-        if (trans->state != UINT32_MAX && trans->state >= trans_total)
-            return FALSE;
+    arrst_foreach(trans, nfa->ttable, Trans) if (trans->state != UINT32_MAX && trans->state >= trans_total) return FALSE;
     arrst_end();
 
     ltrans = arrst_last(nfa->ttable, Trans);
@@ -243,14 +240,14 @@ void _nfa_destroy(NFA **nfa)
 
 /*---------------------------------------------------------------------------*/
 
-static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
+static ArrSt(NToken) * i_tokens_unix_regex(const char_t *regex)
 {
     bool_t ok = TRUE;
     ArrSt(NToken) *tokens = arrst_create(NToken);
     ArrSt(NToken) *opens = arrst_create(NToken);
     uint32_t codepoint = unicode_to_u32(regex, ekUTF8);
     bool_t backslash = FALSE;
-    while (codepoint != 0 && ok) 
+    while (codepoint != 0 && ok)
     {
         NToken token = {(symbol_t)0, 0, 0};
 
@@ -277,7 +274,8 @@ static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
         }
         else
         {
-            switch (codepoint) {
+            switch (codepoint)
+            {
             case '\\':
                 cassert(backslash == FALSE);
                 backslash = TRUE;
@@ -289,8 +287,7 @@ static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
                 arrst_append(opens, token, NToken);
                 break;
 
-            case ']':
-            {
+            case ']': {
                 NToken *last = arrst_last(opens, NToken);
                 token.symbol = ekRIGH_PAR;
                 token.from = ']';
@@ -307,8 +304,7 @@ static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
                 arrst_append(opens, token, NToken);
                 break;
 
-            case ')':
-            {
+            case ')': {
                 NToken *last = arrst_last(opens, NToken);
                 token.symbol = ekRIGH_PAR;
                 token.from = ')';
@@ -366,7 +362,7 @@ static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_implicits_unix_regex(ArrSt(NToken) *tokens)
+static void i_implicits_unix_regex(ArrSt(NToken) * tokens)
 {
     ArrSt(symbol_t) *implicit = arrst_create(symbol_t);
     register uint32_t i = 0, n = arrst_size(tokens, NToken);
@@ -375,7 +371,8 @@ static void i_implicits_unix_regex(ArrSt(NToken) *tokens)
     while (i < n)
     {
         NToken token = *arrst_get(tokens, i, NToken);
-        switch (token.symbol) {
+        switch (token.symbol)
+        {
         case ekCHAR:
         case ekLEFT_PAR:
             if (prev == ekCHAR || prev == ekRIGH_PAR || prev == ekCLOSURE)
@@ -414,72 +411,72 @@ static void i_implicits_unix_regex(ArrSt(NToken) *tokens)
 
 /*---------------------------------------------------------------------------*/
 /* Shunting-yard algorithm */
-static void i_regex_to_infix(ArrSt(NToken) **tokens)
+static void i_regex_to_infix(ArrSt(NToken) * *tokens)
 {
     ArrSt(NToken) *output = arrst_create(NToken);
     ArrSt(NToken) *stack = arrst_create(NToken);
-    arrst_foreach(token, *tokens, NToken)
-        switch(token->symbol) {
-        /* If the token is a number, then: 
+    arrst_foreach(token, *tokens, NToken) switch (token->symbol)
+    {
+    /* If the token is a number, then: 
             Push it to the output queue. */
-        case ekCHAR:
-            arrst_append(output, *token, NToken);
-            break;
+    case ekCHAR:
+        arrst_append(output, *token, NToken);
+        break;
 
-        /* If the token is an operator, then: 
+    /* If the token is an operator, then: 
            while (there is an operator at the top of the operator stack with greater precedence)
               and (the operator at the top of the operator stack is not a left parenthesis):
             pop operators from the operator stack onto the output queue.
            Push it onto the operator stack. */
-        case ekOR:
-        case ekCONCAT:
-        case ekCLOSURE:
-            while(arrst_size(stack, NToken) > 0)
+    case ekOR:
+    case ekCONCAT:
+    case ekCLOSURE:
+        while (arrst_size(stack, NToken) > 0)
+        {
+            const NToken *top = arrst_last(stack, NToken);
+            if (top->symbol != ekLEFT_PAR && top->symbol >= token->symbol)
             {
-                const NToken *top = arrst_last(stack, NToken);
-                if (top->symbol != ekLEFT_PAR && top->symbol >= token->symbol)
-                {
-                    arrst_append(output, *top, NToken);
-                    arrst_pop(stack, NULL, NToken);
-                    if (top->symbol == token->symbol)
-                        break;
-                }
-                else
-                {
+                arrst_append(output, *top, NToken);
+                arrst_pop(stack, NULL, NToken);
+                if (top->symbol == token->symbol)
                     break;
-                }
             }
-            arrst_append(stack, *token, NToken);
-            break;
+            else
+            {
+                break;
+            }
+        }
+        arrst_append(stack, *token, NToken);
+        break;
 
-        /* If the token is a left paren (i.e. "("), then:
+    /* If the token is a left paren (i.e. "("), then:
            Push it onto the operator stack. */
-        case ekLEFT_PAR:
-            arrst_append(stack, *token, NToken);
-            break;
+    case ekLEFT_PAR:
+        arrst_append(stack, *token, NToken);
+        break;
 
-        /* If the token is a right paren (i.e. ")"), then:
+    /* If the token is a right paren (i.e. ")"), then:
             while the operator at the top of the operator stack is not a left paren:
                 pop the operator from the operator stack onto the output queue. */
-        case ekRIGH_PAR:
-            for(;;)
+    case ekRIGH_PAR:
+        for (;;)
+        {
+            NToken top = *arrst_last(stack, NToken);
+            arrst_pop(stack, NULL, NToken);
+            if (top.symbol != ekLEFT_PAR)
             {
-                NToken top = *arrst_last(stack, NToken);
-                arrst_pop(stack, NULL, NToken);
-                if (top.symbol != ekLEFT_PAR)
-                {
-                    arrst_append(output, top, NToken);
-                }
-                else
-                {
-                    cassert((token->from == ']' && top.from == '[') || (token->from == ')' && top.from == '('));
-                    break;
-                }
+                arrst_append(output, top, NToken);
             }
-            break;
+            else
+            {
+                cassert((token->from == ']' && top.from == '[') || (token->from == ')' && top.from == '('));
+                break;
+            }
+        }
+        break;
 
         cassert_default();
-        }
+    }
     arrst_end();
 
     while (arrst_size(stack, NToken) > 0)
@@ -496,7 +493,7 @@ static void i_regex_to_infix(ArrSt(NToken) **tokens)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_offset(ArrSt(Trans) *ttable, const uint32_t offset)
+static void i_offset(ArrSt(Trans) * ttable, const uint32_t offset)
 {
     register uint32_t i, n = arrst_size(ttable, Trans);
     register Trans *trans = arrst_all(ttable, Trans);
@@ -522,7 +519,7 @@ static void i_offset(ArrSt(Trans) *ttable, const uint32_t offset)
         cassert(trans->extra == UINT32_MAX);
         trans->state += offset;
     }
-    
+
     cassert(i_is_last(trans) == TRUE);
 }
 
@@ -547,7 +544,7 @@ static NFA *i_nfa_base(const uint32_t from, const uint32_t to)
 /*---------------------------------------------------------------------------*/
 
 static void i_nfa_union(NFA *nfa1, NFA *nfa2)
-{  
+{
     register uint32_t n1, n2;
     register Trans *trans = NULL;
     register Trans *trans2 = NULL;
@@ -599,7 +596,7 @@ static void i_nfa_union(NFA *nfa1, NFA *nfa2)
 /*---------------------------------------------------------------------------*/
 
 static void i_nfa_concat(NFA *nfa1, NFA *nfa2)
-{  
+{
     register uint32_t n1, n2;
     register Trans *trans = NULL;
     register Trans *trans2 = NULL;
@@ -640,7 +637,7 @@ static void i_nfa_concat(NFA *nfa1, NFA *nfa2)
 /*---------------------------------------------------------------------------*/
 
 static void i_nfa_closure(NFA *nfa1)
-{  
+{
     register uint32_t n1;
     register Trans *trans = NULL;
     cassert_no_null(nfa1);
@@ -684,57 +681,53 @@ static void i_nfa_closure(NFA *nfa1)
 
 /*---------------------------------------------------------------------------*/
 
-static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
+static NFA *i_infix_to_NFA(const ArrSt(NToken) * tokens)
 {
     ArrPt(NFA) *stack = arrpt_create(NFA);
     NFA *nfa = NULL;
 
-    arrst_foreach_const(token, tokens, NToken)
-        switch(token->symbol) {
-        case ekCHAR:
-        {
-            NFA *nfa1 = i_nfa_base(token->from, token->to);
-            cassert(i_check_nfa(nfa1) == TRUE);
-            arrpt_append(stack, nfa1, NFA);
-            break;
-        }
+    arrst_foreach_const(token, tokens, NToken) switch (token->symbol)
+    {
+    case ekCHAR: {
+        NFA *nfa1 = i_nfa_base(token->from, token->to);
+        cassert(i_check_nfa(nfa1) == TRUE);
+        arrpt_append(stack, nfa1, NFA);
+        break;
+    }
 
-        case ekOR:
-        {
-            NFA *nfa1, *nfa2;
-            nfa2 = arrpt_last(stack, NFA);
-            arrpt_pop(stack, NULL, NFA);
-            nfa1 = arrpt_last(stack, NFA);
-            i_nfa_union(nfa1, nfa2);
-            cassert(i_check_nfa(nfa1) == TRUE);
-            _nfa_destroy(&nfa2);
-            break;
-        }
-        
-        case ekCONCAT:
-        {
-            NFA *nfa1, *nfa2;
-            nfa2 = arrpt_last(stack, NFA);
-            arrpt_pop(stack, NULL, NFA);
-            nfa1 = arrpt_last(stack, NFA);
-            i_nfa_concat(nfa1, nfa2);
-            cassert(i_check_nfa(nfa1) == TRUE);
-            _nfa_destroy(&nfa2);
-            break;
-        }
+    case ekOR: {
+        NFA *nfa1, *nfa2;
+        nfa2 = arrpt_last(stack, NFA);
+        arrpt_pop(stack, NULL, NFA);
+        nfa1 = arrpt_last(stack, NFA);
+        i_nfa_union(nfa1, nfa2);
+        cassert(i_check_nfa(nfa1) == TRUE);
+        _nfa_destroy(&nfa2);
+        break;
+    }
 
-        case ekCLOSURE:
-        {
-            NFA *nfa1 = arrpt_last(stack, NFA);
-            i_nfa_closure(nfa1);
-            cassert(i_check_nfa(nfa1) == TRUE);
-            break;
-        }
+    case ekCONCAT: {
+        NFA *nfa1, *nfa2;
+        nfa2 = arrpt_last(stack, NFA);
+        arrpt_pop(stack, NULL, NFA);
+        nfa1 = arrpt_last(stack, NFA);
+        i_nfa_concat(nfa1, nfa2);
+        cassert(i_check_nfa(nfa1) == TRUE);
+        _nfa_destroy(&nfa2);
+        break;
+    }
 
-        case ekLEFT_PAR:
-        case ekRIGH_PAR:
+    case ekCLOSURE: {
+        NFA *nfa1 = arrpt_last(stack, NFA);
+        i_nfa_closure(nfa1);
+        cassert(i_check_nfa(nfa1) == TRUE);
+        break;
+    }
+
+    case ekLEFT_PAR:
+    case ekRIGH_PAR:
         cassert_default();
-        }
+    }
     arrst_end();
 
     nfa = arrpt_last(stack, NFA);
@@ -791,17 +784,15 @@ NFA *_nfa_regex(const char_t *regex, const bool_t verbose)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_state(ArrSt(uint32_t) *states, const uint32_t state)
+static void i_add_state(ArrSt(uint32_t) * states, const uint32_t state)
 {
-    arrst_foreach(cstate, states, uint32_t)
-        if (*cstate == state)
-            return;
+    arrst_foreach(cstate, states, uint32_t) if (*cstate == state) return;
 
-        if (*cstate > state)
-        {
-            arrst_insert(states, cstate_i, state, uint32_t);
-            return;
-        }
+    if (*cstate > state)
+    {
+        arrst_insert(states, cstate_i, state, uint32_t);
+        return;
+    }
     arrst_end();
 
     arrst_append(states, state, uint32_t);
@@ -809,7 +800,7 @@ static void i_add_state(ArrSt(uint32_t) *states, const uint32_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_closure(const ArrSt(Trans) *ttable, ArrSt(uint32_t) *states, const uint32_t state)
+static void i_add_closure(const ArrSt(Trans) * ttable, ArrSt(uint32_t) * states, const uint32_t state)
 {
     const Trans *trans = arrst_get_const(ttable, state, Trans);
 
@@ -820,7 +811,7 @@ static void i_add_closure(const ArrSt(Trans) *ttable, ArrSt(uint32_t) *states, c
     else
     {
         cassert(trans->state != UINT32_MAX);
-     
+
         /* Closure last state (accept) */
         if (state == arrst_size(ttable, Trans) - 1)
             i_add_state(states, state);
@@ -860,11 +851,11 @@ bool_t _nfa_next(NFA *nfa, const uint32_t codepoint)
     arrst_clear(nfa->temp, NULL, uint32_t);
     arrst_foreach(state, nfa->current, uint32_t)
         const Trans *trans = arrst_get(nfa->ttable, *state, Trans);
-        if (codepoint >= trans->symbol && codepoint <= trans->extra)
-            i_add_closure(nfa->ttable, nfa->temp, trans->state);
+    if (codepoint >= trans->symbol && codepoint <= trans->extra)
+        i_add_closure(nfa->ttable, nfa->temp, trans->state);
     arrst_end();
 
-    bmem_swap_type(&nfa->current, &nfa->temp, ArrSt(uint32_t)*);
+    bmem_swap_type(&nfa->current, &nfa->temp, ArrSt(uint32_t) *);
     return (bool_t)(arrst_size(nfa->current, uint32_t) > 0);
 }
 
@@ -875,10 +866,7 @@ bool_t _nfa_accept(NFA *nfa)
     register uint32_t accept;
     cassert_no_null(nfa);
     accept = arrst_size(nfa->ttable, Trans) - 1;
-    arrst_foreach(state, nfa->current, uint32_t)
-        if (*state == accept)
-            return TRUE;
+    arrst_foreach(state, nfa->current, uint32_t) if (*state == accept) return TRUE;
     arrst_end();
     return FALSE;
 }
-

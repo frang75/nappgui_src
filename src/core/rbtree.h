@@ -53,4 +53,3 @@ _core_api const char_t *rbtree_get_key(const RBTree *tree);
 _core_api bool_t rbtree_check(const RBTree *tree);
 
 __END_C
-

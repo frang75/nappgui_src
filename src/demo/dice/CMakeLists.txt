@@ -1,1 +1,0 @@
-processDesktopApp(Dice "osapp;casino" "")

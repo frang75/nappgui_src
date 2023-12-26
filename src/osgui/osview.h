@@ -44,13 +44,19 @@ _osgui_api void osview_OnKeyUp(OSView *view, Listener *listener);
 
 _osgui_api void osview_OnFocus(OSView *view, Listener *listener);
 
-_osgui_api void osview_OnNotify(OSView *view, Listener *listener);
+_osgui_api void osview_OnResignFocus(OSView *view, Listener *listener);
+
+_osgui_api void osview_OnAcceptFocus(OSView *view, Listener *listener);
+
+_osgui_api void osview_OnScroll(OSView *view, Listener *listener);
 
 _osgui_api void osview_scroll(OSView *view, const real32_t x, const real32_t y);
 
 _osgui_api void osview_scroll_get(const OSView *view, real32_t *x, real32_t *y);
 
 _osgui_api void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height);
+
+_osgui_api void osview_scroller_visible(OSView *view, const bool_t horizontal, const bool_t vertical);
 
 _osgui_api void osview_content_size(OSView *view, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height);
 
@@ -59,7 +65,6 @@ _osgui_api real32_t osview_scale_factor(const OSView *view);
 _osgui_api void osview_set_need_display(OSView *view);
 
 _osgui_api void *osview_get_native_view(const OSView *view);
-
 
 _osgui_api void osview_attach(OSView *view, OSPanel *panel);
 

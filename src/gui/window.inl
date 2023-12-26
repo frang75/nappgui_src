@@ -20,11 +20,11 @@ void *_window_ositem(Window *window);
 
 bool_t _window_is_visible(const Window *window);
 
-#if defined (__DESKTOP__)
+Panel *_window_main_panel(Window *window);
+
+#if defined(__DESKTOP__)
 
 void _window_taborder(Window *window, void *ositem);
-
-void _window_tabstop(Window *window, const bool_t next);
 
 #endif
 
@@ -39,4 +39,3 @@ S2Df _window_get_size(const Window *window);
 void window_launch_overlay(Window *window, Window *parent_window);
 
 __END_C
-

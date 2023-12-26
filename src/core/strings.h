@@ -34,7 +34,9 @@ _core_api String *str_path(const platform_t platform, const char_t *format, ...)
 
 _core_api String *str_cpath(const char_t *format, ...) __PRINTF(1, 2);
 
-_core_api String *str_relpath(const char_t *path1, const char_t *path2);
+_core_api String *str_relpath(const platform_t platform, const char_t *path1, const char_t *path2);
+
+_core_api String *str_crelpath(const char_t *path1, const char_t *path2);
 
 _core_api String *str_repl(const char_t *str, ...);
 
@@ -114,6 +116,8 @@ _core_api bool_t str_split(const char_t *str, const char_t *substr, String **lef
 
 _core_api bool_t str_split_trim(const char_t *str, const char_t *substr, String **left, String **right);
 
+_core_api ArrPt(String) * str_splits(const char_t *str, const char_t *substr, const bool_t trim);
+
 _core_api void str_split_pathname(const char_t *pathname, String **path, String **file);
 
 _core_api void str_split_pathext(const char_t *pathname, String **path, String **file, String **ext);
@@ -122,7 +126,7 @@ _core_api const char_t *str_filename(const char_t *pathname);
 
 _core_api const char_t *str_filext(const char_t *pathname);
 
-_core_api uint32_t str_find(const ArrPt(String) *array, const char_t *str);
+_core_api uint32_t str_find(const ArrPt(String) * array, const char_t *str);
 
 _core_api int8_t str_to_i8(const char_t *str, const uint32_t base, bool_t *error);
 

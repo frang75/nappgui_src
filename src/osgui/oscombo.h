@@ -48,7 +48,6 @@ _osgui_api uint32_t oscombo_get_selected(const OSCombo *combo);
 
 _osgui_api void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height);
 
-
 _osgui_api void oscombo_attach(OSCombo *combo, OSPanel *panel);
 
 _osgui_api void oscombo_detach(OSCombo *combo, OSPanel *panel);

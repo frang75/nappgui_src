@@ -61,7 +61,7 @@ void cassert_no_null_imp(void *ptr, const char_t *detail, const char_t *file, co
 
 /*---------------------------------------------------------------------------*/
 
-void cassert_no_nullf_imp(void(*ptr)(void), const char_t *detail, const char_t *file, const uint32_t line)
+void cassert_no_nullf_imp(void (*ptr)(void), const char_t *detail, const char_t *file, const uint32_t line)
 {
     if (ptr == NULL)
         i_assert_message(0, "NULL function access", detail, file, line);
@@ -75,7 +75,6 @@ void cassert_default_imp(const char_t *file, const uint32_t line)
 }
 
 /*---------------------------------------------------------------------------*/
-
 
 #if defined __WINDOWS__
 

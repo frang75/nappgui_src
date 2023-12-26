@@ -35,4 +35,3 @@ Stream *oshttp_response(OSHttp *http);
 void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error);
 
 __END_C
-

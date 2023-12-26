@@ -13,10 +13,10 @@
 #ifndef __DRAWLIB_GTK_IXX__
 #define __DRAWLIB_GTK_IXX__
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <cairo.h>
 #include <pango/pango.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 typedef enum _fillmode_t
 {

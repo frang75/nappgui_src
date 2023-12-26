@@ -28,9 +28,9 @@ void _osgui_ew_resize_cursor(GtkWidget *widget);
 
 void _osgui_default_cursor(GtkWidget *widget);
 
-void _osgui_pre_initialize(void);
+uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint32_t size);
 
-bool_t _osgui_is_pre_initialized(void);
+vkey_t _osgui_vkey(GdkEventKey *event, uint32_t *modifiers);
 
 extern const guint kVIRTUAL_KEY[];
 

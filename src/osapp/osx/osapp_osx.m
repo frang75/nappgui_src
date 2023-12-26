@@ -10,17 +10,14 @@
 
 /* Application runloop */
 
-#include "nowarn.hxx"
-#include <Cocoa/Cocoa.h>
-#include "warn.hxx"
 #include "osapp.h"
 #include "osapp.inl"
 #include "osapp_osx.inl"
-#include "osglobals.h"
-#include "cassert.h"
-#include "event.h"
-#include "log.h"
-#include "unicode.h"
+#include <osgui/osglobals.h>
+#include <core/event.h>
+#include <osbs/log.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -52,7 +49,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define i_TERMINATE_COUNTLOOP   10
+#define i_TERMINATE_COUNTLOOP   15
 
 /*---------------------------------------------------------------------------*/
 

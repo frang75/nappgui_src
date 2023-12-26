@@ -13,12 +13,12 @@
 #include "osapp.h"
 #include "osapp.inl"
 #include "osapp_gtk.inl"
-#include "osgui.h"
-#include "bfile.h"
-#include "bmem.h"
-#include "cassert.h"
-#include "event.h"
-#include "strings.h"
+#include <osgui/osgui.h>
+#include <core/event.h>
+#include <core/strings.h>
+#include <osbs/bfile.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
 #include <stdlib.h>
 #include <locale.h>
 
@@ -33,7 +33,8 @@ struct _osapp_t
     char_t **argv;
     gchar *resources_dir;
     gchar *user_dir;
-    guint timer_id;
+    guint timer_loop_id;
+    guint timer_init_id;
     void *listener;
     GdkPixbuf *icon;
     bool_t is_init;
@@ -54,13 +55,13 @@ static OSApp i_APP;
 /*---------------------------------------------------------------------------*/
 
 OSApp *osapp_init_imp(
-                    uint32_t argc,
-                    char_t **argv,
-                    void *instance,
-                    void *listener,
-                    const bool_t with_run_loop,
-                    FPtr_app_call func_OnFinishLaunching,
-                    FPtr_app_call func_OnTimerSignal)
+    uint32_t argc,
+    char_t **argv,
+    void *instance,
+    void *listener,
+    const bool_t with_run_loop,
+    FPtr_app_call func_OnFinishLaunching,
+    FPtr_app_call func_OnTimerSignal)
 {
     bmem_zero(&i_APP, OSApp);
     cassert_unref(instance == NULL, instance);
@@ -77,7 +78,8 @@ OSApp *osapp_init_imp(
     i_APP.argv = argv;
     i_APP.resources_dir = g_strdup("resources_dir");
     i_APP.user_dir = g_strdup("user_dir");
-    i_APP.timer_id = 0;
+    i_APP.timer_loop_id = 0;
+    i_APP.timer_init_id = 0;
     i_APP.listener = listener;
     i_APP.is_init = FALSE;
     i_APP.terminate = FALSE;
@@ -119,6 +121,7 @@ static void i_terminate(OSApp *app)
     cassert_no_nullf(app->func_destroy);
     cassert_no_nullf(app->func_OnExecutionEnd);
     cassert(app->terminate == TRUE);
+
     if (app->abnormal_termination == FALSE)
     {
         g_free((gpointer)app->resources_dir);
@@ -130,16 +133,14 @@ static void i_terminate(OSApp *app)
         g_object_unref(app->icon);
 
     listener_destroy(&app->OnTheme);
+    osgui_terminate();
+
     g_application_quit(G_APPLICATION(app->gtk_app));
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_terminate_imp(
-                    OSApp **app,
-                    const bool_t abnormal_termination,
-                    FPtr_destroy func_destroy,
-                    FPtr_app_void func_OnExecutionEnd)
+void osapp_terminate_imp(OSApp **app, const bool_t abnormal_termination, FPtr_destroy func_destroy, FPtr_app_void func_OnExecutionEnd)
 {
     cassert_no_null(app);
     cassert_no_null(*app);
@@ -152,7 +153,6 @@ void osapp_terminate_imp(
     (*app)->func_destroy = func_destroy;
     (*app)->func_OnExecutionEnd = func_OnExecutionEnd;
     (*app)->terminate = TRUE;
-    osgui_terminate();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -177,43 +177,60 @@ void osapp_argv(OSApp *app, const uint32_t index, char_t *argv, const uint32_t m
 
 /*---------------------------------------------------------------------------*/
 
-/* The function is called repeatedly until it returns FALSE, at which point the
-   timeout is automatically destroyed and the function will not be called again. */
-static gboolean i_OnTimer(gpointer data)
+/* This function will be called repeatedly during the life-cycle of the app
+   until it returns FALSE, at which point the timeout is automatically destroyed
+   and the function will not be called again. */
+static gboolean i_OnTimerLoop(gpointer data)
 {
-    OSApp *app = (OSApp*)data;
+    OSApp *app = (OSApp *)data;
     cassert(app == &i_APP);
-    cassert_no_nullf(app->func_OnTimerSignal);
+
     if (app->terminate == TRUE)
     {
         i_terminate(app);
         return FALSE;
     }
 
-    /* Create impostor window before app running */
-    if (app->is_init == FALSE)
-    {
-        if (osgui_is_initialized() == TRUE)
-        {
-            app->func_OnFinishLaunching(app->listener);
-            app->is_init = TRUE;
-        }
-    }
+    if (app->func_OnTimerSignal != NULL)
+        app->func_OnTimerSignal(app->listener);
 
-    app->func_OnTimerSignal(app->listener);
     return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnActivate(GtkApplication* gtk_app, OSApp *app)
+/* This function will be called repeatedly until the application is created,
+   at which point the timeout is automatically destroyed and the function will
+   not be called again. */
+static gboolean i_OnTimerInit(gpointer data)
+{
+    OSApp *app = (OSApp *)data;
+    cassert(app == &i_APP);
+
+    /* Create impostor window before app running */
+    if (osgui_is_initialized() == TRUE)
+    {
+        if (app->is_init == FALSE)
+        {
+            app->is_init = TRUE;
+            app->func_OnFinishLaunching(app->listener);
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
 {
     char_t pathname[1024];
     cassert_no_null(app);
     cassert_no_null(app->listener);
     cassert_no_nullf(app->func_OnTimerSignal);
-    cassert_no_nullf(app->func_OnFinishLaunching);
-    cassert(app->timer_id == 0);
+    cassert(app->timer_loop_id == 0);
+    cassert(app->timer_init_id == 0);
     if (bfile_dir_exec(pathname, sizeof(pathname)) < sizeof(pathname))
     {
         String *logo = str_cpath("%s.ico", pathname);
@@ -228,11 +245,10 @@ static void i_OnActivate(GtkApplication* gtk_app, OSApp *app)
     osgui_initialize();
     g_application_hold(G_APPLICATION(gtk_app));
 
-    if (app->func_OnTimerSignal != NULL)
-    {
-        app->timer_id = g_timeout_add(10, i_OnTimer, (gpointer)app);
-        cassert(app->timer_id > 0);
-    }
+    app->timer_loop_id = g_timeout_add(10, i_OnTimerLoop, (gpointer)app);
+    app->timer_init_id = g_timeout_add(10, i_OnTimerInit, (gpointer)app);
+    cassert(app->timer_loop_id > 0);
+    cassert(app->timer_init_id > 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -243,7 +259,7 @@ void osapp_run(OSApp *app)
     int status = 0;
     cassert_no_null(app);
     cassert(app->with_run_loop == TRUE);
-    signal_id = g_signal_connect(app->gtk_app, "activate", G_CALLBACK (i_OnActivate), (gpointer)app);
+    signal_id = g_signal_connect(app->gtk_app, "activate", G_CALLBACK(i_OnActivate), (gpointer)app);
     cassert_unref(signal_id > 0, signal_id);
     status = g_application_run(G_APPLICATION(app->gtk_app), app->argc, app->argv);
     unref(status);
@@ -305,4 +321,3 @@ void osapp_OnThemeChanged(OSApp *app, Listener *listener)
     cassert_no_null(app);
     listener_update(&app->OnTheme, listener);
 }
-

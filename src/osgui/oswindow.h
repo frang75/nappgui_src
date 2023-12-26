@@ -42,9 +42,13 @@ _osgui_api void oswindow_hotkey(OSWindow *window, const vkey_t key, const uint32
 
 _osgui_api void oswindow_taborder(OSWindow *window, OSControl *control);
 
-_osgui_api void oswindow_tabstop(OSWindow *window, const bool_t next);
+_osgui_api void oswindow_tabcycle(OSWindow *window, const bool_t cycle);
 
-_osgui_api void oswindow_focus(OSWindow *window, OSControl *control);
+_osgui_api gui_focus_t oswindow_tabstop(OSWindow *window, const bool_t next);
+
+_osgui_api gui_focus_t oswindow_focus(OSWindow *window, OSControl *control);
+
+_osgui_api OSControl *oswindow_get_focus(const OSWindow *window);
 
 _osgui_api void oswindow_attach_panel(OSWindow *window, OSPanel *panel);
 

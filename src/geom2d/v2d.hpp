@@ -15,12 +15,18 @@
 
 #include "geom2d.hxx"
 
-template<typename real>
+template <typename real>
 struct V2D
 {
-    _geom2d_api V2D() {x = 0, y = 0;}
+    _geom2d_api V2D()
+    {
+        x = 0, y = 0;
+    }
 
-    _geom2d_api V2D(const real _x, const real _y) {x = _x, y = _y;}
+    _geom2d_api V2D(const real _x, const real _y)
+    {
+        x = _x, y = _y;
+    }
 
     _geom2d_api static V2D<real> (*add)(const V2D<real> *v1, const V2D<real> *v2);
 

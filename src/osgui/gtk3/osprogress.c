@@ -14,11 +14,11 @@
 #include "osprogress.inl"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
-#include "oscontrol.inl"
-#include "osglobals.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "heap.h"
+#include "oscontrol_gtk.inl"
+#include "osglobals_gtk.inl"
+#include "ospanel_gtk.inl"
+#include <sewer/cassert.h>
+#include <core/heap.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -50,7 +50,7 @@ void osprogress_destroy(OSProgress **progress)
     cassert_no_null(*progress);
     if ((*progress)->pulse_id != UINT32_MAX)
         g_source_remove((*progress)->pulse_id);
-    _oscontrol_destroy(*(OSControl**)progress);
+    _oscontrol_destroy(*(OSControl **)progress);
     heap_delete(progress, OSProgress);
 }
 
@@ -93,56 +93,47 @@ real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 
 void osprogress_attach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)progress);
+    _ospanel_attach_control(panel, (OSControl *)progress);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_detach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)progress);
+    _ospanel_detach_control(panel, (OSControl *)progress);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_visible(OSProgress *progress, const bool_t is_visible)
 {
-    _oscontrol_set_visible((OSControl*)progress, is_visible);
+    _oscontrol_set_visible((OSControl *)progress, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_enabled(OSProgress *progress, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((OSControl*)progress, is_enabled);
+    _oscontrol_set_enabled((OSControl *)progress, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_size(const OSProgress *progress, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)progress, width, height);
+    _oscontrol_get_size((const OSControl *)progress, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_origin(const OSProgress *progress, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)progress, x, y);
+    _oscontrol_get_origin((const OSControl *)progress, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_frame(OSProgress *progress, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)progress, x, y, width, height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osprogress_detach_and_destroy(OSProgress **progress, OSPanel *panel)
-{
-    cassert_no_null(progress);
-    osprogress_detach(*progress, panel);
-    osprogress_destroy(progress);
+    _oscontrol_set_frame((OSControl *)progress, x, y, width, height);
 }

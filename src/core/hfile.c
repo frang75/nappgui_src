@@ -13,22 +13,22 @@
 #include "hfile.h"
 #include "hfileh.h"
 #include "arrst.h"
-#include "bfile.h"
-#include "bstd.h"
 #include "buffer.h"
-#include "cassert.h"
 #include "date.h"
 #include "event.h"
-#include "ptr.h"
 #include "stream.h"
 #include "strings.h"
+#include <osbs/bfile.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 enum i_flag_t
 {
-    i_ekDIR_FORBIDDEN           = 1,
-    i_ekDIR_ENTRY               = 2,
-    i_ekHIDDEN_FILES            = 3,
-    i_ekHIDDEN_SUBDIRS          = 4
+    i_ekDIR_FORBIDDEN = 1,
+    i_ekDIR_ENTRY = 2,
+    i_ekHIDDEN_FILES = 3,
+    i_ekHIDDEN_SUBDIRS = 4
 };
 
 /*---------------------------------------------------------------------------*/
@@ -69,7 +69,7 @@ bool_t hfile_dir_create(const char_t *pathname, ferror_t *error)
             if (pathname[i] == '\\' || pathname[i] == '/')
             {
                 sep[dirs] = pathname[i];
-                ((char_t*)pathname)[i] = '\0';
+                ((char_t *)pathname)[i] = '\0';
                 dirs += 1;
                 if (hfile_dir(pathname) == TRUE)
                     break;
@@ -84,7 +84,7 @@ bool_t hfile_dir_create(const char_t *pathname, ferror_t *error)
             {
                 cassert(dirs > 0);
                 dirs -= 1;
-                ((char_t*)pathname)[i] = sep[dirs];
+                ((char_t *)pathname)[i] = sep[dirs];
                 if (err == ekFOK)
                     bfile_dir_create(pathname, &err);
             }
@@ -105,7 +105,8 @@ static void i_OnDeleteFile(void *empty, Event *e)
 {
     const EvFileDir *params = event_params(e, EvFileDir);
     unref(empty);
-    switch (event_type(e)) {
+    switch (event_type(e))
+    {
     case ekEFILE:
         bfile_delete(params->pathname, NULL);
         break;
@@ -114,7 +115,7 @@ static void i_OnDeleteFile(void *empty, Event *e)
     case ekEEXIT:
         bfile_dir_delete(params->pathname, NULL);
         break;
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -122,6 +123,7 @@ static void i_OnDeleteFile(void *empty, Event *e)
 
 bool_t hfile_dir_destroy(const char_t *pathname, ferror_t *error)
 {
+
     bool_t ok = hfile_dir_loop(pathname, listener(NULL, i_OnDeleteFile, void), TRUE, TRUE, error);
     if (ok == TRUE)
         ok = bfile_dir_delete(pathname, error);
@@ -139,7 +141,7 @@ static int i_cmp_entry(const DirEntry *entry1, const DirEntry *entry2)
 
 /*---------------------------------------------------------------------------*/
 
-ArrSt(DirEntry) *hfile_dir_list(const char_t *pathname, const bool_t subdirs, ferror_t *error)
+ArrSt(DirEntry) * hfile_dir_list(const char_t *pathname, const bool_t subdirs, ferror_t *error)
 {
     ArrSt(DirEntry) *entries = arrst_create(DirEntry);
     Dir *dir = bfile_dir_open(pathname, error);
@@ -150,8 +152,7 @@ ArrSt(DirEntry) *hfile_dir_list(const char_t *pathname, const bool_t subdirs, fe
     ferror_t err;
     while (bfile_dir_get(dir, filename, 512, &type, &size, &updated, &err) == TRUE)
     {
-        if (str_equ_c(filename, ".") == FALSE
-            && str_equ_c(filename, "..") == FALSE)
+        if (str_equ_c(filename, ".") == FALSE && str_equ_c(filename, "..") == FALSE)
         {
             if (type == ekARCHIVE || (type == ekDIRECTORY && subdirs == TRUE))
             {
@@ -236,7 +237,7 @@ static bool_t i_except(const char_t *name, const char_t **except, const uint32_t
 
 bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
 {
-    ArrSt(DirEntry) *dir1, *dir2;
+    ArrSt(DirEntry) * dir1, *dir2;
     const DirEntry *files1, *files2;
     uint32_t n1, n2, i1 = 0, i2 = 0;
     bool_t ok = TRUE;
@@ -425,9 +426,9 @@ bool_t hfile_is_uptodate(const char_t *src, const char_t *dest)
 {
     Date src_date;
     Date dest_date;
-    if(bfile_lstat(src, NULL, NULL, &src_date, NULL) == FALSE)
+    if (bfile_lstat(src, NULL, NULL, &src_date, NULL) == FALSE)
         return TRUE;
-    if(bfile_lstat(dest, NULL, NULL, &dest_date, NULL) == FALSE)
+    if (bfile_lstat(dest, NULL, NULL, &dest_date, NULL) == FALSE)
         return FALSE;
     if (date_cmp(&src_date, &dest_date) > 0)
         return FALSE;
@@ -545,9 +546,9 @@ String *hfile_string(const char_t *pathname, ferror_t *error)
         if (file_size < 0xFFFFFFFF)
         {
             String *str = str_reserve((uint32_t)file_size);
-            if (i_read_entire_file(pathname, (byte_t*)tc(str), (uint32_t)file_size, error) == TRUE)
+            if (i_read_entire_file(pathname, (byte_t *)tc(str), (uint32_t)file_size, error) == TRUE)
             {
-                ((char_t*)tc(str))[(uint32_t)file_size] = '\0';
+                ((char_t *)tc(str))[(uint32_t)file_size] = '\0';
                 return str;
             }
             else
@@ -605,7 +606,7 @@ bool_t hfile_from_string(const char_t *pathname, const String *str, ferror_t *er
     {
         const char_t *data = tc(str);
         uint32_t size = str_len(str);
-        bool_t ok = bfile_write(file, (const byte_t*)data, size, NULL, error);
+        bool_t ok = bfile_write(file, (const byte_t *)data, size, NULL, error);
         bfile_close(&file);
         return ok;
     }
@@ -644,64 +645,64 @@ static bool_t i_process_whole_directory(Listener *listener, const char_t *pathna
         {
             switch (file_type)
             {
-                case ekARCHIVE:
-                    if (filename[0] == '.' && BIT_TEST(flags, i_ekHIDDEN_FILES) == FALSE)
-                        continue;
+            case ekARCHIVE:
+                if (filename[0] == '.' && BIT_TEST(flags, i_ekHIDDEN_FILES) == FALSE)
+                    continue;
 
+                {
+                    String *fullname;
+                    EvFileDir params;
+                    fullname = str_printf("%s%c%s", pathname, DIR_SEPARATOR, filename);
+                    params.filename = filename;
+                    params.pathname = tc(fullname);
+                    params.depth = depth_level;
+                    listener_event(listener, ekEFILE, NULL, &params, &continue_process, void, EvFileDir, bool_t);
+                    str_destroy(&fullname);
+                }
+
+                break;
+
+            case ekDIRECTORY:
+                if (str_equ_c(filename, ".") == TRUE)
+                    continue;
+
+                if (str_equ_c(filename, "..") == TRUE)
+                    continue;
+
+                if (filename[0] == '.' && BIT_TEST(flags, i_ekHIDDEN_SUBDIRS) == FALSE)
+                    continue;
+
+                if (BIT_TEST(flags, i_ekDIR_FORBIDDEN) == TRUE)
+                {
+                    cassert(FALSE);
+                    continue;
+                }
+
+                if (BIT_TEST(flags, i_ekDIR_ENTRY) == FALSE)
+                    continue;
+
+                {
+                    String *fullname;
+                    EvFileDir params;
+                    bool_t enter_subdir = TRUE;
+                    fullname = str_printf("%s%c%s", pathname, DIR_SEPARATOR, filename);
+                    params.filename = filename;
+                    params.pathname = tc(fullname);
+                    params.depth = depth_level;
+                    listener_event(listener, ekEENTRY, NULL, &params, &enter_subdir, void, EvFileDir, bool_t);
+                    if (enter_subdir == TRUE)
                     {
-                        String *fullname;
-                        EvFileDir params;
-                        fullname = str_printf("%s%c%s", pathname, DIR_SEPARATOR, filename);
-                        params.filename = filename;
-                        params.pathname = tc(fullname);
-                        params.depth = depth_level;
-                        listener_event(listener, ekEFILE, NULL, &params, &continue_process, void, EvFileDir, bool_t);
-                        str_destroy(&fullname);
+                        continue_process = i_process_whole_directory(listener, tc(fullname), flags, depth_level + 1, error);
+                        listener_event(listener, ekEEXIT, NULL, &params, NULL, void, EvFileDir, void);
                     }
 
-                    break;
+                    str_destroy(&fullname);
+                }
 
-                case ekDIRECTORY:
-                    if (str_equ_c(filename, ".") == TRUE)
-                        continue;
+                break;
 
-                    if (str_equ_c(filename, "..") == TRUE)
-                        continue;
-
-                    if (filename[0] == '.' && BIT_TEST(flags, i_ekHIDDEN_SUBDIRS) == FALSE)
-                        continue;
-
-                    if (BIT_TEST(flags, i_ekDIR_FORBIDDEN) == TRUE)
-                    {
-                        cassert(FALSE);
-                        continue;
-                    }
-
-                    if (BIT_TEST(flags, i_ekDIR_ENTRY) == FALSE)
-                        continue;
-
-                    {
-                        String *fullname;
-                        EvFileDir params;
-                        bool_t enter_subdir = TRUE;
-                        fullname = str_printf("%s%c%s", pathname, DIR_SEPARATOR, filename);
-                        params.filename = filename;
-                        params.pathname = tc(fullname);
-                        params.depth = depth_level;
-                        listener_event(listener, ekEENTRY, NULL, &params, &enter_subdir, void, EvFileDir, bool_t);
-                        if (enter_subdir == TRUE)
-                        {
-                            continue_process = i_process_whole_directory(listener, tc(fullname), flags, depth_level + 1, error);
-                            listener_event(listener, ekEEXIT, NULL, &params, NULL, void, EvFileDir, void);
-                        }
-
-                        str_destroy(&fullname);
-                    }
-
-                    break;
-
-                case ekOTHERFILE:
-                    break;
+            case ekOTHERFILE:
+                break;
 
                 cassert_default();
             }
@@ -778,29 +779,3 @@ String *hfile_home_dir(const char_t *path)
     bfile_dir_home(homedir, 512);
     return str_cpath("%s/%s", homedir, path);
 }
-
-/*---------------------------------------------------------------------------*/
-
-String *hfile_build_dir(const char_t *dir, const char_t *target)
-{
-#if defined(CMAKE_INTDIR)
-    return str_cpath("%s/%s/%s/%s", NAPPGUI_BUILD_DIR, dir, CMAKE_INTDIR, target);
-#else
-    return str_cpath("%s/%s/%s", NAPPGUI_BUILD_DIR, dir, target);
-#endif
-}
-
-/*---------------------------------------------------------------------------*/
-
-String *hfile_src_dir(const char_t *file)
-{
-    return str_cpath("%s/%s", NAPPGUI_SOURCE_DIR, file);
-}
-
-/*---------------------------------------------------------------------------*/
-
-String *hfile_root_dir(const char_t *file)
-{
-    return str_cpath("%s/../%s", NAPPGUI_SOURCE_DIR, file);
-}
-

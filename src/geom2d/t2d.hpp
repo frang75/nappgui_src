@@ -15,7 +15,7 @@
 
 #include "v2d.hpp"
 
-template<typename real>
+template <typename real>
 struct T2D
 {
     _geom2d_api static void (*move)(T2D<real> *dest, const T2D<real> *src, const real x, const real y);
@@ -44,4 +44,3 @@ struct T2D
 };
 
 #endif
-

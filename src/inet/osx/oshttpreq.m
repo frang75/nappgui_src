@@ -11,18 +11,16 @@
 /* HTTP request (Cocoa-based implementation) */
 
 #include "oshttpreq.inl"
-
-#include "arrst.h"
-#include "bmutex.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
-#include "stream.h"
-#include "strings.h"
-
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <core/stream.h>
+#include <core/strings.h>
+#include <osbs/bmutex.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -56,7 +54,7 @@ struct _oshttp_t
     NSURLSession *session;
     OSXURLDelegate *delegate;
 #endif
-    
+
     NSMutableURLRequest *request;
     ierror_t error;
     String *protocol;
@@ -75,7 +73,7 @@ struct _oshttp_t
 - (void)URLSession:(NSURLSession*)session task:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics*)metrics
 {
     NSArray *ar = [metrics transactionMetrics];
-    
+
     for (NSURLSessionTaskTransactionMetrics *tr in ar)
     {
         NSString *str = [tr networkProtocolName];
@@ -87,7 +85,7 @@ struct _oshttp_t
             bmutex_unlock(self->http->mutex);
         }
     }
-    
+
     cassert(metrics != nil);
 }
 
@@ -96,7 +94,7 @@ struct _oshttp_t
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
                      willPerformHTTPRedirection:(NSHTTPURLResponse *)response
                                      newRequest:(NSURLRequest *)request
-                              completionHandler:(void (^)(NSURLRequest * _Nullable))completionHandler;
+                              completionHandler:(void (^)(NSURLRequest * _Nullable))completionHandler
 {
     unref(session);
     unref(task);
@@ -116,7 +114,7 @@ struct _oshttp_t
 /*---------------------------------------------------------------------------*/
 
 void oshttp_init(void)
-{    
+{
 }
 
 /*---------------------------------------------------------------------------*/
@@ -130,7 +128,7 @@ void oshttp_finish(void)
 OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secure)
 {
     OSHttp *http = heap_new(OSHttp);
-    
+
     if (secure == TRUE)
         http->host_url = str_printf("https://%s:%d", host, port);
     else
@@ -138,7 +136,7 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
 
     http->port = port;
     http->secure = secure;
-    
+
 #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     http->delegate = [[OSXURLDelegate alloc] init];
     http->delegate->http = http;
@@ -146,7 +144,7 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
     http->session = [[NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:http->delegate delegateQueue:nil] retain];
     http->mutex = bmutex_create();
 #endif
-    
+
     http->request = [[NSMutableURLRequest alloc] init];
     http->response = FALSE;
     http->protocol = NULL;
@@ -168,13 +166,13 @@ void oshttp_destroy(OSHttp **http)
     [(*http)->delegate release];
     bmutex_close(&(*http)->mutex);
 #endif
-    
+
     [(*http)->request release];
     str_destopt(&(*http)->protocol);
-    
+
     if ((*http)->headers != NULL)
         stm_close(&(*http)->headers);
-    
+
     if ((*http)->body != NULL)
         stm_close(&(*http)->body);
 
@@ -187,7 +185,7 @@ static __INLINE bool_t i_reserved_header(const char_t *header)
 {
     if (str_equ_nocase(header, "content-length") == TRUE)
         return TRUE;
-    
+
     if (str_equ_nocase(header, "authorization") == TRUE)
         return TRUE;
 
@@ -205,7 +203,7 @@ static __INLINE bool_t i_reserved_header(const char_t *header)
 
     if (str_equ_nocase(header, "www-authenticate") == TRUE)
         return TRUE;
-    
+
     return FALSE;
 }
 
@@ -299,11 +297,11 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
     cassert(http->response == FALSE);
     cassert(http->headers == NULL);
     cassert(http->body == NULL);
-    
+
     if (error != nil)
-    {        
+    {
         http->response = TRUE;
-        http->error = i_http_error([error code]);        
+        http->error = i_http_error([error code]);
     }
     else if (data != nil)
     {
@@ -313,16 +311,16 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
         NSString *rmessage = [NSHTTPURLResponse localizedStringForStatusCode:code];
         uint32_t dsize = (uint32_t)[data length];
         const byte_t *dbytes = [data bytes];
-                
+
         http->headers = stm_memory(512);
         if (http->protocol != NULL)
-            stm_printf(http->headers, "%s %d %s", tc(http->protocol), code, [rmessage UTF8String]);
+            stm_printf(http->headers, "%s %ld %s", tc(http->protocol), (long)code, [rmessage UTF8String]);
         else
-            stm_printf(http->headers, "HTTP/1.1 %d %s", code, [rmessage UTF8String]);
-        
+            stm_printf(http->headers, "HTTP/1.1 %ld %s", (long)code, [rmessage UTF8String]);
+
         stm_write_char(http->headers, 13);
         stm_write_char(http->headers, 10);
-        
+
         for (NSString* key in rheaders)
         {
             NSString *value = [rheaders objectForKey:key];
@@ -330,7 +328,7 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
             stm_write_char(http->headers, 13);
             stm_write_char(http->headers, 10);
         }
-        
+
         http->body = stm_memory(dsize + 32);
         stm_write(http->body, dbytes, dsize);
         http->error = ekIOK;
@@ -341,10 +339,10 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
         http->error = ekIUNDEF;
         http->response = TRUE;
     }
-    
+
 #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     bmutex_unlock(http->mutex);
-#endif    
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -357,7 +355,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
     ptr_destopt(stm_close, &http->headers, Stream);
     ptr_destopt(stm_close, &http->body, Stream);
     http->error = ekIOK;
-    
+
     {
         NSString *curl = [[NSString alloc] initWithFormat:@"%s/%s", tc(http->host_url), path];
         NSURL *url = [[NSURL alloc] initWithString:curl];
@@ -365,9 +363,9 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
         [url release];
         [curl release];
     }
-    
+
     [http->request setHTTPMethod:verb];
-    
+
     if (data != NULL)
     {
         NSData *nsdata = [NSData dataWithBytes:(const void*)data length:(NSUInteger)size];
@@ -388,9 +386,9 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
     	{
         	i_response(ddata, response, lerror, http);
 	    } ];
-    
+
     	[task resume];
-    
+
 	    while(!end)
     	{
         	bmutex_lock(http->mutex);
@@ -437,7 +435,7 @@ Stream *oshttp_response(OSHttp *http)
         stm = http->headers;
         http->headers = NULL;
     }
-        
+
     return stm;
 }
 
@@ -453,7 +451,7 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
         uint32_t size = stm_buffer_size(http->body);
         stm_pipe(http->body, body, size);
     }
-    
+
 	ptr_assign(error, http->error);
 }
 

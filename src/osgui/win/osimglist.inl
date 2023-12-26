@@ -11,14 +11,13 @@
 /* OSImage-HIMAGELIST binding */
 
 #include "osgui_win.ixx"
-
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Commctrl.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
-#define HIMAGELIST_CREATED   1
-#define HIMAGELIST_DELETED   2
-#define HIMAGELIST_REORDER   4
+#define HIMAGELIST_CREATED 1
+#define HIMAGELIST_DELETED 2
+#define HIMAGELIST_REORDER 4
 
 __EXTERN_C
 
@@ -43,4 +42,3 @@ uint32_t _osimglist_width(const OSImgList *imglist);
 uint32_t _osimglist_height(const OSImgList *imglist);
 
 __END_C
-

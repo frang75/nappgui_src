@@ -61,13 +61,13 @@
 
 typedef enum _gui_orient_t
 {
-    ekGUI_HORIZONTAL        = 1,
+    ekGUI_HORIZONTAL = 1,
     ekGUI_VERTICAL
 } gui_orient_t;
 
 typedef enum _gui_state_t
 {
-    ekGUI_OFF               = 0,
+    ekGUI_OFF = 0,
     ekGUI_ON,
     ekGUI_MIXED
 } gui_state_t;
@@ -106,6 +106,26 @@ typedef enum _gui_scale_t
     ekGUI_SCALE_ASPECTDW
 } gui_scale_t;
 
+typedef enum _gui_scroll_t
+{
+    ekGUI_SCROLL_BEGIN = 1,
+    ekGUI_SCROLL_END,
+    ekGUI_SCROLL_STEP_LEFT,
+    ekGUI_SCROLL_STEP_RIGHT,
+    ekGUI_SCROLL_PAGE_LEFT,
+    ekGUI_SCROLL_PAGE_RIGHT,
+    ekGUI_SCROLL_THUMB
+} gui_scroll_t;
+
+typedef enum _gui_focus_t
+{
+    ekGUI_FOCUS_CHANGED = 1,
+    ekGUI_FOCUS_KEEP,
+    ekGUI_FOCUS_NO_NEXT,
+    ekGUI_FOCUS_NO_RESIGN,
+    ekGUI_FOCUS_NO_ACCEPT
+} gui_focus_t;
+
 typedef enum _gui_event_t
 {
     ekGUI_EVENT_LABEL = 0x400,
@@ -116,6 +136,8 @@ typedef enum _gui_event_t
     ekGUI_EVENT_UPDOWN,
     ekGUI_EVENT_TXTFILTER,
     ekGUI_EVENT_TXTCHANGE,
+    ekGUI_EVENT_FOCUS_RESIGN,
+    ekGUI_EVENT_FOCUS_ACCEPT,
     ekGUI_EVENT_FOCUS,
     ekGUI_EVENT_MENU,
     ekGUI_EVENT_DRAW,
@@ -131,6 +153,7 @@ typedef enum _gui_event_t
     ekGUI_EVENT_WHEEL,
     ekGUI_EVENT_KEYDOWN,
     ekGUI_EVENT_KEYUP,
+    ekGUI_EVENT_SCROLL,
     ekGUI_EVENT_WND_MOVED,
     ekGUI_EVENT_WND_SIZING,
     ekGUI_EVENT_WND_SIZE,
@@ -144,40 +167,43 @@ typedef enum _gui_event_t
     ekGUI_EVENT_TBL_END,
     ekGUI_EVENT_TBL_CELL,
     ekGUI_EVENT_TBL_SEL,
-    ekGUI_EVENT_TBL_HEADCLICK
+    ekGUI_EVENT_TBL_HEADCLICK,
+    ekGUI_EVENT_TBL_ROWCLICK,
+
+    ekGUI_EVENT_IDLE
 } gui_event_t;
 
 typedef enum _gui_type_t
 {
-	/* Basic controls */
-    ekGUI_TYPE_LABEL        = 0,
-    ekGUI_TYPE_BUTTON       = 1,
-    ekGUI_TYPE_POPUP        = 2,
-    ekGUI_TYPE_EDITBOX      = 3,
-    ekGUI_TYPE_COMBOBOX     = 4,
-    ekGUI_TYPE_SLIDER       = 5,
-    ekGUI_TYPE_UPDOWN       = 6,
-    ekGUI_TYPE_PROGRESS     = 7,
+    /* Basic controls */
+    ekGUI_TYPE_LABEL = 0,
+    ekGUI_TYPE_BUTTON = 1,
+    ekGUI_TYPE_POPUP = 2,
+    ekGUI_TYPE_EDITBOX = 3,
+    ekGUI_TYPE_COMBOBOX = 4,
+    ekGUI_TYPE_SLIDER = 5,
+    ekGUI_TYPE_UPDOWN = 6,
+    ekGUI_TYPE_PROGRESS = 7,
 
-	/* View Controls */
-    ekGUI_TYPE_TEXTVIEW     = 8,
-    ekGUI_TYPE_TABLEVIEW    = 9,
-    ekGUI_TYPE_TREEVIEW     = 10,
-	ekGUI_TYPE_BOXVIEW      = 11,
-    ekGUI_TYPE_SPLITVIEW    = 12,
-    ekGUI_TYPE_CUSTOMVIEW   = 13,
+    /* View Controls */
+    ekGUI_TYPE_TEXTVIEW = 8,
+    ekGUI_TYPE_TABLEVIEW = 9,
+    ekGUI_TYPE_TREEVIEW = 10,
+    ekGUI_TYPE_BOXVIEW = 11,
+    ekGUI_TYPE_SPLITVIEW = 12,
+    ekGUI_TYPE_CUSTOMVIEW = 13,
 
     /* Others */
-    ekGUI_TYPE_PANEL        = 14,
-    ekGUI_TYPE_LINE         = 15,
-    ekGUI_TYPE_HEADER       = 16,
+    ekGUI_TYPE_PANEL = 14,
+    ekGUI_TYPE_LINE = 15,
+    ekGUI_TYPE_HEADER = 16,
 
     /* Non-Components */
-    ekGUI_TYPE_WINDOW       = 17,
-    ekGUI_TYPE_TOOLBAR      = 18
+    ekGUI_TYPE_WINDOW = 17,
+    ekGUI_TYPE_TOOLBAR = 18
 } gui_type_t;
 
-#define GUI_CONTEXT_NUM_COMPONENTS  17
+#define GUI_CONTEXT_NUM_COMPONENTS 17
 
 typedef enum _gui_size_t
 {
@@ -188,10 +214,10 @@ typedef enum _gui_size_t
 
 typedef enum _gui_role_t
 {
-    ekGUI_ROLE_MAIN             = 0,
-    ekGUI_ROLE_OVERLAY          = 1,
-    ekGUI_ROLE_MODAL            = 2,
-    ekGUI_ROLE_MANAGED          = 3
+    ekGUI_ROLE_MAIN = 0,
+    ekGUI_ROLE_OVERLAY = 1,
+    ekGUI_ROLE_MODAL = 2,
+    ekGUI_ROLE_MANAGED = 3
 } gui_role_t;
 
 typedef enum _gui_prop_t
@@ -209,28 +235,36 @@ typedef enum _gui_prop_t
     ekGUI_PROP_LSPACING,
     ekGUI_PROP_BFPARSPACE,
     ekGUI_PROP_AFPARSPACE,
-    ekGUI_PROP_VSCROLL
+    ekGUI_PROP_SELECT,
+    ekGUI_PROP_SCROLL
 } gui_prop_t;
+
+typedef enum _clipboard_t
+{
+    ekCLIPBOARD_COPY,
+    ekCLIPBOARD_CUT,
+    ekCLIPBOARD_PASTE
+} clipboard_t;
 
 typedef enum _label_flag_t
 {
-    ekLABEL_FLAG    = 0,
-    ekLABEL_SINGLE  = 0,
-    ekLABEL_MULTI   = 1,
-    ekLABEL_TYPE    = 1
+    ekLABEL_FLAG = 0,
+    ekLABEL_SINGLE = 0,
+    ekLABEL_MULTI = 1,
+    ekLABEL_TYPE = 1
 } label_flag_t;
 
 typedef enum _button_flag_t
 {
-    ekBUTTON_FLAG       = 0,
-    ekBUTTON_PUSH       = 0,
-    ekBUTTON_CHECK2     = 1,
-    ekBUTTON_CHECK3     = 2,
-    ekBUTTON_RADIO      = 3,
-    ekBUTTON_FLAT       = 4,
-    ekBUTTON_FLATGLE    = 5,
-    ekBUTTON_HEADER     = 6,
-    ekBUTTON_TYPE       = 7
+    ekBUTTON_FLAG = 0,
+    ekBUTTON_PUSH = 0,
+    ekBUTTON_CHECK2 = 1,
+    ekBUTTON_CHECK3 = 2,
+    ekBUTTON_RADIO = 3,
+    ekBUTTON_FLAT = 4,
+    ekBUTTON_FLATGLE = 5,
+    ekBUTTON_HEADER = 6,
+    ekBUTTON_TYPE = 7
 } button_flag_t;
 
 typedef enum _popup_flag_t
@@ -240,99 +274,101 @@ typedef enum _popup_flag_t
 
 typedef enum _edit_flag_t
 {
-    ekEDIT_FLAG     = 0,
-    ekEDIT_SINGLE   = 0,
-    ekEDIT_MULTI    = 1,
-    ekEDIT_TYPE     = 1,
-    ekEDIT_AUTOSEL  = 4
+    ekEDIT_FLAG = 0,
+    ekEDIT_SINGLE = 0,
+    ekEDIT_MULTI = 1,
+    ekEDIT_TYPE = 1,
+    ekEDIT_AUTOSEL = 4
 } edit_flag_t;
 
 typedef enum _combo_flag_t
 {
-    ekCOMBO_FLAG    = 0
+    ekCOMBO_FLAG = 0
 } combo_flag_t;
 
 typedef enum _slider_flag_t
 {
-    ekSLIDER_FLAG   = 0,
-    ekSLIDER_HORZ   = 0,
-    ekSLIDER_VERT   = 1,
-    ekSLIDER_TYPE   = 1
+    ekSLIDER_FLAG = 0,
+    ekSLIDER_HORZ = 0,
+    ekSLIDER_VERT = 1,
+    ekSLIDER_TYPE = 1
 } slider_flag_t;
 
 typedef enum _updown_flag_t
 {
-    ekUPDOWN_FLAG   = 0
+    ekUPDOWN_FLAG = 0
 } updown_flag_t;
 
 typedef enum _progress_flag_t
 {
-    ekPROGRESS_FLAG     = 0,
-    ekPROGRESS_HORZ     = 0,
-    ekPROGRESS_VERT     = 1,
-    ekPROGRESS_TYPE     = 1
+    ekPROGRESS_FLAG = 0,
+    ekPROGRESS_HORZ = 0,
+    ekPROGRESS_VERT = 1,
+    ekPROGRESS_TYPE = 1
 } progress_flag_t;
 
 typedef enum _view_flag_t
 {
-    ekVIEW_OPENGL       = 0x1,
-    ekVIEW_HSCROLL      = 0x2,
-    ekVIEW_VSCROLL      = 0x4,
-    ekVIEW_BORDER       = 0x8,
-    ekVIEW_NOERASE      = 0x20,
-    ekVIEW_CONTROL      = 0x40
+    ekVIEW_OPENGL = 0x1,
+    ekVIEW_HSCROLL = 0x2,
+    ekVIEW_VSCROLL = 0x4,
+    ekVIEW_BORDER = 0x8,
+    ekVIEW_NOERASE = 0x20,
+    ekVIEW_CONTROL = 0x40
 } view_flag_t;
 
 typedef enum _text_flag_t
 {
-    ekTEXT_FLAG         = 0
+    ekTEXT_FLAG = 0
 } text_flag_t;
 
 typedef enum _table_flag_t
 {
-    ekTABLE_FLAG        = 0,
-    ekTABLE_TEXT        = 0x1,
-    ekTABLE_ICON16      = 0x2,
-    ekTABLE_EDIT        = 0x4,
-    ekTABLE_COMBO       = 0x8,
-    ekTABLE_POPUP       = 0x10,
-    ekTABLE_RADIO       = 0x20,
-    ekTABLE_CHECK       = 0x40,
-    ekTABLE_TOOLTIP     = 0x80,
-    ekTABLE_BGCOLOR     = 0x100,
-    ekTABLE_ROWALT      = 0x200,
-    ekTABLE_ROWPRESEL   = 0x400
+    ekTABLE_FLAG = 0,
+    ekTABLE_TEXT = 0x1,
+    ekTABLE_ICON16 = 0x2,
+    ekTABLE_EDIT = 0x4,
+    ekTABLE_COMBO = 0x8,
+    ekTABLE_POPUP = 0x10,
+    ekTABLE_RADIO = 0x20,
+    ekTABLE_CHECK = 0x40,
+    ekTABLE_TOOLTIP = 0x80,
+    ekTABLE_BGCOLOR = 0x100,
+    ekTABLE_ROWALT = 0x200,
+    ekTABLE_ROWPRESEL = 0x400
 } table_flag_t;
 
 typedef enum _split_flag_t
 {
-    ekSPLIT_FLAG    = 0,
-    ekSPLIT_VERT    = 0,
-    ekSPLIT_HORZ    = 1,
-    ekSPLIT_TYPE    = 1,
-    ekSPLIT_PROP    = 2,
-    ekSPLIT_LEFT    = 3,
-    ekSPLIT_RIGHT   = 4
+    ekSPLIT_FLAG = 0,
+    ekSPLIT_VERT = 0,
+    ekSPLIT_HORZ = 1,
+    ekSPLIT_TYPE = 1,
+    ekSPLIT_PROP = 2,
+    ekSPLIT_LEFT = 3,
+    ekSPLIT_RIGHT = 4
 } split_flag_t;
 
 typedef enum _window_flag_t
 {
-    ekWINDOW_FLAG           = 0,
-    ekWINDOW_EDGE           = 1 << 0,
-    ekWINDOW_TITLE          = 1 << 1,
-    ekWINDOW_MAX            = 1 << 2,
-    ekWINDOW_MIN            = 1 << 3,
-    ekWINDOW_CLOSE          = 1 << 4,
-    ekWINDOW_RESIZE         = 1 << 5,
-    ekWINDOW_RETURN         = 1 << 6,
-    ekWINDOW_ESC            = 1 << 7,
-    ekWINDOW_STD            = ekWINDOW_TITLE | ekWINDOW_MIN | ekWINDOW_CLOSE,
-    ekWINDOW_STDRES         = ekWINDOW_STD | ekWINDOW_MAX | ekWINDOW_RESIZE
+    ekWINDOW_FLAG = 0,
+    ekWINDOW_EDGE = 1 << 0,
+    ekWINDOW_TITLE = 1 << 1,
+    ekWINDOW_MAX = 1 << 2,
+    ekWINDOW_MIN = 1 << 3,
+    ekWINDOW_CLOSE = 1 << 4,
+    ekWINDOW_RESIZE = 1 << 5,
+    ekWINDOW_RETURN = 1 << 6,
+    ekWINDOW_ESC = 1 << 7,
+    ekWINDOW_OFFSCREEN = 1 << 8,
+    ekWINDOW_MODAL_NOHIDE = 1 << 9,
+    ekWINDOW_STD = ekWINDOW_TITLE | ekWINDOW_MIN | ekWINDOW_CLOSE,
+    ekWINDOW_STDRES = ekWINDOW_STD | ekWINDOW_MAX | ekWINDOW_RESIZE
 } window_flag_t;
 
 typedef enum _menu_flag_t
 {
-    ekMENU_FLAG     = 0,
+    ekMENU_FLAG = 0,
     ekMENU_ITEM,
     ekMENU_SEPARATOR
 } menu_flag_t;
@@ -387,193 +423,219 @@ typedef struct _evpos_t EvPos;
 typedef struct _evsize_t EvSize;
 typedef struct _evwinclose_t EvWinClose;
 typedef struct _evmenu_t EvMenu;
+typedef struct _evscroll_t EvScroll;
 typedef struct _evtbpos_t EvTbPos;
+typedef struct _evtbrow_t EvTbRow;
 typedef struct _evtbrect_t EvTbRect;
 typedef struct _evtbsel_t EvTbSel;
 typedef struct _evtbcell_t EvTbCell;
 
-#define label_get_type(flags)       ((flags) & ekLABEL_TYPE)
-#define button_get_type(flags)      ((flags) & ekBUTTON_TYPE)
-#define edit_get_type(flags)        ((flags) & ekEDIT_TYPE)
-#define slider_get_type(flags)      ((flags) & ekSLIDER_TYPE)
-#define progress_get_type(flags)    ((flags) & ekPROGRESS_TYPE)
-#define split_get_type(flags)		((flags) & ekSPLIT_TYPE)
+#define label_get_type(flags) ((flags)&ekLABEL_TYPE)
+#define button_get_type(flags) ((flags)&ekBUTTON_TYPE)
+#define edit_get_type(flags) ((flags)&ekEDIT_TYPE)
+#define slider_get_type(flags) ((flags)&ekSLIDER_TYPE)
+#define progress_get_type(flags) ((flags)&ekPROGRESS_TYPE)
+#define split_get_type(flags) ((flags)&ekSPLIT_TYPE)
 
-typedef void*(*FPtr_gctx_create)(const uint32_t flags);
-#define FUNC_CHECK_GCTX_CREATE(func, type)\
-    (void)((type*(*)(const uint32_t))func == func)
+typedef void *(*FPtr_gctx_create)(const uint32_t flags);
+#define FUNC_CHECK_GCTX_CREATE(func, type) \
+    (void)((type * (*)(const uint32_t)) func == func)
 
-typedef void*(*FPtr_gctx_create2)(void*);
-#define FUNC_CHECK_GCTX_CREATE2(func, type)\
-    (void)((type*(*)(void*))func == func)
+typedef void *(*FPtr_gctx_create2)(void *);
+#define FUNC_CHECK_GCTX_CREATE2(func, type) \
+    (void)((type * (*)(void *)) func == func)
 
-typedef void(*FPtr_gctx_destroy)(void **item);
-#define FUNC_CHECK_GCTX_DESTROY(func, type)\
-    (void)((void(*)(type**))func == func)
+typedef void (*FPtr_gctx_destroy)(void **item);
+#define FUNC_CHECK_GCTX_DESTROY(func, type) \
+    (void)((void (*)(type **))func == func)
 
-typedef void(*FPtr_gctx_set_text)(void *item, const char_t *text);
-#define FUNC_CHECK_GCTX_SET_TEXT(func, type)\
-    (void)((void(*)(type*, const char_t*))func == func)
+typedef void (*FPtr_gctx_set_text)(void *item, const char_t *text);
+#define FUNC_CHECK_GCTX_SET_TEXT(func, type) \
+    (void)((void (*)(type *, const char_t *))func == func)
 
-typedef void(*FPtr_gctx_set_ptr)(void *item, void *ptr);
-#define FUNC_CHECK_GCTX_SET_PTR(func, type, ptr_type)\
-    (void)((void(*)(type*, ptr_type*))func == func)
+typedef void (*FPtr_gctx_set_ptr)(void *item, void *ptr);
+#define FUNC_CHECK_GCTX_SET_PTR(func, type, ptr_type) \
+    (void)((void (*)(type *, ptr_type *))func == func)
 
-typedef uint32_t(*FPtr_gctx_set_ptr2)(void *item, void *ptr);
-#define FUNC_CHECK_GCTX_SET_PTR2(func, type, ptr_type)\
-    (void)((uint32_t(*)(type*, ptr_type*))func == func)
+typedef uint32_t (*FPtr_gctx_set_ptr2)(void *item, void *ptr);
+#define FUNC_CHECK_GCTX_SET_PTR2(func, type, ptr_type) \
+    (void)((uint32_t(*)(type *, ptr_type *))func == func)
 
-typedef void(*FPtr_gctx_set_cptr)(void *item, const void *ptr);
-#define FUNC_CHECK_GCTX_SET_CPTR(func, type, ptr_type)\
-    (void)((void(*)(type*, const ptr_type*))func == func)
+typedef enum_t (*FPtr_gctx_set_ptr3)(void *item, void *ptr);
+#define FUNC_CHECK_GCTX_SET_PTR3(func, type, ptr_type, enum_type) \
+    (void)((enum_type(*)(type *, ptr_type *))func == func)
 
-typedef void(*FPtr_gctx_set_listener)(void *item, Listener *listener);
-#define FUNC_CHECK_GCTX_SET_LISTENER(func, type)\
-    (void)((void(*)(type*, Listener*))func == func)
+typedef void (*FPtr_gctx_set_cptr)(void *item, const void *ptr);
+#define FUNC_CHECK_GCTX_SET_CPTR(func, type, ptr_type) \
+    (void)((void (*)(type *, const ptr_type *))func == func)
 
-typedef void(*FPtr_gctx_set_bool)(void *item, const bool_t value);
-#define FUNC_CHECK_GCTX_SET_BOOL(func, type)\
-    (void)((void(*)(type*, const bool_t))func == func)
+typedef void (*FPtr_gctx_set_listener)(void *item, Listener *listener);
+#define FUNC_CHECK_GCTX_SET_LISTENER(func, type) \
+    (void)((void (*)(type *, Listener *))func == func)
 
-typedef void(*FPtr_gctx_set_uint32)(void *item, const uint32_t value);
-#define FUNC_CHECK_GCTX_SET_UINT32(func, type)\
-    (void)((void(*)(type*, const uint32_t))func == func)
+typedef void (*FPtr_gctx_set_bool)(void *item, const bool_t value);
+#define FUNC_CHECK_GCTX_SET_BOOL(func, type) \
+    (void)((void (*)(type *, const bool_t))func == func)
 
-typedef void(*FPtr_gctx_set_real32)(void *item, const real32_t value);
-#define FUNC_CHECK_GCTX_SET_REAL32(func, type)\
-    (void)((void(*)(type*, const real32_t))func == func)
+typedef void (*FPtr_gctx_set_uint32)(void *item, const uint32_t value);
+#define FUNC_CHECK_GCTX_SET_UINT32(func, type) \
+    (void)((void (*)(type *, const uint32_t))func == func)
 
-typedef void(*FPtr_gctx_set_enum)(void *item, const enum_t value);
-#define FUNC_CHECK_GCTX_SET_ENUM(func, type, type_enum)\
-    (void)((void(*)(type*, const type_enum))func == func)
+typedef void (*FPtr_gctx_set_real32)(void *item, const real32_t value);
+#define FUNC_CHECK_GCTX_SET_REAL32(func, type) \
+    (void)((void (*)(type *, const real32_t))func == func)
 
-typedef void(*FPtr_gctx_set_elem)(void *item, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *data);
-#define FUNC_CHECK_GCTX_SET_ELEM(func, type)\
-    (void)((void(*)(type*, const ctrl_op_t, const uint32_t, const char_t*, const Image*))func == func)
+typedef void (*FPtr_gctx_set_enum)(void *item, const enum_t value);
+#define FUNC_CHECK_GCTX_SET_ENUM(func, type, type_enum) \
+    (void)((void (*)(type *, const type_enum))func == func)
 
-typedef void(*FPtr_gctx_set_property)(void *item, const gui_prop_t prop, const void *value);
-#define FUNC_CHECK_GCTX_SET_PROPERTY(func, type)\
-    (void)((void(*)(type*, const gui_prop_t, const void*))func == func)
+typedef enum_t (*FPtr_gctx_set_enum2)(void *item, const bool_t);
+#define FUNC_CHECK_GCTX_SET_ENUM2(func, type, type_enum) \
+    (void)((type_enum(*)(type *, const bool_t))func == func)
 
-typedef void(*FPtr_gctx_set_key)(void *item, const uint32_t key, const uint32_t modifiers);
-#define FUNC_CHECK_GCTX_SET_KEY(func, type)\
-    (void)((void(*)(type*, const uint32_t, const uint32_t))func == func)
+typedef void (*FPtr_gctx_set_elem)(void *item, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *data);
+#define FUNC_CHECK_GCTX_SET_ELEM(func, type) \
+    (void)((void (*)(type *, const ctrl_op_t, const uint32_t, const char_t *, const Image *))func == func)
 
-typedef void(*FPtr_gctx_set_hotkey)(void *item, const vkey_t, const uint32_t, Listener*);
-#define FUNC_CHECK_GCTX_SET_HOTKEY(func, type)\
-    (void)((void(*)(type*, const vkey_t, const uint32_t, Listener*))func == func)
+typedef void (*FPtr_gctx_set_property)(void *item, const gui_prop_t prop, const void *value);
+#define FUNC_CHECK_GCTX_SET_PROPERTY(func, type) \
+    (void)((void (*)(type *, const gui_prop_t, const void *))func == func)
 
-typedef void(*FPtr_gctx_set_area)(void *item, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
-#define FUNC_CHECK_GCTX_SET_AREA(func, type)\
-    (void)((void(*)(type*, void*, const color_t, const color_t, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
+typedef void (*FPtr_gctx_set_key)(void *item, const uint32_t key, const uint32_t modifiers);
+#define FUNC_CHECK_GCTX_SET_KEY(func, type) \
+    (void)((void (*)(type *, const uint32_t, const uint32_t))func == func)
 
-typedef void(*FPtr_gctx_set2_real32)(void *item, const real32_t value1, const real32_t value2);
-#define FUNC_CHECK_GCTX_SET2_REAL32(func, type)\
-    (void)((void(*)(type*, const real32_t, const real32_t))func == func)
+typedef void (*FPtr_gctx_set_hotkey)(void *item, const vkey_t, const uint32_t, Listener *);
+#define FUNC_CHECK_GCTX_SET_HOTKEY(func, type) \
+    (void)((void (*)(type *, const vkey_t, const uint32_t, Listener *))func == func)
 
-typedef void(*FPtr_gctx_set4_real32)(void *item, const real32_t value1, const real32_t value2, const real32_t value3, const real32_t value4);
-#define FUNC_CHECK_GCTX_SET4_REAL32(func, type)\
-    (void)((void(*)(type*, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
+typedef void (*FPtr_gctx_set_area)(void *item, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
+#define FUNC_CHECK_GCTX_SET_AREA(func, type) \
+    (void)((void (*)(type *, void *, const color_t, const color_t, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
 
-typedef const char_t*(*FPtr_gctx_get_text)(const void *item);
-#define FUNC_CHECK_GCTX_GET_TEXT(func, type)\
-    (void)((const char_t*(*)(const type*))func == func)
+typedef void (*FPtr_gctx_set2_bool)(void *item, const bool_t value1, const bool_t value2);
+#define FUNC_CHECK_GCTX_SET2_BOOL(func, type) \
+    (void)((void (*)(type *, const bool_t, const bool_t))func == func)
 
-typedef void*(*FPtr_gctx_get_ptr)(const void *item);
-#define FUNC_CHECK_GCTX_GET_PTR(func, type, ptr_type)\
-    (void)((ptr_type*(*)(const type*))func == func)
+typedef void (*FPtr_gctx_set2_int32)(void *item, const int32_t value1, const int32_t value2);
+#define FUNC_CHECK_GCTX_SET2_INT32(func, type) \
+    (void)((void (*)(type *, const int32_t, const int32_t))func == func)
 
-typedef uint32_t(*FPtr_gctx_get_uint32)(const void *item);
-#define FUNC_CHECK_GCTX_GET_UINT32(func, type)\
-    (void)((uint32_t(*)(const type*))func == func)
+typedef void (*FPtr_gctx_set2_real32)(void *item, const real32_t value1, const real32_t value2);
+#define FUNC_CHECK_GCTX_SET2_REAL32(func, type) \
+    (void)((void (*)(type *, const real32_t, const real32_t))func == func)
 
-typedef real32_t(*FPtr_gctx_get_real32)(const void *item);
-#define FUNC_CHECK_GCTX_GET_REAL32(func, type)\
-    (void)((real32_t(*)(const type*))func == func)
+typedef void (*FPtr_gctx_set2_real64)(void *item, const real64_t value1, const real64_t value2);
+#define FUNC_CHECK_GCTX_SET2_REAL64(func, type) \
+    (void)((void (*)(type *, const real64_t, const real64_t))func == func)
 
-typedef enum_t(*FPtr_gctx_get_enum)(const void *item);
-#define FUNC_CHECK_GCTX_GET_ENUM(func, type, type_enum)\
-    (void)((type_enum(*)(const type*))func == func)
+typedef void (*FPtr_gctx_set4_real32)(void *item, const real32_t value1, const real32_t value2, const real32_t value3, const real32_t value4);
+#define FUNC_CHECK_GCTX_SET4_REAL32(func, type) \
+    (void)((void (*)(type *, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
 
-typedef real32_t(*FPtr_gctx_get_real32e)(const void *item, const enum_t value);
-#define FUNC_CHECK_GCTX_GET_REAL32E(func, type, type_enum)\
-    (void)((real32_t(*)(const type*, const type_enum))func == func)
+typedef const char_t *(*FPtr_gctx_get_text)(const void *item);
+#define FUNC_CHECK_GCTX_GET_TEXT(func, type) \
+    (void)((const char_t *(*)(const type *))func == func)
 
-typedef enum_t(*FPtr_gctx_get_enum2)(const void *item, const enum_t);
-#define FUNC_CHECK_GCTX_GET_ENUM2(func, type, type_enum, type_enum2)\
-    (void)((type_enum(*)(const type*, const type_enum2))func == func)
+typedef void *(*FPtr_gctx_get_ptr)(const void *item);
+#define FUNC_CHECK_GCTX_GET_PTR(func, type, ptr_type) \
+    (void)((ptr_type * (*)(const type *)) func == func)
 
-typedef void(*FPtr_gctx_get2_real32)(const void *item, real32_t *value1, real32_t *value2);
-#define FUNC_CHECK_GCTX_GET2_REAL32(func, type)\
-    (void)((void(*)(const type*, real32_t*, real32_t*))func == func)
+typedef uint32_t (*FPtr_gctx_get_uint32)(const void *item);
+#define FUNC_CHECK_GCTX_GET_UINT32(func, type) \
+    (void)((uint32_t(*)(const type *))func == func)
 
-typedef void(*FPtr_gctx_get_indexed)(const uint32_t, void*);
-#define FUNC_CHECK_GCTX_GET_INDEXED(func)\
-    (void)((void(*)(const uint32_t, void*))func == func)
+typedef real32_t (*FPtr_gctx_get_real32)(const void *item);
+#define FUNC_CHECK_GCTX_GET_REAL32(func, type) \
+    (void)((real32_t(*)(const type *))func == func)
 
-typedef void(*FPtr_gctx_call)(void *item);
-#define FUNC_CHECK_GCTX_CALL(func, type)\
-    (void)((void(*)(type*))func == func)
+typedef enum_t (*FPtr_gctx_get_enum)(const void *item);
+#define FUNC_CHECK_GCTX_GET_ENUM(func, type, type_enum) \
+    (void)((type_enum(*)(const type *))func == func)
 
-typedef void(*FPtr_gctx_bounds1)(const void *item, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
-#define FUNC_CHECK_GCTX_BOUNDS1(func, type)\
-    (void)((void(*)(const type*, const char_t*, const real32_t, real32_t*, real32_t*))func == func)
+typedef real32_t (*FPtr_gctx_get_real32e)(const void *item, const enum_t value);
+#define FUNC_CHECK_GCTX_GET_REAL32E(func, type, type_enum) \
+    (void)((real32_t(*)(const type *, const type_enum))func == func)
 
-typedef void(*FPtr_gctx_bounds2)(const void *item, const char_t *text, const real32_t refwidth, const real32_t refheight, real32_t *width, real32_t *height);
-#define FUNC_CHECK_GCTX_BOUNDS2(func, type)\
-    (void)((void(*)(const type*, const char_t*, const real32_t, const real32_t, real32_t*, real32_t*))func == func)
+typedef enum_t (*FPtr_gctx_get_enum2)(const void *item, const enum_t);
+#define FUNC_CHECK_GCTX_GET_ENUM2(func, type, type_enum, type_enum2) \
+    (void)((type_enum(*)(const type *, const type_enum2))func == func)
 
-typedef void(*FPtr_gctx_bounds3)(const void *item, const char_t *text, real32_t *width, real32_t *height);
-#define FUNC_CHECK_GCTX_BOUNDS3(func, type)\
-    (void)((void(*)(const type*, const char_t*, real32_t*, real32_t*))func == func)
+typedef void (*FPtr_gctx_get2_real32)(const void *item, real32_t *value1, real32_t *value2);
+#define FUNC_CHECK_GCTX_GET2_REAL32(func, type) \
+    (void)((void (*)(const type *, real32_t *, real32_t *))func == func)
 
-typedef void(*FPtr_gctx_bounds4)(const void *item, const real32_t refwidth, const uint32_t lines, real32_t *width, real32_t *height);
-#define FUNC_CHECK_GCTX_BOUNDS4(func, type)\
-    (void)((void(*)(const type*, const real32_t, const uint32_t, real32_t*, real32_t*))func == func)
+typedef void (*FPtr_gctx_get_indexed)(const uint32_t, void *);
+#define FUNC_CHECK_GCTX_GET_INDEXED(func) \
+    (void)((void (*)(const uint32_t, void *))func == func)
 
-typedef void(*FPtr_gctx_bounds5)(const void *item, const real32_t refwidth, real32_t *width, real32_t *height);
-#define FUNC_CHECK_GCTX_BOUNDS5(func, type)\
-    (void)((void(*)(const type*, const real32_t, real32_t*, real32_t*))func == func)
+typedef void (*FPtr_gctx_call)(void *item);
+#define FUNC_CHECK_GCTX_CALL(func, type) \
+    (void)((void (*)(type *))func == func)
 
-typedef void(*FPtr_gctx_bounds6)(const void *item, const real32_t length, const gui_size_t size, real32_t *width, real32_t *height);
-#define FUNC_CHECK_GCTX_BOUNDS6(func, type)\
-    (void)((void(*)(const type*, const real32_t, const gui_size_t, real32_t*, real32_t*))func == func)
+typedef void (*FPtr_gctx_bounds1)(const void *item, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS1(func, type) \
+    (void)((void (*)(const type *, const char_t *, const real32_t, real32_t *, real32_t *))func == func)
 
-typedef void(*FPtr_gctx_tickmarks)(void *item, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top);
-#define FUNC_CHECK_GCTX_TICKMARKS(func, type)\
-    (void)((void(*)(type*, const uint32_t, const bool_t))func == func)
+typedef void (*FPtr_gctx_bounds2)(const void *item, const char_t *text, const real32_t refwidth, const real32_t refheight, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS2(func, type) \
+    (void)((void (*)(const type *, const char_t *, const real32_t, const real32_t, real32_t *, real32_t *))func == func)
 
-typedef void(*FPtr_gctx_menu)(void *item, void *window, const real32_t x, const real32_t y);
-#define FUNC_CHECK_GCTX_MENU(func, type, window_type)\
-    (void)((void(*)(type*, window_type*, const real32_t, const real32_t))func == func)
+typedef void (*FPtr_gctx_bounds3)(const void *item, const char_t *text, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS3(func, type) \
+    (void)((void (*)(const type *, const char_t *, real32_t *, real32_t *))func == func)
 
-typedef const char_t*(*FPtr_gctx_win_file)(void *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open);
-#define FUNC_CHECK_GCTX_WIN_FILE(func, type)\
-    (void)((const char_t*(*)(type*, const char_t**, const uint32_t, const char_t*, const bool_t))func == func)
+typedef void (*FPtr_gctx_bounds4)(const void *item, const real32_t refwidth, const uint32_t lines, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS4(func, type) \
+    (void)((void (*)(const type *, const real32_t, const uint32_t, real32_t *, real32_t *))func == func)
 
-typedef void(*FPtr_gctx_win_color)(void *parent, const char_t *title, const real32_t x, const real32_t y, const align_t halign, const align_t valign, color_t current, color_t *colors, const uint32_t n, Listener *OnChange);
-#define FUNC_CHECK_GCTX_WIN_COLOR(func, type)\
-    (void)((void(*)(type*, const char_t*, const real32_t, const real32_t, const align_t, const align_t, const color_t, color_t*, const uint32_t, Listener*))func == func)
+typedef void (*FPtr_gctx_bounds5)(const void *item, const real32_t refwidth, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS5(func, type) \
+    (void)((void (*)(const type *, const real32_t, real32_t *, real32_t *))func == func)
 
-typedef Cursor*(*FPtr_gctx_cursor)(const enum_t, const Image*, const real32_t, const real32_t);
-#define FUNC_CHECK_GCTX_CURSOR(func)\
-    (void)((Cursor*(*)(const gui_cursor_t, const Image*, const real32_t, const real32_t))func == func)
+typedef void (*FPtr_gctx_bounds6)(const void *item, const real32_t length, const gui_size_t size, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS6(func, type) \
+    (void)((void (*)(const type *, const real32_t, const gui_size_t, real32_t *, real32_t *))func == func)
 
-typedef void(*FPtr_gctx_draw_rect)(void*, const int32_t, const int32_t, const uint32_t, const uint32_t, const enum_t);
-#define FUNC_CHECK_GCTX_DRAW_RECT(func, type, enum_type)\
-    (void)((void(*)(type*, const int32_t, const int32_t, const uint32_t, const uint32_t, const enum_type))func == func)
+typedef void (*FPtr_gctx_tickmarks)(void *item, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top);
+#define FUNC_CHECK_GCTX_TICKMARKS(func, type) \
+    (void)((void (*)(type *, const uint32_t, const bool_t))func == func)
 
-typedef void(*FPtr_gctx_draw_line)(void*, const int32_t, const int32_t, const int32_t, const int32_t);
-#define FUNC_CHECK_GCTX_DRAW_LINE(func, type)\
-    (void)((void(*)(type*, const int32_t, const int32_t, const int32_t, const int32_t))func == func)
+typedef void (*FPtr_gctx_menu)(void *item, void *window, const real32_t x, const real32_t y);
+#define FUNC_CHECK_GCTX_MENU(func, type, window_type) \
+    (void)((void (*)(type *, window_type *, const real32_t, const real32_t))func == func)
 
-typedef void(*FPtr_gctx_draw_text)(void*, const char_t*, const int32_t, const int32_t, const enum_t);
-#define FUNC_CHECK_GCTX_DRAW_TEXT(func, type, enum_type)\
-    (void)((void(*)(type*, const char_t*, const int32_t, const int32_t, const enum_type))func == func)
+typedef const char_t *(*FPtr_gctx_win_file)(void *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open);
+#define FUNC_CHECK_GCTX_WIN_FILE(func, type) \
+    (void)((const char_t *(*)(type *, const char_t **, const uint32_t, const char_t *, const bool_t))func == func)
 
-typedef void(*FPtr_gctx_draw_image)(void*, const Image*, const int32_t, const int32_t, const enum_t);
-#define FUNC_CHECK_GCTX_DRAW_IMAGE(func, type, enum_type)\
-    (void)((void(*)(type*, const Image*, const int32_t, const int32_t, const enum_type))func == func)
+typedef void (*FPtr_gctx_win_color)(void *parent, const char_t *title, const real32_t x, const real32_t y, const align_t halign, const align_t valign, color_t current, color_t *colors, const uint32_t n, Listener *OnChange);
+#define FUNC_CHECK_GCTX_WIN_COLOR(func, type) \
+    (void)((void (*)(type *, const char_t *, const real32_t, const real32_t, const align_t, const align_t, const color_t, color_t *, const uint32_t, Listener *))func == func)
+
+typedef Cursor *(*FPtr_gctx_cursor)(const enum_t, const Image *, const real32_t, const real32_t);
+#define FUNC_CHECK_GCTX_CURSOR(func) \
+    (void)((Cursor * (*)(const gui_cursor_t, const Image *, const real32_t, const real32_t)) func == func)
+
+typedef void (*FPtr_gctx_draw_rect)(void *, const int32_t, const int32_t, const uint32_t, const uint32_t, const enum_t);
+#define FUNC_CHECK_GCTX_DRAW_RECT(func, type, enum_type) \
+    (void)((void (*)(type *, const int32_t, const int32_t, const uint32_t, const uint32_t, const enum_type))func == func)
+
+typedef void (*FPtr_gctx_draw_line)(void *, const int32_t, const int32_t, const int32_t, const int32_t);
+#define FUNC_CHECK_GCTX_DRAW_LINE(func, type) \
+    (void)((void (*)(type *, const int32_t, const int32_t, const int32_t, const int32_t))func == func)
+
+typedef void (*FPtr_gctx_draw_text)(void *, const char_t *, const int32_t, const int32_t, const enum_t);
+#define FUNC_CHECK_GCTX_DRAW_TEXT(func, type, enum_type) \
+    (void)((void (*)(type *, const char_t *, const int32_t, const int32_t, const enum_type))func == func)
+
+typedef void (*FPtr_gctx_draw_image)(void *, const Image *, const int32_t, const int32_t, const enum_t);
+#define FUNC_CHECK_GCTX_DRAW_IMAGE(func, type, enum_type) \
+    (void)((void (*)(type *, const Image *, const int32_t, const int32_t, const enum_type))func == func)
+
+typedef void (*FPtr_gctx_clipboard)(void *, const clipboard_t);
+#define FUNC_CHECK_GCTX_CLIPBOARD(func, type) \
+    (void)((void (*)(type *, const clipboard_t))func == func)
 
 struct _guictx_t
 {
@@ -611,6 +673,7 @@ struct _guictx_t
     FPtr_gctx_set_cptr func_button_set_image;
     FPtr_gctx_set_enum func_button_set_state;
     FPtr_gctx_get_enum func_button_get_state;
+    FPtr_gctx_set_real32 func_button_set_vpadding;
     FPtr_gctx_bounds2 func_button_bounds;
 
     /*! <PopUp> */
@@ -632,9 +695,12 @@ struct _guictx_t
     FPtr_gctx_set_bool func_edit_set_passmode;
     FPtr_gctx_set_bool func_edit_set_editable;
     FPtr_gctx_set_bool func_edit_set_autoselect;
+    FPtr_gctx_set2_int32 func_edit_set_select;
     FPtr_gctx_set_uint32 func_edit_set_text_color;
     FPtr_gctx_set_uint32 func_edit_set_bg_color;
+    FPtr_gctx_set_real32 func_edit_set_vpadding;
     FPtr_gctx_bounds4 func_edit_bounds;
+    FPtr_gctx_clipboard func_edit_clipboard;
 
     /*! <Combo> */
     FPtr_gctx_set_listener func_combo_OnFilter;
@@ -667,14 +733,17 @@ struct _guictx_t
     FPtr_gctx_get_real32e func_progress_get_thickness;
 
     /*! <Text view> */
-    FPtr_gctx_set_listener func_text_OnTextChange;
+    FPtr_gctx_set_listener func_text_OnFilter;
+    FPtr_gctx_set_listener func_text_OnFocus;
     FPtr_gctx_set_text func_text_insert_text;
     FPtr_gctx_set_text func_text_set_text;
     FPtr_gctx_set_ptr func_text_set_rtf;
     FPtr_gctx_set_property func_text_set_prop;
     FPtr_gctx_set_bool func_text_set_editable;
     FPtr_gctx_get_text func_text_get_text;
+    FPtr_gctx_set2_bool func_text_scroller_visible;
     FPtr_gctx_call func_text_set_need_display;
+    FPtr_gctx_clipboard func_text_clipboard;
 
     /*! <Split view> */
     FPtr_gctx_set_ptr func_split_attach_control;
@@ -696,7 +765,9 @@ struct _guictx_t
     FPtr_gctx_set_listener func_view_OnKeyDown;
     FPtr_gctx_set_listener func_view_OnKeyUp;
     FPtr_gctx_set_listener func_view_OnFocus;
-    FPtr_gctx_set_listener func_view_OnNotify;
+    FPtr_gctx_set_listener func_view_OnResignFocus;
+    FPtr_gctx_set_listener func_view_OnAcceptFocus;
+    FPtr_gctx_set_listener func_view_OnScroll;
     FPtr_gctx_set_listener func_view_OnTouchTap;
     FPtr_gctx_set_listener func_view_OnTouchStartDrag;
     FPtr_gctx_set_listener func_view_OnTouchDragging;
@@ -707,13 +778,14 @@ struct _guictx_t
     FPtr_gctx_set2_real32 func_view_scroll;
     FPtr_gctx_get2_real32 func_view_scroll_get;
     FPtr_gctx_get2_real32 func_view_scroller_size;
+    FPtr_gctx_set2_bool func_view_scroller_visible;
     FPtr_gctx_set4_real32 func_view_content_size;
     FPtr_gctx_get_real32 func_view_scale_factor;
     FPtr_gctx_call func_view_set_need_display;
     FPtr_gctx_set_bool func_view_set_drawable;
     FPtr_gctx_get_ptr func_view_get_native_view;
 
-	/*! <Panels> */
+    /*! <Panels> */
     FPtr_gctx_set_area func_panel_area;
     FPtr_gctx_get2_real32 func_panel_scroller_size;
     FPtr_gctx_set4_real32 func_panel_content_size;
@@ -755,8 +827,10 @@ struct _guictx_t
     FPtr_gctx_set_bool func_window_enable_mouse_events;
     FPtr_gctx_set_hotkey func_window_hotkey;
     FPtr_gctx_set_ptr func_window_set_taborder;
-    FPtr_gctx_set_bool func_window_tabstop;
-    FPtr_gctx_set_ptr func_window_set_focus;
+    FPtr_gctx_set_bool func_window_tabcycle;
+    FPtr_gctx_set_enum2 func_window_tabstop;
+    FPtr_gctx_set_ptr3 func_window_set_focus;
+    FPtr_gctx_get_ptr func_window_get_focus;
     FPtr_gctx_set_ptr func_attach_main_panel_to_window;
     FPtr_gctx_set_ptr func_detach_main_panel_from_window;
     FPtr_gctx_set_ptr func_attach_window_to_window;
@@ -769,9 +843,9 @@ struct _guictx_t
     FPtr_gctx_set2_real32 func_window_set_origin_in_screen_coordinates;
     FPtr_gctx_get2_real32 func_window_get_size;
     FPtr_gctx_set2_real32 func_window_set_size;
-	FPtr_gctx_set_ptr func_window_set_default_pushbutton;
+    FPtr_gctx_set_ptr func_window_set_default_pushbutton;
     FPtr_gctx_set_ptr func_window_set_cursor;
-	FPtr_gctx_set_property func_window_set_property;
+    FPtr_gctx_set_property func_window_set_property;
 
     /*! <Common Windows> */
     FPtr_gctx_win_file func_comwin_file;
@@ -785,6 +859,8 @@ struct _guictx_t
     FPtr_gctx_cursor func_globals_cursor;
     FPtr_gctx_destroy func_globals_cursor_destroy;
     FPtr_gctx_get_indexed func_globals_value;
+    FPtr_gctx_set2_real64 func_globals_transitions;
+    FPtr_gctx_set_listener func_globals_OnIdle;
 
     /*! <Draw Custom Controls> */
     FPtr_gctx_get_ptr func_drawctrl_font;
@@ -822,9 +898,11 @@ struct _evtext_t
 {
     const char_t *text;
     uint32_t cpos;
+    int32_t len;
+    void *next_ctrl;
 };
 
-#define kTEXTFILTER_SIZE    1024
+#define kTEXTFILTER_SIZE 4096
 
 struct _evtextfilter_t
 {
@@ -891,9 +969,22 @@ struct _evmenu_t
     const char_t *str;
 };
 
+struct _evscroll_t
+{
+    gui_orient_t orient;
+    gui_scroll_t scroll;
+    real32_t cpos;
+};
+
 struct _evtbpos_t
 {
     uint32_t col;
+    uint32_t row;
+};
+
+struct _evtbrow_t
+{
+    bool_t sel;
     uint32_t row;
 };
 
@@ -907,7 +998,7 @@ struct _evtbrect_t
 
 struct _evtbsel_t
 {
-    ArrSt(uint32_t) *sel;
+    ArrSt(uint32_t) * sel;
 };
 
 struct _evtbcell_t

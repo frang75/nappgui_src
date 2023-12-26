@@ -22,7 +22,6 @@ _osgui_api void osprogress_position(OSProgress *progress, const real32_t positio
 
 _osgui_api real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size);
 
-
 _osgui_api void osprogress_attach(OSProgress *progress, OSPanel *panel);
 
 _osgui_api void osprogress_detach(OSProgress *progress, OSPanel *panel);

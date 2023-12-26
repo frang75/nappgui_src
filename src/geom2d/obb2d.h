@@ -15,21 +15,21 @@
 
 __EXTERN_C
 
-_geom2d_api OBB2Df* obb2d_createf(const V2Df *center, const real32_t width, const real32_t height, const real32_t angle);
+_geom2d_api OBB2Df *obb2d_createf(const V2Df *center, const real32_t width, const real32_t height, const real32_t angle);
 
-_geom2d_api OBB2Dd* obb2d_created(const V2Dd *center, const real64_t width, const real64_t height, const real64_t angle);
+_geom2d_api OBB2Dd *obb2d_created(const V2Dd *center, const real64_t width, const real64_t height, const real64_t angle);
 
-_geom2d_api OBB2Df* obb2d_from_linef(const V2Df *p0, const V2Df *p1, const real32_t thickness);
+_geom2d_api OBB2Df *obb2d_from_linef(const V2Df *p0, const V2Df *p1, const real32_t thickness);
 
-_geom2d_api OBB2Dd* obb2d_from_lined(const V2Dd *p0, const V2Dd *p1, const real64_t thickness);
+_geom2d_api OBB2Dd *obb2d_from_lined(const V2Dd *p0, const V2Dd *p1, const real64_t thickness);
 
-_geom2d_api OBB2Df* obb2d_from_pointsf(const V2Df *p, const uint32_t n);
+_geom2d_api OBB2Df *obb2d_from_pointsf(const V2Df *p, const uint32_t n);
 
-_geom2d_api OBB2Dd* obb2d_from_pointsd(const V2Dd *p, const uint32_t n);
+_geom2d_api OBB2Dd *obb2d_from_pointsd(const V2Dd *p, const uint32_t n);
 
-_geom2d_api OBB2Df* obb2d_copyf(const OBB2Df *obb);
+_geom2d_api OBB2Df *obb2d_copyf(const OBB2Df *obb);
 
-_geom2d_api OBB2Dd* obb2d_copyd(const OBB2Dd *obb);
+_geom2d_api OBB2Dd *obb2d_copyd(const OBB2Dd *obb);
 
 _geom2d_api void obb2d_destroyf(OBB2Df **obb);
 
@@ -76,4 +76,3 @@ _geom2d_api Box2Df obb2d_boxf(const OBB2Df *obb);
 _geom2d_api Box2Dd obb2d_boxd(const OBB2Dd *obb);
 
 __END_C
-

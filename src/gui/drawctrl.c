@@ -11,7 +11,7 @@
 /* Drawing custom GUI controls */
 
 #include "drawctrl.inl"
-#include "guictx.h"
+#include <draw2d/guictx.h>
 
 static uint32_t kCHECK_WIDTH = 0;
 static uint32_t kCHECK_HEIGHT = 0;
@@ -21,7 +21,7 @@ static uint32_t kCHECK_HEIGHT = 0;
 Font *drawctrl_font(DCtx *ctx)
 {
     const GuiCtx *context = guictx_get_current();
-    return (Font*)context->func_drawctrl_font(ctx);
+    return (Font *)context->func_drawctrl_font(ctx);
 }
 
 /*---------------------------------------------------------------------------*/

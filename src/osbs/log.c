@@ -12,12 +12,12 @@
 
 #include "log.h"
 #include "log.inl"
-#include "blib.h"
-#include "cassert.h"
 #include "bfile.h"
 #include "bmutex.h"
-#include "bstd.h"
 #include "btime.h"
+#include <sewer/blib.h>
+#include <sewer/cassert.h>
+#include <sewer/bstd.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -95,9 +95,9 @@ uint32_t log_printf(const char_t *format, ...)
         File *file = bfile_open(i_LOG_FILEPATH, ekAPPEND, NULL);
         if (file != NULL)
         {
-            bfile_write(file, (const byte_t*)time_buffer, time_size, NULL, NULL);
-            bfile_write(file, (const byte_t*)msg_buffer, msg_size, NULL, NULL);
-            bfile_write(file, (const byte_t*)"\r\n", 2, NULL, NULL);
+            bfile_write(file, (const byte_t *)time_buffer, time_size, NULL, NULL);
+            bfile_write(file, (const byte_t *)msg_buffer, msg_size, NULL, NULL);
+            bfile_write(file, (const byte_t *)"\r\n", 2, NULL, NULL);
             bfile_close(&file);
         }
     }

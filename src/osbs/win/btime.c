@@ -11,15 +11,15 @@
 /* Basic time services */
 
 #include "btime.h"
-#include "cassert.h"
+#include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 #define EPOCHFILETIME (116444736000000000i64)
 
@@ -27,15 +27,15 @@
 
 static uint64_t i_filetime_to_micro(const FILETIME *ft)
 {
-	LARGE_INTEGER   li;
-	__int64         t;
-	//static int      tzflag;
+    LARGE_INTEGER li;
+    __int64 t;
+    //static int      tzflag;
     cassert_no_null(ft);
-    li.LowPart  = ft->dwLowDateTime;
+    li.LowPart = ft->dwLowDateTime;
     li.HighPart = (LONG)ft->dwHighDateTime;
-    t  = li.QuadPart;       /* In 100-nanosecond intervals */
-    t -= EPOCHFILETIME;     /* Offset to the Unix Epoch time */
-    t /= 10;                /* In microseconds */
+    t = li.QuadPart;    /* In 100-nanosecond intervals */
+    t -= EPOCHFILETIME; /* Offset to the Unix Epoch time */
+    t /= 10;            /* In microseconds */
     return t;
 }
 
@@ -43,8 +43,8 @@ static uint64_t i_filetime_to_micro(const FILETIME *ft)
 
 static void i_micro_to_filetime(const uint64_t micro, FILETIME *ft)
 {
-	LARGE_INTEGER li;
-	__int64 t;
+    LARGE_INTEGER li;
+    __int64 t;
     cassert_no_null(ft);
     t = micro * 10;
     t += EPOCHFILETIME;
@@ -57,7 +57,7 @@ static void i_micro_to_filetime(const uint64_t micro, FILETIME *ft)
 
 uint64_t btime_now(void)
 {
-	FILETIME ft;
+    FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
     return i_filetime_to_micro(&ft);
 }
@@ -99,7 +99,7 @@ static __INLINE void i_systime_to_date(const SYSTEMTIME *st, Date *date)
     date->wday = (uint8_t)st->wDayOfWeek;
     date->mday = (uint8_t)st->wDay;
     date->month = (uint8_t)st->wMonth;
-    date->year =  (uint16_t)st->wYear;
+    date->year = (uint16_t)st->wYear;
     date->hour = (uint8_t)st->wHour;
     date->minute = (uint8_t)st->wMinute;
     date->second = (uint8_t)st->wSecond;
@@ -168,4 +168,3 @@ void btime_to_date(const uint64_t micro, Date *date)
 //            return;
 //    }
 //}
-

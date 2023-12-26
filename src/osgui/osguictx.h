@@ -17,6 +17,3 @@ __EXTERN_C
 _osgui_api GuiCtx *osguictx(void);
 
 __END_C
-
-
-

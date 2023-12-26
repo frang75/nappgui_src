@@ -10,16 +10,17 @@
 
 /* Operating System split view */
 
-#include "osgui_osx.inl"
 #include "ossplit.h"
+#include "osgui_osx.inl"
+#include "ossplit_osx.inl"
+#include "oscontrol_osx.inl"
+#include "ospanel_osx.inl"
 #include "osgui.inl"
-#include "oscontrol.inl"
 #include "oslistener.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "ptr.h"
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -143,7 +144,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
     if (self->left_button == TRUE)
     {
-        _oslistener_mouse_dragged2(self, theEvent, ekGUI_MOUSE_LEFT, self->OnDrag);
+        _oslistener_mouse_dragged2(self, theEvent, ekGUI_MOUSE_LEFT, NULL, self->OnDrag);
         [window disableCursorRects];
         if (split_get_type(self->flags) == ekSPLIT_HORZ)
             [[NSCursor resizeUpDownCursor] set];
@@ -191,6 +192,13 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 }
 
 @end
+
+/*---------------------------------------------------------------------------*/
+
+BOOL _ossplit_is(NSView *view)
+{
+    return [view isKindOfClass:[OSXSplitView class]];
+}
 
 /*---------------------------------------------------------------------------*/
 

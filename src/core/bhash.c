@@ -12,11 +12,10 @@
 /* http://www.azillionmonkeys.com/qed/hash.html */
 
 #include "bhash.h"
-#include "cassert.h"
+#include <sewer/cassert.h>
 
-#define i_GET16BITS(d) (*((const uint16_t*)(d)))
-/*#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8)+(uint32_t)(((const uint8_t *)(d))[0]) )*/
-		
+#define i_GET16BITS(d) (*((const uint16_t *)(d)))
+
 /*---------------------------------------------------------------------------*/
 
 static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, const uint32_t init_hash)
@@ -30,7 +29,7 @@ static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, cons
 
     {
         register uint32_t i;
-        for (i = (size >> 2); i > 0; --i) 
+        for (i = (size >> 2); i > 0; --i)
         {
             uint32_t tmp;
             hash += i_GET16BITS(data);
@@ -44,26 +43,26 @@ static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, cons
     {
         register uint32_t rem;
         rem = size & 3;
-        switch (rem) 
+        switch (rem)
         {
-            case 3: 
-                hash += i_GET16BITS(data);
-                hash ^= hash << 16;
-                hash ^= (uint32_t)((uint8_t)data[sizeof(uint16_t)]) << 18;
-                hash += hash >> 11;
-                break;
-            case 2: 
-                hash += i_GET16BITS(data);
-                hash ^= hash << 11;
-                hash += hash >> 17;
-                break;
-            case 1: 
-                hash += (uint8_t)*data;
-                hash ^= hash << 10;
-                hash += hash >> 1;
-                break;
-            case 0:
-                break;
+        case 3:
+            hash += i_GET16BITS(data);
+            hash ^= hash << 16;
+            hash ^= (uint32_t)((uint8_t)data[sizeof(uint16_t)]) << 18;
+            hash += hash >> 11;
+            break;
+        case 2:
+            hash += i_GET16BITS(data);
+            hash ^= hash << 11;
+            hash += hash >> 17;
+            break;
+        case 1:
+            hash += (uint8_t)*data;
+            hash ^= hash << 10;
+            hash += hash >> 1;
+            break;
+        case 0:
+            break;
             cassert_default();
         }
     }
@@ -88,12 +87,12 @@ uint32_t bhash_from_block(const byte_t *data, const uint32_t size)
 
 uint32_t bhash_append_uint32(const uint32_t hash, const uint32_t value)
 {
-    return i_incremental_hash((const byte_t*)&value, sizeof(uint32_t), hash);
+    return i_incremental_hash((const byte_t *)&value, sizeof(uint32_t), hash);
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t bhash_append_real32(const uint32_t hash, const real32_t value)
 {
-    return i_incremental_hash((const byte_t*)&value, sizeof(real32_t), hash);
+    return i_incremental_hash((const byte_t *)&value, sizeof(real32_t), hash);
 }

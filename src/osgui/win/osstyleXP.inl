@@ -10,9 +10,8 @@
 
 /* Windows XP Styles */
 
-#include "win/draw2d_gdi.ixx"
-
-#include "nowarn.hxx"
+#include <draw2d/win/draw2d_gdi.ixx>
+#include <sewer/nowarn.hxx>
 #include <uxtheme.h>
 #if _MSC_VER > 1400
 #include <vssym32.h>
@@ -20,7 +19,7 @@
 #else
 #include <tmschema.h>
 #endif
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 __EXTERN_C
 

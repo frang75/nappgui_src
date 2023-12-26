@@ -16,16 +16,16 @@
 #include "box2d.hpp"
 #include "t2d.hpp"
 
-template<typename real>
+template <typename real>
 struct OBB2D
 {
-    _geom2d_api static OBB2D<real>* (*create)(const V2D<real> *center, const real width, const real height, const real angle);
+    _geom2d_api static OBB2D<real> *(*create)(const V2D<real> *center, const real width, const real height, const real angle);
 
-    _geom2d_api static OBB2D<real>* (*from_line)(const V2D<real> *p0, const V2D<real> *p1, const real thickness);
+    _geom2d_api static OBB2D<real> *(*from_line)(const V2D<real> *p0, const V2D<real> *p1, const real thickness);
 
-    _geom2d_api static OBB2D<real>* (*from_points)(const V2D<real> *p, const uint32_t n);
+    _geom2d_api static OBB2D<real> *(*from_points)(const V2D<real> *p, const uint32_t n);
 
-    _geom2d_api static OBB2D<real>* (*copy)(const OBB2D<real> *obb);
+    _geom2d_api static OBB2D<real> *(*copy)(const OBB2D<real> *obb);
 
     _geom2d_api static void (*destroy)(OBB2D<real> **obb);
 
@@ -35,7 +35,7 @@ struct OBB2D
 
     _geom2d_api static void (*transform)(OBB2D<real> *obb, const T2D<real> *t2d);
 
-    _geom2d_api static const V2D<real>* (*corners)(const OBB2D<real> *obb);
+    _geom2d_api static const V2D<real> *(*corners)(const OBB2D<real> *obb);
 
     _geom2d_api static V2D<real> (*center)(const OBB2D<real> *obb);
 
@@ -51,4 +51,3 @@ struct OBB2D
 };
 
 #endif
-

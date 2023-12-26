@@ -11,13 +11,13 @@
 /* Basic threading services */
 
 #include "bthread.h"
+#include "osbs.inl"
+#include <sewer/cassert.h>
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
 #endif
 
-#include "osbs.inl"
-#include "cassert.h"
 #include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -31,23 +31,23 @@ int pthread_tryjoin_np(pthread_t thread, void **retval);
 
 /*---------------------------------------------------------------------------*/
 
-Thread *bthread_create_imp(uint32_t(func_thread_main)(void*), void *data)
+Thread *bthread_create_imp(uint32_t(func_thread_main)(void *), void *data)
 {
-    pthread_t *thread = (pthread_t*)malloc(sizeof(pthread_t));
+    pthread_t *thread = (pthread_t *)malloc(sizeof(pthread_t));
 
-#include "nowarn.hxx"
-    int ret = pthread_create(thread, NULL, (void*(*)(void*))func_thread_main, data);
-#include "warn.hxx"
+#include <sewer/nowarn.hxx>
+    int ret = pthread_create(thread, NULL, (void *(*)(void *))func_thread_main, data);
+#include <sewer/warn.hxx>
 
     if (ret != 0)
     {
-        free((void*)thread);
+        free((void *)thread);
         return NULL;
     }
     else
     {
         _osbs_thread_alloc();
-        return (Thread*)thread;
+        return (Thread *)thread;
     }
 }
 
@@ -59,7 +59,7 @@ int bthread_current_id(void)
 #ifdef SYS_gettid
     return (int)syscall(SYS_gettid);
 #else
-    #error "SYS_gettid unavailable on this system"
+#error "SYS_gettid unavailable on this system"
     return 0;
 #endif
 #else
@@ -76,7 +76,7 @@ void bthread_close(Thread **thread)
     void *mem;
     cassert_no_null(thread);
     cassert_no_null(*thread);
-    mem = *((void**)thread);
+    mem = *(void **)thread;
     free(mem);
     _osbs_thread_dealloc();
     *thread = NULL;
@@ -88,7 +88,7 @@ bool_t bthread_cancel(Thread *thread)
 {
     int result = 0;
     cassert_no_null(thread);
-    result = pthread_cancel(*(pthread_t*)thread);
+    result = pthread_cancel(*(pthread_t *)thread);
     return result == 0 ? TRUE : FALSE;
 }
 
@@ -99,7 +99,7 @@ uint32_t bthread_wait(Thread *thread)
     void *value = NULL;
     int result = 0;
     cassert_no_null(thread);
-    result = pthread_join(*((pthread_t*)thread), &value);
+    result = pthread_join(*((pthread_t *)thread), &value);
     if (result == 0)
         return (uint32_t)(intptr_t)value;
     else
@@ -110,11 +110,11 @@ uint32_t bthread_wait(Thread *thread)
 
 bool_t bthread_finish(Thread *thread, uint32_t *code)
 {
-#if defined (__LINUX__)
+#if defined(__LINUX__)
     void *value = NULL;
     int result = 0;
     cassert_no_null(thread);
-    result = pthread_tryjoin_np(*(pthread_t*)thread, &value);
+    result = pthread_tryjoin_np(*(pthread_t *)thread, &value);
     if (result == 0)
     {
         if (code != NULL)
@@ -126,17 +126,17 @@ bool_t bthread_finish(Thread *thread, uint32_t *code)
         cassert(result == EBUSY);
         return FALSE;
     }
-#elif defined (__MACOS__)
+#elif defined(__MACOS__)
     unref(thread);
     cassert_msg(FALSE, "TODO: Not implemented");
     if (code != NULL)
         *code = 0;
     return FALSE;
-#elif defined (__IOS__)
+#elif defined(__IOS__)
     unref(thread);
     cassert_msg(FALSE, "TODO: Not implemented");
     if (code != NULL)
-    *code = 0;
+        *code = 0;
     return FALSE;
 #endif
 }
@@ -147,4 +147,3 @@ void bthread_sleep(const uint32_t milliseconds)
 {
     usleep(milliseconds * 1000);
 }
-

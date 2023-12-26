@@ -13,11 +13,10 @@
 #include "progress.h"
 #include "progress.inl"
 #include "component.inl"
-#include "guictx.h"
-
-#include "cassert.h"
-#include "ptr.h"
-#include "objh.h"
+#include <draw2d/guictx.h>
+#include <core/objh.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _progress_t
 {

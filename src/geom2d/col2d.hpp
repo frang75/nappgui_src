@@ -19,7 +19,7 @@
 #include "pol2d.hpp"
 #include "v2d.hpp"
 
-template<typename real>
+template <typename real>
 struct Col2D
 {
     _geom2d_api static bool_t (*point_point)(const V2D<real> *pnt1, const V2D<real> *pnt2, const real tol, Col2D<real> *col);
@@ -33,7 +33,7 @@ struct Col2D
     _geom2d_api static bool_t (*circle_segment)(const Cir2D<real> *cir, const Seg2D<real> *seg, Col2D<real> *col);
 
     _geom2d_api static bool_t (*circle_circle)(const Cir2D<real> *cir1, const Cir2D<real> *cir2, Col2D<real> *col);
-    
+
     _geom2d_api static bool_t (*box_point)(const Box2D<real> *box, const V2D<real> *pt, Col2D<real> *col);
 
     _geom2d_api static bool_t (*box_segment)(const Box2D<real> *box, const Seg2D<real> *seg, Col2D<real> *col);
@@ -84,4 +84,3 @@ struct Col2D
 };
 
 #endif
-

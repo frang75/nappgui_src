@@ -21,12 +21,12 @@ _osbs_api void dlib_close(DLib **dlib);
 
 _osbs_api FPtr_libproc dlib_proc_imp(DLib *dlib, const char_t *procname);
 
-_osbs_api void* dlib_var_imp(DLib *dlib, const char_t *varname);
+_osbs_api void *dlib_var_imp(DLib *dlib, const char_t *varname);
 
 __END_C
 
-#define dlib_proc(dlib, procname, type)\
-    (type)dlib_proc_imp(dlib, procname)
+#define dlib_proc(dlib, procname, type) \
+    (type) dlib_proc_imp(dlib, procname)
 
-#define dlib_var(dlib, varname, type)\
-    (const type*)dlib_var_imp(dlib, varname)
+#define dlib_var(dlib, varname, type) \
+    (const type *)dlib_var_imp(dlib, varname)

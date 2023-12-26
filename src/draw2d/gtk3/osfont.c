@@ -13,20 +13,19 @@
 #include "font.h"
 #include "font.inl"
 #include "dctxh.h"
-
-#include "arrpt.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
-#include "strings.h"
+#include <core/arrpt.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <pango/pangocairo.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 /* System font should be set from GTK or other toolkit manager */
 static String *kSYSTEM_FONT = NULL;
@@ -41,7 +40,6 @@ static PangoLayout *i_LAYOUT = NULL;
 
 void osfont_alloc_globals(void)
 {
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -67,7 +65,7 @@ static real32_t i_device_to_pixels(void)
     {
         /* This object is owned by Pango and must not be freed */
         PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap*)fontmap);
+        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap *)fontmap);
         i_PANGO_TO_PIXELS = (dpi / 72.f) / PANGO_SCALE;
     }
 
@@ -78,7 +76,7 @@ static real32_t i_device_to_pixels(void)
 
 void dctx_set_default_osfont(DCtx *ctx, const void *font)
 {
-    const PangoFontDescription *fdesc = (const PangoFontDescription*)font;
+    const PangoFontDescription *fdesc = (const PangoFontDescription *)font;
     real32_t scale = i_device_to_pixels();
     const char *family = NULL;
     real32_t size = 0;
@@ -86,7 +84,7 @@ void dctx_set_default_osfont(DCtx *ctx, const void *font)
     cassert(kSYSTEM_FONT == NULL);
     family = pango_font_description_get_family(fdesc);
     size = (real32_t)pango_font_description_get_size(fdesc);
-    kSYSTEM_FONT = str_c((const char_t*)family);
+    kSYSTEM_FONT = str_c((const char_t *)family);
     kFONT_REGULAR_SIZE = size * scale;
     kFONT_SMALL_SIZE = kFONT_REGULAR_SIZE - 2.f;
     kFONT_MINI_SIZE = kFONT_REGULAR_SIZE - 4.f;
@@ -160,7 +158,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     pango_font_description_set_style(font, (style & ekFITALIC) == ekFITALIC ? PANGO_STYLE_ITALIC : PANGO_STYLE_NORMAL);
     pango_font_description_set_weight(font, (style & ekFBOLD) == ekFBOLD ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
     heap_auditor_add("PangoFontDescription");
-    return (OSFont*)font;
+    return (OSFont *)font;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -169,7 +167,7 @@ void osfont_destroy(OSFont **font)
 {
     cassert_no_null(font);
     cassert_no_null(*font);
-    pango_font_description_free(*((PangoFontDescription**)font));
+    pango_font_description_free(*((PangoFontDescription **)font));
     heap_auditor_delete("PangoFontDescription");
     *font = NULL;
 }
@@ -205,8 +203,8 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
         i_LAYOUT = pango_cairo_create_layout(i_CAIRO);
     }
 
-    pango_layout_set_font_description(i_LAYOUT, (PangoFontDescription*)font);
-    pango_layout_set_text(i_LAYOUT, (const char*)text, -1);
+    pango_layout_set_font_description(i_LAYOUT, (PangoFontDescription *)font);
+    pango_layout_set_text(i_LAYOUT, (const char *)text, -1);
     pango_layout_set_width(i_LAYOUT, refwidth < 0 ? -1 : (int)(refwidth * PANGO_SCALE));
     pango_layout_get_pixel_size(i_LAYOUT, &w, &h);
     ptr_assign(width, (real32_t)w);
@@ -218,7 +216,7 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
 const void *osfont_native(const OSFont *font)
 {
     cassert_no_null(font);
-    return (void*)font;
+    return (void *)font;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -236,7 +234,7 @@ void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *ce
     /* This object is owned by Pango and must not be freed */
     fontmap = pango_cairo_font_map_get_default();
     context = pango_font_map_create_context(fontmap);
-    ffont = pango_font_map_load_font(fontmap, context, (PangoFontDescription*)font);
+    ffont = pango_font_map_load_font(fontmap, context, (PangoFontDescription *)font);
     metrics = pango_font_get_metrics(ffont, NULL);
     *internal_leading = 10;
     height = (real32_t)pango_font_metrics_get_ascent(metrics);
@@ -273,19 +271,19 @@ bool_t font_exists_family(const char_t *font_family)
     pango_font_map_list_families(fontmap, &families, &n);
     for (i = 0; i < n; i++)
     {
-        const char_t *name = (const char_t*)pango_font_family_get_name(families[i]);
+        const char_t *name = (const char_t *)pango_font_family_get_name(families[i]);
         if (str_equ_nocase(font_family, name) == TRUE)
             break;
     }
-    g_free (families);
+    g_free(families);
     return (bool_t)(i < n);
 }
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) *font_installed_families(void)
+ArrPt(String) * font_installed_families(void)
 {
-    ArrPt(String) *fonts;
+    ArrPt(String) * fonts;
     PangoFontMap *fontmap;
     PangoFontFamily **families;
     int i, n;
@@ -297,11 +295,10 @@ ArrPt(String) *font_installed_families(void)
     pango_font_map_list_families(fontmap, &families, &n);
     for (i = 0; i < n; i++)
     {
-        const char_t *name = (const char_t*)pango_font_family_get_name(families[i]);
+        const char_t *name = (const char_t *)pango_font_family_get_name(families[i]);
         String *font = str_c(name);
         arrpt_append(fonts, font, String);
     }
-    g_free (families);
+    g_free(families);
     return fonts;
 }
-

@@ -14,11 +14,11 @@
 #define __DRAWG_HPP__
 
 #include "draw2d.hxx"
-#include "cir2d.hpp"
-#include "obb2d.hpp"
-#include "pol2d.hpp"
+#include <geom2d/cir2d.hpp>
+#include <geom2d/obb2d.hpp>
+#include <geom2d/pol2d.hpp>
 
-template<typename real>
+template <typename real>
 struct Draw
 {
     _draw2d_api static void (*v2d)(DCtx *ctx, const drawop_t op, const V2D<real> *v2d, const real radius);
@@ -37,4 +37,3 @@ struct Draw
 };
 
 #endif
-

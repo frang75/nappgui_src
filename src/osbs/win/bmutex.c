@@ -10,17 +10,17 @@
 
 /* Basic synchronization services */
 
-#include "bmutex.h"
 #include "osbs.inl"
-#include "cassert.h"
+#include "bmutex.h"
+#include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 /*---------------------------------------------------------------------------*/
 
@@ -29,7 +29,7 @@ Mutex *bmutex_create(void)
     HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
     cassert_no_null(mutex);
     _osbs_mutex_alloc();
-    return (Mutex*)mutex;
+    return (Mutex *)mutex;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -64,4 +64,3 @@ void bmutex_unlock(Mutex *mutex)
     ok = ReleaseMutex((HANDLE)mutex);
     cassert(ok != 0);
 }
-

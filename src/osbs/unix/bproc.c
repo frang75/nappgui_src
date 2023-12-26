@@ -11,6 +11,10 @@
 /* Processes */
 
 #include "bproc.h"
+#include "osbs.inl"
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
@@ -22,17 +26,13 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "osbs.inl"
-#include "cassert.h"
-#include "bmem.h"
-#include "ptr.h"
 
-#define STDIN_READ_CHILD        0
-#define STDIN_WRITE_PARENT      1
-#define STDOUT_READ_PARENT      2
-#define STDOUT_WRITE_CHILD      3
-#define STDERR_READ_PARENT      4
-#define STDERR_WRITE_CHILD      5
+#define STDIN_READ_CHILD 0
+#define STDIN_WRITE_PARENT 1
+#define STDOUT_READ_PARENT 2
+#define STDOUT_WRITE_CHILD 3
+#define STDERR_READ_PARENT 4
+#define STDERR_WRITE_CHILD 5
 
 #if defined __LINUX__
 int kill(pid_t pid, int sig);
@@ -48,7 +48,7 @@ struct _process_t
 
 static Proc *i_create(int *pipes, pid_t pid)
 {
-    Proc *proc = (Proc*)bmem_malloc(sizeof(Proc));
+    Proc *proc = (Proc *)bmem_malloc(sizeof(Proc));
     _osbs_proc_alloc();
     bmem_copy_n(proc->pipes, pipes, 6, int);
     proc->pid = pid;
@@ -196,7 +196,7 @@ void bproc_close(Proc **proc)
     i_close_pipes((*proc)->pipes);
     waitpid((*proc)->pid, NULL, WNOHANG);
     _osbs_proc_dealloc();
-    bmem_free((byte_t*)*proc);
+    bmem_free((byte_t *)*proc);
     *proc = NULL;
 }
 
@@ -281,7 +281,7 @@ bool_t bproc_read(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsize
 {
     ssize_t lrsize;
     cassert_no_null(proc);
-    lrsize = read(proc->pipes[STDOUT_READ_PARENT], (char*)data, (unsigned)size);
+    lrsize = read(proc->pipes[STDOUT_READ_PARENT], (char *)data, (unsigned)size);
     if (lrsize > 0)
     {
         ptr_assign(rsize, (uint32_t)lrsize);
@@ -308,7 +308,7 @@ bool_t bproc_eread(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsiz
 {
     ssize_t lrsize;
     cassert_no_null(proc);
-    lrsize = read(proc->pipes[STDERR_READ_PARENT], (char*)data, (unsigned)size);
+    lrsize = read(proc->pipes[STDERR_READ_PARENT], (char *)data, (unsigned)size);
     if (lrsize > 0)
     {
         ptr_assign(rsize, (uint32_t)lrsize);
@@ -335,7 +335,7 @@ bool_t bproc_write(Proc *proc, const byte_t *data, const uint32_t size, uint32_t
 {
     ssize_t lwsize;
     cassert_no_null(proc);
-    lwsize = write(proc->pipes[STDIN_WRITE_PARENT], (const char*)data, (unsigned)size);
+    lwsize = write(proc->pipes[STDIN_WRITE_PARENT], (const char *)data, (unsigned)size);
     if (lwsize >= 0)
     {
         ptr_assign(wsize, (uint32_t)lwsize);
@@ -405,4 +405,3 @@ void bproc_exit(const uint32_t code)
 {
     exit((int)code);
 }
-

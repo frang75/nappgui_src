@@ -10,24 +10,14 @@
 
 /* Operating System native panel */
 
-#include "osgui_osx.inl"
 #include "ospanel.h"
-#include "ospanel.inl"
-#include "osgui.inl"
-#include "osbutton.inl"
-#include "oscombo.inl"
+#include "ospanel_osx.inl"
+#include "oscontrol_osx.inl"
 #include "oscontrol.inl"
-#include "osview.inl"
-#include "osedit.inl"
-#include "oslabel.inl"
-#include "ospopup.inl"
-#include "osprogress.inl"
-#include "osslider.inl"
-#include "ostext.inl"
-#include "osupdown.inl"
-#include "arrst.h"
-#include "cassert.h"
-#include "heap.h"
+#include "osgui.inl"
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -180,76 +170,9 @@ void ospanel_destroy(OSPanel **panel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_destroy_child(NSView *child, OSPanel *panel)
+BOOL _ospanel_is(NSView *view)
 {
-    if (_oslabel_is(child) == YES)
-    {
-        _oslabel_detach_and_destroy((OSLabel**)&child, panel);
-        return;
-    }
-
-    if (_osbutton_is(child) == YES)
-    {
-        _osbutton_detach_and_destroy((OSButton**)&child, panel);
-        return;
-    }
-
-    if (_ospopup_is(child) == YES)
-    {
-        _ospopup_detach_and_destroy((OSPopUp**)&child, panel);
-        return;
-    }
-
-    if (_osedit_is(child) == YES)
-    {
-        _osedit_detach_and_destroy((OSEdit**)&child, panel);
-        return;
-    }
-
-    if (_oscombo_is(child) == YES)
-    {
-        _oscombo_detach_and_destroy((OSCombo**)&child, panel);
-        return;
-    }
-
-    if (_osslider_is(child) == YES)
-    {
-        _osslider_detach_and_destroy((OSSlider**)&child, panel);
-        return;
-    }
-
-    if (_osupdown_is(child) == YES)
-    {
-        _osupdown_detach_and_destroy((OSUpDown**)&child, panel);
-        return;
-    }
-
-    if (_osprogress_is(child) == YES)
-    {
-        _osprogress_detach_and_destroy((OSProgress**)&child, panel);
-        return;
-    }
-
-    if (_ostext_is(child) == YES)
-    {
-        _ostext_detach_and_destroy((OSText**)&child, panel);
-        return;
-    }
-
-    if (_osview_is(child) == YES)
-    {
-        _osview_detach_and_destroy((OSView**)&child, panel);
-        return;
-    }
-
-    if ([child isKindOfClass:[OSXPanel class]])
-    {
-        ospanel_detach((OSPanel*)child, panel);
-        _ospanel_destroy((OSPanel**)&child);
-        return;
-    }
-
-    cassert_fatal_msg(FALSE, "Unknown child type");
+    return [view isKindOfClass:[OSXPanel class]];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -266,7 +189,8 @@ void _ospanel_destroy(OSPanel **panel)
     num_elems = [subviews count];
     for (i = 0; i < num_elems; ++i)
     {
-        i_destroy_child((NSView*)[subviews objectAtIndex:0], *panel);
+        NSView *child = [subviews objectAtIndex:0];
+        oscontrol_detach_and_destroy(OSControlDPtr(&child), *panel);
         cassert([subviews count] == num_elems - i - 1);
     }
 
@@ -474,4 +398,45 @@ void _ospanel_detach_control(OSPanel *panel, NSView *control)
 {
     OSXPanel *lpanel = i_get_panel(panel);
     _oscontrol_detach_from_parent(control, (NSView*)lpanel);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t ospanel_with_scroll(const OSPanel *panel)
+{
+    OSXPanel *lpanel = i_get_panel(panel);
+    return (bool_t)(lpanel->scroll != nil);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
+{
+    NSPoint origin;
+    OSXPanel *lpanel = i_get_panel(panel);
+    cassert_no_null(lpanel->scroll);
+    origin = [lpanel->scroll documentVisibleRect].origin;
+    if (x != INT32_MAX)
+        origin.x = (CGFloat)x;
+    if (y != INT32_MAX)
+        origin.y = (CGFloat)y;
+
+    /* https://stackoverflow.com/questions/5834056/how-i-set-the-default-position-of-a-nsscroll-view */
+    [[lpanel->scroll contentView] scrollToPoint:origin];
+    [lpanel->scroll reflectScrolledClipView:[lpanel->scroll contentView]];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
+{
+    NSRect frame;
+    OSXPanel *lpanel = i_get_panel(panel);
+    cassert_no_null(rect);
+    cassert_no_null(lpanel->scroll);
+    frame = [lpanel->scroll documentVisibleRect];
+    rect->left = (int32_t)frame.origin.x;
+    rect->top = (int32_t)frame.origin.y;
+    rect->right = rect->left + (int32_t)frame.size.width;
+    rect->bottom = rect->top + (int32_t)frame.size.height;
 }

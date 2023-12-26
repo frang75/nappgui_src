@@ -31,4 +31,3 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
 const void *osfont_native(const OSFont *font);
 
 __END_C
-

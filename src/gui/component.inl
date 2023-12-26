@@ -60,32 +60,33 @@ void _component_OnHide(const GuiComponent *component);
 void _component_locale(GuiComponent *component);
 
 void _component_update_listener_imp(
-                        GuiComponent *component,
-                        Listener **listener,
-                        Listener *new_listener,
-                        FPtr_event_handler func_event_handler,
-                        FPtr_gctx_set_listener func_set_listener);
+    GuiComponent *component,
+    Listener **listener,
+    Listener *new_listener,
+    FPtr_event_handler func_event_handler,
+    FPtr_gctx_set_listener func_set_listener);
 
 const char_t *_component_type(const GuiComponent *component);
+
+void *_component_ositem(const GuiComponent *component);
 
 Window *_component_window(const GuiComponent *component);
 
 __END_C
 
-#define component_update_listener(\
-                        component,\
-                        listener,\
-                        new_listener,\
-                        func_event_handler,\
-                        func_set_listener,\
-                        type)\
-(\
-    (void)((type*)component == component),\
-    FUNC_CHECK_EVENT_HANDLER(func_event_handler, type),\
-    _component_update_listener_imp(\
-                        (GuiComponent*)component,\
-                        listener,\
-                        new_listener,\
-                        (FPtr_event_handler)func_event_handler,\
-                        func_set_listener)\
-)
+#define component_update_listener(                          \
+    component,                                              \
+    listener,                                               \
+    new_listener,                                           \
+    func_event_handler,                                     \
+    func_set_listener,                                      \
+    type)                                                   \
+    (                                                       \
+        (void)((type *)component == component),             \
+        FUNC_CHECK_EVENT_HANDLER(func_event_handler, type), \
+        _component_update_listener_imp(                     \
+            (GuiComponent *)component,                      \
+            listener,                                       \
+            new_listener,                                   \
+            (FPtr_event_handler)func_event_handler,         \
+            func_set_listener))

@@ -1,2 +1,1 @@
-processStaticLib(geom2d "core" "")
-processDynamicLib(geom2d_d "core_d" "")
+nap_library(geom2d "core" "${NAPPGUI_SHARED}" NRC_NONE)

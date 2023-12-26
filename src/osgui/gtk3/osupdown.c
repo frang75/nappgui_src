@@ -13,14 +13,14 @@
 #include "osupdown.h"
 #include "osupdown.inl"
 #include "osgui.inl"
-#include "osglobals.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "oswindow.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "ptr.h"
+#include "osglobals_gtk.inl"
+#include "oscontrol_gtk.inl"
+#include "ospanel_gtk.inl"
+#include "oswindow_gtk.inl"
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -52,12 +52,13 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
     int h = gtk_widget_get_allocated_height(widget);
     GtkStateFlags upstate = gtk_widget_get_state_flags(widget);
     GtkStateFlags downstate = upstate;
-    int aw = w/3;
+    int aw = w / 3;
     int ax = (w - aw) / 2;
-    int ay = (h/2 - aw) / 2;
+    int ay = (h / 2 - aw) / 2;
     cassert_no_null(updown);
 
-    switch (updown->state) {
+    switch (updown->state)
+    {
     case ekUP_HOVER:
         upstate = GTK_STATE_FLAG_PRELIGHT;
         break;
@@ -76,12 +77,12 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
 
     gtk_style_context_save(ctx);
     gtk_style_context_set_state(ctx, upstate);
-    gtk_render_frame(ctx, cr, 0, 0, w, (h/2)+1);
+    gtk_render_frame(ctx, cr, 0, 0, w, (h / 2) + 1);
     gtk_style_context_set_state(ctx, downstate);
-    gtk_render_frame(ctx, cr, 0, (h/2), w, (h/2));
+    gtk_render_frame(ctx, cr, 0, (h / 2), w, (h / 2));
     gtk_style_context_restore(ctx);
     gtk_render_arrow(ctx, cr, 0, ax, ay, aw);
-    gtk_render_arrow(ctx, cr, G_PI, ax, (h/2) + ay, aw);
+    gtk_render_arrow(ctx, cr, G_PI, ax, (h / 2) + ay, aw);
     return FALSE;
 }
 
@@ -103,39 +104,43 @@ static void i_OnClick(OSUpDown *updown, const uint32_t index)
 
 static gboolean i_OnPress(GtkWidget *widget, GdkEventButton *event, OSUpDown *updown)
 {
-    int w = gtk_widget_get_allocated_height(widget);
-    int h = gtk_widget_get_allocated_height(widget);
-    cassert_no_null(updown);
-    if (event->x < 0 || event->x > w || event->y < 0 || event->y > h)
+    if (_oswindow_mouse_down(OSControlPtr(updown)) == TRUE)
     {
-        updown->state = ekNORMAL;
-    }
-    else if (event->y < h / 2)
-    {
-        if (event->type == GDK_BUTTON_RELEASE)
+        int w = gtk_widget_get_allocated_height(widget);
+        int h = gtk_widget_get_allocated_height(widget);
+        cassert_no_null(updown);
+        if (event->x < 0 || event->x > w || event->y < 0 || event->y > h)
         {
-            updown->state = ekUP_HOVER;
+            updown->state = ekNORMAL;
+        }
+        else if (event->y < h / 2)
+        {
+            if (event->type == GDK_BUTTON_RELEASE)
+            {
+                updown->state = ekUP_HOVER;
+            }
+            else
+            {
+                updown->state = ekUP_CLICK;
+                i_OnClick(updown, 0);
+            }
         }
         else
         {
-            updown->state = ekUP_CLICK;
-            i_OnClick(updown, 0);
+            if (event->type == GDK_BUTTON_RELEASE)
+            {
+                updown->state = ekDOWN_HOVER;
+            }
+            else
+            {
+                updown->state = ekDOWN_CLICK;
+                i_OnClick(updown, 1);
+            }
         }
-    }
-    else
-    {
-        if (event->type == GDK_BUTTON_RELEASE)
-        {
-            updown->state = ekDOWN_HOVER;
-        }
-        else
-        {
-            updown->state = ekDOWN_CLICK;
-            i_OnClick(updown, 1);
-        }
+
+        gtk_widget_queue_draw(widget);
     }
 
-    gtk_widget_queue_draw(widget);
     return TRUE;
 }
 
@@ -189,7 +194,7 @@ void osupdown_destroy(OSUpDown **updown)
     cassert_no_null(updown);
     cassert_no_null(*updown);
     listener_destroy(&(*updown)->OnClick);
-    _oscontrol_destroy(*(OSControl**)updown);
+    _oscontrol_destroy(*(OSControl **)updown);
     heap_delete(updown, OSUpDown);
 }
 
@@ -206,35 +211,35 @@ void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
     cassert_no_null(updown);
-    gtk_widget_set_tooltip_text(updown->control.widget, (const gchar*)text);
+    gtk_widget_set_tooltip_text(updown->control.widget, (const gchar *)text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_attach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)updown);
+    _ospanel_attach_control(panel, (OSControl *)updown);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_detach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)updown);
+    _ospanel_detach_control(panel, (OSControl *)updown);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_visible(OSUpDown *updown, const bool_t is_visible)
 {
-    _oscontrol_set_visible((OSControl*)updown, is_visible);
+    _oscontrol_set_visible((OSControl *)updown, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_enabled(OSUpDown *updown, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((OSControl*)updown, is_enabled);
+    _oscontrol_set_enabled((OSControl *)updown, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -256,22 +261,12 @@ void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
 
 void osupdown_origin(const OSUpDown *updown, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)updown, x, y);
+    _oscontrol_get_origin((const OSControl *)updown, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_frame(OSUpDown *updown, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)updown, x, y, width, height);
+    _oscontrol_set_frame((OSControl *)updown, x, y, width, height);
 }
-
-/*---------------------------------------------------------------------------*/
-
-void _osupdown_detach_and_destroy(OSUpDown **updown, OSPanel *panel)
-{
-    cassert_no_null(updown);
-    osupdown_detach(*updown, panel);
-    osupdown_destroy(updown);
-}
-

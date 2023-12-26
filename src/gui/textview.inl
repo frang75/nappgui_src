@@ -19,4 +19,3 @@ void _textview_destroy(TextView **view);
 void _textview_dimension(TextView *view, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 __END_C
-

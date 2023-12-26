@@ -11,24 +11,24 @@
 /* Operating System native slider */
 
 #include "osslider.h"
-#include "osslider.inl"
+#include "osslider_win.inl"
 #include "osgui_win.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "oswindow.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "ptr.h"
+#include "oscontrol_win.inl"
+#include "ospanel_win.inl"
+#include "oswindow_win.inl"
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
 #endif
 
 /* Avoid Microsoft Warnings */
-#pragma warning (push, 0)
+#pragma warning(push, 0)
 #include <Commctrl.h>
-#pragma warning (pop)
+#pragma warning(pop)
 
 struct _osslider_t
 {
@@ -39,24 +39,30 @@ struct _osslider_t
 
 /*---------------------------------------------------------------------------*/
 
-#define i_SLIDER_MAX    2048
+#define i_SLIDER_MAX 2048
 
 /*---------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSSlider *slider = (OSSlider*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSSlider *slider = (OSSlider *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(slider);
 
     switch (uMsg)
     {
-        case WM_ERASEBKGND:
-            return 1;
+    case WM_ERASEBKGND:
+        return 1;
 
-        case WM_PAINT:
-            if (_oswindow_in_resizing(hwnd) == TRUE)
-                return 0;
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONDBLCLK:
+        if (_oswindow_mouse_down(OSControlPtr(slider)) == TRUE)
             break;
+        return 0;
+
+    case WM_PAINT:
+        if (_oswindow_in_resizing(hwnd) == TRUE)
+            return 0;
+        break;
     }
 
     return CallWindowProc(slider->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -68,9 +74,9 @@ static DWORD i_slider_style(const uint32_t flags)
 {
     DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | TBS_NOTICKS;
 
-	#if _MSC_VER > 1400
-	dwStyle |= TBS_TRANSPARENTBKGND;
-	#endif
+#if _MSC_VER > 1400
+    dwStyle |= TBS_TRANSPARENTBKGND;
+#endif
 
     if (slider_get_type(flags) == ekSLIDER_HORZ)
         dwStyle |= TBS_HORZ;
@@ -91,11 +97,11 @@ OSSlider *osslider_create(const uint32_t flags)
     slider->flags = flags;
     slider->OnMoved = NULL;
     dwStyle = i_slider_style(flags);
-    _oscontrol_init((OSControl*)slider, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, TRACKBAR_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init((OSControl *)slider, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, TRACKBAR_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     SendMessage(slider->control.hwnd, TBM_SETRANGE, (WPARAM)TRUE, (LPARAM)MAKELONG(0, i_SLIDER_MAX));
     SendMessage(slider->control.hwnd, TBM_SETPAGESIZE, (WPARAM)0, (LPARAM)(i_SLIDER_MAX / 10));
     SendMessage(slider->control.hwnd, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)0);
-	return slider;
+    return slider;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -105,7 +111,7 @@ void osslider_destroy(OSSlider **slider)
     cassert_no_null(slider);
     cassert_no_null(*slider);
     listener_destroy(&(*slider)->OnMoved);
-    _oscontrol_destroy((OSControl*)*slider);
+    _oscontrol_destroy((OSControl *)*slider);
     heap_delete(slider, OSSlider);
 }
 
@@ -121,7 +127,7 @@ void osslider_OnMoved(OSSlider *slider, Listener *listener)
 
 void osslider_tooltip(OSSlider *slider, const char_t *text)
 {
-    _oscontrol_set_tooltip((OSControl*)slider, text);
+    _oscontrol_set_tooltip((OSControl *)slider, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -135,7 +141,7 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
         psize = (LPARAM)(i_SLIDER_MAX / (num_tickmarks - 1));
 
     SendMessage(slider->control.hwnd, TBM_SETPAGESIZE, (WPARAM)0, psize);
-	unref(tickmarks_at_left_top);
+    unref(tickmarks_at_left_top);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -152,7 +158,7 @@ static real32_t i_get_pos(HWND hwnd)
 void osslider_position(OSSlider *slider, const real32_t position)
 {
     int pos = (int)(position * i_SLIDER_MAX);
-	cassert_no_null(slider);
+    cassert_no_null(slider);
     cassert(position >= 0.f && position <= 1.f);
     SendMessage(slider->control.hwnd, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)pos);
 }
@@ -171,12 +177,12 @@ static real32_t i_thickness(const gui_size_t knob_size)
 {
     switch (knob_size)
     {
-        case ekGUI_SIZE_MINI:
-            return 15.f;
-        case ekGUI_SIZE_SMALL:
-            return 20.f;
-        case ekGUI_SIZE_REGULAR:
-            return 20.f;
+    case ekGUI_SIZE_MINI:
+        return 15.f;
+    case ekGUI_SIZE_SMALL:
+        return 20.f;
+    case ekGUI_SIZE_REGULAR:
+        return 20.f;
         cassert_default();
     }
 
@@ -206,58 +212,49 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
 
 void osslider_attach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)slider);
+    _ospanel_attach_control(panel, (OSControl *)slider);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_detach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)slider);
+    _ospanel_detach_control(panel, (OSControl *)slider);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_visible(OSSlider *slider, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl*)slider, visible);
+    _oscontrol_set_visible((OSControl *)slider, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_enabled(OSSlider *slider, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl*)slider, enabled);
+    _oscontrol_set_enabled((OSControl *)slider, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_size(const OSSlider *slider, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)slider, width, height);
+    _oscontrol_get_size((const OSControl *)slider, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_origin(const OSSlider *slider, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)slider, x, y);
+    _oscontrol_get_origin((const OSControl *)slider, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)slider, x, y, width, height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osslider_detach_and_destroy(OSSlider **slider, OSPanel *panel)
-{
-    cassert_no_null(slider);
-    osslider_detach(*slider, panel);
-    osslider_destroy(slider);
+    _oscontrol_set_frame((OSControl *)slider, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

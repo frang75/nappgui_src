@@ -59,4 +59,3 @@ _geom2d_api extern const Box2Df kBOX2D_NULLf;
 _geom2d_api extern const Box2Dd kBOX2D_NULLd;
 
 __END_C
-

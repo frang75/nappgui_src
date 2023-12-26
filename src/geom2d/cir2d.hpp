@@ -15,12 +15,18 @@
 
 #include "box2d.hpp"
 
-template<typename real>
+template <typename real>
 struct Cir2D
 {
-    _geom2d_api Cir2D() {c.x = 0, c.y = 0, r = 0;}
+    _geom2d_api Cir2D()
+    {
+        c.x = 0, c.y = 0, r = 0;
+    }
 
-    _geom2d_api Cir2D(const real _x, const real _y, const real _r) {c.x = _x, c.y = _y, r = _r;}
+    _geom2d_api Cir2D(const real _x, const real _y, const real _r)
+    {
+        c.x = _x, c.y = _y, r = _r;
+    }
 
     _geom2d_api static Cir2D<real> (*from_box)(const Box2D<real> *box);
 
@@ -39,4 +45,3 @@ struct Cir2D
 };
 
 #endif
-

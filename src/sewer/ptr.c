@@ -8,7 +8,7 @@
  *
  */
 
-/* Safety pointer manipulation */ 
+/* Safety pointer manipulation */
 
 #include "cassert.h"
 #include "ptr.h"
@@ -32,7 +32,7 @@ void *ptr_dget_no_null_imp(void **dptr)
     cassert_no_null(dptr);
     cassert_no_null(*dptr);
     pointer = *dptr;
-    *dptr = NULL;    
+    *dptr = NULL;
     return pointer;
 }
 
@@ -40,20 +40,19 @@ void *ptr_dget_no_null_imp(void **dptr)
 
 void ptr_destopt_imp(void **dptr, FPtr_destroy func_destroy)
 {
-	cassert_no_null(dptr);
-	cassert_no_nullf(func_destroy);
-	if (*dptr != NULL)
-		func_destroy(dptr);
+    cassert_no_null(dptr);
+    cassert_no_nullf(func_destroy);
+    if (*dptr != NULL)
+        func_destroy(dptr);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void *ptr_copyopt_imp(void *ptr, FPtr_copy func_copy)
 {
-	cassert_no_nullf(func_copy);
+    cassert_no_nullf(func_copy);
     if (ptr != NULL)
         return func_copy(ptr);
     else
         return NULL;
 }
-

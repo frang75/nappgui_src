@@ -11,13 +11,13 @@
 /* Basic synchronization services */
 
 #include "bmutex.h"
+#include "osbs.inl"
+#include <sewer/cassert.h>
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
 #endif
 
-#include "osbs.inl"
-#include "cassert.h"
 #include <stdlib.h>
 #include <pthread.h>
 
@@ -27,11 +27,11 @@ Mutex *bmutex_create(void)
 {
     pthread_mutex_t *mutex;
     int ret;
-    mutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+    mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
     ret = pthread_mutex_init(mutex, NULL);
     cassert_unref(ret == 0, ret);
     _osbs_mutex_alloc();
-    return (Mutex*)mutex;
+    return (Mutex *)mutex;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -42,8 +42,8 @@ void bmutex_close(Mutex **mutex)
     int ret;
     cassert_no_null(mutex);
     cassert_no_null(*mutex);
-    mem = *((void**)mutex);
-    ret = pthread_mutex_destroy((pthread_mutex_t*)(*mutex));
+    mem = *(void **)mutex;
+    ret = pthread_mutex_destroy((pthread_mutex_t *)(*mutex));
     cassert_unref(ret == 0, ret);
     free(mem);
     _osbs_mutex_dealloc();
@@ -56,7 +56,7 @@ void bmutex_lock(Mutex *mutex)
 {
     int ret;
     cassert_no_null(mutex);
-    ret = pthread_mutex_lock((pthread_mutex_t*)mutex);
+    ret = pthread_mutex_lock((pthread_mutex_t *)mutex);
     cassert_unref(ret == 0, ret);
 }
 
@@ -66,9 +66,8 @@ void bmutex_unlock(Mutex *mutex)
 {
     int ret;
     cassert_no_null(mutex);
-    ret = pthread_mutex_unlock((pthread_mutex_t*)mutex);
+    ret = pthread_mutex_unlock((pthread_mutex_t *)mutex);
     cassert_unref(ret == 0, ret);
 }
 
 /*---------------------------------------------------------------------------*/
-

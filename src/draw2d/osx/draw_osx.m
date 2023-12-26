@@ -10,19 +10,17 @@
 
 /* Operating System native drawings */
 
-#include "nowarn.hxx"
-#include <Cocoa/Cocoa.h>
-#include "warn.hxx"
+#include "draw2d_osx.ixx"
 
 #include "draw.h"
 #include "dctxh.h"
 #include "draw.inl"
 #include "draw2d.inl"
-#include "cassert.h"
 #include "color.h"
 #include "font.h"
 #include "image.inl"
-#include "draw2d_osx.ixx"
+#include <sewer/bmath.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -134,7 +132,7 @@ static __INLINE void i_draw_linear(DCtx *ctx)
 static CGPathRef i_solid_path(DCtx *ctx)
 {
     CGPathRef path = CGContextCopyPath(ctx->context);
-	
+
 #if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
     CGPathRef spath = NULL;
     if (ctx->dash_count > 0)
@@ -142,10 +140,10 @@ static CGPathRef i_solid_path(DCtx *ctx)
         CGFloat p[16];
         uint32_t i;
         CGPathRef dpath = NULL;
-        
+
         for (i = 0; i < ctx->dash_count; ++i)
             p[i] = ctx->line_dash[i] * ctx->line_width;
-        
+
         dpath = CGPathCreateCopyByDashingPath(path, NULL, 0, p, ctx->dash_count);
         spath = CGPathCreateCopyByStrokingPath(dpath, NULL, ctx->line_width, ctx->linecap, ctx->linejoin, 100);
         CGPathRelease(dpath);
@@ -154,7 +152,7 @@ static CGPathRef i_solid_path(DCtx *ctx)
     {
         spath = CGPathCreateCopyByStrokingPath(path, NULL, ctx->line_width, ctx->linecap, ctx->linejoin, 100);
     }
-    
+
     CGPathRelease(path);
     return spath;
 #else
@@ -180,7 +178,7 @@ static void i_stroke_path(DCtx *ctx)
             CGContextRestoreGState(ctx->context);
             break;
         }
-                
+
         case ekFILL_LINEAR:
         {
             // https://stackoverflow.com/questions/15159486/clear-the-current-path-in-cgcontextref
@@ -191,7 +189,7 @@ static void i_stroke_path(DCtx *ctx)
             CGPathRelease(path);
             break;
         }
-                
+
         cassert_default();
         }
     }
@@ -211,7 +209,7 @@ void draw_line(DCtx *ctx, const real32_t x0, const real32_t y00, const real32_t 
     cassert_no_null(ctx);
     if (ctx->raster_mode == TRUE)
         i_set_real2d_mode(ctx);
-    
+
     CGContextMoveToPoint(ctx->context, (CGFloat)x0, (CGFloat)y00);
     CGContextAddLineToPoint(ctx->context, (CGFloat)x1, (CGFloat)y11);
     i_stroke_path(ctx);
@@ -226,14 +224,14 @@ static void i_line_path(CGContextRef context, const V2Df *points, const uint32_t
     cassert_no_null(context);
     cassert_no_null(points);
     cassert(n > 0);
-    
+
     lpoints = points;
     CGContextMoveToPoint(context, (CGFloat)lpoints->x, (CGFloat)lpoints->y);
     lpoints += 1;
-    
+
     for (i = 1; i < n; ++i, ++lpoints)
         CGContextAddLineToPoint(context, (CGFloat)lpoints->x, (CGFloat)lpoints->y);
-    
+
     if (closed)
         CGContextClosePath(context);
 }
@@ -299,7 +297,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
     cassert_no_null(ctx);
     ctx->line_width = (CGFloat)width;
     CGContextSetLineWidth(ctx->context, (CGFloat)width);
-    
+
     if (ctx->dash_count > 0)
     {
         CGFloat p[16];
@@ -347,7 +345,7 @@ static __INLINE CGLineJoin i_linejoin(const linejoin_t join)
     case ekLJBEVEL:
         return kCGLineJoinBevel;
     cassert_default();
-    }    
+    }
     return kCGLineJoinMiter;
 }
 
@@ -374,7 +372,7 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
             ctx->line_dash[i] = (CGFloat)pattern[i];
             p[i] = (CGFloat)pattern[i] * ctx->line_width;
         }
-        
+
         ctx->dash_count = pn;
         CGContextSetLineDash(ctx->context, 0.f, p, pn);
     }
@@ -402,7 +400,7 @@ static void i_draw(DCtx *ctx, const drawop_t op)
     case ekSTROKE:
         i_stroke_path(ctx);
         break;
-        
+
     case ekFILL:
     switch(ctx->fillmode) {
         case ekFILL_SOLID:
@@ -414,7 +412,7 @@ static void i_draw(DCtx *ctx, const drawop_t op)
             break;
         cassert_default(); }
         break;
-        
+
     case ekFILLSK:
     {
         CGPathRef path = CGContextCopyPath(ctx->context);
@@ -433,11 +431,11 @@ static void i_draw(DCtx *ctx, const drawop_t op)
 
         cassert_default();
         }
-        
+
         CGPathRelease(path);
         break;
     }
-            
+
     case ekSKFILL:
     {
         CGPathRef path = CGContextCopyPath(ctx->context);
@@ -457,7 +455,7 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         CGPathRelease(path);
         break;
     }
-    
+
     cassert_default();
     }
 }
@@ -577,7 +575,7 @@ static void i_gradient(DCtx *ctx)
     bool_t invert = FALSE;
     register uint32_t ci = 0, li = 0;
     cassert(nl % 2 == 1);
-    
+
     if (ctx->wrap == ekFFLIP)
         invert = (((nl - 1) / 2) % 2) == 1 ? TRUE : FALSE;
 
@@ -605,11 +603,11 @@ static void i_gradient(DCtx *ctx)
                 ci += 4;
             }
         }
-        
+
         if (ctx->wrap == ekFFLIP)
             invert = !invert;
     }
-    
+
     ctx->gradient = CGGradientCreateWithColorComponents(cspace, colors, locations, total * nl);
     CGColorSpaceRelease(cspace);
 }
@@ -625,7 +623,7 @@ static void i_gradient_vector(DCtx *ctx)
         ctx->gradient_rx1 = (CGFloat)ctx->gradient_x1;
         ctx->gradient_ry1 = (CGFloat)ctx->gradient_y1;
         break;
-        
+
     case ekFTILE:
     case ekFFLIP:
     {
@@ -650,7 +648,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
     cassert_no_null(ctx);
     cassert_no_null(color);
     cassert_no_null(stop);
-    
+
     if (ctx->gradient != NULL)
     {
         if (ctx->gradient_n != n)
@@ -669,7 +667,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
                     ctx->gradient = NULL;
                     break;
                 }
-                
+
                 if (ctx->gradient_stops[i] != stop[i])
                 {
                     CGGradientRelease(ctx->gradient);
@@ -698,7 +696,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
     ctx->gradient_x1 = x1;
     ctx->gradient_y1 = yy1;
     i_gradient_vector(ctx);
-    
+
     ctx->fillmode = ekFILL_LINEAR;
 }
 
@@ -728,7 +726,7 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
             CGGradientRelease(ctx->gradient);
             ctx->gradient = NULL;
         }
-        
+
         ctx->wrap = wrap;
         i_gradient(ctx);
         i_gradient_vector(ctx);
@@ -749,7 +747,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         else
             i_set_real2d_mode(ctx);
     }
-    
+
     if (frame_index != UINT32_MAX)
     {
         NSBitmapImageRep *image_rep = nil;
@@ -758,7 +756,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         cassert_no_null(image_rep);
         [image_rep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
     }
-    
+
     {
         NSRect rect;
         //BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;
@@ -808,7 +806,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 void draw_font(DCtx *ctx, const Font *font)
 {
     uint32_t fstyle;
-    cassert_no_null(ctx);    
+    cassert_no_null(ctx);
     fstyle = font_style(font);
     [ctx->text_dict setObject:(fstyle & ekFUNDERLINE) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSUnderlineStyleAttributeName];
     [ctx->text_dict setObject:(fstyle & ekFSTRIKEOUT) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSStrikethroughStyleAttributeName];
@@ -825,7 +823,7 @@ void draw_text_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const bool_t raster, NSRect *rect)
+static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const bool_t raster, const bool_t single_line, NSRect *rect)
 {
     NSString *str = nil;
     real32_t width, height;
@@ -840,19 +838,28 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
         else
             i_set_real2d_mode(ctx);
     }
-    
+
     rect->origin.x = (CGFloat)x;
     rect->origin.y = (CGFloat)y;
     str = [NSString stringWithUTF8String:(const char*)text];
 
-    draw_text_extents(ctx, text, ctx->text_width, &width, &height);
-    
+    if (single_line == TRUE)
+    {
+        MeasureStr data;
+        data.dict = ctx->text_dict;
+        draw_word_extents(&data, text, &width, &height);
+    }
+    else
+    {
+        draw_text_extents(ctx, text, ctx->text_width, &width, &height);
+    }
+
     if (ctx->text_width > 0 && width > ctx->text_width)
         width = ctx->text_width;
-    
+
     rect->size.width = (CGFloat)width;
     rect->size.height = (CGFloat)height;
-    
+
     switch (ctx->text_halign) {
     case ekLEFT:
     case ekJUSTIFY:
@@ -887,7 +894,16 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
 void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, &rect);
+    NSString *str = i_begin_text(ctx, text, x, y, FALSE, FALSE, &rect);
+    [str drawInRect:rect withAttributes:ctx->text_dict];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+{
+    NSRect rect;
+    NSString *str = i_begin_text(ctx, text, x, y, FALSE, TRUE, &rect);
     [str drawInRect:rect withAttributes:ctx->text_dict];
 }
 
@@ -896,7 +912,7 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
 void dctx_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, &rect);
+    NSString *str = i_begin_text(ctx, text, x, y, FALSE, FALSE, &rect);
     [str drawInRect:rect withAttributes:ctx->text_dict];
 }
 
@@ -946,7 +962,7 @@ static CGPathRef i_CGPathCreateSingleLineStringWithAttributedString(NSAttributed
             }
         }
     }
-    
+
     CFRelease(line);
     return letters;
 }
@@ -956,18 +972,18 @@ static CGPathRef i_CGPathCreateSingleLineStringWithAttributedString(NSAttributed
 void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real32_t x, const real32_t y)
 {
     NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, &rect);
+    NSString *str = i_begin_text(ctx, text, x, y, FALSE, FALSE, &rect);
 
     if (op == ekFILL && ctx->fillmode == ekFILL_SOLID)
     {
         NSColor *textcolor = [ctx->text_dict objectForKey:NSForegroundColorAttributeName];
         [ctx->text_dict setObject:i_NSColor(ctx->fillcolor) forKey:NSForegroundColorAttributeName];
-        
+
         if (ctx->text_width <= 0)
             [str drawAtPoint:rect.origin withAttributes:ctx->text_dict];
         else
             [str drawInRect:rect withAttributes:ctx->text_dict];
-        
+
         [ctx->text_dict setObject:textcolor forKey:NSForegroundColorAttributeName];
         [textcolor release];
     }
@@ -1002,7 +1018,7 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
 {
     NSLineBreakMode mode = NSLineBreakByWordWrapping;
     cassert_no_null(ctx);
-    
+
     if (ellipsis != ENUM_MAX(ellipsis_t))
     {
         switch (ellipsis) {
@@ -1024,7 +1040,7 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
                 cassert_default();
         }
     }
-    
+
     [ctx->text_parag setLineBreakMode:mode];
 }
 
@@ -1055,7 +1071,7 @@ static NSTextAlignment i_text_alignment(const align_t halign)
             cassert_default();
     }
     return NSTextAlignmentLeft;
-    
+
 #else
     switch (halign)
     {
@@ -1069,7 +1085,7 @@ static NSTextAlignment i_text_alignment(const align_t halign)
             return NSRightTextAlignment;
             cassert_default();
     }
-    
+
     return NSLeftTextAlignment;
 #endif
 }
@@ -1112,7 +1128,7 @@ void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, re
     cassert_no_null(height);
     str = [NSString stringWithUTF8String:word];
     word_size = [str sizeWithAttributes:data->dict];
-    *width = (real32_t)word_size.width;
-    *height = (real32_t)word_size.height;
+    *width = bmath_ceilf((real32_t)word_size.width);
+    *height = bmath_ceilf((real32_t)word_size.height);
 }
 

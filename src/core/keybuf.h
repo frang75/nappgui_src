@@ -27,7 +27,7 @@ _core_api void keybuf_clear(KeyBuf *buffer);
 
 _core_api bool_t keybuf_pressed(const KeyBuf *buffer, const vkey_t key);
 
-_core_api const char_t* keybuf_str(const vkey_t key);
+_core_api const char_t *keybuf_str(const vkey_t key);
 
 _core_api void keybuf_dump(const KeyBuf *buffer);
 

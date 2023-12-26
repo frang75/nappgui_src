@@ -12,7 +12,7 @@
 
 #include "r2d.h"
 #include "r2d.hpp"
-#include "cassert.h"
+#include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -62,8 +62,8 @@ V2Dd r2d_centerd(const R2Dd *r2d)
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
-static V2D<real> i_center(const R2D<real>* r2d)
+template <typename real>
+static V2D<real> i_center(const R2D<real> *r2d)
 {
     V2D<real> c;
     cassert_no_null(r2d);
@@ -74,7 +74,7 @@ static V2D<real> i_center(const R2D<real>* r2d)
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static bool_t i_collide(const R2D<real> *r2d1, const R2D<real> *r2d2)
 {
     cassert_no_null(r2d1);
@@ -99,19 +99,19 @@ static bool_t i_collide(const R2D<real> *r2d1, const R2D<real> *r2d2)
 
 bool_t r2d_collidef(const R2Df *r2d1, const R2Df *r2d2)
 {
-    return i_collide<real32_t>((const R2D<real32_t>*)r2d1, (const R2D<real32_t>*)r2d2);
+    return i_collide<real32_t>((const R2D<real32_t> *)r2d1, (const R2D<real32_t> *)r2d2);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t r2d_collided(const R2Dd *r2d1, const R2Dd *r2d2)
 {
-    return i_collide<real64_t>((const R2D<real64_t>*)r2d1, (const R2D<real64_t>*)r2d2);
+    return i_collide<real64_t>((const R2D<real64_t> *)r2d1, (const R2D<real64_t> *)r2d2);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static bool_t i_contains(const R2D<real> *r2d, const real x, const real y)
 {
     cassert_no_null(r2d);
@@ -134,19 +134,19 @@ static bool_t i_contains(const R2D<real> *r2d, const real x, const real y)
 
 bool_t r2d_containsf(const R2Df *r2d, const real32_t x, const real32_t y)
 {
-    return i_contains<real32_t>((const R2D<real32_t>*)r2d, x, y);
+    return i_contains<real32_t>((const R2D<real32_t> *)r2d, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t r2d_containsd(const R2Dd *r2d, const real64_t x, const real64_t y)
 {
-    return i_contains<real64_t>((const R2D<real64_t>*)r2d, x, y);
+    return i_contains<real64_t>((const R2D<real64_t> *)r2d, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static bool_t i_clip(const R2D<real> *viewport, const R2D<real> *r2d)
 {
     register real x, y;
@@ -172,19 +172,19 @@ static bool_t i_clip(const R2D<real> *viewport, const R2D<real> *r2d)
 
 bool_t r2d_clipf(const R2Df *viewport, const R2Df *r2d)
 {
-    return i_clip<real32_t>((const R2D<real32_t>*)viewport, (const R2D<real32_t>*)r2d);
+    return i_clip<real32_t>((const R2D<real32_t> *)viewport, (const R2D<real32_t> *)r2d);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t r2d_clipd(const R2Dd *viewport, const R2Dd *r2d)
 {
-    return i_clip<real64_t>((const R2D<real64_t>*)viewport, (const R2D<real64_t>*)r2d);
+    return i_clip<real64_t>((const R2D<real64_t> *)viewport, (const R2D<real64_t> *)r2d);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static void i_join(R2D<real> *r2d, const R2D<real> *src)
 {
     register real minX0, minY0, minX1, minY1;
@@ -214,14 +214,14 @@ static void i_join(R2D<real> *r2d, const R2D<real> *src)
 
 void r2d_joinf(R2Df *r2d, const R2Df *src)
 {
-    i_join<real32_t>((R2D<real32_t>*)r2d, (const R2D<real32_t>*)src);
+    i_join<real32_t>((R2D<real32_t> *)r2d, (const R2D<real32_t> *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void r2d_joind(R2Dd *r2d, const R2Dd *src)
 {
-    i_join<real64_t>((R2D<real64_t>*)r2d, (const R2D<real64_t>*)src);
+    i_join<real64_t>((R2D<real64_t> *)r2d, (const R2D<real64_t> *)src);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -229,41 +229,41 @@ void r2d_joind(R2Dd *r2d, const R2Dd *src)
 const R2Df kR2D_ZEROf = {{0, 0}, {0, 0}};
 const R2Dd kR2D_ZEROd = {{0, 0}, {0, 0}};
 
-template<>
-const R2D<real32_t>(*R2D<real32_t>::kZERO) = ((R2D<real32_t>*)&kR2D_ZEROf);
+template <>
+const R2D<real32_t>(*R2D<real32_t>::kZERO) = ((R2D<real32_t> *)&kR2D_ZEROf);
 
-template<>
-const R2D<real64_t>(*R2D<real64_t>::kZERO) = ((R2D<real64_t>*)&kR2D_ZEROd);
+template <>
+const R2D<real64_t>(*R2D<real64_t>::kZERO) = ((R2D<real64_t> *)&kR2D_ZEROd);
 
-template<>
-V2D<real32_t>(*R2D<real32_t>::center)(const R2D<real32_t>*) = i_center<real32_t>;
+template <>
+V2D<real32_t> (*R2D<real32_t>::center)(const R2D<real32_t> *) = i_center<real32_t>;
 
-template<>
-V2D<real64_t>(*R2D<real64_t>::center)(const R2D<real64_t>*) = i_center<real64_t>;
+template <>
+V2D<real64_t> (*R2D<real64_t>::center)(const R2D<real64_t> *) = i_center<real64_t>;
 
-template<>
-bool_t(*R2D<real32_t>::collide)(const R2D<real32_t>*, const R2D<real32_t>*) = i_collide<real32_t>;
+template <>
+bool_t (*R2D<real32_t>::collide)(const R2D<real32_t> *, const R2D<real32_t> *) = i_collide<real32_t>;
 
-template<>
-bool_t(*R2D<real64_t>::collide)(const R2D<real64_t>*, const R2D<real64_t>*) = i_collide<real64_t>;
+template <>
+bool_t (*R2D<real64_t>::collide)(const R2D<real64_t> *, const R2D<real64_t> *) = i_collide<real64_t>;
 
-template<>
-bool_t(*R2D<real32_t>::contains)(const R2D<real32_t>*, const real32_t, const real32_t) = i_contains<real32_t>;
+template <>
+bool_t (*R2D<real32_t>::contains)(const R2D<real32_t> *, const real32_t, const real32_t) = i_contains<real32_t>;
 
-template<>
-bool_t(*R2D<real64_t>::contains)(const R2D<real64_t>*, const real64_t, const real64_t) = i_contains<real64_t>;
+template <>
+bool_t (*R2D<real64_t>::contains)(const R2D<real64_t> *, const real64_t, const real64_t) = i_contains<real64_t>;
 
-template<>
-bool_t(*R2D<real32_t>::clip)(const R2D<real32_t>*, const R2D<real32_t>*) = i_clip<real32_t>;
+template <>
+bool_t (*R2D<real32_t>::clip)(const R2D<real32_t> *, const R2D<real32_t> *) = i_clip<real32_t>;
 
-template<>
-bool_t(*R2D<real64_t>::clip)(const R2D<real64_t>*, const R2D<real64_t>*) = i_clip<real64_t>;
+template <>
+bool_t (*R2D<real64_t>::clip)(const R2D<real64_t> *, const R2D<real64_t> *) = i_clip<real64_t>;
 
-template<>
-void(*R2D<real32_t>::join)(R2D<real32_t>*, const R2D<real32_t>*) = i_join<real32_t>;
+template <>
+void (*R2D<real32_t>::join)(R2D<real32_t> *, const R2D<real32_t> *) = i_join<real32_t>;
 
-template<>
-void(*R2D<real64_t>::join)(R2D<real64_t>*, const R2D<real64_t>*) = i_join<real64_t>;
+template <>
+void (*R2D<real64_t>::join)(R2D<real64_t> *, const R2D<real64_t> *) = i_join<real64_t>;
 
 //bool_t rect2d_point_insidei(const Rect2Di *rect2d, const V2Di *point2d, V2Di *local_point2d_opc);
 //
@@ -503,4 +503,3 @@ void(*R2D<real64_t>::join)(R2D<real64_t>*, const R2D<real64_t>*) = i_join<real64
 //*/
 //
 ///*---------------------------------------------------------------------------*/
-

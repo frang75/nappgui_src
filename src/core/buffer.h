@@ -28,4 +28,3 @@ _core_api byte_t *buffer_data(Buffer *buffer);
 _core_api const byte_t *buffer_const(const Buffer *buffer);
 
 __END_C
-

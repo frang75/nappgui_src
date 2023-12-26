@@ -25,4 +25,3 @@ void _stm_restore_col(Stream *stm, const uint32_t col);
 void _stm_restore_row(Stream *stm, const uint32_t row);
 
 __END_C
-    

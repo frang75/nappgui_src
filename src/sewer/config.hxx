@@ -13,6 +13,8 @@
 #ifndef __BASECONFIG_H__
 #define __BASECONFIG_H__
 
+/* clang-format off */
+
 /* Architectures */
 #include "arch.hxx"
 
@@ -33,7 +35,7 @@
     #define __MEMORY_AUDITOR__
 
 #else
-    #error Unknow Configuration
+    /* Used from exported precompiled package */
 
 #endif
 
@@ -77,7 +79,7 @@
 #endif
 
 /*! <Compiler> */
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 
     #if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 2)
         #error At least gcc 4.2 is required
@@ -92,32 +94,26 @@
     #define __MALLOC                        __attribute__((__malloc__))
     #define __PURE                          __attribute__((__pure__))
     #define __CONST                         __attribute__((__const__))
-
-	#if defined (__LINUX__)
-    #define __INLINE
-	#else
     #define __INLINE                        inline
-	#endif
-
-	#define __DEPRECATED                    __attribute__((__deprecated__))
+    #define __DEPRECATED                    __attribute__((__deprecated__))
     #define __SENTINEL                      __attribute__((__sentinel__))
 
-#if (__GNUC__ == 4)
-    #define __PRINTF(format_idx, arg_idx)
-#else
+#if (__GNUC__ > 4 || defined(__clang__))
     #define __PRINTF(format_idx, arg_idx)   __attribute__((__format__ (__printf__, format_idx, arg_idx)))
+#else
+    #define __PRINTF(format_idx, arg_idx)
 #endif
 
     #define __SCANF(format_idx, arg_idx)    __attribute__((__format__ (__scanf__, format_idx, arg_idx)))
     #define __TYPECHECK                     __attribute__((unused))
 
-    #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-        #define __ALLOC_SIZE(x)             __attribute__((__alloc_size__(x)))
-        #define __ALLOC_SIZE2(x,y)          __attribute__((__alloc_size__(x,y)))
-    #else
-        #define __ALLOC_SIZE(x)
-        #define __ALLOC_SIZE2(x,y)
-    #endif
+#if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || defined(__clang__)
+    #define __ALLOC_SIZE(x)                 __attribute__((__alloc_size__(x)))
+    #define __ALLOC_SIZE2(x,y)              __attribute__((__alloc_size__(x,y)))
+#else
+    #define __ALLOC_SIZE(x)
+    #define __ALLOC_SIZE2(x,y)
+#endif
 
     /*! <Optimization Macros> */
     #define __TRUE_EXPECTED(expr)           (__builtin_expect(expr, 1))
@@ -137,7 +133,7 @@
     #define __ALLOC_SIZE(x)
     #define __ALLOC_SIZE2(x,y)
     #define __TRUE_EXPECTED(expr)           (expr)
-    #define __FALSE_EXPECTED(expr)			(expr)
+    #define __FALSE_EXPECTED(expr)          (expr)
 #else
     #error Unknown compiler
 #endif
@@ -153,31 +149,48 @@
 /*! <32bits sizeof> */
 #define sizeof32(x) (uint32_t)sizeof(x)
 
+/*! <Pointer sizeof> */
+#define sizeofptr   sizeof(void*)
+
 /*! <Struct Access> */
 #if defined (__clang__)
-/* Avoid Warn Using extended field designator is an extension */
-#define STRUCT_MEMBER_OFFSET(type, member)\
-((size_t)((char*)&((type*)0)->member - (char*)0))
+    /* Avoid Warn Using extended field designator is an extension */
+    #define STRUCT_MEMBER_OFFSET(type, member) offsetof(type, member)
+    /* #define STRUCT_MEMBER_OFFSET(type, member) ((size_t)((char*)&((type*)0)->member - (char*)0))*/
 #else
-#define STRUCT_MEMBER_OFFSET(type, member)\
-offsetof(type, member)
+    #define STRUCT_MEMBER_OFFSET(type, member) offsetof(type, member)
 #endif
 
-#define STRUCT_MEMBER_SIZE(type, member)\
-    sizeof(((type*)0)->member)
+#define STRUCT_MEMBER_SIZE(type, member) sizeof(((type*)0)->member)
 
 #define CHECK_STRUCT_MEMBER_TYPE(type, member, mtype)\
     (void)(&((type*)0)->member == (mtype*)&((type*)0)->member)
 
 /*! <Assigments> */
-#define unref(x)     (void)(x)
-#define PARAM(name, value)  (value)
+#define unref(x) (void)(x)
+#define PARAM(name, value) (value)
 
 /*! <Bit manipulation> */
-#define BIT_SET(data, nbit)     ((data) |= (1u << (nbit)))
-#define BIT_CLEAR(data, nbit)   ((data) &= ~(1u << (nbit)))
-#define BIT_TOGGLE(data, nbit)  ((data) ^= (1u << (nbit)))
-#define BIT_TEST(data, nbit)    (bool_t)(((data) >> (nbit)) & 1u)
+#define BIT_SET(data, nbit) ((data) |= (1u << (nbit)))
+#define BIT_CLEAR(data, nbit) ((data) &= ~(1u << (nbit)))
+#define BIT_TOGGLE(data, nbit) ((data) ^= (1u << (nbit)))
+#define BIT_TEST(data, nbit) (bool_t)(((data) >> (nbit)) & 1u)
+
+/*! <Function pointer cast> */
+#ifdef  __cplusplus
+    #if defined (_MSC_VER)
+        #define cast_func_ptr(fptr, type) ((type)(fptr))
+    #else
+        #define cast_func_ptr(fptr, type) ((type)(fptr))
+    #endif
+
+#else /* C Compiler */
+    #if defined (_MSC_VER) && _MSC_VER >= 1935 /* Visual Studio 2022 version 17.5.0 */
+        #define cast_func_ptr(fptr, type) ((type)(void*)fptr)
+    #else
+        #define cast_func_ptr(fptr, type) ((type)fptr)
+    #endif
 
 #endif
 
+#endif

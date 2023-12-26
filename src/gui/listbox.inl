@@ -19,4 +19,3 @@ uint32_t _listbox_count(const ListBox *listbox);
 void _listbox_add_enum_item(ListBox *listbox, const char_t *text);
 
 __END_C
-

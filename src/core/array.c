@@ -10,13 +10,13 @@
 
 /* Array data structure */
 
-#include "blib.h"
-#include "bmem.h"
-#include "cassert.h"
 #include "heap.h"
-#include "ptr.h"
 #include "stream.h"
 #include "strings.h"
+#include <sewer/blib.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _array_t
 {
@@ -28,18 +28,18 @@ struct _array_t
 
 /*---------------------------------------------------------------------------*/
 
-#define i_MINIMUN_ARRAY_SIZE    8
+#define i_MINIMUN_ARRAY_SIZE 8
 
 /*---------------------------------------------------------------------------*/
 
 static Array *i_create_array(
-                        const uint32_t nallocs,
-                        const uint32_t elems,
-                        const uint16_t esize,
-                        byte_t **data,
-                        const char_t *type)
+    const uint32_t nallocs,
+    const uint32_t elems,
+    const uint16_t esize,
+    byte_t **data,
+    const char_t *type)
 {
-    Array *array = (Array*)heap_malloc(sizeof(Array), type);
+    Array *array = (Array *)heap_malloc(sizeof(Array), type);
     array->nallocs = nallocs;
     array->elems = elems;
     array->esize = esize;
@@ -54,7 +54,7 @@ static void i_destroy(Array **array, const char_t *type)
     cassert_no_null(array);
     cassert_no_null(*array);
     heap_free(&(*array)->data, (*array)->nallocs * (*array)->esize, "ArrayData");
-    heap_free((byte_t**)array, sizeof(Array), type);
+    heap_free((byte_t **)array, sizeof(Array), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -83,7 +83,7 @@ static Array *i_create_init_array(const uint32_t elems, const uint16_t esize, co
     nallocs = i_next_pow2(elems);
     if (nallocs < i_MINIMUN_ARRAY_SIZE)
         nallocs = i_MINIMUN_ARRAY_SIZE;
-    
+
     data = heap_malloc(nallocs * esize, "ArrayData");
     return i_create_array(nallocs, elems, esize, &data, type);
 }
@@ -100,7 +100,7 @@ Array *array_create(const uint16_t esize, const char_t *type)
 Array *array_copy(const Array *array, FPtr_scopy func_copy, const char_t *type)
 {
     byte_t *data = NULL;
-    
+
     cassert_no_null(array);
     data = heap_malloc(array->nallocs * array->esize, "ArrayData");
 
@@ -110,7 +110,7 @@ Array *array_copy(const Array *array, FPtr_scopy func_copy, const char_t *type)
         const byte_t *src = array->data;
         uint32_t i = 0;
         for (i = 0; i < array->elems; ++i, dest += array->esize, src += array->esize)
-            func_copy((void*)dest, (void*)src);
+            func_copy((void *)dest, (const void *)src);
     }
     else
     {
@@ -128,7 +128,7 @@ Array *array_copy_ptr(const Array *array, FPtr_copy func_copy, const char_t *typ
 
     cassert_no_null(array);
     cassert_no_nullf(func_copy);
-    cassert(array->esize == sizeof(void*));
+    cassert(array->esize == sizeofptr);
 
     data = heap_malloc(array->nallocs * array->esize, "ArrayData");
 
@@ -137,8 +137,8 @@ Array *array_copy_ptr(const Array *array, FPtr_copy func_copy, const char_t *typ
         register uint32_t i;
         for (i = 0; i < array->elems; ++i)
         {
-            void *elem = func_copy(*(const void**)(array->data + i * array->esize));
-            *((void**)(data + i * array->esize)) = elem;
+            void *elem = func_copy(*(const void **)(array->data + i * array->esize));
+            *(void **)(data + i * array->esize) = elem;
         }
     }
     else
@@ -160,11 +160,11 @@ static Array *i_read_array(Stream *stream, const uint16_t esize, FPtr_read func_
     {
         register uint32_t i;
         cassert(func_read_init == NULL);
-        cassert(esize == sizeof(void*));
+        cassert(esize == sizeofptr);
         for (i = 0; i < elems; ++i)
         {
             void *elem = func_read(stream);
-            *((void**)(array->data + i * esize)) = elem;
+            *(void **)(array->data + i * esize) = elem;
         }
     }
     else
@@ -172,9 +172,9 @@ static Array *i_read_array(Stream *stream, const uint16_t esize, FPtr_read func_
         register uint32_t i;
         cassert_no_nullf(func_read_init);
         for (i = 0; i < elems; ++i)
-            func_read_init(stream, (void*)(array->data + i * esize));
+            func_read_init(stream, (void *)(array->data + i * esize));
     }
-        
+
     return array;
 }
 
@@ -189,7 +189,7 @@ Array *array_read(Stream *stream, const uint16_t esize, FPtr_read_init func_read
 
 Array *array_read_ptr(Stream *stream, FPtr_read func_read, const char_t *type)
 {
-    return i_read_array(stream, sizeof(void*), func_read, NULL, type);
+    return i_read_array(stream, sizeofptr, func_read, NULL, type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -246,7 +246,7 @@ void array_destroy_ptr(Array **array, FPtr_destroy func_destroy, const char_t *t
     cassert_no_null(array);
     cassert_no_null(*array);
     if (func_destroy != NULL)
-        i_destroy_elems((void**)(*array)->data, (*array)->elems, func_destroy);
+        i_destroy_elems((void **)(*array)->data, (*array)->elems, func_destroy);
     i_destroy(array, type);
 }
 
@@ -293,34 +293,34 @@ void array_clear_ptr(Array *array, FPtr_destroy func_destroy)
 {
     cassert_no_null(array);
     if (func_destroy != NULL)
-        i_destroy_elems((void**)array->data, array->elems, func_destroy);
+        i_destroy_elems((void **)array->data, array->elems, func_destroy);
     i_clear(array);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static const void* i_get_ptr_elem(const byte_t *data, const uint32_t elem_id, const uint32_t esize)
+static const void *i_get_ptr_elem(const byte_t *data, const uint32_t elem_id, const uint32_t esize)
 {
     cassert_no_null(data);
-    cassert(esize == sizeof(void*));
-    return *(const void**)(data + elem_id * esize);
+    cassert(esize == sizeofptr);
+    return *(const void **)(data + elem_id * esize);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static const void* i_get_str_elem(const byte_t *data, const uint32_t elem_id, const uint32_t esize)
+static const void *i_get_str_elem(const byte_t *data, const uint32_t elem_id, const uint32_t esize)
 {
     cassert_no_null(data);
-    return (const void*)(data + elem_id * esize);
+    return (const void *)(data + elem_id * esize);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_write_array(
-                        Stream *stream, 
-                        const Array *array, 
-                        const void*(func_get_elem)(const byte_t*, const uint32_t, const uint32_t), 
-                        FPtr_write func_write)
+    Stream *stream,
+    const Array *array,
+    const void *(func_get_elem)(const byte_t *, const uint32_t, const uint32_t),
+    FPtr_write func_write)
 {
     register uint32_t i;
     cassert_no_null(array);
@@ -369,11 +369,11 @@ uint32_t array_esize(const Array *array)
 /*---------------------------------------------------------------------------*/
 
 static void i_grow_array(
-                        uint32_t *nallocs,
-                        uint32_t *elems,
-                        byte_t **data,
-                        const uint32_t esize,
-                        const uint32_t elems_grown)
+    uint32_t *nallocs,
+    uint32_t *elems,
+    byte_t **data,
+    const uint32_t esize,
+    const uint32_t elems_grown)
 {
     register uint32_t num_new_allocs;
     cassert_no_null(nallocs);
@@ -398,11 +398,11 @@ static void i_grow_array(
 /*---------------------------------------------------------------------------*/
 
 static void i_shrink_array(
-                        uint32_t *nallocs,
-                        uint32_t *elems,
-                        byte_t **data,
-                        const uint32_t esize,
-                        const uint32_t elems_shrunk)
+    uint32_t *nallocs,
+    uint32_t *elems,
+    byte_t **data,
+    const uint32_t esize,
+    const uint32_t elems_shrunk)
 {
     register uint32_t num_new_allocs;
     cassert_no_null(nallocs);
@@ -482,7 +482,7 @@ byte_t *array_insert0(Array *array, const uint32_t pos, const uint32_t n)
 /*---------------------------------------------------------------------------*/
 
 void array_join(Array *dest, const Array *src, FPtr_scopy func_copy)
-{    
+{
     cassert_no_null(dest);
     cassert_no_null(src);
     cassert(dest->esize == src->esize);
@@ -501,7 +501,7 @@ void array_join(Array *dest, const Array *src, FPtr_scopy func_copy)
         {
             uint32_t i = 0;
             for (i = 0; i < src->elems; ++i, bdest += dest->esize, bsrc += src->esize)
-                func_copy((void*)bdest, (void*)bsrc);
+                func_copy((void *)bdest, (const void *)bsrc);
         }
         else
         {
@@ -513,7 +513,7 @@ void array_join(Array *dest, const Array *src, FPtr_scopy func_copy)
 /*---------------------------------------------------------------------------*/
 
 void array_join_ptr(Array *dest, const Array *src, FPtr_copy func_copy)
-{    
+{
     cassert_no_null(dest);
     cassert_no_null(src);
     cassert(dest->esize == src->esize);
@@ -533,8 +533,8 @@ void array_join_ptr(Array *dest, const Array *src, FPtr_copy func_copy)
             uint32_t i = 0;
             for (i = 0; i < src->elems; ++i, bdest += dest->esize, bsrc += src->esize)
             {
-                void *elem = func_copy(*(const void**)bsrc);
-                *((void**)bdest) = elem;
+                void *elem = func_copy(*(const void **)bsrc);
+                *(void **)bdest = elem;
             }
         }
         else
@@ -580,7 +580,7 @@ void array_delete(Array *array, const uint32_t pos, const uint32_t n, FPtr_remov
         }
     }
 
-    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, pos, n); 
+    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, pos, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -590,14 +590,14 @@ void array_delete_ptr(Array *array, const uint32_t pos, const uint32_t n, FPtr_d
     cassert_no_null(array);
     cassert(n > 0);
     cassert(pos + n <= array->elems);
-    cassert(array->esize == sizeof(void*));
+    cassert(array->esize == sizeofptr);
     if (func_destroy != NULL)
     {
         byte_t *data = array->data + pos * array->esize;
         register uint32_t i;
         for (i = 0; i < n; ++i)
         {
-            void **ldata = (void**)data;
+            void **ldata = (void **)data;
             cassert_no_null(ldata);
             if (*ldata != NULL)
                 func_destroy(ldata);
@@ -605,7 +605,7 @@ void array_delete_ptr(Array *array, const uint32_t pos, const uint32_t n, FPtr_d
         }
     }
 
-    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, pos, n); 
+    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, pos, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -620,7 +620,7 @@ void array_pop(Array *array, FPtr_remove func_remove)
         func_remove(data);
     }
 
-    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, array->elems - 1, 1); 
+    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, array->elems - 1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -629,17 +629,17 @@ void array_pop_ptr(Array *array, FPtr_destroy func_destroy)
 {
     cassert_no_null(array);
     cassert(array->elems > 0);
-    cassert(array->esize == sizeof(void*));
+    cassert(array->esize == sizeofptr);
     if (func_destroy != NULL)
     {
         byte_t *data = array->data + (array->elems - 1) * array->esize;
-        void **ldata = (void**)data;
+        void **ldata = (void **)data;
         cassert_no_null(ldata);
         if (*ldata != NULL)
             func_destroy(ldata);
     }
 
-    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, array->elems - 1, 1); 
+    i_delete_elems(&array->nallocs, &array->elems, &array->data, array->esize, array->elems - 1, 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -655,7 +655,7 @@ void array_sort(Array *array, FPtr_compare func_compare)
 void array_sort_ex(Array *array, FPtr_compare_ex func_compare, void *data)
 {
     cassert_no_null(array);
-    blib_qsort_ex(array->data, array->elems, array->esize, func_compare, (const byte_t*)data);
+    blib_qsort_ex(array->data, array->elems, array->esize, func_compare, (const byte_t *)data);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -689,7 +689,7 @@ void array_sort_ptr(Array *array, FPtr_compare func_compare)
     cmp.func_compare = func_compare;
     cmp.func_compare_ex = NULL;
     cmp.data = NULL;
-    blib_qsort_ex(array->data, array->elems, array->esize, (FPtr_compare_ex)i_compare_ptr, (const byte_t*)&cmp);
+    blib_qsort_ex(array->data, array->elems, array->esize, (FPtr_compare_ex)i_compare_ptr, (const byte_t *)&cmp);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -701,7 +701,7 @@ void array_sort_ptr_ex(Array *array, FPtr_compare_ex func_compare, void *data)
     cmp.func_compare = NULL;
     cmp.func_compare_ex = func_compare;
     cmp.data = data;
-    blib_qsort_ex(array->data, array->elems, array->esize, (FPtr_compare_ex)i_compare_ptr, (const byte_t*)&cmp);
+    blib_qsort_ex(array->data, array->elems, array->esize, (FPtr_compare_ex)i_compare_ptr, (const byte_t *)&cmp);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -711,9 +711,9 @@ uint32_t array_find_ptr(const Array *array, const void *elem)
     const void **data;
     register uint32_t i;
     cassert_no_null(array);
-    cassert(array->esize == sizeof(void*));
+    cassert(array->esize == sizeofptr);
     cassert_no_null(elem);
-    data = (const void**)array->data;
+    data = (const void **)array->data;
     for (i = 0; i < array->elems; ++i, ++data)
     {
         if (*data == elem)
@@ -728,7 +728,7 @@ uint32_t array_find_ptr(const Array *array, const void *elem)
 byte_t *array_search(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
 {
     byte_t *data;
-    register uint32_t i, n ,s;
+    register uint32_t i, n, s;
     cassert_no_null(array);
     cassert_no_nullf(func_compare);
     data = array->data;
@@ -736,7 +736,7 @@ byte_t *array_search(const Array *array, FPtr_compare func_compare, const void *
     s = array->esize;
     for (i = 0; i < n; ++i, data += s)
     {
-        if (func_compare((const void*)data, key) == 0)
+        if (func_compare((const void *)data, key) == 0)
         {
             ptr_assign(pos, i);
             return array->data + i * array->esize;
@@ -755,13 +755,13 @@ byte_t *array_search_ptr(const Array *array, FPtr_compare func_compare, const vo
     register uint32_t i;
     cassert_no_null(array);
     cassert_no_nullf(func_compare);
-    data = (const void**)array->data;
+    data = (const void **)array->data;
     for (i = 0; i < array->elems; ++i, ++data)
     {
         if (func_compare(*data, key) == 0)
         {
             ptr_assign(pos, i);
-            return (byte_t*)*data;
+            return (byte_t *)*data;
         }
     }
 
@@ -775,7 +775,7 @@ byte_t *array_bsearch(const Array *array, FPtr_compare func_compare, const void 
 {
     uint32_t i;
     cassert_no_null(array);
-    if (blib_bsearch(array->data, (const byte_t*)key, array->elems, array->esize, func_compare, &i) == TRUE)
+    if (blib_bsearch(array->data, (const byte_t *)key, array->elems, array->esize, func_compare, &i) == TRUE)
     {
         ptr_assign(pos, i);
         return array->data + i * array->esize;
@@ -798,20 +798,20 @@ typedef struct i_compare_key
 
 static int i_compare_dkey(const void *elem, const void *key, i_CompareKey *cmp)
 {
-    return cmp->func_compare(*((void**)elem), key);
+    return cmp->func_compare(*(void **)elem, key);
 }
 
 /*---------------------------------------------------------------------------*/
 
 byte_t *array_bsearch_ptr(const Array *array, FPtr_compare func_compare, const void *key, uint32_t *pos)
-{   
+{
     i_CompareKey cmp;
     uint32_t i;
     cassert_no_null(array);
     cmp.func_compare = func_compare;
-    if (blib_bsearch_ex(array->data, (const byte_t*)key, array->elems, array->esize, (FPtr_compare_ex)i_compare_dkey, (const byte_t*)&cmp, &i) == TRUE)
+    if (blib_bsearch_ex(array->data, (const byte_t *)key, array->elems, array->esize, (FPtr_compare_ex)i_compare_dkey, (const byte_t *)&cmp, &i) == TRUE)
     {
-        byte_t **data = (byte_t**)(array->data + i);
+        byte_t **data = (byte_t **)(array->data + i);
         ptr_assign(pos, i);
         return *data;
     }

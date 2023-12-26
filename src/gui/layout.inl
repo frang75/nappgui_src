@@ -20,9 +20,11 @@ void _layout_attach_to_panel(Layout *layout, Panel *panel);
 
 Panel *_layout_panel(const Layout *layout);
 
+Layout *_layout_search_component(const Layout *layout, const GuiComponent *component);
+
 bool_t _layout_search_layout(const Layout *layout, Layout *sublayout);
 
-void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components);
+void _layout_components(const Layout *layout, ArrPt(GuiComponent) * components);
 
 void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size);
 
@@ -36,7 +38,7 @@ void _layout_taborder(const Layout *layout, Window *window);
 
 void _layout_dbind_update(Layout *layout, const DBind *dbind);
 
-ArrSt(Cell) *_layout_cells(Layout *layout);
+ArrSt(Cell) * _layout_cells(Layout *layout);
 
 void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener);
 

@@ -38,7 +38,6 @@ _osgui_api void oslabel_bgcolor(OSLabel *label, const color_t color);
 
 _osgui_api void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
 
-
 _osgui_api void oslabel_attach(OSLabel *label, OSPanel *panel);
 
 _osgui_api void oslabel_detach(OSLabel *label, OSPanel *panel);

@@ -13,8 +13,8 @@ Cross-Platform C SDK. Build portable desktop applications for Windows, macOS and
 ```
 git clone --depth 1 https://github.com/frang75/nappgui_src.git
 cd nappgui_src
-cmake -S ./src -B ./build
-cmake --build ./build --config Debug
+cmake -S . -B build
+cmake --build build --config Debug
 
 // Run examples in 'demo' and 'howto' folders
 .\build\Debug\bin\Die.exe
@@ -36,8 +36,8 @@ cmake --build ./build --config Debug
 ```
 git clone --depth 1 https://github.com/frang75/nappgui_src.git
 cd nappgui_src
-cmake -G Xcode -S ./src -B ./build
-cmake --build ./build --config Debug
+cmake -G Xcode -S . -B build
+cmake --build build --config Debug
 
 // Run examples in 'demo' and 'howto' folders
 ./build/Debug/bin/Die.app/Contents/MacOS/Die
@@ -67,8 +67,8 @@ sudo apt-get install libcurl4-openssl-dev
 ```
 git clone --depth 1 https://github.com/frang75/nappgui_src.git
 cd nappgui_src
-cmake -S ./src -B ./build -DCMAKE_BUILD_CONFIG=Debug
-cmake --build ./build -j 4
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build -j 4
 
 // Run examples in 'demo' and 'howto' folders
 ./build/Debug/bin/Die

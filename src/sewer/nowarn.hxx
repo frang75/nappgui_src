@@ -14,32 +14,32 @@
 /* #include <gdiplus.h>     Include third party header */
 /* #include "warn.hxx"      Restore all warnings */
 
-#if defined (_MSC_VER)
+#if defined(_MSC_VER)
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(push, 0)
 #pragma push_macro("Set")
 #undef Set
 /* Unreferenced inline function has been removed */
-#pragma warning( disable : 4514 )
-#pragma warning( disable : 4625 )
-#pragma warning( disable : 4626 )
+#pragma warning(disable : 4514)
+#pragma warning(disable : 4625)
+#pragma warning(disable : 4626)
 /* C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\corecrt.h(212,7): warning C4668: '__cplusplus' is not defined as a preprocessor macro, replacing with '0' for '#if/#elif' */
-#pragma warning( disable : 4668 )
+#pragma warning(disable : 4668)
 /* C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\winuser.h(6537,32): warning C4255: 'EnableMouseInPointerForThread': no function prototype given: converting '()' to '(void)' */
-#pragma warning( disable : 4255 )
+#pragma warning(disable : 4255)
 
 #if _MSC_VER > 1700
 /* C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\GdiplusHeaders.h(701,40): warning C4458: declaration of 'nativeCap' hides class member */
-#pragma warning( disable : 4458 )
+#pragma warning(disable : 4458)
 #endif
 
 /* C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\Richedit.h(783,3): warning C4201: nonstandard extension used: nameless struct/union */
-#pragma warning( disable : 4201 )
+#pragma warning(disable : 4201)
 /* C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\malloc.h(160): warning C4548: expression before comma has no effect; expected expression with side-effect1> */
-#pragma warning( disable : 4548 )
+#pragma warning(disable : 4548)
 #endif
 
-#if defined (__GNUC__)
+#if defined(__GNUC__)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
@@ -94,7 +94,7 @@
 
 #endif
 
-#if defined (__clang__)
+#if defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -107,4 +107,3 @@
 /* #pragma clang diagnostic ignored "-Wdeprecated-implementations" */
 
 #endif
-

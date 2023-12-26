@@ -15,14 +15,13 @@
 #include "draw.inl"
 #include "draw2d.inl"
 #include "draw_win.inl"
-#include "arrpt.h"
-#include "arrst.h"
-#include "cassert.h"
-#include "heap.h"
-#include "osbs.h"
-#include "strings.h"
-#include "unicode.h"
-
+#include <core/arrpt.h>
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <osbs/osbs.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 #include "draw2d_gdi.ixx"
 
 #if !defined(__WINDOWS__)
@@ -49,10 +48,10 @@ static ArrSt(UserFont) *kUSER_FONTS = NULL;
 static void i_remove_font(UserFont *font)
 {
     BOOL ok;
-    cassert_no_null(font); 
+    cassert_no_null(font);
     cassert(FALSE);
     // Don't work in VS2005
-    ok = 1;//RemoveFontMemResourceEx(font->handle);
+    ok = 1; //RemoveFontMemResourceEx(font->handle);
     cassert_unref(ok != 0, ok);
     str_destroy(&font->name);
 }
@@ -81,10 +80,10 @@ static void i_metrics(NONCLIENTMETRICS *metrics)
 
     metrics->cbSize = sizeof(NONCLIENTMETRICS);
 
-	#if _MSC_VER > 1400
+#if _MSC_VER > 1400
     if (osbs_windows() <= ekWIN_XP)
         metrics->cbSize -= sizeof(metrics->iPaddedBorderWidth);
-	#endif
+#endif
 
     ret = SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), metrics, 0);
     cassert_unref(ret != 0, ret);
@@ -97,7 +96,7 @@ real32_t font_regular_size(void)
     NONCLIENTMETRICS metrics;
     i_metrics(&metrics);
     cassert(metrics.lfMessageFont.lfHeight < 0);
-    return -(real32_t)metrics.lfMessageFont.lfHeight;    
+    return -(real32_t)metrics.lfMessageFont.lfHeight;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -123,10 +122,10 @@ real32_t font_mini_size(void)
 /*---------------------------------------------------------------------------*/
 
 static int i_font_height(const real32_t size, const uint32_t style)
-{ 
+{
     if ((style & ekFPOINTS) == ekFPOINTS)
     {
-        return - (int)((size * (real32_t)kLOG_PIXY) / 72.f);
+        return -(int)((size * (real32_t)kLOG_PIXY) / 72.f);
     }
     //else if ((style & ekFCELL) == ekFCELL)
     //{
@@ -135,7 +134,7 @@ static int i_font_height(const real32_t size, const uint32_t style)
     else
     {
         cassert((style & ekFPIXELS) == ekFPIXELS);
-        return - (int)size;
+        return -(int)size;
     }
 }
 
@@ -163,7 +162,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     }
     else
     {
-        uint32_t bytes = unicode_convers(family, (char_t*)face_name, ekUTF8, ekUTF16, sizeof(face_name));
+        uint32_t bytes = unicode_convers(family, (char_t *)face_name, ekUTF8, ekUTF16, sizeof(face_name));
         cassert_unref(bytes < sizeof(face_name), bytes);
         name = face_name;
     }
@@ -171,24 +170,24 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     nHeight = i_font_height(size, style);
 
     hfont = CreateFont(
-                    nHeight,
-                    PARAM(nWidth, 0),
-                    PARAM(nEscapement, 0),
-                    PARAM(nOrientation, 0),
-                    (style & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
-                    (DWORD)((style & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
-                    (DWORD)((style & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
-                    (DWORD)((style & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
-                    PARAM(fdwCharSet, ANSI_CHARSET),
-                    PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
-                    PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
-                    PARAM(fdwQuality, DEFAULT_QUALITY),
-                    PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
-                    name);
+        nHeight,
+        PARAM(nWidth, 0),
+        PARAM(nEscapement, 0),
+        PARAM(nOrientation, 0),
+        (style & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
+        (DWORD)((style & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
+        (DWORD)((style & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
+        (DWORD)((style & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
+        PARAM(fdwCharSet, ANSI_CHARSET),
+        PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
+        PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
+        PARAM(fdwQuality, DEFAULT_QUALITY),
+        PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
+        name);
 
     cassert_fatal_msg(hfont != NULL, "Font is not available on this computer");
     heap_auditor_add("HFONT");
-    return (OSFont*)hfont;
+    return (OSFont *)hfont;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -198,7 +197,7 @@ void osfont_destroy(OSFont **font)
     BOOL ret = 0;
     cassert_no_null(font);
     cassert_no_null(*font);
-    ret = DeleteObject(*((HFONT*)font));
+    ret = DeleteObject(*((HFONT *)font));
     cassert_unref(ret != 0, ret);
     heap_auditor_delete("HFONT");
     *font = NULL;
@@ -212,7 +211,7 @@ const char_t *osfont_family(const char_t *family)
     {
         NONCLIENTMETRICS metrics;
         i_metrics(&metrics);
-        unicode_convers((const char_t*)metrics.lfMessageFont.lfFaceName, i_FAMILY, ekUTF16, ekUTF8, sizeof(i_FAMILY));
+        unicode_convers((const char_t *)metrics.lfMessageFont.lfFaceName, i_FAMILY, ekUTF16, ekUTF8, sizeof(i_FAMILY));
         return i_FAMILY;
     }
     else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
@@ -250,7 +249,7 @@ void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *ce
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     MeasureStr data;
-    HGDIOBJ cfont = NULL; 
+    HGDIOBJ cfont = NULL;
     int ret = 0;
     data.hdc = GetDC(NULL);
     cfont = SelectObject(data.hdc, (HFONT)font);
@@ -318,7 +317,7 @@ typedef struct _font_exists_t
 
 static int CALLBACK i_exists_font(const LOGFONT *lpelf, const TEXTMETRIC *lpntm, DWORD FontType, LPARAM lParam)
 {
-    i_FontExists *font_callback = (i_FontExists*)lParam;
+    i_FontExists *font_callback = (i_FontExists *)lParam;
     cassert_no_null(lpelf);
     cassert_no_null(font_callback);
     unref(FontType);
@@ -326,7 +325,7 @@ static int CALLBACK i_exists_font(const LOGFONT *lpelf, const TEXTMETRIC *lpntm,
     if (lpelf->lfFaceName[0] != '@')
     {
         char_t faceName[LF_FACESIZE];
-        unicode_convers((const char_t*)lpelf->lfFaceName, faceName, ekUTF16, ekUTF8, sizeof(faceName));
+        unicode_convers((const char_t *)lpelf->lfFaceName, faceName, ekUTF16, ekUTF8, sizeof(faceName));
         if (str_equ_c(faceName, font_callback->font_family) == TRUE)
         {
             font_callback->exists = TRUE;
@@ -353,9 +352,7 @@ bool_t font_exists_family(const char_t *family)
 
     if (font_callback.exists == FALSE && kUSER_FONTS != NULL)
     {
-        arrst_foreach(font, kUSER_FONTS, UserFont)
-            if (str_equ(font->name, family) == TRUE)
-                return TRUE;
+        arrst_foreach(font, kUSER_FONTS, UserFont) if (str_equ(font->name, family) == TRUE) return TRUE;
         arrst_end();
     }
 
@@ -366,14 +363,14 @@ bool_t font_exists_family(const char_t *family)
 
 typedef struct _font_installed_t
 {
-    ArrPt(String) *font_families;
+    ArrPt(String) * font_families;
 } i_FontInstalled;
 
 /*---------------------------------------------------------------------------*/
 
 static int CALLBACK i_font_families(const LOGFONT *lpelf, const TEXTMETRIC *lpntm, DWORD FontType, LPARAM lParam)
 {
-    i_FontInstalled *font_callback = (i_FontInstalled*)lParam;
+    i_FontInstalled *font_callback = (i_FontInstalled *)lParam;
     cassert_no_null(lpelf);
     cassert_no_null(font_callback);
     unref(FontType);
@@ -382,7 +379,7 @@ static int CALLBACK i_font_families(const LOGFONT *lpelf, const TEXTMETRIC *lpnt
     {
         char_t faceName[LF_FACESIZE];
         String *font_family = NULL;
-        unicode_convers((const char_t*)lpelf->lfFaceName, faceName, ekUTF16, ekUTF8, sizeof(faceName));
+        unicode_convers((const char_t *)lpelf->lfFaceName, faceName, ekUTF16, ekUTF8, sizeof(faceName));
         font_family = str_c(faceName);
         arrpt_append(font_callback->font_families, font_family, String);
     }
@@ -392,7 +389,7 @@ static int CALLBACK i_font_families(const LOGFONT *lpelf, const TEXTMETRIC *lpnt
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) *font_installed_families(void)
+ArrPt(String) * font_installed_families(void)
 {
     HWND hwnd = GetDesktopWindow();
     HDC hdc = GetDC(hwnd);

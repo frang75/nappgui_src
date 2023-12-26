@@ -19,9 +19,8 @@
 #error This file is only for GTK Toolkit
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <gtk/gtk.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 #endif
-

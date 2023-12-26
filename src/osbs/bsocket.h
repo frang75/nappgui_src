@@ -35,16 +35,15 @@ _osbs_api bool_t bsocket_read(Socket *socket, byte_t *data, const uint32_t size,
 
 _osbs_api bool_t bsocket_write(Socket *socket, const byte_t *data, const uint32_t size, uint32_t *wsize, serror_t *error);
 
-
 _osbs_api uint32_t bsocket_url_ip(const char_t *url, serror_t *error);
 
 _osbs_api uint32_t bsocket_str_ip(const char_t *ip);
 
-_osbs_api const char_t* bsocket_host_name(char_t *buffer, const uint32_t size);
+_osbs_api const char_t *bsocket_host_name(char_t *buffer, const uint32_t size);
 
-_osbs_api const char_t* bsocket_host_name_ip(const uint32_t ip, char_t *buffer, const uint32_t size);
+_osbs_api const char_t *bsocket_host_name_ip(const uint32_t ip, char_t *buffer, const uint32_t size);
 
-_osbs_api const char_t* bsocket_ip_str(const uint32_t ip);
+_osbs_api const char_t *bsocket_ip_str(const uint32_t ip);
 
 _osbs_api void bsocket_hton2(byte_t *dest, const byte_t *src);
 

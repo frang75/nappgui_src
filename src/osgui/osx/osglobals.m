@@ -14,11 +14,11 @@
 #include "osglobals.h"
 #include "osglobals.inl"
 #include "oscolor.inl"
-#include "oscontrol.inl"
-#include "cassert.h"
-#include "color.h"
-#include "heap.h"
-#include "image.h"
+#include "oscontrol_osx.inl"
+#include <draw2d/color.h>
+#include <draw2d/image.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -350,6 +350,23 @@ void osglobals_value(const uint32_t index, void *value)
 
     cassert_default();
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osglobals_transitions(void *nonused, const real64_t prtime, const real64_t crtime)
+{
+    unref(nonused);
+    unref(prtime);
+    unref(crtime);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osglobals_OnIdle(void *nonused, Listener *listener)
+{
+    unref(nonused);
+    unref(listener);
 }
 
 /*---------------------------------------------------------------------------*/

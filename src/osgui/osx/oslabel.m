@@ -10,22 +10,20 @@
 
 /* Cocoa text label */
 
-#include "osgui_osx.inl"
 #include "oslabel.h"
-#include "oslabel.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-
-#include "cassert.h"
-#include "color.h"
-#include "dctx.h"
-#include "dctxh.h"
-#include "draw.h"
-#include "event.h"
-#include "font.h"
-#include "heap.h"
-#include "strings.h"
-#include "t2d.h"
+#include "oslabel_osx.inl"
+#include "oscontrol_osx.inl"
+#include "ospanel_osx.inl"
+#include <geom2d/t2d.h>
+#include <draw2d/color.h>
+#include <draw2d/dctx.h>
+#include <draw2d/dctxh.h>
+#include <draw2d/draw.h>
+#include <draw2d/font.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -38,6 +36,7 @@
     @public
     DCtx *ctx;
     String *text;
+    uint32_t flags;
     color_t bgcolor;
     NSTrackingArea *tracking_area;
     Listener *OnClick;
@@ -84,7 +83,6 @@
     {
         EvText params;
         params.text = NULL;
-        params.cpos = 0;
         listener_event(self->OnClick, ekGUI_EVENT_LABEL, (OSLabel*)self, &params, NULL, OSLabel, EvText, void);
     }
 }
@@ -110,7 +108,18 @@
         draw_fill_color(self->ctx, self->bgcolor);
         draw_rect(self->ctx, ekFILL, 0, 0, (real32_t)rect.size.width, (real32_t)rect.size.height);
     }
-    draw_text(self->ctx, tc(self->text), 0, 0);
+
+    switch (label_get_type(self->flags))
+    {
+        case ekLABEL_SINGLE:
+            draw_text_single_line(self->ctx, tc(self->text), 0, 0);
+            break;
+        case ekLABEL_MULTI:
+            draw_text(self->ctx, tc(self->text), 0, 0);
+            break;
+        cassert_default();
+    }
+
     dctx_unset_gcontext(ctx);
 }
 
@@ -120,12 +129,12 @@
 
 OSLabel *oslabel_create(const uint32_t flags)
 {
-    OSXLabel *label;
-    unref(flags);
+    OSXLabel *label = nil;
     heap_auditor_add("OSXLabel");
     label = [[OSXLabel alloc] initWithFrame:NSZeroRect];
     _oscontrol_init(label);
     label->ctx = dctx_create();
+    label->flags = flags;
     dctx_set_flipped(label->ctx, (bool_t)[label isFlipped]);
     label->text = str_c("");
     label->bgcolor = kCOLOR_TRANSPARENT;
@@ -374,13 +383,4 @@ void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const rea
 BOOL _oslabel_is(NSView *view)
 {
     return [view isKindOfClass:[OSXLabel class]];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oslabel_detach_and_destroy(OSLabel **label, OSPanel *panel)
-{
-    cassert_no_null(label);
-    oslabel_detach(*label, panel);
-    oslabel_destroy(label);
 }

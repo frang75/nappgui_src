@@ -15,21 +15,20 @@
 
 #include "pol2d.hpp"
 #include "col2d.ipp"
-#include "arrpt.hpp"
+#include <core/arrpt.hpp>
 
-template<typename real>
+template <typename real>
 struct Pol2DI
 {
-    static const V2D<real>* (*vertices)(const Pol2D<real> *pol, uint32_t *n);
+    static const V2D<real> *(*vertices)(const Pol2D<real> *pol, uint32_t *n);
 
-    static SATPoly<real>* (*sat_poly)(const Pol2D<real> *pol);
+    static SATPoly<real> *(*sat_poly)(const Pol2D<real> *pol);
 
     static V2D<real> (*poly_label)(const Pol2D<real> *pol, const real norm_tol);
 
-    static ArrPt<SATPoly<real> >* (*get_convex_sat_polys)(const Pol2D<real> *pol);
+    static ArrPt<SATPoly<real> > *(*get_convex_sat_polys)(const Pol2D<real> *pol);
 
-    static ArrPt<SATPoly<real> >* (*convex_sat_polys)(Pol2D<real> *pol);
+    static ArrPt<SATPoly<real> > *(*convex_sat_polys)(Pol2D<real> *pol);
 };
 
 #endif
-

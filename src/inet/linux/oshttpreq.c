@@ -11,12 +11,12 @@
 /* HTTP request (LibCURL-based implementation) */
 
 #include "oshttpreq.inl"
-#include "arrst.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
-#include "stream.h"
-#include "strings.h"
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <core/stream.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 #include <curl/curl.h>
 
 #if !defined(__LINUX__)
@@ -132,8 +132,8 @@ void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
 
 static size_t i_write_response(char *buffer, size_t size, size_t nitems, void *userdata)
 {
-    Stream *stm = (Stream*)userdata;
-    stm_write(stm, (const byte_t*)buffer, (uint32_t)(size * nitems));
+    Stream *stm = (Stream *)userdata;
+    stm_write(stm, (const byte_t *)buffer, (uint32_t)(size * nitems));
     return nitems * size;
 }
 
@@ -171,7 +171,7 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
     {
         res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDSIZE, size);
         cassert_unref(res == CURLE_OK, res);
-        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, (char*)data);
+        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, (char *)data);
         cassert_unref(res == CURLE_OK, res);
     }
 
@@ -206,7 +206,7 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
     cassert(res == CURLE_OK);
 
     res = curl_easy_perform(http->curl);
-	if (res == CURLE_OK)
+    if (res == CURLE_OK)
     {
         ptr_assign(error, ekIOK);
     }
@@ -255,4 +255,3 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
     stm_close(&http->resp_data);
     ptr_assign(error, ekIOK);
 }
-

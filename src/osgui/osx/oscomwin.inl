@@ -10,7 +10,6 @@
 
 /* Common windows */
 
-#include "osgui.ixx"
+#include "osgui_osx.ixx"
 
 void _oscomwin_destroy_globals(void);
-

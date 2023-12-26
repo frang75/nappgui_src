@@ -11,9 +11,9 @@
 /* Common windows */
 
 #include "comwin.h"
-#include "cassert.h"
-#include "guictx.h"
 #include "window.inl"
+#include <draw2d/guictx.h>
+#include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -44,7 +44,6 @@ void comwin_color(Window *parent, const char_t *title, const real32_t x, const r
     cassert_no_null(context);
     context->func_comwin_color(ositem, title, x, y, halign, valign, current, colors, n, OnChange);
 }
-
 
 /*
 void commonwin_open_file_sheet(Window *parent_window, const uchar_t **allowed_file_types, const uint32_t num_file_types, Listener *OnAccept_listener);
@@ -151,4 +150,3 @@ void commonwin_colour_get_origin(real32_t *x, real32_t *y)
     cassert_no_nullf(guicontext->func_common_colour_get_origin);
     guicontext->func_common_colour_get_origin(x, y);
 }*/
-

@@ -22,4 +22,3 @@ _gui_api void progress_undefined(Progress *progress, const bool_t running);
 _gui_api void progress_value(Progress *progress, const real32_t value);
 
 __END_C
-

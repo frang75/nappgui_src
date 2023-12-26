@@ -14,16 +14,16 @@
 #include "ospopup.inl"
 #include "osgui.inl"
 #include "osgui_win.inl"
-#include "oscontrol.inl"
-#include "oscombo.inl"
+#include "oscontrol_win.inl"
+#include "oscombo_win.inl"
+#include "ospanel_win.inl"
+#include "oswindow_win.inl"
 #include "osimglist.inl"
-#include "ospanel.inl"
 #include "ostooltip.inl"
-#include "oswindow.inl"
-#include "cassert.h"
-#include "event.h"
-#include "font.h"
-#include "heap.h"
+#include <draw2d/font.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -34,6 +34,7 @@ struct _ospopup_t
     OSControl control;
     Font *font;
     HWND combo_hwnd;
+    WNDPROC def_combo_proc;
     uint32_t list_num_elems;
     OSImgList *image_list;
     Listener *OnSelect;
@@ -43,18 +44,24 @@ struct _ospopup_t
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSPopUp *popup = (OSPopUp*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSPopUp *popup = (OSPopUp *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(popup);
 
     switch (uMsg)
     {
-        case WM_ERASEBKGND:
-            return 1;
+    case WM_ERASEBKGND:
+        return 1;
 
-		case WM_PAINT:
-            if (_oswindow_in_resizing(hwnd) == TRUE)
-                return 0;
+    case WM_PAINT:
+        if (_oswindow_in_resizing(hwnd) == TRUE)
+            return 0;
+        break;
+
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONDBLCLK:
+        if (_oswindow_mouse_down(OSControlPtr(popup)) == TRUE)
             break;
+        return 0;
     }
 
     return CallWindowProc(popup->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -62,9 +69,21 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE DWORD i_style(void)
+static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    return WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWNLIST;
+    OSPopUp *popup = (OSPopUp *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    cassert_no_null(popup);
+
+    switch (uMsg)
+    {
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONDBLCLK:
+        if (_oswindow_mouse_down(OSControlPtr(popup)) == TRUE)
+            break;
+        return 0;
+    }
+
+    return popup->def_combo_proc(hwnd, uMsg, wParam, lParam);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -72,17 +91,18 @@ static __INLINE DWORD i_style(void)
 OSPopUp *ospopup_create(const uint32_t flags)
 {
     OSPopUp *popup = NULL;
-    DWORD dwStyle = 0;
+    DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWNLIST;
+    unref(flags);
     popup = heap_new0(OSPopUp);
-    dwStyle = i_style();
     popup->control.type = ekGUI_TYPE_POPUP;
-    _oscontrol_init((OSControl*)popup, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), dwStyle, WC_COMBOBOXEX, 0, 120, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    popup->font = _osgui_create_default_font();
+    _oscontrol_init((OSControl *)popup, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), dwStyle, WC_COMBOBOXEX, 0, 120, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    popup->font = osgui_create_default_font();
     popup->combo_hwnd = (HWND)SendMessage(popup->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
+    popup->def_combo_proc = (WNDPROC)SetWindowLongPtr(popup->combo_hwnd, GWLP_WNDPROC, (LONG_PTR)i_ComboWndProc);
+    SetWindowLongPtr(popup->combo_hwnd, GWLP_USERDATA, (LONG_PTR)popup);
     popup->image_list = _osimglist_create(16);
     popup->list_num_elems = 5;
-    _oscontrol_set_font((OSControl*)popup, popup->font);
-    unref(flags);
+    _oscontrol_set_font((OSControl *)popup, popup->font);
     return popup;
 }
 
@@ -131,7 +151,7 @@ void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 void ospopup_font(OSPopUp *popup, const Font *font)
 {
     cassert_no_null(popup);
-    _oscontrol_update_font((OSControl*)popup, &popup->font, font);
+    _oscontrol_update_font((OSControl *)popup, &popup->font, font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -173,10 +193,10 @@ uint32_t ospopup_get_selected(const OSPopUp *popup)
 void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height)
 {
     uint32_t imgwidth = UINT32_MAX;
-	cassert_no_null(popup);
+    cassert_no_null(popup);
     cassert_no_null(width);
     cassert_no_null(height);
-    _oscontrol_text_bounds((const OSControl*)popup, text, popup->font, -1.f, width, height);
+    _oscontrol_text_bounds((const OSControl *)popup, text, popup->font, -1.f, width, height);
 
     *width += 40.f;
     *height = 24.f;
@@ -189,59 +209,50 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
 
 void ospopup_attach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)popup);
+    _ospanel_attach_control(panel, (OSControl *)popup);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_detach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)popup);
+    _ospanel_detach_control(panel, (OSControl *)popup);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_visible(OSPopUp *popup, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl*)popup, visible);
+    _oscontrol_set_visible((OSControl *)popup, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_enabled(OSPopUp *popup, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl*)popup, enabled);
+    _oscontrol_set_enabled((OSControl *)popup, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_size(const OSPopUp *popup, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)popup, width, height);
+    _oscontrol_get_size((const OSControl *)popup, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_origin(const OSPopUp *popup, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)popup, x, y);
+    _oscontrol_get_origin((const OSControl *)popup, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)popup, x, y, width, height);
+    _oscontrol_set_frame((OSControl *)popup, x, y, width, height);
     _oscombo_set_list_height(popup->control.hwnd, popup->combo_hwnd, _osimglist_height(popup->image_list), popup->list_num_elems);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _ospopup_detach_and_destroy(OSPopUp **popup, OSPanel *panel)
-{
-    cassert_no_null(popup);
-    ospopup_detach(*popup, panel);
-    ospopup_destroy(popup);
 }
 
 /*---------------------------------------------------------------------------*/

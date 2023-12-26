@@ -26,7 +26,6 @@ _osgui_api void ospanel_content_size(OSPanel *panel, const real32_t width, const
 
 _osgui_api void ospanel_display(OSPanel *panel);
 
-
 _osgui_api void ospanel_attach(OSPanel *panel, OSPanel *parent_panel);
 
 _osgui_api void ospanel_detach(OSPanel *panel, OSPanel *parent_panel);

@@ -23,4 +23,3 @@ bool_t _slider_is_horizontal(const Slider *slider);
 void _slider_real32(Slider *slider, const real32_t value);
 
 __END_C
-

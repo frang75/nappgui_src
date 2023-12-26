@@ -10,27 +10,27 @@
 
 /* Processes */
 
-#include "bproc.h"
 #include "osbs.inl"
-#include "bmem.h"
-#include "cassert.h"
-#include "ptr.h"
-#include "unicode.h"
+#include "bproc.h"
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
-#define STDIN_READ_CHILD        0
-#define STDIN_WRITE_PARENT      1
-#define STDOUT_READ_PARENT      2
-#define STDOUT_WRITE_CHILD      3
-#define STDERR_READ_PARENT      4
-#define STDERR_WRITE_CHILD      5
+#define STDIN_READ_CHILD 0
+#define STDIN_WRITE_PARENT 1
+#define STDOUT_READ_PARENT 2
+#define STDOUT_WRITE_CHILD 3
+#define STDERR_READ_PARENT 4
+#define STDERR_WRITE_CHILD 5
 
 struct _process_t
 {
@@ -42,7 +42,7 @@ struct _process_t
 
 static Proc *i_create(HANDLE *pipes, PROCESS_INFORMATION *info)
 {
-    Proc *proc = (Proc*)bmem_malloc(sizeof(Proc));
+    Proc *proc = (Proc *)bmem_malloc(sizeof(Proc));
     _osbs_proc_alloc();
     bmem_copy_n(proc->pipes, pipes, 6, HANDLE);
     proc->info = *info;
@@ -66,10 +66,10 @@ static void i_close_pipes(HANDLE *pipes)
 
 static bool_t i_pipes(HANDLE *pipes)
 {
-    SECURITY_ATTRIBUTES saAttr;  
-    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
-    saAttr.bInheritHandle = TRUE; 
-    saAttr.lpSecurityDescriptor = NULL; 
+    SECURITY_ATTRIBUTES saAttr;
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
     bmem_zero_n(pipes, 6, HANDLE);
 
     if (!CreatePipe(&pipes[STDIN_READ_CHILD], &pipes[STDIN_WRITE_PARENT], &saAttr, 0))
@@ -114,19 +114,19 @@ static bool_t i_pipes(HANDLE *pipes)
 /*---------------------------------------------------------------------------*/
 
 static bool_t i_exec(const char_t *command, HANDLE *pipes, PROCESS_INFORMATION *info)
-{ 
+{
     WCHAR commandw[1024] = L"cmd /c ";
     STARTUPINFO stinfo;
     uint32_t size;
     cassert_no_null(pipes);
     cassert_no_null(info);
     ZeroMemory(&stinfo, sizeof(STARTUPINFO));
-    stinfo.cb = sizeof(STARTUPINFO); 
+    stinfo.cb = sizeof(STARTUPINFO);
     stinfo.hStdInput = pipes[STDIN_READ_CHILD];
     stinfo.hStdOutput = pipes[STDOUT_WRITE_CHILD];
     stinfo.hStdError = pipes[STDERR_WRITE_CHILD];
     stinfo.dwFlags |= STARTF_USESTDHANDLES;
-    size = unicode_convers(command, (char_t*)(commandw + 7), ekUTF8, ekUTF16, (1024 - 7) * sizeof(WCHAR));
+    size = unicode_convers(command, (char_t *)(commandw + 7), ekUTF8, ekUTF16, (1024 - 7) * sizeof(WCHAR));
     if (size < (1024 - 7) * sizeof(WCHAR))
     {
         BOOL ok = CreateProcess(NULL, commandw, NULL, NULL, TRUE, 0, NULL, NULL, &stinfo, info);
@@ -161,7 +161,7 @@ Proc *bproc_exec(const char_t *command, perror_t *error)
         ptr_assign(error, ekPPIPE);
         return NULL;
     }
-    
+
     if (i_exec(command, pipes, &info) == FALSE)
     {
         i_close_pipes(pipes);
@@ -182,10 +182,10 @@ void bproc_close(Proc **proc)
     cassert_no_null((*proc)->info.hProcess);
     cassert_no_null((*proc)->info.hThread);
     i_close_pipes((*proc)->pipes);
-    CloseHandle((*proc)->info.hProcess);    
+    CloseHandle((*proc)->info.hProcess);
     CloseHandle((*proc)->info.hThread);
     _osbs_proc_dealloc();
-    bmem_free((byte_t*)*proc);
+    bmem_free((byte_t *)*proc);
     *proc = NULL;
 }
 
@@ -247,7 +247,7 @@ bool_t bproc_finish(Proc *proc, uint32_t *code)
 
 static bool_t i_read_pipe(HANDLE pipe, byte_t *data, const uint32_t size, uint32_t *rsize, perror_t *error)
 {
-    DWORD lrsize; 
+    DWORD lrsize;
     BOOL ok;
     ok = ReadFile(pipe, (LPVOID)data, (DWORD)size, &lrsize, NULL);
     if (ok == TRUE)
@@ -300,7 +300,7 @@ bool_t bproc_eread(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsiz
 
 bool_t bproc_write(Proc *proc, const byte_t *data, const uint32_t size, uint32_t *wsize, perror_t *error)
 {
-    DWORD lwsize; 
+    DWORD lwsize;
     BOOL ok;
     cassert_no_null(proc);
     ok = WriteFile(proc->pipes[STDIN_WRITE_PARENT], (LPCVOID)data, (DWORD)size, &lwsize, NULL);

@@ -11,19 +11,19 @@
 /* Machine info */
 
 #include "osbs.h"
-#include "cassert.h"
-#include "unicode.h"
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 
 #include <Windows.h>
 #undef __VERSION_HELPERS__
 
-#if VS_PLATFORM >= 1200
+#if _MSC_VER >= 1800
 #define __VERSION_HELPERS__
 #endif
 
@@ -31,11 +31,14 @@
 #include <VersionHelpers.h>
 #endif
 
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 static win_t i_WIN_VERSION = ENUM_MAX(win_t);
 static endian_t i_ENDIANNESS = ENUM_MAX(endian_t);
-union i_check_endianness {unsigned char bytes[4]; uint32_t value;};
+union i_check_endianness {
+    unsigned char bytes[4];
+    uint32_t value;
+};
 static const uint32_t i_LITTLE_ENDIAN = 0x03020100;
 static const uint32_t i_BIG_ENDIAN = 0x00010203;
 static const uint32_t i_PDP_ENDIAN = 0x01000302;
@@ -50,12 +53,12 @@ platform_t osbs_platform(void)
 /*---------------------------------------------------------------------------*/
 
 static win_t i_win_version(void)
-{               
+{
 #if defined(__VERSION_HELPERS__)
-    #if defined(_WIN32_WINNT_WIN10)
+#if defined(_WIN32_WINNT_WIN10)
     if (IsWindows10OrGreater() == TRUE)
         return ekWIN_10;
-    #endif
+#endif
     if (IsWindows8Point1OrGreater() == TRUE)
         return ekWIN_81;
     if (IsWindows8OrGreater() == TRUE)
@@ -151,7 +154,7 @@ endian_t osbs_endian(void)
 {
     if (i_ENDIANNESS == ENUM_MAX(endian_t))
     {
-        union i_check_endianness i_O32_HOST_ORDER = { {0, 1, 2, 3} };
+        union i_check_endianness i_O32_HOST_ORDER = {{0, 1, 2, 3}};
         uint32_t endianness = i_O32_HOST_ORDER.value;
         cassert(endianness == i_LITTLE_ENDIAN);
         if (endianness == i_LITTLE_ENDIAN)

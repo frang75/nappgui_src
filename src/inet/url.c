@@ -11,10 +11,10 @@
 /* URL parser */
 
 #include "url.h"
-#include "cassert.h"
-#include "heap.h"
-#include "strings.h"
-#include "unicode.h"
+#include <core/heap.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 struct _url_t
 {
@@ -46,10 +46,10 @@ Url *url_parse(const char_t *url)
         uurl->scheme = str_cn(start, (uint32_t)(scheme_pos - start));
         start = scheme_pos + 1;
     }
-    
+
     if (str_str(start, "//") == start)
         start += 2;
-    
+
     at_sign_pos = str_str(start, "@");
     if (at_sign_pos != NULL)
     {
@@ -66,7 +66,7 @@ Url *url_parse(const char_t *url)
 
         start = at_sign_pos + 1;
     }
-    
+
     path_pos = str_str(start, "/");
     if (path_pos != NULL)
     {
@@ -95,7 +95,7 @@ Url *url_parse(const char_t *url)
         uurl->path = str_cn(path_pos, (uint32_t)(end - path_pos));
         end = path_pos;
     }
-    
+
     {
         const char_t *port_pos = str_str(start, ":");
         if (port_pos != NULL && port_pos < end)
@@ -202,7 +202,7 @@ String *url_resource(const Url *url)
     String *res = NULL;
     cassert_no_null(url);
     res = str_copy(url->path);
-    
+
     if (url->params != NULL)
     {
         str_cat(&res, ";");
@@ -231,4 +231,3 @@ uint16_t url_port(const Url *url)
     cassert_no_null(url);
     return url->port;
 }
-

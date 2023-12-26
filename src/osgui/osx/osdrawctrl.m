@@ -10,18 +10,15 @@
 
 /* Drawing custom GUI controls */
 
-#include "nowarn.hxx"
-#include <Cocoa/Cocoa.h>
-#include "warn.hxx"
-
+#include "osgui_osx.ixx"
 #include "osdrawctrl.h"
 #include "oscolor.inl"
 #include "osglobals.inl"
-#include "draw.h"
-#include "dctxh.h"
-#include "cassert.h"
-#include "color.h"
-#include "font.h"
+#include <draw2d/color.h>
+#include <draw2d/draw.h>
+#include <draw2d/dctxh.h>
+#include <draw2d/font.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -126,7 +123,7 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     CGRect rect;
     const CGFloat *color = NULL;
     CGContextRef cgctx = (CGContextRef)dctx_native(ctx);
-    
+
     cassert_no_null(ctx);
     dctx_set_raster_mode(ctx);
 
@@ -134,7 +131,7 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     case ekCTRL_STATE_NORMAL:
         color = osglobals_back_color();
         break;
-            
+
     case ekCTRL_STATE_HOT:
         color = osglobals_hotbg_color();
         break;
@@ -142,23 +139,23 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     case ekCTRL_STATE_PRESSED:
 	    color = osglobals_selbg_color();
     	break;
-            
+
     case ekCTRL_STATE_BKNORMAL:
         color = osglobals_backbackdrop_color();
         break;
-            
+
     case ekCTRL_STATE_BKHOT:
         color = osglobals_hotbgbackdrop_color();
         break;
-            
+
     case ekCTRL_STATE_BKPRESSED:
         color = osglobals_selbgbackdrop_color();
         break;
-            
+
     case ekCTRL_STATE_DISABLED:
         color = osglobals_backbackdrop_color();
         break;
-            
+
     cassert_default();
     }
 
@@ -176,41 +173,41 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
 {
     const CGFloat *color = nil;
     color_t ncolor = 0;
-    
+
     cassert_no_null(ctx);
-        
+
     switch (state) {
     case ekCTRL_STATE_NORMAL:
         color = osglobals_text_color();
         break;
-        
+
     case ekCTRL_STATE_HOT:
         color = osglobals_hottx_color();
         break;
-        
+
     case ekCTRL_STATE_PRESSED:
         color = osglobals_seltx_color();
         break;
-        
+
     case ekCTRL_STATE_BKNORMAL:
         color = osglobals_textbackdrop_color();
         break;
-        
+
     case ekCTRL_STATE_BKHOT:
         color = osglobals_hottxbackdrop_color();
         break;
-        
+
     case ekCTRL_STATE_BKPRESSED:
         color = osglobals_seltxbackdrop_color();
         break;
-        
+
     case ekCTRL_STATE_DISABLED:
         color = osglobals_textbackdrop_color();
         break;
-        
+
     cassert_default();
     }
-    
+
     ncolor = color_rgbaf((real32_t)color[0], (real32_t)color[1], (real32_t)color[2], (real32_t)color[3]);
     draw_text_color(ctx, ncolor);
 	dctx_text_raster(ctx, text, (real32_t)x, (real32_t)y);

@@ -13,13 +13,13 @@
 #include "ossplit.h"
 #include "osgui.inl"
 #include "osgui_win.inl"
-#include "oscontrol.inl"
+#include "oscontrol_win.inl"
 #include "oslistener.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "ptr.h"
+#include "ospanel_win.inl"
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -30,8 +30,8 @@ struct _ossplit_t
     OSControl control;
     uint32_t flags;
     RECT divrect;
-    OSControl* child1;
-    OSControl* child2;
+    OSControl *child1;
+    OSControl *child2;
     bool_t left_button;
     bool_t launch_OnDrag;
     POINTS mouse_pos;
@@ -42,16 +42,16 @@ struct _ossplit_t
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSSplit *split = (OSSplit*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSSplit *split = (OSSplit *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     static int IC = 0;
     cassert_no_null(split);
 
-    switch (uMsg) {
-	case WM_ERASEBKGND:
-		return 1;
-
-    case WM_SETCURSOR:
+    switch (uMsg)
     {
+    case WM_ERASEBKGND:
+        return 1;
+
+    case WM_SETCURSOR: {
         POINT pt;
         GetCursorPos(&pt);
         ScreenToClient(split->control.hwnd, &pt);
@@ -80,7 +80,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 split->mouse_pos = MAKEPOINTS(lParam);
                 split->launch_OnDrag = TRUE;
                 GetWindowRect(hwnd, &rect);
-                SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left + 1, rect.bottom - rect.top + 1, SWP_NOMOVE /*| SWP_NOSIZE */| SWP_NOZORDER);
+                SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left + 1, rect.bottom - rect.top + 1, SWP_NOMOVE /*| SWP_NOSIZE */ | SWP_NOZORDER);
             }
         }
         else
@@ -95,9 +95,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         return 0;
 
-    case WM_LBUTTONDOWN:
-    {
-    #if defined __ASSERTS__
+    case WM_LBUTTONDOWN: {
+#if defined __ASSERTS__
         POINTS point;
         POINT pt;
         point = MAKEPOINTS(lParam);
@@ -105,7 +104,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         pt.y = point.y;
         cassert(GetCapture() == split->control.hwnd);
         cassert(PtInRect(&split->divrect, pt) == TRUE);
-    #endif
+#endif
 
         split->left_button = TRUE;
         return 0;
@@ -146,8 +145,8 @@ OSSplit *ossplit_create(const uint32_t flags)
     view->control.type = ekGUI_TYPE_SPLITVIEW;
     view->flags = flags;
     /* WS_EX_CONTROLPARENT: Recursive TabStop navigation over view children */
-    _oscontrol_init((OSControl*)view, PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-	return view;
+    _oscontrol_init((OSControl *)view, PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    return view;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -156,7 +155,7 @@ void ossplit_destroy(OSSplit **view)
 {
     cassert_no_null(view);
     cassert_no_null(*view);
-    cassert(_oscontrol_num_children((*view)->control.hwnd) == 0);
+    cassert(_oscontrol_num_children((OSControl *)(*view)) == 0);
     listener_destroy(&(*view)->OnDrag);
     _oscontrol_destroy(&(*view)->control);
     heap_delete(view, OSSplit);
@@ -177,7 +176,7 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
         view->child2 = control;
     }
 
-    _oscontrol_attach_to_parent(control, (OSControl*)view);
+    _oscontrol_attach_to_parent(control, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -195,7 +194,7 @@ void ossplit_detach_control(OSSplit *view, OSControl *control)
         view->child2 = NULL;
     }
 
-    _oscontrol_detach_from_parent(control, (OSControl*)view);
+    _oscontrol_detach_from_parent(control, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -221,47 +220,47 @@ void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const
 
 void ossplit_attach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)view);
+    _ospanel_attach_control(panel, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_detach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)view);
+    _ospanel_detach_control(panel, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_visible(OSSplit *view, const bool_t is_visible)
 {
-    _oscontrol_set_visible((OSControl*)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((OSControl*)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)view, width, height);
+    _oscontrol_get_size((const OSControl *)view, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)view, x, y);
+    _oscontrol_get_origin((const OSControl *)view, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)view, x, y, width, height);
+    _oscontrol_set_frame((OSControl *)view, x, y, width, height);
 }

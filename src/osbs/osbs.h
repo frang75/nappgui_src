@@ -28,4 +28,3 @@ _osbs_api endian_t osbs_endian(void);
 _osbs_api void osbs_memory_mt(Mutex *mutex);
 
 __END_C
-

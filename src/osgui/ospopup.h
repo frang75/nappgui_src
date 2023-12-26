@@ -34,7 +34,6 @@ _osgui_api uint32_t ospopup_get_selected(const OSPopUp *popup);
 
 _osgui_api void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height);
 
-
 _osgui_api void ospopup_attach(OSPopUp *popup, OSPanel *panel);
 
 _osgui_api void ospopup_detach(OSPopUp *popup, OSPanel *panel);

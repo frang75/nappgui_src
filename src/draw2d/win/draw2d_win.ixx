@@ -15,11 +15,10 @@
 
 #include "draw2d.hxx"
 #include "draw2d_gdi.ixx"
-
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <gdiplus.h>
 #include <gdipluspixelformats.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 struct _dctx_t
 {

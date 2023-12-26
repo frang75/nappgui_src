@@ -67,7 +67,6 @@ _sewer_api real32_t bmath_powf(const real32_t base, const real32_t exponent);
 
 _sewer_api real64_t bmath_powd(const real64_t base, const real64_t exponent);
 
-
 _sewer_api real32_t bmath_absf(const real32_t value);
 
 _sewer_api real64_t bmath_absd(const real64_t value);
@@ -112,7 +111,6 @@ _sewer_api real32_t bmath_ceilf(const real32_t value);
 
 _sewer_api real64_t bmath_ceild(const real64_t value);
 
-
 _sewer_api void bmath_rand_seed(const uint32_t seed);
 
 _sewer_api real32_t bmath_randf(const real32_t from, const real32_t to);
@@ -120,7 +118,6 @@ _sewer_api real32_t bmath_randf(const real32_t from, const real32_t to);
 _sewer_api real64_t bmath_randd(const real64_t from, const real64_t to);
 
 _sewer_api uint32_t bmath_randi(const uint32_t from, const uint32_t to);
-
 
 _sewer_api REnv *bmath_rand_env(const uint32_t seed);
 
@@ -152,4 +149,3 @@ _sewer_api extern const real32_t kBMATH_INFINITYf;
 _sewer_api extern const real64_t kBMATH_INFINITYd;
 
 __END_C
-

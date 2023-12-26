@@ -14,14 +14,14 @@
 #include "dctxh.h"
 #include "dctx.inl"
 #include "dctx_win.inl"
-#include "cassert.h"
 #include "color.h"
-#include "bmath.h"
 #include "font.h"
 #include "font.inl"
-#include "heap.h"
-#include "ptr.h"
-#include "unicode.h"
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/bmath.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -113,10 +113,10 @@ void dctx_destroy(DCtx **ctx)
 
 void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
 {
-    void **context = (void**)gcontext;
+    void **context = (void **)gcontext;
     cassert_no_null(ctx);
     cassert(ctx->graphics == NULL);
-    ctx->graphics = (Gdiplus::Graphics*)context[0];
+    ctx->graphics = (Gdiplus::Graphics *)context[0];
     ctx->hdc = (HDC)context[1];
     ctx->background_color = background;
     ctx->width = width;
@@ -148,7 +148,7 @@ void dctx_update_view(DCtx *ctx, void *view)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_flipped(DCtx* ctx, const bool_t flipped)
+void dctx_set_flipped(DCtx *ctx, const bool_t flipped)
 {
     unref(ctx);
     unref(flipped);
@@ -183,7 +183,7 @@ real32_t dctx_text_width(const DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-align_t dctx_text_intalign(const DCtx* ctx)
+align_t dctx_text_intalign(const DCtx *ctx)
 {
     cassert_no_null(ctx);
     return ctx->text_intalign;
@@ -292,12 +292,12 @@ void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
     ctx->graphics->TranslateTransform(ctx->offset_x, ctx->offset_y);
 
     Gdiplus::Matrix mt(
-                    (Gdiplus::REAL)t2d->i.x,
-                    (Gdiplus::REAL)t2d->i.y,
-                    (Gdiplus::REAL)t2d->j.x,
-                    (Gdiplus::REAL)t2d->j.y,
-                    (Gdiplus::REAL)t2d->p.x,
-                    (Gdiplus::REAL)t2d->p.y);
+        (Gdiplus::REAL)t2d->i.x,
+        (Gdiplus::REAL)t2d->i.y,
+        (Gdiplus::REAL)t2d->j.x,
+        (Gdiplus::REAL)t2d->j.y,
+        (Gdiplus::REAL)t2d->p.x,
+        (Gdiplus::REAL)t2d->p.y);
 
     ctx->graphics->MultiplyTransform(&mt);
     _dctx_gradient_transform(ctx);
@@ -346,7 +346,8 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
 {
     DCtx *ctx = heap_new0(DCtx);
     Gdiplus::PixelFormat pf = PixelFormatUndefined;
-    switch (format) {
+    switch (format)
+    {
     case ekRGB24:
         pf = PixelFormat24bppRGB;
         break;
@@ -359,7 +360,7 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     case ekINDEX4:
     case ekINDEX8:
     case ekFIMAGE:
-    cassert_default();
+        cassert_default();
     }
 
     ctx->width = width;

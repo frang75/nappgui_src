@@ -1,2 +1,1 @@
-processStaticLib(osbs "sewer" "")
-processDynamicLib(osbs_d "sewer_d" "")
+nap_library(osbs "sewer" "${NAPPGUI_SHARED}" NRC_NONE)

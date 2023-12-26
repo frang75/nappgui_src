@@ -24,26 +24,26 @@
 #include <windows.h>
 #include "warn.hxx"
 
-#if !defined (_MSC_VER)
+#if !defined(_MSC_VER)
 #error Unknow compiler
 #endif
 
 #if defined(__MEMORY_AUDITOR__)
 #define _CRTDBG_MAP_ALLOC
-#pragma warning(push, 0) 
+#pragma warning(push, 0)
 #include <stdlib.h>
 
 #if _MSC_VER > 1400
 #include <crtdbg.h>
 #endif
-#pragma warning(pop) 
+#pragma warning(pop)
 
 #endif
 
-#if defined (__MEMORY_SUBSYTEM_CHECKING__)
+#if defined(__MEMORY_SUBSYTEM_CHECKING__)
 
 #define i_MAX 1000000
-static void* i_MEM[i_MAX];
+static void *i_MEM[i_MAX];
 static uint32_t i_INDEX = 0;
 
 /*---------------------------------------------------------------------------*/
@@ -110,33 +110,33 @@ static HANDLE i_HEAP = NULL;
 void _bmem_start(void)
 {
     cassert(i_HEAP == NULL);
-    #if defined (__MEMORY_AUDITOR__)
-    #else
-    //i_HEAP = HeapCreate(0, 0, 0);
-    #endif
+#if defined(__MEMORY_AUDITOR__)
+#else
+//i_HEAP = HeapCreate(0, 0, 0);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _bmem_finish(void)
 {
-    #if defined (__MEMORY_SUBSYTEM_CHECKING__)
+#if defined(__MEMORY_SUBSYTEM_CHECKING__)
     cassert(i_mem_is_empty() == TRUE);
-    #endif
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _bmem_atexit(void)
 {
-    #if defined (__MEMORY_AUDITOR__)
-    #if _MSC_VER > 1400
+#if defined(__MEMORY_AUDITOR__)
+#if _MSC_VER > 1400
     _CrtDumpMemoryLeaks();
-    #endif
-    #else
+#endif
+#else
     cassert(i_HEAP == NULL);
-    //HeapDestroy(i_HEAP);
-    #endif
+//HeapDestroy(i_HEAP);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -145,22 +145,22 @@ byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
 {
     void *mem = NULL;
 
-    #if defined(__MEMORY_AUDITOR__)
-    #if _MSC_VER > 1400
+#if defined(__MEMORY_AUDITOR__)
+#if _MSC_VER > 1400
     mem = _aligned_malloc_dbg((size_t)size, (size_t)align, __FILE__, __LINE__);
-    #else
+#else
     mem = _aligned_malloc((size_t)size, (size_t)align);
-    #endif
-    #else
+#endif
+#else
     //mem = HeapAlloc(i_HEAP, 0, (SIZE_T)size);
     mem = _aligned_malloc((size_t)size, (size_t)align);
-    #endif
+#endif
 
-    #if defined (__MEMORY_SUBSYTEM_CHECKING__)
+#if defined(__MEMORY_SUBSYTEM_CHECKING__)
     i_mem_append(mem);
-    #endif
+#endif
     cassert((mem != NULL) && ((intptr_t)mem % align) == 0);
-    return (byte_t*)mem;
+    return (byte_t *)mem;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -171,47 +171,47 @@ byte_t *bmem_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t ne
 
     unref(size);
 
-    #if defined (__MEMORY_SUBSYTEM_CHECKING__)
-    i_mem_remove(mem);    
-    #endif
+#if defined(__MEMORY_SUBSYTEM_CHECKING__)
+    i_mem_remove(mem);
+#endif
 
-    #if defined (__MEMORY_AUDITOR__)
-    #if _MSC_VER > 1400
+#if defined(__MEMORY_AUDITOR__)
+#if _MSC_VER > 1400
     new_mem = _aligned_realloc_dbg(mem, (size_t)new_size, (size_t)align, __FILE__, __LINE__);
-    #else
+#else
     new_mem = _aligned_realloc(mem, (size_t)new_size, (size_t)align);
-    #endif
-    #else
+#endif
+#else
     // new_mem = HeapReAlloc(i_HEAP, 0, (LPVOID)mem, (SIZE_T)size);
     new_mem = _aligned_realloc(mem, (size_t)new_size, (size_t)align);
     unref(size);
-    #endif
+#endif
 
-    #if defined (__MEMORY_SUBSYTEM_CHECKING__)
+#if defined(__MEMORY_SUBSYTEM_CHECKING__)
     i_mem_append(new_mem);
-    #endif
+#endif
     cassert((mem != NULL) && ((intptr_t)mem % align) == 0);
-    return (byte_t*)new_mem;
+    return (byte_t *)new_mem;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void bmem_free(byte_t *mem)
 {
-    #if defined (__MEMORY_SUBSYTEM_CHECKING__)
+#if defined(__MEMORY_SUBSYTEM_CHECKING__)
     i_mem_remove(mem);
-    #endif
+#endif
 
-    #if defined (__MEMORY_AUDITOR__)
-    #if _MSC_VER > 1400
+#if defined(__MEMORY_AUDITOR__)
+#if _MSC_VER > 1400
     _aligned_free_dbg(mem);
-    #else
+#else
     _aligned_free(mem);
-    #endif
-    #else
+#endif
+#else
     //HeapFree(i_HEAP, 0, (LPVOID)mem);
     _aligned_free(mem);
-    #endif
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -220,9 +220,8 @@ void bmem_set1(byte_t *dest, const uint32_t size, const byte_t mask)
 {
     cassert_no_null(dest);
     cassert(size > 0);
-    memset((void*)dest, (int)mask, (size_t)size);
+    memset((void *)dest, (int)mask, (size_t)size);
 }
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -230,6 +229,5 @@ void bmem_set_zero(byte_t *mem, const uint32_t size)
 {
     cassert_no_null(mem);
     cassert(size > 0);
-    ZeroMemory((void*)mem, (size_t)size);
+    ZeroMemory((void *)mem, (size_t)size);
 }
-

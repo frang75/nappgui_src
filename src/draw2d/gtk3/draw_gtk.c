@@ -15,16 +15,16 @@
 #include "draw.inl"
 #include "dctx_gtk.inl"
 #include "osimage.inl"
-#include "cassert.h"
 #include "color.h"
 #include "font.h"
-#include "ptr.h"
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <pango/pangocairo.h>
 #include <gdk/gdk.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -47,7 +47,6 @@ void draw_alloc_globals(void)
 
 void draw_dealloc_globals(void)
 {
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -97,7 +96,8 @@ static void i_set_real2d_mode(DCtx *ctx)
 
 static __INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pattern_t *lpattern, fillmode_t fillmode, color_t *source_color)
 {
-    switch (fillmode) {
+    switch (fillmode)
+    {
     case ekFILL_SOLID:
         i_color(cairo, fill_color, source_color);
         break;
@@ -107,7 +107,7 @@ static __INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pa
         *source_color = 0;
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -231,14 +231,15 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 static __INLINE cairo_line_cap_t i_linecap(const linecap_t cap)
 {
-    switch (cap) {
+    switch (cap)
+    {
     case ekLCFLAT:
         return CAIRO_LINE_CAP_BUTT;
     case ekLCSQUARE:
         return CAIRO_LINE_CAP_SQUARE;
     case ekLCROUND:
         return CAIRO_LINE_CAP_ROUND;
-    cassert_default();
+        cassert_default();
     };
 
     return CAIRO_LINE_CAP_BUTT;
@@ -256,14 +257,15 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 static __INLINE cairo_line_join_t i_linejoin(const linejoin_t join)
 {
-    switch (join) {
+    switch (join)
+    {
     case ekLJMITER:
         return CAIRO_LINE_JOIN_MITER;
     case ekLJROUND:
         return CAIRO_LINE_JOIN_ROUND;
     case ekLJBEVEL:
         return CAIRO_LINE_JOIN_BEVEL;
-    cassert_default();
+        cassert_default();
     };
 
     return CAIRO_LINE_JOIN_MITER;
@@ -308,7 +310,8 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 static __INLINE void i_draw(DCtx *ctx, const drawop_t op)
 {
     cassert_no_null(ctx);
-    switch (op) {
+    switch (op)
+    {
     case ekSTROKE:
         i_line_pattern(ctx);
         cairo_stroke(ctx->cairo);
@@ -333,7 +336,7 @@ static __INLINE void i_draw(DCtx *ctx, const drawop_t op)
         cairo_stroke(ctx->cairo);
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -356,7 +359,7 @@ void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
     if (ctx->raster_mode == TRUE)
         i_set_real2d_mode(ctx);
     cairo_new_sub_path(ctx->cairo);
-    cairo_arc(ctx->cairo, x + width - radius, y + radius, radius, - HALF_PI, 0);
+    cairo_arc(ctx->cairo, x + width - radius, y + radius, radius, -HALF_PI, 0);
     cairo_arc(ctx->cairo, x + width - radius, y + height - radius, radius, 0, HALF_PI);
     cairo_arc(ctx->cairo, x + radius, y + height - radius, radius, HALF_PI, 2. * HALF_PI);
     cairo_arc(ctx->cairo, x + radius, y + radius, radius, 2. * HALF_PI, 3. * HALF_PI);
@@ -460,14 +463,15 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 
 static __INLINE cairo_extend_t i_wrap(const fillwrap_t wrap)
 {
-    switch (wrap) {
+    switch (wrap)
+    {
     case ekFCLAMP:
         return CAIRO_EXTEND_PAD;
     case ekFTILE:
         return CAIRO_EXTEND_REPEAT;
     case ekFFLIP:
         return CAIRO_EXTEND_REFLECT;
-    cassert_default();
+        cassert_default();
     }
 
     return CAIRO_EXTEND_PAD;
@@ -524,7 +528,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         gdouble w = (gdouble)gdk_pixbuf_get_width(pixbuf);
         gdouble h = (gdouble)gdk_pixbuf_get_height(pixbuf);
 
-        switch (ctx->image_halign) {
+        switch (ctx->image_halign)
+        {
         case ekLEFT:
         case ekJUSTIFY:
             break;
@@ -536,7 +541,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
             break;
         }
 
-        switch (ctx->image_valign) {
+        switch (ctx->image_valign)
+        {
         case ekTOP:
         case ekJUSTIFY:
             break;
@@ -568,7 +574,7 @@ void draw_font(DCtx *ctx, const Font *font)
 
         if (ctx->layout != NULL)
         {
-            const PangoFontDescription *fdesc = (PangoFontDescription*)font_native(ctx->font);
+            const PangoFontDescription *fdesc = (PangoFontDescription *)font_native(ctx->font);
             pango_layout_set_font_description(ctx->layout, fdesc);
         }
     }
@@ -595,12 +601,12 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
     {
         const PangoFontDescription *fdesc = NULL;
         cassert(ctx->font != NULL);
-        fdesc = (PangoFontDescription*)font_native(ctx->font);
+        fdesc = (PangoFontDescription *)font_native(ctx->font);
         ctx->layout = pango_cairo_create_layout(ctx->cairo);
         pango_layout_set_font_description(ctx->layout, fdesc);
     }
 
-    pango_layout_set_text(ctx->layout, (const char*)text, -1);
+    pango_layout_set_text(ctx->layout, (const char *)text, -1);
     pango_layout_set_alignment(ctx->layout, ctx->text_intalign);
     pango_layout_set_width(ctx->layout, ctx->text_width < 0 ? -1 : (int)(ctx->text_width * PANGO_SCALE));
     /* pango_layout_set_wrap(ctx->layout, ctx->text_width < 0 ? PANGO_WRAP_CHAR); */
@@ -611,7 +617,8 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         int w, h;
         pango_layout_get_pixel_size(ctx->layout, &w, &h);
 
-        switch (ctx->text_halign) {
+        switch (ctx->text_halign)
+        {
         case ekLEFT:
         case ekJUSTIFY:
             break;
@@ -621,9 +628,11 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         case ekCENTER:
             nx = (double)(x - (w / 2));
             break;
-        cassert_default(); }
+            cassert_default();
+        }
 
-        switch (ctx->text_valign) {
+        switch (ctx->text_valign)
+        {
         case ekTOP:
         case ekJUSTIFY:
             break;
@@ -633,7 +642,8 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         case ekCENTER:
             ny = (double)(y - (h / 2));
             break;
-        cassert_default(); }
+            cassert_default();
+        }
     }
 
     if (ctx->cartesian_system == TRUE)
@@ -722,7 +732,8 @@ void draw_text_width(DCtx *ctx, const real32_t width)
 
 static __INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
 {
-    switch(ellipsis) {
+    switch (ellipsis)
+    {
     case ekELLIPNONE:
     case ekELLIPMLINE:
         return PANGO_ELLIPSIZE_NONE;
@@ -732,7 +743,7 @@ static __INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
         return PANGO_ELLIPSIZE_MIDDLE;
     case ekELLIPEND:
         return PANGO_ELLIPSIZE_END;
-    cassert_default();
+        cassert_default();
     }
 
     return PANGO_ELLIPSIZE_NONE;
@@ -742,7 +753,8 @@ static __INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
 
 static __INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
 {
-    switch(ellipsis) {
+    switch (ellipsis)
+    {
     case PANGO_ELLIPSIZE_NONE:
         return ekELLIPNONE;
     case PANGO_ELLIPSIZE_START:
@@ -751,7 +763,7 @@ static __INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
         return ekELLIPMIDDLE;
     case PANGO_ELLIPSIZE_END:
         return ekELLIPEND;
-    cassert_default();
+        cassert_default();
     }
 
     return ekELLIPNONE;
@@ -786,15 +798,16 @@ void draw_text_align(DCtx *ctx, const align_t halign, const align_t valign)
 
 static __INLINE PangoAlignment i_align(const align_t align)
 {
-    switch(align) {
+    switch (align)
+    {
     case ekLEFT:
     case ekJUSTIFY:
         return PANGO_ALIGN_LEFT;
     case ekCENTER:
         return PANGO_ALIGN_CENTER;
     case ekRIGHT:
-            return PANGO_ALIGN_RIGHT;
-    cassert_default();
+        return PANGO_ALIGN_RIGHT;
+        cassert_default();
     }
 
     return PANGO_ALIGN_LEFT;
@@ -818,12 +831,12 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     {
         const PangoFontDescription *fdesc = NULL;
         cassert(ctx->font != NULL);
-        fdesc = (PangoFontDescription*)font_native(ctx->font);
+        fdesc = (PangoFontDescription *)font_native(ctx->font);
         ctx->layout = pango_cairo_create_layout(ctx->cairo);
         pango_layout_set_font_description(ctx->layout, fdesc);
     }
 
-    pango_layout_set_text(ctx->layout, (const char*)text, -1);
+    pango_layout_set_text(ctx->layout, (const char *)text, -1);
     pango_layout_set_width(ctx->layout, refwidth < 0 ? -1 : (int)(refwidth * PANGO_SCALE));
     pango_layout_get_pixel_size(ctx->layout, &w, &h);
     ptr_assign(width, (real32_t)w);
