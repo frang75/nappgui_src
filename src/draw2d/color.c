@@ -12,21 +12,21 @@
 
 #include "color.h"
 #include "draw2d.inl"
-#include "cassert.h"
-#include "bmath.h"
-#include "bstd.h"
-#include "ptr.h"
-#include "strings.h"
+#include <core/strings.h>
+#include <sewer/bmath.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
-#define i_red(rgba)     (uint8_t)(rgba)
-#define i_green(rgba)   (uint8_t)(rgba >> 8)
-#define i_blue(rgba)    (uint8_t)(rgba >> 16)
-#define i_alpha(rgba)   (uint8_t)(rgba >> 24)
-#define i_redf(rgba)    (real32_t)((uint8_t)(rgba)/255.f)
-#define i_greenf(rgba)  (real32_t)((uint8_t)(rgba >> 8)/255.f)
-#define i_bluef(rgba)   (real32_t)((uint8_t)(rgba >> 16)/255.f)
-#define i_alphaf(rgba)  (real32_t)((uint8_t)(rgba >> 24)/255.f)
-#define i_rgb(r,g,b)    (color_t)(((255) << 24) | ((b) << 16) | ((g) << 8) | (r))
+#define i_red(rgba) (uint8_t)(rgba)
+#define i_green(rgba) (uint8_t)(rgba >> 8)
+#define i_blue(rgba) (uint8_t)(rgba >> 16)
+#define i_alpha(rgba) (uint8_t)(rgba >> 24)
+#define i_redf(rgba) (real32_t)((uint8_t)(rgba) / 255.f)
+#define i_greenf(rgba) (real32_t)((uint8_t)(rgba >> 8) / 255.f)
+#define i_bluef(rgba) (real32_t)((uint8_t)(rgba >> 16) / 255.f)
+#define i_alphaf(rgba) (real32_t)((uint8_t)(rgba >> 24) / 255.f)
+#define i_rgb(r, g, b) (color_t)(((255) << 24) | ((b) << 16) | ((g) << 8) | (r))
 
 const color_t kCOLOR_TRANSPARENT = 0;
 const color_t kCOLOR_DEFAULT = 0;
@@ -83,20 +83,21 @@ color_t color_hsbf(const real32_t hue, const real32_t sat, const real32_t bright
     }
 
     {
-		real32_t hue_domain = hue * 6.0f;
+        real32_t hue_domain = hue * 6.0f;
         uint16_t domain;
         real32_t f1, f2, f3;
 
-		if (hue_domain >= 6.f)
-			hue_domain = 0;
+        if (hue_domain >= 6.f)
+            hue_domain = 0;
 
-		domain = (uint16_t)hue_domain;
+        domain = (uint16_t)hue_domain;
 
-		f1 = bright * (1 - sat);
-		f2 = bright * (1 - sat * (hue_domain - (real32_t)domain));
-		f3 = bright * (1 - sat * (1 - (hue_domain - (real32_t)domain)));
+        f1 = bright * (1 - sat);
+        f2 = bright * (1 - sat * (hue_domain - (real32_t)domain));
+        f3 = bright * (1 - sat * (1 - (hue_domain - (real32_t)domain)));
 
-		switch (domain) {
+        switch (domain)
+        {
         case 0:
             return i_rgb((uint8_t)(bright * 255.f), (uint8_t)(f3 * 255.f), (uint8_t)(f1 * 255.f));
 
@@ -115,7 +116,7 @@ color_t color_hsbf(const real32_t hue, const real32_t sat, const real32_t bright
         case 5:
             return i_rgb((uint8_t)(bright * 255.f), (uint8_t)(f1 * 255.f), (uint8_t)(f2 * 255.f));
 
-        cassert_default();
+            cassert_default();
         }
     }
 
@@ -154,7 +155,7 @@ color_t color_gray(const uint8_t l)
 
 color_t color_bgr(const uint32_t bgr)
 {
-    return (color_t)((uint32_t)((255) << 24) | (uint32_t)(((bgr) & 0x000000FF) << 16) | (uint32_t)((bgr) & 0x0000FF00) | (uint32_t)(((bgr) & 0x00FF0000) >> 16));
+    return (color_t)((uint32_t)((255) << 24) | (uint32_t)(((bgr)&0x000000FF) << 16) | (uint32_t)((bgr)&0x0000FF00) | (uint32_t)(((bgr)&0x00FF0000) >> 16));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -210,10 +211,14 @@ void color_to_hsbf(const color_t color, real32_t *hue, real32_t *sat, real32_t *
         max = r;
     }
 
-    if (g < min) min = g;
-    if (b < min) min = b;
-    if (g > max) max = g;
-    if (b > max) max = b;
+    if (g < min)
+        min = g;
+    if (b < min)
+        min = b;
+    if (g > max)
+        max = g;
+    if (b > max)
+        max = b;
 
     delta = max - min;
     *bright = max;
@@ -332,4 +337,3 @@ color_t color_set_alpha(const color_t color, const uint8_t alpha)
         c = i_effective(color);
     return (color_t)(((uint32_t)c & 0x00FFFFFF) | ((uint32_t)alpha << 24));
 }
-

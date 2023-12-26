@@ -12,15 +12,15 @@
 
 #include "osbs.h"
 #include "osbs.inl"
-#include "sewer.h"
-#include "bmath.h"
-#include "bmem.h"
-#include "bmem.inl"
 #include "bmutex.h"
-#include "cassert.h"
-#include "blib.h"
 #include "log.h"
 #include "log.inl"
+#include <sewer/sewer.h>
+#include <sewer/blib.h>
+#include <sewer/bmath.h>
+#include <sewer/bmem.h>
+#include <sewer/bmem.inl>
+#include <sewer/cassert.h>
 
 static uint32_t i_NUM_USERS = 0;
 static Mutex *i_MUTEX = NULL;
@@ -66,15 +66,15 @@ void osbs_start(void)
         cassert(sizeof(real64_t) == 8);
         cassert((1 == 1) == TRUE);
         cassert((1 != 1) == FALSE);
-        #if defined (__x86__)
-        cassert(sizeof(void*) == 4);
-        #elif defined (__x64__)
-        cassert(sizeof(void*) == 8);
-        #elif defined (__ARM__)
-        cassert(sizeof(void*) == 4);
-        #elif defined (__ARM64__)
-        cassert(sizeof(void*) == 8);
-        #endif
+#if defined(__x86__)
+        cassert(sizeofptr == 4);
+#elif defined(__x64__)
+        cassert(sizeofptr == 8);
+#elif defined(__ARM__)
+        cassert(sizeofptr == 4);
+#elif defined(__ARM64__)
+        cassert(sizeofptr == 8);
+#endif
 
         i_NUM_USERS = 1;
         sewer_start();
@@ -251,4 +251,3 @@ void _osbs_socket_dealloc(void)
 {
     i_incr(&i_NUM_SOCKETS_DEALLOC);
 }
-

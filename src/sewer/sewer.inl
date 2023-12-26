@@ -17,4 +17,3 @@ __EXTERN_C
 void _sewer_atexit(void (*func)(void));
 
 __END_C
-

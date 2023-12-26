@@ -15,12 +15,18 @@
 
 #include "seg2d.hpp"
 
-template<typename real>
+template <typename real>
 struct Box2D
 {
-    _geom2d_api Box2D() { *this = *kNULL; }
+    _geom2d_api Box2D()
+    {
+        *this = *kNULL;
+    }
 
-    _geom2d_api Box2D(const real minX, const real minY, const real maxX, const real maxY) {min.x = minX, min.y = minY, max.x = maxX, max.y = maxY;}
+    _geom2d_api Box2D(const real minX, const real minY, const real maxX, const real maxY)
+    {
+        min.x = minX, min.y = minY, max.x = maxX, max.y = maxY;
+    }
 
     _geom2d_api static Box2D<real> (*from_points)(const V2D<real> *p, const uint32_t n);
 
@@ -44,7 +50,7 @@ struct Box2D
     V2D<real> max;
 };
 
-template<typename real, typename real2>
+template <typename real, typename real2>
 struct Box2D2
 {
     _geom2d_api static void (*copy)(Box2D<real> *dest, const Box2D<real2> *src);

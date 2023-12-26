@@ -44,4 +44,3 @@ _draw2d_api void draw_pol2df(DCtx *ctx, const drawop_t op, const Pol2Df *pol);
 _draw2d_api void draw_pol2dd(DCtx *ctx, const drawop_t op, const Pol2Dd *pol);
 
 __END_C
-

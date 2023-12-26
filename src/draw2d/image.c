@@ -13,21 +13,21 @@
 #include "image.h"
 #include "image.inl"
 #include "imgutil.inl"
-#include "buffer.h"
 #include "dctx.h"
 #include "draw.h"
 #include "draw.inl"
-#include "bmem.h"
-#include "cassert.h"
-#include "heap.h"
-#include "hfile.h"
 #include "palette.h"
 #include "pixbuf.h"
-#include "ptr.h"
-#include "respackh.h"
-#include "stream.h"
-#include "strings.h"
-#include "t2d.h"
+#include <geom2d/t2d.h>
+#include <core/buffer.h>
+#include <core/heap.h>
+#include <core/hfile.h>
+#include <core/respackh.h>
+#include <core/stream.h>
+#include <core/strings.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -68,7 +68,7 @@ void image_destroy(Image **image)
         (*image)->num_instances = 0;
 
         if ((*image)->frame_length != NULL)
-            heap_free((byte_t**)&(*image)->frame_length, (*image)->num_frames * sizeof32(real32_t), "ImageFrames");
+            heap_free((byte_t **)&(*image)->frame_length, (*image)->num_frames * sizeof32(real32_t), "ImageFrames");
 
         if ((*image)->data != NULL)
         {
@@ -108,8 +108,7 @@ static __INLINE bool_t i_gray_palette(const color_t *palette, const uint32_t pal
     register uint32_t i = 0;
     for (i = 0; i < palsize; ++i)
     {
-        if (((byte_t)palette[i] != (byte_t)(palette[i] >> 8))
-            || ((byte_t)palette[i] != (byte_t)(palette[i] >> 16)))
+        if (((byte_t)palette[i] != (byte_t)(palette[i] >> 8)) || ((byte_t)palette[i] != (byte_t)(palette[i] >> 16)))
             return FALSE;
     }
 
@@ -125,12 +124,12 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
     Pixbuf *rgb_pixels = NULL;
     pixformat_t nformat = format;
 
-    switch (format) {
+    switch (format)
+    {
     case ekINDEX1:
     case ekINDEX2:
     case ekINDEX4:
-    case ekINDEX8:
-    {
+    case ekINDEX8: {
         Palette *defpal = NULL;
         bool_t alpha_palette = FALSE;
         bool_t gray_palette = FALSE;
@@ -166,7 +165,7 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
         break;
 
     case ekFIMAGE:
-    cassert_default();
+        cassert_default();
     }
 
     if (rgb_pixels != NULL)
@@ -189,19 +188,19 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
 Image *image_from_pixbuf(const Pixbuf *pixbuf, const Palette *palette)
 {
     return image_from_pixels(
-                            pixbuf_width(pixbuf),
-                            pixbuf_height(pixbuf),
-                            pixbuf_format(pixbuf),
-                            pixbuf_cdata(pixbuf),
-                            palette ? palette_ccolors(palette) : NULL,
-                            palette ? palette_size(palette) : 0);
+        pixbuf_width(pixbuf),
+        pixbuf_height(pixbuf),
+        pixbuf_format(pixbuf),
+        pixbuf_cdata(pixbuf),
+        palette ? palette_ccolors(palette) : NULL,
+        palette ? palette_size(palette) : 0);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static codec_t i_codec(const byte_t first)
 {
-/*
+    /*
     Image Headers (only one byte for select)
     PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
     JPG: 0xFF 0xD8
@@ -275,8 +274,8 @@ const Image *image_from_resource(const ResPack *pack, const ResId id)
 Image *image_copy(const Image *image)
 {
     cassert_no_null(image);
-    ((Image*)image)->num_instances += 1;
-    return (Image*)image;
+    ((Image *)image)->num_instances += 1;
+    return (Image *)image;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -285,7 +284,7 @@ Image *image_trim(const Image *image, const uint32_t x, const uint32_t y, const 
 {
     T2Df t2d;
     DCtx *ctx = dctx_bitmap(width, height, ekRGB24);
-    t2d_movef(&t2d, kT2D_IDENTf, - (real32_t)x, - (real32_t)y);
+    t2d_movef(&t2d, kT2D_IDENTf, -(real32_t)x, -(real32_t)y);
     draw_matrixf(ctx, &t2d);
     draw_image(ctx, image, 0, 0);
     return dctx_image(&ctx);
@@ -312,16 +311,20 @@ static void i_rotated_image_size(const T2Df *t2d, const uint32_t width, const ui
     for (i = 0; i < 4; ++i)
     {
         t2d_vmultf(corners + i, t2d, corners + i);
-        if (corners[i].x < minx) minx = corners[i].x;
-        if (corners[i].x > maxx) maxx = corners[i].x;
-        if (corners[i].y < miny) miny = corners[i].y;
-        if (corners[i].y > maxy) maxy = corners[i].y;
+        if (corners[i].x < minx)
+            minx = corners[i].x;
+        if (corners[i].x > maxx)
+            maxx = corners[i].x;
+        if (corners[i].y < miny)
+            miny = corners[i].y;
+        if (corners[i].y > maxy)
+            maxy = corners[i].y;
     }
 
     *fx = minx;
     *fy = miny;
     *fwidth = (uint32_t)(maxx - minx) + 1;
-    *fheight  = (uint32_t)(maxy - miny) + 1;
+    *fheight = (uint32_t)(maxy - miny) + 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -357,7 +360,7 @@ Image *image_rotate(const Image *image, const real32_t angle, const bool_t nsize
 
     ctx = dctx_bitmap(fwidth, fheight, ekRGB24);
     draw_clear(ctx, background);
-    t2d_movef(&t2d, kT2D_IDENTf, - fx + cx, - fy + cy);
+    t2d_movef(&t2d, kT2D_IDENTf, -fx + cx, -fy + cy);
     t2d_rotatef(&t2d, &t2d, angle);
     t2d_movef(&t2d, &t2d, -cx, -cy);
     draw_matrixf(ctx, &t2d);
@@ -378,8 +381,8 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
     cassert_no_null(image);
     if (width == UINT32_MAX && height == UINT32_MAX)
     {
-        ((Image*)image)->num_instances += 1;
-        return (Image*)image;
+        ((Image *)image)->num_instances += 1;
+        return (Image *)image;
     }
 
     osimage_info(image->osimage, &current_width, &current_height, NULL, NULL);
@@ -402,8 +405,8 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
     }
     else
     {
-        ((Image*)image)->num_instances += 1;
-        return (Image*)image;
+        ((Image *)image)->num_instances += 1;
+        return (Image *)image;
     }
 }
 
@@ -512,7 +515,7 @@ Pixbuf *image_pixels(const Image *image, const pixformat_t format)
     }
 
     return pixels;
-/*     if (pixels != NULL)
+    /*     if (pixels != NULL)
     {
        pixformat_t rformat = pixbuf_format(*pixels);
 
@@ -554,7 +557,7 @@ bool_t image_codec(const Image *image, const codec_t codec)
     cassert_no_null(image);
     if (osimage_available_codec(image->osimage, codec) == TRUE)
     {
-        ((Image*)image)->codec = codec;
+        ((Image *)image)->codec = codec;
         return TRUE;
     }
 
@@ -581,7 +584,7 @@ static void i_frames(Image *image)
     if (image->num_frames > 1)
     {
         register uint32_t i = 0;
-        image->frame_length = (real32_t*)heap_malloc(image->num_frames * sizeof32(real32_t), "ImageFrames");
+        image->frame_length = (real32_t *)heap_malloc(image->num_frames * sizeof32(real32_t), "ImageFrames");
         for (i = 0; i < image->num_frames; ++i)
             osimage_frame(image->osimage, i, image->frame_length + i);
     }
@@ -593,7 +596,7 @@ uint32_t image_num_frames(const Image *image)
 {
     cassert_no_null(image);
     if (image->num_frames == 0)
-        i_frames((Image*)image);
+        i_frames((Image *)image);
     return image->num_frames;
 }
 
@@ -603,7 +606,7 @@ real32_t image_frame_length(const Image *image, const uint32_t findex)
 {
     cassert_no_null(image);
     if (image->num_frames == 0)
-        i_frames((Image*)image);
+        i_frames((Image *)image);
     cassert(findex < image->num_frames);
     return image->frame_length[findex];
 }

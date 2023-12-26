@@ -13,11 +13,11 @@
 #include "osgui_osx.inl"
 #include "osmenuitem.h"
 #include "osgui.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "image.h"
-#include "strings.h"
+#include <draw2d/image.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -220,7 +220,7 @@ OSMenuItem *osmenuitem_create(const uint32_t flag)
 
     case ekMENU_SEPARATOR:
         return (OSMenuItem*)[NSMenuItem separatorItem];
-            
+
     cassert_default();
     }
 
@@ -425,7 +425,7 @@ void osmenuitem_submenu(OSMenuItem *item, OSMenu *menu)
     retain_count = [(NSMenu*)menu retainCount];
     [itemp setSubmenu:(NSMenu*)menu];
     [(NSMenu*)menu setTitle:[itemp title]];
-    cassert([(NSMenu*)menu retainCount] == retain_count + 1);
+    cassert_unref([(NSMenu*)menu retainCount] == retain_count + 1, retain_count);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -433,15 +433,11 @@ void osmenuitem_submenu(OSMenuItem *item, OSMenu *menu)
 void osmenuitem_unset_submenu(OSMenuItem *item, OSMenu *menu)
 {
     OSXMenuItem *itemp = nil;
-    NSUInteger retain_count = 0;
     cassert_no_null(item);
     cassert_no_null(menu);
     itemp = (OSXMenuItem*)item;
     cassert([itemp isKindOfClass:[OSXMenuItem class]] == YES);
     cassert([(NSObject*)menu isKindOfClass:[NSMenu class]] == YES);
     cassert([(OSXMenuItem*)item submenu] == (NSMenu*)menu);
-    retain_count = [(NSMenu*)menu retainCount];
     [itemp setSubmenu:nil];
-//    [(NSMenu*)menu release];
-    //cassert([(NSMenu*)menu retainCount] == retain_count - 1);
 }

@@ -24,8 +24,8 @@ void bmem_set4(byte_t *dest, const uint32_t size, const byte_t *mask)
     cassert_no_null(dest);
     cassert_no_null(mask);
     cassert(size > 0);
-#if defined (__MACOS__)
-    memset_pattern4((void*)dest, (const void*)mask, (size_t)size);
+#if defined(__MACOS__)
+    memset_pattern4((void *)dest, (const void *)mask, (size_t)size);
 #else
     {
         register uint32_t i, blocks = size / 4;
@@ -53,8 +53,8 @@ void bmem_set8(byte_t *dest, const uint32_t size, const byte_t *mask)
     cassert_no_null(dest);
     cassert_no_null(mask);
     cassert(size > 0);
-#if defined (__MACOS__)
-    memset_pattern8((void*)dest, (const void*)mask, (size_t)size);
+#if defined(__MACOS__)
+    memset_pattern8((void *)dest, (const void *)mask, (size_t)size);
 #else
     {
         register uint32_t i, blocks = size / 8;
@@ -86,8 +86,8 @@ void bmem_set16(byte_t *dest, const uint32_t size, const byte_t *mask)
     cassert_no_null(dest);
     cassert_no_null(mask);
     cassert(size > 0);
-#if defined (__MACOS__)
-    memset_pattern16((void*)dest, (const void*)mask, (size_t)size);
+#if defined(__MACOS__)
+    memset_pattern16((void *)dest, (const void *)mask, (size_t)size);
 #else
     {
         register uint32_t i, blocks = size / 16;
@@ -124,7 +124,7 @@ void bmem_set16(byte_t *dest, const uint32_t size, const byte_t *mask)
 
 int bmem_cmp(const byte_t *mem1, const byte_t *mem2, const uint32_t size)
 {
-    return memcmp((const void*)mem1, (const void*)mem2, (size_t)size);
+    return memcmp((const void *)mem1, (const void *)mem2, (size_t)size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -147,7 +147,7 @@ void bmem_copy(byte_t *dest, const byte_t *src, const uint32_t size)
     cassert_no_null(dest);
     cassert_no_null(src);
     cassert(size > 0);
-    memcpy((void*)dest, (const void*)src, (size_t)size);
+    memcpy((void *)dest, (const void *)src, (size_t)size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -157,7 +157,7 @@ void bmem_move(byte_t *dest, const byte_t *src, const uint32_t size)
     cassert_no_null(dest);
     cassert_no_null(src);
     cassert(size > 0);
-    memmove((void*)dest, (const void*)src, (size_t)size);
+    memmove((void *)dest, (const void *)src, (size_t)size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -289,11 +289,11 @@ void bmem_swap(byte_t *mem1, byte_t *mem2, const uint32_t size)
     register byte_t *mem1p = mem1;
     register byte_t *mem2p = mem2;
     do
-	{
+    {
         byte_t tmp = *mem1p;
         *mem1p++ = *mem2p;
         *mem2p++ = tmp;
-	} while (--sizep > 0);
+    } while (--sizep > 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -307,5 +307,3 @@ void bmem_shuffle(byte_t *mem, const uint32_t size, const uint32_t esize)
         bmem_swap(mem + i * esize, mem + j * esize, esize);
     }
 }
-
-

@@ -35,4 +35,3 @@ void _button_bool(Button *button, const bool_t value);
 void _button_uint32(Button *button, const uint32_t value);
 
 __END_C
-

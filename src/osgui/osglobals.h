@@ -28,6 +28,11 @@ _osgui_api void osglobals_cursor_destroy(Cursor **cursor);
 
 _osgui_api void osglobals_value(const uint32_t index, void *value);
 
+_osgui_api void osglobals_transitions(void *nonused, const real64_t prtime, const real64_t crtime);
+
+_osgui_api void osglobals_OnIdle(void *nonused, Listener *listener);
+
+/* TODO: GOTO context */
 _osgui_api void osglobals_theme_changed(void);
 
 __END_C

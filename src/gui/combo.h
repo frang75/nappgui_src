@@ -56,4 +56,3 @@ _gui_api void combo_del_elem(Combo *combo, const uint32_t index);
 _gui_api void combo_duplicates(Combo *combo, const bool_t duplicates);
 
 __END_C
-

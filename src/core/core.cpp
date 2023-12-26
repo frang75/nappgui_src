@@ -10,16 +10,16 @@
 
 /* Core library */
 
-#include "osbs.h"
 #include "core.h"
-#include "heap.inl"
 #include "dbind.inl"
+#include "heap.inl"
 #include "stream.inl"
-#include "bmem.h"
-#include "blib.h"
-#include "bproc.h"
-#include "cassert.h"
-#include "log.h"
+#include <osbs/osbs.h>
+#include <osbs/bproc.h>
+#include <osbs/log.h>
+#include <sewer/bmem.h>
+#include <sewer/blib.h>
+#include <sewer/cassert.h>
 
 static uint32_t i_NUM_USERS = 0;
 
@@ -62,11 +62,11 @@ void core_start(void)
         blib_atexit(i_core_atexit);
 
         i_NUM_USERS = 1;
-    #if defined (__APPLE__) || defined (__LINUX__)
-        cassert(sizeof(EventHandler) == 2 * sizeof(void*));
-    #else
-        cassert(sizeof(EventHandler) == sizeof(void*));
-    #endif
+#if defined(__APPLE__) || defined(__LINUX__)
+        cassert(sizeof(EventHandler) == 2 * sizeofptr);
+#else
+        cassert(sizeof(EventHandler) == sizeofptr);
+#endif
     }
     else
     {

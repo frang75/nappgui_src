@@ -32,4 +32,3 @@ _draw2d_api void draw_matrix_cartesiand(DCtx *ctx, const T2Dd *t2d);
 _draw2d_api void draw_antialias(DCtx *ctx, const bool_t on);
 
 __END_C
-

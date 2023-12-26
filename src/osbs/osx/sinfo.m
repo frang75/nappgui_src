@@ -16,12 +16,13 @@
 #error This file is only for OSX
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
-#include "warn.hxx"
 #include <mach-o/dyld.h>
-#include "cassert.h"
-#include "unicode.h"
+#include <sewer/warn.hxx>
+
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -55,7 +56,7 @@ uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
     {
         cassert_msg(FALSE, "Buffer too small");
     }
-    
+
     return lsize;
 }
 

@@ -12,16 +12,16 @@
 
 #include "lex.inl"
 #include "stream.inl"
-#include "cassert.h"
 #include "heap.h"
-#include "ptr.h"
 #include "stream.h"
 #include "strings.h"
-#include "unicode.h"
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
-#define DISCARD_CHAR    0
-#define VALID_CHAR      1
-#define STORE_CHAR      2
+#define DISCARD_CHAR 0
+#define VALID_CHAR 1
+#define STORE_CHAR 2
 
 typedef struct _lexopts_t LexOpts;
 
@@ -76,7 +76,7 @@ LexScn *_lexscn_create(void)
 {
     LexScn *lex = heap_new0(LexScn);
     lex->lexsize = 256;
-    lex->lexeme = (char_t*)heap_malloc(lex->lexsize, "LexLexeme");
+    lex->lexeme = (char_t *)heap_malloc(lex->lexsize, "LexLexeme");
     return lex;
 }
 
@@ -86,7 +86,7 @@ void _lexscn_destroy(LexScn **lex)
 {
     cassert_no_null(lex);
     cassert_no_null(*lex);
-    heap_free((byte_t**)&(*lex)->lexeme, (*lex)->lexsize, "LexLexeme");
+    heap_free((byte_t **)&(*lex)->lexeme, (*lex)->lexsize, "LexLexeme");
     heap_delete(lex, LexScn);
 }
 
@@ -149,7 +149,7 @@ static void i_store_char(LexScn *lex, Stream *stm, const uint32_t code)
     cassert_no_null(lex);
     size = unicode_to_char(code, data, ekUTF8);
     cassert(size >= 1 && size <= 4);
-    _stm_restore(stm, (const byte_t*)data, size);
+    _stm_restore(stm, (const byte_t *)data, size);
     _stm_restore_col(stm, lex->pcol);
     _stm_restore_row(stm, lex->prow);
 }
@@ -166,7 +166,7 @@ static void i_add_lexeme(LexScn *lex, const uint32_t code)
 
     if (lex->lexi + 4 > lex->lexsize)
     {
-        lex->lexeme = (char_t*)heap_realloc((byte_t*)lex->lexeme, lex->lexsize, lex->lexsize * 2, "LexLexeme");
+        lex->lexeme = (char_t *)heap_realloc((byte_t *)lex->lexeme, lex->lexsize, lex->lexsize * 2, "LexLexeme");
         lex->lexsize *= 2;
     }
 
@@ -179,7 +179,8 @@ static void i_add_lexeme(LexScn *lex, const uint32_t code)
 static gui_state_t i_START(const uint32_t code, ltoken_t *token)
 {
     cassert_no_null(token);
-    switch (code) {
+    switch (code)
+    {
     case '<':
         *token = ekTLESS;
         return stEND;
@@ -416,7 +417,8 @@ static gui_state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_
         return stSTRING;
     }
 
-    switch (*code) {
+    switch (*code)
+    {
     case 'a':
         *code = 0x07;
         return stSTRING;
@@ -743,134 +745,139 @@ ltoken_t _lexscn_token(LexScn *lex, Stream *stm)
 {
     ltoken_t token = ENUM_MAX(ltoken_t);
 
-    for(;;) {
-    uint32_t code = 0;
-    uint32_t ci = 0;
-    char_t c[10];
-    gui_state_t state = stSTART;
-    cassert_no_null(lex);
-    lex->tcol = stm_col(stm);
-    lex->trow = stm_row(stm);
-    lex->lexi = 0;
-    code = i_get_char(lex, stm);
-
-    if (code == 0)
-    {
-        token = ekTEOF;
-        break;
-    }
-
     for (;;)
     {
-        uint8_t charst = VALID_CHAR;
-
-        if (code == UINT32_MAX)
-        {
-            token = ekTCORRUP;
-            break;
-        }
-
-        token = ENUM_MAX(ltoken_t);
-        switch (state) {
-        case stSTART:
-            state = i_START(code, &token);
-            break;
-        case stSPACES:
-            state = i_SPACES(code, &token, &charst);
-            break;
-        case stSLASH:
-            state = i_SLASH(code, &token, &charst);
-            break;
-        case stSL_COMMENT:
-            state = i_SL_COMMENT(code, &token);
-            break;
-        case stML_COMMENT:
-            state = i_ML_COMMENT(code);
-            break;
-        case stML_COMMENT2:
-            state = i_ML_COMMENT2(code, &token);
-            break;
-        case stPERIOD:
-            state = i_PERIOD(code, &token, &charst);
-            break;
-        case stIDENTIFIER:
-            state = i_IDENTIFIER(code, &token, &charst);
-            break;
-        case stSTRING:
-            state = i_STRING(code, lex->opts.escapes, &token, &charst);
-            break;
-        case stSTRING_SCAPE:
-            state = i_STRING_ESCAPE(&code, lex->opts.escapes, &ci, c, &charst);
-            break;
-        case stSTRING_OCTAL:
-            state = i_STRING_OCTAL(&code, &ci, c, &charst);
-            break;
-        case stSTRING_HEX:
-            state = i_STRING_HEX(&code, &ci, c, &charst);
-            break;
-        case stSTRING_UNICODE4:
-            state = i_STRING_UNICODE4(&code, &ci, c, &charst);
-            break;
-        case stSTRING_UNICODE8:
-            state = i_STRING_UNICODE8(&code, &ci, c, &charst);
-            break;
-        case stZERO:
-            state = i_ZERO(code, &token, &charst);
-            break;
-        case stINT:
-            state = i_INT(code, &token, &charst);
-            break;
-        case stHEX:
-            state = i_HEX(code, &token, &charst);
-            break;
-        case stREAL:
-            state = i_REAL(code, &token, &charst);
-            break;
-        case stEXP:
-            state = i_EXP(code, &token);
-            break;
-        case stEXP1:
-            state = i_EXP1(code, &token, &charst);
-            break;
-        case stEND:
-        cassert_default();
-        }
-
-        if (charst == VALID_CHAR)
-            i_add_lexeme(lex, code);
-        else if (charst == STORE_CHAR)
-            i_store_char(lex, stm, code);
-        else
-            { cassert(charst == DISCARD_CHAR); }
-
-        if (state == stEND)
-            break;
+        uint32_t code = 0;
+        uint32_t ci = 0;
+        char_t c[10];
+        gui_state_t state = stSTART;
+        cassert_no_null(lex);
+        lex->tcol = stm_col(stm);
+        lex->trow = stm_row(stm);
+        lex->lexi = 0;
+        code = i_get_char(lex, stm);
 
         if (code == 0)
+        {
+            token = ekTEOF;
             break;
+        }
 
-        code = i_get_char(lex, stm);
-    }
+        for (;;)
+        {
+            uint8_t charst = VALID_CHAR;
 
-    if (token == ekTMLCOM || token == ekTSLCOM)
-    {
-        if (lex->opts.comments)
+            if (code == UINT32_MAX)
+            {
+                token = ekTCORRUP;
+                break;
+            }
+
+            token = ENUM_MAX(ltoken_t);
+            switch (state)
+            {
+            case stSTART:
+                state = i_START(code, &token);
+                break;
+            case stSPACES:
+                state = i_SPACES(code, &token, &charst);
+                break;
+            case stSLASH:
+                state = i_SLASH(code, &token, &charst);
+                break;
+            case stSL_COMMENT:
+                state = i_SL_COMMENT(code, &token);
+                break;
+            case stML_COMMENT:
+                state = i_ML_COMMENT(code);
+                break;
+            case stML_COMMENT2:
+                state = i_ML_COMMENT2(code, &token);
+                break;
+            case stPERIOD:
+                state = i_PERIOD(code, &token, &charst);
+                break;
+            case stIDENTIFIER:
+                state = i_IDENTIFIER(code, &token, &charst);
+                break;
+            case stSTRING:
+                state = i_STRING(code, lex->opts.escapes, &token, &charst);
+                break;
+            case stSTRING_SCAPE:
+                state = i_STRING_ESCAPE(&code, lex->opts.escapes, &ci, c, &charst);
+                break;
+            case stSTRING_OCTAL:
+                state = i_STRING_OCTAL(&code, &ci, c, &charst);
+                break;
+            case stSTRING_HEX:
+                state = i_STRING_HEX(&code, &ci, c, &charst);
+                break;
+            case stSTRING_UNICODE4:
+                state = i_STRING_UNICODE4(&code, &ci, c, &charst);
+                break;
+            case stSTRING_UNICODE8:
+                state = i_STRING_UNICODE8(&code, &ci, c, &charst);
+                break;
+            case stZERO:
+                state = i_ZERO(code, &token, &charst);
+                break;
+            case stINT:
+                state = i_INT(code, &token, &charst);
+                break;
+            case stHEX:
+                state = i_HEX(code, &token, &charst);
+                break;
+            case stREAL:
+                state = i_REAL(code, &token, &charst);
+                break;
+            case stEXP:
+                state = i_EXP(code, &token);
+                break;
+            case stEXP1:
+                state = i_EXP1(code, &token, &charst);
+                break;
+            case stEND:
+                cassert_default();
+            }
+
+            if (charst == VALID_CHAR)
+                i_add_lexeme(lex, code);
+            else if (charst == STORE_CHAR)
+                i_store_char(lex, stm, code);
+            else
+            {
+                cassert(charst == DISCARD_CHAR);
+            }
+
+            if (state == stEND)
+                break;
+
+            if (code == 0)
+                break;
+
+            code = i_get_char(lex, stm);
+        }
+
+        if (token == ekTMLCOM || token == ekTSLCOM)
+        {
+            if (lex->opts.comments)
+                break;
+        }
+        else if (token == ekTSPACE)
+        {
+            if (lex->opts.spaces)
+                break;
+        }
+        else if (token == ekTEOL)
+        {
+            if (lex->opts.spaces | lex->opts.newlines)
+                break;
+        }
+        else
+        {
             break;
+        }
     }
-    else if (token == ekTSPACE)
-    {
-        if (lex->opts.spaces)
-            break;
-    }
-    else if (token == ekTEOL)
-    {
-        if (lex->opts.spaces | lex->opts.newlines)
-            break;
-    }
-    else
-    {
-        break;
-    } }
 
     lex->lexeme[lex->lexi] = '\0';
     return token;
@@ -905,7 +912,8 @@ const char_t *_lexscn_lexeme(const LexScn *lex, uint32_t *size)
 
 const char_t *_lexscn_string(const ltoken_t token)
 {
-    switch (token) {
+    switch (token)
+    {
     case ekTSLCOM:
     case ekTMLCOM:
         return "comment";
@@ -993,7 +1001,7 @@ const char_t *_lexscn_string(const ltoken_t token)
         return "eof";
     case ekTRESERVED:
         return "reserved";
-    cassert_default();
+        cassert_default();
     }
 
     return "--";

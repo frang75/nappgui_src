@@ -15,20 +15,19 @@
 #include "view.inl"
 #include "cell.inl"
 #include "gui.inl"
-#include "image.h"
 #include "layout.h"
-
-#include "bmath.h"
-#include "cassert.h"
-#include "color.h"
-#include "draw.h"
-#include "dctx.h"
-#include "event.h"
-#include "heap.h"
-#include "ptr.h"
-#include "objh.h"
-#include "s2d.h"
-#include "t2d.h"
+#include <draw2d/image.h>
+#include <draw2d/color.h>
+#include <draw2d/draw.h>
+#include <draw2d/dctx.h>
+#include <geom2d/s2d.h>
+#include <geom2d/t2d.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <core/objh.h>
+#include <sewer/bmath.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 typedef struct _vimgdata_t VImgData;
 
@@ -90,7 +89,7 @@ static void i_image_transform(T2Df *t2d, const gui_scale_t scale, const real32_t
             break;
 
         case ekGUI_SCALE_NONE:
-        cassert_default();
+            cassert_default();
         }
     }
 
@@ -106,7 +105,7 @@ static void i_image_transform(T2Df *t2d, const gui_scale_t scale, const real32_t
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnRedraw(View *view, Event *e)
+static void i_OnDraw(View *view, Event *e)
 {
     VImgData *data = NULL;
     const EvDraw *params = NULL;
@@ -136,10 +135,19 @@ static void i_OnRedraw(View *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnAcceptFocus(View *view, Event *e)
+{
+    bool_t *r = event_result(e, bool_t);
+    unref(view);
+    *r = FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 ImageView *imageview_create(void)
 {
     VImgData *data = heap_new0(VImgData);
-    S2Df size = { 64.f, 64.f };
+    S2Df size = {64.f, 64.f};
     View *view = NULL;
     data->frame = UINT32_MAX;
     data->scale = ekGUI_SCALE_NONE;
@@ -147,23 +155,24 @@ ImageView *imageview_create(void)
     view_data(view, &data, i_destroy_data, VImgData);
     _view_set_subtype(view, "ImageView");
     view_size(view, size);
-    view_OnDraw(view, listener(view, i_OnRedraw, View));
+    view_OnDraw(view, listener(view, i_OnDraw, View));
+    view_OnAcceptFocus(view, listener(view, i_OnAcceptFocus, View));
     view_OnImage(view, (FPtr_set_image)imageview_image);
-    return (ImageView*)view;
+    return (ImageView *)view;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void imageview_size(ImageView *view, S2Df size)
 {
-    view_size((View*)view, size);
+    view_size((View *)view, size);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void imageview_scale(ImageView *view, const gui_scale_t scale)
 {
-    VImgData *data = view_get_data((View*)view, VImgData);
+    VImgData *data = view_get_data((View *)view, VImgData);
     cassert_no_null(data);
     data->scale = scale;
 }
@@ -192,7 +201,7 @@ static void i_OnAnimation(View *view, Event *event)
 
 void imageview_image(ImageView *view, const Image *image)
 {
-    VImgData *data = view_get_data((View*)view, VImgData);
+    VImgData *data = view_get_data((View *)view, VImgData);
     const Image *limage = _gui_respack_image((const ResId)image, NULL);
     cassert_no_null(data);
     if (data->image != limage)
@@ -200,7 +209,7 @@ void imageview_image(ImageView *view, const Image *image)
         ptr_destopt(image_destroy, &data->image, Image);
         data->image = ptr_copyopt(image_copy, limage, Image);
         data->frame = UINT32_MAX;
-        view_delete_transition((View*)view);
+        view_delete_transition((View *)view);
 
         if (limage != NULL)
         {
@@ -209,7 +218,7 @@ void imageview_image(ImageView *view, const Image *image)
             {
                 data->frame = 0;
                 data->ftime = -1.;
-                view_add_transition((View*)view, obj_listener((View*)view, i_OnAnimation, View));
+                view_add_transition((View *)view, obj_listener((View *)view, i_OnAnimation, View));
             }
 
             if (data->scale == ekGUI_SCALE_AUTO)
@@ -217,12 +226,12 @@ void imageview_image(ImageView *view, const Image *image)
                 S2Df size;
                 size.width = (real32_t)image_width(data->image);
                 size.height = (real32_t)image_height(data->image);
-                view_size((View*)view, size);
+                view_size((View *)view, size);
             }
         }
 
-        view_update((View*)view);
-        _cell_upd_image(((GuiComponent*)view)->parent, limage);
+        view_update((View *)view);
+        _cell_upd_image(((GuiComponent *)view)->parent, limage);
     }
 }
 
@@ -250,18 +259,18 @@ static void i_OnExit(View *view, Event *e)
 
 void imageview_OnClick(ImageView *view, Listener *listener)
 {
-    view_OnClick((View*)view, listener);
+    view_OnClick((View *)view, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void imageview_OnOverDraw(ImageView *view, Listener *listener)
 {
-    VImgData *data = view_get_data((View*)view, VImgData);
+    VImgData *data = view_get_data((View *)view, VImgData);
     cassert_no_null(data);
     listener_update(&data->OnOverDraw, listener);
-    view_OnEnter((View*)view, listener((View*)view, i_OnEnter, View));
-    view_OnExit((View*)view, listener((View*)view, i_OnExit, View));
+    view_OnEnter((View *)view, listener((View *)view, i_OnEnter, View));
+    view_OnExit((View *)view, listener((View *)view, i_OnExit, View));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -291,9 +300,6 @@ uint32_t imageview_get_frame(const CView *view)
 
 /*---------------------------------------------------------------------------*/
 
-
-/*---------------------------------------------------------------------------*/
-
 /*
 void imageview_animation(CView *view, const bool_t animation, Listener *listener);
 void imageview_animation(CView *view, const bool_t animation, Listener *listener)
@@ -318,5 +324,3 @@ void imageview_animation(CView *view, const bool_t animation, Listener *listener
         }
     }
 }*/
-
-

@@ -36,4 +36,3 @@ _gui_api void menuitem_submenu(MenuItem *item, Menu **submenu);
 _gui_api void menuitem_state(MenuItem *item, const gui_state_t state);
 
 __END_C
-

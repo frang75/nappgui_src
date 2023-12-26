@@ -24,7 +24,7 @@ void _view_destroy(View **view);
 
 void _view_set_subtype(View *view, const char_t *subtype);
 
-const char_t* _view_subtype(const View *view);
+const char_t *_view_subtype(const View *view);
 
 void _view_dimension(View *view, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
@@ -39,8 +39,6 @@ Cell *_view_cell(View *view);
 Window *_view_window(View *view);
 
 void *_view_get_native_imp(View *view);
-
-void view_OnNotify(View *view, Listener *listener);
 
 void view_OnEmpty(View *view, FPtr_gctx_call func_empty);
 
@@ -59,4 +57,3 @@ void _view_uint32(View *view, const uint32_t value);
 void _view_image(View *view, const Image *image);
 
 __END_C
-

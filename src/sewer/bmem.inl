@@ -19,4 +19,3 @@ void _bmem_finish(void);
 void _bmem_atexit(void);
 
 __END_C
-

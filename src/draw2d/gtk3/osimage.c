@@ -14,20 +14,25 @@
 #include "osimage.inl"
 #include "imgutil.inl"
 #include "dctxh.h"
-#include "bmem.h"
-#include "buffer.h"
-#include "cassert.h"
-#include "heap.h"
 #include "pixbuf.h"
-#include "ptr.h"
-#include "strings.h"
-#include "stream.h"
-#include "unicode.h"
 #include "draw2d_gtk.ixx"
+#include <core/buffer.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <core/stream.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
-#include "nowarn.hxx"
+#if (GDK_PIXBUF_MAJOR < 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR < 28))
+#include <osbs/bfile.h>
+#include <core/hfile.h>
+#endif
+
+#include <sewer/nowarn.hxx>
 #include <gdk/gdk.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -96,7 +101,8 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     uint32_t size = 0;
     guchar *data = NULL;
 
-    switch(format) {
+    switch (format)
+    {
     case ekRGBA32:
         colorspace = GDK_COLORSPACE_RGB;
         has_alpha = TRUE;
@@ -106,8 +112,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         bmem_copy(data, pixel_data, size);
         break;
 
-    case ekRGB24:
-    {
+    case ekRGB24: {
         register uint32_t i, j;
         guchar *dest = NULL;
         colorspace = GDK_COLORSPACE_RGB;
@@ -135,8 +140,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         break;
     }
 
-    case ekGRAY8:
-    {
+    case ekGRAY8: {
         register uint32_t i, j;
         guchar *dest = NULL;
         colorspace = GDK_COLORSPACE_RGB;
@@ -162,10 +166,10 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         break;
     }
 
-    cassert_default();
+        cassert_default();
     }
 
-    pixbuf = gdk_pixbuf_new_from_data((const guchar*)data, colorspace, has_alpha, bits_per_sample, (int)width, (int)height, rowstride, i_destroy_pixbuf_data, (gpointer)(intptr_t)size);
+    pixbuf = gdk_pixbuf_new_from_data((const guchar *)data, colorspace, has_alpha, bits_per_sample, (int)width, (int)height, rowstride, i_destroy_pixbuf_data, (gpointer)(intptr_t)size);
     image = i_osimage(pixbuf);
     return image;
 }
@@ -176,7 +180,7 @@ static __INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 {
     if (size >= 6)
     {
-        const char_t *str = (const char_t*)data;
+        const char_t *str = (const char_t *)data;
         if (str_equ_cn(str, "GIF87a", 6) == TRUE || str_equ_cn(str, "GIF89a", 6) == TRUE)
             return TRUE;
     }
@@ -186,17 +190,10 @@ static __INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
-#if (GDK_PIXBUF_MAJOR < 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR < 28))
-#include "bfile.h"
-#include "hfile.h"
-#endif
-
-/*---------------------------------------------------------------------------*/
-
 static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
 {
 #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 14))
-    GInputStream *stream = g_memory_input_stream_new_from_data((const void*)data, (gssize)size, NULL);
+    GInputStream *stream = g_memory_input_stream_new_from_data((const void *)data, (gssize)size, NULL);
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_stream(stream, NULL, NULL);
     gboolean ok = g_input_stream_close(stream, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
@@ -208,7 +205,7 @@ static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
     GdkPixbuf *pixbuf = NULL;
     if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
     {
-        pixbuf = gdk_pixbuf_new_from_file ((const char*)tempfile, NULL);
+        pixbuf = gdk_pixbuf_new_from_file((const char *)tempfile, NULL);
         bfile_delete(tempfile, NULL);
     }
 
@@ -222,7 +219,7 @@ static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
 static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint32_t size)
 {
 #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 28))
-    GInputStream *stream = g_memory_input_stream_new_from_data((const void*)data, (gssize)size, NULL);
+    GInputStream *stream = g_memory_input_stream_new_from_data((const void *)data, (gssize)size, NULL);
     GdkPixbufAnimation *animation = gdk_pixbuf_animation_new_from_stream(stream, NULL, NULL);
     gboolean ok = g_input_stream_close(stream, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
@@ -234,7 +231,7 @@ static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint3
     GdkPixbufAnimation *animation = NULL;
     if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
     {
-        animation = gdk_pixbuf_animation_new_from_file((const char*)tempfile, NULL);
+        animation = gdk_pixbuf_animation_new_from_file((const char *)tempfile, NULL);
         bfile_delete(tempfile, NULL);
     }
 
@@ -249,7 +246,7 @@ static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint3
 
 static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
 {
-    stm_write((Stream*)stream, (const byte_t*)data, (uint32_t)size);
+    stm_write((Stream *)stream, (const byte_t *)data, (uint32_t)size);
     unref(error);
     return TRUE;
 }
@@ -553,13 +550,13 @@ static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame
     {
         gboolean next_frame = FALSE;
 
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
         i_time_add_ms(&tval, delay - 1);
         cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
         i_time_add_ms(&tval, 1);
-    #else
+#else
         i_time_add_ms(&tval, delay);
-    #endif
+#endif
 
         next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
         cassert_unref(next_frame == TRUE, next_frame);
@@ -588,13 +585,13 @@ static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const 
         int delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
         gboolean next_frame = FALSE;
 
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
         i_time_add_ms(&tval, delay - 1);
         cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
         i_time_add_ms(&tval, 1);
-    #else
+#else
         i_time_add_ms(&tval, delay);
-    #endif
+#endif
 
         next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
         cassert_unref(next_frame == TRUE, next_frame);
@@ -669,7 +666,7 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
     {
         pixformat_t lformat = ENUM_MAX(pixformat_t);
         const GdkPixbuf *pixbuf = i_image_pixbuf(image);
-        const byte_t *buffer = (const byte_t*)gdk_pixbuf_get_pixels(pixbuf);
+        const byte_t *buffer = (const byte_t *)gdk_pixbuf_get_pixels(pixbuf);
         uint32_t w = gdk_pixbuf_get_width(pixbuf);
         uint32_t h = gdk_pixbuf_get_height(pixbuf);
         uint32_t bits_per_pixel = gdk_pixbuf_get_n_channels(pixbuf) * 8;
@@ -723,7 +720,8 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 
 static __INLINE const gchar *i_codec(const codec_t codec)
 {
-    switch(codec) {
+    switch (codec)
+    {
     case ekJPG:
         return "jpeg";
     case ekPNG:
@@ -732,7 +730,7 @@ static __INLINE const gchar *i_codec(const codec_t codec)
         return "bmp";
     case ekGIF:
         return "gif";
-    cassert_default();
+        cassert_default();
     }
 
     return "";
@@ -752,13 +750,13 @@ bool_t osimage_available_codec(const OSImage *image, const codec_t codec)
     for (slist = slist0; slist; slist = g_slist_next(slist))
     {
         GdkPixbufFormat *format = slist->data;
-    #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 2))
+#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 2))
         const gchar *name = gdk_pixbuf_format_get_name(format);
         gboolean writable = gdk_pixbuf_format_is_writable(format);
-    #else
+#else
         const gchar *name = format->name;
         gboolean writable = (format->flags & GDK_PIXBUF_FORMAT_WRITABLE) != 0;
-    #endif
+#endif
 
         if (str_equ_c(name, scodec) == TRUE)
         {
@@ -815,7 +813,7 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 
 const void *osimage_native(const OSImage *image)
 {
-    return (const void*)osimage_pixbuf(image, 0);
+    return (const void *)osimage_pixbuf(image, 0);
 }
 
 /*---------------------------------------------------------------------------*/

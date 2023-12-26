@@ -12,7 +12,7 @@
 
 #include "osgui_win.ixx"
 
-__EXTERN_C 
+__EXTERN_C
 
 HBITMAP osimg_hbitmap(const Image *image, COLORREF background);
 
@@ -25,4 +25,3 @@ HCURSOR osimg_hcursor(const Image *image, const uint32_t hot_x, const uint32_t h
 void osimg_draw(const Image *image, HDC hdc, const uint32_t frame_index, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const BOOL gray);
 
 __END_C
-

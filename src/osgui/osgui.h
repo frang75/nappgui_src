@@ -24,7 +24,7 @@ _osgui_api void osgui_unset_menubar(OSMenu *menu, OSWindow *window);
 
 _osgui_api void osgui_redraw_menubar(void);
 
-_osgui_api bool_t osgui_message(void *msg);
+_osgui_api void osgui_message_loop(void);
 
 _osgui_api bool_t osgui_is_initialized(void);
 
@@ -35,4 +35,3 @@ _osgui_api void osgui_terminate(void);
 _osgui_api void osgui_set_app(void *app, void *icon);
 
 __END_C
-

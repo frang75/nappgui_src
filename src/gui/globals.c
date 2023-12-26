@@ -11,9 +11,9 @@
 /* System globals */
 
 #include "globals.h"
-#include "guictx.h"
-#include "cassert.h"
-#include "color.h"
+#include <draw2d/color.h>
+#include <draw2d/guictx.h>
+#include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 

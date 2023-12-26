@@ -14,6 +14,4 @@
 
 __EXTERN_C
 
-
 __END_C
-

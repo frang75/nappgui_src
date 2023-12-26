@@ -34,5 +34,3 @@ _gui_api uint32_t menu_size(const Menu *menu);
 _gui_api void *menu_imp(const Menu *menu);
 
 __END_C
-
-

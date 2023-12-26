@@ -17,6 +17,10 @@ __EXTERN_C
 
 _gui_api TextView *textview_create(void);
 
+_gui_api void textview_OnFilter(TextView *view, Listener *listener);
+
+_gui_api void textview_OnFocus(TextView *view, Listener *listener);
+
 _gui_api void textview_size(TextView *view, const S2Df size);
 
 _gui_api void textview_clear(TextView *view);
@@ -49,9 +53,20 @@ _gui_api void textview_bfspace(TextView *view, const real32_t space);
 
 _gui_api void textview_afspace(TextView *view, const real32_t space);
 
-_gui_api void textview_scroll_down(TextView *view);
+_gui_api void textview_scroll_visible(TextView *view, const bool_t horizontal, const bool_t vertical);
 
 _gui_api void textview_editable(TextView *view, const bool_t is_editable);
 
-__END_C
+_gui_api void textview_select(TextView *view, const int32_t start, const int32_t end);
 
+_gui_api void textview_scroll_caret(TextView *view);
+
+_gui_api const char_t *textview_get_text(const TextView *view);
+
+_gui_api void textview_copy(const TextView *view);
+
+_gui_api void textview_cut(TextView *view);
+
+_gui_api void textview_paste(TextView *view);
+
+__END_C

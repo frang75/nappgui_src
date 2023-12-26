@@ -45,39 +45,38 @@ _core_api void heap_auditor_delete(const char_t *name);
 
 __END_C
 
-#define heap_malloc(size, name)\
+#define heap_malloc(size, name) \
     heap_malloc_imp(size, name, FALSE)
 
-#define heap_calloc(size, name)\
+#define heap_calloc(size, name) \
     heap_calloc_imp(size, name, FALSE)
 
-#define heap_aligned_malloc(size, align, name)\
+#define heap_aligned_malloc(size, align, name) \
     heap_aligned_malloc_imp(size, align, name, FALSE)
 
-#define heap_aligned_calloc(size, align, name)\
+#define heap_aligned_calloc(size, align, name) \
     heap_aligned_calloc_imp(size, align, name, FALSE)
 
-#define heap_new(type)\
-    (type*)heap_malloc_imp((uint32_t)sizeof(type), (const char_t*)#type, TRUE)
+#define heap_new(type) \
+    (type *)heap_malloc_imp((uint32_t)sizeof(type), (const char_t *)#type, TRUE)
 
-#define heap_new0(type)\
-    (type*)heap_calloc_imp((uint32_t)sizeof(type), (const char_t*)#type, TRUE)
+#define heap_new0(type) \
+    (type *)heap_calloc_imp((uint32_t)sizeof(type), (const char_t *)#type, TRUE)
 
-#define heap_new_n(n, type)\
-    (type*)heap_malloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t*)#type HEAPARR, FALSE)
+#define heap_new_n(n, type) \
+    (type *)heap_malloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR, FALSE)
 
-#define heap_new_n0(n, type)\
-    (type*)heap_calloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t*)#type HEAPARR, FALSE)
+#define heap_new_n0(n, type) \
+    (type *)heap_calloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR, FALSE)
 
-#define heap_realloc_n(mem, size, new_size, type)\
-    ((void)((type*)mem == mem),\
-    (type*)heap_realloc((byte_t*)mem, size * (uint32_t)sizeof(type), new_size * (uint32_t)sizeof(type), (const char_t*)#type HEAPARR))
+#define heap_realloc_n(mem, size, new_size, type) \
+    ((void)((type *)mem == mem),                  \
+     (type *)heap_realloc((byte_t *)mem, size * (uint32_t)sizeof(type), new_size * (uint32_t)sizeof(type), (const char_t *)#type HEAPARR))
 
-#define heap_delete(obj, type)\
-    ((void)((obj) == (type**)(obj)),\
-    heap_free((byte_t**)(obj), (uint32_t)sizeof(type), (const char_t*)#type))
+#define heap_delete(obj, type)        \
+    ((void)((obj) == (type **)(obj)), \
+     heap_free((byte_t **)(obj), (uint32_t)sizeof(type), (const char_t *)#type))
 
-#define heap_delete_n(objs, n, type)\
-    ((void)((objs) == (type**)(objs)),\
-    heap_free((byte_t**)(objs), (uint32_t)sizeof(type) * (uint32_t)(n), (const char_t*)#type HEAPARR))
-
+#define heap_delete_n(objs, n, type)    \
+    ((void)((objs) == (type **)(objs)), \
+     heap_free((byte_t **)(objs), (uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR))

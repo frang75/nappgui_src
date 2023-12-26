@@ -33,4 +33,3 @@ void gbind_upd_increment(Layout *layout, const DBind *dbind, void *obj, Layout *
 bool_t gbind_modify_data(const void *obj, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize, const EvBind *evbind);
 
 __END_C
-

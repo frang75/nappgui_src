@@ -13,9 +13,9 @@
 #include "font.h"
 #include "font.inl"
 #include "draw2d.inl"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _font_t
 {
@@ -101,8 +101,8 @@ Font *font_with_style(const Font *font, const uint32_t style)
 Font *font_copy(const Font *font)
 {
     cassert_no_null(font);
-    ((Font*)font)->num_instances += 1;
-    return (Font*)font;
+    ((Font *)font)->num_instances += 1;
+    return (Font *)font;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -145,7 +145,7 @@ static __INLINE void i_osfont(Font *font)
     {
         const char_t *fname = draw2d_font_family(font->family);
         font->osfont = osfont_create(fname, font->size, font->style);
-   }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -156,10 +156,23 @@ real32_t font_height(const Font *font)
     cassert_no_null(font);
     if (font->cell_size < 0)
     {
-        i_osfont((Font*)font);
-        osfont_metrics(font->osfont, &((Font*)font)->internal_leading, &((Font*)font)->cell_size);
+        i_osfont((Font *)font);
+        osfont_metrics(font->osfont, &((Font *)font)->internal_leading, &((Font *)font)->cell_size);
     }
     return font->cell_size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t font_leading(const Font *font)
+{
+    cassert_no_null(font);
+    if (font->internal_leading < 0)
+    {
+        i_osfont((Font *)font);
+        osfont_metrics(font->osfont, &((Font *)font)->internal_leading, &((Font *)font)->cell_size);
+    }
+    return font->internal_leading;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -175,7 +188,7 @@ uint32_t font_style(const Font *font)
 void font_extents(const Font *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     cassert_no_null(font);
-    i_osfont((Font*)font);
+    i_osfont((Font *)font);
     osfont_extents(font->osfont, text, refwidth, width, height);
 }
 
@@ -184,7 +197,6 @@ void font_extents(const Font *font, const char_t *text, const real32_t refwidth,
 const void *font_native(const Font *font)
 {
     cassert_no_null(font);
-    i_osfont((Font*)font);
+    i_osfont((Font *)font);
     return font->osfont;
 }
-

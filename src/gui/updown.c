@@ -15,12 +15,11 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guictx.h"
-
-#include "cassert.h"
-#include "event.h"
-#include "ptr.h"
-#include "objh.h"
+#include <draw2d/guictx.h>
+#include <core/event.h>
+#include <core/objh.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _updown_t
 {
@@ -36,7 +35,7 @@ static void i_OnClick(UpDown *updown, Event *e)
 {
     const EvButton *params = event_params(e, EvButton);
     cassert_no_null(updown);
-	_cell_upd_increment(updown->component.parent, params->index == 0 ? TRUE : FALSE);
+    _cell_upd_increment(updown->component.parent, params->index == 0 ? TRUE : FALSE);
 
     if (updown->OnClick != NULL)
         listener_pass_event(updown->OnClick, e, updown, UpDown);
@@ -102,4 +101,3 @@ void _updown_dimension(UpDown *updown, const uint32_t i, real32_t *dim0, real32_
         *dim1 = updown->size.height;
     }
 }
-

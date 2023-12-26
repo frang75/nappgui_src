@@ -19,4 +19,3 @@ void _ostooltip_set_text(HWND *tooltip_hwnd, HWND control_hwnd, const char_t *te
 void _ostooltip_destroy_optional(HWND *tooltip_hwnd, HWND control_hwnd);
 
 __END_C
-

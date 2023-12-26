@@ -59,6 +59,8 @@ _draw2d_api void draw_text_color(DCtx *ctx, const color_t color);
 
 _draw2d_api void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y);
 
+_draw2d_api void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y);
+
 _draw2d_api void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real32_t x, const real32_t y);
 
 _draw2d_api void draw_text_width(DCtx *ctx, const real32_t width);

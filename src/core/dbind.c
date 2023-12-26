@@ -16,24 +16,23 @@
 #include "tfilter.inl"
 #include "arrpt.h"
 #include "arrst.h"
-#include "bmath.h"
-#include "bmem.h"
-#include "bstd.h"
 #include "buffer.h"
-#include "cassert.h"
 #include "heap.h"
-#include "log.h"
-#include "ptr.h"
 #include "stream.h"
 #include "strings.h"
+#include <osbs/log.h>
+#include <sewer/bmath.h>
+#include <sewer/bmem.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 typedef union _attribs_t Attribs;
 typedef struct _enumbind_t EnumBind;
 typedef struct _enumvbind_t EnumVBind;
 typedef struct _databind_t DataBind;
 
-union _attribs_t
-{
+union _attribs_t {
     struct _bool_
     {
         bool_t def;
@@ -115,7 +114,7 @@ struct _stbind_t
     FPtr_read func_read;
     FPtr_write func_write;
     FPtr_destroy func_destroy;
-    ArrSt(DBind) *members;
+    ArrSt(DBind) * members;
 };
 
 struct _enumvbind_t
@@ -128,13 +127,13 @@ struct _enumvbind_t
 struct _enumbind_t
 {
     String *type;
-    ArrSt(EnumVBind) *values;
+    ArrSt(EnumVBind) * values;
 };
 
 struct _databind_t
 {
-    ArrPt(StBind) *stbinds;
-    ArrPt(EnumBind) *ebinds;
+    ArrPt(StBind) * stbinds;
+    ArrPt(EnumBind) * ebinds;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -148,23 +147,22 @@ static void i_remove_object(byte_t *data, const StBind *stbind, const uint16_t s
 static void i_destroy_object(byte_t **data, const StBind *stbind, const uint16_t size);
 static void i_write_value(Stream *stm, DBind *dbind, dtype_t type, const char_t *subtype, const void *data);
 static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t *subtype, void *data);
-static DataBind i_DATABIND = { 0, 0 };
+static DataBind i_DATABIND = {0, 0};
 
 /*---------------------------------------------------------------------------*/
 
 static StBind *i_find_stbind(const char_t *type, uint32_t *index)
 {
-    arrpt_foreach(bind, i_DATABIND.stbinds, StBind)
-        int compare = str_cmp(bind->type, type);
-        if (compare == 0)
-        {
-            return bind;
-        }
-        else if (compare > 0)
-        {
-            ptr_assign(index, bind_i);
-            return NULL;
-        }
+    arrpt_foreach(bind, i_DATABIND.stbinds, StBind) int compare = str_cmp(bind->type, type);
+    if (compare == 0)
+    {
+        return bind;
+    }
+    else if (compare > 0)
+    {
+        ptr_assign(index, bind_i);
+        return NULL;
+    }
     arrpt_end();
 
     if (index != NULL)
@@ -176,17 +174,16 @@ static StBind *i_find_stbind(const char_t *type, uint32_t *index)
 
 static EnumBind *i_find_enum(const char_t *type, uint32_t *index)
 {
-    arrpt_foreach(bind, i_DATABIND.ebinds, EnumBind)
-        int compare = str_cmp(bind->type, type);
-        if (compare == 0)
-        {
-            return bind;
-        }
-        else if (compare > 0)
-        {
-            ptr_assign(index, bind_i);
-            return NULL;
-        }
+    arrpt_foreach(bind, i_DATABIND.ebinds, EnumBind) int compare = str_cmp(bind->type, type);
+    if (compare == 0)
+    {
+        return bind;
+    }
+    else if (compare > 0)
+    {
+        ptr_assign(index, bind_i);
+        return NULL;
+    }
     arrpt_end();
 
     if (index != NULL)
@@ -200,7 +197,8 @@ static void i_remove_member(DBind *member)
 {
     cassert_no_null(member);
     str_destroy(&member->name);
-    switch (member->type) {
+    switch (member->type)
+    {
 
     case ekDTYPE_STRING_PTR:
         str_destopt(&member->attr.stringt.def);
@@ -335,7 +333,8 @@ void _dbind_finish(void)
 
 static const char_t *i_basic_type(const dtype_t type)
 {
-    switch (type) {
+    switch (type)
+    {
     case ekDTYPE_BOOL:
         return "bool_t";
     case ekDTYPE_INT8:
@@ -369,7 +368,7 @@ static const char_t *i_basic_type(const dtype_t type)
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 
     return "";
@@ -380,7 +379,8 @@ static const char_t *i_basic_type(const dtype_t type)
 static const char_t *i_subtype_str(const DBind *member)
 {
     cassert_no_null(member);
-    switch (member->type) {
+    switch (member->type)
+    {
     case ekDTYPE_ENUM:
         return tc(member->attr.enumt.ebind->type);
 
@@ -420,10 +420,35 @@ static const char_t *i_subtype_str(const DBind *member)
 
 /*---------------------------------------------------------------------------*/
 
-static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size)
+static void i_clean_spaces(char_t *dest, const uint32_t size, const char_t *src)
 {
+    uint32_t i = 0;
+    cassert_no_null(dest);
+    cassert_no_null(src);
+    while (i < size - 1 && *src != 0)
+    {
+        if (*src != ' ')
+        {
+            dest[i] = *src;
+            i += 1;
+        }
+
+        src += 1;
+    }
+
+    dest[i] = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static dtype_t i_data_type(const char_t *mtypei, String **subtype, uint16_t *size)
+{
+    char_t mtype[256];
+
     if (subtype != NULL)
         *subtype = NULL;
+
+    i_clean_spaces(mtype, sizeof(mtype), mtypei);
 
     if (str_equ_c(mtype, "bool_t") == TRUE)
     {
@@ -493,13 +518,13 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
 
     if (str_equ_c(mtype, "String*") == TRUE)
     {
-        ptr_assign(size, sizeof(String*));
+        ptr_assign(size, sizeof(String *));
         return ekDTYPE_STRING_PTR;
     }
 
     if (str_equ_c(mtype, "String") == TRUE)
     {
-        ptr_assign(size, sizeof(String*));
+        ptr_assign(size, sizeof(String *));
         return ekDTYPE_STRING;
     }
 
@@ -507,7 +532,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
     {
         const char_t *ctype = mtype + 6;
         uint32_t n = str_len_c(ctype);
-        ptr_assign(size, sizeof(Array*));
+        ptr_assign(size, sizeof(Array *));
         if (ctype[n - 1] == '*')
         {
             cassert_msg(ctype[n - 2] == ')', "Binding: Invalid array type.");
@@ -528,7 +553,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
     {
         const char_t *ctype = mtype + 6;
         uint32_t n = str_len_c(ctype);
-        ptr_assign(size, sizeof(Array*));
+        ptr_assign(size, sizeof(Array *));
         if (ctype[n - 1] == '*')
         {
             cassert_msg(ctype[n - 2] == ')', "Binding: Invalid array type.");
@@ -553,7 +578,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
             StBind *stbind = i_find_stbind(tc(lsubtype), NULL);
             if (stbind != NULL)
             {
-                ptr_assign(size, sizeof(void*));
+                ptr_assign(size, sizeofptr);
 
                 if (subtype != NULL)
                     *subtype = lsubtype;
@@ -567,7 +592,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
                 }
                 else
                 {
-					cassert(stbind->size == sizeof(void*));
+                    cassert(stbind->size == sizeofptr);
                     return ekDTYPE_OBJECT_OPAQUE;
                 }
             }
@@ -594,7 +619,7 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
                 }
                 else
                 {
-					cassert(stbind->size == sizeof(void*));
+                    cassert(stbind->size == sizeofptr);
                     return ekDTYPE_OBJECT_OPAQUE;
                 }
             }
@@ -621,18 +646,17 @@ static dtype_t i_data_type(const char_t *mtype, String **subtype, uint16_t *size
 
 /*---------------------------------------------------------------------------*/
 
-static DBind *i_find_member(ArrSt(DBind) *members, const uint16_t moffset, uint32_t *index)
+static DBind *i_find_member(ArrSt(DBind) * members, const uint16_t moffset, uint32_t *index)
 {
-    arrst_foreach(member, members, DBind)
-        if (member->offset == moffset)
-        {
-            return member;
-        }
-        else if (member->offset > moffset)
-        {
-            *index = member_i;
-            return NULL;
-        }
+    arrst_foreach(member, members, DBind) if (member->offset == moffset)
+    {
+        return member;
+    }
+    else if (member->offset > moffset)
+    {
+        *index = member_i;
+        return NULL;
+    }
     arrst_end();
 
     *index = arrst_size(members, DBind);
@@ -681,7 +705,8 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
             member->offset = moffset;
             member->size = msize;
 
-            switch (member->type) {
+            switch (member->type)
+            {
             case ekDTYPE_BOOL:
                 member->attr.boolt.def = FALSE;
                 break;
@@ -774,8 +799,7 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
                 member->attr.stringt.def = str_c("");
                 break;
 
-            case ekDTYPE_ENUM:
-            {
+            case ekDTYPE_ENUM: {
                 const EnumVBind *first;
                 cassert(str_equ(subtype, mtype) == TRUE);
                 member->attr.enumt.ebind = i_find_enum(mtype, NULL);
@@ -792,7 +816,8 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
                 member->attr.arrayt.stbind = NULL;
                 member->attr.arrayt.ebind = NULL;
 
-                switch (member->attr.arrayt.dtype) {
+                switch (member->attr.arrayt.dtype)
+                {
                 /* Allowed array types */
                 case ekDTYPE_BOOL:
                 case ekDTYPE_INT8:
@@ -824,7 +849,7 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
                 case ekDTYPE_OBJECT_PTR:
                 case ekDTYPE_OBJECT_OPAQUE:
                 case ekDTYPE_UNKNOWN:
-                cassert_default();
+                    cassert_default();
                 }
 
                 break;
@@ -835,7 +860,8 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
                 member->attr.arrayt.stbind = NULL;
                 member->attr.arrayt.ebind = NULL;
 
-                switch (member->attr.arrayt.dtype) {
+                switch (member->attr.arrayt.dtype)
+                {
                 /* Allowed pointer array types */
                 case ekDTYPE_OBJECT:
                 case ekDTYPE_OBJECT_OPAQUE:
@@ -863,7 +889,7 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
                 case ekDTYPE_ARRPTR:
                 case ekDTYPE_OBJECT_PTR:
                 case ekDTYPE_UNKNOWN:
-                cassert_default();
+                    cassert_default();
                 }
                 break;
 
@@ -878,7 +904,7 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
 
             case ekDTYPE_STRING:
             case ekDTYPE_UNKNOWN:
-            cassert_default();
+                cassert_default();
             }
         }
         else
@@ -897,12 +923,12 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
 /*---------------------------------------------------------------------------*/
 
 void dbind_imp(
-            const char_t *type,
-            const uint16_t size,
-            const char_t *mname,
-            const char_t *mtype,
-            const uint16_t moffset,
-            const uint16_t msize)
+    const char_t *type,
+    const uint16_t size,
+    const char_t *mname,
+    const char_t *mtype,
+    const uint16_t moffset,
+    const uint16_t msize)
 {
     uint32_t index = 0;
     StBind *stbind = i_stbind(type, size);
@@ -939,9 +965,7 @@ static EnumBind *i_enum_bind(const char_t *type)
 
 static __INLINE EnumVBind *i_enum_vbind(EnumBind *ebind, const char_t *name)
 {
-    arrst_foreach(evalue, ebind->values, EnumVBind)
-        if (str_equ(evalue->name, name) == TRUE)
-            return evalue;
+    arrst_foreach(evalue, ebind->values, EnumVBind) if (str_equ(evalue->name, name) == TRUE) return evalue;
     arrst_end();
     return NULL;
 }
@@ -974,13 +998,13 @@ void dbind_enum_imp(const char_t *type, const char_t *name, const enum_t value, 
 /*---------------------------------------------------------------------------*/
 
 void dbind_opaque_imp(
-                    const char_t *type,
-                    FPtr_data func_data,
-                    FPtr_buffer func_buffer,
-                    FPtr_copy func_copy,
-                    FPtr_read func_read,
-                    FPtr_write func_write,
-                    FPtr_destroy func_destroy)
+    const char_t *type,
+    FPtr_data func_data,
+    FPtr_buffer func_buffer,
+    FPtr_copy func_copy,
+    FPtr_read func_read,
+    FPtr_write func_write,
+    FPtr_destroy func_destroy)
 {
     uint32_t index = 0;
     StBind *stbind = i_find_stbind(type, &index);
@@ -988,7 +1012,7 @@ void dbind_opaque_imp(
     stbind = heap_new0(StBind);
     arrpt_insert(i_DATABIND.stbinds, index, stbind, StBind);
     stbind->type = str_c(type);
-    stbind->size = sizeof(void*);
+    stbind->size = sizeofptr;
     stbind->members = NULL;
     stbind->func_data = func_data;
     stbind->func_buffer = func_buffer;
@@ -1004,24 +1028,22 @@ void dbind_opaque_destroy(const char_t *object_type)
 {
     if (i_DATABIND.stbinds != NULL)
     {
-        arrpt_foreach(stbind, i_DATABIND.stbinds, StBind)
-            if (stbind->members != NULL)
+        arrpt_foreach(stbind, i_DATABIND.stbinds, StBind) if (stbind->members != NULL)
+        {
+            arrst_foreach(member, stbind->members, DBind) if (member->type == ekDTYPE_OBJECT_OPAQUE)
             {
-                arrst_foreach(member, stbind->members, DBind)
-                if (member->type == ekDTYPE_OBJECT_OPAQUE)
+                if (member->attr.object.def != NULL)
                 {
-                    if (member->attr.object.def != NULL)
+                    cassert_no_null(member->attr.object.stbind);
+                    if (str_equ(member->attr.object.stbind->type, object_type) == TRUE)
                     {
-                        cassert_no_null(member->attr.object.stbind);
-                        if (str_equ(member->attr.object.stbind->type, object_type) == TRUE)
-                        {
-                            cassert_no_nullf(member->attr.object.stbind->func_destroy);
-                            member->attr.object.stbind->func_destroy(&member->attr.object.def);
-                        }
+                        cassert_no_nullf(member->attr.object.stbind->func_destroy);
+                        member->attr.object.stbind->func_destroy(&member->attr.object.def);
                     }
                 }
-                arrst_end();
             }
+            arrst_end();
+        }
         arrpt_end();
     }
 }
@@ -1032,40 +1054,38 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
 {
     cassert_no_null(stbind);
     cassert_unref(stbind->size == size, size);
-    arrst_foreach(member, stbind->members, DBind)
-    switch (member->type) {
+    arrst_foreach(member, stbind->members, DBind) switch (member->type)
+    {
     case ekDTYPE_OBJECT:
         i_init_object(data + member->offset, member->attr.object.stbind, member->size);
         break;
 
     case ekDTYPE_OBJECT_PTR:
-        cassert(*((byte_t**)(data + member->offset)) == NULL);
+        cassert(*((byte_t **)(data + member->offset)) == NULL);
         break;
 
     case ekDTYPE_OBJECT_OPAQUE:
-        cassert(*((byte_t**)(data + member->offset)) == NULL);
+        cassert(*((byte_t **)(data + member->offset)) == NULL);
         if (member->attr.object.def != NULL)
         {
-            void **obj = (void**)(byte_t**)(data + member->offset);
+            void **obj = (void **)(byte_t **)(data + member->offset);
             cassert_no_null(member->attr.object.stbind);
             cassert_no_nullf(member->attr.object.stbind->func_copy);
             *obj = member->attr.object.stbind->func_copy(member->attr.object.def);
         }
         break;
 
-    case ekDTYPE_STRING_PTR:
-    {
-        String **str = (String**)(data + member->offset);
+    case ekDTYPE_STRING_PTR: {
+        String **str = (String **)(data + member->offset);
         cassert(*str == NULL);
         *str = str_copy(member->attr.stringt.def);
         break;
     }
 
-    case ekDTYPE_ARRAY:
-    {
+    case ekDTYPE_ARRAY: {
         char_t atype[128] = ARRST;
         const char_t *subtype = i_subtype_str(member);
-        Array **array = (Array**)(data + member->offset);
+        Array **array = (Array **)(data + member->offset);
         uint16_t esize;
         str_cat_c(atype, 128, subtype);
         i_data_type(subtype, NULL, &esize);
@@ -1073,13 +1093,12 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         break;
     }
 
-    case ekDTYPE_ARRPTR:
-    {
+    case ekDTYPE_ARRPTR: {
         char_t atype[128] = ARRPT;
         const char_t *subtype = i_subtype_str(member);
-        Array **array = (Array**)(data + member->offset);
+        Array **array = (Array **)(data + member->offset);
         str_cat_c(atype, 128, subtype);
-        *array = array_create(sizeof(void*), atype);
+        *array = array_create(sizeofptr, atype);
         break;
     }
 
@@ -1088,55 +1107,55 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         break;
 
     case ekDTYPE_BOOL:
-        *(bool_t*)(data + member->offset) = member->attr.boolt.def;
+        *(bool_t *)(data + member->offset) = member->attr.boolt.def;
         break;
 
     case ekDTYPE_INT8:
-        *(int8_t*)(data + member->offset) = dbind_int8(member, (int8_t)member->attr.intt.def);
+        *(int8_t *)(data + member->offset) = dbind_int8(member, (int8_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_INT16:
-        *(int16_t*)(data + member->offset) = dbind_int16(member, (int16_t)member->attr.intt.def);
+        *(int16_t *)(data + member->offset) = dbind_int16(member, (int16_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_INT32:
-        *(int32_t*)(data + member->offset) = dbind_int32(member, (int32_t)member->attr.intt.def);
+        *(int32_t *)(data + member->offset) = dbind_int32(member, (int32_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_INT64:
-        *(int64_t*)(data + member->offset) = dbind_int64(member, (int64_t)member->attr.intt.def);
+        *(int64_t *)(data + member->offset) = dbind_int64(member, (int64_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT8:
-        *(uint8_t*)(data + member->offset) = dbind_uint8(member, (uint8_t)member->attr.intt.def);
+        *(uint8_t *)(data + member->offset) = dbind_uint8(member, (uint8_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT16:
-        *(uint16_t*)(data + member->offset) = dbind_uint16(member, (uint16_t)member->attr.intt.def);
+        *(uint16_t *)(data + member->offset) = dbind_uint16(member, (uint16_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT32:
-        *(uint32_t*)(data + member->offset) = dbind_uint32(member, (uint32_t)member->attr.intt.def);
+        *(uint32_t *)(data + member->offset) = dbind_uint32(member, (uint32_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_UINT64:
-        *(uint64_t*)(data + member->offset) = dbind_uint64(member, (uint64_t)member->attr.intt.def);
+        *(uint64_t *)(data + member->offset) = dbind_uint64(member, (uint64_t)member->attr.intt.def);
         break;
 
     case ekDTYPE_ENUM:
-        *(enum_t*)(data + member->offset) = member->attr.enumt.def;
+        *(enum_t *)(data + member->offset) = member->attr.enumt.def;
         break;
 
     case ekDTYPE_REAL32:
-        *(real32_t*)(data + member->offset) = dbind_real32(member, member->attr.real32t.def);
+        *(real32_t *)(data + member->offset) = dbind_real32(member, member->attr.real32t.def);
         break;
 
     case ekDTYPE_REAL64:
-        *(real64_t*)(data + member->offset) = dbind_real64(member, member->attr.real64t.def);
+        *(real64_t *)(data + member->offset) = dbind_real64(member, member->attr.real64t.def);
         break;
 
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
     arrst_end();
 }
@@ -1149,79 +1168,77 @@ byte_t *dbind_create_imp(const char_t *type)
     uint16_t size;
     dtype_t dtype = i_data_type(type, &subtype, &size);
     byte_t *data = NULL;
-    switch (dtype) {
-    case ekDTYPE_OBJECT:
+    switch (dtype)
     {
+    case ekDTYPE_OBJECT: {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         data = heap_calloc_imp(size, type, TRUE);
         i_init_object(data, stbind, size);
         break;
     }
 
-    case ekDTYPE_ARRAY:
-    {
+    case ekDTYPE_ARRAY: {
         char_t atype[128] = ARRST;
         uint16_t esize;
         i_data_type(tc(subtype), NULL, &esize);
         str_cat_c(atype, 128, tc(subtype));
-        data = (byte_t*)array_create(esize, atype);
+        data = (byte_t *)array_create(esize, atype);
         break;
     }
 
-    case ekDTYPE_ARRPTR:
-    {
+    case ekDTYPE_ARRPTR: {
         char_t atype[128] = ARRPT;
         str_cat_c(atype, 128, tc(subtype));
-        data = (byte_t*)array_create(sizeof(void*), atype);
+        data = (byte_t *)array_create(sizeofptr, atype);
         break;
     }
 
     case ekDTYPE_STRING:
-        data = (byte_t*)str_c("");
+        data = (byte_t *)str_c("");
         break;
 
     case ekDTYPE_BOOL:
-        data = (byte_t*)heap_new(bool_t);
+        data = (byte_t *)heap_new(bool_t);
         break;
 
     case ekDTYPE_INT8:
-        data = (byte_t*)heap_new(int8_t);
+        data = (byte_t *)heap_new(int8_t);
         break;
 
     case ekDTYPE_INT16:
-        data = (byte_t*)heap_new(int16_t);
+        data = (byte_t *)heap_new(int16_t);
         break;
 
     case ekDTYPE_INT32:
-        data = (byte_t*)heap_new(int32_t);
+        data = (byte_t *)heap_new(int32_t);
         break;
 
     case ekDTYPE_INT64:
-        data = (byte_t*)heap_new(int64_t);
+        data = (byte_t *)heap_new(int64_t);
         break;
 
     case ekDTYPE_UINT8:
-        data = (byte_t*)heap_new(uint8_t);
+        data = (byte_t *)heap_new(uint8_t);
         break;
 
     case ekDTYPE_UINT16:
-        data = (byte_t*)heap_new(uint16_t);
+        data = (byte_t *)heap_new(uint16_t);
         break;
 
     case ekDTYPE_UINT32:
-        data = (byte_t*)heap_new(uint32_t);
+        data = (byte_t *)heap_new(uint32_t);
         break;
 
     case ekDTYPE_UINT64:
-        data = (byte_t*)heap_new(uint64_t);
+        data = (byte_t *)heap_new(uint64_t);
         break;
 
     case ekDTYPE_REAL32:
-        data = (byte_t*)heap_new(real32_t);
+        data = (byte_t *)heap_new(real32_t);
         break;
 
     case ekDTYPE_REAL64:
-        data = (byte_t*)heap_new(real64_t);
+        data = (byte_t *)heap_new(real64_t);
         break;
 
     case ekDTYPE_ENUM:
@@ -1234,7 +1251,7 @@ byte_t *dbind_create_imp(const char_t *type)
     case ekDTYPE_UNKNOWN:
         cassert_msg(FALSE, "Dbind: Unexpected type in constructor.");
         break;
-    cassert_default();
+        cassert_default();
     }
 
     str_destopt(&subtype);
@@ -1247,57 +1264,57 @@ void dbind_init_imp(byte_t *data, const char_t *type)
 {
     uint16_t size;
     dtype_t dtype = i_data_type(type, NULL, &size);
-    switch (dtype) {
+    switch (dtype)
+    {
     case ekDTYPE_BOOL:
-        *((bool_t*)data) = FALSE;
+        *((bool_t *)data) = FALSE;
         break;
 
     case ekDTYPE_INT8:
-        *((int8_t*)data) = 0;
+        *((int8_t *)data) = 0;
         break;
 
     case ekDTYPE_INT16:
-        *((int16_t*)data) = 0;
+        *((int16_t *)data) = 0;
         break;
 
     case ekDTYPE_INT32:
-        *((int32_t*)data) = 0;
+        *((int32_t *)data) = 0;
         break;
 
     case ekDTYPE_INT64:
-        *((int64_t*)data) = 0;
+        *((int64_t *)data) = 0;
         break;
 
     case ekDTYPE_UINT8:
-        *((uint8_t*)data) = 0;
+        *((uint8_t *)data) = 0;
         break;
 
     case ekDTYPE_UINT16:
-        *((uint16_t*)data) = 0;
+        *((uint16_t *)data) = 0;
         break;
 
     case ekDTYPE_UINT32:
-        *((uint32_t*)data) = 0;
+        *((uint32_t *)data) = 0;
         break;
 
     case ekDTYPE_UINT64:
-        *((uint64_t*)data) = 0;
+        *((uint64_t *)data) = 0;
         break;
 
     case ekDTYPE_REAL32:
-        *((real32_t*)data) = 0;
+        *((real32_t *)data) = 0;
         break;
 
     case ekDTYPE_REAL64:
-        *((real64_t*)data) = 0;
+        *((real64_t *)data) = 0;
         break;
 
     case ekDTYPE_ENUM:
-        *((enum_t*)data) = (enum_t)0;
+        *((enum_t *)data) = (enum_t)0;
         break;
 
-    case ekDTYPE_OBJECT:
-    {
+    case ekDTYPE_OBJECT: {
         StBind *stbind = i_find_stbind(type, NULL);
         bmem_set_zero(data, size);
         i_init_object(data, stbind, size);
@@ -1311,7 +1328,7 @@ void dbind_init_imp(byte_t *data, const char_t *type)
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -1363,15 +1380,15 @@ static void i_destroy_arrpt(Array **array, const char_t *type)
         dtype_t dtype = i_data_type(type, &subtype, &size);
         char_t atype[128] = ARRPT;
 
-        switch (dtype) {
-        case ekDTYPE_OBJECT:
+        switch (dtype)
         {
+        case ekDTYPE_OBJECT: {
             StBind *stbind = i_find_stbind(tc(subtype), NULL);
             byte_t *data = array_all(*array);
             uint32_t i, n = array_size(*array);
-            cassert(sizeof(void*) == array_esize(*array));
-            for (i = 0; i < n; ++i, data += sizeof(void*))
-                i_destroy_object((byte_t**)data, stbind, size);
+            cassert(sizeofptr == array_esize(*array));
+            for (i = 0; i < n; ++i, data += sizeofptr)
+                i_destroy_object((byte_t **)data, stbind, size);
             str_cat_c(atype, 128, tc(subtype));
             array_destroy(array, NULL, atype);
             str_destroy(&subtype);
@@ -1401,7 +1418,7 @@ static void i_destroy_arrpt(Array **array, const char_t *type)
         case ekDTYPE_OBJECT_PTR:
         case ekDTYPE_OBJECT_OPAQUE:
         case ekDTYPE_UNKNOWN:
-        cassert_default();
+            cassert_default();
         }
 
         cassert(subtype == NULL);
@@ -1414,39 +1431,38 @@ static void i_remove_object(byte_t *data, const StBind *stbind, const uint16_t s
 {
     cassert_no_null(stbind);
     cassert_unref(stbind->size == size, size);
-    arrst_foreach(member, stbind->members, DBind)
-    switch (member->type) {
+    arrst_foreach(member, stbind->members, DBind) switch (member->type)
+    {
     case ekDTYPE_OBJECT:
         i_remove_object(data + member->offset, member->attr.object.stbind, member->size);
         break;
 
     case ekDTYPE_OBJECT_PTR:
-        i_destroy_object((byte_t**)(data + member->offset), member->attr.object.stbind, member->size);
+        i_destroy_object((byte_t **)(data + member->offset), member->attr.object.stbind, member->size);
         break;
 
-    case ekDTYPE_OBJECT_OPAQUE:
-    {
-        byte_t **obj = (byte_t**)(data + member->offset);
+    case ekDTYPE_OBJECT_OPAQUE: {
+        byte_t **obj = (byte_t **)(data + member->offset);
         if (*obj != NULL)
         {
             StBind *mstb = i_find_stbind(i_subtype_str(member), NULL);
             cassert_no_null(mstb);
             cassert_no_nullf(mstb->func_destroy);
-            mstb->func_destroy((void**)obj);
+            mstb->func_destroy((void **)obj);
         }
         break;
     }
 
     case ekDTYPE_STRING_PTR:
-        str_destopt((String**)(data + member->offset));
+        str_destopt((String **)(data + member->offset));
         break;
 
     case ekDTYPE_ARRAY:
-        i_destroy_array((Array**)(data + member->offset), i_subtype_str(member));
+        i_destroy_array((Array **)(data + member->offset), i_subtype_str(member));
         break;
 
     case ekDTYPE_ARRPTR:
-        i_destroy_arrpt((Array**)(data + member->offset), i_subtype_str(member));
+        i_destroy_arrpt((Array **)(data + member->offset), i_subtype_str(member));
         break;
 
     case ekDTYPE_STRING:
@@ -1482,9 +1498,9 @@ void dbind_remove_imp(byte_t *data, const char_t *type)
     dtype_t dtype;
     cassert_no_null(data);
     dtype = i_data_type(type, &subtype, &size);
-    switch (dtype) {
-    case ekDTYPE_OBJECT:
+    switch (dtype)
     {
+    case ekDTYPE_OBJECT: {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         i_remove_object(data, stbind, size);
         break;
@@ -1524,7 +1540,7 @@ static void i_destroy_object(byte_t **data, const StBind *stbind, const uint16_t
     if (*data != NULL)
     {
         i_remove_object(*data, stbind, size);
-        heap_free((byte_t**)data, size, tc(stbind->type));
+        heap_free((byte_t **)data, size, tc(stbind->type));
     }
 }
 
@@ -1538,21 +1554,21 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
     cassert_no_null(data);
     cassert_no_null(*data);
     dtype = i_data_type(type, &subtype, &size);
-    switch (dtype) {
-    case ekDTYPE_OBJECT:
+    switch (dtype)
     {
+    case ekDTYPE_OBJECT: {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         i_destroy_object(data, stbind, size);
         break;
     }
     case ekDTYPE_ARRAY:
-        i_destroy_array((Array**)data, tc(subtype));
+        i_destroy_array((Array **)data, tc(subtype));
         break;
     case ekDTYPE_ARRPTR:
-        i_destroy_arrpt((Array**)data, tc(subtype));
+        i_destroy_arrpt((Array **)data, tc(subtype));
         break;
     case ekDTYPE_STRING:
-        str_destopt((String**)data);
+        str_destopt((String **)data);
         break;
     case ekDTYPE_BOOL:
         heap_free(data, sizeof(bool_t), "bool_t");
@@ -1590,12 +1606,11 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
     case ekDTYPE_ENUM:
         heap_free(data, sizeof(enum_t), tc(subtype));
         break;
-    case ekDTYPE_OBJECT_OPAQUE:
-    {
+    case ekDTYPE_OBJECT_OPAQUE: {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         cassert_no_null(stbind);
         cassert_no_nullf(stbind->func_destroy);
-        stbind->func_destroy((void**)data);
+        stbind->func_destroy((void **)data);
         break;
     }
 
@@ -1605,7 +1620,7 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
         cassert_msg(FALSE, "Dbind: Unexpected type in destructor.");
         break;
 
-    cassert_default();
+        cassert_default();
     }
 
     str_destopt(&subtype);
@@ -1651,7 +1666,7 @@ static bool_t i_read_arrpt(Stream *stm, const char_t *type, Array *array)
         ok &= i_read_value(stm, NULL, dtype, tc(subtype), obj);
         if (ok == TRUE)
         {
-            void **objins = (void**)array_insert(array, UINT32_MAX, 1);
+            void **objins = (void **)array_insert(array, UINT32_MAX, 1);
             *objins = obj;
         }
     }
@@ -1671,9 +1686,9 @@ static bool_t i_read_object(Stream *stm, const char_t *type, void *object)
         cassert_msg(stbind != NULL, "DBind: Unknown struct type.");
         arrst_foreach(member, stbind->members, DBind)
             dtype_t mtype = member->type;
-            const char_t *mstype = i_subtype_str(member);
-            uint16_t moffset = member->offset;
-            ok &= i_read_value(stm, member, mtype, mstype, (void*)((byte_t*)object + moffset));
+        const char_t *mstype = i_subtype_str(member);
+        uint16_t moffset = member->offset;
+        ok &= i_read_value(stm, member, mtype, mstype, (void *)((byte_t *)object + moffset));
         arrst_end();
     }
 
@@ -1722,52 +1737,53 @@ static void i_read_opaque(Stream *stm, const char_t *type, void **data)
 
 static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t *subtype, void *data)
 {
-    switch (type) {
+    switch (type)
+    {
     case ekDTYPE_BOOL:
-        *((bool_t*)data) = stm_read_bool(stm);
+        *((bool_t *)data) = stm_read_bool(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_INT8:
-        *((int8_t*)data) = stm_read_i8(stm);
+        *((int8_t *)data) = stm_read_i8(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_INT16:
-        *((int16_t*)data) = stm_read_i16(stm);
+        *((int16_t *)data) = stm_read_i16(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_INT32:
-        *((int32_t*)data) = stm_read_i32(stm);
+        *((int32_t *)data) = stm_read_i32(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_INT64:
-        *((int64_t*)data) = stm_read_i64(stm);
+        *((int64_t *)data) = stm_read_i64(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_UINT8:
-        *((uint8_t*)data) = stm_read_u8(stm);
+        *((uint8_t *)data) = stm_read_u8(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_UINT16:
-        *((uint16_t*)data) = stm_read_u16(stm);
+        *((uint16_t *)data) = stm_read_u16(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_UINT32:
-        *((uint32_t*)data) = stm_read_u32(stm);
+        *((uint32_t *)data) = stm_read_u32(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_UINT64:
-        *((uint64_t*)data) = stm_read_u64(stm);
+        *((uint64_t *)data) = stm_read_u64(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_REAL32:
         if (dbind != NULL)
         {
             real32_t value = stm_read_r32(stm);
-            *((real32_t*)data) = dbind_real32(dbind, value);
+            *((real32_t *)data) = dbind_real32(dbind, value);
         }
         else
         {
-            *((real32_t*)data) = stm_read_r32(stm);
+            *((real32_t *)data) = stm_read_r32(stm);
         }
         return (bool_t)(stm_state(stm) == ekSTOK);
 
@@ -1775,56 +1791,55 @@ static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t
         if (dbind != NULL)
         {
             real64_t value = stm_read_r64(stm);
-            *((real64_t*)data) = dbind_real64(dbind, value);
+            *((real64_t *)data) = dbind_real64(dbind, value);
         }
         else
         {
-            *((real64_t*)data) = stm_read_r64(stm);
+            *((real64_t *)data) = stm_read_r64(stm);
         }
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_ENUM:
-        *((enum_t*)data) = stm_read_enum(stm, enum_t);
+        *((enum_t *)data) = stm_read_enum(stm, enum_t);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_STRING:
     case ekDTYPE_STRING_PTR:
-        str_destopt((String**)data);
-        *((String**)data) = str_read(stm);
+        str_destopt((String **)data);
+        *((String **)data) = str_read(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
-    case ekDTYPE_ARRAY:
-    {
+    case ekDTYPE_ARRAY: {
         uint16_t size;
         dtype_t dtype;
-        cassert(*(Array**)data != NULL);
-        cassert(array_size(*(Array**)data) == 0);
+        cassert(*(Array **)data != NULL);
+        cassert(array_size(*(Array **)data) == 0);
         dtype = i_data_type(subtype, NULL, &size);
-        cassert(size == array_esize(*(Array**)data));
-        return i_read_array(stm, dtype, subtype, *((Array**)data));
+        cassert(size == array_esize(*(Array **)data));
+        return i_read_array(stm, dtype, subtype, *((Array **)data));
     }
 
     case ekDTYPE_ARRPTR:
-        cassert(*(Array**)data != NULL);
-        cassert(array_size(*(Array**)data) == 0);
-        cassert(sizeof(void*) == array_esize(*(Array**)data));
-        return i_read_arrpt(stm, subtype, *(Array**)data);
+        cassert(*(Array **)data != NULL);
+        cassert(array_size(*(Array **)data) == 0);
+        cassert(sizeofptr == array_esize(*(Array **)data));
+        return i_read_arrpt(stm, subtype, *(Array **)data);
 
     case ekDTYPE_OBJECT:
         return i_read_object(stm, subtype, data);
 
     case ekDTYPE_OBJECT_PTR:
         cassert_msg(i_find_stbind(subtype, NULL) != NULL, "DBind unknown struct type");
-        cassert(*(void**)data == NULL);
-        *(void**)data = dbind_create_imp(subtype);
-        return i_read_object(stm, subtype, *(void**)data);
+        cassert(*(void **)data == NULL);
+        *(void **)data = dbind_create_imp(subtype);
+        return i_read_object(stm, subtype, *(void **)data);
 
     case ekDTYPE_OBJECT_OPAQUE:
-        i_read_opaque(stm, subtype, (void**)data);
+        i_read_opaque(stm, subtype, (void **)data);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 
     return FALSE;
@@ -1852,120 +1867,118 @@ static void *i_create_type(Stream *stm, const char_t *type)
     dtype = i_data_type(type, &subtype, &size);
     switch (dtype)
     {
-        case ekDTYPE_OBJECT:
-            cassert(size > 0);
-            cassert_no_null(subtype);
-            obj = dbind_create_imp(type);
-            if (i_read_value(stm, NULL, dtype, tc(subtype), obj) == FALSE)
-                dbind_destroy_imp(&obj, type);
-            break;
+    case ekDTYPE_OBJECT:
+        cassert(size > 0);
+        cassert_no_null(subtype);
+        obj = dbind_create_imp(type);
+        if (i_read_value(stm, NULL, dtype, tc(subtype), obj) == FALSE)
+            dbind_destroy_imp(&obj, type);
+        break;
 
-        case ekDTYPE_ARRAY:
+    case ekDTYPE_ARRAY: {
+        StBind *stbind = i_find_stbind(tc(subtype), NULL);
+        uint16_t adsize;
+        dtype_t adtype;
+        Array *array;
+        cassert_msg(FALSE, "Not implemented");
+        cassert_msg(stbind != NULL, "DBind unknown type");
+        array = array_create(stbind->size, tc(subtype));
+        adtype = i_data_type(tc(subtype), NULL, &adsize);
+        if (i_read_array(stm, adtype, tc(subtype), array) == TRUE)
         {
-            StBind *stbind = i_find_stbind(tc(subtype), NULL);
-            uint16_t adsize;
-            dtype_t adtype;
-            Array *array;
+            obj = (byte_t *)array;
+        }
+        else
+        {
+            /* Destroy the array */
             cassert_msg(FALSE, "Not implemented");
-            cassert_msg(stbind != NULL, "DBind unknown type");
-            array = array_create(stbind->size, tc(subtype));
-            adtype = i_data_type(tc(subtype), NULL, &adsize);
-            if (i_read_array(stm, adtype, tc(subtype), array) == TRUE)
-            {
-                obj = (byte_t*)array;
-            }
-            else
-            {
-                /* Destroy the array */
-                cassert_msg(FALSE, "Not implemented");
-            }
-            break;
         }
+        break;
+    }
 
-        case ekDTYPE_ARRPTR:
+    case ekDTYPE_ARRPTR: {
+        char_t atype[128] = ARRPT;
+        Array *array;
+        cassert_msg(i_find_stbind(tc(subtype), NULL) != NULL, "DBind unknown type");
+        str_cat_c(atype, 128, tc(subtype));
+        array = array_create(sizeofptr, atype);
+        if (i_read_arrpt(stm, tc(subtype), array) == TRUE)
         {
-            char_t atype[128] = ARRPT;
-            Array *array;
-            cassert_msg(i_find_stbind(tc(subtype), NULL) != NULL, "DBind unknown type");
-            str_cat_c(atype, 128, tc(subtype));
-            array = array_create(sizeof(void*), atype);
-            if (i_read_arrpt(stm, tc(subtype), array) == TRUE)
-            {
-                obj = (byte_t*)array;
-            }
-            else
-            {
-                /* Destroy the array */
-                cassert_msg(FALSE, "Not implemented");
-            }
-            break;
+            obj = (byte_t *)array;
         }
+        else
+        {
+            /* Destroy the array */
+            cassert_msg(FALSE, "Not implemented");
+        }
+        break;
+    }
 
-        case ekDTYPE_BOOL:
-            obj = i_create_btype(stm, dtype, "bool_t");
-            break;
+    case ekDTYPE_BOOL:
+        obj = i_create_btype(stm, dtype, "bool_t");
+        break;
 
-        case ekDTYPE_INT8:
-            obj = i_create_btype(stm, dtype, "int8_t");
-            break;
+    case ekDTYPE_INT8:
+        obj = i_create_btype(stm, dtype, "int8_t");
+        break;
 
-        case ekDTYPE_INT16:
-            obj = i_create_btype(stm, dtype, "int16_t");
-            break;
+    case ekDTYPE_INT16:
+        obj = i_create_btype(stm, dtype, "int16_t");
+        break;
 
-        case ekDTYPE_INT32:
-            obj = i_create_btype(stm, dtype, "int32_t");
-            break;
+    case ekDTYPE_INT32:
+        obj = i_create_btype(stm, dtype, "int32_t");
+        break;
 
-        case ekDTYPE_INT64:
-            obj = i_create_btype(stm, dtype, "int64_t");
-            break;
+    case ekDTYPE_INT64:
+        obj = i_create_btype(stm, dtype, "int64_t");
+        break;
 
-        case ekDTYPE_UINT8:
-            obj = i_create_btype(stm, dtype, "uint8_t");
-            break;
+    case ekDTYPE_UINT8:
+        obj = i_create_btype(stm, dtype, "uint8_t");
+        break;
 
-        case ekDTYPE_UINT16:
-            obj = i_create_btype(stm, dtype, "uint16_t");
-            break;
+    case ekDTYPE_UINT16:
+        obj = i_create_btype(stm, dtype, "uint16_t");
+        break;
 
-        case ekDTYPE_UINT32:
-            obj = i_create_btype(stm, dtype, "uint32_t");
-            break;
+    case ekDTYPE_UINT32:
+        obj = i_create_btype(stm, dtype, "uint32_t");
+        break;
 
-        case ekDTYPE_UINT64:
-            obj = i_create_btype(stm, dtype, "uint64_t");
-            break;
+    case ekDTYPE_UINT64:
+        obj = i_create_btype(stm, dtype, "uint64_t");
+        break;
 
-        case ekDTYPE_REAL32:
-            obj = i_create_btype(stm, dtype, "real32_t");
-            break;
+    case ekDTYPE_REAL32:
+        obj = i_create_btype(stm, dtype, "real32_t");
+        break;
 
-        case ekDTYPE_REAL64:
-            obj = i_create_btype(stm, dtype, "real64_t");
-            break;
+    case ekDTYPE_REAL64:
+        obj = i_create_btype(stm, dtype, "real64_t");
+        break;
 
-        case ekDTYPE_ENUM:
-            obj = dbind_create_imp(tc(subtype));
-            if (i_read_value(stm, NULL, dtype, tc(subtype), obj) == FALSE)
-                dbind_destroy_imp(&obj, tc(subtype));
-            break;
+    case ekDTYPE_ENUM:
+        obj = dbind_create_imp(tc(subtype));
+        if (i_read_value(stm, NULL, dtype, tc(subtype), obj) == FALSE)
+            dbind_destroy_imp(&obj, tc(subtype));
+        break;
 
-        case ekDTYPE_STRING_PTR:
-        case ekDTYPE_STRING:
-            cassert_msg(FALSE, "Use str_read?");
-            i_read_value(stm, NULL, dtype, NULL, (String**)&obj);
-            break;
+    case ekDTYPE_STRING_PTR:
+    case ekDTYPE_STRING:
+        cassert_msg(FALSE, "Use str_read?");
+        i_read_value(stm, NULL, dtype, NULL, (String **)&obj);
+        break;
 
-        case ekDTYPE_OBJECT_PTR:
-            cassert_msg(FALSE, "DBind double pointer to object");
-            break;
+    case ekDTYPE_OBJECT_PTR:
+        cassert_msg(FALSE, "DBind double pointer to object");
+        break;
 
-        case ekDTYPE_UNKNOWN:
-            cassert_msg(FALSE, "DBind unknown type");
-            break;
+    case ekDTYPE_UNKNOWN:
+        cassert_msg(FALSE, "DBind unknown type");
+        break;
 
-        case ekDTYPE_OBJECT_OPAQUE:
+    case ekDTYPE_OBJECT_OPAQUE:
         cassert_default();
     }
 
@@ -1990,9 +2003,9 @@ static void i_write_object(Stream *stm, const void *object, const char_t *type)
         cassert_msg(stbind != NULL, "DBind: Unknown struct type.");
         arrst_foreach(member, stbind->members, DBind)
             dtype_t mtype = member->type;
-            const char_t *mstype = i_subtype_str(member);
-            uint16_t moffset = member->offset;
-            i_write_value(stm, member, mtype, mstype, (const void*)((byte_t*)object + moffset));
+        const char_t *mstype = i_subtype_str(member);
+        uint16_t moffset = member->offset;
+        i_write_value(stm, member, mtype, mstype, (const void *)((byte_t *)object + moffset));
         arrst_end();
     }
 }
@@ -2058,7 +2071,7 @@ static void i_write_array(Stream *stm, const Array *array, const char_t *type)
         const char_t *stype = subtype != NULL ? tc(subtype) : NULL;
         stm_write_u32(stm, n);
         for (i = 0; i < n; ++i, data += es)
-            i_write_value(stm, NULL, atype, stype, (const void*)data);
+            i_write_value(stm, NULL, atype, stype, (const void *)data);
         str_destopt(&subtype);
     }
     else
@@ -2081,18 +2094,18 @@ static void i_write_arrpt(Stream *stm, const Array *array, const char_t *type)
         stm_write_u32(stm, n);
         if (atype == ekDTYPE_STRING)
         {
-            for (i = 0; i < n; ++i, data += sizeof(void*))
-                str_write(stm, *(String**)data);
+            for (i = 0; i < n; ++i, data += sizeofptr)
+                str_write(stm, *(String **)data);
         }
         else if (atype == ekDTYPE_OBJECT)
         {
-            for (i = 0; i < n; ++i, data += sizeof(void*))
-                i_write_object(stm, *(const void**)data, stype);
+            for (i = 0; i < n; ++i, data += sizeofptr)
+                i_write_object(stm, *(const void **)data, stype);
         }
         else if (atype == ekDTYPE_OBJECT_OPAQUE)
         {
-            for (i = 0; i < n; ++i, data += sizeof(void*))
-                i_write_opaque(stm, *(const void**)data, stype);
+            for (i = 0; i < n; ++i, data += sizeofptr)
+                i_write_opaque(stm, *(const void **)data, stype);
         }
         else
         {
@@ -2114,71 +2127,70 @@ static void i_write_value(Stream *stm, DBind *dbind, dtype_t type, const char_t 
     cassert_no_null(data);
     switch (type)
     {
-        case ekDTYPE_BOOL:
-            stm_write_bool(stm, *(bool_t*)data);
-            break;
-        case ekDTYPE_INT8:
-            stm_write_i8(stm, *(int8_t*)data);
-            break;
-        case ekDTYPE_INT16:
-            stm_write_i16(stm, *(int16_t*)data);
-            break;
-        case ekDTYPE_INT32:
-            stm_write_i32(stm, *(int32_t*)data);
-            break;
-        case ekDTYPE_INT64:
-            stm_write_i64(stm, *(int64_t*)data);
-            break;
-        case ekDTYPE_UINT8:
-            stm_write_u8(stm, *(uint8_t*)data);
-            break;
-        case ekDTYPE_UINT16:
-            stm_write_u16(stm, *(uint16_t*)data);
-            break;
-        case ekDTYPE_UINT32:
-            stm_write_u32(stm, *(uint32_t*)data);
-            break;
-        case ekDTYPE_UINT64:
-            stm_write_u64(stm, *(uint64_t*)data);
-            break;
-        case ekDTYPE_REAL32:
-            stm_write_r32(stm, *(real32_t*)data);
-            break;
-        case ekDTYPE_REAL64:
-            stm_write_r64(stm, *(real64_t*)data);
-            break;
-        case ekDTYPE_ENUM:
-        {
-            enum_t edata = *(enum_t*)data;
-            stm_write_enum(stm, edata, enum_t);
-            break;
-        }
-        case ekDTYPE_STRING:
-        case ekDTYPE_STRING_PTR:
-            str_write(stm, *(String**)data);
-            break;
-        case ekDTYPE_ARRAY:
-            if (dbind != NULL)
-                i_write_array(stm, *(Array**)data, subtype);
-            else
-                i_write_array(stm, (Array*)data, subtype);
-            break;
-        case ekDTYPE_ARRPTR:
-            if (dbind != NULL)
-                i_write_arrpt(stm, *(Array**)data, subtype);
-            else
-                i_write_arrpt(stm, (Array*)data, subtype);
-            break;
-        case ekDTYPE_OBJECT:
-            i_write_object(stm, data, subtype);
-            break;
-        case ekDTYPE_OBJECT_PTR:
-            i_write_object(stm, *(const void**)data, subtype);
-            break;
-        case ekDTYPE_OBJECT_OPAQUE:
-            i_write_opaque(stm, *(const void**)data, subtype);
-            break;
-        case ekDTYPE_UNKNOWN:
+    case ekDTYPE_BOOL:
+        stm_write_bool(stm, *(bool_t *)data);
+        break;
+    case ekDTYPE_INT8:
+        stm_write_i8(stm, *(int8_t *)data);
+        break;
+    case ekDTYPE_INT16:
+        stm_write_i16(stm, *(int16_t *)data);
+        break;
+    case ekDTYPE_INT32:
+        stm_write_i32(stm, *(int32_t *)data);
+        break;
+    case ekDTYPE_INT64:
+        stm_write_i64(stm, *(int64_t *)data);
+        break;
+    case ekDTYPE_UINT8:
+        stm_write_u8(stm, *(uint8_t *)data);
+        break;
+    case ekDTYPE_UINT16:
+        stm_write_u16(stm, *(uint16_t *)data);
+        break;
+    case ekDTYPE_UINT32:
+        stm_write_u32(stm, *(uint32_t *)data);
+        break;
+    case ekDTYPE_UINT64:
+        stm_write_u64(stm, *(uint64_t *)data);
+        break;
+    case ekDTYPE_REAL32:
+        stm_write_r32(stm, *(real32_t *)data);
+        break;
+    case ekDTYPE_REAL64:
+        stm_write_r64(stm, *(real64_t *)data);
+        break;
+    case ekDTYPE_ENUM: {
+        enum_t edata = *(enum_t *)data;
+        stm_write_enum(stm, edata, enum_t);
+        break;
+    }
+    case ekDTYPE_STRING:
+    case ekDTYPE_STRING_PTR:
+        str_write(stm, *(String **)data);
+        break;
+    case ekDTYPE_ARRAY:
+        if (dbind != NULL)
+            i_write_array(stm, *(Array **)data, subtype);
+        else
+            i_write_array(stm, (Array *)data, subtype);
+        break;
+    case ekDTYPE_ARRPTR:
+        if (dbind != NULL)
+            i_write_arrpt(stm, *(Array **)data, subtype);
+        else
+            i_write_arrpt(stm, (Array *)data, subtype);
+        break;
+    case ekDTYPE_OBJECT:
+        i_write_object(stm, data, subtype);
+        break;
+    case ekDTYPE_OBJECT_PTR:
+        i_write_object(stm, *(const void **)data, subtype);
+        break;
+    case ekDTYPE_OBJECT_OPAQUE:
+        i_write_opaque(stm, *(const void **)data, subtype);
+        break;
+    case ekDTYPE_UNKNOWN:
         cassert_default();
     }
 }
@@ -2195,11 +2207,9 @@ void dbind_write_imp(Stream *stm, const void *data, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-static DBind *i_find_by_name(ArrSt(DBind) *members, const char_t *name)
+static DBind *i_find_by_name(ArrSt(DBind) * members, const char_t *name)
 {
-    arrst_foreach(member, members, DBind)
-        if (str_equ_c(tc(member->name), name) == TRUE)
-            return member;
+    arrst_foreach(member, members, DBind) if (str_equ_c(tc(member->name), name) == TRUE) return member;
     arrst_end();
     return NULL;
 }
@@ -2221,64 +2231,63 @@ void dbind_default_imp(const char_t *type, const char_t *mname, const void *valu
     DBind *dbind = i_member(type, mname);
     cassert_no_null(dbind);
     cassert_no_null(value);
-    switch (dbind->type) {
+    switch (dbind->type)
+    {
     case ekDTYPE_BOOL:
-        dbind->attr.boolt.def = *(bool_t*)value;
+        dbind->attr.boolt.def = *(bool_t *)value;
         break;
 
     case ekDTYPE_INT8:
-        dbind->attr.intt.def = *(int8_t*)value;
+        dbind->attr.intt.def = *(int8_t *)value;
         break;
 
     case ekDTYPE_INT16:
-        dbind->attr.intt.def = *(int16_t*)value;
+        dbind->attr.intt.def = *(int16_t *)value;
         break;
 
     case ekDTYPE_INT32:
-        dbind->attr.intt.def = *(int32_t*)value;
+        dbind->attr.intt.def = *(int32_t *)value;
         break;
 
     case ekDTYPE_INT64:
-        dbind->attr.intt.def = *(int64_t*)value;
+        dbind->attr.intt.def = *(int64_t *)value;
         break;
 
     case ekDTYPE_UINT8:
-        dbind->attr.intt.def = *(uint8_t*)value;
+        dbind->attr.intt.def = *(uint8_t *)value;
         break;
 
     case ekDTYPE_UINT16:
-        dbind->attr.intt.def = *(uint16_t*)value;
+        dbind->attr.intt.def = *(uint16_t *)value;
         break;
 
     case ekDTYPE_UINT32:
-        dbind->attr.intt.def = *(uint32_t*)value;
+        dbind->attr.intt.def = *(uint32_t *)value;
         break;
 
     case ekDTYPE_UINT64:
-        dbind->attr.intt.def = (int64_t)(*(uint64_t*)value);
+        dbind->attr.intt.def = (int64_t)(*(uint64_t *)value);
         break;
 
     case ekDTYPE_REAL32:
-        dbind->attr.real32t.def = *(real32_t*)value;
+        dbind->attr.real32t.def = *(real32_t *)value;
         break;
 
     case ekDTYPE_REAL64:
-        dbind->attr.real64t.def = *(real64_t*)value;
+        dbind->attr.real64t.def = *(real64_t *)value;
         break;
 
     case ekDTYPE_ENUM:
-        dbind->attr.enumt.def = *(enum_t*)value;
+        dbind->attr.enumt.def = *(enum_t *)value;
         break;
 
-    case ekDTYPE_STRING:
-    {
-        dbind->attr.stringt.def = str_c(*(const char_t**)value);
+    case ekDTYPE_STRING: {
+        dbind->attr.stringt.def = str_c(*(const char_t **)value);
         break;
     }
 
-    case ekDTYPE_OBJECT_OPAQUE:
-    {
-        const void *obj = *((const void**)value);
+    case ekDTYPE_OBJECT_OPAQUE: {
+        const void *obj = *((const void **)value);
         if (dbind->attr.object.def != NULL)
         {
             cassert_no_null(dbind->attr.object.stbind);
@@ -2313,56 +2322,57 @@ void dbind_range_imp(const char_t *type, const char_t *mname, const void *min, c
     cassert_no_null(dbind);
     cassert_no_null(min);
     cassert_no_null(max);
-    switch (dbind->type) {
+    switch (dbind->type)
+    {
 
     case ekDTYPE_INT8:
-        dbind->attr.intt.min = *(int8_t*)min;
-        dbind->attr.intt.max = *(int8_t*)max;
+        dbind->attr.intt.min = *(int8_t *)min;
+        dbind->attr.intt.max = *(int8_t *)max;
         break;
 
     case ekDTYPE_INT16:
-        dbind->attr.intt.min = *(int16_t*)min;
-        dbind->attr.intt.max = *(int16_t*)max;
+        dbind->attr.intt.min = *(int16_t *)min;
+        dbind->attr.intt.max = *(int16_t *)max;
         break;
 
     case ekDTYPE_INT32:
-        dbind->attr.intt.min = *(int32_t*)min;
-        dbind->attr.intt.max = *(int32_t*)max;
+        dbind->attr.intt.min = *(int32_t *)min;
+        dbind->attr.intt.max = *(int32_t *)max;
         break;
 
     case ekDTYPE_INT64:
-        dbind->attr.intt.min = *(int64_t*)min;
-        dbind->attr.intt.max = *(int64_t*)max;
+        dbind->attr.intt.min = *(int64_t *)min;
+        dbind->attr.intt.max = *(int64_t *)max;
         break;
 
     case ekDTYPE_UINT8:
-        dbind->attr.intt.min = *(uint8_t*)min;
-        dbind->attr.intt.max = *(uint8_t*)max;
+        dbind->attr.intt.min = *(uint8_t *)min;
+        dbind->attr.intt.max = *(uint8_t *)max;
         break;
 
     case ekDTYPE_UINT16:
-        dbind->attr.intt.min = *(uint16_t*)min;
-        dbind->attr.intt.max = *(uint16_t*)max;
+        dbind->attr.intt.min = *(uint16_t *)min;
+        dbind->attr.intt.max = *(uint16_t *)max;
         break;
 
     case ekDTYPE_UINT32:
-        dbind->attr.intt.min = *(uint32_t*)min;
-        dbind->attr.intt.max = *(uint32_t*)max;
+        dbind->attr.intt.min = *(uint32_t *)min;
+        dbind->attr.intt.max = *(uint32_t *)max;
         break;
 
     case ekDTYPE_UINT64:
-        dbind->attr.intt.min = (int64_t)(*(uint64_t*)min);
-        dbind->attr.intt.max = (int64_t)(*(uint64_t*)max);
+        dbind->attr.intt.min = (int64_t)(*(uint64_t *)min);
+        dbind->attr.intt.max = (int64_t)(*(uint64_t *)max);
         break;
 
     case ekDTYPE_REAL32:
-        dbind->attr.real32t.min = *(real32_t*)min;
-        dbind->attr.real32t.max = *(real32_t*)max;
+        dbind->attr.real32t.min = *(real32_t *)min;
+        dbind->attr.real32t.max = *(real32_t *)max;
         break;
 
     case ekDTYPE_REAL64:
-        dbind->attr.real64t.min = *(real64_t*)min;
-        dbind->attr.real64t.max = *(real64_t*)max;
+        dbind->attr.real64t.min = *(real64_t *)min;
+        dbind->attr.real64t.max = *(real64_t *)max;
         break;
 
     case ekDTYPE_BOOL:
@@ -2375,7 +2385,7 @@ void dbind_range_imp(const char_t *type, const char_t *mname, const void *min, c
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -2386,17 +2396,18 @@ void dbind_precision_imp(const char_t *type, const char_t *mname, const void *pr
     DBind *dbind = i_member(type, mname);
     cassert_no_null(dbind);
     cassert_no_null(prec);
-    switch (dbind->type) {
+    switch (dbind->type)
+    {
 
     case ekDTYPE_REAL32:
-        dbind->attr.real32t.prec = *(real32_t*)prec;
+        dbind->attr.real32t.prec = *(real32_t *)prec;
         dbind->attr.real32t.dec = bmath_precf(dbind->attr.real32t.prec);
         str_destroy(&dbind->attr.real32t.format);
         dbind->attr.real32t.format = str_printf("%%.%df", dbind->attr.real32t.dec);
         break;
 
     case ekDTYPE_REAL64:
-        dbind->attr.real64t.prec = *(real64_t*)prec;
+        dbind->attr.real64t.prec = *(real64_t *)prec;
         dbind->attr.real64t.dec = bmath_precd(dbind->attr.real64t.prec);
         str_destroy(&dbind->attr.real64t.format);
         dbind->attr.real64t.format = str_printf("%%.%df", dbind->attr.real64t.dec);
@@ -2420,7 +2431,7 @@ void dbind_precision_imp(const char_t *type, const char_t *mname, const void *pr
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -2431,46 +2442,47 @@ void dbind_increment_imp(const char_t *type, const char_t *mname, const void *in
     DBind *dbind = i_member(type, mname);
     cassert_no_null(dbind);
     cassert_no_null(incr);
-    switch (dbind->type) {
+    switch (dbind->type)
+    {
 
     case ekDTYPE_INT8:
-        dbind->attr.intt.incr = *(int8_t*)incr;
+        dbind->attr.intt.incr = *(int8_t *)incr;
         break;
 
     case ekDTYPE_INT16:
-        dbind->attr.intt.incr = *(int16_t*)incr;
+        dbind->attr.intt.incr = *(int16_t *)incr;
         break;
 
     case ekDTYPE_INT32:
-        dbind->attr.intt.incr = *(int32_t*)incr;
+        dbind->attr.intt.incr = *(int32_t *)incr;
         break;
 
     case ekDTYPE_INT64:
-        dbind->attr.intt.incr = *(int64_t*)incr;
+        dbind->attr.intt.incr = *(int64_t *)incr;
         break;
 
     case ekDTYPE_UINT8:
-        dbind->attr.intt.incr = *(uint8_t*)incr;
+        dbind->attr.intt.incr = *(uint8_t *)incr;
         break;
 
     case ekDTYPE_UINT16:
-        dbind->attr.intt.incr = *(uint16_t*)incr;
+        dbind->attr.intt.incr = *(uint16_t *)incr;
         break;
 
     case ekDTYPE_UINT32:
-        dbind->attr.intt.incr = *(uint32_t*)incr;
+        dbind->attr.intt.incr = *(uint32_t *)incr;
         break;
 
     case ekDTYPE_UINT64:
-        dbind->attr.intt.incr = (int64_t)(*(uint64_t*)incr);
+        dbind->attr.intt.incr = (int64_t)(*(uint64_t *)incr);
         break;
 
     case ekDTYPE_REAL32:
-        dbind->attr.real32t.incr = *(real32_t*)incr;
+        dbind->attr.real32t.incr = *(real32_t *)incr;
         break;
 
     case ekDTYPE_REAL64:
-        dbind->attr.real64t.incr = *(real64_t*)incr;
+        dbind->attr.real64t.incr = *(real64_t *)incr;
         break;
 
     case ekDTYPE_BOOL:
@@ -2483,7 +2495,7 @@ void dbind_increment_imp(const char_t *type, const char_t *mname, const void *in
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -2493,7 +2505,8 @@ void dbind_suffix_imp(const char_t *type, const char_t *mname, const char_t *suf
 {
     DBind *dbind = i_member(type, mname);
     cassert_no_null(dbind);
-    switch (dbind->type) {
+    switch (dbind->type)
+    {
 
     case ekDTYPE_INT8:
     case ekDTYPE_INT16:
@@ -2536,7 +2549,7 @@ void dbind_suffix_imp(const char_t *type, const char_t *mname, const char_t *suf
     case ekDTYPE_OBJECT_PTR:
     case ekDTYPE_OBJECT_OPAQUE:
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -2549,14 +2562,14 @@ dtype_t dbind_data_type(const char_t *type, String **subtype, uint16_t *size)
 
 /*---------------------------------------------------------------------------*/
 
-const StBind* dbind_stbind(const char_t *type)
+const StBind *dbind_stbind(const char_t *type)
 {
     return i_find_stbind(type, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const char_t* dbind_stbind_type(const StBind *stbind)
+const char_t *dbind_stbind_type(const StBind *stbind)
 {
     cassert_no_null(stbind);
     return tc(stbind->type);
@@ -2575,12 +2588,12 @@ uint16_t dbind_stbind_sizeof(const StBind *stbind)
 uint32_t dbind_stbind_count(const StBind *stbind)
 {
     cassert_no_null(stbind);
-	return arrst_size(stbind->members, DBind);
+    return arrst_size(stbind->members, DBind);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const DBind* dbind_stbind_member(const StBind *stbind, const uint32_t i)
+const DBind *dbind_stbind_member(const StBind *stbind, const uint32_t i)
 {
     cassert_no_null(stbind);
     return arrst_get(stbind->members, i, DBind);
@@ -2588,7 +2601,7 @@ const DBind* dbind_stbind_member(const StBind *stbind, const uint32_t i)
 
 /*---------------------------------------------------------------------------*/
 
-const DBind* dbind_stbind_find(const StBind *stbind, const char_t *name)
+const DBind *dbind_stbind_find(const StBind *stbind, const char_t *name)
 {
     cassert_no_null(stbind);
     return i_find_by_name(stbind->members, name);
@@ -2692,7 +2705,7 @@ const char_t *dbind_subtype(const DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-const StBind* dbind_get_stbind(const DBind *dbind)
+const StBind *dbind_get_stbind(const DBind *dbind)
 {
     cassert_no_null(dbind);
     return dbind->stbind;
@@ -2884,7 +2897,7 @@ real64_t dbind_real64(const DBind *dbind, const real64_t value)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE int64_t i_int(const DBind* dbind, const dtype_t type, const int64_t value, const int64_t min, const int64_t max)
+static __INLINE int64_t i_int(const DBind *dbind, const dtype_t type, const int64_t value, const int64_t min, const int64_t max)
 {
     cassert_no_null(dbind);
     cassert_unref(dbind->type == type, type);
@@ -2900,56 +2913,56 @@ static __INLINE int64_t i_int(const DBind* dbind, const dtype_t type, const int6
 
 /*---------------------------------------------------------------------------*/
 
-int8_t dbind_int8(const DBind* dbind, const int8_t value)
+int8_t dbind_int8(const DBind *dbind, const int8_t value)
 {
     return (int8_t)i_int(dbind, ekDTYPE_INT8, (int64_t)value, INT8_MIN, INT8_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-int16_t dbind_int16(const DBind* dbind, const int16_t value)
+int16_t dbind_int16(const DBind *dbind, const int16_t value)
 {
     return (int16_t)i_int(dbind, ekDTYPE_INT16, (int64_t)value, INT16_MIN, INT16_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-int32_t dbind_int32(const DBind* dbind, const int32_t value)
+int32_t dbind_int32(const DBind *dbind, const int32_t value)
 {
     return (int32_t)i_int(dbind, ekDTYPE_INT32, (int64_t)value, INT32_MIN, INT32_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-int64_t dbind_int64(const DBind* dbind, const int64_t value)
+int64_t dbind_int64(const DBind *dbind, const int64_t value)
 {
     return (int64_t)i_int(dbind, ekDTYPE_INT64, (int64_t)value, INT64_MIN, INT64_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint8_t dbind_uint8(const DBind* dbind, const uint8_t value)
+uint8_t dbind_uint8(const DBind *dbind, const uint8_t value)
 {
     return (uint8_t)i_int(dbind, ekDTYPE_UINT8, (int64_t)value, 0, UINT8_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint16_t dbind_uint16(const DBind* dbind, const uint16_t value)
+uint16_t dbind_uint16(const DBind *dbind, const uint16_t value)
 {
     return (uint16_t)i_int(dbind, ekDTYPE_UINT16, (int64_t)value, 0, UINT16_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t dbind_uint32(const DBind* dbind, const uint32_t value)
+uint32_t dbind_uint32(const DBind *dbind, const uint32_t value)
 {
     return (uint32_t)i_int(dbind, ekDTYPE_UINT32, (int64_t)value, 0, UINT32_MAX);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint64_t dbind_uint64(const DBind* dbind, const uint64_t value)
+uint64_t dbind_uint64(const DBind *dbind, const uint64_t value)
 {
     return (uint64_t)i_int(dbind, ekDTYPE_UINT64, (int64_t)value, 0, INT64_MAX);
 }
@@ -2959,10 +2972,10 @@ uint64_t dbind_uint64(const DBind* dbind, const uint64_t value)
 real32_t dbind_incr_real32(const DBind *dbind, const real32_t value, const bool_t pos)
 {
     real32_t v = 0;
-	real32_t sc = pos ? 1.f : -1.f;
+    real32_t sc = pos ? 1.f : -1.f;
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_REAL32);
-	v = bmath_clampf(value + sc * dbind->attr.real32t.incr, dbind->attr.real32t.min, dbind->attr.real32t.max);
+    v = bmath_clampf(value + sc * dbind->attr.real32t.incr, dbind->attr.real32t.min, dbind->attr.real32t.max);
     return bmath_round_stepf(v, dbind->attr.real32t.prec);
 }
 
@@ -2971,7 +2984,7 @@ real32_t dbind_incr_real32(const DBind *dbind, const real32_t value, const bool_
 real64_t dbind_incr_real64(const DBind *dbind, const real64_t value, const bool_t pos)
 {
     real64_t v = 0;
-	real64_t sc = pos ? 1. : -1.;
+    real64_t sc = pos ? 1. : -1.;
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_REAL64);
     v = bmath_clampd(value + sc * dbind->attr.real64t.incr, dbind->attr.real64t.min, dbind->attr.real64t.max);
@@ -3051,7 +3064,8 @@ uint64_t dbind_incr_uint64(const DBind *dbind, const uint64_t value, const bool_
 bool_t dbind_string_filter(const DBind *dbind, const char_t *src, char_t *dest, const uint32_t size)
 {
     cassert_no_null(dbind);
-    switch (dbind->type) {
+    switch (dbind->type)
+    {
     case ekDTYPE_REAL32:
         tfilter_number(src, dest, size, dbind->attr.real32t.dec, (bool_t)(dbind->attr.real32t.min < 0));
         return TRUE;
@@ -3343,7 +3357,7 @@ uint64_t dbind_string_to_uint64(const DBind *dbind, const uint64_t value, const 
 
 /*---------------------------------------------------------------------------*/
 
-void* dbind_opaque_default(const DBind *dbind)
+void *dbind_opaque_default(const DBind *dbind)
 {
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_OBJECT_OPAQUE);
@@ -3354,7 +3368,8 @@ void* dbind_opaque_default(const DBind *dbind)
 
 static bool_t i_is_basic_type(const dtype_t type)
 {
-    switch (type) {
+    switch (type)
+    {
     case ekDTYPE_BOOL:
     case ekDTYPE_INT8:
     case ekDTYPE_INT16:
@@ -3379,7 +3394,7 @@ static bool_t i_is_basic_type(const dtype_t type)
         return FALSE;
 
     case ekDTYPE_UNKNOWN:
-    cassert_default();
+        cassert_default();
     }
 
     return FALSE;
@@ -3389,7 +3404,8 @@ static bool_t i_is_basic_type(const dtype_t type)
 
 static bool_t i_is_number(const dtype_t type)
 {
-    switch (type) {
+    switch (type)
+    {
     case ekDTYPE_INT8:
     case ekDTYPE_INT16:
     case ekDTYPE_INT32:
@@ -3414,7 +3430,7 @@ static bool_t i_is_number(const dtype_t type)
     case ekDTYPE_UNKNOWN:
         return FALSE;
 
-    cassert_default();
+        cassert_default();
     }
 
     return FALSE;
@@ -3422,7 +3438,7 @@ static bool_t i_is_number(const dtype_t type)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t dbind_is_basic_type(const DBind* dbind)
+bool_t dbind_is_basic_type(const DBind *dbind)
 {
     cassert_no_null(dbind);
     return i_is_basic_type(dbind->type);
@@ -3451,13 +3467,13 @@ enum_t dbind_enum_value(const DBind *dbind, const uint32_t index)
 {
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_ENUM);
-	if (index < arrst_size(dbind->attr.enumt.ebind->values, EnumVBind))
-	{
-		const EnumVBind *ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
-		return ebind->value;
-	}
+    if (index < arrst_size(dbind->attr.enumt.ebind->values, EnumVBind))
+    {
+        const EnumVBind *ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
+        return ebind->value;
+    }
 
-	return ENUM_MAX(enum_t);
+    return ENUM_MAX(enum_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3466,13 +3482,13 @@ const char_t *dbind_enum_alias(const DBind *dbind, const uint32_t index)
 {
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_ENUM);
-	if (index < arrst_size(dbind->attr.enumt.ebind->values, EnumVBind))
-	{
-		const EnumVBind *ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
-		return tc(ebind->alias);
-	}
+    if (index < arrst_size(dbind->attr.enumt.ebind->values, EnumVBind))
+    {
+        const EnumVBind *ebind = arrst_get(dbind->attr.enumt.ebind->values, index, EnumVBind);
+        return tc(ebind->alias);
+    }
 
-	return "";
+    return "";
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3481,9 +3497,7 @@ uint32_t dbind_enum_index(const DBind *dbind, const enum_t value)
 {
     cassert_no_null(dbind);
     cassert(dbind->type == ekDTYPE_ENUM);
-    arrst_foreach(ebind, dbind->attr.enumt.ebind->values, EnumVBind)
-        if (ebind->value == value)
-            return ebind_i;
+    arrst_foreach(ebind, dbind->attr.enumt.ebind->values, EnumVBind) if (ebind->value == value) return ebind_i;
     arrst_end();
     return UINT32_MAX;
 }

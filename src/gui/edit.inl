@@ -25,4 +25,3 @@ bool_t _edit_is_multiline(const Edit *edit);
 void _edit_text(Edit *edit, const char_t *text);
 
 __END_C
-

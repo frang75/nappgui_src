@@ -1,2 +1,1 @@
-processStaticLib(gui "draw2d" "")
-processDynamicLib(gui_d "draw2d_d" "")
+nap_library(gui "draw2d" "${NAPPGUI_SHARED}" NRC_NONE)

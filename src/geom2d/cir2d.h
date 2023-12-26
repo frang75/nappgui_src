@@ -43,4 +43,3 @@ _geom2d_api extern const Cir2Df kCIR2D_NULLf;
 _geom2d_api extern const Cir2Dd kCIR2D_NULLd;
 
 __END_C
-

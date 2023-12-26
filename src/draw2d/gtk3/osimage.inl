@@ -11,9 +11,9 @@
 /* Images */
 
 #include "draw2d.ixx"
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <gdk-pixbuf/gdk-pixbuf.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 __EXTERN_C
 

@@ -14,7 +14,7 @@
 #ifndef __OSBS_HXX__
 #define __OSBS_HXX__
 
-#include "sewer.hxx"
+#include <sewer/sewer.hxx>
 #include "osbs.def"
 
 typedef enum _platform_t
@@ -148,11 +148,11 @@ typedef struct _dlib_t DLib;
 typedef struct _thread_t Thread;
 typedef struct _socket_t Socket;
 
-typedef uint32_t(*FPtr_thread_main)(void *data);
-#define FUNC_CHECK_THREAD_MAIN(func, type)\
-    (void)((uint32_t(*)(type*))func == func)
+typedef uint32_t (*FPtr_thread_main)(void *data);
+#define FUNC_CHECK_THREAD_MAIN(func, type) \
+    (void)((uint32_t(*)(type *))func == func)
 
-typedef void(*FPtr_libproc)(void);
+typedef void (*FPtr_libproc)(void);
 
 struct _date_t
 {
@@ -166,4 +166,3 @@ struct _date_t
 };
 
 #endif
-

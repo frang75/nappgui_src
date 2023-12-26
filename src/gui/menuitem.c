@@ -14,14 +14,13 @@
 #include "menuitem.inl"
 #include "menu.inl"
 #include "gui.inl"
-#include "guictx.h"
-
-#include "cassert.h"
-#include "event.h"
-#include "image.h"
-#include "ptr.h"
-#include "objh.h"
-#include "strings.h"
+#include <draw2d/guictx.h>
+#include <draw2d/image.h>
+#include <core/event.h>
+#include <core/objh.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _menu_item_t
 {
@@ -40,13 +39,13 @@ struct _menu_item_t
 /*---------------------------------------------------------------------------*/
 
 static MenuItem *i_create(
-                    const GuiCtx *context,
-                    const uint32_t tag,
-                    const bool_t is_separator,
-                    Image **image,
-                    void **ositem,
-                    Menu **submenu,
-                    Listener **OnClick_listener)
+    const GuiCtx *context,
+    const uint32_t tag,
+    const bool_t is_separator,
+    Image **image,
+    void **ositem,
+    Menu **submenu,
+    Listener **OnClick_listener)
 {
     MenuItem *item = obj_new(MenuItem);
     item->context = guictx_retain(context);
@@ -127,7 +126,7 @@ static void i_OnMenuItemClick(MenuItem *item, Event *e)
     cassert(item->is_separator == FALSE);
     cassert(event_sender_imp(e, NULL) == item->ositem);
 
-/*
+    /*
     switch (item->edit_mode)
     {
         case ekGUI_MENUITEM_MODE_TOOGLE_MARK:
@@ -327,5 +326,3 @@ void _menuitem_locale(MenuItem *item)
     if (item->submenu != NULL)
         _menu_locale(item->submenu);
 }
-
-

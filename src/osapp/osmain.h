@@ -19,11 +19,11 @@ _osapp_api void osmain_imp(uint32_t argc, char_t **argv, void *instance, const r
 __END_C
 
 #if defined(__WINDOWS__)
-    #include "osmain_win.h"
+#include "osmain_win.h"
 #elif defined(__MACOS__)
-    #include "osmain_osx.h"
+#include "osmain_osx.h"
 #elif defined(__LINUX__)
-    #include "osmain_gtk.h"
+#include "osmain_gtk.h"
 #else
-    #error Unknown platform
+#error Unknown platform
 #endif

@@ -45,4 +45,3 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 const void *osimage_native(const OSImage *image);
 
 __END_C
-

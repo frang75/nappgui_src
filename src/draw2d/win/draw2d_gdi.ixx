@@ -13,11 +13,10 @@
 #ifndef __OSDRAW_WIN2_IXX__
 #define __OSDRAW_WIN2_IXX__
 
-#include "draw2d.hxx"
-
-#include "nowarn.hxx"
+#include <draw2d/draw2d.hxx>
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 struct _measurestr_t
 {

@@ -14,19 +14,19 @@
 #ifndef __OSAPP_HXX__
 #define __OSAPP_HXX__
 
-#include "gui.hxx"
+#include <gui/gui.hxx>
 #include "osapp.def"
 
-typedef uint32_t(*FPtr_task_main)(void *data);
-#define FUNC_CHECK_TASK_MAIN(func, type)\
-    (void)((uint32_t(*)(type*))func == func)
+typedef uint32_t (*FPtr_task_main)(void *data);
+#define FUNC_CHECK_TASK_MAIN(func, type) \
+    (void)((uint32_t(*)(type *))func == func)
 
-typedef void(*FPtr_task_update)(void *data);
-#define FUNC_CHECK_TASK_UPDATE(func, type)\
-    (void)((void(*)(type*))func == func)
+typedef void (*FPtr_task_update)(void *data);
+#define FUNC_CHECK_TASK_UPDATE(func, type) \
+    (void)((void (*)(type *))func == func)
 
-typedef void(*FPtr_task_end)(void *data, const uint32_t rvalue);
-#define FUNC_CHECK_TASK_END(func, type)\
-    (void)((void(*)(type*, const uint32_t))func == func)
+typedef void (*FPtr_task_end)(void *data, const uint32_t rvalue);
+#define FUNC_CHECK_TASK_END(func, type) \
+    (void)((void (*)(type *, const uint32_t))func == func)
 
 #endif

@@ -46,4 +46,3 @@ _gui_api bool_t listbox_selected(const ListBox *listbox, uint32_t index);
 _gui_api bool_t listbox_checked(const ListBox *listbox, uint32_t index);
 
 __END_C
-

@@ -11,24 +11,24 @@
 /* HTTP request (WinINet-based implementation) */
 
 #include "oshttpreq.inl"
-#include "arrst.h"
-#include "bstd.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
-#include "stream.h"
-#include "strings.h"
-#include "unicode.h"
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <core/stream.h>
+#include <core/strings.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
-#include<Windows.h>
-#include<WinInet.h>
-#pragma comment(lib,"WinInet.lib")
-#include "warn.hxx"
+#include <sewer/nowarn.hxx>
+#include <Windows.h>
+#include <WinInet.h>
+#pragma comment(lib, "WinInet.lib")
+#include <sewer/warn.hxx>
 
 struct _oshttp_t
 {
@@ -67,8 +67,8 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
     if (http->hInternet != NULL)
     {
         WCHAR whost[128];
-        unicode_convers(host, (char_t*)whost, ekUTF8, ekUTF16, sizeof(whost));
-	    http->hConnect = InternetConnect(http->hInternet, whost, (INTERNET_PORT)port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
+        unicode_convers(host, (char_t *)whost, ekUTF8, ekUTF16, sizeof(whost));
+        http->hConnect = InternetConnect(http->hInternet, whost, (INTERNET_PORT)port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
 
         if (http->hConnect == NULL)
             http->error = ekINOHOST;
@@ -89,13 +89,13 @@ void oshttp_destroy(OSHttp **http)
     cassert_no_null(*http);
 
     if ((*http)->hRequest != NULL)
-	    InternetCloseHandle((*http)->hRequest);
+        InternetCloseHandle((*http)->hRequest);
 
     if ((*http)->hConnect != NULL)
-	    InternetCloseHandle((*http)->hConnect);
+        InternetCloseHandle((*http)->hConnect);
 
     if ((*http)->hInternet != NULL)
-	    InternetCloseHandle((*http)->hInternet);
+        InternetCloseHandle((*http)->hInternet);
 
     stm_close(&(*http)->headers);
 
@@ -143,17 +143,17 @@ static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const
         return;
     }
 
-    unicode_convers(path, (char_t*)wpath, ekUTF8, ekUTF16, sizeof(wpath));
+    unicode_convers(path, (char_t *)wpath, ekUTF8, ekUTF16, sizeof(wpath));
 
     if (http->hRequest != NULL)
     {
-	    InternetCloseHandle(http->hRequest);
+        InternetCloseHandle(http->hRequest);
         http->hRequest = NULL;
     }
 
     flags |= http->secure ? INTERNET_FLAG_SECURE : 0;
     flags |= auto_redirect ? 0 : INTERNET_FLAG_NO_AUTO_REDIRECT;
-	http->hRequest = HttpOpenRequest(http->hConnect, verb, wpath, L"HTTP/1.1", NULL, NULL, flags, 0);
+    http->hRequest = HttpOpenRequest(http->hConnect, verb, wpath, L"HTTP/1.1", NULL, NULL, flags, 0);
     if (http->hRequest == NULL)
     {
         ptr_assign(error, ekISERVER);
@@ -163,22 +163,22 @@ static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const
     hsize = stm_bytes_written(http->headers);
     if (hsize > 0)
     {
-        WCHAR *lpszHeaders = (WCHAR*)stm_buffer(http->headers);
-	    status = HttpSendRequest(http->hRequest, lpszHeaders, (DWORD)hsize / sizeof(WCHAR), (LPVOID)data, (DWORD)size);
+        WCHAR *lpszHeaders = (WCHAR *)stm_buffer(http->headers);
+        status = HttpSendRequest(http->hRequest, lpszHeaders, (DWORD)hsize / sizeof(WCHAR), (LPVOID)data, (DWORD)size);
     }
     else
     {
-	    status = HttpSendRequest(http->hRequest, NULL, (DWORD)-1, (LPVOID)data, (DWORD)size);
+        status = HttpSendRequest(http->hRequest, NULL, (DWORD)-1, (LPVOID)data, (DWORD)size);
     }
 
-	if (status == TRUE)
+    if (status == TRUE)
     {
         ptr_assign(error, ekIOK);
     }
     else
     {
         ptr_assign(error, ekISERVER);
-	    InternetCloseHandle(http->hRequest);
+        InternetCloseHandle(http->hRequest);
         http->hRequest = NULL;
     }
 }
@@ -207,13 +207,13 @@ Stream *oshttp_response(OSHttp *http)
         uint32_t i = 0;
         DWORD asize = 512;
         DWORD size = 512;
-        for(i = 0; i < 2; ++i)
+        for (i = 0; i < 2; ++i)
         {
-            WCHAR *data = (WCHAR*)heap_malloc((uint32_t)asize, "http_headers");
+            WCHAR *data = (WCHAR *)heap_malloc((uint32_t)asize, "http_headers");
 
             if (HttpQueryInfo(http->hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, (LPVOID)data, &size, NULL) == TRUE)
             {
-                Stream *stm_src = stm_from_block((const byte_t*)data, (uint32_t)size);
+                Stream *stm_src = stm_from_block((const byte_t *)data, (uint32_t)size);
                 Stream *stm_dest = stm_memory(size + 10);
 
                 stm_set_read_utf(stm_src, ekUTF16);
@@ -221,17 +221,17 @@ Stream *oshttp_response(OSHttp *http)
 
                 stm_lines(line, stm_src)
                     stm_writef(stm_dest, line);
-                    stm_write_char(stm_dest, 13);   // CR '\r'
-                    stm_write_char(stm_dest, 10);   // LF '\n'
+                stm_write_char(stm_dest, 13); // CR '\r'
+                stm_write_char(stm_dest, 10); // LF '\n'
                 stm_next(line, stm_src)
 
-                heap_free((byte_t**)&data, (uint32_t)asize, "http_headers");
+                    heap_free((byte_t **)&data, (uint32_t)asize, "http_headers");
                 stm_close(&stm_src);
                 return stm_dest;
             }
             else
             {
-                heap_free((byte_t**)&data, (uint32_t)asize, "http_headers");
+                heap_free((byte_t **)&data, (uint32_t)asize, "http_headers");
                 if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
                 {
                     asize = size;
@@ -259,9 +259,9 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
 
         do
         {
-        	if (InternetReadFile(http->hRequest, szBuffer, sizeof(szBuffer), &dwByteRead) == TRUE)
+            if (InternetReadFile(http->hRequest, szBuffer, sizeof(szBuffer), &dwByteRead) == TRUE)
             {
-                stm_write(body, (const byte_t*)szBuffer, (uint32_t)dwByteRead);
+                stm_write(body, (const byte_t *)szBuffer, (uint32_t)dwByteRead);
             }
             else
             {
@@ -274,4 +274,3 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
 
     ptr_assign(error, ekIOK);
 }
-

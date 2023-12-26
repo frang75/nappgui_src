@@ -60,12 +60,11 @@ _draw2d_api void draw_lineimp(DCtx *ctx, const real32_t x0, const real32_t y0, c
 
 __END_C
 
-#define dctx_data(ctx, data, func_destroy_data, type)\
-    (\
-        (void)((type*)data == data),\
-        FUNC_CHECK_DESTROY(func_destroy_data, type),\
-        dctx_data_imp(ctx, (void*)data, (FPtr_destroy)func_destroy_data)\
-    )
+#define dctx_data(ctx, data, func_destroy_data, type) \
+    (                                                 \
+        (void)((type *)data == data),                 \
+        FUNC_CHECK_DESTROY(func_destroy_data, type),  \
+        dctx_data_imp(ctx, (void *)data, (FPtr_destroy)func_destroy_data))
 
-#define dctx_get_data(ctx, type)\
-    (type*)dctx_get_data_imp(ctx)
+#define dctx_get_data(ctx, type) \
+    (type *)dctx_get_data_imp(ctx)

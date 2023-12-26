@@ -13,9 +13,9 @@
 #include "osgui_osx.inl"
 #include "osmenu.h"
 #include "osgui.inl"
-#include "oswindow.inl"
-#include "cassert.h"
-#include "heap.h"
+#include "oswindow_osx.inl"
+#include <sewer/cassert.h>
+#include <core/heap.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -23,7 +23,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXMenu : NSMenu 
+@interface OSXMenu : NSMenu
 {
     @public
     void *non_used;
@@ -90,7 +90,7 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
     // retain_count2 = [item retainCount];
     // cassert([item retainCount] == retain_count + 1);
     cassert([item menu] == (OSXMenu*)menu);
-    cassert([[(OSXMenu*)menu itemArray] count] == num_items + 1);
+    cassert_unref([[(OSXMenu*)menu itemArray] count] == num_items + 1, num_items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -108,7 +108,7 @@ void osmenu_delete_item(OSMenu *menu, OSMenuItem *menuitem)
     cassert([item menu] == (OSXMenu*)menu);
     [(OSXMenu*)menu removeItem:item];
     cassert([item menu] == nil);
-    cassert([[(OSXMenu*)menu itemArray] count] == num_items - 1);
+    cassert_unref([[(OSXMenu*)menu itemArray] count] == num_items - 1, num_items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -119,9 +119,10 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
     CGFloat ly = 0.f;
     cassert_no_null(menu);
     cassert([(NSObject*)menu isKindOfClass:[OSXMenu class]] == YES);
-    // Usar view (convertir de screen a view coordinate)
+    /* TODO: Use vuew (convert from screen to view coordinate) */
     view = _oswindow_main_view(window);
-    ly = [[NSScreen mainScreen] frame].size.height - (CGFloat)y;    
+    unref(view);
+    ly = [[NSScreen mainScreen] frame].size.height - (CGFloat)y;
     [(OSXMenu*)menu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, ly) inView:nil];
 }
 

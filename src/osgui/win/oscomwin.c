@@ -11,21 +11,21 @@
 /* Operating System native common windows */
 
 #include "oscomwin.h"
-#include "oscontrol.inl"
-#include "oswindow.inl"
-#include "cassert.h"
-#include "color.h"
-#include "event.h"
-#include "unicode.h"
+#include "oscontrol_win.inl"
+#include "oswindow_win.inl"
+#include <draw2d/color.h>
+#include <core/event.h>
+#include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
 #endif
 
-#pragma warning(push, 0)
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
 #include <ShlObj.h>
-#pragma warning(pop)
+#include <sewer/warn.hxx>
 
 /*---------------------------------------------------------------------------*/
 
@@ -52,7 +52,7 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
 
     if (ftypes != NULL)
     {
-        if (size == 1 && strcmp((const char*)ftypes[0], "..DIR..") == 0)
+        if (size == 1 && strcmp((const char *)ftypes[0], "..DIR..") == 0)
         {
             *dirselect = TRUE;
         }
@@ -63,7 +63,7 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
             {
                 TCHAR type[32];
                 register uint32_t tsize;
-                tsize = unicode_convers(ftypes[i], (char_t*)type, ekUTF8, ekUTF16, sizeof(type));
+                tsize = unicode_convers(ftypes[i], (char_t *)type, ekUTF8, ekUTF16, sizeof(type));
                 cassert(tsize < sizeof(type));
                 tsize += 4; // "*."
                 if (lbufsize > tsize * 2)
@@ -115,14 +115,14 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
     WCHAR ext[32];
     WCHAR *file_ext = NULL;
     register uint32_t ext_size;
-    ext_size = unicode_convers(extension, (char_t*)ext, ekUTF8, ekUTF16, sizeof(ext));
+    ext_size = unicode_convers(extension, (char_t *)ext, ekUTF8, ekUTF16, sizeof(ext));
     cassert(ext_size < sizeof(ext));
     _wcslwr_s(ext, 32);
 
     {
-        int i=0;
+        int i = 0;
         int last_dot = -1;
-        while(file[i] != '\0')
+        while (file[i] != '\0')
         {
             if (file[i] == '.')
                 last_dot = i;
@@ -157,7 +157,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             TCHAR dir[MAX_PATH];
             LPITEMIDLIST item;
             ZeroMemory(&bi, sizeof(bi));
-            bi.hwndOwner =  _oswindow_hwnd(parent);
+            bi.hwndOwner = _oswindow_hwnd(parent);
             bi.pidlRoot = NULL;
             bi.pszDisplayName = dir;
             bi.lpszTitle = NULL;
@@ -182,7 +182,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             {
                 register uint32_t bytes;
                 SHGetPathFromIDList(item, dir);
-                bytes = unicode_convers((const char_t*)dir, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
+                bytes = unicode_convers((const char_t *)dir, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
                 cassert(bytes < MAX_PATH);
                 return i_FILENAME;
             }
@@ -230,7 +230,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             if (open == FALSE && size == 1)
                 i_force_extension(file, MAX_PATH, ftypes[0]);
 
-            bytes = unicode_convers((const char_t*)file, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
+            bytes = unicode_convers((const char_t *)file, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
             cassert(bytes < MAX_PATH);
             return i_FILENAME;
         }
@@ -247,8 +247,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 {
     if (msg == WM_INITDIALOG)
     {
-        CHOOSECOLOR *col = (CHOOSECOLOR*)lParam;
-        CData *cdata = (CData*)col->lCustData;
+        CHOOSECOLOR *col = (CHOOSECOLOR *)lParam;
+        CData *cdata = (CData *)col->lCustData;
         RECT rect;
         BOOL ret = GetWindowRect(hwnd, &rect);
         int screen_width = GetSystemMetrics(SM_CXSCREEN);
@@ -257,7 +257,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 
         if (cdata->halign != ekLEFT || cdata->valign != ekTOP)
         {
-            switch (cdata->halign) {
+            switch (cdata->halign)
+            {
             case ekLEFT:
             case ekJUSTIFY:
                 break;
@@ -269,7 +270,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
                 break;
             }
 
-            switch (cdata->valign) {
+            switch (cdata->valign)
+            {
             case ekTOP:
             case ekJUSTIFY:
                 break;
@@ -298,7 +300,6 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
     return 0;
 }
 
-
 /*---------------------------------------------------------------------------*/
 
 void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, const real32_t y, const align_t halign, const align_t valign, const color_t current, color_t *colors, const uint32_t n, Listener *OnChange)
@@ -312,7 +313,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     col.hwndOwner = NULL;
 
     if (parent != NULL)
-        col.hwndOwner = ((OSControl*)parent)->hwnd;
+        col.hwndOwner = ((OSControl *)parent)->hwnd;
 
     col.hInstance = NULL;
     col.rgbResult = _oscontrol_colorref(current);
@@ -331,7 +332,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     cdata.valign = valign;
 
     if (title != NULL)
-        unicode_convers(title, (char_t*)cdata.title, ekUTF8, ekUTF16, sizeof(cdata.title));
+        unicode_convers(title, (char_t *)cdata.title, ekUTF8, ekUTF16, sizeof(cdata.title));
     else
         cdata.title[0] = 0;
 
@@ -427,4 +428,3 @@ void oscommon_colour_get_origin(real32_t *x, real32_t *y)
     unreferenced(y);
     cassert(FALSE);
 }*/
-

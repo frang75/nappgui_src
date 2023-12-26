@@ -15,49 +15,72 @@
 
 #include "osgui.hxx"
 
-typedef struct _oscolumn_t OSColumn;
+typedef struct _oswidget_t OSWidget;
+typedef struct _oshotkey_t OSHotKey;
+typedef struct _osframe_t OSFrame;
+typedef struct _ostabstop_t OSTabStop;
+typedef struct _osscrolls_t OSScrolls;
+typedef struct _osscroll_t OSScroll;
 typedef struct _strsize_data_t StringSizeData;
-typedef struct _evscroll_t EvScroll;
 
-struct _evscroll_t
+struct _oshotkey_t
 {
-    real32_t pos;
+    vkey_t key;
+    uint32_t modifiers;
+    Listener *listener;
 };
 
-
-/* For revision */
-enum gui_toolbar_button_type_t
+struct _osframe_t
 {
-    ekGUI_TOOLBAR_BUTTON_TYPE_TEXT,
-    ekGUI_TOOLBAR_BUTTON_TYPE_IMAGE,
-    ekGUI_TOOLBAR_BUTTON_TYPE_DONE,
-    ekGUI_TOOLBAR_BUTTON_TYPE_PLAY,
-    ekGUI_TOOLBAR_BUTTON_TYPE_PAUSE,
-    ekGUI_TOOLBAR_BUTTON_TYPE_FLEXIBLE_SPACE
+    int32_t left;
+    int32_t top;
+    int32_t right;
+    int32_t bottom;
 };
 
-enum gui_toolbar_button_style_t
+struct _ostabstop_t
 {
-    ekGUI_TOOLBAR_BUTTON_STYLE_PLAIN,
-    ekGUI_TOOLBAR_BUTTON_STYLE_BORDERED,
-    ekGUI_TOOLBAR_BUTTON_STYLE_DONE
+    ArrPt(OSControl) * tablist;
+    uint32_t tabindex;
+    OSWindow *window;
+    OSButton *defbutton;
+    OSControl *current;
+    OSControl *transient;
+    bool_t cycle;
 };
 
-enum gui_indicator_style_t
-{
-    ekGUI_INDICATOR_STYLE_CONTINUOUS,
-    ekGUI_INDICATOR_STYLE_DISCRETE
-};
-
-enum gui_indicator_state_t
-{
-    ekGUI_INDICATOR_STATE_OK,
-    ekGUI_INDICATOR_STATE_WARNING,
-    ekGUI_INDICATOR_STATE_CRITICAL
-};
-
+DeclSt(OSHotKey);
 DeclPt(OSControl);
 DeclPt(OSMenuItem);
 
-#endif
+#define OSControlPtr(ptr) ((OSControl *)(ptr))
+#define OSWidgetPtr(ptr) ((OSWidget *)(ptr))
+#define OSLabelPtr(ptr) ((OSLabel *)(ptr))
+#define OSButtonPtr(ptr) ((OSButton *)(ptr))
+#define OSPopUpPtr(ptr) ((OSPopUp *)(ptr))
+#define OSEditPtr(ptr) ((OSEdit *)(ptr))
+#define OSComboPtr(ptr) ((OSCombo *)(ptr))
+#define OSSliderPtr(ptr) ((OSSlider *)(ptr))
+#define OSUpDownPtr(ptr) ((OSUpDown *)(ptr))
+#define OSProgressPtr(ptr) ((OSProgress *)(ptr))
+#define OSTextPtr(ptr) ((OSText *)(ptr))
+#define OSViewPtr(ptr) ((OSView *)(ptr))
+#define OSPanelPtr(ptr) ((OSPanel *)(ptr))
+#define OSSplitPtr(ptr) ((OSSplit *)(ptr))
+#define OSWindowPtr(ptr) ((OSWindow *)(ptr))
 
+#define OSControlDPtr(ptr) ((OSControl **)(ptr))
+#define OSLabelDPtr(ptr) ((OSLabel **)(ptr))
+#define OSButtonDPtr(ptr) ((OSButton **)(ptr))
+#define OSPopUpDPtr(ptr) ((OSPopUp **)(ptr))
+#define OSEditDPtr(ptr) ((OSEdit **)(ptr))
+#define OSComboDPtr(ptr) ((OSCombo **)(ptr))
+#define OSSliderDPtr(ptr) ((OSSlider **)(ptr))
+#define OSUpDownDPtr(ptr) ((OSUpDown **)(ptr))
+#define OSProgressDPtr(ptr) ((OSProgress **)(ptr))
+#define OSTextDPtr(ptr) ((OSText **)(ptr))
+#define OSViewDPtr(ptr) ((OSView **)(ptr))
+#define OSPanelDPtr(ptr) ((OSPanel **)(ptr))
+#define OSSplitDPtr(ptr) ((OSSplit **)(ptr))
+
+#endif

@@ -10,8 +10,6 @@
 
 /* Osbs library all-in-one headers include */
 
-#include "sewerall.h"
-
 #include "osbs.h"
 #include "bfile.h"
 #include "bmutex.h"
@@ -21,3 +19,4 @@
 #include "btime.h"
 #include "dlib.h"
 #include "log.h"
+#include <sewer/sewerall.h>

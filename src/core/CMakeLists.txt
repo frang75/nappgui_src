@@ -1,2 +1,1 @@
-processStaticLib(core "osbs" "")
-processDynamicLib(core_d "osbs_d" "")
+nap_library(core "osbs" "${NAPPGUI_SHARED}" NRC_NONE)

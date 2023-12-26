@@ -12,12 +12,12 @@
 
 #include "pixbuf.h"
 #include "imgutil.inl"
-#include "bmath.h"
-#include "bmem.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
-#include "t2d.h"
+#include <geom2d/t2d.h>
+#include <core/heap.h>
+#include <sewer/bmath.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _pixbuf_t
 {
@@ -26,8 +26,8 @@ struct _pixbuf_t
     pixformat_t format;
 };
 
-typedef uint32_t(*FPtr_get)(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width);
-typedef void(*FPtr_set)(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value);
+typedef uint32_t (*FPtr_get)(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width);
+typedef void (*FPtr_set)(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value);
 
 static uint32_t i_get1(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width);
 static uint32_t i_get2(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width);
@@ -43,35 +43,36 @@ static void i_set24(byte_t *data, const uint32_t x, const uint32_t y, const uint
 static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value);
 
 static const FPtr_get i_GET[] = {
-    i_get1,     /* ekINDEX1 */
-    i_get2,     /* ekINDEX2 */
-    i_get4,     /* ekINDEX4 */
-    i_get8,     /* ekINDEX8 */
-    i_get8,     /* ekGRAY8 */
-    i_get24,    /* ekRGB24 */
-    i_get32     /* ekRGBA32 */
+    i_get1,  /* ekINDEX1 */
+    i_get2,  /* ekINDEX2 */
+    i_get4,  /* ekINDEX4 */
+    i_get8,  /* ekINDEX8 */
+    i_get8,  /* ekGRAY8 */
+    i_get24, /* ekRGB24 */
+    i_get32  /* ekRGBA32 */
 };
 
 static const FPtr_set i_SET[] = {
-    i_set1,     /* ekINDEX1 */
-    i_set2,     /* ekINDEX2 */
-    i_set4,     /* ekINDEX4 */
-    i_set8,     /* ekINDEX8 */
-    i_set8,     /* ekGRAY8 */
-    i_set24,    /* ekRGB24 */
-    i_set32     /* ekRGBA32 */
+    i_set1,  /* ekINDEX1 */
+    i_set2,  /* ekINDEX2 */
+    i_set4,  /* ekINDEX4 */
+    i_set8,  /* ekINDEX8 */
+    i_set8,  /* ekGRAY8 */
+    i_set24, /* ekRGB24 */
+    i_set32  /* ekRGBA32 */
 };
 
 /*---------------------------------------------------------------------------*/
 
-#define i_DATA(pixbuf) ((byte_t*)(pixbuf) + sizeof(Pixbuf))
+#define i_DATA(pixbuf) ((byte_t *)(pixbuf) + sizeof(Pixbuf))
 
 /*---------------------------------------------------------------------------*/
 
 static uint32_t i_bufsize(const uint32_t width, const uint32_t height, const pixformat_t format)
 {
     register uint32_t n = 0;
-    switch(format) {
+    switch (format)
+    {
     case ekINDEX1:
         n = width * height / 8;
         if ((width * height) % 8 != 0)
@@ -101,7 +102,7 @@ static uint32_t i_bufsize(const uint32_t width, const uint32_t height, const pix
         return width * height * 4;
 
     case ekFIMAGE:
-    cassert_default();
+        cassert_default();
     }
 
     return n;
@@ -213,7 +214,7 @@ static void i_set24(byte_t *data, const uint32_t x, const uint32_t y, const uint
 
 static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register uint32_t *ovalue = ((uint32_t*)data) + ((y * width) + x);
+    register uint32_t *ovalue = ((uint32_t *)data) + ((y * width) + x);
     *ovalue = value;
 }
 
@@ -222,7 +223,7 @@ static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint
 Pixbuf *pixbuf_create(const uint32_t width, const uint32_t height, const pixformat_t format)
 {
     uint32_t n = sizeof32(Pixbuf) + i_bufsize(width, height, format);
-    Pixbuf *pixbuf = (Pixbuf*)heap_malloc(n, "Pixbuf");
+    Pixbuf *pixbuf = (Pixbuf *)heap_malloc(n, "Pixbuf");
     pixbuf->width = width;
     pixbuf->height = height;
     pixbuf->format = format;
@@ -256,11 +257,11 @@ Pixbuf *pixbuf_trim(const Pixbuf *pixbuf, const uint32_t x, const uint32_t y, co
     format = npixbuf->format;
     w = pixbuf->width;
     for (i = 0; i < width; ++i)
-    for (j = 0; j < height; ++j)
-    {
-        v = i_GET[format](sdata, x + i, y + j, w);
-        i_SET[format](data, i, j, width, v);
-    }
+        for (j = 0; j < height; ++j)
+        {
+            v = i_GET[format](sdata, x + i, y + j, w);
+            i_SET[format](data, i, j, width, v);
+        }
 
     return npixbuf;
 }
@@ -273,9 +274,11 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
     unref(palette);
     if (pixbuf->format != oformat)
     {
-        switch(pixbuf->format) {
+        switch (pixbuf->format)
+        {
         case ekRGBA32:
-            switch(oformat) {
+            switch (oformat)
+            {
             case ekRGB24:
                 return imgutil_rgba_to_rgb(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
 
@@ -289,12 +292,13 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             case ekINDEX8:
             case ekRGBA32:
             case ekFIMAGE:
-            cassert_default();
+                cassert_default();
             }
             break;
 
         case ekRGB24:
-            switch(oformat) {
+            switch (oformat)
+            {
             case ekRGBA32:
                 return imgutil_rgb_to_rgba(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
 
@@ -307,10 +311,9 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             case ekINDEX8:
             case ekRGB24:
             case ekFIMAGE:
-            cassert_default();
+                cassert_default();
             }
             break;
-
 
         case ekINDEX1:
         case ekINDEX2:
@@ -318,7 +321,7 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
         case ekINDEX8:
         case ekGRAY8:
         case ekFIMAGE:
-        cassert_default();
+            cassert_default();
         }
     }
     else
@@ -339,7 +342,7 @@ void pixbuf_destroy(Pixbuf **pixbuf)
     cassert_no_null(pixbuf);
     cassert_no_null(*pixbuf);
     n = sizeof32(Pixbuf) + i_bufsize((*pixbuf)->width, (*pixbuf)->height, (*pixbuf)->format);
-    heap_free((byte_t**)pixbuf, n, "Pixbuf");
+    heap_free((byte_t **)pixbuf, n, "Pixbuf");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -402,7 +405,8 @@ byte_t *pixbuf_data(Pixbuf *pixbuf)
 
 uint32_t pixbuf_format_bpp(const pixformat_t format)
 {
-    switch(format) {
+    switch (format)
+    {
     case ekINDEX1:
         return 1;
 
@@ -423,7 +427,7 @@ uint32_t pixbuf_format_bpp(const pixformat_t format)
         return 32;
 
     case ekFIMAGE:
-    cassert_default();
+        cassert_default();
     }
 
     return 0;

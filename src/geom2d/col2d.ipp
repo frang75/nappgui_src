@@ -16,7 +16,7 @@
 #include "box2d.hpp"
 
 // Separation Axis Theorem polygon
-template<typename real>
+template <typename real>
 struct SATPoly
 {
     uint32_t num_vertices;
@@ -26,17 +26,16 @@ struct SATPoly
     real *min;
     real *max;
     bool_t updated;
-    
-    static SATPoly<real>* (*create)(const uint32_t num_vertices, const uint32_t num_axis);
 
-    static SATPoly<real>* (*copy)(const SATPoly<real> *poly);
+    static SATPoly<real> *(*create)(const uint32_t num_vertices, const uint32_t num_axis);
+
+    static SATPoly<real> *(*copy)(const SATPoly<real> *poly);
 
     static void (*destroy)(SATPoly<real> **poly);
-    
+
     static Box2D<real> (*bbox)(const SATPoly<real> *poly);
 
-    static void (*limits)(const V2D<real> *vertex, const V2D<real> *axis, const uint32_t num_vertices, const uint32_t num_axis, real *min, real *max);            
+    static void (*limits)(const V2D<real> *vertex, const V2D<real> *axis, const uint32_t num_vertices, const uint32_t num_axis, real *min, real *max);
 };
 
 #endif
-

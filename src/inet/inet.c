@@ -11,11 +11,11 @@
 /* inet library */
 
 #include "inet.h"
-#include "blib.h"
-#include "core.h"
 #include "oshttpreq.inl"
-#include "cassert.h"
-#include "log.h"
+#include <core/core.h>
+#include <osbs/log.h>
+#include <sewer/blib.h>
+#include <sewer/cassert.h>
 
 static uint32_t i_NUM_USERS = 0;
 

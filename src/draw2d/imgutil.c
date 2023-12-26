@@ -11,14 +11,14 @@
 /* Image utilities */
 
 #include "imgutil.inl"
-#include "bmem.h"
-#include "buffer.h"
-#include "cassert.h"
 #include "color.h"
 #include "palette.h"
 #include "pixbuf.h"
-#include "strings.h"
-#include "stream.h"
+#include <core/buffer.h>
+#include <core/strings.h>
+#include <core/stream.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
 
 typedef struct _gif_desc_t GifDesc;
 typedef struct _gif_image_t GifImage;
@@ -84,7 +84,7 @@ static bool_t i_parse_png(Stream *stm_in, Stream *stm_out)
         if (stm_out)
             stm_write_u32(stm_out, crc);
 
-        if (str_equ_cn((const char_t*)type, "IEND", 4) == TRUE)
+        if (str_equ_cn((const char_t *)type, "IEND", 4) == TRUE)
             break;
     }
 
@@ -100,7 +100,7 @@ static bool_t i_parse_png(Stream *stm_in, Stream *stm_out)
 
 static void i_read_compressed(Stream *stm_in, byte_t *marker)
 {
-    for(;;)
+    for (;;)
     {
         byte_t data[2];
         stm_read(stm_in, data, 1);
@@ -110,7 +110,6 @@ static void i_read_compressed(Stream *stm_in, byte_t *marker)
             stm_read(stm_in, data + 1, 1);
             if (data[1] == 0x00 || (data[1] >= 0xd0 && data[1] <= 0xd7))
             {
-
             }
             else
             {
@@ -126,7 +125,7 @@ static void i_read_compressed(Stream *stm_in, byte_t *marker)
 
 static void i_read_compressed2(Stream *stm_in, Stream *stm_out, byte_t *marker)
 {
-    for(;;)
+    for (;;)
     {
         byte_t data[2];
         stm_read(stm_in, data, 1);
@@ -317,7 +316,7 @@ static bool_t i_read_gif_image(Stream *stm_in, Stream *stm_out)
         stm_write(stm_out, &compress_size, 1);
 
     /* Data blocks */
-    for(;;)
+    for (;;)
     {
         uint8_t size = stm_read_u8(stm_in);
 
@@ -349,7 +348,7 @@ static bool_t i_read_gif_extension(Stream *stm_in, Stream *stm_out)
         stm_write(stm_out, &type, 1);
 
     /* Extension blocks */
-    for(;;)
+    for (;;)
     {
         uint8_t size = stm_read_u8(stm_in);
 
@@ -407,7 +406,7 @@ static bool_t i_parse_gif(Stream *stm_in, Stream *stm_out, uint32_t *num_frames)
     }
 
     /* GIF Blocks */
-    for(;;)
+    for (;;)
     {
         byte_t type;
         stm_read(stm_in, &type, 1);
@@ -500,7 +499,7 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
 
     stm_read(stm_in, &first, 1);
 
-/*
+    /*
     Image Headers (only one byte for select)
     PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
     JPG: 0xFF 0xD8
@@ -516,7 +515,7 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
         if (stm_out)
             stm_write(stm_out, header, 8);
 
-        if (str_equ_cn((const char_t*)rhead, (const char_t*)(header + 1), 7) == TRUE)
+        if (str_equ_cn((const char_t *)rhead, (const char_t *)(header + 1), 7) == TRUE)
             return ekPNG;
 
         return ENUM_MAX(codec_t);
@@ -548,10 +547,10 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
             stm_write(stm_out, rhead, 5);
         }
 
-        if (str_equ_cn((const char_t*)rhead, header1 + 1, 5) == TRUE)
+        if (str_equ_cn((const char_t *)rhead, header1 + 1, 5) == TRUE)
             return ekGIF;
 
-        if (str_equ_cn((const char_t*)rhead, header2 + 1, 5) == TRUE)
+        if (str_equ_cn((const char_t *)rhead, header2 + 1, 5) == TRUE)
             return ekGIF;
 
         return ENUM_MAX(codec_t);
@@ -631,20 +630,21 @@ static bool_t i_parse_img(Stream *stm_in, Stream *stm_out, uint32_t *num_frames)
     codec_t codec = i_header(stm_in, stm_out);
     cassert_no_null(num_frames);
 
-    switch (codec) {
-        case ekPNG:
-            *num_frames = 1;
-            return i_parse_png(stm_in, stm_out);
-        case ekJPG:
-            *num_frames = 1;
-            return i_parse_jpg(stm_in, stm_out);
-        case ekGIF:
-            return i_parse_gif(stm_in, stm_out, num_frames);
-        case ekBMP:
-            *num_frames = 1;
-            return i_parse_bmp(stm_in, stm_out);
-        default:
-            return FALSE;
+    switch (codec)
+    {
+    case ekPNG:
+        *num_frames = 1;
+        return i_parse_png(stm_in, stm_out);
+    case ekJPG:
+        *num_frames = 1;
+        return i_parse_jpg(stm_in, stm_out);
+    case ekGIF:
+        return i_parse_gif(stm_in, stm_out, num_frames);
+    case ekBMP:
+        *num_frames = 1;
+        return i_parse_bmp(stm_in, stm_out);
+    default:
+        return FALSE;
     }
 }
 
@@ -671,7 +671,8 @@ uint32_t imgutil_num_frames(const byte_t *data, const uint32_t size)
 
 Palette *imgutil_def_palette(const pixformat_t format)
 {
-    switch(format) {
+    switch (format)
+    {
     case ekINDEX1:
         return palette_binary(kCOLOR_WHITE, kCOLOR_BLACK);
 
@@ -688,7 +689,7 @@ Palette *imgutil_def_palette(const pixformat_t format)
     case ekRGBA32:
     case ekGRAY8:
     case ekFIMAGE:
-    cassert_default();
+        cassert_default();
     }
 
     return NULL;
@@ -942,7 +943,7 @@ Pixbuf *imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, con
     cassert_no_null(palette);
 
     buffer = pixbuf_create(width, height, ekRGBA32);
-    data = (uint32_t*)pixbuf_data(buffer);
+    data = (uint32_t *)pixbuf_data(buffer);
 
     if (stride == 0)
     {
@@ -1189,7 +1190,7 @@ static __INLINE bool_t i_is_gray_palette(const color_t *palette, const uint32_t 
 
 /*---------------------------------------------------------------------------*/
 
-#define i_color(r, g, b, a)\
+#define i_color(r, g, b, a) \
     (color_t)(((a) << 24) | ((b) << 16) | ((g) << 8) | (r))
 
 /*---------------------------------------------------------------------------*/

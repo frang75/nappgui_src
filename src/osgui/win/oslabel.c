@@ -11,14 +11,15 @@
 /* Operating System label */
 
 #include "oslabel.h"
+#include "oslabel_win.inl"
 #include "osgui.inl"
 #include "osgui_win.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "event.h"
-#include "font.h"
-#include "heap.h"
+#include "oscontrol_win.inl"
+#include "ospanel_win.inl"
+#include <draw2d/font.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -66,63 +67,63 @@ static bool_t i_is_mouse_sensible(const OSLabel *label)
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSLabel *label = (OSLabel*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSLabel *label = (OSLabel *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
     cassert_no_null(label);
 
     switch (uMsg)
     {
-        case WM_NCHITTEST:
-            if (i_is_mouse_sensible(label) == TRUE)
-                return HTCLIENT;
-            else
-                return HTTRANSPARENT;
+    case WM_NCHITTEST:
+        if (i_is_mouse_sensible(label) == TRUE)
+            return HTCLIENT;
+        else
+            return HTTRANSPARENT;
 
-        case WM_LBUTTONUP:
-            if (label->OnClick != NULL)
-            {
-                EvText params;
-                params.text = NULL;
-                listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvText, void);
-                return 0;
-            }
-            break;
-
-        case WM_MOUSELEAVE:
-            cassert(label->mouse_inside == TRUE);
-            label->mouse_inside = FALSE;
-            if (label->OnMouseExit != NULL)
-                listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
-
+    case WM_LBUTTONUP:
+        if (label->OnClick != NULL)
+        {
+            EvText params;
+            params.text = NULL;
+            listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvText, void);
             return 0;
+        }
+        break;
 
-        case WM_MOUSEMOVE:
+    case WM_MOUSELEAVE:
+        cassert(label->mouse_inside == TRUE);
+        label->mouse_inside = FALSE;
+        if (label->OnMouseExit != NULL)
+            listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
 
-            if (label->mouse_inside == FALSE)
+        return 0;
+
+    case WM_MOUSEMOVE:
+
+        if (label->mouse_inside == FALSE)
+        {
+            TRACKMOUSEEVENT track;
+            BOOL ok;
+            label->mouse_inside = TRUE;
+            track.cbSize = sizeof(TRACKMOUSEEVENT);
+            track.dwFlags = /*TME_HOVER | */ TME_LEAVE;
+            track.hwndTrack = label->control.hwnd;
+            track.dwHoverTime = HOVER_DEFAULT;
+            ok = TrackMouseEvent(&track);
+            cassert_unref(ok == TRUE, ok);
+
+            if (label->OnMouseEnter != NULL)
             {
-                TRACKMOUSEEVENT track;
-                BOOL ok;
-                label->mouse_inside = TRUE;
-                track.cbSize = sizeof(TRACKMOUSEEVENT);
-                track.dwFlags = /*TME_HOVER | */TME_LEAVE;
-                track.hwndTrack = label->control.hwnd;
-                track.dwHoverTime = HOVER_DEFAULT;
-                ok = TrackMouseEvent(&track);
-                cassert_unref(ok == TRUE, ok);
-
-                if (label->OnMouseEnter != NULL)
-                {
-                    POINTS point = MAKEPOINTS(lParam);
-                    EvMouse params;
-                    params.x = (real32_t)point.x;
-                    params.y = (real32_t)point.y;
-                    params.lx = params.x;
-                    params.ly = params.y;
-                    params.button = ENUM_MAX(gui_mouse_t);
-                    params.count = 0;
-                    listener_event(label->OnMouseEnter, ekGUI_EVENT_ENTER, label, &params, NULL, OSLabel, EvMouse, void);
-                }
+                POINTS point = MAKEPOINTS(lParam);
+                EvMouse params;
+                params.x = (real32_t)point.x;
+                params.y = (real32_t)point.y;
+                params.lx = params.x;
+                params.ly = params.y;
+                params.button = ENUM_MAX(gui_mouse_t);
+                params.count = 0;
+                listener_event(label->OnMouseEnter, ekGUI_EVENT_ENTER, label, &params, NULL, OSLabel, EvMouse, void);
             }
-            return 0;
+        }
+        return 0;
     }
 
     return CallWindowProc(label->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -138,14 +139,14 @@ OSLabel *oslabel_create(const uint32_t flags)
     dwStyle = i_style(ekLEFT, ekELLIPNONE);
     label = heap_new0(OSLabel);
     label->control.type = ekGUI_TYPE_LABEL;
-    label->font = _osgui_create_default_font();
+    label->font = osgui_create_default_font();
     label->mouse_inside = FALSE;
     label->align = ekLEFT;
     label->ellipsis = ekELLIPNONE;
     label->color = 0;
-    _oscontrol_init((OSControl*)label, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    _oscontrol_set_font((OSControl*)label, label->font);
-	return label;
+    _oscontrol_init((OSControl *)label, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_set_font((OSControl *)label, label->font);
+    return label;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -158,10 +159,7 @@ void oslabel_destroy(OSLabel **label)
     listener_destroy(&(*label)->OnClick);
     listener_destroy(&(*label)->OnMouseEnter);
     listener_destroy(&(*label)->OnMouseExit);
-
-    if ((*label)->bgbrush != NULL)
-        DeleteObject((*label)->bgbrush);
-
+    _oscontrol_destroy_brush(&(*label)->bgbrush);
     _oscontrol_destroy(&(*label)->control);
     heap_delete(label, OSLabel);
 }
@@ -198,7 +196,7 @@ void oslabel_OnExit(OSLabel *label, Listener *listener)
 void oslabel_text(OSLabel *label, const char_t *text)
 {
     cassert_no_null(label);
-    _oscontrol_set_text((OSControl*)label, text);
+    _oscontrol_set_text((OSControl *)label, text);
     InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
 
@@ -207,7 +205,7 @@ void oslabel_text(OSLabel *label, const char_t *text)
 void oslabel_font(OSLabel *label, const Font *font)
 {
     cassert_no_null(label);
-    _oscontrol_update_font((OSControl*)label, &label->font, font);
+    _oscontrol_update_font((OSControl *)label, &label->font, font);
     InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
 
@@ -237,7 +235,7 @@ void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis)
 
 void oslabel_color(OSLabel *label, const color_t color)
 {
-	cassert_no_null(label);
+    cassert_no_null(label);
     label->color = _oscontrol_colorref(color);
     InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
@@ -256,65 +254,56 @@ void oslabel_bgcolor(OSLabel *label, const color_t color)
 void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     cassert_no_null(label);
-    _oscontrol_text_bounds((OSControl*)label, text, label->font, refwidth, width, height);
+    _oscontrol_text_bounds((OSControl *)label, text, label->font, refwidth, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_attach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)label);
+    _ospanel_attach_control(panel, (OSControl *)label);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_detach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)label);
+    _ospanel_detach_control(panel, (OSControl *)label);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_visible(OSLabel *label, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl*)label, visible);
+    _oscontrol_set_visible((OSControl *)label, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_enabled(OSLabel *label, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl*)label, enabled);
+    _oscontrol_set_enabled((OSControl *)label, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_size(const OSLabel *label, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)label, width, height);
+    _oscontrol_get_size((const OSControl *)label, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)label, x, y);
+    _oscontrol_get_origin((const OSControl *)label, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)label, x, y, width, height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oslabel_detach_and_destroy(OSLabel **label, OSPanel *panel)
-{
-    cassert_no_null(label);
-    oslabel_detach(*label, panel);
-    oslabel_destroy(label);
+    _oscontrol_set_frame((OSControl *)label, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

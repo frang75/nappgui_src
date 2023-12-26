@@ -10,15 +10,15 @@
 
 /* Operating System native menu */
 
-#include "osgui_win.inl"
-#include "osmenuitem.inl"
-#include "oswindow.inl"
 #include "osmenu.h"
-#include "osmenu.inl"
-#include "arrpt.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
+#include "osmenu_win.inl"
+#include "osgui_win.inl"
+#include "osmenuitem_win.inl"
+#include "oswindow_win.inl"
+#include <core/arrpt.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
@@ -46,7 +46,7 @@ struct _osmenu_t
     OSWindow *window;
     bool_t is_popup;
     OSMenuItem *parent;
-    ArrPt(OSMenuItem) *items;
+    ArrPt(OSMenuItem) * items;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -69,9 +69,9 @@ void osmenu_destroy(OSMenu **menu)
 {
     BOOL ok = FALSE;
     int c;
-	cassert_no_null(menu);
-	cassert_no_null(*menu);
-	cassert_no_null((*menu)->hmenu);
+    cassert_no_null(menu);
+    cassert_no_null(*menu);
+    cassert_no_null((*menu)->hmenu);
     c = GetMenuItemCount((*menu)->hmenu);
     cassert(GetMenuItemCount((*menu)->hmenu) == 0);
     cassert(arrpt_size((*menu)->items, OSMenuItem) == 0);
@@ -87,7 +87,7 @@ void osmenu_destroy(OSMenu **menu)
 
 void osmenu_add_item(OSMenu *menu, OSMenuItem *item)
 {
-	cassert_no_null(menu);
+    cassert_no_null(menu);
     arrpt_append(menu->items, item, OSMenuItem);
     _osmenuitem_insert_in_hmenu(item, menu);
 }
@@ -98,7 +98,7 @@ void osmenu_delete_item(OSMenu *menu, OSMenuItem *item)
 {
     uint32_t pos = UINT32_MAX;
     bool_t ok;
-	cassert_no_null(menu);
+    cassert_no_null(menu);
     pos = arrpt_find(menu->items, item, OSMenuItem);
     arrpt_delete(menu->items, pos, NULL, OSMenuItem);
     ok = _osmenuitem_remove_from_hmenu(item, menu);
@@ -113,9 +113,8 @@ static void i_remove_all_items(OSMenu *menu)
     cassert_no_null(menu);
     cassert_no_null(menu->hmenu);
     n = (uint32_t)GetMenuItemCount(menu->hmenu);
-    arrpt_foreach(item, menu->items, OSMenuItem)
-        if (_osmenuitem_remove_from_hmenu(item, menu) == TRUE)
-            n0 += 1;
+    arrpt_foreach(item, menu->items, OSMenuItem) if (_osmenuitem_remove_from_hmenu(item, menu) == TRUE)
+        n0 += 1;
     arrpt_end();
 
     cassert_unref(n == n0, n);
@@ -222,7 +221,7 @@ void _osmenu_recompute(OSMenu *menu)
     i_add_all_items(menu);
     if (menu->window != NULL)
     {
-        HWND hwnd = ((OSControl*)menu->window)->hwnd;
+        HWND hwnd = ((OSControl *)menu->window)->hwnd;
         BOOL ok = DrawMenuBar(hwnd);
         cassert_unref(ok != 0, ok);
     }
@@ -261,17 +260,16 @@ void _osmenu_append_item(HMENU menu, const Font *font, const char_t *text, const
     int index;
     MENUITEMINFO info;
     //BOOL res;
-	cassert_no_null(font);
-	cassert_no_null(text);
-	unref(image);
-	cassert_no_null(owner);
+    cassert_no_null(font);
+    cassert_no_null(text);
+    unref(image);
+    cassert_no_null(owner);
     index = GetMenuItemCount(menu);
     info.cbSize = sizeof(MENUITEMINFO);
     info.fMask = MIIM_FTYPE | MIIM_DATA;
     info.fType = MFT_OWNERDRAW;
     info.dwItemData = (ULONG_PTR)owner;
 
-//    res = InsertMenuItem(menu, 0, TRUE, );
-	/*cassert(FALSE);*/
-
+    //    res = InsertMenuItem(menu, 0, TRUE, );
+    /*cassert(FALSE);*/
 }

@@ -1,1 +1,0 @@
-processDesktopApp(DrawBig "osapp" "")

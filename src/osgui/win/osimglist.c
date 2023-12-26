@@ -13,18 +13,18 @@
 #include "osimglist.inl"
 #include "osgui_win.inl"
 #include "osimg.inl"
-#include "arrpt.h"
-#include "cassert.h"
-#include "heap.h"
-#include "image.h"
-#include "ptr.h"
+#include <draw2d/image.h>
+#include <core/arrpt.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _osimglist_t
 {
     HIMAGELIST hlist;
     uint32_t img_width;
     uint32_t img_height;
-    ArrPt(Image) *images;
+    ArrPt(Image) * images;
 };
 
 /*---------------------------------------------------------------------------*/

@@ -17,18 +17,17 @@
 #include "image.inl"
 #include "image.h"
 #include "color.h"
-
-#include "arrpt.h"
-#include "arrst.h"
-#include "blib.h"
-#include "bmem.h"
-#include "cassert.h"
-#include "core.h"
-#include "dbindh.h"
 #include "font.h"
-#include "heap.h"
-#include "log.h"
-#include "strings.h"
+#include <core/arrpt.h>
+#include <core/arrst.h>
+#include <core/core.h>
+#include <core/dbindh.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <osbs/log.h>
+#include <sewer/blib.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
 
 typedef struct _icolor_t IColor;
 
@@ -40,14 +39,14 @@ struct _icolor_t
 
 DeclSt(IColor);
 
-#define i_WORD_TYPE_END         0
-#define i_WORD_TYPE_NEW_LINE    1
-#define i_WORD_TYPE_BLANCKS     2
-#define i_WORD_TYPE_TEXT        3
+#define i_WORD_TYPE_END 0
+#define i_WORD_TYPE_NEW_LINE 1
+#define i_WORD_TYPE_BLANCKS 2
+#define i_WORD_TYPE_TEXT 3
 
 static uint32_t i_NUM_USERS = 0;
-static ArrPt(String) *i_FONT_FAMILIES;
-static ArrSt(IColor) *i_INDEXED_COLORS;
+static ArrPt(String) * i_FONT_FAMILIES;
+static ArrSt(IColor) * i_INDEXED_COLORS;
 
 /*---------------------------------------------------------------------------*/
 
@@ -112,9 +111,7 @@ void draw2d_finish(void)
 
 uint32_t draw2d_register_font(const char_t *font_family)
 {
-    arrpt_foreach(family, i_FONT_FAMILIES, String)
-        if (str_cmp(family, font_family) == 0)
-            return family_i;
+    arrpt_foreach(family, i_FONT_FAMILIES, String) if (str_cmp(family, font_family) == 0) return family_i;
     arrpt_end();
 
     if (font_exists_family(font_family) == TRUE)
@@ -147,12 +144,11 @@ color_t color_indexed(const uint16_t index, const color_t color)
 
     cassert((uint8_t)(color >> 24) != 0);
 
-    arrst_foreach(ic, i_INDEXED_COLORS, IColor)
-        if (index == ic->index)
-        {
-            ic->color = color;
-            return color;
-        }
+    arrst_foreach(ic, i_INDEXED_COLORS, IColor) if (index == ic->index)
+    {
+        ic->color = color;
+        return color;
+    }
     arrst_end()
 
     {
@@ -170,12 +166,10 @@ color_t draw2d_get_indexed_color(const uint16_t index)
     if (index == 0)
         return kCOLOR_DEFAULT;
 
-    arrst_foreach(ic, i_INDEXED_COLORS, IColor)
-        if (ic->index == index)
-            return ic->color;
+    arrst_foreach(ic, i_INDEXED_COLORS, IColor) if (ic->index == index) return ic->color;
     arrst_end()
 
-    cassert(FALSE);
+        cassert(FALSE);
     return kCOLOR_DEFAULT;
 }
 
@@ -197,7 +191,7 @@ static __INLINE real32_t i_ceil(const real32_t n)
 static const char_t *i_jump_blanks(const char_t *str)
 {
     cassert_no_null(str);
-    for (;*str != '\0';)
+    for (; *str != '\0';)
     {
         if (*str == ' ' || *str == '\t' || *str == '\r')
         {
@@ -217,7 +211,7 @@ static const char_t *i_jump_blanks(const char_t *str)
 static const char_t *i_jump_not_blanks(const char_t *str)
 {
     cassert_no_null(str);
-    for (;*str != '\0';)
+    for (; *str != '\0';)
     {
         if (*str != ' ' && *str != '\t' && *str != '\r' && *str != '\0' && *str != '\n')
         {
@@ -321,7 +315,8 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
 
         next_text = i_next_word(ctext, &word_type);
 
-        switch (word_type) {
+        switch (word_type)
+        {
 
         case i_WORD_TYPE_END:
             if (current_width > .01f || num_lines == 0)
@@ -356,8 +351,7 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
             }
             break;
 
-        case i_WORD_TYPE_TEXT:
-        {
+        case i_WORD_TYPE_TEXT: {
             char_t word[256];
             real32_t word_width = 0.f, word_height = 0.f;
             register uint32_t size = (uint32_t)(next_text - ctext);
@@ -384,7 +378,7 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
             break;
         }
 
-        cassert_default();
+            cassert_default();
         }
 
         ctext = next_text;

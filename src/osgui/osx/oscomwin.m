@@ -10,13 +10,12 @@
 
 /* Operating System native common windows */
 
-#include "osgui_osx.inl"
 #include "oscomwin.h"
 #include "oscomwin.inl"
-#include "oscontrol.inl"
-#include "cassert.h"
-#include "event.h"
-#include "strings.h"
+#include "oscontrol_osx.inl"
+#include <core/event.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -43,7 +42,7 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
                 [array addObject:type];
         }
     }
-        
+
     [panel setAllowedContentTypes:array];
 }
 
@@ -60,7 +59,7 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
             NSString *str = [NSString stringWithUTF8String:(const char*)ftypes[i]];
             [array addObject:str];
         }
-        
+
         [panel setAllowedFileTypes:array];
     }
     else
@@ -91,7 +90,7 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
     {
         [open_panel setDirectoryURL:nil];
     }
-    
+
     #else
     unref(startdir);
     #endif
@@ -103,7 +102,7 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
         if (size == 1 && strcmp((const char*)ftypes[0], "..DIR..") == 0)
             dirsel = YES;
     }
-    
+
     i_set_ftypes(open_panel, ftypes, size);
     [open_panel setCanChooseFiles:!dirsel];
     [open_panel setCanChooseDirectories:dirsel];
@@ -159,7 +158,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     if (foropen == TRUE)
     {
         NSOpenPanel *open_panel = i_open_file(ftypes, size, start_dir);
-        
+
         #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
         {
             NSModalResponse ret = [open_panel runModal];
@@ -181,7 +180,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     else
     {
         NSSavePanel *save_panel = i_save_file(ftypes, size);
-        
+
         #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
         {
             NSModalResponse ret = [save_panel runModal];
@@ -235,7 +234,7 @@ static NSColorChoose *i_COLOR_CHOOSE = nil;
 void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, const real32_t y, const align_t halign, const align_t valign, const color_t current, color_t *colors, const uint32_t n, Listener *OnChange)
 {
     NSColorPanel *panel = [NSColorPanel sharedColorPanel];
-    
+
     if (str_empty_c(title) == FALSE)
         [panel setTitle:[NSString stringWithUTF8String:title]];
 
@@ -244,7 +243,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         [i_COLOR_CHOOSE release];
         i_COLOR_CHOOSE = nil;
     }
-    
+
     i_COLOR_CHOOSE = [NSColorChoose alloc];
     i_COLOR_CHOOSE->OnChange = OnChange;
     [panel setTarget:i_COLOR_CHOOSE];
@@ -253,7 +252,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     //[NSColorPanel setPickerMode:NSColorPanelModeRGB];
     [panel setColor:_oscontrol_color(current)];
     [panel setShowsAlpha:YES];
-    
+
     if ([panel isVisible] == NO)
     {
         NSPoint origin = NSMakePoint((CGFloat)x, (CGFloat)y);
@@ -273,7 +272,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
                 break;
             cassert_default();
             }
-            
+
             switch (valign) {
             case ekTOP:
             case ekJUSTIFY:
@@ -292,9 +291,9 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         [panel setFrameOrigin:origin];
         [panel makeKeyAndOrderFront:(NSWindow*)parent];
     }
-    
 
-        
+
+
 
 //    ret = [NSApp runModalForWindow:panel];
 
@@ -389,7 +388,7 @@ void oscommon_file(
 
         // 10.5
     //    cassert(FALSE);
-        
+
         [save_panel beginSheetModalForWindow:(NSWindow*)owner_window completionHandler:^(NSInteger result)
         {
             if (result == NSFileHandlingPanelOKButton)

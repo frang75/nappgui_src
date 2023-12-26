@@ -15,13 +15,12 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guictx.h"
-
-#include "cassert.h"
-#include "event.h"
-#include "ptr.h"
-#include "objh.h"
-#include "s2d.h"
+#include <draw2d/guictx.h>
+#include <geom2d/s2d.h>
+#include <core/event.h>
+#include <core/objh.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _slider_t
 {
@@ -59,7 +58,7 @@ static void i_OnSliderMoved(Slider *slider, Event *e)
 
     if (p->pos != slider->current_pos)
     {
-        ((EvSlider*)p)->incr = p->pos - slider->current_pos;
+        ((EvSlider *)p)->incr = p->pos - slider->current_pos;
         slider->current_pos = p->pos;
     }
 
@@ -214,4 +213,3 @@ void slider_set_tickmarks(Slider *slider, const uint32_t num_tickmarks, const bo
     cassert_no_nullf(slider->component.context->func_slider_set_tickmarks);
     slider->component.context->func_slider_set_tickmarks(slider->component.ositem, num_tickmarks, tickmarks_at_left_top);
 }*/
-

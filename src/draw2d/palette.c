@@ -11,9 +11,9 @@
 /* Color palette */
 
 #include "palette.h"
-#include "cassert.h"
 #include "color.h"
-#include "heap.h"
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 struct _palette_t
 {
@@ -26,7 +26,7 @@ struct _palette_t
 Palette *palette_create(const uint32_t size)
 {
     uint32_t n = sizeof32(Palette) + size * sizeof32(color_t);
-    Palette *palette = (Palette*)heap_malloc(n, "Palette");
+    Palette *palette = (Palette *)heap_malloc(n, "Palette");
     palette->flags = 0;
     palette->size = (uint16_t)size;
     return palette;
@@ -73,7 +73,7 @@ Palette *palette_cga2(const bool_t mode, const bool_t intense)
             colors[3] = color_rgb(0xaa, 0xaa, 0xaa);
         }
     }
-    
+
     return palette;
 }
 
@@ -85,7 +85,7 @@ Palette *palette_ega4(void)
     color_t *colors = palette_colors(palette);
     colors[0] = color_rgb(0x00, 0x00, 0x00);
     colors[1] = color_rgb(0x00, 0x00, 0xaa);
-    colors[2] = color_rgb(0x00, 0xaa, 0x00);        
+    colors[2] = color_rgb(0x00, 0xaa, 0x00);
     colors[3] = color_rgb(0x00, 0xaa, 0xaa);
     colors[4] = color_rgb(0xaa, 0x00, 0x00);
     colors[5] = color_rgb(0xaa, 0x00, 0xaa);
@@ -122,13 +122,13 @@ Palette *palette_rgb8(void)
 
         if (g == 7)
             g = 0xFF;
-        else 
+        else
             g *= 0x24;
 
         b *= 0x55;
 
         colors[i] = color_rgb(r, g, b);
-    }    
+    }
     return palette;
 }
 
@@ -210,9 +210,9 @@ void palette_destroy(Palette **palette)
 {
     uint32_t n;
     cassert_no_null(palette);
-    cassert_no_null(*palette);           
-    n = sizeof32(Palette) + (*palette)->size *  sizeof32(color_t);
-    heap_free((byte_t**)palette, n, "Palette");
+    cassert_no_null(*palette);
+    n = sizeof32(Palette) + (*palette)->size * sizeof32(color_t);
+    heap_free((byte_t **)palette, n, "Palette");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,7 +228,7 @@ uint32_t palette_size(const Palette *palette)
 color_t *palette_colors(Palette *palette)
 {
     cassert_no_null(palette);
-    return (color_t*)(((byte_t*)palette) + sizeof(Palette));
+    return (color_t *)(((byte_t *)palette) + sizeof(Palette));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -236,5 +236,5 @@ color_t *palette_colors(Palette *palette)
 const color_t *palette_ccolors(const Palette *palette)
 {
     cassert_no_null(palette);
-    return (color_t*)(((byte_t*)palette) + sizeof(Palette));
+    return (color_t *)(((byte_t *)palette) + sizeof(Palette));
 }

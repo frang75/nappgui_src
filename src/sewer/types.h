@@ -8,7 +8,7 @@
  *
  */
 
-/* Basic types utils */ 
+/* Basic types utils */
 
 #include "sewer.hxx"
 

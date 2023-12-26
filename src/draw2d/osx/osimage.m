@@ -10,20 +10,20 @@
 
 /* Apple OSX image support */
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
+#include "draw2d_osx.ixx"
 
 #include "image.inl"
 #include "dctxh.h"
-#include "bmem.h"
-#include "buffer.h"
-#include "cassert.h"
-#include "heap.h"
 #include "pixbuf.h"
-#include "ptr.h"
-#include "stream.h"
-#include "draw2d_osx.ixx"
+#include <core/buffer.h>
+#include <core/heap.h>
+#include <core/stream.h>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -37,14 +37,14 @@
 
 void osimage_alloc_globals(void)
 {
-    
+
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osimage_dealloc_globals(void)
 {
-    
+
 }
 
 /*---------------------------------------------------------------------------*/
@@ -80,9 +80,9 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     cassert_default();
     }
 
-    irep = [[NSBitmapImageRep alloc] 
+    irep = [[NSBitmapImageRep alloc]
                         /* Allocates memory for pixel data */
-                        initWithBitmapDataPlanes:nil 
+                        initWithBitmapDataPlanes:nil
                         pixelsWide:(NSInteger)width
                         pixelsHigh:(NSInteger)height
                         bitsPerSample:8
@@ -93,14 +93,14 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
                         bitmapFormat:(NSBitmapFormat)0
                         bytesPerRow:(NSInteger)width * (bits_per_pixel >> 3)
                         bitsPerPixel:bits_per_pixel];
-    
+
     image = [[NSImage alloc] initWithSize:NSMakeSize((CGFloat)width, (CGFloat)height)];
     [image addRepresentation:irep];
     cassert([image retainCount] == 1);
 
     if (pixel_data != NULL)
     {
-        unsigned char *planes[5];        
+        unsigned char *planes[5];
         [irep getBitmapDataPlanes:planes];
         cassert_no_null(planes[0]);
         cassert(planes[1] == NULL);
@@ -109,7 +109,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         cassert(planes[4] == NULL);
         memcpy((void*)planes[0], (const void*)pixel_data, (size_t)(((NSUInteger)bits_per_pixel >> 3) * width * height));
     }
-    
+
     [irep release];
     return (OSImage*)image;
 }
@@ -161,10 +161,10 @@ OSImage *osimage_create_from_type(const char_t *file_type)
 #else
     image = [[NSWorkspace sharedWorkspace] iconForFileType:nsfile_type];
 #endif
-    
+
     if (image != nil)
         [image retain];
-    
+
     return (OSImage*)image;
 }
 
@@ -219,7 +219,7 @@ OSImage *osimage_from_context(DCtx **ctx)
     cassert_no_null((*ctx)->context);
     pixdata = (byte_t*)CGBitmapContextGetData((*ctx)->context);
     width = (uint32_t)CGBitmapContextGetWidth((*ctx)->context);
-    height = (uint32_t)CGBitmapContextGetHeight((*ctx)->context);    
+    height = (uint32_t)CGBitmapContextGetHeight((*ctx)->context);
     image = osimage_create_from_pixels(width, height, ekRGBA32, pixdata);
     heap_free(&pixdata, width * height * 4, "OSXBitmapContextData");
     dctx_destroy(ctx);
@@ -245,10 +245,10 @@ static bool_t i_gray_image(const byte_t *data, const uint32_t width, const uint3
     {
         if (data[0] != data[1] || data[0] != data[2])
             return FALSE;
-        
+
         data += bpp;
     }
-    
+
     return TRUE;
 }
 
@@ -261,10 +261,10 @@ static bool_t i_has_alpha(const byte_t *data, const uint32_t width, const uint32
     {
         if (data[3] != 255)
             return TRUE;
-        
+
         data += 4;
     }
-    
+
     return FALSE;
 }
 
@@ -316,10 +316,10 @@ static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const u
                 cassert(pdata[0] == data[2]);
                 pdata += 1;
                 data += bpp;
-            }            
+            }
         }
     }
-    
+
     return pixels;
 }
 
@@ -331,10 +331,8 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
     NSInteger pixels_wide = 0;
     NSInteger pixels_high = 0;
     NSInteger bits_per_pixel = 0;
-    NSImageRep *rep;
     cassert_no_null(image);
     cassert([[(NSImage*)image representations] count] == 1);
-    rep = [[(NSImage*)image representations] objectAtIndex:0];
     cassert([[[(NSImage*)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
     irep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
     cassert_no_null(irep);
@@ -343,15 +341,15 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 	bits_per_pixel = [irep bitsPerPixel];
     ptr_assign(width, (uint32_t)pixels_wide);
     ptr_assign(height, (uint32_t)pixels_high);
-    
+
     if (format != NULL || pixels != NULL)
     {
         pixformat_t lformat = ENUM_MAX(pixformat_t);
         unsigned char *pixel_data_planes[5] = {NULL, NULL, NULL, NULL, NULL};
         cassert([irep numberOfPlanes] == 1);
-        
+
         [irep getBitmapDataPlanes:pixel_data_planes];
-        
+
         if (bits_per_pixel == 8)
         {
             cassert([irep samplesPerPixel] == 1);
@@ -375,9 +373,9 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
             else
                 lformat = ekRGB24;
         }
-                
+
         ptr_assign(format, lformat);
-        
+
         if (pixels != NULL)
         {
             if (lformat != ENUM_MAX(pixformat_t))
@@ -486,10 +484,10 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
     current_frame = [irep valueForProperty:@"NSImageCurrentFrame"];
     [irep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
     frame = [irep valueForProperty:@"NSImageCurrentFrameDuration"];
-    
+
     if (current_frame != nil)
         [irep setProperty:NSImageCurrentFrame withValue:current_frame];
-    
+
     if (frame != nil)
     {
         *frame_length = (real32_t)[frame floatValue];
@@ -529,7 +527,7 @@ void osimage_draw(const OSImage *image, void *view, const real32_t x, const real
     unref(view);
 #if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     [(NSImage*)image drawInRect:rect fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0f];
-#else    
+#else
     [(NSImage*)image drawInRect:rect fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0f];
 #endif
 }

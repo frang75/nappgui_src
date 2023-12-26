@@ -10,26 +10,26 @@
 
 /* Basic threading services */
 
-#include "bthread.h"
 #include "osbs.inl"
-#include "cassert.h"
+#include "bthread.h"
+#include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <Windows.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 /*---------------------------------------------------------------------------*/
 
 Thread *bthread_create_imp(FPtr_thread_main thmain, void *data)
 {
-    HANDLE thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)thmain, (LPVOID)data, 0, NULL);
+    HANDLE thread = CreateThread(NULL, 0, cast_func_ptr(thmain, LPTHREAD_START_ROUTINE), (LPVOID)data, 0, NULL);
     cassert_no_null(thread);
     _osbs_thread_alloc();
-    return (Thread*)thread;
+    return (Thread *)thread;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -66,7 +66,7 @@ uint32_t bthread_wait(Thread *thread)
 {
     DWORD dwWaitResult = 0;
     cassert_no_null(thread);
-    dwWaitResult = WaitForSingleObject((HANDLE)thread, INFINITE);    
+    dwWaitResult = WaitForSingleObject((HANDLE)thread, INFINITE);
     if (dwWaitResult == WAIT_OBJECT_0)
     {
         DWORD exit_code = 0;
@@ -93,7 +93,7 @@ bool_t bthread_finish(Thread *thread, uint32_t *code)
 {
     DWORD res = 0;
     cassert_no_null(thread);
-    res = WaitForSingleObject((HANDLE)thread, 0);    
+    res = WaitForSingleObject((HANDLE)thread, 0);
     if (res == WAIT_OBJECT_0)
     {
         if (code != NULL)

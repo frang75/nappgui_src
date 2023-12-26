@@ -15,19 +15,18 @@
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guictx.h"
-
-#include "arrpt.h"
-#include "arrst.h"
-#include "cassert.h"
-#include "event.h"
-#include "font.h"
-#include "image.h"
-#include "ptr.h"
-#include "objh.h"
-#include "v2d.h"
-#include "s2d.h"
-#include "strings.h"
+#include <draw2d/font.h>
+#include <draw2d/guictx.h>
+#include <draw2d/image.h>
+#include <geom2d/v2d.h>
+#include <geom2d/s2d.h>
+#include <core/arrpt.h>
+#include <core/arrst.h>
+#include <core/event.h>
+#include <core/objh.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 typedef struct _pelem_t PElem;
 
@@ -43,7 +42,7 @@ struct _popup_t
     GuiComponent component;
     S2Df size;
     ResId ttipid;
-    ArrSt(PElem) *elems;
+    ArrSt(PElem) * elems;
     Listener *OnChange;
 };
 
@@ -83,7 +82,7 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
     {
         const PElem *elem = arrst_get(popup->elems, params->index, PElem);
         cassert(params->text == NULL);
-        ((EvButton*)params)->text = tc(elem->text);
+        ((EvButton *)params)->text = tc(elem->text);
         listener_pass_event(popup->OnChange, event, popup, PopUp);
     }
 }
@@ -222,7 +221,7 @@ uint32_t _popup_size(const PopUp *popup)
 
 void _popup_list_height(PopUp *popup, const uint32_t elems)
 {
-	popup_list_height(popup, elems);
+    popup_list_height(popup, elems);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -280,19 +279,20 @@ void _popup_dimension(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *
         if (arrst_size(popup->elems, PElem) > 0)
         {
             arrst_foreach(elem, popup->elems, PElem)
-                real32_t width, height;
-                popup->component.context->func_popup_bounds(popup->component.ositem, tc(elem->text), &width, &height);
-                if (width > popup->size.width)
-                    popup->size.width = width;
-                if (height > popup->size.height)
-                    popup->size.height = height;
+                real32_t width,
+                height;
+            popup->component.context->func_popup_bounds(popup->component.ositem, tc(elem->text), &width, &height);
+            if (width > popup->size.width)
+                popup->size.width = width;
+            if (height > popup->size.height)
+                popup->size.height = height;
             arrst_end();
         }
         else
         {
             popup->component.context->func_popup_bounds(popup->component.ositem, "    ", &popup->size.width, &popup->size.height);
         }
-        
+
         *dim0 = popup->size.width;
     }
     else
@@ -309,7 +309,7 @@ void _popup_locale(PopUp *popup)
     cassert_no_null(popup);
     arrst_foreach(elem, popup->elems, PElem)
         const char_t *text = _gui_respack_text(elem->resid, NULL);
-        str_upd(&elem->text, text);
-        popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
+    str_upd(&elem->text, text);
+    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
     arrst_end();
 }

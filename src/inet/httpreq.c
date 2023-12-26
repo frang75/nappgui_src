@@ -13,14 +13,13 @@
 #include "httpreq.h"
 #include "oshttpreq.inl"
 #include "url.h"
-#include "arrst.h"
-#include "bsocket.h"
-#include "cassert.h"
-#include "heap.h"
-#include "ptr.h"
-#include "stream.h"
-#include "strings.h"
-#include "unicode.h"
+#include <core/arrst.h>
+#include <core/heap.h>
+#include <core/stream.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
+#include <sewer/unicode.h>
 
 struct _http_t
 {
@@ -32,7 +31,7 @@ struct _http_t
     uint32_t rcode;
     String *rprotocol;
     String *rmsg;
-    ArrSt(Field) *headers;
+    ArrSt(Field) * headers;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -106,11 +105,9 @@ void http_add_header(Http *http, const char_t *name, const char_t *value)
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_field(ArrSt(Field) *fields, const char_t *name)
+static const char_t *i_field(ArrSt(Field) * fields, const char_t *name)
 {
-    arrst_foreach(field, fields, Field)
-        if (str_equ_nocase(tc(field->name), name) == TRUE)
-            return tc(field->value);
+    arrst_foreach(field, fields, Field) if (str_equ_nocase(tc(field->name), name) == TRUE) return tc(field->value);
     arrst_end();
     return NULL;
 }
@@ -167,55 +164,56 @@ static bool_t i_response(Http *http)
                 stm_lines(line, stm)
 
                     if (str_empty_c(line) == FALSE)
-                    {
-                        /* The headers could contain several responses (redirection)
+                {
+                    /* The headers could contain several responses (redirection)
                         We get the last one */
-                        if (str_str(line, ":") == NULL)
-                        {
-                            const char_t *st = line;
-                            char_t code[64];
-                            uint32_t i = 0;
+                    if (str_str(line, ":") == NULL)
+                    {
+                        const char_t *st = line;
+                        char_t code[64];
+                        uint32_t i = 0;
 
-                            str_destopt(&http->rprotocol);
-                            str_destopt(&http->rmsg);
+                        str_destopt(&http->rprotocol);
+                        str_destopt(&http->rmsg);
 
-                            while (*line != ' ') line++;
-                            http->rprotocol = str_cn(st, (uint32_t)(line - st));
-
+                        while (*line != ' ')
                             line++;
-                            while(*line != ' ' && *line != '\0')
-                            {
-                                code[i] = *line;
-                                line++;
-                                i++;
-                            }
+                        http->rprotocol = str_cn(st, (uint32_t)(line - st));
 
-                            code[i] = '\0';
+                        line++;
+                        while (*line != ' ' && *line != '\0')
+                        {
+                            code[i] = *line;
+                            line++;
+                            i++;
+                        }
 
-                            http->rcode = str_to_u32(code, 10, NULL);
+                        code[i] = '\0';
 
-                            if (*line != '\0')
-                            {
-                                line++;
-                                http->rmsg = str_c(line);
-                            }
-                            else
-                            {
-                                http->rmsg = str_c("");
-                            }
+                        http->rcode = str_to_u32(code, 10, NULL);
 
-                            arrst_clear(http->headers, i_remove_field, Field);
+                        if (*line != '\0')
+                        {
+                            line++;
+                            http->rmsg = str_c(line);
                         }
                         else
                         {
-                            Field *header = arrst_new(http->headers, Field);
-                            str_split_trim(line, ":", &header->name, &header->value);
+                            http->rmsg = str_c("");
                         }
+
+                        arrst_clear(http->headers, i_remove_field, Field);
                     }
+                    else
+                    {
+                        Field *header = arrst_new(http->headers, Field);
+                        str_split_trim(line, ":", &header->name, &header->value);
+                    }
+                }
 
                 stm_next(line, stm)
 
-                stm_close(&stm);
+                    stm_close(&stm);
                 return TRUE;
             }
             else
@@ -239,7 +237,7 @@ static bool_t i_response(Http *http)
 
 uint32_t http_response_status(const Http *http)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
         return http->rcode;
     else
         return UINT32_MAX;
@@ -249,7 +247,7 @@ uint32_t http_response_status(const Http *http)
 
 const char_t *http_response_protocol(const Http *http)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
         return tc(http->rprotocol);
     else
         return "";
@@ -259,7 +257,7 @@ const char_t *http_response_protocol(const Http *http)
 
 const char_t *http_response_message(const Http *http)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
         return tc(http->rmsg);
     else
         return "";
@@ -269,7 +267,7 @@ const char_t *http_response_message(const Http *http)
 
 uint32_t http_response_size(const Http *http)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
         return arrst_size(http->headers, Field);
     else
         return 0;
@@ -279,7 +277,7 @@ uint32_t http_response_size(const Http *http)
 
 const char_t *http_response_name(const Http *http, const uint32_t index)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
     {
         const Field *field = arrst_get(http->headers, index, Field);
         return tc(field->name);
@@ -294,7 +292,7 @@ const char_t *http_response_name(const Http *http, const uint32_t index)
 
 const char_t *http_response_value(const Http *http, const uint32_t index)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
     {
         const Field *field = arrst_get(http->headers, index, Field);
         return tc(field->value);
@@ -309,7 +307,7 @@ const char_t *http_response_value(const Http *http, const uint32_t index)
 
 const char_t *http_response_header(const Http *http, const char_t *name)
 {
-    if (i_response((Http*)http) == TRUE)
+    if (i_response((Http *)http) == TRUE)
     {
         const char_t *value = i_field(http->headers, name);
         if (value != NULL)

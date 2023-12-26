@@ -13,16 +13,20 @@
 #include "osview.h"
 #include "osview.inl"
 #include "osgui.inl"
-#include "osglobals.inl"
-#include "oscontrol.inl"
 #include "oslistener.inl"
-#include "ospanel.inl"
-#include "ossplit.inl"
-#include "cassert.h"
-#include "dctxh.h"
-#include "event.h"
-#include "heap.h"
-#include "strings.h"
+#include "osglobals_gtk.inl"
+#include "oscontrol_gtk.inl"
+#include "ospanel_gtk.inl"
+#include "osscroll_gtk.inl"
+#include "ossplit_gtk.inl"
+#include "oswindow_gtk.inl"
+#include "osscrolls.inl"
+#include <draw2d/dctxh.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <sewer/bmath.h>
+#include <sewer/cassert.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -34,26 +38,24 @@ struct _osview_t
     DCtx *ctx;
     uint32_t flags;
     GtkWidget *darea;
-    GtkWidget *hscroll;
-    GtkWidget *vscroll;
-    GtkAdjustment *hadjust;
-    GtkAdjustment *vadjust;
+    OSScrolls *scroll;
     OSControl *capture;
-    bool_t realized;
     real32_t area_width;
     real32_t area_height;
     real32_t clip_width;
     real32_t clip_height;
     ViewListeners listeners;
+    GtkCssProvider *border_color;
     Listener *OnFocus;
-    Listener *OnNotify;
+    Listener *OnResignFocus;
+    Listener *OnAcceptFocus;
     Listener *OnOverlay;
 };
 
 /*---------------------------------------------------------------------------*/
 
-static const gint i_BORDER_HPADDING = 1;
-static const gint i_BORDER_VPADDING = 2;
+static const gint i_FRAME_HPADDING = 2;
+static const gint i_FRAME_VPADDING = 2;
 
 /*---------------------------------------------------------------------------*/
 
@@ -69,33 +71,11 @@ static gboolean i_OnConfig(GtkWidget *widget, GdkEventConfigure *event, OSView *
             uint32_t w = (uint32_t)gtk_widget_get_allocated_width(widget);
             uint32_t h = (uint32_t)gtk_widget_get_allocated_height(widget);
             if (w != view->clip_width || h != view->clip_height)
-                dctx_update_view(view->ctx, (void*)widget);
+                dctx_update_view(view->ctx, (void *)widget);
         }
     }
 
     return TRUE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_scroller_position(OSView *view)
-{
-    if (view->clip_width > 0 && view->clip_height > 0)
-    {
-        if (view->hscroll != NULL)
-        {
-            gint scroll_height = (gint)osglobals_scroll_height();
-            gtk_layout_move(GTK_LAYOUT(view->darea), view->hscroll, 0, (gint)view->clip_height - scroll_height);
-            gtk_widget_set_size_request(view->hscroll, (gint)view->clip_width, scroll_height);
-        }
-
-        if (view->vscroll != NULL)
-        {
-            gint scroll_width = (gint)osglobals_scroll_width();
-            gtk_layout_move(GTK_LAYOUT(view->darea), view->vscroll, (gint)view->clip_width - scroll_width, 0);
-            gtk_widget_set_size_request(view->vscroll, scroll_width, (gint)view->clip_height);
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -110,11 +90,11 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
         params.width = view->clip_width;
         params.height = view->clip_height;
 
-        if (view->hadjust != NULL)
-            params.x = (real32_t)(int)gtk_adjustment_get_value(view->hadjust);
-
-        if (view->vadjust != NULL)
-            params.y = (real32_t)(int)gtk_adjustment_get_value(view->vadjust);
+        if (view->scroll != NULL)
+        {
+            params.x = (real32_t)osscrolls_x_pos(view->scroll);
+            params.y = (real32_t)osscrolls_y_pos(view->scroll);
+        }
 
         if (view->ctx == NULL)
             view->ctx = dctx_create();
@@ -122,7 +102,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
         params.ctx = view->ctx;
 
         dctx_set_gcontext(view->ctx, cr, (uint32_t)view->clip_width, (uint32_t)view->clip_height, params.x, params.y, 0, TRUE);
-        _oslistener_redraw((OSControl*)view, &params, &view->listeners);
+        _oslistener_redraw((OSControl *)view, &params, &view->listeners);
         dctx_unset_gcontext(view->ctx);
 
         if (view->OnOverlay != NULL)
@@ -144,10 +124,10 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
         params.ctx = NULL;
         cassert(view->area_width == view->clip_width);
         cassert(view->area_height == view->clip_height);
-        _oslistener_redraw((OSControl*)view, &params, &view->listeners);
+        _oslistener_redraw((OSControl *)view, &params, &view->listeners);
     }
 
-    /* Important! Draw the scrollbars */
+    /* Important! Return false for draw the scrollbars */
     return FALSE;
 }
 
@@ -165,7 +145,7 @@ static gboolean i_OnRender(GtkGLArea *widget, GdkGLContext *glctx, OSView *view)
     params.y = 0;
     params.width = (real32_t)gtk_widget_get_allocated_width(GTK_WIDGET(widget));
     params.height = (real32_t)gtk_widget_get_allocated_height(GTK_WIDGET(widget));
-    _oslistener_redraw((OSControl*)view, &params, &view->listeners);
+    _oslistener_redraw((OSControl *)view, &params, &view->listeners);
     return TRUE;
 }
 
@@ -186,7 +166,9 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSView *view)
        Only we accept the motion over scroll window */
     if ((int)view->clip_width == w && (int)view->clip_height == h)
     {
-        _oslistener_mouse_moved((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
+        real32_t scroll_x = view->scroll ? (real32_t)osscrolls_x_pos(view->scroll) : 0;
+        real32_t scroll_y = view->scroll ? (real32_t)osscrolls_y_pos(view->scroll) : 0;
+        _oslistener_mouse_moved((OSControl *)view, event, scroll_x, scroll_y, &view->listeners);
     }
 
     return TRUE;
@@ -196,10 +178,16 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSView *view)
 
 static gboolean i_OnEnter(GtkWidget *widget, GdkEventCrossing *event, OSView *view)
 {
+    cassert_no_null(event);
+    cassert_no_null(view);
     cassert(event->type == GDK_ENTER_NOTIFY);
-    if (event->mode == GDK_CROSSING_NORMAL)
-        _oslistener_mouse_enter((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
     unref(widget);
+    if (event->mode == GDK_CROSSING_NORMAL)
+    {
+        real32_t scroll_x = view->scroll ? (real32_t)osscrolls_x_pos(view->scroll) : 0;
+        real32_t scroll_y = view->scroll ? (real32_t)osscrolls_y_pos(view->scroll) : 0;
+        _oslistener_mouse_enter((OSControl *)view, event, scroll_x, scroll_y, &view->listeners);
+    }
     return TRUE;
 }
 
@@ -207,10 +195,12 @@ static gboolean i_OnEnter(GtkWidget *widget, GdkEventCrossing *event, OSView *vi
 
 static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSView *view)
 {
+    cassert_no_null(event);
+    cassert_no_null(view);
     cassert(event->type == GDK_LEAVE_NOTIFY);
-    if (event->mode == GDK_CROSSING_NORMAL)
-        _oslistener_mouse_exit((OSControl*)view, event, &view->listeners);
     unref(widget);
+    if (event->mode == GDK_CROSSING_NORMAL)
+        _oslistener_mouse_exit((OSControl *)view, event, &view->listeners);
     return TRUE;
 }
 
@@ -218,33 +208,49 @@ static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSView *vie
 
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSView *view)
 {
-    if (view->capture != NULL)
+    cassert_no_null(view);
+    cassert_no_null(event);
+    unref(widget);
+    if (event->button == 1)
     {
-        if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
+        if (_oswindow_mouse_down((OSControl *)view) == TRUE)
         {
-            _ossplit_OnPress((OSSplit*)view->capture, event);
+            if (view->capture != NULL)
+            {
+                if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
+                {
+                    _ossplit_OnPress((OSSplit *)view->capture, event);
+                    return TRUE;
+                }
+            }
+        }
+        else
+        {
+            return TRUE;
         }
     }
-    else
+
     {
-        gboolean can_focus = FALSE;
-
-        g_object_get(G_OBJECT(widget), "can-focus", &can_focus, NULL);
-        if (can_focus == TRUE)
-            gtk_widget_grab_focus(widget);
-
-        _oslistener_mouse_down((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
+        real32_t scroll_x = view->scroll ? (real32_t)osscrolls_x_pos(view->scroll) : 0;
+        real32_t scroll_y = view->scroll ? (real32_t)osscrolls_y_pos(view->scroll) : 0;
+        _oslistener_mouse_down((OSControl *)view, event, scroll_x, scroll_y, &view->listeners);
     }
 
-    return TRUE;
+    /* Propagate the event */
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSView *view)
 {
-    _oslistener_mouse_up((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
+    real32_t scroll_x = 0.f;
+    real32_t scroll_y = 0.f;
+    cassert_no_null(view);
     unref(widget);
+    scroll_x = view->scroll ? (real32_t)osscrolls_x_pos(view->scroll) : 0;
+    scroll_y = view->scroll ? (real32_t)osscrolls_y_pos(view->scroll) : 0;
+    _oslistener_mouse_up((OSControl *)view, event, scroll_x, scroll_y, &view->listeners);
     return TRUE;
 }
 
@@ -252,15 +258,25 @@ static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSView *vi
 
 static gboolean i_OnWheel(GtkWidget *widget, GdkEventScroll *event, OSView *view)
 {
+    real32_t scroll_x = 0.f;
+    real32_t scroll_y = 0.f;
     cassert_no_null(view);
+    cassert_no_null(event);
     unref(widget);
-    if (view->vscroll != NULL)
+
+    if (view->scroll != NULL)
     {
-        if (gtk_widget_get_realized(view->vscroll) == TRUE)
-            gtk_widget_event(view->vscroll, (GdkEvent*)event);
+        gui_scroll_t ev = osscroll_wheel_event(event);
+        if (ev != ENUM_MAX(gui_scroll_t))
+        {
+            if (osscrolls_event(view->scroll, ekGUI_VERTICAL, ev, FALSE) == TRUE)
+                gtk_widget_queue_draw(view->darea);
+        }
     }
 
-    _oslistener_scroll_whell((OSControl*)view, event, view->hadjust, view->vadjust, &view->listeners);
+    scroll_x = view->scroll ? (real32_t)osscrolls_x_pos(view->scroll) : 0;
+    scroll_y = view->scroll ? (real32_t)osscrolls_y_pos(view->scroll) : 0;
+    _oslistener_scroll_whell((OSControl *)view, event, scroll_x, scroll_y, &view->listeners);
     return FALSE;
 }
 
@@ -268,36 +284,30 @@ static gboolean i_OnWheel(GtkWidget *widget, GdkEventScroll *event, OSView *view
 
 static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSView *view)
 {
+    cassert_no_null(view);
+    cassert_no_null(event);
     unref(widget);
 
     /* TAB Alt-TAB Navigation */
     if (event->keyval == GDK_KEY_Tab || event->keyval == GDK_KEY_ISO_Left_Tab)
         return FALSE;
 
-    return (gboolean)_oslistener_key_down((OSControl*)view, event, &view->listeners);
+    return (gboolean)_oslistener_key_down((OSControl *)view, event, &view->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static gboolean i_OnKeyRelease(GtkWidget *widget, GdkEventKey *event, OSView *view)
 {
+    cassert_no_null(view);
+    cassert_no_null(event);
     unref(widget);
 
     /* TAB Alt-TAB Navigation */
     if (event->keyval == GDK_KEY_Tab || event->keyval == GDK_KEY_ISO_Left_Tab)
         return FALSE;
 
-    return (gboolean)_oslistener_key_up((OSControl*)view, event, &view->listeners);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnScroll(GtkRange *range, OSView *view)
-{
-    unref(range);
-    cassert_no_null(view);
-    cassert_no_null(view->darea);
-    gtk_widget_queue_draw(view->darea);
+    return (gboolean)_oslistener_key_up((OSControl *)view, event, &view->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -312,7 +322,7 @@ OSView *osview_create(const uint32_t flags)
     if ((view->flags & ekVIEW_OPENGL) == 0)
     {
         /* GtkLayout --> Blank container (similar to GtkDrawingArea) but accepts children widgets */
-        if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
+        if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
         {
             area = gtk_layout_new(NULL, NULL);
         }
@@ -328,46 +338,29 @@ OSView *osview_create(const uint32_t flags)
     /* Creating a OpenGL-based drawing area */
     else
     {
-    #if GTK_CHECK_VERSION(3, 16, 0)
+#if GTK_CHECK_VERSION(3, 16, 0)
         area = gtk_gl_area_new();
         g_signal_connect(area, "render", G_CALLBACK(i_OnRender), (gpointer)view);
-
-    #else
+#else
         cassert(FALSE);
-
-    #endif
+#endif
     }
 
     /* DrawingArea or Layout have their own GDK window for event listeners */
     cassert(gtk_widget_get_has_window(area) == TRUE);
     top = area;
 
-    /* Horizontal scrollbar */
-    if (flags & ekVIEW_HSCROLL)
-    {
-        view->hscroll = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL);
-        view->hadjust = gtk_range_get_adjustment(GTK_RANGE(view->hscroll));
-        g_signal_connect(view->hscroll, "value-changed", G_CALLBACK(i_OnScroll), (gpointer)view);
-        gtk_layout_put(GTK_LAYOUT(area), view->hscroll, 0, 0);
-    }
-
-    /* Vertical scrollbar */
-    if (flags & ekVIEW_VSCROLL)
-    {
-        view->vscroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
-        view->vadjust = gtk_range_get_adjustment(GTK_RANGE(view->vscroll));
-        g_signal_connect(view->vscroll, "value-changed", G_CALLBACK(i_OnScroll), (gpointer)view);
-        gtk_layout_put(GTK_LAYOUT(area), view->vscroll, 0, 0);
-        g_signal_connect(area, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
-    }
-
     /* Creating the frame (border) view */
     if (flags & ekVIEW_BORDER)
     {
         GtkWidget *frame = gtk_frame_new(NULL);
+        String *css = osglobals_frame_focus_css();
         cassert(gtk_widget_get_has_window(frame) == FALSE);
         gtk_container_add(GTK_CONTAINER(frame), top);
         gtk_widget_show(top);
+        view->border_color = gtk_css_provider_new();
+        gtk_css_provider_load_from_data(view->border_color, tc(css), -1, NULL);
+        str_destroy(&css);
         top = frame;
     }
 
@@ -376,9 +369,20 @@ OSView *osview_create(const uint32_t flags)
     view->darea = area;
     view->listeners.button = ENUM_MAX(gui_mouse_t);
     view->listeners.is_enabled = TRUE;
-
     _oscontrol_init(&view->control, ekGUI_TYPE_CUSTOMVIEW, top, area, TRUE);
-    gtk_widget_show_all (top);
+
+    if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
+    {
+        view->scroll = osscrolls_create((OSControl *)view, (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
+        if (flags & ekVIEW_VSCROLL)
+            g_signal_connect(area, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
+    }
+
+    gtk_widget_add_events(view->darea, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
+    g_signal_connect(view->darea, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
+    g_signal_connect(view->darea, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    gtk_widget_set_can_focus(view->darea, TRUE);
+    gtk_widget_set_can_focus(top, TRUE);
     return view;
 }
 
@@ -390,13 +394,25 @@ void osview_destroy(OSView **view)
     cassert_no_null(*view);
     _oslistener_remove(&(*view)->listeners);
     listener_destroy(&(*view)->OnFocus);
-    listener_destroy(&(*view)->OnNotify);
+    listener_destroy(&(*view)->OnResignFocus);
+    listener_destroy(&(*view)->OnAcceptFocus);
     listener_destroy(&(*view)->OnOverlay);
+
+    if ((*view)->border_color != NULL)
+    {
+        cassert(GTK_IS_FRAME((*view)->control.widget));
+        _oscontrol_widget_remove_provider((*view)->control.widget, (*view)->border_color);
+        g_object_unref((*view)->border_color);
+        (*view)->border_color = NULL;
+    }
 
     if ((*view)->ctx != NULL)
         dctx_destroy(&(*view)->ctx);
 
-    _oscontrol_destroy(*(OSControl**)view);
+    if ((*view)->scroll != NULL)
+        osscrolls_destroy(&(*view)->scroll);
+
+    _oscontrol_destroy(*(OSControl **)view);
     heap_delete(view, OSView);
 }
 
@@ -459,8 +475,6 @@ void osview_OnDown(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->listeners.OnDown, listener);
-    _oslistener_signal(view->darea, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
-    _oslistener_signal(view->darea, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -469,8 +483,6 @@ void osview_OnUp(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->listeners.OnUp, listener);
-    _oslistener_signal(view->darea, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
-    _oslistener_signal(view->darea, listener != NULL || view->listeners.OnClick != NULL, &view->listeners.release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -531,10 +543,26 @@ void osview_OnFocus(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void osview_OnNotify(OSView *view, Listener *listener)
+void osview_OnResignFocus(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
-    listener_update(&view->OnNotify, listener);
+    listener_update(&view->OnResignFocus, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osview_OnAcceptFocus(OSView *view, Listener *listener)
+{
+    cassert_no_null(view);
+    listener_update(&view->OnAcceptFocus, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osview_OnScroll(OSView *view, Listener *listener)
+{
+    cassert_no_null(view);
+    osscrolls_OnScroll(view->scroll, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -542,12 +570,7 @@ void osview_OnNotify(OSView *view, Listener *listener)
 void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 {
     cassert_no_null(view);
-
-    if (x >= 0 && view->hadjust != NULL)
-        gtk_adjustment_set_value(view->hadjust, (gdouble)x);
-
-    if (y >= 0 && view->vadjust != NULL)
-        gtk_adjustment_set_value(view->vadjust, (gdouble)y);
+    osscrolls_set(view->scroll, x >= 0 ? (uint32_t)x : UINT32_MAX, y >= 0 ? (uint32_t)y : UINT32_MAX, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -555,12 +578,11 @@ void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 void osview_scroll_get(const OSView *view, real32_t *x, real32_t *y)
 {
     cassert_no_null(view);
+    if (x != NULL)
+        *x = (real32_t)osscrolls_x_pos(view->scroll);
 
-    if (x != NULL && view->hadjust != NULL)
-        *x = (real32_t)gtk_adjustment_get_value(view->hadjust);
-
-    if (y != NULL && view->vadjust != NULL)
-        *y = (real32_t)gtk_adjustment_get_value(view->vadjust);
+    if (y != NULL)
+        *y = (real32_t)osscrolls_y_pos(view->scroll);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -568,52 +590,19 @@ void osview_scroll_get(const OSView *view, real32_t *x, real32_t *y)
 void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height)
 {
     cassert_no_null(view);
-
     if (width != NULL)
-    {
-        if (view->vscroll != NULL)
-            *width = (real32_t)osglobals_scroll_width();
-        else
-            *width = 0;
-    }
+        *width = (real32_t)osscrolls_bar_width(view->scroll, TRUE);
 
     if (height != NULL)
-    {
-        if (view->hscroll != NULL)
-            *height = (real32_t)osglobals_scroll_height();
-        else
-            *height = 0;
-    }
+        *height = (real32_t)osscrolls_bar_height(view->scroll, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_update_scroll(GtkAdjustment *adjust, GtkWidget *scroller, const real32_t view_size, const real32_t area_size)
-{
-    if (view_size > 0 && area_size > 0 && view_size < area_size)
-    {
-        gtk_adjustment_set_lower(adjust, 0);
-        gtk_adjustment_set_upper(adjust, (gdouble)area_size);
-        gtk_adjustment_set_page_size(adjust, (gdouble)view_size);
-        gtk_widget_show(scroller);
-    }
-    /* Scrollbar is not necessary */
-    else
-    {
-        gtk_widget_hide(scroller);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_update_scrolls(OSView *view)
+void osview_scroller_visible(OSView *view, const bool_t horizontal, const bool_t vertical)
 {
     cassert_no_null(view);
-    if (view->hadjust != NULL)
-        i_update_scroll(view->hadjust, view->hscroll, view->clip_width, view->area_width);
-
-    if (view->vadjust != NULL)
-        i_update_scroll(view->vadjust, view->vscroll, view->clip_height, view->area_height);
+    osscrolls_visible(view->scroll, horizontal, vertical);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -621,19 +610,18 @@ static void i_update_scrolls(OSView *view)
 void osview_content_size(OSView *view, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
     cassert_no_null(view);
-    unref(line_width);
-    unref(line_height);
     if (GTK_IS_FRAME(view->control.widget) == TRUE)
     {
-        view->area_width = width - i_BORDER_HPADDING;
-        view->area_height = height - i_BORDER_VPADDING;
+        view->area_width = width - i_FRAME_HPADDING;
+        view->area_height = height - i_FRAME_VPADDING;
     }
     else
     {
         view->area_width = width;
         view->area_height = height;
     }
-    i_update_scrolls(view);
+
+    osscrolls_content_size(view->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -665,42 +653,42 @@ void *osview_get_native_view(const OSView *view)
 
 void osview_attach(OSView *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)view);
+    _ospanel_attach_control(panel, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_detach(OSView *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)view);
+    _ospanel_detach_control(panel, (OSControl *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_visible(OSView *view, const bool_t is_visible)
 {
-    _oscontrol_set_visible((OSControl*)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_enabled(OSView *view, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((OSControl*)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_size(const OSView *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl*)view, width, height);
+    _oscontrol_get_size((const OSControl *)view, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_origin(const OSView *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl*)view, x, y);
+    _oscontrol_get_origin((const OSControl *)view, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -708,13 +696,13 @@ void osview_origin(const OSView *view, real32_t *x, real32_t *y)
 void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(view);
-    _oscontrol_set_frame((OSControl*)view, x, y, width, height);
+    _oscontrol_set_frame((OSControl *)view, x, y, width, height);
     if (view->control.widget != view->darea)
     {
         cassert(GTK_IS_FRAME(view->control.widget) == TRUE);
-        gtk_widget_set_size_request(view->darea, (gint)width - 1, (gint)height - 2);
-        view->clip_width = width - i_BORDER_HPADDING;
-        view->clip_height = height - i_BORDER_VPADDING;
+        gtk_widget_set_size_request(view->darea, (gint)width - i_FRAME_HPADDING, (gint)height - i_FRAME_VPADDING);
+        view->clip_width = width - i_FRAME_HPADDING;
+        view->clip_height = height - i_FRAME_VPADDING;
     }
     else
     {
@@ -722,17 +710,8 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
         view->clip_height = height;
     }
 
-    i_update_scrolls(view);
-    i_scroller_position(view);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osview_detach_and_destroy(OSView **view, OSPanel *panel)
-{
-    cassert_no_null(view);
-    osview_detach(*view, panel);
-    osview_destroy(view);
+    if (view->scroll != NULL)
+        osscrolls_control_size(view->scroll, (uint32_t)width, (uint32_t)height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -761,6 +740,12 @@ void _osview_set_focus(OSView *view)
         bool_t params = TRUE;
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
     }
+
+    if (view->border_color != NULL)
+    {
+        cassert(GTK_IS_FRAME(view->control.widget));
+        _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -773,6 +758,12 @@ void _osview_unset_focus(OSView *view)
         bool_t params = FALSE;
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
     }
+
+    if (view->border_color != NULL)
+    {
+        cassert(GTK_IS_FRAME(view->control.widget));
+        _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -782,4 +773,44 @@ GtkWidget *_osview_focus(OSView *view)
     cassert_no_null(view);
     cassert_no_null(view->darea);
     return view->darea;
+}
+
+/*---------------------------------------------------------------------------*/
+
+GtkWidget *_osview_area(OSView *view)
+{
+    cassert_no_null(view);
+    cassert_no_null(view->darea);
+    return view->darea;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_scroll_event(OSView *view, const gui_orient_t orient, const gui_scroll_t event)
+{
+    cassert_no_null(view);
+    if (osscrolls_event(view->scroll, orient, event, FALSE) == TRUE)
+        gtk_widget_queue_draw(view->darea);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osview_resign_focus(const OSView *view, const OSControl *next_control)
+{
+    bool_t resign = TRUE;
+    cassert_no_null(view);
+    if (view->OnResignFocus != NULL)
+        listener_event(view->OnResignFocus, ekGUI_EVENT_FOCUS_RESIGN, view, (void *)next_control, &resign, OSView, void, bool_t);
+    return resign;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osview_accept_focus(const OSView *view)
+{
+    bool_t accept = TRUE;
+    cassert_no_null(view);
+    if (view->OnAcceptFocus != NULL)
+        listener_event(view->OnAcceptFocus, ekGUI_EVENT_FOCUS_ACCEPT, view, NULL, &accept, OSView, void, bool_t);
+    return accept;
 }

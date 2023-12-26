@@ -19,7 +19,7 @@
 #define _WIN32_WINNT 0x501
 #endif
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <windows.h>
 #include <uxtheme.h>
 #if _MSC_VER > 1400
@@ -28,21 +28,20 @@
 #else
 #include <tmschema.h>
 #endif
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
-#define WCHAR_BUFFER_SIZE		512
+#define WCHAR_BUFFER_SIZE 512
 
 typedef struct _view_listeners_t ViewListeners;
 typedef struct _osimgdata_t OSImgData;
 typedef struct _osimglist_t OSImgList;
-typedef struct _osscroll_t OSScroll;
 typedef struct _osdraw_t OSDraw;
 
 struct _view_listeners_t
 {
     BOOL is_mouse_inside;
     BOOL enabled;
-	gui_mouse_t button;
+    gui_mouse_t button;
     LONG OnMouseMoved_event_source;
     real32_t mouse_down_x;
     real32_t mouse_down_y;
@@ -66,9 +65,12 @@ struct _oscontrol_t
     HWND hwnd;
     HWND tooltip_hwnd;
     WNDPROC def_wnd_proc;
-    int x;
-    int y;
-    bool_t visible;
+
+    /* HWND does not save the coordinates of the child with respect to the parent.
+	   They can be calculated with 'MapWindowPoints', but it does not work correctly
+	   on scrolling panels. */
+    int32_t x;
+    int32_t y;
 };
 
 struct _strsize_data_t
@@ -85,4 +87,3 @@ struct _osdraw_t
 };
 
 #endif
-

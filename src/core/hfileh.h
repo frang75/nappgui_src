@@ -16,10 +16,4 @@ __EXTERN_C
 
 _core_api String *hfile_exename(void);
 
-_core_api String *hfile_build_dir(const char_t *dir, const char_t *target);
-
-_core_api String *hfile_src_dir(const char_t *file);
-
-_core_api String *hfile_root_dir(const char_t *file);
-
 __END_C

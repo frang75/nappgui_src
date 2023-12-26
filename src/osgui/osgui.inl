@@ -14,32 +14,32 @@
 
 __EXTERN_C
 
-void _osgui_start_imp(void);
+void osgui_start_imp(void);
 
-void _osgui_finish_imp(void);
+void osgui_finish_imp(void);
 
-Font *_osgui_create_default_font(void);
+Font *osgui_create_default_font(void);
 
-void _osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height);
+void osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height);
 
-void _osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
+void osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
 
-const char_t *_osgui_component_type(const gui_type_t type);
+gui_size_t osgui_size_font(const real32_t font_size);
 
-bool_t _osgui_button_text_allowed(const uint32_t flags);
+vkey_t osgui_vkey_from_text(const char_t *text);
 
-bool_t _osgui_button_image_allowed(const uint32_t flags);
+void osgui_select_text(const int32_t st, const int32_t ed, int32_t *platform_st, int32_t *platform_ed);
 
-gui_size_t _osgui_size_font(const real32_t font_size);
+void osgui_attach_menubar(OSWindow *window, OSMenu *menu);
 
-Image *_osgui_scale_image(const Image *image, const Font *font);
+void osgui_detach_menubar(OSWindow *window, OSMenu *menu);
 
-void _osgui_attach_menubar(OSWindow *window, OSMenu *menu);
+void osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu);
 
-void _osgui_detach_menubar(OSWindow *window, OSMenu *menu);
+void osgui_message_loop_imp(void);
 
-void _osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu);
+bool_t osgui_is_pre_initialized_imp(void);
 
-bool_t _osgui_process_message(void *msg);
+void osgui_pre_initialize_imp(void);
 
 __END_C

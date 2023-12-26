@@ -10,7 +10,10 @@
 
 /* Application runloop */
 
+#include <sewer/nowarn.hxx>
+#include <Cocoa/Cocoa.h>
+#include <sewer/warn.hxx>
+
 __EXTERN_C
 
 __END_C
-

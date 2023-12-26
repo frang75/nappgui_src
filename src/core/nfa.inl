@@ -27,4 +27,3 @@ bool_t _nfa_next(NFA *nfa, const uint32_t codepoint);
 bool_t _nfa_accept(NFA *nfa);
 
 __END_C
-

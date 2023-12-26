@@ -19,4 +19,3 @@ void _progress_destroy(Progress **progress);
 void _progress_dimension(Progress *progress, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 __END_C
-

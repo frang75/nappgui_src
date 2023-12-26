@@ -39,9 +39,17 @@ _gui_api void window_stop_modal(Window *window, const uint32_t return_value);
 
 _gui_api void window_hotkey(Window *window, const vkey_t key, const uint32_t modifiers, Listener *listener);
 
-_gui_api void window_next_tabstop(Window *window);
+_gui_api void window_clear_hotkeys(Window *window);
 
-_gui_api void window_previous_tabstop(Window *window);
+_gui_api void window_cycle_tabstop(Window *window, const bool_t cycle);
+
+_gui_api gui_focus_t window_next_tabstop(Window *window);
+
+_gui_api gui_focus_t window_previous_tabstop(Window *window);
+
+_gui_api gui_focus_t window_focus(Window *window, GuiControl *control);
+
+_gui_api GuiControl *window_get_focus(Window *window);
 
 _gui_api void window_update(Window *window);
 

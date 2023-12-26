@@ -12,9 +12,9 @@
 
 #include "event.h"
 #include "event.inl"
-#include "cassert.h"
 #include "heap.h"
 #include "strings.h"
+#include <sewer/cassert.h>
 
 struct _event_t
 {
@@ -22,11 +22,11 @@ struct _event_t
     void *sender;
     void *params;
     void *result;
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     const char_t *sender_type;
     const char_t *params_type;
     const char_t *result_type;
-    #endif
+#endif
     /* http://lazarenko.me/wide-pointers/ */
     /* https://social.msdn.microsoft.com/Forums/vstudio/en-US/2793a64f-ec09-495c-b995-4f5b98a26321/vc-wrong-pointer-size-?forum=vcgeneral */
     /* On Apple pointer to member is double size than normal pointers */
@@ -56,18 +56,19 @@ static Listener *i_create_listener(void *object, FPtr_release func_release, FPtr
 
 /*---------------------------------------------------------------------------*/
 
-#define CALL_MEMBER_FN(object, ptrToMember)  ((object)->*(ptrToMember))
+#define CALL_MEMBER_FN(object, ptrToMember) ((object)->*(ptrToMember))
 
 static void i_cpp_func_event_handler(void *obj, Event *event)
 {
-    CALL_MEMBER_FN((IListener*)obj, event->member_event_handler)(event);
+    CALL_MEMBER_FN((IListener *)obj, event->member_event_handler)
+    (event);
 }
 
 /*---------------------------------------------------------------------------*/
 
-Listener *IListener::listen(IListener *object, void(IListener::*handler)(Event*))
+Listener *IListener::listen(IListener *object, void (IListener::*handler)(Event *))
 {
-    return i_create_listener((void*)object, PARAM(func_release, NULL), i_cpp_func_event_handler, handler);
+    return i_create_listener((void *)object, PARAM(func_release, NULL), i_cpp_func_event_handler, handler);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -123,15 +124,15 @@ void listener_event_imp(Listener *listener, const uint32_t type, void *sender, v
     listener->event.params = params;
     listener->event.result = result;
     listener->event.member_event_handler = listener->member_event_handler;
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     listener->event.sender_type = sender_type;
     listener->event.params_type = params_type;
     listener->event.result_type = result_type;
-    #else
+#else
     unref(sender_type);
     unref(params_type);
     unref(result_type);
-    #endif
+#endif
     listener->func_event_handler(listener->object, &listener->event);
 }
 
@@ -141,9 +142,9 @@ void listener_pass_event_imp(Listener *listener, Event *event, void *sender, con
 {
     void *previous_sender = NULL;
     EventHandler previous_member_event_handler = NULL;
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     const char_t *previous_sender_type = NULL;
-    #endif
+#endif
 
     cassert_no_null(listener);
     cassert_no_nullf(listener->func_event_handler);
@@ -152,20 +153,20 @@ void listener_pass_event_imp(Listener *listener, Event *event, void *sender, con
     previous_member_event_handler = event->member_event_handler;
     event->sender = sender;
     event->member_event_handler = listener->member_event_handler;
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     previous_sender_type = event->sender_type;
     event->sender_type = sender_type;
-    #else
+#else
     unref(sender_type);
-    #endif
+#endif
 
     listener->func_event_handler(listener->object, event);
 
     event->sender = previous_sender;
     event->member_event_handler = previous_member_event_handler;
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     event->sender_type = previous_sender_type;
-    #endif
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -181,14 +182,14 @@ uint32_t event_type(const Event *event)
 void *event_sender_imp(Event *event, const char_t *type)
 {
     cassert_no_null(event);
-    #if defined(__ASSERTS__)
+#if defined(__ASSERTS__)
     if (type != NULL)
     {
         cassert(str_equ_c(type, event->sender_type) == TRUE);
     }
-    #else
+#else
     unref(type);
-    #endif
+#endif
     return event->sender;
 }
 
@@ -197,14 +198,14 @@ void *event_sender_imp(Event *event, const char_t *type)
 void *event_params_imp(Event *event, const char_t *type)
 {
     cassert_no_null(event);
-    #if defined(__ASSERTS__)
+#if defined(__ASSERTS__)
     if (type != NULL)
     {
         cassert(str_equ_c(type, event->params_type) == TRUE);
     }
-    #else
+#else
     unref(type);
-    #endif
+#endif
     return event->params;
 }
 
@@ -213,14 +214,14 @@ void *event_params_imp(Event *event, const char_t *type)
 void *event_result_imp(Event *event, const char_t *type)
 {
     cassert_no_null(event);
-    #if defined(__ASSERTS__)
+#if defined(__ASSERTS__)
     if (type != NULL)
     {
         cassert(str_equ_c(type, event->result_type) == TRUE);
     }
-    #else
+#else
     unref(type);
-    #endif
+#endif
     return event->result;
 }
 
@@ -305,5 +306,3 @@ void *event_result_imp(Event *event, const char_t *type)
 //}
 
 /*---------------------------------------------------------------------------*/
-
-

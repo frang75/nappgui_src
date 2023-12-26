@@ -19,4 +19,3 @@ extern int kLOG_PIXY;
 extern LONG kTWIPS_PER_PIXEL;
 
 __END_C
-

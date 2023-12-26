@@ -14,9 +14,8 @@
 #define __OSAPPWIN_IXX__
 
 #include "osapp.ixx"
-
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <windows.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 #endif

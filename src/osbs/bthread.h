@@ -31,9 +31,8 @@ _osbs_api void bthread_sleep(const uint32_t milliseconds);
 
 __END_C
 
-#define bthread_create(thmain, data, type)\
-    (\
-        (void)(data == (type*)data),\
-        FUNC_CHECK_THREAD_MAIN(thmain, type),\
-        bthread_create_imp((FPtr_thread_main)thmain, (void*)data)\
-    )
+#define bthread_create(thmain, data, type)    \
+    (                                         \
+        (void)(data == (type *)data),         \
+        FUNC_CHECK_THREAD_MAIN(thmain, type), \
+        bthread_create_imp((FPtr_thread_main)thmain, (void *)data))

@@ -14,18 +14,17 @@
 #include "combo.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "guictx.h"
-
-#include "arrpt.h"
-#include "cassert.h"
-#include "event.h"
-#include "font.h"
-#include "image.h"
-#include "ptr.h"
-#include "objh.h"
-#include "v2d.h"
-#include "s2d.h"
-#include "strings.h"
+#include <draw2d/font.h>
+#include <draw2d/guictx.h>
+#include <draw2d/image.h>
+#include <geom2d/s2d.h>
+#include <geom2d/v2d.h>
+#include <core/arrpt.h>
+#include <core/event.h>
+#include <core/objh.h>
+#include <core/strings.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 struct _combo_t
 {
@@ -38,8 +37,8 @@ struct _combo_t
     ResId placid;
     String *placeholder;
     String *text;
-    ArrPt(String) *texts;
-    ArrPt(Image) *images;
+    ArrPt(String) * texts;
+    ArrPt(Image) * images;
     Font *font;
     Font *placeholder_font;
     uint32_t color;
@@ -395,7 +394,7 @@ const char_t *combo_get_text(const Combo *combo, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_delete_duplicates(GuiComponent *component, ArrPt(String) *texts, ArrPt(Image) *images, const char_t *text)
+static void i_delete_duplicates(GuiComponent *component, ArrPt(String) * texts, ArrPt(Image) * images, const char_t *text)
 {
     register uint32_t i = 0, num_elems = 0;
     cassert_no_null(component);
@@ -420,11 +419,9 @@ static void i_delete_duplicates(GuiComponent *component, ArrPt(String) *texts, A
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_exists_substring(ArrPt(String) *texts, const char_t *subtext)
+static bool_t i_exists_substring(ArrPt(String) * texts, const char_t *subtext)
 {
-    arrpt_foreach(text, texts, String)
-        if (str_str(tc(text), subtext) != NULL)
-            return TRUE;
+    arrpt_foreach(text, texts, String) if (str_str(tc(text), subtext) != NULL) return TRUE;
     arrpt_end();
     return FALSE;
 }
@@ -482,7 +479,7 @@ void combo_set_elem(Combo *combo, const uint32_t index, const char_t *text, cons
     *ltext = str_c(text);
     *limage = ptr_copyopt(image_copy, image, Image);
     combo->component.context->func_combo_set_elem(combo->component.ositem, ekCTRL_OP_SET, index, text, image);
-   /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
+    /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -536,7 +533,7 @@ void combo_del_elem(Combo *combo, const uint32_t index)
     arrpt_delete(combo->texts, index, str_destroy, String);
     arrpt_delete(combo->images, index, image_destroy, Image);
     combo->component.context->func_combo_set_elem(combo->component.ositem, ekCTRL_OP_DEL, index, NULL, NULL);
-   /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
+    /* i_update_selection(&combo->component, combo->texts, tc(combo->text)); */
 }
 
 /*---------------------------------------------------------------------------*/

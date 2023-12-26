@@ -48,4 +48,3 @@ _geom2d_api real32_t seg2d_sqdistf(const Seg2Df *seg1, const Seg2Df *seg2, real3
 _geom2d_api real64_t seg2d_sqdistd(const Seg2Dd *seg1, const Seg2Dd *seg2, real64_t *t1, real64_t *t2);
 
 __END_C
-

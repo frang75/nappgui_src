@@ -13,16 +13,20 @@
 #include "osbutton.h"
 #include "osbutton.inl"
 #include "osgui.inl"
+#include "osbutton_gtk.inl"
 #include "osgui_gtk.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "event.h"
-#include "font.h"
-#include "heap.h"
-#include "image.h"
-#include "ptr.h"
-#include "strings.h"
+#include "osglobals_gtk.inl"
+#include "oscontrol_gtk.inl"
+#include "ospanel_gtk.inl"
+#include "oswindow_gtk.inl"
+#include <draw2d/font.h>
+#include <draw2d/image.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <core/strings.h>
+#include <sewer/bstd.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -33,6 +37,7 @@ struct _osbutton_t
     OSControl control;
     button_flag_t flags;
     bool_t launch_event;
+    bool_t is_default;
     GtkWidget *radio;
     Font *font;
     GtkCssProvider *pfont;
@@ -46,18 +51,17 @@ static gui_state_t i_get_state(const OSButton *button)
     cassert_no_null(button);
     switch (button_get_type(button->flags))
     {
-        case ekBUTTON_PUSH:
-        case ekBUTTON_FLAT:
-            return ekGUI_ON;
+    case ekBUTTON_PUSH:
+    case ekBUTTON_FLAT:
+        return ekGUI_ON;
 
-        case ekBUTTON_RADIO:
-        case ekBUTTON_CHECK2:
-        {
-            gboolean active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button->control.widget));
-            return active == TRUE ? ekGUI_ON : ekGUI_OFF;
-        }
+    case ekBUTTON_RADIO:
+    case ekBUTTON_CHECK2: {
+        gboolean active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button->control.widget));
+        return active == TRUE ? ekGUI_ON : ekGUI_OFF;
+    }
 
-        case ekBUTTON_CHECK3:
+    case ekBUTTON_CHECK3:
         if (gtk_toggle_button_get_inconsistent(GTK_TOGGLE_BUTTON(button->control.widget)) == TRUE)
         {
             return ekGUI_MIXED;
@@ -68,11 +72,10 @@ static gui_state_t i_get_state(const OSButton *button)
             return active == TRUE ? ekGUI_ON : ekGUI_OFF;
         }
 
-        case ekBUTTON_FLATGLE:
-        {
-            gboolean active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget));
-            return active == TRUE ? ekGUI_ON : ekGUI_OFF;
-        }
+    case ekBUTTON_FLATGLE: {
+        gboolean active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget));
+        return active == TRUE ? ekGUI_ON : ekGUI_OFF;
+    }
 
         cassert_default();
     }
@@ -100,6 +103,48 @@ static void i_OnClick(GtkWidget *widget, OSButton *button)
         params.text = NULL;
         listener_event(button->OnClick, ekGUI_EVENT_BUTTON, button, &params, NULL, OSButton, EvButton, void);
     }
+
+    _oswindow_release_transient_focus(OSControlPtr(button));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSButton *button)
+{
+    guint key = 0;
+    cassert_no_null(event);
+    unref(widget);
+    unref(button);
+
+    key = event->keyval;
+
+    /* Avoid the "DUMMY" GTK button navigation using arrows */
+    if (key == GDK_KEY_Left || key == GDK_KEY_Right || key == GDK_KEY_Down || key == GDK_KEY_Up)
+        return TRUE;
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSButton *button)
+{
+    unref(widget);
+    unref(event);
+    if (_oswindow_mouse_down(OSControlPtr(button)) == TRUE)
+        return FALSE;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnPushDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
+{
+    unref(cr);
+    unref(button);
+    if (button->is_default == TRUE)
+        gtk_widget_set_state_flags(widget, GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_FOCUSED, FALSE);
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -111,47 +156,55 @@ OSButton *osbutton_create(const button_flag_t flags)
     GtkWidget *focus_widget = NULL;
     button->flags = flags;
 
-    switch (button_get_type(flags)) {
+    switch (button_get_type(flags))
+    {
     case ekBUTTON_PUSH:
         widget = gtk_button_new();
+        gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        g_signal_connect(widget, "draw", G_CALLBACK(i_OnPushDraw), button);
         focus_widget = widget;
         break;
 
     case ekBUTTON_FLAT:
-        widget = (GtkWidget*)gtk_tool_button_new(NULL, NULL);
+        widget = (GtkWidget *)gtk_tool_button_new(NULL, NULL);
         focus_widget = gtk_bin_get_child(GTK_BIN(widget));
         break;
 
     case ekBUTTON_FLATGLE:
-        widget = (GtkWidget*)gtk_toggle_tool_button_new();
+        widget = (GtkWidget *)gtk_toggle_tool_button_new();
         focus_widget = gtk_bin_get_child(GTK_BIN(widget));
         break;
 
     case ekBUTTON_RADIO:
         widget = gtk_radio_button_new_with_label(NULL, "");
-        focus_widget = widget;
-        _oscontrol_set_css(widget, "radiobutton {padding-left:0px;padding-right:0px;padding-top:0px;padding-bottom:0px;}");
+        gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        _oscontrol_widget_set_css(widget, "radiobutton {padding-left:0px;padding-right:0px;padding-top:0px;padding-bottom:0px;}");
         button->radio = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(widget), "");
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->radio), TRUE);
+        focus_widget = widget;
         break;
 
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
         widget = gtk_check_button_new();
+        gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        _oscontrol_widget_set_css(widget, "checkbutton {padding-left:0px;padding-right:0px;padding-top:0px;padding-bottom:0px;}");
         focus_widget = widget;
-        _oscontrol_set_css(widget, "checkbutton {padding-left:0px;padding-right:0px;padding-top:0px;padding-bottom:0px;}");
         break;
     }
 
     g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(i_OnClick), (gpointer)button);
     _oscontrol_init(&button->control, ekGUI_TYPE_BUTTON, widget, focus_widget, FALSE);
 
-    if (_osgui_button_text_allowed(flags) == TRUE)
+    if (osbutton_text_allowed(flags) == TRUE)
     {
-        button->font = _osgui_create_default_font();
-        _oscontrol_set_font((OSControl*)button, button->font, &button->pfont);
+        const char_t *cssbut = osglobals_css_button();
+        button->font = osgui_create_default_font();
+        _oscontrol_widget_font(button->control.widget, cssbut, button->font, &button->pfont);
     }
 
+    g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)button);
+    g_signal_connect(G_OBJECT(widget), "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)button);
     button->launch_event = TRUE;
     return button;
 }
@@ -177,7 +230,7 @@ void osbutton_destroy(OSButton **button)
     }
 
     ptr_destopt(font_destroy, &(*button)->font, Font);
-    _oscontrol_destroy(*(OSControl**)button);
+    _oscontrol_destroy(*(OSControl **)button);
     heap_delete(button, OSButton);
 }
 
@@ -193,9 +246,11 @@ void osbutton_OnClick(OSButton *button, Listener *listener)
 
 void osbutton_text(OSButton *button, const char_t *text)
 {
+    char_t tbuff[256];
     cassert_no_null(button);
-    cassert(_osgui_button_text_allowed(button->flags) == TRUE);
-    gtk_button_set_label(GTK_BUTTON(button->control.widget), (const gchar*)text);
+    cassert(osbutton_text_allowed(button->flags) == TRUE);
+    _osgui_underline_gtk_text(text, tbuff, sizeof(tbuff));
+    gtk_button_set_label(GTK_BUTTON(button->control.widget), tbuff);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -203,17 +258,18 @@ void osbutton_text(OSButton *button, const char_t *text)
 void osbutton_tooltip(OSButton *button, const char_t *text)
 {
     cassert_no_null(button);
-    gtk_widget_set_tooltip_text(button->control.widget, (const gchar*)text);
+    gtk_widget_set_tooltip_text(button->control.widget, (const gchar *)text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_font(OSButton *button, const Font *font)
 {
+    const char_t *cssbut = osglobals_css_button();
     cassert_no_null(button);
-    cassert(_osgui_button_text_allowed(button->flags) == TRUE);
-    _oscontrol_remove_provider(button->control.widget, button->pfont);
-    _oscontrol_set_font((OSControl*)button, font, &button->pfont);
+    cassert(osbutton_text_allowed(button->flags) == TRUE);
+    _oscontrol_widget_remove_provider(button->control.widget, button->pfont);
+    _oscontrol_widget_font(button->control.widget, cssbut, font, &button->pfont);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -221,8 +277,8 @@ void osbutton_font(OSButton *button, const Font *font)
 void osbutton_align(OSButton *button, const align_t align)
 {
     cassert_no_null(button);
-    cassert(_osgui_button_text_allowed(button->flags) == TRUE);
-    _oscontrol_set_halign((OSControl*)button, align);
+    cassert(osbutton_text_allowed(button->flags) == TRUE);
+    _oscontrol_set_halign((OSControl *)button, align);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -231,10 +287,10 @@ void osbutton_image(OSButton *button, const Image *image)
 {
     cassert_no_null(button);
     cassert_no_null(image);
-    switch(button_get_type(button->flags)) {
-    case ekBUTTON_FLAT:
-    case ekBUTTON_FLATGLE:
+    switch (button_get_type(button->flags))
     {
+    case ekBUTTON_FLAT:
+    case ekBUTTON_FLATGLE: {
         const char_t *icon_name = _osgui_register_icon(image);
         gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(button->control.widget), icon_name);
         break;
@@ -243,24 +299,24 @@ void osbutton_image(OSButton *button, const Image *image)
     case ekBUTTON_PUSH:
         if (image != NULL)
         {
-            GdkPixbuf *pixbuf = (GdkPixbuf*)image_native(image);
+            GdkPixbuf *pixbuf = (GdkPixbuf *)image_native(image);
             GtkWidget *widget = gtk_image_new_from_pixbuf(pixbuf);
             gtk_button_set_image(GTK_BUTTON(button->control.widget), widget);
-        #if GTK_CHECK_VERSION(3, 6, 0)
+#if GTK_CHECK_VERSION(3, 6, 0)
             gtk_button_set_always_show_image(GTK_BUTTON(button->control.widget), TRUE);
-        #endif
+#endif
             /* g_object_unref(widget); */
         }
         else
         {
             gtk_button_set_image(GTK_BUTTON(button->control.widget), NULL);
-        #if GTK_CHECK_VERSION(3, 6, 0)
+#if GTK_CHECK_VERSION(3, 6, 0)
             gtk_button_set_always_show_image(GTK_BUTTON(button->control.widget), FALSE);
-        #endif
+#endif
         }
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -270,7 +326,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
 {
     cassert_no_null(button);
     button->launch_event = FALSE;
-    switch(button_get_type(button->flags)) {
+    switch (button_get_type(button->flags))
+    {
     case ekBUTTON_RADIO:
         if (state == ekGUI_ON)
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->control.widget), TRUE);
@@ -283,7 +340,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         break;
 
     case ekBUTTON_CHECK3:
-        switch (state) {
+        switch (state)
+        {
         case ekGUI_ON:
             gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(button->control.widget), FALSE);
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->control.widget), TRUE);
@@ -295,7 +353,7 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         case ekGUI_MIXED:
             gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(button->control.widget), TRUE);
             break;
-        cassert_default();
+            cassert_default();
         }
 
         break;
@@ -303,7 +361,7 @@ void osbutton_state(OSButton *button, const gui_state_t state)
     case ekBUTTON_FLATGLE:
         gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget), (state == ekGUI_ON) ? TRUE : FALSE);
         break;
-    cassert_default();
+        cassert_default();
     }
     button->launch_event = TRUE;
 }
@@ -319,7 +377,7 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 #if defined __ASSERTS__
 
-static __INLINE const char* i_button_label(const OSButton *button)
+static __INLINE const char *i_button_label(const OSButton *button)
 {
     const char *label = NULL;
     cassert_no_null(button);
@@ -330,7 +388,35 @@ static __INLINE const char* i_button_label(const OSButton *button)
         return "";
 }
 
+/*---------------------------------------------------------------------------*/
+
+static __INLINE bool_t i_equal_button_label(const OSButton *button, const char_t *text)
+{
+    char_t buff[256];
+    _osgui_underline_gtk_text(text, buff, sizeof(buff));
+    return str_equ_c(buff, i_button_label(button));
+}
+
 #endif
+
+/*---------------------------------------------------------------------------*/
+
+void osbutton_vpadding(OSButton *button, const real32_t padding)
+{
+    cassert_no_null(button);
+    if (button_get_type(button->flags) == ekBUTTON_PUSH)
+    {
+        const char_t *cssbut = osglobals_css_button();
+        uint32_t mpad = (uint32_t)((padding / 2) + .5f);
+        char_t css[256];
+#if GTK_CHECK_VERSION(3, 22, 0)
+        bstd_sprintf(css, sizeof(css), "%s {padding-top:%dpx;padding-bottom:%dpx;padding-left:4px;padding-right:4px;min-height:0}", cssbut, mpad, mpad);
+#else
+        bstd_sprintf(css, sizeof(css), "%s {padding-top:%dpx;padding-bottom:%dpx;padding-left:4px;padding-right:4px}", cssbut, mpad, mpad);
+#endif
+        _oscontrol_widget_set_css(button->control.widget, css);
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -340,12 +426,12 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     cassert_no_null(width);
     cassert_no_null(height);
 
-    switch (button_get_type(button->flags)) {
-    case ekBUTTON_PUSH:
+    switch (button_get_type(button->flags))
     {
+    case ekBUTTON_PUSH: {
         GtkRequisition s;
         real32_t tw, th;
-        cassert_unref(str_equ_c(text, i_button_label(button)) == TRUE, text);
+        cassert_unref(i_equal_button_label(button, text) == TRUE, text);
         gtk_widget_set_size_request(button->control.widget, -1, -1);
         gtk_widget_get_preferred_size(button->control.widget, &s, NULL);
         _oscontrol_text_bounds(&button->control, NULL, "O", button->font, -1, &tw, &th);
@@ -356,10 +442,9 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
-    case ekBUTTON_RADIO:
-    {
+    case ekBUTTON_RADIO: {
         GtkRequisition s;
-        cassert_unref(str_equ_c(text, i_button_label(button)) == TRUE, text);
+        cassert_unref(i_equal_button_label(button, text) == TRUE, text);
         gtk_widget_get_preferred_size(button->control.widget, &s, NULL);
         *width = (real32_t)s.width;
         *height = (real32_t)s.height;
@@ -372,7 +457,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -380,58 +465,73 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
 void osbutton_attach(OSButton *button, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl*)button);
+    _ospanel_attach_control(panel, (OSControl *)button);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_detach(OSButton *button, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl*)button);
+    _ospanel_detach_control(panel, (OSControl *)button);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_visible(OSButton *button, const bool_t is_visible)
 {
-	_oscontrol_set_visible((OSControl*)button, is_visible);
+    _oscontrol_set_visible((OSControl *)button, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_enabled(OSButton *button, const bool_t is_enabled)
 {
-	_oscontrol_set_enabled((OSControl*)button, is_enabled);
+    _oscontrol_set_enabled((OSControl *)button, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_size(const OSButton *button, real32_t *width, real32_t *height)
 {
-	_oscontrol_get_size((const OSControl*)button, width, height);
+    _oscontrol_get_size((const OSControl *)button, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_origin(const OSButton *button, real32_t *x, real32_t *y)
 {
-	_oscontrol_get_origin((const OSControl*)button, x, y);
+    _oscontrol_get_origin((const OSControl *)button, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl*)button, x, y, width, height);
+    _oscontrol_set_frame((OSControl *)button, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _osbutton_detach_and_destroy(OSButton **button, OSPanel *panel)
+GtkWidget *_osbutton_focus(OSButton *button)
 {
     cassert_no_null(button);
-    osbutton_detach(*button, panel);
-    osbutton_destroy(button);
+    switch (button_get_type(button->flags))
+    {
+    case ekBUTTON_PUSH:
+    case ekBUTTON_RADIO:
+    case ekBUTTON_CHECK2:
+    case ekBUTTON_CHECK3:
+        return button->control.widget;
+
+    case ekBUTTON_FLAT:
+    case ekBUTTON_FLATGLE:
+        /* The button inside the toolbutton */
+        return gtk_bin_get_child(GTK_BIN(button->control.widget));
+
+        cassert_default();
+    }
+
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -444,24 +544,18 @@ void _osbutton_command(OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-GtkWidget *_osbutton_focus(OSButton *button)
+void osbutton_set_default(OSButton *button, const bool_t is_default)
 {
     cassert_no_null(button);
-    switch (button_get_type(button->flags)) {
-    case ekBUTTON_PUSH:
-    case ekBUTTON_RADIO:
-    case ekBUTTON_CHECK2:
-    case ekBUTTON_CHECK3:
-        return button->control.widget;
+    if (button_get_type(button->flags) == ekBUTTON_PUSH)
+    {
+        if (button->is_default != is_default)
+        {
+            button->is_default = is_default;
+            if (is_default == FALSE)
+                gtk_widget_unset_state_flags(button->control.widget, GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_FOCUSED);
 
-    case ekBUTTON_FLAT:
-    case ekBUTTON_FLATGLE:
-        /* The button inside the toolbutton */
-        return gtk_bin_get_child(GTK_BIN(button->control.widget));
-
-    cassert_default();
+            gtk_widget_queue_draw(button->control.widget);
+        }
     }
-
-    return NULL;
 }
-

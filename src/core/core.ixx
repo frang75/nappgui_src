@@ -19,13 +19,13 @@ typedef struct _nfa_t NFA;
 typedef struct _evassert_t EvAssert;
 typedef struct _lexscn_t LexScn;
 
-typedef void*(*FPtr_retain)(const void *item);
-#define FUNC_CHECK_RETAIN(func, type)\
-    (void)((type*(*)(const type*))func == func)
+typedef void *(*FPtr_retain)(const void *item);
+#define FUNC_CHECK_RETAIN(func, type) \
+    (void)((type * (*)(const type *)) func == func)
 
-typedef void(*FPtr_release)(void **item);
-#define FUNC_CHECK_RELEASE(func, type)\
-    (void)((void(*)(type**))func == func)
+typedef void (*FPtr_release)(void **item);
+#define FUNC_CHECK_RELEASE(func, type) \
+    (void)((void (*)(type **))func == func)
 
 struct _evassert_t
 {

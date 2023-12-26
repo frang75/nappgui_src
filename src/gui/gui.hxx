@@ -14,17 +14,17 @@
 #ifndef __GUI_HXX__
 #define __GUI_HXX__
 
-#include "guictx.hxx"
+#include <draw2d/guictx.hxx>
 #include "gui.def"
 
 typedef enum _gui_notif_t
 {
-    ekGUI_NOTIF_LANGUAGE        = 1,
+    ekGUI_NOTIF_LANGUAGE = 1,
     ekGUI_NOTIF_WIN_DESTROY,
     ekGUI_NOTIF_MENU_DESTROY
 } gui_notif_t;
 
-typedef struct _control_t Control;
+typedef struct _guicontrol_t GuiControl;
 typedef struct _label_t Label;
 typedef struct _button_t Button;
 typedef struct _popup_t PopUp;
@@ -46,7 +46,7 @@ typedef struct _window_t Window;
 typedef struct _menu_t Menu;
 typedef struct _menu_item_t MenuItem;
 
-typedef ResPack*(*FPtr_respack)(const char_t *locale);
+typedef ResPack *(*FPtr_respack)(const char_t *locale);
 
 DeclSt(FPtr_respack);
 

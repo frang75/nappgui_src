@@ -12,8 +12,8 @@
 
 #include "bsocket.h"
 #include "osbs.inl"
-#include "cassert.h"
-#include "ptr.h"
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -24,13 +24,13 @@
 #include <errno.h>
 #include <netdb.h>
 #include <fcntl.h>
-#define SOCKET_ID       int
-#define SOCKET_NULL     -1
-#define SOCKET_FAIL     -1
-#define RECV_SHUTDOWN   SHUT_RD
-#define ALL_SHUTDOWN    SHUT_RDWR
-#define SIZE_T          size_t
-#define SSIZE_T         ssize_t
+#define SOCKET_ID int
+#define SOCKET_NULL -1
+#define SOCKET_FAIL -1
+#define RECV_SHUTDOWN SHUT_RD
+#define ALL_SHUTDOWN SHUT_RDWR
+#define SIZE_T size_t
+#define SSIZE_T ssize_t
 
 /*---------------------------------------------------------------------------*/
 
@@ -56,8 +56,8 @@ static serror_t i_socket_error(void)
 
     switch (sock_error)
     {
-        case ETIMEDOUT:
-            return ekSTIMEOUT;
+    case ETIMEDOUT:
+        return ekSTIMEOUT;
     }
 
     if (bsocket_url_ip(i_WELL_KNOW_URL, NULL) == 0)
@@ -84,12 +84,12 @@ static void i_options(Socket *sock, const SockOpt *opts)
        #endif
 
        {
-           int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+           int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)(&timeout), sizeof(timeout));
            cassert_unref(sok == 0, sok);
        }
 
        {
-           int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
+           int sok = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)(&timeout), sizeof(timeout));
            cassert_unref(sok == 0, sok);
        }
    }
@@ -105,7 +105,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
 
     /* Create the socket */
     skID = socket(PF_INET, SOCK_STREAM, 0);
-    if(skID == SOCKET_FAIL)
+    if (skID == SOCKET_FAIL)
     {
         if (error != NULL)
             *error = i_socket_error();
@@ -122,7 +122,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
 
         if (timeout_ms == 0)
         {
-            ok_connect = connect(skID, (struct sockaddr*)&server, sizeof(server));
+            ok_connect = connect(skID, (struct sockaddr *)&server, sizeof(server));
             if (ok_connect == SOCKET_FAIL && error != NULL)
                 *error = i_socket_error();
         }
@@ -150,13 +150,13 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
 
             if (ok_connect != SOCKET_FAIL)
             {
-                if (connect(skID, (struct sockaddr*)&server, sizeof(server)) == SOCKET_FAIL)
+                if (connect(skID, (struct sockaddr *)&server, sizeof(server)) == SOCKET_FAIL)
                 {
                     if (errno == EINPROGRESS)
                     {
                         /* connection pending */
                         fd_set setW;
-                        struct timeval time_out = {0,0};
+                        struct timeval time_out = {0, 0};
                         int ret = 0;
 
                         FD_ZERO(&setW);
@@ -174,7 +174,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
                                 /* connection failed */
                                 int err = 0;
                                 socklen_t errlen = sizeof(err);
-                                getsockopt(skID, SOL_SOCKET, SO_ERROR, (void*)&err, &errlen);
+                                getsockopt(skID, SOL_SOCKET, SO_ERROR, (void *)&err, &errlen);
                                 if (err != 0)
                                 {
                                     errno = err;
@@ -231,7 +231,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
     {
         ptr_assign(error, ekSOK);
         _osbs_socket_alloc();
-        return (Socket*)(intptr_t)skID;
+        return (Socket *)(intptr_t)skID;
     }
     else
     {
@@ -250,13 +250,13 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
     SOCKET_ID skID;
     int ok;
 
-	server.sin_family = AF_INET;
-	server.sin_port = htons(port);
-	server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_family = AF_INET;
+    server.sin_port = htons(port);
+    server.sin_addr.s_addr = INADDR_ANY;
 
     /* Create the socket */
-	skID = socket (PF_INET, SOCK_STREAM, 0);
-    if(skID == -1)
+    skID = socket(PF_INET, SOCK_STREAM, 0);
+    if (skID == -1)
     {
         if (error != NULL)
             *error = i_socket_error();
@@ -267,11 +267,11 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
     {
         int reuseaddr = 1;
         int sok = SOCKET_FAIL;
-        sok = setsockopt(skID, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseaddr, sizeof(reuseaddr));
+        sok = setsockopt(skID, SOL_SOCKET, SO_REUSEADDR, (const char *)(&reuseaddr), sizeof(reuseaddr));
         cassert_unref(sok == 0, sok);
     }
 
-	ok = bind(skID, (struct sockaddr*)&server, sizeof(server));
+    ok = bind(skID, (struct sockaddr *)&server, sizeof(server));
     if (ok == SOCKET_FAIL)
     {
         close(skID);
@@ -279,10 +279,10 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
         if (error != NULL)
             *error = i_socket_error();
         return NULL;
-	}
+    }
 
     /* The server will be listening for clients */
-	ok = listen(skID, (int)max_connect);
+    ok = listen(skID, (int)max_connect);
     if (ok == SOCKET_FAIL)
     {
         close(skID);
@@ -291,11 +291,11 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
             i_socket_error();
 
         return NULL;
-	}
+    }
 
     /* All Ok! */
     _osbs_socket_alloc();
-    return (Socket*)(intptr_t)skID;
+    return (Socket *)(intptr_t)skID;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -338,8 +338,8 @@ Socket *bsocket_accept(Socket *lsocket, const uint32_t timeout_ms, serror_t *err
         return NULL;
     }
 
- 	sizeSt = sizeof (clData);
-	cliID = accept((SOCKET_ID)(intptr_t)lsocket, (struct sockaddr*)&clData, &sizeSt);
+    sizeSt = sizeof(clData);
+    cliID = accept((SOCKET_ID)(intptr_t)lsocket, (struct sockaddr *)&clData, &sizeSt);
     if (cliID == SOCKET_FAIL)
     {
         if (error != NULL)
@@ -350,7 +350,7 @@ Socket *bsocket_accept(Socket *lsocket, const uint32_t timeout_ms, serror_t *err
     /* All Ok! */
     _osbs_socket_alloc();
     ptr_assign(error, ekSOK);
-    return (Socket*)(intptr_t)cliID;
+    return (Socket *)(intptr_t)cliID;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -375,7 +375,7 @@ void bsocket_local_ip(Socket *lsocket, uint32_t *ip, uint16_t *port)
     socklen_t addr_size = sizeof(laddress);
     cassert_no_null(lsocket);
     cassert(ip != NULL || port != NULL);
-    if (getsockname((SOCKET_ID)(intptr_t)lsocket, (struct sockaddr*)&laddress, &addr_size) != -1)
+    if (getsockname((SOCKET_ID)(intptr_t)lsocket, (struct sockaddr *)&laddress, &addr_size) != -1)
     {
         ptr_assign(ip, ntohl(laddress.sin_addr.s_addr));
         ptr_assign(port, ntohs(laddress.sin_port));
@@ -395,7 +395,7 @@ void bsocket_remote_ip(Socket *lsocket, uint32_t *ip, uint16_t *port)
     socklen_t addr_size = sizeof(laddress);
     cassert_no_null(lsocket);
     cassert(ip != NULL || port != NULL);
-    if (getpeername((SOCKET_ID)(intptr_t)lsocket, (struct sockaddr*)&laddress, &addr_size) != -1)
+    if (getpeername((SOCKET_ID)(intptr_t)lsocket, (struct sockaddr *)&laddress, &addr_size) != -1)
     {
         ptr_assign(ip, ntohl(laddress.sin_addr.s_addr));
         ptr_assign(port, ntohs(laddress.sin_port));
@@ -415,7 +415,7 @@ void bsocket_read_timeout(Socket *sock, const uint32_t timeout_ms)
     int ret = 0;
     timeout.tv_sec = timeout_ms / 1000;
     timeout.tv_usec = (timeout_ms % 1000) * 1000;
-    ret = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
+    ret = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)(&timeout), sizeof(timeout));
     cassert_unref(ret == 0, ret);
 }
 
@@ -427,7 +427,7 @@ void bsocket_write_timeout(Socket *sock, const uint32_t timeout_ms)
     int ret = 0;
     timeout.tv_sec = timeout_ms / 1000;
     timeout.tv_usec = (timeout_ms % 1000) * 1000;
-    ret = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
+    ret = setsockopt((SOCKET_ID)(intptr_t)sock, SOL_SOCKET, SO_SNDTIMEO, (const char *)(&timeout), sizeof(timeout));
     cassert_unref(ret == 0, ret);
 }
 
@@ -445,7 +445,7 @@ bool_t bsocket_read(Socket *lsocket, byte_t *data, const uint32_t size, uint32_t
     {
         SSIZE_T num_rbytes = 0;
         cassert((int)size > lrsize);
-        num_rbytes = recv((SOCKET_ID)(intptr_t)lsocket, (char*)data, (SIZE_T)((long)size - (long)lrsize), 0);
+        num_rbytes = recv((SOCKET_ID)(intptr_t)lsocket, (char *)data, (SIZE_T)((long)size - (long)lrsize), 0);
         if (num_rbytes > 0)
         {
             lrsize += num_rbytes;
@@ -497,7 +497,7 @@ bool_t bsocket_write(Socket *lsocket, const byte_t *data, const uint32_t size, u
     {
         SSIZE_T num_wbytes = 0;
         cassert((int)size > lwsize);
-        num_wbytes = send((SOCKET_ID)(intptr_t)lsocket, (const char*)data, (SIZE_T)((long)size - (long)lwsize), 0);
+        num_wbytes = send((SOCKET_ID)(intptr_t)lsocket, (const char *)(data), (SIZE_T)((long)size - (long)lwsize), 0);
         if (num_wbytes > 0)
         {
             lwsize += num_wbytes;
@@ -541,18 +541,18 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
 
     cassert_no_null(url);
 
-#if defined (__WINDOWS__)
-    #pragma warning(disable:4996)
-    host = gethostbyname((const char*)url);
-    #pragma warning(default:4996)
+#if defined(__WINDOWS__)
+#pragma warning(disable : 4996)
+    host = gethostbyname((const char *)url);
+#pragma warning(default : 4996)
 #else
-    host = gethostbyname((const char*)url);
+    host = gethostbyname((const char *)url);
 #endif
 
     if (host != NULL)
     {
         /* Cast the h_addr_list to in_addr, since h_addr_list also has the ip address in long format only. */
-        struct in_addr **addr_list = (struct in_addr**)host->h_addr_list;
+        struct in_addr **addr_list = (struct in_addr **)host->h_addr_list;
         if (addr_list[0] != NULL)
         {
             /* Only for debug (see ip in text) */
@@ -572,4 +572,3 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
 
     return 0;
 }
-

@@ -10,17 +10,17 @@
 
 /* Operating System native popup button */
 
-#include "osgui_osx.inl"
 #include "ospopup.h"
-#include "ospopup.inl"
+#include "ospopup_osx.inl"
+#include "oscontrol_osx.inl"
+#include "ospanel_osx.inl"
+#include "oswindow_osx.inl"
 #include "osgui.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "image.h"
-#include "ptr.h"
+#include <draw2d/image.h>
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -53,6 +53,14 @@
         params.text = NULL; /*(const char_t*)[[self titleOfSelectedItem] UTF8String];*/
         listener_event(self->OnSelect_listener, ekGUI_EVENT_POPUP, (OSPopUp*)sender, &params, NULL, OSPopUp, EvButton, void);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void) mouseDown:(NSEvent*)theEvent
+{
+    if (_oswindow_mouse_down((OSControl*)self) == TRUE)
+        [super mouseDown:theEvent];
 }
 
 @end
@@ -293,13 +301,4 @@ void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const rea
 BOOL _ospopup_is(NSView *view)
 {
     return [view isKindOfClass:[OSXPopUp class]];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _ospopup_detach_and_destroy(OSPopUp **popup, OSPanel *panel)
-{
-    cassert_no_null(popup);
-    ospopup_detach(*popup, panel);
-    ospopup_destroy(popup);
 }

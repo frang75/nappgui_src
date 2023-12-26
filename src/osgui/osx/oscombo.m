@@ -10,17 +10,16 @@
 
 /* Operating System native combo box */
 
-#include "osgui_osx.inl"
 #include "oscombo.h"
-#include "oscombo.inl"
+#include "oscombo_osx.inl"
+#include "oscontrol_osx.inl"
+#include "ospanel_osx.inl"
+#include "oswindow_osx.inl"
 #include "osgui.inl"
-#include "oscontrol.inl"
-#include "ospanel.inl"
-#include "oswindow.inl"
-#include "cassert.h"
-#include "event.h"
-#include "heap.h"
-#include "ptr.h"
+#include <core/event.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -109,25 +108,29 @@
 
     {
         unsigned int whyEnd = [[[notification userInfo] objectForKey:@"NSTextMovement"] unsignedIntValue];
-        NSView *nextView = nil;
+        NSWindow *window = [self window];
 
         if (whyEnd == NSReturnTextMovement)
         {
-            [[self window] keyDown:(NSEvent*)231];
-            nextView = self;
+            [window keyDown:(NSEvent*)231];
         }
         else if (whyEnd == NSTabTextMovement)
         {
-            nextView = [self nextValidKeyView];
+            _oswindow_next_tabstop(window);
         }
         else if (whyEnd == NSBacktabTextMovement)
         {
-            nextView = [self previousValidKeyView];
+            _oswindow_prev_tabstop(window);
         }
-
-        if (nextView != nil)
-            [[self window] makeFirstResponder:nextView];
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void) mouseDown:(NSEvent*)theEvent
+{
+    if (_oswindow_mouse_down((OSControl*)self) == TRUE)
+        [super mouseDown:theEvent];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -423,13 +426,4 @@ void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const rea
 BOOL _oscombo_is(NSView *view)
 {
     return [view isKindOfClass:[OSXCombo class]];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscombo_detach_and_destroy(OSCombo **combo, OSPanel *panel)
-{
-    cassert_no_null(combo);
-    oscombo_detach(*combo, panel);
-    oscombo_destroy(combo);
 }

@@ -12,12 +12,11 @@
 
 #include "osgui.inl"
 #include "osgui_gtk.inl"
-#include "osmenuitem.inl"
-#include "osmenu.h"
-#include "osmenu.inl"
-#include "arrpt.h"
-#include "cassert.h"
-#include "heap.h"
+#include "osmenuitem_gtk.inl"
+#include "osmenu_gtk.inl"
+#include <core/arrpt.h>
+#include <core/heap.h>
+#include <sewer/cassert.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -29,21 +28,21 @@ struct _osmenu_t
     OSWindow *window;
     bool_t is_popup;
     OSMenuItem *parent;
-    ArrPt(OSMenuItem) *items;
+    ArrPt(OSMenuItem) * items;
 
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     bool_t is_alive;
-    #endif
+#endif
 };
 
-#if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
 
 /*---------------------------------------------------------------------------*/
 
 static void i_count(GtkWidget *widget, gpointer n)
 {
     unref(widget);
-    *((uint32_t*)n) += 1;
+    *((uint32_t *)n) += 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -91,10 +90,10 @@ void osmenu_destroy(OSMenu **menu)
     cassert(arrpt_size((*menu)->items, OSMenuItem) == 0);
     cassert(i_num_children(GTK_CONTAINER((*menu)->widget)) == 0);
     arrpt_destroy(&(*menu)->items, NULL, OSMenuItem);
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     (*menu)->is_alive = TRUE;
     g_signal_connect((*menu)->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)*menu);
-    #endif
+#endif
     g_object_unref((*menu)->widget);
     cassert((*menu)->is_alive == FALSE);
     heap_delete(menu, OSMenu);
@@ -104,7 +103,7 @@ void osmenu_destroy(OSMenu **menu)
 
 void osmenu_add_item(OSMenu *menu, OSMenuItem *item)
 {
-	cassert_no_null(menu);
+    cassert_no_null(menu);
     _osmenuitem_set_parent(item, menu, GTK_MENU_SHELL(menu->widget));
     arrpt_append(menu->items, item, OSMenuItem);
 }
@@ -113,9 +112,9 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *item)
 
 void osmenu_delete_item(OSMenu *menu, OSMenuItem *item)
 {
-    #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
     uint32_t c = i_num_children(GTK_CONTAINER(menu->widget));
-    #endif
+#endif
     uint32_t pos;
     cassert_no_null(menu);
     pos = arrpt_find(menu->items, item, OSMenuItem);
@@ -158,7 +157,7 @@ static void i_remove_all_items(OSMenu *menu)
     cassert_no_null(menu);
     cassert(arrpt_size(menu->items, OSMenuItem) == i_num_children(GTK_CONTAINER(menu->widget)));
     arrpt_foreach(item, menu->items, OSMenuItem)
-    GtkWidget *widget = _osmenuitem_widget(item);
+        GtkWidget *widget = _osmenuitem_widget(item);
     g_object_ref(widget);
     gtk_container_remove(GTK_CONTAINER(menu->widget), widget);
     arrpt_end();
@@ -172,7 +171,7 @@ static void i_add_all_items_to_bar(OSMenu *menu)
     cassert_no_null(menu);
     cassert_no_null(menu->widget);
     arrpt_foreach(item, menu->items, OSMenuItem)
-    GtkWidget *widget = _osmenuitem_bar_widget(item);
+        GtkWidget *widget = _osmenuitem_bar_widget(item);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu->widget), widget);
     g_object_unref(widget);
     arrpt_end();
@@ -189,10 +188,10 @@ void _osmenu_menubar(OSMenu *menu, OSWindow *window)
     if (menu->is_popup == TRUE)
     {
         i_remove_all_items(menu);
-        #if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
         menu->is_alive = TRUE;
         g_signal_connect(menu->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)menu);
-        #endif
+#endif
         g_object_ref_sink(menu->widget);
         g_object_unref(menu->widget);
         cassert(menu->is_alive == FALSE);
@@ -242,7 +241,7 @@ void _osmenu_set_accel(OSMenu *menu, GtkAccelGroup *accel)
 {
     cassert_no_null(menu);
     arrpt_foreach(item, menu->items, OSMenuItem)
-    _osmenuitem_set_accel(item, accel);
+        _osmenuitem_set_accel(item, accel);
     arrpt_end();
 }
 
@@ -252,6 +251,6 @@ void _osmenu_unset_accel(OSMenu *menu, GtkAccelGroup *accel)
 {
     cassert_no_null(menu);
     arrpt_foreach(item, menu->items, OSMenuItem)
-    _osmenuitem_unset_accel(item, accel);
+        _osmenuitem_unset_accel(item, accel);
     arrpt_end();
 }

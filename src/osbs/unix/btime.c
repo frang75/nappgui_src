@@ -11,15 +11,15 @@
 /* Basic time services */
 
 #include "btime.h"
+#include <sewer/cassert.h>
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
 #endif
 
-#include "cassert.h"
 #include <sys/time.h>
 
-#if defined (__LINUX__)
+#if defined(__LINUX__)
 #include <time.h>
 #endif
 
@@ -99,7 +99,7 @@ uint64_t btime_to_micro(const Date *date)
     struct timeval tv;
     i_date_to_tm(date, &tinfo);
 
-/*
+    /*
     https://stackoverflow.com/questions/38298261/why-there-is-no-inverse-function-for-gmtime-in-libc
 	This function performs the reverse translation that localtime does.
 	The  mktime() function converts a broken-down time structure, expressed as
@@ -120,7 +120,7 @@ uint64_t btime_to_micro(const Date *date)
 void btime_to_date(const uint64_t micro, Date *date)
 {
     struct timeval tv;
-	time_t time;
+    time_t time;
     struct tm *tinfo;
     i_micro_to_timeval(micro, &tv);
     /* https://stackoverflow.com/questions/9252849/convert-timeval-to-time-t */
@@ -128,7 +128,3 @@ void btime_to_date(const uint64_t micro, Date *date)
     tinfo = localtime(&time);
     i_tm_to_date(tinfo, date);
 }
-
-/*---------------------------------------------------------------------------*/
-
-

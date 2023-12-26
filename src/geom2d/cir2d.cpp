@@ -12,10 +12,10 @@
 
 #include "cir2d.h"
 #include "cir2d.hpp"
-#include "bmath.hpp"
-#include "bmem.h"
-#include "heap.h"
-#include "cassert.h"
+#include <core/heap.h>
+#include <sewer/bmath.hpp>
+#include <sewer/bmem.h>
+#include <sewer/cassert.h>
 
 // Indices of points that support current minimum area circle
 struct Support
@@ -50,7 +50,7 @@ Cir2Dd cir2dd(const real64_t x, const real64_t y, const real64_t r)
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_from_box(const Box2D<real> *box)
 {
     Cir2D<real> cir;
@@ -66,8 +66,8 @@ static Cir2D<real> i_from_box(const Box2D<real> *box)
 
 Cir2Df cir2d_from_boxf(const Box2Df *box)
 {
-    Cir2D<real32_t> c = i_from_box<real32_t>((const Box2D<real32_t>*)box);
-    Cir2Df *cc = (Cir2Df*)&c;
+    Cir2D<real32_t> c = i_from_box<real32_t>((const Box2D<real32_t> *)box);
+    Cir2Df *cc = (Cir2Df *)&c;
     return *cc;
 }
 
@@ -75,14 +75,14 @@ Cir2Df cir2d_from_boxf(const Box2Df *box)
 
 Cir2Dd cir2d_from_boxd(const Box2Dd *box)
 {
-    Cir2D<real64_t> c = i_from_box<real64_t>((const Box2D<real64_t>*)box);
-    Cir2Dd *cc = (Cir2Dd*)&c;
+    Cir2D<real64_t> c = i_from_box<real64_t>((const Box2D<real64_t> *)box);
+    Cir2Dd *cc = (Cir2Dd *)&c;
     return *cc;
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_from_points(const V2D<real> *p, const uint32_t n)
 {
     Cir2D<real> cir = Cir2D<real>(0, 0, 0);
@@ -113,8 +113,8 @@ static Cir2D<real> i_from_points(const V2D<real> *p, const uint32_t n)
 
 Cir2Df cir2d_from_pointsf(const V2Df *p, const uint32_t n)
 {
-    Cir2D<real32_t> c = i_from_points((const V2D<real32_t>*)p, n);
-    Cir2Df *cc = (Cir2Df*)&c;
+    Cir2D<real32_t> c = i_from_points((const V2D<real32_t> *)p, n);
+    Cir2Df *cc = (Cir2Df *)&c;
     return *cc;
 }
 
@@ -122,14 +122,14 @@ Cir2Df cir2d_from_pointsf(const V2Df *p, const uint32_t n)
 
 Cir2Dd cir2d_from_pointsd(const V2Dd *p, const uint32_t n)
 {
-    Cir2D<real64_t> c = i_from_points((const V2D<real64_t>*)p, n);
-    Cir2Dd *cc = (Cir2Dd*)&c;
+    Cir2D<real64_t> c = i_from_points((const V2D<real64_t> *)p, n);
+    Cir2Dd *cc = (Cir2Dd *)&c;
     return *cc;
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static bool_t i_support(const Support *support, const uint32_t idx, const V2D<real> **p)
 {
     uint32_t i = 0;
@@ -146,7 +146,7 @@ static bool_t i_support(const Support *support, const uint32_t idx, const V2D<re
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static __INLINE bool_t i_point_in_circle(const Cir2D<real> *cir, const V2D<real> *p)
 {
     real sqdist = V2D<real>::sqdist(p, &cir->c);
@@ -155,7 +155,7 @@ static __INLINE bool_t i_point_in_circle(const Cir2D<real> *cir, const V2D<real>
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_exact_circle1(const V2D<real> *p)
 {
     Cir2D<real> min;
@@ -167,7 +167,7 @@ static Cir2D<real> i_exact_circle1(const V2D<real> *p)
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_exact_circle2(const V2D<real> *p0, const V2D<real> *p1)
 {
     Cir2D<real> min;
@@ -181,7 +181,7 @@ static Cir2D<real> i_exact_circle2(const V2D<real> *p0, const V2D<real> *p1)
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_exact_circle3(const V2D<real> *p0, const V2D<real> *p1, const V2D<real> *p2)
 {
     V2D<real> e10 = V2D<real>::sub(p1, p0);
@@ -221,7 +221,7 @@ static Cir2D<real> i_exact_circle3(const V2D<real> *p0, const V2D<real> *p1, con
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_update_support1(uint32_t i, const V2D<real> **p, Support *support)
 {
     const V2D<real> *p0 = p[support->index[0]];
@@ -235,7 +235,7 @@ static Cir2D<real> i_update_support1(uint32_t i, const V2D<real> **p, Support *s
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_update_support2(uint32_t i, const V2D<real> **p, Support *support)
 {
     const V2D<real> *p0 = p[support->index[0]];
@@ -283,7 +283,7 @@ static Cir2D<real> i_update_support2(uint32_t i, const V2D<real> **p, Support *s
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static Cir2D<real> i_update_support3(uint32_t i, const V2D<real> **p, Support *support)
 {
     const V2D<real> *p0 = p[support->index[0]];
@@ -355,7 +355,8 @@ static Cir2D<real> i_update_support3(uint32_t i, const V2D<real> **p, Support *s
     cassert(idx != UINT32_MAX);
     min = akC[idx];
 
-    switch (idx) {
+    switch (idx)
+    {
     case 0:
         support->n = 2;
         support->index[1] = i;
@@ -394,7 +395,7 @@ static Cir2D<real> i_update_support3(uint32_t i, const V2D<real> **p, Support *s
 /*---------------------------------------------------------------------------*/
 
 // Magic Software: 3D Game Engine Design book
-template<typename real>
+template <typename real>
 static Cir2D<real> i_minimum(const V2D<real> *p, const uint32_t n)
 {
     Cir2D<real> min;
@@ -402,13 +403,13 @@ static Cir2D<real> i_minimum(const V2D<real> *p, const uint32_t n)
     const V2D<real> **perm = NULL;
     uint32_t i = 0;
     cassert(n > 0);
-    
-    perm = heap_new_n(n, const V2D<real>*);
+
+    perm = heap_new_n(n, const V2D<real> *);
     for (i = 0; i < n; i++)
         perm[i] = &p[i];
 
     // generate random permutation
-    bmem_shuffle_n(perm, n, const V2D<real>*);
+    bmem_shuffle_n(perm, n, const V2D<real> *);
 
     min = i_exact_circle1<real>(perm[0]);
     support.n = 1;
@@ -421,7 +422,8 @@ static Cir2D<real> i_minimum(const V2D<real> *p, const uint32_t n)
         {
             if (i_point_in_circle<real>(&min, perm[i]) == FALSE)
             {
-                switch (support.n) {
+                switch (support.n)
+                {
                 case 1:
                     min = i_update_support1<real>(i, perm, &support);
                     break;
@@ -434,7 +436,7 @@ static Cir2D<real> i_minimum(const V2D<real> *p, const uint32_t n)
                     min = i_update_support3<real>(i, perm, &support);
                     break;
 
-                cassert_default();
+                    cassert_default();
                 }
 
                 i = 0;
@@ -445,7 +447,7 @@ static Cir2D<real> i_minimum(const V2D<real> *p, const uint32_t n)
         i++;
     }
 
-    heap_delete_n(&perm, n, const V2D<real>*);
+    heap_delete_n(&perm, n, const V2D<real> *);
     min.r = BMath<real>::sqrt(min.r);
     return min;
 }
@@ -454,8 +456,8 @@ static Cir2D<real> i_minimum(const V2D<real> *p, const uint32_t n)
 
 Cir2Df cir2d_minimumf(const V2Df *p, const uint32_t n)
 {
-    Cir2D<real32_t> c = i_minimum<real32_t>((const V2D<real32_t>*)p, n);
-    Cir2Df *cc = (Cir2Df*)&c;
+    Cir2D<real32_t> c = i_minimum<real32_t>((const V2D<real32_t> *)p, n);
+    Cir2Df *cc = (Cir2Df *)&c;
     return *cc;
 }
 
@@ -463,14 +465,14 @@ Cir2Df cir2d_minimumf(const V2Df *p, const uint32_t n)
 
 Cir2Dd cir2d_minimumd(const V2Dd *p, const uint32_t n)
 {
-    Cir2D<real64_t> c = i_minimum<real64_t>((const V2D<real64_t>*)p, n);
-    Cir2Dd *cc = (Cir2Dd*)&c;
+    Cir2D<real64_t> c = i_minimum<real64_t>((const V2D<real64_t> *)p, n);
+    Cir2Dd *cc = (Cir2Dd *)&c;
     return *cc;
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static real i_area(const Cir2D<real> *cir)
 {
     cassert_no_null(cir);
@@ -481,19 +483,19 @@ static real i_area(const Cir2D<real> *cir)
 
 real32_t cir2d_areaf(const Cir2Df *cir)
 {
-    return i_area<real32_t>((const Cir2D<real32_t>*)cir);
+    return i_area<real32_t>((const Cir2D<real32_t> *)cir);
 }
 
 /*---------------------------------------------------------------------------*/
 
 real64_t cir2d_aread(const Cir2Dd *cir)
 {
-    return i_area<real64_t>((const Cir2D<real64_t>*)cir);
+    return i_area<real64_t>((const Cir2D<real64_t> *)cir);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static bool_t i_is_null(const Cir2D<real> *cir)
 {
     cassert_no_null(cir);
@@ -504,14 +506,14 @@ static bool_t i_is_null(const Cir2D<real> *cir)
 
 bool_t cir2d_is_nullf(const Cir2Df *cir)
 {
-    return i_is_null<real32_t>((const Cir2D<real32_t>*)cir);
+    return i_is_null<real32_t>((const Cir2D<real32_t> *)cir);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t cir2d_is_nulld(const Cir2Dd *cir)
 {
-    return i_is_null<real64_t>((const Cir2D<real64_t>*)cir);
+    return i_is_null<real64_t>((const Cir2D<real64_t> *)cir);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -519,40 +521,40 @@ bool_t cir2d_is_nulld(const Cir2Dd *cir)
 const Cir2Df kCIR2D_NULLf = {{0, 0}, -1};
 const Cir2Dd kCIR2D_NULLd = {{0, 0}, -1};
 
-template<>
-const Cir2D<real32_t>(*Cir2D<real32_t>::kNULL) = ((Cir2D<real32_t>*)&kCIR2D_NULLf);
+template <>
+const Cir2D<real32_t>(*Cir2D<real32_t>::kNULL) = ((Cir2D<real32_t> *)&kCIR2D_NULLf);
 
-template<>
-const Cir2D<real64_t>(*Cir2D<real64_t>::kNULL) = ((Cir2D<real64_t>*)&kCIR2D_NULLd);
+template <>
+const Cir2D<real64_t>(*Cir2D<real64_t>::kNULL) = ((Cir2D<real64_t> *)&kCIR2D_NULLd);
 
 /*---------------------------------------------------------------------------*/
 
-template<>
-Cir2D<real32_t>(*Cir2D<real32_t>::from_box)(const Box2D<real32_t>*) = i_from_box<real32_t>;
+template <>
+Cir2D<real32_t> (*Cir2D<real32_t>::from_box)(const Box2D<real32_t> *) = i_from_box<real32_t>;
 
-template<>
-Cir2D<real64_t>(*Cir2D<real64_t>::from_box)(const Box2D<real64_t>*) = i_from_box<real64_t>;
+template <>
+Cir2D<real64_t> (*Cir2D<real64_t>::from_box)(const Box2D<real64_t> *) = i_from_box<real64_t>;
 
-template<>
-Cir2D<real32_t>(*Cir2D<real32_t>::from_points)(const V2D<real32_t>*, const uint32_t) = i_from_points<real32_t>;
+template <>
+Cir2D<real32_t> (*Cir2D<real32_t>::from_points)(const V2D<real32_t> *, const uint32_t) = i_from_points<real32_t>;
 
-template<>
-Cir2D<real64_t>(*Cir2D<real64_t>::from_points)(const V2D<real64_t>*, const uint32_t) = i_from_points<real64_t>;
+template <>
+Cir2D<real64_t> (*Cir2D<real64_t>::from_points)(const V2D<real64_t> *, const uint32_t) = i_from_points<real64_t>;
 
-template<>
-Cir2D<real32_t>(*Cir2D<real32_t>::minimum)(const V2D<real32_t>*, const uint32_t) = i_minimum<real32_t>;
+template <>
+Cir2D<real32_t> (*Cir2D<real32_t>::minimum)(const V2D<real32_t> *, const uint32_t) = i_minimum<real32_t>;
 
-template<>
-Cir2D<real64_t>(*Cir2D<real64_t>::minimum)(const V2D<real64_t>*, const uint32_t) = i_minimum<real64_t>;
+template <>
+Cir2D<real64_t> (*Cir2D<real64_t>::minimum)(const V2D<real64_t> *, const uint32_t) = i_minimum<real64_t>;
 
-template<>
-real32_t(*Cir2D<real32_t>::area)(const Cir2D<real32_t>*) = i_area<real32_t>;
+template <>
+real32_t (*Cir2D<real32_t>::area)(const Cir2D<real32_t> *) = i_area<real32_t>;
 
-template<>
-real64_t(*Cir2D<real64_t>::area)(const Cir2D<real64_t>*) = i_area<real64_t>;
+template <>
+real64_t (*Cir2D<real64_t>::area)(const Cir2D<real64_t> *) = i_area<real64_t>;
 
-template<>
-bool_t(*Cir2D<real32_t>::is_null)(const Cir2D<real32_t>*) = i_is_null<real32_t>;
+template <>
+bool_t (*Cir2D<real32_t>::is_null)(const Cir2D<real32_t> *) = i_is_null<real32_t>;
 
-template<>
-bool_t(*Cir2D<real64_t>::is_null)(const Cir2D<real64_t>*) = i_is_null<real64_t>;
+template <>
+bool_t (*Cir2D<real64_t>::is_null)(const Cir2D<real64_t> *) = i_is_null<real64_t>;

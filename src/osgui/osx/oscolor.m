@@ -10,13 +10,9 @@
 
 /* Color */
 
-#include "nowarn.hxx"
-#include <Cocoa/Cocoa.h>
-#include "warn.hxx"
-
-#include "color.h"
 #include "oscolor.inl"
-#include "cassert.h"
+#include <draw2d/color.h>
+#include <sewer/cassert.h>
 
 #if !defined (__MACOS__)
 #error This file is only for OSX
@@ -42,7 +38,7 @@ static void i_NSColor_rgba(NSColor *c, CGFloat *r, CGFloat *g, CGFloat *b, CGFlo
             *a = comps[3];
             return;
         }
-            
+
         case kCGColorSpaceModelMonochrome:
         {
             const CGFloat *comps = CGColorGetComponents(cr);
@@ -53,7 +49,7 @@ static void i_NSColor_rgba(NSColor *c, CGFloat *r, CGFloat *g, CGFloat *b, CGFlo
             *a = comps[1];
             return;
         }
-            
+
         case kCGColorSpaceModelCMYK:
         {
             const CGFloat *comps = CGColorGetComponents(cr);
@@ -64,21 +60,21 @@ static void i_NSColor_rgba(NSColor *c, CGFloat *r, CGFloat *g, CGFloat *b, CGFlo
             *a = comps[4];
             return;
         }
-            
+
         default:
             cassert_msg(FALSE, "Unknown color space 'osglobals_color'");
     }
-    
+
     *r = 0;
     *g = 0;
     *b = 0;
     *a = 0;
     return;
 #else
-    
+
     /* https://gist.github.com/aquarius/5344499 */
     NSColor *nc = nil;
-    
+
     if ([[c colorSpaceName] isEqualToString:NSCalibratedRGBColorSpace])
     {
         nc = c;
@@ -88,7 +84,7 @@ static void i_NSColor_rgba(NSColor *c, CGFloat *r, CGFloat *g, CGFloat *b, CGFlo
         /* Try to convert to RGB */
         nc = [c colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
     }
-    
+
     if (nc == nil)
     {
         /* Convert to image and extract first px. The result won't be 100% correct,
@@ -104,7 +100,7 @@ static void i_NSColor_rgba(NSColor *c, CGFloat *r, CGFloat *g, CGFloat *b, CGFlo
         nc = [bitmapRep colorAtX:0 y:0];
         [bitmapRep release];
     }
-    
+
     [nc getRed:r green:g blue:b alpha:a];
 #endif
 }

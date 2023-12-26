@@ -29,7 +29,6 @@ _core_api Stream *stm_socket(Socket *socket);
 
 _core_api void stm_close(Stream **stm);
 
-
 _core_api endian_t stm_get_write_endian(const Stream *stm);
 
 _core_api endian_t stm_get_read_endian(const Stream *stm);
@@ -82,7 +81,6 @@ _core_api const byte_t *stm_buffer(const Stream *stm);
 
 _core_api uint32_t stm_buffer_size(const Stream *stm);
 
-
 _core_api void stm_write(Stream *stm, const byte_t *data, const uint32_t size);
 
 _core_api void stm_write_char(Stream *stm, const uint32_t codepoint);
@@ -112,7 +110,6 @@ _core_api void stm_write_u64(Stream *stm, const uint64_t value);
 _core_api void stm_write_r32(Stream *stm, const real32_t value);
 
 _core_api void stm_write_r64(Stream *stm, const real64_t value);
-
 
 _core_api uint32_t stm_read(Stream *stm, byte_t *data, const uint32_t size);
 
@@ -146,7 +143,6 @@ _core_api real32_t stm_read_r32_tok(Stream *stm);
 
 _core_api real64_t stm_read_r64_tok(Stream *stm);
 
-
 _core_api bool_t stm_read_bool(Stream *stm);
 
 _core_api int8_t stm_read_i8(Stream *stm);
@@ -169,7 +165,6 @@ _core_api real32_t stm_read_r32(Stream *stm);
 
 _core_api real64_t stm_read_r64(Stream *stm);
 
-
 _core_api void stm_skip(Stream *stm, const uint32_t size);
 
 _core_api void stm_skip_bom(Stream *stm);
@@ -190,20 +185,20 @@ _core_api extern Stream *kDEVNULL;
 
 __END_C
 
-#define stm_write_enum(stm, value, type)\
+#define stm_write_enum(stm, value, type) \
     stm_write_i32(stm, (int32_t)value)
 
-#define stm_read_enum(stm, type)\
-    (type)stm_read_i32(stm)
+#define stm_read_enum(stm, type) \
+    (type) stm_read_i32(stm)
 
-#define stm_lines(line, stm)\
-    {\
-        const char_t *line = stm_read_line(stm);\
-        while (line != NULL)\
+#define stm_lines(line, stm)                     \
+    {                                            \
+        const char_t *line = stm_read_line(stm); \
+        while (line != NULL)                     \
         {
 
-#define stm_next(line, stm)\
-            line = stm_read_line(stm);\
-            unref(line);\
-        }\
+#define stm_next(line, stm)    \
+    line = stm_read_line(stm); \
+    unref(line);               \
+    }                          \
     }

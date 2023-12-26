@@ -12,8 +12,8 @@
 
 #include "tri2d.h"
 #include "tri2d.hpp"
-#include "bmath.hpp"
-#include "cassert.h"
+#include <sewer/bmath.hpp>
+#include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
 
@@ -73,7 +73,7 @@ Tri2Dd tri2d_vd(const V2Dd *p0, const V2Dd *p1, const V2Dd *p2)
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static void i_transform(Tri2D<real> *tri, const T2D<real> *t2d)
 {
     cassert_no_null(tri);
@@ -86,45 +86,45 @@ static void i_transform(Tri2D<real> *tri, const T2D<real> *t2d)
 
 void tri2d_transformf(Tri2Df *tri, const T2Df *t2d)
 {
-    i_transform<real32_t>((Tri2D<real32_t>*)tri, (const T2D<real32_t>*)t2d);
+    i_transform<real32_t>((Tri2D<real32_t> *)tri, (const T2D<real32_t> *)t2d);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void tri2d_transformd(Tri2Dd *tri, const T2Dd *t2d)
 {
-    i_transform<real64_t>((Tri2D<real64_t>*)tri, (const T2D<real64_t>*)t2d);
+    i_transform<real64_t>((Tri2D<real64_t> *)tri, (const T2D<real64_t> *)t2d);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static real i_area(const Tri2D<real> *tri)
 {
     real area = 0;
     cassert_no_null(tri);
     area = tri->p0.x * (tri->p1.y - tri->p2.y) + tri->p1.x * (tri->p2.y - tri->p0.y) + tri->p2.x * (tri->p0.y - tri->p1.y);
     area /= 2;
-    return (area > 0) ? area : - area;
+    return (area > 0) ? area : -area;
 }
 
 /*---------------------------------------------------------------------------*/
 
 real32_t tri2d_areaf(const Tri2Df *tri)
 {
-    return i_area<real32_t>((const Tri2D<real32_t>*)tri);
+    return i_area<real32_t>((const Tri2D<real32_t> *)tri);
 }
 
 /*---------------------------------------------------------------------------*/
 
 real64_t tri2d_aread(const Tri2Dd *tri)
 {
-    return i_area<real64_t>((const Tri2D<real64_t>*)tri);
+    return i_area<real64_t>((const Tri2D<real64_t> *)tri);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static bool_t i_ccw(const Tri2D<real> *tri)
 {
     real area = 0;
@@ -137,33 +137,33 @@ static bool_t i_ccw(const Tri2D<real> *tri)
 
 bool_t tri2d_ccwf(const Tri2Df *tri)
 {
-    return i_ccw<real32_t>((const Tri2D<real32_t>*)tri);
+    return i_ccw<real32_t>((const Tri2D<real32_t> *)tri);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t tri2d_ccwd(const Tri2Dd *tri)
 {
-    return i_ccw<real64_t>((const Tri2D<real64_t>*)tri);
+    return i_ccw<real64_t>((const Tri2D<real64_t> *)tri);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template<typename real>
+template <typename real>
 static V2D<real> i_centroid(const Tri2D<real> *tri)
 {
     V2D<real> c(0, 0);
     cassert_no_null(tri);
     c.x = (tri->p0.x + tri->p1.x + tri->p2.x) / 3;
     c.y = (tri->p0.y + tri->p1.y + tri->p2.y) / 3;
-    return c;    
+    return c;
 }
 
 /*---------------------------------------------------------------------------*/
 
 V2Df tri2d_centroidf(const Tri2Df *tri)
 {
-    V2D<real32_t> v = i_centroid<real32_t>((const Tri2D<real32_t>*)tri);
+    V2D<real32_t> v = i_centroid<real32_t>((const Tri2D<real32_t> *)tri);
     V2Df vf;
     vf.x = v.x;
     vf.y = v.y;
@@ -174,7 +174,7 @@ V2Df tri2d_centroidf(const Tri2Df *tri)
 
 V2Dd tri2d_centroidd(const Tri2Dd *tri)
 {
-    V2D<real64_t> v = i_centroid<real64_t>((const Tri2D<real64_t>*)tri);
+    V2D<real64_t> v = i_centroid<real64_t>((const Tri2D<real64_t> *)tri);
     V2Dd vd;
     vd.x = v.x;
     vd.y = v.y;
@@ -183,27 +183,26 @@ V2Dd tri2d_centroidd(const Tri2Dd *tri)
 
 /*---------------------------------------------------------------------------*/
 
-template<>
-void (*Tri2D<real32_t>::transform)(Tri2D<real32_t>*, const T2D<real32_t>*) = i_transform<real32_t>;
+template <>
+void (*Tri2D<real32_t>::transform)(Tri2D<real32_t> *, const T2D<real32_t> *) = i_transform<real32_t>;
 
-template<>
-void (*Tri2D<real64_t>::transform)(Tri2D<real64_t>*, const T2D<real64_t>*) = i_transform<real64_t>;
+template <>
+void (*Tri2D<real64_t>::transform)(Tri2D<real64_t> *, const T2D<real64_t> *) = i_transform<real64_t>;
 
-template<>
-real32_t(*Tri2D<real32_t>::area)(const Tri2D<real32_t>*) = i_area<real32_t>;
+template <>
+real32_t (*Tri2D<real32_t>::area)(const Tri2D<real32_t> *) = i_area<real32_t>;
 
-template<>
-real64_t(*Tri2D<real64_t>::area)(const Tri2D<real64_t>*) = i_area<real64_t>;
+template <>
+real64_t (*Tri2D<real64_t>::area)(const Tri2D<real64_t> *) = i_area<real64_t>;
 
-template<>
-bool_t(*Tri2D<real32_t>::ccw)(const Tri2D<real32_t>*) = i_ccw<real32_t>;
+template <>
+bool_t (*Tri2D<real32_t>::ccw)(const Tri2D<real32_t> *) = i_ccw<real32_t>;
 
-template<>
-bool_t(*Tri2D<real64_t>::ccw)(const Tri2D<real64_t>*) = i_ccw<real64_t>;
-    
-template<>
-V2D<real32_t>(*Tri2D<real32_t>::centroid)(const Tri2D<real32_t>*) = i_centroid<real32_t>;
+template <>
+bool_t (*Tri2D<real64_t>::ccw)(const Tri2D<real64_t> *) = i_ccw<real64_t>;
 
-template<>
-V2D<real64_t>(*Tri2D<real64_t>::centroid)(const Tri2D<real64_t>*) = i_centroid<real64_t>;
+template <>
+V2D<real32_t> (*Tri2D<real32_t>::centroid)(const Tri2D<real32_t> *) = i_centroid<real32_t>;
 
+template <>
+V2D<real64_t> (*Tri2D<real64_t>::centroid)(const Tri2D<real64_t> *) = i_centroid<real64_t>;
