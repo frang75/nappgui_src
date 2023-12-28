@@ -47,3 +47,7 @@ const CGFloat *osglobals_backbackdrop_color(void);
 const CGFloat *osglobals_hotbgbackdrop_color(void);
 
 const CGFloat *osglobals_selbgbackdrop_color(void);
+
+color_t osglobals_focus_color(void);
+
+NSTableHeaderCell *osglobals_header_cell(void);

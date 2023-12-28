@@ -81,7 +81,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
     uint32_t st = (uint32_t)(sp * ((double)scroller->page- (double)scroller->knob_size));
     uint32_t ed = st + scroller->knob_size;
     cassert_no_null(val);
-    
+
     /* New scroller value associated with click point */
     *val = ((double)pos - (double)(scroller->knob_size / 2))/(double)(scroller->page - scroller->knob_size);
 
@@ -171,10 +171,10 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
             diff = pt.x - self->mouse_click;
         else
             diff = pt.y - self->mouse_click;
-        
+
         npos = (self->click_pos + (diff * self->px_scroll));
         nvalue = npos / i_max_val(self);
-        
+
         [self setDoubleValue:nvalue];
         i_scroller_event(self);
     }
@@ -337,10 +337,9 @@ void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, c
     cassert(page > 0);
     cassert(max >= page);
     cassert_unref(max >= pos, pos);
-    cassert(pos <= max - page);
     scroller->max = max;
     scroller->page = page;
-    
+
     /* Compute Knob size */
     {
         uint32_t scroll_req = max - page;
@@ -355,7 +354,7 @@ void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, c
         scroller->px_scroll = (double)(max - page)/(double)motion_px;
         cassert(scroller->px_scroll >= 1);
     }
-    
+
     cassert(scroller->knob_size < page);
     [scroller setKnobProportion:(double)scroller->knob_size/(double)page];
     osscroll_set_pos(scroll, pos);

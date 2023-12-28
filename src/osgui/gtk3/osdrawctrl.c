@@ -72,18 +72,11 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 {
     GtkStyleContext *c = osglobals_entry_context();
     cairo_t *cairo = (cairo_t *)dctx_native(ctx);
-    real32_t offset_x, offset_y;
-    const double i_CORNER_OFFSET = 10;
-    unref(nonused);
-    dctx_offset(ctx, &offset_x, &offset_y);
-    cairo_save(cairo);
-    cairo_rectangle(cairo, (double)x + offset_x, (double)y + offset_y, (double)width, (double)height);
-    cairo_clip(cairo);
     gtk_style_context_save(c);
     gtk_style_context_set_state(c, GTK_STATE_FLAG_NORMAL);
-    gtk_render_background(c, cairo, (gdouble)x + offset_x - i_CORNER_OFFSET, (gdouble)y + offset_y - i_CORNER_OFFSET, (gdouble)width + 2 * i_CORNER_OFFSET, (gdouble)height + 2 * i_CORNER_OFFSET);
+    gtk_render_background(c, cairo, (gdouble)x, (gdouble)y, (gdouble)width, (gdouble)height);
     gtk_style_context_restore(c);
-    cairo_restore(cairo);
+    unref(nonused);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -245,7 +238,7 @@ void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 
 void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_t x1, const int32_t y1)
 {
-    draw_lineimp(ctx, (real32_t)x0, (real32_t)y0, (real32_t)x1, (real32_t)y1, TRUE);
+    draw_line_imp(ctx, (real32_t)x0, (real32_t)y0, (real32_t)x1, (real32_t)y1, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -290,7 +283,7 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
 
     draw_text_color(ctx, color);
     draw_text_trim(ctx, ekELLIPEND);
-    dctx_text_raster(ctx, text, x, y);
+    draw_text_raster(ctx, text, x, y);
     draw_text_trim(ctx, ellipsis);
 }
 

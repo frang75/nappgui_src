@@ -41,6 +41,7 @@
     uint32_t flags;
     NSTrackingArea *tracking_area;
     ViewListeners listeners;
+    OSDraw osdraw;
     Listener *OnFocus;
     Listener *OnResignFocus;
     Listener *OnAcceptFocus;
@@ -95,6 +96,7 @@
             {
                 self->ctx = dctx_create();
                 dctx_set_flipped(self->ctx, (bool_t)[self isFlipped]);
+                dctx_data(self->ctx, &self->osdraw, NULL, OSDraw);
             }
 
             params.ctx = self->ctx;
@@ -260,7 +262,7 @@
         if (ev != ENUM_MAX(gui_scroll_t))
             _osview_scroll_event(self, ekGUI_VERTICAL, ev);
     }
-       
+
     _oslistener_scroll_whell(self, theEvent, self->scroll, &self->listeners);
 }
 
@@ -324,6 +326,7 @@ OSView *osview_create(const uint32_t flags)
     view->OnAcceptFocus = NULL;
     view->OnOverlay = NULL;
     view->mouse_inside = NO;
+    view->osdraw.view = view;
     _oslistener_init(&view->listeners);
 
     if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)

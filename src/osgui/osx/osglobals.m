@@ -43,7 +43,10 @@ static CGFloat i_HOTBG_COLOR[4];
 static CGFloat i_BACKBACKDROP_COLOR[4];
 static CGFloat i_SELBGBACKDROP_COLOR[4];
 static CGFloat i_HOTBGBACKDROP_COLOR[4];
+static color_t i_GRID_COLOR;
+static color_t i_FOCUS_COLOR;
 static bool_t i_DARK_MODE = FALSE;
+static NSTableHeaderCell *i_HEADER_CELL = nil;
 
 /*---------------------------------------------------------------------------*/
 
@@ -71,6 +74,8 @@ static void i_theme_colors(void)
         i_SET_COLOR(i_BACKBACKDROP_COLOR, r, g, b, 1);
         i_SET_COLOR(i_SELBGBACKDROP_COLOR, .27, .27, .27, 1);
         i_SET_COLOR(i_HOTBGBACKDROP_COLOR, r, g, b, 1);
+        i_GRID_COLOR = color_rgbaf(.3f, .3f, .3f, 1.f);
+        i_FOCUS_COLOR = color_rgbaf(.7f, .7f, .7f, 1.f);
     }
     else
     {
@@ -86,6 +91,8 @@ static void i_theme_colors(void)
         i_SET_COLOR(i_BACKBACKDROP_COLOR, r, g, b, 1);
         i_SET_COLOR(i_SELBGBACKDROP_COLOR, .827, .827, .827, 1);
         i_SET_COLOR(i_HOTBGBACKDROP_COLOR, .95, .96, .98, 1);
+        i_GRID_COLOR = color_rgbaf(.5f, .5f, .5f, 1.f);
+        i_FOCUS_COLOR = color_rgbaf(.4f, .4f, .4f, 1.f);
     }
 
     unref(a);
@@ -238,7 +245,7 @@ color_t osglobals_color(const syscolor_t *color)
 		return oscolor_from_NSColor([NSColor windowBackgroundColor]);
 
     case ekSYSCOLOR_LINE:
-		return oscolor_from_NSColor([NSColor gridColor]);
+		return i_GRID_COLOR;
 
     case ekSYSCOLOR_LINK:
 	#if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
@@ -248,7 +255,7 @@ color_t osglobals_color(const syscolor_t *color)
 	#endif
 
     case ekSYSCOLOR_BORDER:
-		return oscolor_from_NSColor([NSColor gridColor]);
+        return i_GRID_COLOR;
 
 	cassert_default();
     }
@@ -399,9 +406,21 @@ static void i_destroy_checkbox(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_destroy_cells(void)
+{
+    if (i_HEADER_CELL != nil)
+    {
+        [i_HEADER_CELL release];
+        i_HEADER_CELL = nil;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_finish(void)
 {
     i_destroy_checkbox();
+    i_destroy_cells();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -575,8 +594,29 @@ const CGFloat *osglobals_selbgbackdrop_color(void)
 
 /*---------------------------------------------------------------------------*/
 
+color_t osglobals_focus_color(void)
+{
+    return i_FOCUS_COLOR;
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSTableHeaderCell *osglobals_header_cell(void)
+{
+    if (i_HEADER_CELL == nil)
+    {
+        i_HEADER_CELL = [[NSTableHeaderCell alloc] init];
+        [i_HEADER_CELL setTitle:@""];
+    }
+    
+    return i_HEADER_CELL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_theme_changed(void)
 {
 	i_theme_colors();
     i_destroy_checkbox();
+    i_destroy_cells();
 }

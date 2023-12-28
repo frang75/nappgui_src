@@ -71,7 +71,9 @@ static gboolean i_OnConfig(GtkWidget *widget, GdkEventConfigure *event, OSView *
             uint32_t w = (uint32_t)gtk_widget_get_allocated_width(widget);
             uint32_t h = (uint32_t)gtk_widget_get_allocated_height(widget);
             if (w != view->clip_width || h != view->clip_height)
-                dctx_update_view(view->ctx, (void *)widget);
+            {
+                /* dctx_update_view(view->ctx, (void *)widget); */
+            }
         }
     }
 

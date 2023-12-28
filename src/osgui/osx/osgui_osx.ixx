@@ -179,6 +179,7 @@ enum
 };
 
 typedef struct _view_listeners_t ViewListeners;
+typedef struct _osdraw_t OSDraw;
 typedef struct _osscrollview_t OSScrollView;
 typedef struct _ostext_attr_t OSTextAttr;
 
@@ -198,6 +199,11 @@ struct _view_listeners_t
     Listener *OnKeyUp;
     Listener *OnKeyDown;
     NSUInteger modifier_flags;
+};
+
+struct _osdraw_t
+{
+    NSView *view;
 };
 
 struct _strsize_data_t

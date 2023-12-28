@@ -30,18 +30,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static void i_color(const color_t c, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
-{
-    real32_t r1, g1, b1, a1;
-    color_get_rgbaf(c, &r1, &g1, &b1, &a1);
-    *r = (CGFloat)r1;
-    *g = (CGFloat)g1;
-    *b = (CGFloat)b1;
-    *a = (CGFloat)a1;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_init_text_attr(DCtx *ctx)
 {
     id objects[5];
@@ -50,7 +38,7 @@ static void i_init_text_attr(DCtx *ctx)
     cassert(ctx->text_parag == NULL);
     cassert(ctx->text_dict == NULL);
     ctx->text_parag = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] retain];
-    ctx->text_parag.lineBreakMode = NSLineBreakByWordWrapping;
+    [ctx->text_parag setLineBreakMode:NSLineBreakByWordWrapping];
 
     objects[0] = kUNDERLINE_NONE;
     objects[1] = kUNDERLINE_NONE;
@@ -96,6 +84,12 @@ void dctx_destroy(DCtx **ctx)
     [(*ctx)->text_dict release];
     [(*ctx)->text_parag release];
 
+    if ((*ctx)->data != NULL)
+    {
+        if ((*ctx)->func_destroy_data != NULL)
+            (*ctx)->func_destroy_data(&(*ctx)->data);
+    }
+
     heap_delete(ctx, DCtx);
 }
 
@@ -140,15 +134,6 @@ void dctx_unset_gcontext(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_update_view(DCtx *ctx, void *view)
-{
-    unref(ctx);
-    unref(view);
-    cassert(FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void dctx_set_flipped(DCtx *ctx, const bool_t flipped)
 {
     cassert_no_null(ctx);
@@ -176,11 +161,33 @@ void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
 
 /*---------------------------------------------------------------------------*/
 
+void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size)
+{
+    uint32_t i;
+    cassert_no_null(ctx);
+    cassert_no_null(pattern);
+    cassert_no_null(size);
+    *size = ctx->dash_count;
+    for (i = 0; i < ctx->dash_count; ++i)
+        pattern[i] = (real32_t)ctx->line_dash[i];
+}
+
+/*---------------------------------------------------------------------------*/
+
 real32_t dctx_text_width(const DCtx *ctx)
 {
     unref(ctx);
     cassert(FALSE);
-	return 0;
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+align_t dctx_text_intalign(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return ekLEFT;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -194,11 +201,48 @@ color_t dctx_text_color(const DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+color_t dctx_line_color(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->skcolor;
+}
+
+/*---------------------------------------------------------------------------*/
+
 color_t dctx_background_color(const DCtx *ctx)
 {
     unref(ctx);
     cassert(FALSE);
 	return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static ellipsis_t i_ellipsis(NSLineBreakMode mode)
+{
+    switch(mode){
+    case NSLineBreakByWordWrapping:
+        return ekELLIPMLINE;
+    case NSLineBreakByClipping:
+        return ekELLIPNONE;
+    case NSLineBreakByTruncatingHead:
+        return ekELLIPBEGIN;
+    case NSLineBreakByTruncatingTail:
+        return ekELLIPEND;
+    case NSLineBreakByTruncatingMiddle:
+        return ekELLIPMIDDLE;
+    case NSLineBreakByCharWrapping:
+        break;
+    }
+    return ENUM_MAX(ellipsis_t);
+}
+
+/*---------------------------------------------------------------------------*/
+
+ellipsis_t dctx_text_trim(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return i_ellipsis(ctx->text_parag.lineBreakMode);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -220,30 +264,21 @@ void *dctx_internal_bitmap(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_default_osfont(DCtx *ctx, const void *font)
-{
-    unref(ctx);
-    unref(font);
-    cassert(FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void dctx_data_imp(DCtx *ctx, void *data, FPtr_destroy func_destroy_data)
 {
-    unref(ctx);
-    unref(data);
-    unref(func_destroy_data);
-    cassert(FALSE);
+    cassert_no_null(ctx);
+    cassert(ctx->data == NULL);
+    cassert(ctx->func_destroy_data == NULL);
+    ctx->data = data;
+    ctx->func_destroy_data = func_destroy_data;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void *dctx_get_data_imp(const DCtx *ctx)
 {
-    unref(ctx);
-    cassert(FALSE);
-    return NULL;
+    cassert_no_null(ctx);
+    return ctx->data;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -308,6 +343,18 @@ void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_color(const color_t c, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
+{
+    real32_t r1, g1, b1, a1;
+    color_get_rgbaf(c, &r1, &g1, &b1, &a1);
+    *r = (CGFloat)r1;
+    *g = (CGFloat)g1;
+    *b = (CGFloat)b1;
+    *a = (CGFloat)a1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_clear(DCtx *ctx, const color_t color)
 {
     cassert_no_null(ctx);
@@ -335,5 +382,14 @@ void draw_antialias(DCtx *ctx, const bool_t on)
 {
     cassert_no_null(ctx);
     CGContextSetShouldAntialias(ctx->context, on);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_default_osfont(DCtx *ctx, const void *font)
+{
+    unref(ctx);
+    unref(font);
+    cassert(FALSE);
 }
 

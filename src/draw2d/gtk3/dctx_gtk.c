@@ -96,14 +96,6 @@ void dctx_unset_gcontext(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_update_view(DCtx *ctx, void *view)
-{
-    cassert_no_null(ctx);
-    unref(view);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void dctx_set_flipped(DCtx *ctx, const bool_t flipped)
 {
     unref(ctx);
@@ -129,6 +121,16 @@ void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
     cassert_no_null(offset_y);
     *offset_x = (real32_t)ctx->offset_x;
     *offset_y = (real32_t)ctx->offset_y;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size)
+{
+    unref(ctx);
+    unref(pattern);
+    unref(size);
+    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -160,11 +162,48 @@ color_t dctx_text_color(const DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+color_t dctx_line_color(const DCtx *ctx)
+{
+    unref(ctx);
+    cassert(FALSE);
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 color_t dctx_background_color(const DCtx *ctx)
 {
     unref(ctx);
     cassert(FALSE);
     return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
+{
+    switch (ellipsis)
+    {
+    case PANGO_ELLIPSIZE_NONE:
+        return ekELLIPNONE;
+    case PANGO_ELLIPSIZE_START:
+        return ekELLIPBEGIN;
+    case PANGO_ELLIPSIZE_MIDDLE:
+        return ekELLIPMIDDLE;
+    case PANGO_ELLIPSIZE_END:
+        return ekELLIPEND;
+        cassert_default();
+    }
+
+    return ekELLIPNONE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+ellipsis_t dctx_text_trim(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return i_nellipsis(ctx->ellipsis);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -201,44 +240,6 @@ void *dctx_get_data_imp(const DCtx *ctx)
     unref(ctx);
     cassert(FALSE);
     return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
-{
-    cairo_matrix_t transform;
-    cassert_no_null(ctx);
-    cassert_no_null(t2d);
-    transform.xx = (double)t2d->i.x;
-    transform.yx = (double)t2d->i.y;
-    transform.xy = (double)t2d->j.x;
-    transform.yy = (double)t2d->j.y;
-    transform.x0 = (double)t2d->p.x;
-    transform.y0 = (double)t2d->p.y;
-    ctx->transform = transform;
-    ctx->cartesian_system = cartesian;
-
-    if (ctx->raster_mode == FALSE)
-    {
-        cairo_set_matrix(ctx->cairo, &ctx->origin);
-        cairo_transform(ctx->cairo, &transform);
-        _dctx_gradient_transform(ctx);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _dctx_gradient_transform(DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    if (ctx->lpattern != NULL)
-    {
-        cairo_matrix_t matrix = ctx->pattern_matrix;
-        cairo_matrix_invert(&matrix);
-        cairo_matrix_multiply(&matrix, &ctx->transform, &matrix);
-        cairo_pattern_set_matrix(ctx->lpattern, &matrix);
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -280,6 +281,30 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
 
 /*---------------------------------------------------------------------------*/
 
+void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
+{
+    cairo_matrix_t transform;
+    cassert_no_null(ctx);
+    cassert_no_null(t2d);
+    transform.xx = (double)t2d->i.x;
+    transform.yx = (double)t2d->i.y;
+    transform.xy = (double)t2d->j.x;
+    transform.yy = (double)t2d->j.y;
+    transform.x0 = (double)t2d->p.x;
+    transform.y0 = (double)t2d->p.y;
+    ctx->transform = transform;
+    ctx->cartesian_system = cartesian;
+
+    if (ctx->raster_mode == FALSE)
+    {
+        cairo_set_matrix(ctx->cairo, &ctx->origin);
+        cairo_transform(ctx->cairo, &transform);
+        _dctx_gradient_transform(ctx);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static __INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
 {
     /*if (color != *source_color)*/
@@ -314,4 +339,18 @@ void draw_antialias(DCtx *ctx, const bool_t on)
 #endif
 
     cairo_set_antialias(ctx->cairo, anti);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _dctx_gradient_transform(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    if (ctx->lpattern != NULL)
+    {
+        cairo_matrix_t matrix = ctx->pattern_matrix;
+        cairo_matrix_invert(&matrix);
+        cairo_matrix_multiply(&matrix, &ctx->transform, &matrix);
+        cairo_pattern_set_matrix(ctx->lpattern, &matrix);
+    }
 }

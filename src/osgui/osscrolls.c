@@ -408,7 +408,10 @@ static void i_update_bars(OSScrolls *scroll)
         uint32_t height = bh;
 
         if (with_vscroll == TRUE)
+        {
             width -= bw;
+            i_limits(scroll->hscroll, scroll->hvisible, width, scroll->content_width);
+        }
 
         osscroll_frame(scroll->hscroll, x, y, width, height);
         osscroll_visible(scroll->hscroll, TRUE);

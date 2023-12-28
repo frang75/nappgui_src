@@ -12,8 +12,8 @@
 * TableView force row height [Doc](https://nappgui.com/en/gui/tableview.html#h7). `tableview_header_height()` and `tableview_row_height()`.
 * TableView column-by-column horizontal navigation [Doc](https://nappgui.com/en/gui/tableview.html#h4). `tableview_hkey_scroll()`.
 * TableView focus row [Doc](https://nappgui.com/en/gui/tableview.html#h4). `tableview_focus_row()`, `tableview_get_focus_row()`.
-* TableView hide scrollbars [Doc](https://nappgui.com/docs/gui/tableview.html#h7). `tableview_scroll_visible()`, `view_scroll_visible()` and `view_scroll_size()`.
-* TableView multiline headers [Doc](https://nappgui.com/docs/gui/tableview.html#h5). `'\n'` in `tableview_header_title()`.
+* TableView hide scrollbars [Doc](https://nappgui.com/en/gui/tableview.html#h7). `tableview_scroll_visible()`, `view_scroll_visible()` and `view_scroll_size()`.
+* TableView multiline headers [Doc](https://nappgui.com/en/gui/tableview.html#h5). `'\n'` in `tableview_header_title()`.
 * TextView get full text: `textview_get_text()`.
 * TextView select text: `textview_select()`.
 * TextView scroll to caret: `textview_scroll_caret()`.
@@ -31,7 +31,7 @@
 * Window modal avoid hide when close: `ekWINDOW_MODAL_NOHIDE` [Doc](https://nappgui.com/en/gui/window.html#h3).
 * View scrollbar event: `view_OnScroll()`, `gui_scroll_t`.
 * View new constructor: `view_custom()`.
-* View draw overlays: `view_OnOverlay()` [Doc](https://nappgui.com/docs/r4716/en/gui/view.html#h3).
+* View draw overlays: `view_OnOverlay()` [Doc](https://nappgui.com/en/gui/view.html#h3).
 * Panel new constructor: `panel_custom()`.
 * Button vertical padding: `button_vpadding()` and `button_get_height()`.
 * Edit vertical padding: `edit_vpadding()`.

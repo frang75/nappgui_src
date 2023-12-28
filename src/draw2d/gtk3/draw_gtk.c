@@ -51,16 +51,13 @@ void draw_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
+void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
 {
-    /* Check ColorView if de-comment
-    if (color != *source_color) */
-    {
-        real32_t r, g, b, a;
-        color_get_rgbaf(color, &r, &g, &b, &a);
-        cairo_set_source_rgba(cairo, (double)r, (double)g, (double)b, (double)a);
-        *source_color = color;
-    }
+    unref(data);
+    unref(word);
+    unref(width);
+    unref(height);
+    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -75,13 +72,6 @@ static void i_set_raster_mode(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_raster_mode(DCtx *ctx)
-{
-    i_set_raster_mode(ctx);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_set_real2d_mode(DCtx *ctx)
 {
     cassert_no_null(ctx);
@@ -90,6 +80,100 @@ static void i_set_real2d_mode(DCtx *ctx)
     cairo_transform(ctx->cairo, &ctx->transform);
     _dctx_gradient_transform(ctx);
     ctx->raster_mode = FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+{
+    gdouble nx = (gdouble)x;
+    gdouble ny = (gdouble)y;
+    const GdkPixbuf *pixbuf = osimage_pixbuf(image, frame_index);
+
+    cassert_no_null(ctx);
+    if (raster != ctx->raster_mode)
+    {
+        if (raster == TRUE)
+            i_set_raster_mode(ctx);
+        else
+            i_set_real2d_mode(ctx);
+    }
+
+    if (ctx->image_halign != ekLEFT || ctx->image_valign != ekTOP)
+    {
+        gdouble w = (gdouble)gdk_pixbuf_get_width(pixbuf);
+        gdouble h = (gdouble)gdk_pixbuf_get_height(pixbuf);
+
+        switch (ctx->image_halign)
+        {
+        case ekLEFT:
+        case ekJUSTIFY:
+            break;
+        case ekCENTER:
+            nx -= w / 2;
+            break;
+        case ekRIGHT:
+            nx -= w;
+            break;
+        }
+
+        switch (ctx->image_valign)
+        {
+        case ekTOP:
+        case ekJUSTIFY:
+            break;
+        case ekCENTER:
+            ny -= h / 2;
+            break;
+        case ekBOTTOM:
+            ny -= h;
+            break;
+        }
+    }
+
+    gdk_cairo_set_source_pixbuf(ctx->cairo, pixbuf, nx, ny);
+    cairo_paint(ctx->cairo);
+    ctx->source_color = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1)
+{
+    draw_line_imp(ctx, x0, y0, x1, y1, FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_line_path(cairo_t *cairo, const V2Df *points, const uint32_t n, const bool_t closed)
+{
+    register uint32_t i;
+    cassert_no_null(cairo);
+    cassert_no_null(points);
+    cassert(n > 0);
+
+    cairo_move_to(cairo, (double)points->x, (double)points->y);
+    points += 1;
+
+    for (i = 1; i < n; ++i, ++points)
+        cairo_line_to(cairo, (double)points->x, (double)points->y);
+
+    if (closed)
+        cairo_close_path(cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
+{
+    /* Check ColorView if de-comment
+    if (color != *source_color) */
+    {
+        real32_t r, g, b, a;
+        color_get_rgbaf(color, &r, &g, &b, &a);
+        cairo_set_source_rgba(cairo, (double)r, (double)g, (double)b, (double)a);
+        *source_color = color;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -119,32 +203,6 @@ static __INLINE void i_line_pattern(DCtx *ctx)
         i_fill_pattern(ctx->cairo, ctx->fill_color, ctx->lpattern, ctx->fillmode, &ctx->source_color);
     else
         i_color(ctx->cairo, ctx->stroke_color, &ctx->source_color);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void draw_line(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1)
-{
-    draw_lineimp(ctx, x0, y0, x1, y1, FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_line_path(cairo_t *cairo, const V2Df *points, const uint32_t n, const bool_t closed)
-{
-    register uint32_t i;
-    cassert_no_null(cairo);
-    cassert_no_null(points);
-    cassert(n > 0);
-
-    cairo_move_to(cairo, (double)points->x, (double)points->y);
-    points += 1;
-
-    for (i = 1; i < n; ++i, ++points)
-        cairo_line_to(cairo, (double)points->x, (double)points->y);
-
-    if (closed)
-        cairo_close_path(cairo);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -489,79 +547,6 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_lineimp(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const bool_t raster)
-{
-    cassert_no_null(ctx);
-    if (raster != ctx->raster_mode)
-    {
-        if (raster == TRUE)
-            i_set_raster_mode(ctx);
-        else
-            i_set_real2d_mode(ctx);
-    }
-
-    cairo_move_to(ctx->cairo, (double)x0, (double)y0);
-    cairo_line_to(ctx->cairo, (double)x1, (double)y1);
-    i_line_pattern(ctx);
-    cairo_stroke(ctx->cairo);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
-{
-    gdouble nx = (gdouble)x;
-    gdouble ny = (gdouble)y;
-    const GdkPixbuf *pixbuf = osimage_pixbuf(image, frame_index);
-
-    cassert_no_null(ctx);
-    if (raster != ctx->raster_mode)
-    {
-        if (raster == TRUE)
-            i_set_raster_mode(ctx);
-        else
-            i_set_real2d_mode(ctx);
-    }
-
-    if (ctx->image_halign != ekLEFT || ctx->image_valign != ekTOP)
-    {
-        gdouble w = (gdouble)gdk_pixbuf_get_width(pixbuf);
-        gdouble h = (gdouble)gdk_pixbuf_get_height(pixbuf);
-
-        switch (ctx->image_halign)
-        {
-        case ekLEFT:
-        case ekJUSTIFY:
-            break;
-        case ekCENTER:
-            nx -= w / 2;
-            break;
-        case ekRIGHT:
-            nx -= w;
-            break;
-        }
-
-        switch (ctx->image_valign)
-        {
-        case ekTOP:
-        case ekJUSTIFY:
-            break;
-        case ekCENTER:
-            ny -= h / 2;
-            break;
-        case ekBOTTOM:
-            ny -= h;
-            break;
-        }
-    }
-
-    gdk_cairo_set_source_pixbuf(ctx->cairo, pixbuf, nx, ny);
-    cairo_paint(ctx->cairo);
-    ctx->source_color = 0;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_font(DCtx *ctx, const Font *font)
 {
     cassert_no_null(ctx);
@@ -664,13 +649,6 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
 
 /*---------------------------------------------------------------------------*/
 
-void drawimp_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
-{
-    i_begin_text(ctx, text, x, y);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     if (ctx->raster_mode == TRUE)
@@ -685,14 +663,13 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
-    if (ctx->raster_mode == FALSE)
-        i_set_raster_mode(ctx);
-
-    i_begin_text(ctx, text, x, y);
-    i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
-    pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    unref(ctx);
+    unref(text);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -751,38 +728,10 @@ static __INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
-{
-    switch (ellipsis)
-    {
-    case PANGO_ELLIPSIZE_NONE:
-        return ekELLIPNONE;
-    case PANGO_ELLIPSIZE_START:
-        return ekELLIPBEGIN;
-    case PANGO_ELLIPSIZE_MIDDLE:
-        return ekELLIPMIDDLE;
-    case PANGO_ELLIPSIZE_END:
-        return ekELLIPEND;
-        cassert_default();
-    }
-
-    return ekELLIPNONE;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
 {
     cassert_no_null(ctx);
     ctx->ellipsis = i_ellipsis(ellipsis);
-}
-
-/*---------------------------------------------------------------------------*/
-
-ellipsis_t dctx_text_trim(const DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    return i_nellipsis(ctx->ellipsis);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -850,4 +799,67 @@ void draw_image_align(DCtx *ctx, const align_t halign, const align_t valign)
     cassert_no_null(ctx);
     ctx->image_halign = halign;
     ctx->image_valign = valign;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_set_raster_mode(DCtx *ctx)
+{
+    i_set_raster_mode(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+{
+    if (ctx->raster_mode == FALSE)
+        i_set_raster_mode(ctx);
+
+    i_begin_text(ctx, text, x, y);
+    i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
+    pango_cairo_show_layout(ctx->cairo, ctx->layout);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_image_raster(DCtx *ctx, const Image *image, const real32_t x, const real32_t y)
+{
+    unref(ctx);
+    unref(image);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line_imp(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const bool_t raster)
+{
+    cassert_no_null(ctx);
+    if (raster != ctx->raster_mode)
+    {
+        if (raster == TRUE)
+            i_set_raster_mode(ctx);
+        else
+            i_set_real2d_mode(ctx);
+    }
+
+    cairo_move_to(ctx->cairo, (double)x0, (double)y0);
+    cairo_line_to(ctx->cairo, (double)x1, (double)y1);
+    i_line_pattern(ctx);
+    cairo_stroke(ctx->cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_rect_imp(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const bool_t raster)
+{
+    unref(ctx);
+    unref(op);
+    unref(x);
+    unref(y);
+    unref(width);
+    unref(height);
+    unref(raster);
+    cassert(FALSE);
 }
