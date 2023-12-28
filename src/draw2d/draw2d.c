@@ -26,6 +26,7 @@
 #include <core/strings.h>
 #include <osbs/log.h>
 #include <sewer/blib.h>
+#include <sewer/bmath.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 
@@ -171,19 +172,6 @@ color_t draw2d_get_indexed_color(const uint16_t index)
 
         cassert(FALSE);
     return kCOLOR_DEFAULT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static __INLINE real32_t i_ceil(const real32_t n)
-{
-    int32_t in = (int32_t)n;
-    if (n == (real32_t)in)
-    {
-        return (real32_t)in;
-    }
-
-    return (real32_t)(in + 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -384,6 +372,6 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
         ctext = next_text;
     }
 
-    *width = i_ceil(*width);
-    *height = i_ceil(*height);
+    *width = bmath_ceilf(*width);
+    *height = bmath_ceilf(*height);
 }

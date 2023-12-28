@@ -31,27 +31,6 @@ NSNumber *kUNDERLINE_SINGLE = nil;
 
 /*---------------------------------------------------------------------------*/
 
-static void i_color(const color_t c, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
-{
-    real32_t r1, g1, b1, a1;
-    color_get_rgbaf(c, &r1, &g1, &b1, &a1);
-    *r = (CGFloat)r1;
-    *g = (CGFloat)g1;
-    *b = (CGFloat)b1;
-    *a = (CGFloat)a1;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static NSColor *i_NSColor(color_t color)
-{
-    real32_t r, g, b, a;
-    color_get_rgbaf(color, &r, &g, &b, &a);
-    return [NSColor colorWithCalibratedRed:(CGFloat)r green:(CGFloat)g blue:(CGFloat)b alpha:(CGFloat)a];
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_alloc_globals(void)
 {
     kUNDERLINE_NONE = [[NSNumber alloc] initWithInt:NSUnderlineStyleNone];
@@ -64,6 +43,21 @@ void draw_dealloc_globals(void)
 {
     [kUNDERLINE_NONE release];
     [kUNDERLINE_SINGLE release];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+{
+    NSString *str = nil;
+    NSSize word_size;
+    cassert_no_null(data);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    str = [NSString stringWithUTF8String:word];
+    word_size = [str sizeWithAttributes:data->dict];
+    *width = (real32_t)word_size.width;
+    *height = (real32_t)word_size.height;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -84,15 +78,6 @@ static void i_set_raster_mode(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_raster_mode(DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    if (ctx->raster_mode == FALSE)
-        i_set_raster_mode(ctx);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_set_real2d_mode(DCtx *ctx)
 {
     CGAffineTransform curtrans;
@@ -107,6 +92,74 @@ static void i_set_real2d_mode(DCtx *ctx)
     /* Apply transform */
     CGContextConcatCTM(ctx->context, ctx->transform);
     ctx->raster_mode = FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(image);
+
+    if (raster != ctx->raster_mode)
+    {
+        if (raster == TRUE)
+            i_set_raster_mode(ctx);
+        else
+            i_set_real2d_mode(ctx);
+    }
+
+    if (frame_index != UINT32_MAX)
+    {
+        NSBitmapImageRep *image_rep = nil;
+        cassert([[(NSImage*)image representations] count] == 1);
+        image_rep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+        cassert_no_null(image_rep);
+        [image_rep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
+    }
+
+    {
+        NSRect rect;
+        //BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;
+        rect.origin = NSMakePoint((CGFloat)x, (CGFloat)y);
+        rect.size = [(NSImage*)image size];
+        switch(ctx->image_halign) {
+        case ekLEFT:
+        case ekJUSTIFY:
+            break;
+        case ekCENTER:
+            rect.origin.x -= rect.size.width / 2;
+            break;
+        case ekRIGHT:
+            rect.origin.x -= rect.size.width;
+            break;
+        }
+
+        switch(ctx->image_valign) {
+        case ekTOP:
+        case ekJUSTIFY:
+            break;
+        case ekCENTER:
+            rect.origin.y -= rect.size.height / 2;
+            break;
+        case ekRIGHT:
+            rect.origin.y -= rect.size.height;
+            break;
+        }
+
+        {
+        	#if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+            	#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+	            NSCompositingOperation op = NSCompositingOperationSourceOver;
+    	        #else
+        	    NSCompositingOperation op = NSCompositeSourceOver;
+            	#endif
+	            [(NSImage*)image drawInRect:rect fromRect:NSZeroRect operation:op fraction:1.0f respectFlipped:ctx->is_flipped hints:nil];
+    	    #else
+        	    #error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
+	        #endif
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -162,6 +215,18 @@ static CGPathRef i_solid_path(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_color(const color_t c, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
+{
+    real32_t r1, g1, b1, a1;
+    color_get_rgbaf(c, &r1, &g1, &b1, &a1);
+    *r = (CGFloat)r1;
+    *g = (CGFloat)g1;
+    *b = (CGFloat)b1;
+    *a = (CGFloat)a1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_stroke_path(DCtx *ctx)
 {
     cassert_no_null(ctx);
@@ -202,17 +267,12 @@ static void i_stroke_path(DCtx *ctx)
     }
 }
 
+
 /*---------------------------------------------------------------------------*/
 
 void draw_line(DCtx *ctx, const real32_t x0, const real32_t y00, const real32_t x1, const real32_t y11)
 {
-    cassert_no_null(ctx);
-    if (ctx->raster_mode == TRUE)
-        i_set_real2d_mode(ctx);
-
-    CGContextMoveToPoint(ctx->context, (CGFloat)x0, (CGFloat)y00);
-    CGContextAddLineToPoint(ctx->context, (CGFloat)x1, (CGFloat)y11);
-    i_stroke_path(ctx);
+    draw_line_imp(ctx, x0, y00, x1, y11, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -362,7 +422,7 @@ void draw_line_join(DCtx *ctx, const linejoin_t join)
 
 void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 {
-    if (pattern != NULL)
+    if (pattern != NULL && n > 0)
     {
         CGFloat p[16];
         uint32_t i, pn = n < 16 ? n : 16;
@@ -464,18 +524,7 @@ static void i_draw(DCtx *ctx, const drawop_t op)
 
 void draw_rect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    CGRect rect;
-    cassert_no_null(ctx);
-    if (ctx->raster_mode == TRUE)
-        i_set_real2d_mode(ctx);
-
-    rect.origin.x = (CGFloat)x;
-    rect.origin.y = (CGFloat)y;
-    rect.size.width = (CGFloat)width;
-    rect.size.height = (CGFloat)height;
-    CGContextBeginPath(ctx->context);
-    CGContextAddRect(ctx->context, rect);
-    i_draw(ctx, op);
+    draw_rect_imp(ctx, op, x, y, width, height, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -735,74 +784,6 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
-{
-    cassert_no_null(ctx);
-    cassert_no_null(image);
-
-    if (raster != ctx->raster_mode)
-    {
-        if (raster == TRUE)
-            i_set_raster_mode(ctx);
-        else
-            i_set_real2d_mode(ctx);
-    }
-
-    if (frame_index != UINT32_MAX)
-    {
-        NSBitmapImageRep *image_rep = nil;
-        cassert([[(NSImage*)image representations] count] == 1);
-        image_rep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
-        cassert_no_null(image_rep);
-        [image_rep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
-    }
-
-    {
-        NSRect rect;
-        //BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;
-        rect.origin = NSMakePoint((CGFloat)x, (CGFloat)y);
-        rect.size = [(NSImage*)image size];
-        switch(ctx->image_halign) {
-        case ekLEFT:
-        case ekJUSTIFY:
-            break;
-        case ekCENTER:
-            rect.origin.x -= rect.size.width / 2;
-            break;
-        case ekRIGHT:
-            rect.origin.x -= rect.size.width;
-            break;
-        }
-
-        switch(ctx->image_valign) {
-        case ekTOP:
-        case ekJUSTIFY:
-            break;
-        case ekCENTER:
-            rect.origin.y -= rect.size.height / 2;
-            break;
-        case ekRIGHT:
-            rect.origin.y -= rect.size.height;
-            break;
-        }
-
-        {
-        	#if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-            	#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-	            NSCompositingOperation op = NSCompositingOperationSourceOver;
-    	        #else
-        	    NSCompositingOperation op = NSCompositeSourceOver;
-            	#endif
-	            [(NSImage*)image drawInRect:rect fromRect:NSZeroRect operation:op fraction:1.0f respectFlipped:ctx->is_flipped hints:nil];
-    	    #else
-        	    #error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
-	        #endif
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_font(DCtx *ctx, const Font *font)
 {
     uint32_t fstyle;
@@ -811,6 +792,15 @@ void draw_font(DCtx *ctx, const Font *font)
     [ctx->text_dict setObject:(fstyle & ekFUNDERLINE) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSUnderlineStyleAttributeName];
     [ctx->text_dict setObject:(fstyle & ekFSTRIKEOUT) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSStrikethroughStyleAttributeName];
     [ctx->text_dict setObject:(NSFont*)font_native(font) forKey:NSFontAttributeName];
+}
+
+/*---------------------------------------------------------------------------*/
+
+static NSColor *i_NSColor(color_t color)
+{
+    real32_t r, g, b, a;
+    color_get_rgbaf(color, &r, &g, &b, &a);
+    return [NSColor colorWithCalibratedRed:(CGFloat)r green:(CGFloat)g blue:(CGFloat)b alpha:(CGFloat)a];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -848,14 +838,17 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
         MeasureStr data;
         data.dict = ctx->text_dict;
         draw_word_extents(&data, text, &width, &height);
+
+        if (ctx->text_width > 0)
+            width = ctx->text_width;
     }
     else
     {
         draw_text_extents(ctx, text, ctx->text_width, &width, &height);
-    }
 
-    if (ctx->text_width > 0 && width > ctx->text_width)
-        width = ctx->text_width;
+        if (ctx->text_width > 0 && width > ctx->text_width)
+            width = ctx->text_width;
+    }
 
     rect->size.width = (CGFloat)width;
     rect->size.height = (CGFloat)height;
@@ -905,23 +898,6 @@ void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, cons
     NSRect rect;
     NSString *str = i_begin_text(ctx, text, x, y, FALSE, TRUE, &rect);
     [str drawInRect:rect withAttributes:ctx->text_dict];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
-{
-    NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, FALSE, &rect);
-    [str drawInRect:rect withAttributes:ctx->text_dict];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_image_raster(DCtx *ctx, const Image *image, const real32_t x, const real32_t y)
-{
-    const OSImage *osimage = osimage_from_image(image);
-    draw_imgimp(ctx, osimage, UINT32_MAX, x, y, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1100,12 +1076,38 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_with_newline(const char_t *text)
+{
+    cassert_no_null(text);
+    while(*text != 0)
+    {
+        if (*text == '\n')
+            return TRUE;
+        text += 1;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     MeasureStr data;
     cassert_no_null(ctx);
+    cassert_no_null(width);
+    cassert_no_null(height);
     data.dict = ctx->text_dict;
-    draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+    if (refwidth > 0 || i_with_newline(text) == TRUE)
+    {
+        draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+    }
+    else
+    {
+        draw_word_extents(&data, text, width, height);
+        *width = bmath_ceilf(*width);
+        *height = bmath_ceilf(*height);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1119,16 +1121,68 @@ void draw_image_align(DCtx *ctx, const align_t halign, const align_t valign)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+void draw_set_raster_mode(DCtx *ctx)
 {
-    NSString *str = nil;
-    NSSize word_size;
-    cassert_no_null(data);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    str = [NSString stringWithUTF8String:word];
-    word_size = [str sizeWithAttributes:data->dict];
-    *width = bmath_ceilf((real32_t)word_size.width);
-    *height = bmath_ceilf((real32_t)word_size.height);
+    cassert_no_null(ctx);
+    if (ctx->raster_mode == FALSE)
+        i_set_raster_mode(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+{
+    NSRect rect;
+    NSString *str = i_begin_text(ctx, text, x, y, TRUE, TRUE, &rect);
+    [str drawInRect:rect withAttributes:ctx->text_dict];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_image_raster(DCtx *ctx, const Image *image, const real32_t x, const real32_t y)
+{
+    const OSImage *osimage = osimage_from_image(image);
+    draw_imgimp(ctx, osimage, UINT32_MAX, x, y, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line_imp(DCtx *ctx, const real32_t x0, const real32_t y00, const real32_t x1, const real32_t y11, const bool_t raster)
+{
+    cassert_no_null(ctx);
+    if (raster != ctx->raster_mode)
+    {
+        if (raster == TRUE)
+            i_set_raster_mode(ctx);
+        else
+            i_set_real2d_mode(ctx);
+    }
+
+    CGContextMoveToPoint(ctx->context, (CGFloat)x0, (CGFloat)y00);
+    CGContextAddLineToPoint(ctx->context, (CGFloat)x1, (CGFloat)y11);
+    i_stroke_path(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_rect_imp(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const bool_t raster)
+{
+    CGRect rect;
+    cassert_no_null(ctx);
+    if (raster != ctx->raster_mode)
+    {
+        if (raster == TRUE)
+            i_set_raster_mode(ctx);
+        else
+            i_set_real2d_mode(ctx);
+    }
+
+    rect.origin.x = (CGFloat)x;
+    rect.origin.y = (CGFloat)y;
+    rect.size.width = (CGFloat)width;
+    rect.size.height = (CGFloat)height;
+    CGContextBeginPath(ctx->context);
+    CGContextAddRect(ctx->context, rect);
+    i_draw(ctx, op);
 }
 

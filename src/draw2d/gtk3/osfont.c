@@ -74,24 +74,6 @@ static real32_t i_device_to_pixels(void)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_default_osfont(DCtx *ctx, const void *font)
-{
-    const PangoFontDescription *fdesc = (const PangoFontDescription *)font;
-    real32_t scale = i_device_to_pixels();
-    const char *family = NULL;
-    real32_t size = 0;
-    unref(ctx);
-    cassert(kSYSTEM_FONT == NULL);
-    family = pango_font_description_get_family(fdesc);
-    size = (real32_t)pango_font_description_get_size(fdesc);
-    kSYSTEM_FONT = str_c((const char_t *)family);
-    kFONT_REGULAR_SIZE = size * scale;
-    kFONT_SMALL_SIZE = kFONT_REGULAR_SIZE - 2.f;
-    kFONT_MINI_SIZE = kFONT_REGULAR_SIZE - 4.f;
-}
-
-/*---------------------------------------------------------------------------*/
-
 real32_t font_regular_size(void)
 {
     cassert(kSYSTEM_FONT != NULL);
@@ -301,4 +283,22 @@ ArrPt(String) * font_installed_families(void)
     }
     g_free(families);
     return fonts;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dctx_set_default_osfont(DCtx *ctx, const void *font)
+{
+    const PangoFontDescription *fdesc = (const PangoFontDescription *)font;
+    real32_t scale = i_device_to_pixels();
+    const char *family = NULL;
+    real32_t size = 0;
+    unref(ctx);
+    cassert(kSYSTEM_FONT == NULL);
+    family = pango_font_description_get_family(fdesc);
+    size = (real32_t)pango_font_description_get_size(fdesc);
+    kSYSTEM_FONT = str_c((const char_t *)family);
+    kFONT_REGULAR_SIZE = size * scale;
+    kFONT_SMALL_SIZE = kFONT_REGULAR_SIZE - 2.f;
+    kFONT_MINI_SIZE = kFONT_REGULAR_SIZE - 4.f;
 }

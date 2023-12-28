@@ -137,10 +137,10 @@ void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, const r
     if (listeners->OnEnter != NULL)
     {
         EvMouse params;
-        params.x = (real32_t)event->x + scroll_x;
-        params.y = (real32_t)event->y + scroll_y;
-        params.lx = params.x;
-        params.ly = params.y;
+        params.lx = (real32_t)event->x;
+        params.ly = (real32_t)event->y;
+        params.x = params.lx + scroll_x;
+        params.y = params.ly + scroll_y;
         params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
         listener_event(listeners->OnEnter, ekGUI_EVENT_ENTER, sender, &params, NULL, OSControl, EvMouse, void);
@@ -170,10 +170,10 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
             if (listeners->OnDrag != NULL)
             {
                 EvMouse params;
-                params.x = (real32_t)event->x + scroll_x;
-                params.y = (real32_t)event->y + scroll_y;
-                params.lx = params.x;
-                params.ly = params.y;
+                params.lx = (real32_t)event->x;
+                params.ly = (real32_t)event->y;
+                params.x = params.lx + scroll_x;
+                params.y = params.ly + scroll_y;
                 params.button = listeners->button;
                 params.count = 0;
                 listener_event(listeners->OnDrag, ekGUI_EVENT_DRAG, sender, &params, NULL, OSControl, EvMouse, void);
@@ -184,10 +184,10 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
             if (listeners->OnMoved != NULL)
             {
                 EvMouse params;
-                params.x = (real32_t)event->x + scroll_x;
-                params.y = (real32_t)event->y + scroll_y;
-                params.lx = params.x;
-                params.ly = params.y;
+                params.lx = (real32_t)event->x;
+                params.ly = (real32_t)event->y;
+                params.x = params.lx + scroll_x;
+                params.y = params.ly + scroll_y;
                 params.button = ENUM_MAX(gui_mouse_t);
                 params.count = 0;
                 listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, sender, &params, NULL, OSControl, EvMouse, void);
@@ -222,10 +222,10 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, const real
         if (listeners->OnDown != NULL)
         {
             EvMouse params;
-            params.x = (real32_t)event->x + scroll_x;
-            params.y = (real32_t)event->y + scroll_y;
-            params.lx = params.x;
-            params.ly = params.y;
+            params.lx = (real32_t)event->x;
+            params.ly = (real32_t)event->y;
+            params.x = params.lx + scroll_x;
+            params.y = params.ly + scroll_y;
             params.button = listeners->button;
             params.count = 0;
             listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, sender, &params, NULL, OSControl, EvMouse, void);
@@ -244,10 +244,10 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
         if (listeners->OnUp != NULL)
         {
             EvMouse params;
-            params.x = (real32_t)event->x + scroll_x;
-            params.y = (real32_t)event->y + scroll_y;
-            params.lx = params.x;
-            params.ly = params.y;
+            params.lx = (real32_t)event->x;
+            params.ly = (real32_t)event->y;
+            params.x = params.lx + scroll_x;
+            params.y = params.ly + scroll_y;
             params.button = listeners->button;
             params.count = 0;
             listener_event(listeners->OnUp, ekGUI_EVENT_UP, sender, &params, NULL, OSControl, EvMouse, void);
@@ -256,10 +256,10 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
         if (listeners->OnClick != NULL)
         {
             EvMouse params;
-            params.x = (real32_t)event->x + scroll_x;
-            params.y = (real32_t)event->y + scroll_y;
-            params.lx = params.x;
-            params.ly = params.y;
+            params.lx = (real32_t)event->x;
+            params.ly = (real32_t)event->y;
+            params.x = params.lx + scroll_x;
+            params.y = params.ly + scroll_y;
             params.button = listeners->button;
 
             switch (event->type)

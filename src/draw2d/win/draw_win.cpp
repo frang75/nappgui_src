@@ -38,24 +38,6 @@ LONG kTWIPS_PER_PIXEL = 0;
 
 /*---------------------------------------------------------------------------*/
 
-static Gdiplus::Color i_color(const color_t c)
-{
-    uint8_t r, g, b, a;
-    color_get_rgba(c, &r, &g, &b, &a);
-    return Gdiplus::Color((BYTE)a, (BYTE)r, (BYTE)g, (BYTE)b);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static COLORREF i_colorref(const color_t color)
-{
-    uint8_t r, g, b;
-    color_get_rgb(color, &r, &g, &b);
-    return RGB(r, g, b);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_alloc_globals(void)
 {
     i_kGRAY4_PALETTE = NULL;
@@ -83,6 +65,92 @@ void draw_dealloc_globals(void)
 
     if (i_kGRAY8_PALETTE != NULL)
         heap_free((byte_t **)&i_kGRAY8_PALETTE, sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+{
+    SIZE word_size;
+    uint32_t num_chars = 0, num_bytes = 0;
+    WCHAR wword[256];
+    BOOL ret = 0;
+    cassert_no_null(data);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    num_chars = unicode_nchars(word, ekUTF8);
+    num_bytes = unicode_convers(word, (char_t *)wword, ekUTF8, ekUTF16, sizeof(wword));
+    cassert(num_bytes < sizeof(wword));
+    ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
+    cassert(ret != 0);
+    *width = (real32_t)word_size.cx;
+    *height = (real32_t)word_size.cy;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE void i_set_gdiplus_mode(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    if (ctx->gdi_mode == TRUE)
+    {
+        //
+        // Perhaps here we have to create a new Gdiplus::Graphics and init
+        //
+        ctx->gdi_mode = FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+{
+    Gdiplus::Bitmap *bitmap;
+
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->graphics);
+    cassert_unref(raster == FALSE, raster);
+    bitmap = (Gdiplus::Bitmap *)osimage_native(image);
+    i_set_gdiplus_mode(ctx);
+
+    if (frame_index != UINT32_MAX)
+    {
+        Gdiplus::Status status = bitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)frame_index);
+        cassert_unref(status == Gdiplus::Ok, status);
+    }
+
+    Gdiplus::REAL lx = (Gdiplus::REAL)x;
+    Gdiplus::REAL ly = (Gdiplus::REAL)y;
+    Gdiplus::REAL width = (Gdiplus::REAL)bitmap->GetWidth();
+    Gdiplus::REAL height = (Gdiplus::REAL)bitmap->GetHeight();
+
+    switch (ctx->image_halign)
+    {
+    case ekLEFT:
+    case ekJUSTIFY:
+        break;
+    case ekCENTER:
+        lx -= width / 2;
+        break;
+    case ekRIGHT:
+        lx -= width;
+        break;
+    }
+
+    switch (ctx->image_valign)
+    {
+    case ekTOP:
+    case ekJUSTIFY:
+        break;
+    case ekCENTER:
+        ly -= height / 2;
+        break;
+    case ekBOTTOM:
+        ly -= height;
+        break;
+    }
+
+    ctx->graphics->DrawImage(bitmap, lx, ly, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -116,86 +184,6 @@ Gdiplus::ColorPalette *_dctx_8bpp_grayscale_palette(void)
     }
 
     return i_kGRAY8_PALETTE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static __INLINE void i_set_gdiplus_mode(DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    if (ctx->gdi_mode == TRUE)
-    {
-        //
-        // Perhaps here we have to create a new Gdiplus::Graphics and init
-        //
-        ctx->gdi_mode = FALSE;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static __INLINE UINT i_gdi_halign(const align_t align)
-{
-    switch (align)
-    {
-    case ekLEFT:
-    case ekJUSTIFY:
-        return TA_LEFT;
-    case ekCENTER:
-        return TA_CENTER;
-    case ekRIGHT:
-        return TA_RIGHT;
-        cassert_default();
-    }
-
-    return TA_LEFT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static __INLINE UINT i_gdi_valign(const align_t align)
-{
-    switch (align)
-    {
-    case ekTOP:
-    case ekJUSTIFY:
-        return TA_TOP;
-    case ekCENTER:
-        return TA_BASELINE;
-    case ekBOTTOM:
-        return TA_BOTTOM;
-        cassert_default();
-    }
-
-    return TA_TOP;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_set_gdi_mode(DCtx *ctx)
-{
-    cassert_no_null(ctx);
-    if (ctx->gdi_mode == FALSE)
-    {
-        UINT align = 0;
-        cassert_no_null(ctx->hdc);
-        cassert_no_null(ctx->gdi_pen);
-        SetBkMode(ctx->hdc, TRANSPARENT);
-        SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
-        SelectObject(ctx->hdc, ctx->gdi_pen);
-        align |= i_gdi_halign(ctx->text_halign);
-        align |= i_gdi_valign(ctx->text_valign);
-        align |= TA_NOUPDATECP;
-        SetTextAlign(ctx->hdc, align);
-        ctx->gdi_mode = TRUE;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void dctx_set_raster_mode(DCtx *ctx)
-{
-    i_set_gdi_mode(ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -246,6 +234,24 @@ void draw_bezier(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t
     cassert_no_null(ctx->graphics);
     i_set_gdiplus_mode(ctx);
     ctx->graphics->DrawBezier(ctx->current_pen, (Gdiplus::REAL)x0, (Gdiplus::REAL)y0, (Gdiplus::REAL)x1, (Gdiplus::REAL)y1, (Gdiplus::REAL)x2, (Gdiplus::REAL)y2, (Gdiplus::REAL)x3, (Gdiplus::REAL)y3);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Gdiplus::Color i_color(const color_t c)
+{
+    uint8_t r, g, b, a;
+    color_get_rgba(c, &r, &g, &b, &a);
+    return Gdiplus::Color((BYTE)a, (BYTE)r, (BYTE)g, (BYTE)b);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static COLORREF i_colorref(const color_t color)
+{
+    uint8_t r, g, b;
+    color_get_rgb(color, &r, &g, &b);
+    return RGB(r, g, b);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -939,6 +945,17 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
 
 /*---------------------------------------------------------------------------*/
 
+void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+{
+    unref(ctx);
+    unref(text);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real32_t x, const real32_t y)
 {
     uint32_t num_chars = 0;
@@ -1005,6 +1022,44 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
 {
     cassert_no_null(ctx);
     ctx->text_ellipsis = ellipsis;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE UINT i_gdi_halign(const align_t align)
+{
+    switch (align)
+    {
+    case ekLEFT:
+    case ekJUSTIFY:
+        return TA_LEFT;
+    case ekCENTER:
+        return TA_CENTER;
+    case ekRIGHT:
+        return TA_RIGHT;
+        cassert_default();
+    }
+
+    return TA_LEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static __INLINE UINT i_gdi_valign(const align_t align)
+{
+    switch (align)
+    {
+    case ekTOP:
+    case ekJUSTIFY:
+        return TA_TOP;
+    case ekCENTER:
+        return TA_BASELINE;
+    case ekBOTTOM:
+        return TA_BOTTOM;
+        cassert_default();
+    }
+
+    return TA_TOP;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1087,27 +1142,57 @@ void draw_image_align(DCtx *ctx, const align_t halign, const align_t valign)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+static void i_set_gdi_mode(DCtx *ctx)
 {
-    SIZE word_size;
-    uint32_t num_chars = 0, num_bytes = 0;
-    WCHAR wword[256];
-    BOOL ret = 0;
-    cassert_no_null(data);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    num_chars = unicode_nchars(word, ekUTF8);
-    num_bytes = unicode_convers(word, (char_t *)wword, ekUTF8, ekUTF16, sizeof(wword));
-    cassert(num_bytes < sizeof(wword));
-    ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
-    cassert(ret != 0);
-    *width = (real32_t)word_size.cx;
-    *height = (real32_t)word_size.cy;
+    cassert_no_null(ctx);
+    if (ctx->gdi_mode == FALSE)
+    {
+        UINT align = 0;
+        cassert_no_null(ctx->hdc);
+        cassert_no_null(ctx->gdi_pen);
+        SetBkMode(ctx->hdc, TRANSPARENT);
+        SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
+        SelectObject(ctx->hdc, ctx->gdi_pen);
+        align |= i_gdi_halign(ctx->text_halign);
+        align |= i_gdi_valign(ctx->text_valign);
+        align |= TA_NOUPDATECP;
+        SetTextAlign(ctx->hdc, align);
+        ctx->gdi_mode = TRUE;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void draw_lineimp(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const bool_t raster)
+void draw_set_raster_mode(DCtx *ctx)
+{
+    i_set_gdi_mode(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+{
+    unref(ctx);
+    unref(text);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_image_raster(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y)
+{
+    unref(ctx);
+    unref(image);
+    unref(x);
+    unref(y);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line_imp(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const bool_t raster)
 {
     unref(ctx);
     unref(x0);
@@ -1115,56 +1200,19 @@ void draw_lineimp(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_
     unref(x1);
     unref(y1);
     unref(raster);
+    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+void draw_rect_imp(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const bool_t raster)
 {
-    Gdiplus::Bitmap *bitmap;
-
-    cassert_no_null(ctx);
-    cassert_no_null(ctx->graphics);
-    cassert_unref(raster == FALSE, raster);
-    bitmap = (Gdiplus::Bitmap *)osimage_native(image);
-    i_set_gdiplus_mode(ctx);
-
-    if (frame_index != UINT32_MAX)
-    {
-        Gdiplus::Status status = bitmap->SelectActiveFrame(&Gdiplus::FrameDimensionTime, (UINT)frame_index);
-        cassert_unref(status == Gdiplus::Ok, status);
-    }
-
-    Gdiplus::REAL lx = (Gdiplus::REAL)x;
-    Gdiplus::REAL ly = (Gdiplus::REAL)y;
-    Gdiplus::REAL width = (Gdiplus::REAL)bitmap->GetWidth();
-    Gdiplus::REAL height = (Gdiplus::REAL)bitmap->GetHeight();
-
-    switch (ctx->image_halign)
-    {
-    case ekLEFT:
-    case ekJUSTIFY:
-        break;
-    case ekCENTER:
-        lx -= width / 2;
-        break;
-    case ekRIGHT:
-        lx -= width;
-        break;
-    }
-
-    switch (ctx->image_valign)
-    {
-    case ekTOP:
-    case ekJUSTIFY:
-        break;
-    case ekCENTER:
-        ly -= height / 2;
-        break;
-    case ekBOTTOM:
-        ly -= height;
-        break;
-    }
-
-    ctx->graphics->DrawImage(bitmap, lx, ly, width, height);
+    unref(ctx);
+    unref(op);
+    unref(x);
+    unref(y);
+    unref(width);
+    unref(height);
+    unref(raster);
+    cassert(FALSE);
 }

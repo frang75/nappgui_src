@@ -68,6 +68,8 @@ struct _dctx_t
     bool_t cartesian_system;
     bool_t raster_mode;
     bool_t line_fill;
+    void *data;
+    FPtr_destroy func_destroy_data;
 };
 
 struct _measurestr_t

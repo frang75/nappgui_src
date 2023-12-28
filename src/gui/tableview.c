@@ -317,17 +317,15 @@ static void i_OnDraw(TableView *view, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
     TData *data = view_get_data((View *)view, TData);
-    uint32_t control_width = 0, control_height = 0;
     uint32_t freeze_width = UINT32_MAX;
     uint32_t nc = 0, nr = 0;
     cassert_no_null(data);
 
-    control_width = scrollview_control_width(data->sview);
-    control_height = scrollview_control_height(data->sview);
     freeze_width = i_freezed_width(data->columns, data->freeze_col_id);
     nc = arrst_size(data->columns, Column);
     nr = data->num_rows;
-    drawctrl_clear(p->ctx, (int32_t)freeze_width, 0, control_width - freeze_width, control_height);
+
+    drawctrl_clear(p->ctx, (int32_t)p->x + (int32_t)freeze_width, (int32_t)p->y, (uint32_t)p->width - freeze_width, (uint32_t)p->height);
 
     if (nc > 0 && nr > 0)
     {
@@ -439,7 +437,7 @@ static void i_OnDraw(TableView *view, Event *e)
         /* Draw the freezed columns */
         if (freeze_width > 0)
         {
-            drawctrl_clear(p->ctx, 0, 0, freeze_width, control_height);
+            drawctrl_clear(p->ctx, (int32_t)p->x, (int32_t)p->y, freeze_width, (uint32_t)p->height);
 
             y = head_height + (strow * data->row_height);
 

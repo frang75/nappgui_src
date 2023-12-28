@@ -950,7 +950,10 @@ void oswindow_set_default_pushbutton(OSWindow *window, OSButton *button)
 void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
 {
     unref(window);
-    [(NSCursor*)cursor set];
+    if (cursor != nil)
+        [(NSCursor*)cursor set];
+    else
+        [[NSCursor arrowCursor] set];
 }
 
 /*---------------------------------------------------------------------------*/
