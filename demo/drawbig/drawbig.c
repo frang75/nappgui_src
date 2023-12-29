@@ -384,6 +384,15 @@ static Panel *i_panel(App *app)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnMoved(App *app, Event *e)
+{
+    const EvPos *p = event_params(e, EvPos);
+    bstd_printf("Window moved: (%d, %d)\n", (uint32_t)p->x, (uint32_t)p->y);
+    unref(app);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnClose(App *app, Event *e)
 {
     osapp_finish();
@@ -413,6 +422,7 @@ static App *i_create(void)
     window_panel(app->window, panel);
     window_title(app->window, "Big drawing area");
     window_origin(app->window, v2df(500, 200));
+    window_OnMoved(app->window, listener(app, i_OnMoved, App));
     window_OnClose(app->window, listener(app, i_OnClose, App));
     window_show(app->window);
     i_scroll_to_cell(app);

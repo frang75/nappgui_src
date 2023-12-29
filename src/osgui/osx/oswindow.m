@@ -112,20 +112,9 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)windowWillMove:(NSNotification*)notification
-{
-    OSXWindow *window;
-    window = [notification object];
-    cassert_no_null(window);
-    window->last_moved_by_interface = NO;
-}
-
-/*---------------------------------------------------------------------------*/
-
 - (void)windowDidMove:(NSNotification*)notification
 {
-    OSXWindow *window;
-    window = [notification object];
+    OSXWindow *window = [notification object];
     cassert_no_null(window);
     if (self->OnMoved != NULL && window->last_moved_by_interface == NO)
     {
@@ -139,7 +128,7 @@
         listener_event(self->OnMoved, ekGUI_EVENT_WND_MOVED, (OSWindow*)window, &params, NULL, OSWindow, EvPos, void);
     }
 
-    window->last_moved_by_interface = YES;
+    window->last_moved_by_interface = NO;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -350,7 +339,7 @@ static void i_OnFocus(NSResponder *resp, const bool_t focus)
         {
             if (i_close([self delegate], self, ekGUI_CLOSE_INTRO) == TRUE)
                 [self orderOut:nil];
-            
+
             return YES;
         }
 
@@ -442,7 +431,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->origin.y = 0.f;
     window->in_window_destroy = NO;
     window->destroy_main_view = YES;
-    window->last_moved_by_interface = YES;
+    window->last_moved_by_interface = NO;
     window->launch_resize_event = YES;
     window->flags = flags;
     window->alpha = .5f;
@@ -494,7 +483,7 @@ void oswindow_destroy(OSWindow **window)
 
     if (windowp->text_editor != nil)
         [windowp->text_editor release];
-    
+
     if (windowp->destroy_main_view == YES)
     {
         OSPanel *panel = (OSPanel*)[windowp contentView];
@@ -893,15 +882,17 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 
 void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 {
+    OSXWindow *windowp = (OSXWindow*)window;
     NSRect window_frame;
     NSPoint origin;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
-    window_frame = [(OSXWindow*)window frame];
+    window_frame = [windowp frame];
     window_frame.origin.x = (CGFloat)x;
     window_frame.origin.y = (CGFloat)y;
     _oscontrol_origin_in_screen_coordinates(&window_frame, &origin.x, &origin.y);
-    [(OSXWindow*)window setFrameOrigin:origin];
+    windowp->last_moved_by_interface = YES;
+    [(OSXWindow*)windowp setFrameOrigin:origin];
 }
 
 /*---------------------------------------------------------------------------*/

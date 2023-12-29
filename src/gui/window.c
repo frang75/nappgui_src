@@ -350,12 +350,36 @@ void window_panel(Window *window, Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_update_listener(
+    Window *window,
+    Listener **listener,
+    Listener *new_listener,
+    FPtr_event_handler func_event_handler,
+    FPtr_gctx_set_listener func_set_listener)
+{
+    Listener *renderable_listener = NULL;
+    cassert_no_null(window);
+    cassert_no_null(listener);
+    cassert_no_nullf(func_set_listener);
+
+    if (new_listener != NULL)
+    {
+        cassert_no_nullf(func_event_handler);
+        renderable_listener = obj_listener_imp(window, func_event_handler);
+    }
+
+    func_set_listener(window->ositem, renderable_listener);
+    listener_update(listener, new_listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void window_OnMoved(Window *window, Listener *listener)
 {
-    component_update_listener(
-        window, &window->OnMoved, listener, i_OnWindowMoved,
-        window->context->func_window_OnMoved,
-        Window);
+    i_update_listener(
+        window, &window->OnMoved, listener,
+        (FPtr_event_handler)i_OnWindowMoved,
+        window->context->func_window_OnMoved);
 }
 
 /*---------------------------------------------------------------------------*/

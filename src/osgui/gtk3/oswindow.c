@@ -159,6 +159,15 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
     /* Window dimensions have not changed */
     else
     {
+        /* When window is moved dragging the titlebar */
+        if (window->OnMoved != NULL)
+        {
+            EvPos p;
+            p.x = (real32_t)event->x;
+            p.y = (real32_t)event->y;
+            listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &p, NULL, OSWindow, EvPos, void);
+        }
+
         /* When window is moved dragging the titlebar, the focus is lost */
         ostabstop_restore(&window->tabstop);
     }
@@ -374,9 +383,8 @@ void oswindow_destroy(OSWindow **window)
 
 void oswindow_OnMoved(OSWindow *window, Listener *listener)
 {
-    unref(window);
-    unref(listener);
-    cassert(FALSE);
+    cassert_no_null(window);
+    listener_update(&window->OnMoved, listener);
 }
 
 /*---------------------------------------------------------------------------*/
