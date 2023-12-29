@@ -1071,7 +1071,26 @@ static NSTextAlignment i_text_alignment(const align_t halign)
 void draw_text_halign(DCtx *ctx, const align_t halign)
 {
     cassert_no_null(ctx);
-    [ctx->text_parag setAlignment:i_text_alignment(halign)];
+    cassert_no_null(ctx->text_parag);
+    {
+	    /* Crash in macOS Mountain Lion and lowers if we reuse the same paragraph */
+    	NSLineBreakMode lb = [ctx->text_parag lineBreakMode];
+	    [ctx->text_parag release];
+    	ctx->text_parag = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] retain];
+	    [ctx->text_parag setLineBreakMode:lb];
+    	[ctx->text_parag setAlignment:i_text_alignment(halign)];
+	    [ctx->text_dict setObject:ctx->text_parag forKey:NSParagraphStyleAttributeName];
+    }
+
+    /*
+     TODO Check in lower versions and use this faster alternative
+#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+	{
+        [ctx->text_parag setAlignment:i_text_alignment(halign)];
+	}
+#else
+#endif
+    */
 }
 
 /*---------------------------------------------------------------------------*/

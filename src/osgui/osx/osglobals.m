@@ -30,7 +30,10 @@ static NSImage *i_UNCHECKBOX_DISABLE_IMAGE = nil;
 static NSImage *i_CHECKBOX_NORMAL_IMAGE = nil;
 static NSImage *i_CHECKBOX_PRESSED_IMAGE = nil;
 static NSImage *i_CHECKBOX_DISABLE_IMAGE = nil;
+static NSImage *i_HEADER_NORMAL_IMAGE = nil;
+static NSImage *i_HEADER_PRESSED_IMAGE = nil;
 static NSRect i_CHECKBOX_RECT;
+static NSRect i_HEADER_RECT;
 static CGFloat i_TEXT_COLOR[4];
 static CGFloat i_SELTX_COLOR[4];
 static CGFloat i_HOTTX_COLOR[4];
@@ -46,7 +49,27 @@ static CGFloat i_HOTBGBACKDROP_COLOR[4];
 static color_t i_GRID_COLOR;
 static color_t i_FOCUS_COLOR;
 static bool_t i_DARK_MODE = FALSE;
-static NSTableHeaderCell *i_HEADER_CELL = nil;
+
+/*---------------------------------------------------------------------------*/
+
+@interface OSXHeader : NSView
+{
+@public
+    NSTableHeaderCell *cell;
+	BOOL highlight;
+}
+@end
+
+@implementation OSXHeader
+
+- (void)drawRect:(NSRect)rect
+{    
+    if (self->highlight == YES)
+        [self->cell highlight:YES withFrame:rect inView:self];
+    else
+	    [self->cell drawWithFrame:rect inView:self];
+}
+@end
 
 /*---------------------------------------------------------------------------*/
 
@@ -91,8 +114,8 @@ static void i_theme_colors(void)
         i_SET_COLOR(i_BACKBACKDROP_COLOR, r, g, b, 1);
         i_SET_COLOR(i_SELBGBACKDROP_COLOR, .827, .827, .827, 1);
         i_SET_COLOR(i_HOTBGBACKDROP_COLOR, .95, .96, .98, 1);
-        i_GRID_COLOR = color_rgbaf(.5f, .5f, .5f, 1.f);
-        i_FOCUS_COLOR = color_rgbaf(.4f, .4f, .4f, 1.f);
+        i_GRID_COLOR = color_rgbaf(.8f, .8f, .8f, 1.f);
+        i_FOCUS_COLOR = color_rgbaf(.3f, .3f, .3f, 1.f);
     }
 
     unref(a);
@@ -406,12 +429,14 @@ static void i_destroy_checkbox(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_destroy_cells(void)
+static void i_destroy_header(void)
 {
-    if (i_HEADER_CELL != nil)
+    if (i_HEADER_NORMAL_IMAGE != nil)
     {
-        [i_HEADER_CELL release];
-        i_HEADER_CELL = nil;
+        [i_HEADER_NORMAL_IMAGE release];
+        [i_HEADER_PRESSED_IMAGE release];
+        i_HEADER_NORMAL_IMAGE = nil;
+        i_HEADER_PRESSED_IMAGE = nil;
     }
 }
 
@@ -420,7 +445,7 @@ static void i_destroy_cells(void)
 void osglobals_finish(void)
 {
     i_destroy_checkbox();
-    i_destroy_cells();
+    i_destroy_header();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -457,6 +482,32 @@ NSRect osglobals_check_rect(void)
 	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
 	return i_CHECKBOX_RECT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_init_header(void)
+{
+    OSXHeader *view = [[OSXHeader alloc] initWithFrame:NSMakeRect(0, 0, 100, 50)];
+    view->cell = [[NSTableHeaderCell alloc] init];
+   	cassert(i_HEADER_NORMAL_IMAGE == nil);
+    cassert(i_HEADER_PRESSED_IMAGE == nil);
+    [view->cell setTitle:@""];
+    view->highlight = NO;
+	i_HEADER_NORMAL_IMAGE = i_image_from_view(view, &i_HEADER_RECT);
+    view->highlight = YES;
+    i_HEADER_PRESSED_IMAGE = i_image_from_view(view, nil);
+    [view->cell release];
+    [view release];
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSRect osglobals_header_rect(void)
+{
+    if (i_HEADER_NORMAL_IMAGE == nil)
+        i_init_header();
+    return i_HEADER_RECT;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -506,6 +557,19 @@ NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state
     }
 
     return i_CHECKBOX_NORMAL_IMAGE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSImage *osglobals_header_image(const bool_t pressed)
+{
+	if (i_HEADER_NORMAL_IMAGE == nil)
+        i_init_header();
+    
+    if (pressed == TRUE)
+        return i_HEADER_PRESSED_IMAGE;
+    else
+        return i_HEADER_NORMAL_IMAGE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -601,22 +665,9 @@ color_t osglobals_focus_color(void)
 
 /*---------------------------------------------------------------------------*/
 
-NSTableHeaderCell *osglobals_header_cell(void)
-{
-    if (i_HEADER_CELL == nil)
-    {
-        i_HEADER_CELL = [[NSTableHeaderCell alloc] init];
-        [i_HEADER_CELL setTitle:@""];
-    }
-    
-    return i_HEADER_CELL;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void osglobals_theme_changed(void)
 {
 	i_theme_colors();
     i_destroy_checkbox();
-    i_destroy_cells();
+    i_destroy_header();
 }

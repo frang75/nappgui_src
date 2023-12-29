@@ -59,6 +59,7 @@
 * macOS Panel automatic scrolls when non-visible child control is TAB-focused.
 * blib secure functions: `blib_strcpy()`, `blib_strncpy()` and `blib_strcat()`. [Issue](https://github.com/frang75/nappgui_src/issues/61).
 * Issue Win32 Alt+Tab navigation with modal windows.
+* macOS TableView drawing.
 * GTK3 "dummy" control navigation with arrow keys.
 * GTK3 lost focus when ALT+TAB navigation.
 * GTK3 focus a control when NO tabstops in window.
