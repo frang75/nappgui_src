@@ -88,28 +88,32 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 
 /*---------------------------------------------------------------------------*/
 
+static void i_draw_image(DCtx *ctx, NSImage *image, NSRect fromRect, NSRect toRect)
+{
+    draw_set_raster_mode(ctx);
+    
+    {
+#if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+        NSCompositingOperation op = NSCompositingOperationSourceOver;
+#else
+        NSCompositingOperation op = NSCompositeSourceOver;
+#endif
+        [image drawInRect:toRect fromRect:fromRect operation:op fraction:1.0f respectFlipped:YES hints:nil];
+#else
+#error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
+#endif
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    NSTableHeaderCell *cell = osglobals_header_cell();
-    OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
-    NSRect rect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
-    cassert_no_null(custom_data);
-    cassert_no_null(custom_data->view);
-    cassert_no_null(cell);
-    [cell drawWithFrame:rect inView:custom_data->view];
-	/*[cell setControlSize:NSRegularControlSize];
-
-    if (x < 10)
-    {
-        [cell highlight:YES withFrame:rect inView:custom_data->view];
-    }
-    else
-    {
-        [cell drawWithFrame:rect inView:custom_data->view];
-        
-    }
-	*/
-    unref(state);
+    NSRect fromRect = osglobals_header_rect();
+	NSRect toRect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
+	NSImage *image = osglobals_header_image((bool_t)(state == ekCTRL_STATE_PRESSED));    
+    i_draw_image(ctx, image, fromRect, toRect);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -265,25 +269,9 @@ void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int3
 static void i_draw_checkbox(DCtx *ctx, const real32_t x, const real32_t y, const bool_t pressed, const ctrl_state_t state)
 {
     NSImage *image = osglobals_checkbox_image(pressed, state);
-    NSRect rect;
-    cassert_no_null(ctx);
-
-    draw_set_raster_mode(ctx);
-    rect.origin = NSMakePoint((CGFloat)x, (CGFloat)y);
-    rect.size = osglobals_check_size();
-
-    {
-    	#if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-        	#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-	        NSCompositingOperation op = NSCompositingOperationSourceOver;
-    	    #else
-        	NSCompositingOperation op = NSCompositeSourceOver;
-	        #endif
-    	    [image drawInRect:rect fromRect:osglobals_check_rect() operation:op fraction:1.0f respectFlipped:YES hints:nil];
-	    #else
-    	    #error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
-	    #endif
-    }
+    NSRect fromRect = osglobals_check_rect();
+    NSRect toRect = NSMakeRect((CGFloat)x, (CGFloat)y, fromRect.size.width, fromRect.size.height);
+    i_draw_image(ctx, image, fromRect, toRect);
 }
 
 /*---------------------------------------------------------------------------*/
