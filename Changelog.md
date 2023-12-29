@@ -65,6 +65,8 @@
 * GTK3 focus a control when NO tabstops in window.
 * GTK3 issue in TextView editable.
 * GTK3 get screen resolution.
+* window_OnMoved crash on macOS.
+* window_OnMoved GTK implementation.
 
 ### Removed
 
