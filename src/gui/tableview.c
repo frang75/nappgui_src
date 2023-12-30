@@ -739,6 +739,10 @@ static void i_row_height(TData *data)
             data->row_height = height;
         arrst_end();
 
+        /* Fix crash if no column defined */
+        if (data->row_height == 0)
+            data->row_height = 15;
+
         if (data->hlines == TRUE)
             data->row_height += 1;
     }
@@ -1150,7 +1154,7 @@ static void i_OnDown(TableView *view, Event *e)
     const EvMouse *p = event_params(e, EvMouse);
     uint32_t n = data->num_rows;
 
-    if (n > 0 && p->button == ekGUI_MOUSE_LEFT)
+    if (p->button == ekGUI_MOUSE_LEFT)
     {
         data->mouse_down = TRUE;
 
@@ -1560,6 +1564,7 @@ TableView *tableview_create(void)
     _view_set_subtype(view, "TableView");
     view_size(view, s2df(256, 128));
     i_head_height(data);
+    i_row_height(data);
     i_document_size((TableView *)view, data);
     view_data(view, &data, i_destroy_data, TData);
     return (TableView *)view;
