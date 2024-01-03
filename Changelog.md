@@ -1,6 +1,12 @@
 # NAppGUI Changelog
 
-## v1.4.0 - Unk 00, 2023 (rUNK)
+## v1.4.1 - WIP
+
+### Fixed
+
+* macOS Sonoma OSView clipping. [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
+
+## v1.4.0 - Dec 31, 2023 (r4772)
 
 ### Added
 
