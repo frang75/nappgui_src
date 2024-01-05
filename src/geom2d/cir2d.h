@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: cir2d.h
+ * https://nappgui.com/en/geom2d/cir2d.html
  *
  */
 

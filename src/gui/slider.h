@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: slider.h
+ * https://nappgui.com/en/gui/slider.html
  *
  */
 

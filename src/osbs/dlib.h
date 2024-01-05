@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: dlib.h
+ * https://nappgui.com/en/osbs/dlib.html
  *
  */
 

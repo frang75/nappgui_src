@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: palette.h
+ * https://nappgui.com/en/draw2d/palette.html
  *
  */
 

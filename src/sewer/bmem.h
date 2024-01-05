@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bmem.h
+ * https://nappgui.com/en/sewer/bmem.html
  *
  */
 

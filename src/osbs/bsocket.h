@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bsocket.h
+ * https://nappgui.com/en/osbs/bsocket.html
  *
  */
 

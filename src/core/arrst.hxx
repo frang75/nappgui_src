@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: arrst.hxx
+ * https://nappgui.com/en/core/arrst.html
  *
  */
 

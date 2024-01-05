@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: stream.h
+ * https://nappgui.com/en/core/stream.html
  *
  */
 

@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bfile.h
+ * https://nappgui.com/en/osbs/bfile.html
  *
  */
 

@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ptr.h
+ * https://nappgui.com/en/sewer/ptr.html
  *
  */
 

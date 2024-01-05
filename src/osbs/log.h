@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: log.h
+ * https://nappgui.com/en/osbs/log.html
  *
  */
 

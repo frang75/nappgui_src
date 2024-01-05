@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: geom2d.hxx
+ * https://nappgui.com/en/geom2d/geom2d.html
  *
  */
 

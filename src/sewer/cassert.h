@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: cassert.h
+ * https://nappgui.com/en/sewer/cassert.html
  *
  */
 

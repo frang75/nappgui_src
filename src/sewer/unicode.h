@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: unicode.h
+ * https://nappgui.com/en/sewer/unicode.html
  *
  */
 

@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: blib.h
+ * https://nappgui.com/en/sewer/blib.html
  *
  */
 

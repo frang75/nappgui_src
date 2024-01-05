@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: box2d.h
+ * https://nappgui.com/en/geom2d/box2d.html
  *
  */
 

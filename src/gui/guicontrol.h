@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: guicontrol.h
+ * https://nappgui.com/en/gui/guicontrol.html
  *
  */
 

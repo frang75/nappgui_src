@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bproc.h
+ * https://nappgui.com/en/osbs/bproc.html
  *
  */
 

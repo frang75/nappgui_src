@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: setpt.h
+ * https://nappgui.com/en/core/setpt.html
  *
  */
 

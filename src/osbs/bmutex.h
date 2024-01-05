@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bmutex.h
+ * https://nappgui.com/en/osbs/bmutex.html
  *
  */
 

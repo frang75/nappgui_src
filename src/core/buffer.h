@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: buffer.h
+ * https://nappgui.com/en/core/buffer.html
  *
  */
 

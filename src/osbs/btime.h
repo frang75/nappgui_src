@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: btime.h
+ * https://nappgui.com/en/osbs/btime.html
  *
  */
 

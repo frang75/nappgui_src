@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: t2d.h
+ * https://nappgui.com/en/geom2d/t2d.html
  *
  */
 

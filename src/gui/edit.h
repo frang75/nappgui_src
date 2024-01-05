@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: edit.h
+ * https://nappgui.com/en/gui/edit.html
  *
  */
 
