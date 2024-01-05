@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: keybuf.h
+ * https://nappgui.com/en/core/keybuf.html
  *
  */
 

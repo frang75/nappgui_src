@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osapp.hxx
+ * https://nappgui.com/en/osapp/osapp.html
  *
  */
 

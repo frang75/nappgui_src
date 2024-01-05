@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: regex.h
+ * https://nappgui.com/en/core/regex.html
  *
  */
 

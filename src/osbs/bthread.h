@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bthread.h
+ * https://nappgui.com/en/osbs/bthread.html
  *
  */
 

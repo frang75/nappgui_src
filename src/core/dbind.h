@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: dbind.h
+ * https://nappgui.com/en/core/dbind.html
  *
  */
 

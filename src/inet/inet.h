@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: inet.h
+ * https://nappgui.com/en/inet/inet.html
  *
  */
 

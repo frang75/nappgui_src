@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: splitview.h
+ * https://nappgui.com/en/gui/splitview.html
  *
  */
 

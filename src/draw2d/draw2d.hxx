@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: draw2d.hxx
+ * https://nappgui.com/en/draw2d/draw2d.html
  *
  */
 

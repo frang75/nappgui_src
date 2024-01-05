@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bmath.h
+ * https://nappgui.com/en/sewer/bmath.html
  *
  */
 

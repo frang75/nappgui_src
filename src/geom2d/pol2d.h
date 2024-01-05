@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: pol2d.h
+ * https://nappgui.com/en/geom2d/pol2d.html
  *
  */
 

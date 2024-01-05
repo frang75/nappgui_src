@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: popup.h
+ * https://nappgui.com/en/gui/popup.html
  *
  */
 

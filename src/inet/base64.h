@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: base64.h
+ * https://nappgui.com/en/inet/base64.html
  *
  */
 

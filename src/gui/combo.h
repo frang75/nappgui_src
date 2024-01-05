@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: combo.h
+ * https://nappgui.com/en/gui/combo.html
  *
  */
 

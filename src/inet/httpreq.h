@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: httpreq.h
+ * https://nappgui.com/en/inet/httpreq.html
  *
  */
 

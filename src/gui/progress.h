@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: progress.h
+ * https://nappgui.com/en/gui/progress.html
  *
  */
 

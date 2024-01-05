@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: obb2d.h
+ * https://nappgui.com/en/geom2d/obb2d.html
  *
  */
 

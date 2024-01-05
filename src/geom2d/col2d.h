@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: col2d.h
+ * https://nappgui.com/en/geom2d/col2d.html
  *
  */
 

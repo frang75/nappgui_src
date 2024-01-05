@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: textview.h
+ * https://nappgui.com/en/gui/textview.html
  *
  */
 

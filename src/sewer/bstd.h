@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bstd.h
+ * https://nappgui.com/en/sewer/bstd.html
  *
  */
 

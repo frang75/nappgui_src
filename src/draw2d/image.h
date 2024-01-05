@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: image.h
+ * https://nappgui.com/en/draw2d/image.html
  *
  */
 

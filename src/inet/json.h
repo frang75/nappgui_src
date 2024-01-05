@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: json.h
+ * https://nappgui.com/en/inet/json.html
  *
  */
 
