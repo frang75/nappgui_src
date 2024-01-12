@@ -6,6 +6,10 @@
 
 * macOS Sonoma OSView clipping. [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
 
+### Build system
+
+* Fix Multi-config install issue
+
 ## v1.4.0 - Dec 31, 2023 (r4772)
 
 ### Added
@@ -140,7 +144,7 @@
 * Full review of ANSI C90
 * New .pdf ebook edition
 
-### Build System
+### Build system
 
 * Support for generate dynamic libraries `dynamicLib()`. [Doc](https://nappgui.com/en/guide/build.html#h2).
 * Possibility to choose the standard C/C++ per project. [Doc](https://nappgui.com/en/guide/newprj.html#h4).
