@@ -837,9 +837,10 @@ function(nap_target targetName targetType dependList nrcMode)
     nap_install_resource_packs(${targetName} ${targetType} ${CMAKE_CURRENT_SOURCE_DIR} ${nrcMode})
 
     # Target Definitions
-	set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>:CMAKE_DEBUG>)
-    set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>:CMAKE_RELEASE>)
-    set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:ReleaseWithAssert>:CMAKE_RELEASEWITHASSERT>)
+    foreach(config ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${config} configUpper)
+        set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:${config}>:CMAKE_${configUpper}>)
+    endforeach()
 
     if (WIN32)
         # Visual Studio 2005/2008 doesn't have <stdint.h>

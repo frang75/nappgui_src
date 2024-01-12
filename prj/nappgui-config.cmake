@@ -24,7 +24,10 @@ endmacro()
 include("${CMAKE_CURRENT_LIST_DIR}/nappgui-targets.cmake")
 
 set(NAPPGUI_IS_PACKAGE True)
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release;ReleaseWithAssert" CACHE INTERNAL "Configuration Types" FORCE)
+if (NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE INTERNAL "Configuration Types" FORCE)
+endif()
+
 get_filename_component(NAPPGUI_ROOT_PATH "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
 set(NAPPGUI_INCLUDE_PATH "${NAPPGUI_ROOT_PATH}/inc")
 set(NAPPGUI_NRC "${NAPPGUI_ROOT_PATH}/bin/nrc${CMAKE_EXECUTABLE_SUFFIX}")
