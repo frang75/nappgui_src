@@ -198,16 +198,16 @@ static Layout *i_layout(i_Data *data, const uint32_t i)
     layout_textview(layout2, text, 1, 0);
     layout_listbox(layout2, list, 2, 0);
     layout_tableview(layout2, table, 3, 0);
-    layout_tabstop(layout1, 0, 0, i == 0);  /* Button */
-    layout_tabstop(layout1, 1, 0, i == 0);  /* PopUp */
-    layout_tabstop(layout1, 2, 0, i == 0);  /* Edit */
-    layout_tabstop(layout1, 3, 0, i == 0);  /* Combo */
-    layout_tabstop(layout1, 4, 0, i == 0);  /* Slider */
+    layout_tabstop(layout1, 0, 0, (bool_t)(i == 0));  /* Button */
+    layout_tabstop(layout1, 1, 0, (bool_t)(i == 0));  /* PopUp */
+    layout_tabstop(layout1, 2, 0, (bool_t)(i == 0));  /* Edit */
+    layout_tabstop(layout1, 3, 0, (bool_t)(i == 0));  /* Combo */
+    layout_tabstop(layout1, 4, 0, (bool_t)(i == 0));  /* Slider */
     layout_tabstop(layout1, 5, 0, FALSE);   /* Updown */
-    layout_tabstop(layout2, 0, 0, i == 0);  /* View */
-    layout_tabstop(layout2, 1, 0, i == 0);  /* TextView */
-    layout_tabstop(layout2, 2, 0, i == 0);  /* ListView */
-    layout_tabstop(layout2, 3, 0, i == 0);  /* TableView */
+    layout_tabstop(layout2, 0, 0, (bool_t)(i == 0));  /* View */
+    layout_tabstop(layout2, 1, 0, (bool_t)(i == 0));  /* TextView */
+    layout_tabstop(layout2, 2, 0, (bool_t)(i == 0));  /* ListView */
+    layout_tabstop(layout2, 3, 0, (bool_t)(i == 0));  /* TableView */
     layout_hmargin(layout1, 0, 10);
     layout_hmargin(layout1, 1, 10);
     layout_hmargin(layout1, 2, 10);

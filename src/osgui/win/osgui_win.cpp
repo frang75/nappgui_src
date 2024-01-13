@@ -420,6 +420,9 @@ void osgui_start_imp(void)
         cassert_unref(ok == TRUE, ok);
     }
 
+    /* XP Styles */
+    osstyleXP_init();
+
     /* GDI Plus */
     /* OJO!!! guiplus de inicia en OSDRAW */
     /* TODO*/
@@ -528,6 +531,9 @@ void osgui_finish_imp(void)
         ret = UnregisterClass(kWINDOW_CLASS, NULL);
         cassert(ret != 0);
     }
+
+    /* XP Styles */
+    osstyleXP_remove();
 
     /* Brushes and pens */
     DeleteObject(kCHESSBOARD_BRUSH);
