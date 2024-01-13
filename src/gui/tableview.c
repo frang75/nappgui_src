@@ -1210,7 +1210,7 @@ static void i_OnDown(TableView *view, Event *e)
             {
                 EvTbRow row;
                 bool_t cur_sel = i_row_is_selected(data->selected, data->mouse_row);
-                row.sel = !(previous_sel == cur_sel);
+                row.sel = (bool_t) !(previous_sel == cur_sel);
                 row.row = data->mouse_row;
                 listener_event(data->OnRowClick, ekGUI_EVENT_TBL_ROWCLICK, view, &row, NULL, TableView, EvTbRow, void);
             }

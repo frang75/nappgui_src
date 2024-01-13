@@ -941,6 +941,7 @@ _draw2d_api void guictx_append_view_manager_imp(
         FUNC_CHECK_GCTX_GET2_REAL32(func_view_get_size, view_type),                  \
         FUNC_CHECK_GCTX_GET2_REAL32(func_view_get_origin, view_type),                \
         FUNC_CHECK_GCTX_SET4_REAL32(func_view_set_frame, view_type),                 \
+        FUNC_CHECK_GCTX_SET4_REAL32(func_view_set_frame, view_type),                 \
         guictx_append_view_manager_imp(                                              \
             context,                                                                 \
             (FPtr_gctx_create)func_view_create,                                      \

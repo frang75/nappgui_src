@@ -4,11 +4,11 @@
 
 ### Fixed
 
-* macOS Sonoma OSView clipping. [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
+* macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
 
 ### Build system
 
-* Fix Multi-config install issue
+* Fix Multi-config install issue [Commit](https://github.com/frang75/nappgui_src/commit/5eb39e984bbebed023bc4846dc5e99e318ab89f8).
 
 ## v1.4.0 - Dec 31, 2023 (r4772)
 

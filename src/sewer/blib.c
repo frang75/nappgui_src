@@ -402,11 +402,17 @@ bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const uint32_t ne
 
 /*---------------------------------------------------------------------------*/
 
+#if defined(_MSC_VER)
+#pragma warning(disable : 4996)
+#endif
 const char_t *blib_getenv(const char_t *name)
 {
     cassert_no_null(name);
     return (const char_t *)getenv((const char *)name);
 }
+#if defined(_MSC_VER)
+#pragma warning(default : 4996)
+#endif
 
 /*---------------------------------------------------------------------------*/
 
