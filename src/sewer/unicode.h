@@ -21,6 +21,8 @@ _sewer_api uint32_t unicode_convers_n(const char_t *from_str, char_t *to_str, co
 
 _sewer_api uint32_t unicode_convers_nbytes(const char_t *str, const unicode_t from, const unicode_t to);
 
+_sewer_api uint32_t unicode_convers_nbytes_n(const char_t *str, const uint32_t isize, const unicode_t from, const unicode_t to);
+
 _sewer_api uint32_t unicode_nbytes(const char_t *str, const unicode_t format);
 
 _sewer_api uint32_t unicode_nchars(const char_t *str, const unicode_t format);

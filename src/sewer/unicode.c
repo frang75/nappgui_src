@@ -312,16 +312,30 @@ uint32_t unicode_convers(const char_t *from_str, char_t *to_str, const unicode_t
 /*  Includes the null-terminated character */
 uint32_t unicode_convers_nbytes(const char_t *str, const unicode_t from, const unicode_t to)
 {
+    /* str must be NULL-terminated */
+    return unicode_convers_nbytes_n(str, UINT32_MAX, from, to);
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*  Includes the null-terminated character */
+uint32_t unicode_convers_nbytes_n(const char_t *str, const uint32_t isize, const unicode_t from, const unicode_t to)
+{
     uint32_t num_bytes_char = 0;
+    uint32_t num_bytes_readed = 0;
     register uint32_t codepoint = 0;
     register uint32_t byte_count = 0;
     cassert_no_null(str);
     codepoint = i_func_codepoint_from_str[from](str, &num_bytes_char);
     while (codepoint != 0)
     {
+        num_bytes_readed += num_bytes_char;
         byte_count += i_func_codepoint_bytes[to](codepoint);
         str += num_bytes_char;
-        codepoint = i_func_codepoint_from_str[from](str, &num_bytes_char);
+        if (num_bytes_readed < isize)
+            codepoint = i_func_codepoint_from_str[from](str, &num_bytes_char);
+        else
+            break;
     }
 
     byte_count += i_func_codepoint_bytes[to](0);
