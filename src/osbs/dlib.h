@@ -26,7 +26,7 @@ _osbs_api void *dlib_var_imp(DLib *dlib, const char_t *varname);
 __END_C
 
 #define dlib_proc(dlib, procname, type) \
-    (type) dlib_proc_imp(dlib, procname)
+    cast_func_ptr(dlib_proc_imp(dlib, procname), type)
 
 #define dlib_var(dlib, varname, type) \
     (const type *)dlib_var_imp(dlib, varname)

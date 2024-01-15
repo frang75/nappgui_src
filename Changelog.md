@@ -4,13 +4,15 @@
 
 ### Added
 
-* `unicode_convers_nbytes_n`.
+* `unicode_convers_nbytes_n`. [Commit](https://github.com/frang75/nappgui_src/commit/9df21d8294237acb47b6c088a57e58f43ebdfbd8).
 
 ### Fixed
 
 * macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
 
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
+
+* Compiler warning in `dlib_proc`.
 
 ### Build system
 
