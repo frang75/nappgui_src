@@ -4,7 +4,9 @@
 
 ### Added
 
-* `unicode_convers_nbytes_n`. [Commit](https://github.com/frang75/nappgui_src/commit/9df21d8294237acb47b6c088a57e58f43ebdfbd8).
+* `unicode_convers_nbytes_n()`. [Commit](https://github.com/frang75/nappgui_src/commit/9df21d8294237acb47b6c088a57e58f43ebdfbd8).
+
+* `popup_get_text()`.
 
 ### Fixed
 
@@ -12,7 +14,7 @@
 
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
 
-* Compiler warning in `dlib_proc`.
+* Compiler warning in `dlib_proc`. [Commit](https://github.com/frang75/nappgui_src/commit/357960f16e80b9ac72d06c9fb10c9b17fcc4b520).
 
 ### Build system
 

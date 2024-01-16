@@ -35,4 +35,6 @@ _gui_api void popup_selected(PopUp *popup, const uint32_t index);
 
 _gui_api uint32_t popup_get_selected(const PopUp *popup);
 
+_gui_api const char_t *popup_get_text(const PopUp *popup, const uint32_t index);
+
 __END_C
