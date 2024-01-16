@@ -264,6 +264,16 @@ uint32_t popup_get_selected(const PopUp *popup)
 
 /*---------------------------------------------------------------------------*/
 
+const char_t *popup_get_text(const PopUp *popup, const uint32_t index)
+{
+    const PElem *elem = NULL;
+    cassert_no_null(popup);
+    elem = arrst_get_const(popup->elems, index, PElem);
+    return tc(elem->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _popup_dimension(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(popup);
