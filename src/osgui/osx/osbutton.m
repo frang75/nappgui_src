@@ -138,7 +138,7 @@ static void i_OnClick(OSXButton *button)
             EvButton params;
             params.index = 0;
             params.state = state;
-            params.text = NULL;//(const char_t*)[[self title] UTF8String];
+            params.text = NULL;
             listener_event(button->OnClick, ekGUI_EVENT_BUTTON, (OSButton*)button, &params, NULL, OSButton, EvButton, void);
         }
     }
@@ -721,13 +721,14 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
 {
     cassert_no_null(button);
     cassert_no_null(parent_view);
-    // Use of NSMatrix is informally deprecated. We expect to add the formal deprecation macros in
-    // a subsequent release, but its use is discouraged in the mean time.
-    // The primary use of NSMatrix is for radio button groups, so recall that for applications linked
-    // on 10.8 or later, radio buttons that share the same parent view and ACTION will operate as a group.
-    //
-    // This avoid the automatic radiobutton grouping in OSX 10.8 and later.
-    // It's assing a different ACTION selector for each radio button in superview
+    /* Use of NSMatrix is informally deprecated. We expect to add the formal deprecation macros in
+     * a subsequent release, but its use is discouraged in the mean time.
+     * The primary use of NSMatrix is for radio button groups, so recall that for applications linked
+     * on 10.8 or later, radio buttons that share the same parent view and ACTION will operate as a group.
+     *
+     * This avoid the automatic radiobutton grouping in OSX 10.8 and later.
+     * It's assing a different ACTION selector for each radio button in superview
+     */
     if (button_get_type(button->flags) == ekBUTTON_RADIO)
     {
         NSUInteger radio_index = 0;
@@ -790,8 +791,8 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint
         case ekBUTTON_CHECK3:
             [cell setBezelStyle:REGULAR_SQUARE_BEZEL];
             [cell setBordered:NO];
-            // macos 10.15 Catalina hides the check image
-            //[cell setImagePosition:NSImageLeft];
+            /* macos 10.15 Catalina hides the check image */
+            /* [cell setImagePosition:NSImageLeft]; */
             [cell setShowsBorderOnlyWhileMouseInside:NO];
             [cell setImageScaling:NSImageScaleNone];
             [button setButtonType:SWITCH_BUTTON];

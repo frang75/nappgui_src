@@ -41,7 +41,11 @@
 
 #if defined(__GNUC__)
 
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+/* Was added in GCC 4.6 */
 #pragma GCC diagnostic push
+#endif
+
 #pragma GCC diagnostic ignored "-Wall"
 
 #if (__GNUC__ >= 5)

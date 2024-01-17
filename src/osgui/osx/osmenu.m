@@ -62,7 +62,7 @@ void osmenu_destroy(OSMenu **menu)
     cassert_no_null(menu);
     menup = (OSXMenu*)*menu;
     cassert_no_null(menup);
-    //cassert([[menup itemArray] count] == 0);
+    /*cassert([[menup itemArray] count] == 0);*/
     cassert([menup supermenu] == nil);
     cassert([NSApp mainMenu] != menup);
     [menup release];
@@ -73,9 +73,10 @@ void osmenu_destroy(OSMenu **menu)
 
 void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
 {
-    // In BigSur, the retainCount after addItem is not +1
-    // NSUInteger retain_count = 0;
-    // NSUInteger retain_count2 = 0;
+    /* In BigSur, the retainCount after addItem is not +1
+     * NSUInteger retain_count = 0;
+     * NSUInteger retain_count2 = 0;
+     */
     NSUInteger num_items = 0;
     NSMenuItem *item = nil;
     cassert_no_null(menu);
@@ -85,10 +86,10 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
     num_items = [[(OSXMenu*)menu itemArray] count];
     item = (NSMenuItem*)menuitem;
     cassert([item menu] == nil);
-    // retain_count = [item retainCount];
+    /* retain_count = [item retainCount]; */
     [(OSXMenu*)menu addItem:item];
-    // retain_count2 = [item retainCount];
-    // cassert([item retainCount] == retain_count + 1);
+    /* retain_count2 = [item retainCount]; */
+    /* cassert([item retainCount] == retain_count + 1); */
     cassert([item menu] == (OSXMenu*)menu);
     cassert_unref([[(OSXMenu*)menu itemArray] count] == num_items + 1, num_items);
 }

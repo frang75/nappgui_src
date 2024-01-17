@@ -34,10 +34,17 @@ int pthread_tryjoin_np(pthread_t thread, void **retval);
 Thread *bthread_create_imp(uint32_t(func_thread_main)(void *), void *data)
 {
     pthread_t *thread = (pthread_t *)malloc(sizeof(pthread_t));
-
-#include <sewer/nowarn.hxx>
-    int ret = pthread_create(thread, NULL, (void *(*)(void *))func_thread_main, data);
-#include <sewer/warn.hxx>
+#if defined(__GNUC__)
+#if (__GNUC__ > 4)
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+#endif
+    int ret = pthread_create(thread, NULL, cast_func_ptr(func_thread_main, void *(*)(void *)), data);
+#if defined(__GNUC__)
+#if (__GNUC__ > 4)
+#pragma GCC diagnostic warning "-Wcast-function-type"
+#endif
+#endif
 
     if (ret != 0)
     {

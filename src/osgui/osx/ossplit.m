@@ -132,12 +132,12 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 - (void)mouseDragged:(NSEvent*)theEvent
 {
-    // Called whenever graphics state updated (such as window resize)
-    // OpenGL rendering is not synchronous with other rendering on the OSX.
-    // Therefore, call disableScreenUpdatesUntilFlush so the window server
-    // doesn't render non-OpenGL content in the window asynchronously from
-    // OpenGL content, which could cause flickering.  (non-OpenGL content
-    // includes the title bar and drawing done by the app with other APIs)
+    /* Called whenever graphics state updated (such as window resize)
+     * OpenGL rendering is not synchronous with other rendering on the OSX.
+     * Therefore, call disableScreenUpdatesUntilFlush so the window server
+     * doesn't render non-OpenGL content in the window asynchronously from
+     * OpenGL content, which could cause flickering.  (non-OpenGL content
+     * includes the title bar and drawing done by the app with other APIs) */
     NSWindow *window = [self window];
     if (window != nil)
         [window disableScreenUpdatesUntilFlush];
@@ -240,8 +240,9 @@ static BOOL i_exists_subview(OSXSplitView *view, NSView *subview)
 {
     NSArray *subviews = [view subviews];
     NSUInteger count = [subviews count];
+    NSUInteger i = 0;
     cassert(count <= 2);
-    for (NSUInteger i = 0; i < count; ++i)
+    for (i = 0; i < count; ++i)
     {
         if ([subviews objectAtIndex:i] == subview)
             return YES;

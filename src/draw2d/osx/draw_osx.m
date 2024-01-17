@@ -120,7 +120,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 
     {
         NSRect rect;
-        //BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;
+        /*BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;*/
         rect.origin = NSMakePoint((CGFloat)x, (CGFloat)y);
         rect.size = [(NSImage*)image size];
         switch(ctx->image_halign) {
@@ -246,7 +246,7 @@ static void i_stroke_path(DCtx *ctx)
 
         case ekFILL_LINEAR:
         {
-            // https://stackoverflow.com/questions/15159486/clear-the-current-path-in-cgcontextref
+            /* https://stackoverflow.com/questions/15159486/clear-the-current-path-in-cgcontextref */
             CGPathRef path = i_solid_path(ctx);
             CGContextBeginPath(ctx->context);
             CGContextAddPath(ctx->context, path);
@@ -531,10 +531,11 @@ void draw_rect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y,
 
 void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height, const real32_t radius)
 {
-    //       minx    midx    maxx
-    // miny    2       3       4
-    // midy    1               5
-    // maxy    8       7       6
+    /*       minx    midx    maxx
+     * miny    2       3       4
+     * midy    1               5
+     * maxy    8       7       6
+    */
     CGFloat minx = (CGFloat)x;
     CGFloat miny = (CGFloat)y;
     CGFloat w = (CGFloat)width;
@@ -901,37 +902,39 @@ void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, cons
 }
 
 /*---------------------------------------------------------------------------*/
-// https://github.com/aderussell/string-to-CGPathRef/blob/master/ARCGPathFromString/ARCGPathFromString.m
+/* https://github.com/aderussell/string-to-CGPathRef/blob/master/ARCGPathFromString/ARCGPathFromString.m */
 static CGPathRef i_CGPathCreateSingleLineStringWithAttributedString(NSAttributedString *attrString, CGFloat nx, CGFloat ny, CGFloat fheight)
 {
     CGMutablePathRef letters = CGPathCreateMutable();
     CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)attrString);
     CFArrayRef runArray = CTLineGetGlyphRuns(line);
     CFIndex runTotal = CFArrayGetCount(runArray);
+    CFIndex runIndex = 0;
 
-    // for each RUN
-    for (CFIndex runIndex = 0; runIndex < runTotal; runIndex++)
+    /* for each RUN */
+    for (runIndex = 0; runIndex < runTotal; runIndex++)
     {
-        // Get FONT for this run
+        /* Get FONT for this run */
         CTRunRef run = (CTRunRef)CFArrayGetValueAtIndex(runArray, runIndex);
         CTFontRef runFont = CFDictionaryGetValue(CTRunGetAttributes(run), kCTFontAttributeName);
         CFIndex glyphTotal = CTRunGetGlyphCount(run);
+        CFIndex runGlyphIndex = 0;
 
-        // for each GLYPH in run
-        for (CFIndex runGlyphIndex = 0; runGlyphIndex < glyphTotal; runGlyphIndex++)
+        /* for each GLYPH in run */
+        for (runGlyphIndex = 0; runGlyphIndex < glyphTotal; runGlyphIndex++)
         {
-            // get Glyph & Glyph-data
+            /* Get Glyph & Glyph-data */
             CFRange thisGlyphRange = CFRangeMake(runGlyphIndex, 1);
             CGGlyph glyph;
             CGPoint position;
             CTRunGetGlyphs(run, thisGlyphRange, &glyph);
             CTRunGetPositions(run, thisGlyphRange, &position);
 
-            // Get PATH of outline
+            /* Get PATH of outline */
             {
                 CGAffineTransform af = CGAffineTransformMakeScale(1, -1);
                 CGPathRef letter = CTFontCreatePathForGlyph(runFont, glyph, &af);
-                //CGRect r = CGPathGetBoundingBox(letter);
+                /* CGRect r = CGPathGetBoundingBox(letter); */
                 CGAffineTransform t = CGAffineTransformMakeTranslation(position.x + nx, position.y + ny + fheight);
                 CGPathAddPath(letters, &t, letter);
                 CGPathRelease(letter);
@@ -967,11 +970,11 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     {
         NSAttributedString *astr = [[NSAttributedString alloc] initWithString:str attributes:ctx->text_dict];
         NSFont *font = [ctx->text_dict objectForKey:NSFontAttributeName];
-//        CGFloat h1 = [font xHeight];
-//        CGFloat h2 = [font boundingRectForFont].size.height;
+/*        CGFloat h1 = [font xHeight]; */
+/*        CGFloat h2 = [font boundingRectForFont].size.height; */
         CGFloat h3 = [font ascender] + [font descender];
         CGPathRef path = i_CGPathCreateSingleLineStringWithAttributedString(astr, rect.origin.x, rect.origin.y, h3);
-        // Artistic text only one line
+        /* Artistic text only one line */
         cassert(ctx->text_width <= 0);
         CGContextAddPath(ctx->context, path);
         i_draw(ctx, op);

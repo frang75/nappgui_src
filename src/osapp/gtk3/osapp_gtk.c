@@ -63,6 +63,7 @@ OSApp *osapp_init_imp(
     FPtr_app_call func_OnFinishLaunching,
     FPtr_app_call func_OnTimerSignal)
 {
+    static char GDK_BACKEND[64];
     bmem_zero(&i_APP, OSApp);
     cassert_unref(instance == NULL, instance);
     cassert_no_null(listener);
@@ -70,7 +71,8 @@ OSApp *osapp_init_imp(
     cassert(i_APP.listener == NULL);
     cassert(i_APP.func_OnFinishLaunching == NULL);
     cassert(i_APP.func_OnTimerSignal == NULL);
-    putenv("GDK_BACKEND=x11");
+    str_copy_c(GDK_BACKEND, sizeof(GDK_BACKEND), "GDK_BACKEND=x11");
+    putenv(GDK_BACKEND);
     cassert(g_application_id_is_valid("com.nappgui.app") == TRUE);
     i_APP.gtk_app = gtk_application_new("com.nappgui.app", G_APPLICATION_NON_UNIQUE);
     cassert_no_null(i_APP.gtk_app);

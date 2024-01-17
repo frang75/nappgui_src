@@ -346,7 +346,7 @@ static NSFont *i_font_create(const char_t *family, const real32_t size, const ui
     NSFont *nsfont = nil;
     cassert(size > 0.f);
 
-    // Unitialized font attribs
+    /* Unitialized font attribs */
     if (str_empty_c(family) == TRUE)
         return nil;
 
@@ -399,7 +399,7 @@ static void i_change_paragraph(OSXTextView *lview)
 {
     cassert_no_null(lview);
 
-    // Unitialized paragraph attribs
+    /* Unitialized paragraph attribs */
     if (lview->palign == ENUM_MAX(align_t))
         return;
 
@@ -463,7 +463,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
     {
         NSColor *color = nil;
         if (*(color_t*)value == kCOLOR_TRANSPARENT)
-            color = oscolor_NSColor(1); // ekSYS_LABEL
+            color = oscolor_NSColor(1); /* ekSYS_LABEL */
         else
             color = oscolor_NSColor(*(color_t*)value);
         [lview->dict setValue:color forKey:NSForegroundColorAttributeName];

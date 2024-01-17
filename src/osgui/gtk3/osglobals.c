@@ -849,7 +849,7 @@ static void i_parse_gtk_theme(void)
     if (prov != NULL)
         css_data = gtk_css_provider_to_string(prov);
     else
-        css_data = "";
+        css_data = (char *)"";
 
     pcss = css_data;
 

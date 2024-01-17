@@ -176,7 +176,7 @@ void _oscontrol_text_bounds(const Font *font, const char_t *text, const real32_t
     style = font_style(font);
     undertype = (style & ekFUNDERLINE) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
     strikeout = (style & ekFSTRIKEOUT) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
-    data.dict = [[NSDictionary alloc] initWithObjectsAndKeys:font_native(font), NSFontAttributeName, undertype, NSUnderlineStyleAttributeName, strikeout, NSStrikethroughStyleAttributeName, nil];
+    data.dict = [[NSDictionary alloc] initWithObjectsAndKeys:(NSFont*)font_native(font), NSFontAttributeName, undertype, NSUnderlineStyleAttributeName, strikeout, NSStrikethroughStyleAttributeName, nil];
     osgui_text_bounds(&data, text, refwidth, width, height);
     [data.dict release];
 }
@@ -315,13 +315,12 @@ static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString 
             str = [cell stringValue];
     }
 
-    //if (fstyle & ekFSTRIKEOUT || fstyle & ekFUNDERLINE)
+    /*if (fstyle & ekFSTRIKEOUT || fstyle & ekFUNDERLINE)*/
     {
         NSFont *font = (NSFont*)font_native(attrs->font);
         NSDictionary *dict = i_text_attribs(control, attrs->align, attrs->color, fstyle, font);
         NSAttributedString *mstr = [[NSAttributedString alloc] initWithString:str attributes:dict];
-        //NSMutableAttributedString *mstr2 = [[NSMutableAttributedString alloc] initWithAttributedString:mstr];
-        //[mstr2 setAttributes
+        /*NSMutableAttributedString *mstr2 = [[NSMutableAttributedString alloc] initWithAttributedString:mstr];*/
         [cell setFont:font];
 
         if ([cell isKindOfClass:[NSButtonCell class]])

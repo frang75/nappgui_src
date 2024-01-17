@@ -36,6 +36,7 @@
 @interface OSXText : NSTextView
 {
 @public
+    uint32_t empty;
 }
 @end
 
@@ -146,12 +147,13 @@
         params.width = (real32_t)content_frame.size.width;
         params.height = (real32_t)content_frame.size.height;
 
-        // Called whenever graphics state updated (such as window resize)
-        // OpenGL rendering is not synchronous with other rendering on the OSX.
-        // Therefore, call disableScreenUpdatesUntilFlush so the window server
-        // doesn't render non-OpenGL content in the window asynchronously from
-        // OpenGL content, which could cause flickering.  (non-OpenGL content
-        // includes the title bar and drawing done by the app with other APIs)
+        /* Called whenever graphics state updated (such as window resize)
+         * OpenGL rendering is not synchronous with other rendering on the OSX.
+         * Therefore, call disableScreenUpdatesUntilFlush so the window server
+         * doesn't render non-OpenGL content in the window asynchronously from
+         * OpenGL content, which could cause flickering.  (non-OpenGL content
+         * includes the title bar and drawing done by the app with other APIs)
+        */
         [window disableScreenUpdatesUntilFlush];
 
         listener_event(self->OnResize, ekGUI_EVENT_WND_SIZING, (OSWindow*)window, &params, &result, OSWindow, EvSize, EvSize);
@@ -747,11 +749,12 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 
     ostabstop_restore(&windowp->tabstop);
 
-    // https://developer.apple.com/forums/thread/729496
-    // I started seeing same warnings but they weren't there before.
-    // Not sure if some behaviour on macOS changed or is just noise, but to on the safe side
-    // I changed my implementation to open the first window on my app.
-    // The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
+    /* https://developer.apple.com/forums/thread/729496
+     * I started seeing same warnings but they weren't there before.
+     * Not sure if some behaviour on macOS changed or is just noise, but to on the safe side
+     * I changed my implementation to open the first window on my app.
+     * The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
+     */
     if (parent != nil)
         [windowp makeKeyAndOrderFront:(OSXWindow*)parent];
     else
@@ -806,11 +809,12 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
         wfront = pwindowp;
     }
 
-    // https://developer.apple.com/forums/thread/729496
-    // I started seeing same warnings but they weren't there before.
-    // Not sure if some behaviour on macOS changed or is just noise, but to on the safe side
-    // I changed my implementation to open the first window on my app.
-    // The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
+    /* https://developer.apple.com/forums/thread/729496
+     * I started seeing same warnings but they weren't there before.
+     * Not sure if some behaviour on macOS changed or is just noise, but to on the safe side
+     * I changed my implementation to open the first window on my app.
+     * The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
+     */
     if (wfront != nil)
         [windowp makeKeyAndOrderFront:nil];
     else
@@ -841,6 +845,7 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
+/*
 //void oswindow_launch_sheet(OSWindow *window, OSWindow *parent)
 //{
 //    cassert_no_null(window);
@@ -851,9 +856,11 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 //    [NSApp beginSheet:(OSXWindow*)window modalForWindow:(OSXWindow*)parent modalDelegate:nil didEndSelector:nil contextInfo:nil];
 //#endif
 //}
+*/
 
 /*---------------------------------------------------------------------------*/
 
+/*
 //void oswindow_stop_sheet(OSWindow *window, OSWindow *parent)
 //{
 //    cassert_no_null(window);
@@ -861,6 +868,7 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 //    [NSApp endSheet:(OSXWindow*)window];
 //    [(OSXWindow*)parent makeKeyAndOrderFront:nil];
 //}
+*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -980,7 +988,7 @@ OSWidget *oswindow_widget_get_focus(OSWindow *window)
     }
     else
     {
-        // First responder is the window itself
+        /* First responder is the window itself */
         cassert(resp == windowp);
         return NULL;
     }

@@ -28,7 +28,7 @@ void _oslistener_init(ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     bmem_zero(listeners, ViewListeners);
-    //listeners->is_dirty = YES;
+    /*listeners->is_dirty = YES;*/
     listeners->is_enabled = YES;
 }
 
@@ -71,7 +71,7 @@ static void i_mouse_position_in_view_coordinates(const NSView *view, const NSPoi
     *y = (real32_t)local_point.y;
     /* Note: The y coordinate in the returned point starts from a base of 1, not 0. */
     /* *y -= 1.f; */
-    // *y = (real32_t)[view frame].size.height - *y - 1.f;
+    /* *y = (real32_t)[view frame].size.height - *y - 1.f; */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -113,9 +113,9 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
     if (listeners->is_enabled && listeners->OnMoved != NULL)
     {
         real32_t x, y;
-        //NSSize size = [view frame].size;
+        /*NSSize size = [view frame].size;*/
         i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &x, &y);
-        //if (x >= 0.f && x < size.width && y >= 0.f && y < size.height)
+        /*if (x >= 0.f && x < size.width && y >= 0.f && y < size.height)*/
         {
             EvMouse params;
             params.lx = x;

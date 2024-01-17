@@ -6,7 +6,7 @@
 
 * `unicode_convers_nbytes_n()`. [Commit](https://github.com/frang75/nappgui_src/commit/9df21d8294237acb47b6c088a57e58f43ebdfbd8).
 
-* `popup_get_text()`.
+* `popup_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/8177e951cdb5a0d9670e7a499491d209a8dfbc9c).
 
 ### Fixed
 

@@ -154,7 +154,7 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
     [image addRepresentation:irep];
     [image setSize:rect.size];
 
-    // Locate the exact frame of pixels block
+    /* Locate the exact frame of pixels block */
     if (pixrect != NULL)
     {
         NSInteger w = [irep pixelsWide];
@@ -164,13 +164,14 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
         unsigned char *pixplanes[5] = {NULL, NULL, NULL, NULL, NULL};
         uint32_t *buffer = NULL;
         CGFloat scale = w / rect.size.width;
+        NSInteger i= 0, j = 0;
         cassert([irep bitsPerPixel] == 32);
         [irep getBitmapDataPlanes:pixplanes];
         buffer = (uint32_t*)pixplanes[0];
 
-        for (NSInteger j = 0; j < h; ++j)
+        for (j = 0; j < h; ++j)
         {
-            for (NSInteger i = 0; i < w; ++i)
+            for (i = 0; i < w; ++i)
             {
                 if (buffer[i] != 0)
                 {
@@ -198,7 +199,7 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
 static void i_init_checkbox(void)
 {
     NSInteger width = 30, height = 30;
-    NSButton *button = [[NSButton alloc] initWithFrame:NSMakeRect(0.0, 0.0, width, height)];
+    NSButton *button = [[NSButton alloc] initWithFrame:NSMakeRect(0, 0, (CGFloat)width, (CGFloat)height)];
     cassert(i_UNCHECKBOX_NORMAL_IMAGE == nil);
     cassert(i_UNCHECKBOX_PRESSED_IMAGE == nil);
     cassert(i_UNCHECKBOX_DISABLE_IMAGE == nil);
@@ -282,6 +283,8 @@ color_t osglobals_color(const syscolor_t *color)
 
 	cassert_default();
     }
+
+    return kCOLOR_BLACK;
 }
 
 /*---------------------------------------------------------------------------*/
