@@ -329,7 +329,7 @@ OSView *osview_create(const uint32_t flags)
     view->osdraw.view = view;
     _oslistener_init(&view->listeners);
 
-    // https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView
+    /* https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView */
 #if defined (MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
     [view setClipsToBounds:YES];
 #endif

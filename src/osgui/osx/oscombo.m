@@ -182,8 +182,8 @@ OSCombo *oscombo_create(const uint32_t flags)
     cell = [combo cell];
     [cell setStringValue:@""];
     _oscontrol_cell_set_control_size(cell, ekGUI_SIZE_REGULAR);
-    //[combo setTarget:combo];
-    //[combo setAction:@selector(onSelectionChange:)];
+    /*[combo setTarget:combo];*/
+    /*[combo setAction:@selector(onSelectionChange:)];*/
     [combo setUsesDataSource:NO];
     [combo setEditable:YES];
     [combo setSelectable:YES];

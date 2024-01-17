@@ -136,6 +136,16 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         include(${NAPPGUI_ROOT_PATH}/prj/NAppAppleClang.cmake)
         nap_apple_clang_flags()
 
+    elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        include(${NAPPGUI_ROOT_PATH}/prj/NAppGCC.cmake)
+
+        # GCC Version
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.2)
+            message(FATAL_ERROR "GCC 4.2 is the minimum supported version in macOS.")
+        endif()
+
+        nap_gcc_flags("")
+    
     else()
         message (FATAL_ERROR "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 

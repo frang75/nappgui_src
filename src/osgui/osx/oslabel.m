@@ -138,7 +138,7 @@ OSLabel *oslabel_create(const uint32_t flags)
     dctx_set_flipped(label->ctx, (bool_t)[label isFlipped]);
     label->text = str_c("");
     label->bgcolor = kCOLOR_TRANSPARENT;
-    //draw_font(label->ctx, kFONT_DEFAULT);
+    /*draw_font(label->ctx, kFONT_DEFAULT);*/
     draw_text_align(label->ctx, ekLEFT, ekTOP);
     draw_text_color(label->ctx, ekSYSCOLOR_LABEL);
     draw_text_width(label->ctx, -1);

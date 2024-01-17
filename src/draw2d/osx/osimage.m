@@ -425,7 +425,7 @@ static NSBitmapImageFileType i_codec(const codec_t codec)
 
 bool_t osimage_available_codec(const OSImage *image, const codec_t codec)
 {
-    // macOS supports all codec_t formats
+    /* macOS supports all codec_t formats */
     unref(image);
     unref(codec);
     return TRUE;

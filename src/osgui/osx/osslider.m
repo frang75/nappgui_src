@@ -163,7 +163,6 @@ void osslider_tooltip(OSSlider *slider, const char_t *text)
 
 void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top)
 {
-    //NSSize size = NSMakeSize(0.f, 0.f);
     cassert_no_null(slider);
     cassert(num_tickmarks > 0);
     unref(slider);
@@ -189,14 +188,16 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
 
     [(OSXSlider*)slider setFrameSize:size];
 */
-//    [(OSXSlider*)slider setNumberOfTickMarks:(NSInteger)num_tickmarks];
-//    [(OSXSlider*)slider setAllowsTickMarkValuesOnly:NO];
-//
-//#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-//    [(OSXSlider*)slider setTickMarkPosition:(tickmarks_at_left_top == TRUE) ? NSTickMarkPositionAbove : NSTickMarkPositionBelow];
-//#else
-//    [(OSXSlider*)slider setTickMarkPosition:(tickmarks_at_left_top == TRUE) ? NSTickMarkAbove : NSTickMarkBelow];
-//#endif
+/*
+   [(OSXSlider*)slider setNumberOfTickMarks:(NSInteger)num_tickmarks];
+   [(OSXSlider*)slider setAllowsTickMarkValuesOnly:NO];
+
+#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+    [(OSXSlider*)slider setTickMarkPosition:(tickmarks_at_left_top == TRUE) ? NSTickMarkPositionAbove : NSTickMarkPositionBelow];
+#else
+    [(OSXSlider*)slider setTickMarkPosition:(tickmarks_at_left_top == TRUE) ? NSTickMarkAbove : NSTickMarkBelow];
+#endif
+*/
 }
 
 /*---------------------------------------------------------------------------*/

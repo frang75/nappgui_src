@@ -39,8 +39,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-//static const CGFloat i_BAR_HEIGHT[] = {10.f, 16.f, 16.f};
-
 #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
 #define STYLE_BAR NSProgressIndicatorStyleBar
 #else
@@ -107,7 +105,6 @@ real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
     unref(progress);
     cassert_unref(size == ekGUI_SIZE_REGULAR, size);
     return 16;
-//    return (real32_t)i_BAR_HEIGHT[size];
 }
 
 /*---------------------------------------------------------------------------*/

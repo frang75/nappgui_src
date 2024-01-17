@@ -238,7 +238,11 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
     scroll->pos = 0;
     scroll->page = 0;
     scroll->max = 0;
+#if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
     scroll->bar_width = (uint32_t)[OSXScroller scrollerWidthForControlSize:csize scrollerStyle:NSScrollerStyleLegacy];
+#else
+    scroll->bar_width = (uint32_t)[OSXScroller scrollerWidthForControlSize:csize];
+#endif
     scroll->click_pos = UINT32_MAX;
     scroll->mouse_click = UINT32_MAX;
     [i_parent(scroll) addSubview:scroll];
@@ -356,7 +360,7 @@ void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, c
     }
 
     cassert(scroller->knob_size < page);
-    [scroller setKnobProportion:(double)scroller->knob_size/(double)page];
+    [scroller setKnobProportion:(CGFloat)((double)scroller->knob_size/(double)page)];
     osscroll_set_pos(scroll, pos);
 }
 

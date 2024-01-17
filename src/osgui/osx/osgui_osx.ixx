@@ -22,7 +22,7 @@
 #error This file is only for OSX
 #endif
 
-// Mac OSX Virtual Key codes from: Carbon/Frameworks/HIToolBox/Events.h
+/* Mac OSX Virtual Key codes from: Carbon/Frameworks/HIToolBox/Events.h */
 /*---------------------------------------------------------------------------*/
 
 /*

@@ -205,7 +205,6 @@ void ospopup_list_height(OSPopUp *popup, const uint32_t num_elems)
 {
     unref(popup);
     unref(num_elems);
-    //cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

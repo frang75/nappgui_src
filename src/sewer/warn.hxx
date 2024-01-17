@@ -33,7 +33,14 @@
 #endif
 
 #if defined(__GNUC__)
+
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+/* Was added in GCC 4.6 */
 #pragma GCC diagnostic pop
+#else
+#pragma GCC diagnostic warning "-Wall"
+#endif
+
 #endif
 
 #if defined(__clang__)
