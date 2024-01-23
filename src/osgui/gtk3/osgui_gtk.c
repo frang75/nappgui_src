@@ -390,14 +390,12 @@ uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint3
 
 /*---------------------------------------------------------------------------*/
 
-vkey_t _osgui_vkey(GdkEventKey *event, uint32_t *modifiers)
+vkey_t _osgui_vkey(guint kval)
 {
     vkey_t key = ENUM_MAX(vkey_t);
     uint32_t i, n = kNUM_VKEYS;
     const guint *keys = kVIRTUAL_KEY;
-    guint kval = 0;
-    cassert_no_null(event);
-    kval = event->keyval;
+
     /* Letter events as uppercase */
     if (kval >= 97 && kval <= 122)
     {
@@ -450,21 +448,28 @@ vkey_t _osgui_vkey(GdkEventKey *event, uint32_t *modifiers)
         }
     }
 
-    if (modifiers != NULL)
-    {
-        *modifiers = 0;
-
-        if (event->state & GDK_SHIFT_MASK)
-            *modifiers |= ekMKEY_SHIFT;
-
-        if (event->state & GDK_CONTROL_MASK)
-            *modifiers |= ekMKEY_CONTROL;
-
-        if (event->state & GDK_MOD1_MASK)
-            *modifiers |= ekMKEY_ALT;
-    }
-
     return key;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _osgui_modifiers(const guint state)
+{
+    uint32_t modifiers = 0;
+
+    if (state & GDK_SHIFT_MASK)
+        modifiers |= ekMKEY_SHIFT;
+
+    if (state & GDK_CONTROL_MASK)
+        modifiers |= ekMKEY_CONTROL;
+
+    if (state & GDK_MOD1_MASK)
+        modifiers |= ekMKEY_ALT;
+
+    if (state & GDK_MOD4_MASK)
+        modifiers |= ekMKEY_COMMAND;
+
+    return modifiers;
 }
 
 /*---------------------------------------------------------------------------*/

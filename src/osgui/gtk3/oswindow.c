@@ -229,8 +229,8 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSWindow *wi
     /* Check hotkeys */
     if (window->hotkeys != NULL)
     {
-        uint32_t modifiers = 0;
-        vkey_t key = _osgui_vkey(event, &modifiers);
+        vkey_t key = _osgui_vkey(event->keyval);
+        uint32_t modifiers = _osgui_modifiers(event->state);
         if (oswindow_hotkey_process(window, window->hotkeys, key, modifiers) == TRUE)
             return TRUE;
     }

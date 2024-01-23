@@ -36,6 +36,8 @@ LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border, HBRUSH padding_bgcolor);
 
 vkey_t _osgui_vkey(const WORD key);
 
+uint32_t _osgui_modifiers(void);
+
 extern const WORD kVIRTUAL_KEY[];
 extern uint32_t kNUM_VKEYS;
 extern HWND kDEFAULT_PARENT_WINDOW;

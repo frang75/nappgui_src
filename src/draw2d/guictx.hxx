@@ -928,6 +928,7 @@ struct _evmouse_t
     real32_t ly;
     gui_mouse_t button;
     uint32_t count;
+    uint32_t modifiers;
 };
 
 struct _evwheel_t
