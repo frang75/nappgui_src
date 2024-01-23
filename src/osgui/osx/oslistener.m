@@ -79,6 +79,7 @@ static void i_mouse_position_in_view_coordinates(const NSView *view, const NSPoi
 void _oslistener_mouse_enter(const NSView *view, NSEvent *theEvent, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
+    cassert_no_null(theEvent);
     if (listeners->is_enabled && listeners->OnEnter != NULL)
     {
         EvMouse params;
@@ -87,6 +88,8 @@ void _oslistener_mouse_enter(const NSView *view, NSEvent *theEvent, const OSScro
         params.count = 0;
         params.x = params.lx;
         params.y = params.ly;
+        params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+
         if (scroll != NULL)
         {
             params.x += osscrolls_x_pos(scroll);
@@ -110,6 +113,7 @@ void _oslistener_mouse_exit(const NSView *view, ViewListeners *listeners)
 void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
+    cassert_no_null(theEvent);
     if (listeners->is_enabled && listeners->OnMoved != NULL)
     {
         real32_t x, y;
@@ -124,6 +128,8 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
             params.count = 0;
             params.x = params.lx;
             params.y = params.ly;
+            params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+
             if (scroll != NULL)
             {
                 params.x += osscrolls_x_pos(scroll);
@@ -139,6 +145,7 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
 void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
+    cassert_no_null(theEvent);
     if (listeners->is_enabled && listeners->OnDown != NULL)
     {
         EvMouse params;
@@ -147,6 +154,7 @@ void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mou
         params.count = 0;
         params.x = params.lx;
         params.y = params.ly;
+        params.modifiers = osgui_modifiers([theEvent modifierFlags]);
         if (scroll != NULL)
         {
             params.x += osscrolls_x_pos(scroll);
@@ -161,6 +169,7 @@ void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mou
 void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
+    cassert_no_null(theEvent);
     if (listeners->is_enabled == YES)
     {
         real32_t x, y;
@@ -176,6 +185,8 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
             params.count = 0;
             params.x = params.lx;
             params.y = params.ly;
+            params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+
             if (scroll != NULL)
             {
                 params.x += osscrolls_x_pos(scroll);
@@ -191,6 +202,7 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
             params.y = y;
             params.button = button;
             params.count = (uint32_t)[theEvent clickCount];
+            params.modifiers = osgui_modifiers([theEvent modifierFlags]);
             listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, (OSView*)view, &params, NULL, OSView, EvMouse, void);
         }
     }
@@ -200,6 +212,7 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
 
 void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, Listener *OnDrag_listener)
 {
+    cassert_no_null(theEvent);
     if (OnDrag_listener != NULL)
     {
         EvMouse params;
@@ -208,6 +221,8 @@ void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui
         params.count = 0;
         params.x = params.lx;
         params.y = params.ly;
+        params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+
         if (scroll != NULL)
         {
             params.x += osscrolls_x_pos(scroll);
@@ -250,11 +265,12 @@ void _oslistener_scroll_whell(const NSView *view, NSEvent *theEvent, const OSScr
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_launch_key_event(const NSView *view, const gui_event_t evtype, vkey_t virtual_key_code, Listener *OnKey)
+static __INLINE void i_launch_key_event(const NSView *view, const gui_event_t evtype, vkey_t virtual_key_code, const uint32_t modifiers, Listener *OnKey)
 {
     EvKey params;
     cassert_no_null(OnKey);
     params.key = virtual_key_code;
+    params.modifiers = modifiers;
     listener_event(OnKey, evtype, (OSView*)view, &params, NULL, OSView, EvKey, void);
 }
 
@@ -262,9 +278,12 @@ static __INLINE void i_launch_key_event(const NSView *view, const gui_event_t ev
 
 static void i_process_key_event(const NSView *view, NSEvent *theEvent, const gui_event_t evtype, Listener *OnKey)
 {
-    vkey_t vkey = osgui_vkey(theEvent);
+    vkey_t vkey = osgui_vkey([theEvent keyCode]);
     if (vkey != ENUM_MAX(vkey_t))
-        i_launch_key_event(view, evtype, vkey, OnKey);
+    {
+        uint32_t modifiers = osgui_modifiers((NSUInteger)[theEvent modifierFlags]);
+        i_launch_key_event(view, evtype, vkey, modifiers, OnKey);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -287,19 +306,25 @@ void _oslistener_key_up(const NSView *view, NSEvent *theEvent, ViewListeners *li
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_flags_event(const NSView *view, const bool_t press, const bool_t prevpress, const vkey_t key, Listener *OnKeyDown, Listener *OnKeyUp)
+static __INLINE void i_flags_event(const NSView *view, NSUInteger flags, const bool_t press, const bool_t prevpress, const vkey_t key, Listener *OnKeyDown, Listener *OnKeyUp)
 {
     if (press != prevpress)
     {
         if (press == TRUE)
         {
             if (OnKeyDown != NULL)
-                i_launch_key_event(view, ekGUI_EVENT_KEYDOWN, key, OnKeyDown);
+            {
+                uint32_t modifiers = osgui_modifiers(flags);
+                i_launch_key_event(view, ekGUI_EVENT_KEYDOWN, key, modifiers, OnKeyDown);
+            }
         }
         else
         {
             if (OnKeyUp != NULL)
-                i_launch_key_event(view, ekGUI_EVENT_KEYUP, key, OnKeyUp);
+            {
+                uint32_t modifiers = osgui_modifiers(flags);
+                i_launch_key_event(view, ekGUI_EVENT_KEYUP, key, modifiers, OnKeyUp);
+            }
         }
     }
 }
@@ -320,14 +345,14 @@ void _oslistener_key_flags_changed(const NSView *view, NSEvent *theEvent, ViewLi
         flags = [theEvent modifierFlags];
         osgui_modifier_flags(flags, &rshift, &rctrl, &rcommand, &ralt, &lshift, &lctrl, &lcommand, &lalt);
         osgui_modifier_flags(listeners->modifier_flags, &prshift, &prctrl, &prcommand, &pralt, &plshift, &plctrl, &plcommand, &plalt);
-        i_flags_event(view, rshift, prshift, ekKEY_RSHIFT, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, lshift, plshift, ekKEY_LSHIFT, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, rctrl, prctrl, ekKEY_RCTRL, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, lctrl, plctrl, ekKEY_LCTRL, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, rcommand, prcommand, ekKEY_RWIN, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, lcommand, plcommand, ekKEY_LWIN, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, ralt, pralt, ekKEY_RALT, listeners->OnKeyDown, listeners->OnKeyUp);
-        i_flags_event(view, lalt, plalt, ekKEY_LALT, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, rshift, prshift, ekKEY_RSHIFT, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, lshift, plshift, ekKEY_LSHIFT, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, rctrl, prctrl, ekKEY_RCTRL, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, lctrl, plctrl, ekKEY_LCTRL, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, rcommand, prcommand, ekKEY_RWIN, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, lcommand, plcommand, ekKEY_LWIN, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, ralt, pralt, ekKEY_RALT, listeners->OnKeyDown, listeners->OnKeyUp);
+        i_flags_event(view, flags, lalt, plalt, ekKEY_LALT, listeners->OnKeyDown, listeners->OnKeyUp);
         listeners->modifier_flags = flags;
     }
 }

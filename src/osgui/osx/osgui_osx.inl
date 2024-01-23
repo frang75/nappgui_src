@@ -20,7 +20,7 @@ extern NSMutableParagraphStyle *kLEFT_PARAGRAPH_STYLE;
 extern NSMutableParagraphStyle *kCENTER_PARAGRAPH_STYLE;
 extern NSMutableParagraphStyle *kRIGHT_PARAGRAPH_STYLE;
 
-vkey_t osgui_vkey(NSEvent *event);
+vkey_t osgui_vkey(unsigned short keycode);
 
 void osgui_modifier_flags(
     NSUInteger flags,

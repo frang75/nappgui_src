@@ -8,17 +8,23 @@
 
 * `popup_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/8177e951cdb5a0d9670e7a499491d209a8dfbc9c).
 
+* `modifiers` field in `EvMouse`.
+
 ### Fixed
 
 * macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
 
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
 
-* Compiler warning in `dlib_proc`. [Commit](https://github.com/frang75/nappgui_src/commit/357960f16e80b9ac72d06c9fb10c9b17fcc4b520).
+* `modifiers` field in `EvKey` issue. [Issue](https://github.com/frang75/nappgui_src/issues/95).
 
 ### Build system
 
 * Fix Multi-config install issue [Commit](https://github.com/frang75/nappgui_src/commit/5eb39e984bbebed023bc4846dc5e99e318ab89f8).
+
+* Compiler warning in `dlib_proc`. [Commit](https://github.com/frang75/nappgui_src/commit/357960f16e80b9ac72d06c9fb10c9b17fcc4b520).
+
+* GCC Warnings. [Commit](https://github.com/frang75/nappgui_src/commit/16bae6f9c0540e54282a30b1ead3bbf9604b0e7f).
 
 ## v1.4.0 - Dec 31, 2023 (r4772)
 

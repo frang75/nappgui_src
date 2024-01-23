@@ -256,13 +256,10 @@ void osgui_pre_initialize_imp(void)
 
 /*---------------------------------------------------------------------------*/
 
-vkey_t osgui_vkey(NSEvent *event)
+vkey_t osgui_vkey(unsigned short keycode)
 {
     vkey_t vkey = ENUM_MAX(vkey_t);
-    unsigned short keycode = 0;
     uint32_t i, n = sizeof(i_kVIRTUAL_KEY) / sizeof(unsigned short);
-    cassert_no_null(event);
-    keycode = [event keyCode];
 
     for (i = 0; i < n; ++i)
     {
@@ -278,19 +275,36 @@ vkey_t osgui_vkey(NSEvent *event)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+   Review BITS  v1 = mouse events, v2 = key events
+   ? BIT for key
+   ? BIT for left/right
+   ? BIT for event source
+*/
+static __INLINE bool_t i_modif(NSUInteger flags, uint32_t v1, uint32_t v2)
+{
+    if ((flags & v1) == v1)
+        return TRUE;
+    if ((flags & v2) == v2)
+        return TRUE;
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osgui_modifier_flags(
                 NSUInteger flags,
                 bool_t *rshift, bool_t *rctrl, bool_t *rcommand, bool_t *ralt,
                 bool_t *lshift, bool_t *lctrl, bool_t *lcommand, bool_t *lalt)
 {
-    *rshift = ((flags & 131332) == 131332) ? TRUE : FALSE;
-    *rctrl = ((flags & 270592) == 270592) ? TRUE : FALSE;
-    *rcommand = ((flags & 1048848) == 1048848) ? TRUE : FALSE;
-    *ralt = ((flags & 524608) == 524608) ? TRUE : FALSE;
-    *lshift = ((flags & 131330) == 131330) ? TRUE : FALSE;
-    *lctrl = ((flags & 262401) == 262401) ? TRUE : FALSE;
-    *lcommand = ((flags & 1048840) == 1048840) ? TRUE : FALSE;
-    *lalt = ((flags & 524576) == 524576) ? TRUE : FALSE;
+    *rshift = i_modif(flags, 131076, 131332);
+    *rctrl = i_modif(flags, 270336, 270592);
+    *rcommand = i_modif(flags, 1048592, 1048848);
+    *ralt = i_modif(flags, 524352, 524608);
+    *lshift = i_modif(flags, 131074, 131330);
+    *lctrl = i_modif(flags, 262145, 262401);
+    *lcommand = i_modif(flags, 1048584, 1048840);
+    *lalt = i_modif(flags, 524320, 524576);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -301,13 +315,13 @@ uint32_t osgui_modifiers(NSUInteger flags)
     bool_t rshift, rctrl, rcommand, ralt;
     bool_t lshift, lctrl, lcommand, lalt;
     osgui_modifier_flags(flags, &rshift, &rctrl, &rcommand, &ralt, &lshift, &lctrl, &lcommand, &lalt);
-    if (rshift | lshift)
+    if (rshift || lshift)
         modifiers |= ekMKEY_SHIFT;
-    if (rctrl | lctrl)
+    if (rctrl || lctrl)
         modifiers |= ekMKEY_CONTROL;
-    if (rcommand | lcommand)
+    if (rcommand || lcommand)
         modifiers |= ekMKEY_COMMAND;
-    if (ralt | lalt)
+    if (ralt || lalt)
         modifiers |= ekMKEY_ALT;
     return modifiers;
 }

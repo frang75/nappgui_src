@@ -30,7 +30,9 @@ void _osgui_default_cursor(GtkWidget *widget);
 
 uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint32_t size);
 
-vkey_t _osgui_vkey(GdkEventKey *event, uint32_t *modifiers);
+vkey_t _osgui_vkey(const guint keyval);
+
+uint32_t _osgui_modifiers(const guint state);
 
 extern const guint kVIRTUAL_KEY[];
 

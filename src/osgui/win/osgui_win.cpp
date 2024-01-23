@@ -397,6 +397,27 @@ vkey_t _osgui_vkey(const WORD key)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t _osgui_modifiers(void)
+{
+    uint32_t modifiers = 0;
+
+    if ((GetAsyncKeyState(VK_LSHIFT) & 0x8000) || (GetAsyncKeyState(VK_RSHIFT) & 0x8000))
+        modifiers |= ekMKEY_SHIFT;
+
+    if ((GetAsyncKeyState(VK_LCONTROL) & 0x8000) || (GetAsyncKeyState(VK_RCONTROL) & 0x8000))
+        modifiers |= ekMKEY_CONTROL;
+
+    if ((GetAsyncKeyState(VK_LMENU) & 0x8000) || (GetAsyncKeyState(VK_RMENU) & 0x8000))
+        modifiers |= ekMKEY_ALT;
+
+    if ((GetAsyncKeyState(VK_LWIN) & 0x8000) || (GetAsyncKeyState(VK_RWIN) & 0x8000))
+        modifiers |= ekMKEY_COMMAND;
+
+    return modifiers;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osgui_start_imp(void)
 {
     /* Application instance */

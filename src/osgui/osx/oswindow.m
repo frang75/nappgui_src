@@ -362,7 +362,7 @@ static void i_OnFocus(NSResponder *resp, const bool_t focus)
     {
         if (theEvent != (NSEvent*)231)
         {
-            vkey_t vkey = osgui_vkey(theEvent);
+            vkey_t vkey = osgui_vkey([theEvent keyCode]);
             uint32_t modifiers = osgui_modifiers((NSUInteger)[theEvent modifierFlags]);
             if (oswindow_hotkey_process(OSWindowPtr(self), self->hotkeys, vkey, modifiers) == TRUE)
                 return YES;

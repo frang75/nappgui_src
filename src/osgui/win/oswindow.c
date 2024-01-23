@@ -1259,20 +1259,7 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
             if (window->hotkeys != NULL)
             {
                 vkey_t key = _osgui_vkey((WORD)lpMsg->wParam);
-                uint32_t modifiers = 0;
-
-                if ((GetAsyncKeyState(VK_LSHIFT) & 0x8000) || (GetAsyncKeyState(VK_RSHIFT) & 0x8000))
-                    modifiers |= ekMKEY_SHIFT;
-
-                if ((GetAsyncKeyState(VK_LCONTROL) & 0x8000) || (GetAsyncKeyState(VK_RCONTROL) & 0x8000))
-                    modifiers |= ekMKEY_CONTROL;
-
-                if ((GetAsyncKeyState(VK_LMENU) & 0x8000) || (GetAsyncKeyState(VK_RMENU) & 0x8000))
-                    modifiers |= ekMKEY_ALT;
-
-                if ((GetAsyncKeyState(VK_LWIN) & 0x8000) || (GetAsyncKeyState(VK_RWIN) & 0x8000))
-                    modifiers |= ekMKEY_COMMAND;
-
+                uint32_t modifiers = _osgui_modifiers();
                 if (oswindow_hotkey_process(window, window->hotkeys, key, modifiers) == TRUE)
                     return TRUE;
             }

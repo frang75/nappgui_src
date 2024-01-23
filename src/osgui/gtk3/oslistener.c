@@ -134,6 +134,7 @@ void _oslistener_redraw(OSControl *sender, EvDraw *params, ViewListeners *listen
 void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, const real32_t scroll_x, const real32_t scroll_y, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
+    cassert_no_null(event);
     if (listeners->OnEnter != NULL)
     {
         EvMouse params;
@@ -143,6 +144,7 @@ void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, const r
         params.y = params.ly + scroll_y;
         params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
+        params.modifiers = _osgui_modifiers(event->state);
         listener_event(listeners->OnEnter, ekGUI_EVENT_ENTER, sender, &params, NULL, OSControl, EvMouse, void);
     }
 }
@@ -163,6 +165,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
+    cassert_no_null(event);
     if (listeners->is_enabled == TRUE)
     {
         if (listeners->button != ENUM_MAX(gui_mouse_t))
@@ -176,6 +179,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
                 params.y = params.ly + scroll_y;
                 params.button = listeners->button;
                 params.count = 0;
+                params.modifiers = _osgui_modifiers(event->state);
                 listener_event(listeners->OnDrag, ekGUI_EVENT_DRAG, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
@@ -190,6 +194,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
                 params.y = params.ly + scroll_y;
                 params.button = ENUM_MAX(gui_mouse_t);
                 params.count = 0;
+                params.modifiers = _osgui_modifiers(event->state);
                 listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
@@ -201,6 +206,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
 void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, const real32_t scroll_x, const real32_t scroll_y, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
+    cassert_no_null(event);
     if (listeners->is_enabled == TRUE)
     {
         switch (event->button)
@@ -228,6 +234,7 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, const real
             params.y = params.ly + scroll_y;
             params.button = listeners->button;
             params.count = 0;
+            params.modifiers = _osgui_modifiers(event->state);
             listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, sender, &params, NULL, OSControl, EvMouse, void);
         }
     }
@@ -239,6 +246,7 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
+    cassert_no_null(event);
     if (listeners->is_enabled == TRUE && listeners->button != ENUM_MAX(gui_mouse_t))
     {
         if (listeners->OnUp != NULL)
@@ -250,6 +258,7 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
             params.y = params.ly + scroll_y;
             params.button = listeners->button;
             params.count = 0;
+            params.modifiers = _osgui_modifiers(event->state);
             listener_event(listeners->OnUp, ekGUI_EVENT_UP, sender, &params, NULL, OSControl, EvMouse, void);
         }
 
@@ -261,6 +270,7 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
             params.x = params.lx + scroll_x;
             params.y = params.ly + scroll_y;
             params.button = listeners->button;
+            params.modifiers = _osgui_modifiers(event->state);
 
             switch (event->type)
             {
@@ -314,8 +324,8 @@ static bool_t i_key_event(OSControl *sender, const uint32_t type, GdkEventKey *e
     cassert_unref(sender->type == ekGUI_TYPE_CUSTOMVIEW, sender);
     if (listener != NULL)
     {
-        uint32_t modifiers = 0;
-        vkey_t key = _osgui_vkey(event, &modifiers);
+        vkey_t key = _osgui_vkey(event->keyval);
+        uint32_t modifiers = _osgui_modifiers(event->state);
         if (key != ENUM_MAX(vkey_t))
         {
             EvKey params;
