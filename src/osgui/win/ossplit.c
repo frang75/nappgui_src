@@ -127,6 +127,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             params.ly = params.y;
             params.button = ekLEFT;
             params.count = 0;
+            params.modifiers = 0;
+            params.tag = 0;
             listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
             split->launch_OnDrag = FALSE;
         }

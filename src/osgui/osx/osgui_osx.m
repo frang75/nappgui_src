@@ -276,13 +276,17 @@ vkey_t osgui_vkey(unsigned short keycode)
 /*---------------------------------------------------------------------------*/
 
 /*
-   Review BITS  v1 = mouse events, v2 = key events
-   ? BIT for key
-   ? BIT for left/right
-   ? BIT for event source
+   Virtual key bits
+   17 = SHIFT   2 = Right 1 = Left
+   18 = CTRL   13 = Right 1 = Left
+   20 = COMMAND 4 = Right 3 = Left
+   19 = ALT     6 = Right 5 = Left
+    8 = From mouse in always
 */
 static __INLINE bool_t i_modif(NSUInteger flags, uint32_t v1, uint32_t v2)
 {
+    /* BIT 8 indicate mouse */
+    cassert(v2 - v1 == 256);
     if ((flags & v1) == v1)
         return TRUE;
     if ((flags & v2) == v2)

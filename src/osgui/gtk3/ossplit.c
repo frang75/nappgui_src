@@ -110,6 +110,8 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
             i_mouse_pos(widget, event, &params.x, &params.y);
             params.button = ekGUI_MOUSE_LEFT;
             params.count = 0;
+            params.modifiers = 0;
+            params.tag = 0;
             listener_event(view->OnDrag, ekGUI_EVENT_DRAG, view, &params, NULL, OSSplit, EvMouse, void);
         }
     }

@@ -60,6 +60,8 @@ static gboolean i_OnEnter(GtkWidget *widget, GdkEventCrossing *event, OSLabel *l
         params.ly = params.y;
         params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
+        params.modifiers = 0;
+        params.tag = 0;
         listener_event(label->OnMouseEnter, ekGUI_EVENT_ENTER, label, &params, NULL, OSLabel, EvMouse, void);
     }
 

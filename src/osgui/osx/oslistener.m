@@ -76,6 +76,13 @@ static void i_mouse_position_in_view_coordinates(const NSView *view, const NSPoi
 
 /*---------------------------------------------------------------------------*/
 
+void _oslistener_mouse_position_in_view_coordinates(const NSView *view, const NSPoint mouse_location_in_window, real32_t *x, real32_t *y)
+{
+    i_mouse_position_in_view_coordinates(view, mouse_location_in_window, x, y);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _oslistener_mouse_enter(const NSView *view, NSEvent *theEvent, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
@@ -89,6 +96,7 @@ void _oslistener_mouse_enter(const NSView *view, NSEvent *theEvent, const OSScro
         params.x = params.lx;
         params.y = params.ly;
         params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
 
         if (scroll != NULL)
         {
@@ -129,6 +137,7 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
             params.x = params.lx;
             params.y = params.ly;
             params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+            params.tag = 0;
 
             if (scroll != NULL)
             {
@@ -155,6 +164,8 @@ void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mou
         params.x = params.lx;
         params.y = params.ly;
         params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
+
         if (scroll != NULL)
         {
             params.x += osscrolls_x_pos(scroll);
@@ -186,6 +197,7 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
             params.x = params.lx;
             params.y = params.ly;
             params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+            params.tag = 0;
 
             if (scroll != NULL)
             {
@@ -203,6 +215,7 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
             params.button = button;
             params.count = (uint32_t)[theEvent clickCount];
             params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+            params.tag = 0;
             listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, (OSView*)view, &params, NULL, OSView, EvMouse, void);
         }
     }
@@ -222,6 +235,7 @@ void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui
         params.x = params.lx;
         params.y = params.ly;
         params.modifiers = osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
 
         if (scroll != NULL)
         {

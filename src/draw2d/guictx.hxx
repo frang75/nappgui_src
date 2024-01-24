@@ -929,6 +929,7 @@ struct _evmouse_t
     gui_mouse_t button;
     uint32_t count;
     uint32_t modifiers;
+    uint32_t tag;
 };
 
 struct _evwheel_t

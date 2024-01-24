@@ -17,6 +17,8 @@ __EXTERN_C
 
 _gui_api ListBox *listbox_create(void);
 
+_gui_api void listbox_OnDown(ListBox *listbox, Listener *listener);
+
 _gui_api void listbox_OnSelect(ListBox *listbox, Listener *listener);
 
 _gui_api void listbox_size(ListBox *listbox, S2Df size);
