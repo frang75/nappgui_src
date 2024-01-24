@@ -145,6 +145,7 @@ void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, const r
         params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
         params.modifiers = _osgui_modifiers(event->state);
+        params.tag = 0;
         listener_event(listeners->OnEnter, ekGUI_EVENT_ENTER, sender, &params, NULL, OSControl, EvMouse, void);
     }
 }
@@ -180,6 +181,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
                 params.button = listeners->button;
                 params.count = 0;
                 params.modifiers = _osgui_modifiers(event->state);
+                params.tag = 0;
                 listener_event(listeners->OnDrag, ekGUI_EVENT_DRAG, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
@@ -195,6 +197,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
                 params.button = ENUM_MAX(gui_mouse_t);
                 params.count = 0;
                 params.modifiers = _osgui_modifiers(event->state);
+                params.tag = 0;
                 listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
@@ -235,6 +238,7 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, const real
             params.button = listeners->button;
             params.count = 0;
             params.modifiers = _osgui_modifiers(event->state);
+            params.tag = 0;
             listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, sender, &params, NULL, OSControl, EvMouse, void);
         }
     }
@@ -259,6 +263,7 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
             params.button = listeners->button;
             params.count = 0;
             params.modifiers = _osgui_modifiers(event->state);
+            params.tag = 0;
             listener_event(listeners->OnUp, ekGUI_EVENT_UP, sender, &params, NULL, OSControl, EvMouse, void);
         }
 
@@ -271,6 +276,7 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
             params.y = params.ly + scroll_y;
             params.button = listeners->button;
             params.modifiers = _osgui_modifiers(event->state);
+            params.tag = 0;
 
             switch (event->type)
             {

@@ -12,6 +12,7 @@
 
 #include "oslabel.h"
 #include "oslabel_osx.inl"
+#include "oslistener.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include <geom2d/t2d.h>
@@ -53,14 +54,17 @@
 
 - (void) mouseEntered:(NSEvent*)theEvent
 {
-    unref(theEvent);
+    cassert_no_null(theEvent);
     if (self->OnMouseEntered != NULL)
     {
         EvMouse params;
-        params.x = 1e8f;
-        params.y = 1e8f;
+        _oslistener_mouse_position_in_view_coordinates(self, [theEvent locationInWindow], &params.x, &params.y);
+        params.lx = params.x;
+        params.ly = params.y;
         params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
+        params.modifiers = 0;
+        params.tag = 0;
         listener_event(self->OnMouseEntered, ekGUI_EVENT_ENTER, (OSLabel*)self, &params, NULL, OSLabel, EvMouse, void);
     }
 }

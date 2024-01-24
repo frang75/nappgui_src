@@ -124,6 +124,7 @@ void oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real32
         params.button = listeners->button;
         params.count = 0;
         params.modifiers = _osgui_modifiers();
+        params.tag = 0;
 
         if (listeners->button != ENUM_MAX(gui_mouse_t))
         {
@@ -183,6 +184,7 @@ void oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const re
             params.button = button;
             params.count = 0;
             params.modifiers = _osgui_modifiers();
+            params.tag = 0;
             listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, sender, &params, NULL, OSControl, EvMouse, void);
         }
     }
@@ -204,6 +206,7 @@ void oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const real
         params.button = button;
         params.count = 0;
         params.modifiers = _osgui_modifiers();
+        params.tag = 0;
 
         {
             BOOL ok = ReleaseCapture();
