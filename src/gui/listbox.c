@@ -829,6 +829,8 @@ void listbox_select(ListBox *listbox, const uint32_t index, const bool_t select)
         PElem *elem = arrst_get(data->elems, index, PElem);
         elem->select = select;
     }
+
+    view_update(ViewPtr(listbox));
 }
 
 /*---------------------------------------------------------------------------*/

@@ -8,7 +8,11 @@
 
 * `popup_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/8177e951cdb5a0d9670e7a499491d209a8dfbc9c).
 
-* `modifiers` field in `EvMouse`.
+* `modifiers` field in `EvMouse`. [Commit](https://github.com/frang75/nappgui_src/commit/68a59be2fd922f0738daeba10fbfb82ed779a693).
+
+* `tag` field in `EvMouse`. [Commit](https://github.com/frang75/nappgui_src/commit/711ea786b8d5dabede70180b57e2414fc8b3533c).
+
+* `listbox_OnDown()`. [Commit](https://github.com/frang75/nappgui_src/commit/711ea786b8d5dabede70180b57e2414fc8b3533c).
 
 ### Fixed
 
@@ -16,7 +20,7 @@
 
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
 
-* `modifiers` field in `EvKey` issue. [Issue](https://github.com/frang75/nappgui_src/issues/95).
+* `modifiers` field in `EvKey` issue. [Issue](https://github.com/frang75/nappgui_src/issues/95). [Commit](https://github.com/frang75/nappgui_src/commit/68a59be2fd922f0738daeba10fbfb82ed779a693).
 
 ### Build system
 
