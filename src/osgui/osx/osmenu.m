@@ -37,7 +37,6 @@
 - (void)dealloc
 {
     [super dealloc];
-    heap_auditor_delete("OSXMenu");
 }
 
 @end
@@ -62,9 +61,9 @@ void osmenu_destroy(OSMenu **menu)
     cassert_no_null(menu);
     menup = (OSXMenu*)*menu;
     cassert_no_null(menup);
-    /*cassert([[menup itemArray] count] == 0);*/
     cassert([menup supermenu] == nil);
     cassert([NSApp mainMenu] != menup);
+    heap_auditor_delete("OSXMenu");
     [menup release];
     *menu = NULL;
 }
