@@ -245,40 +245,43 @@ void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_
 
 void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
-    color_t color = 0;
+    color_t color = dctx_text_color(ctx);
     ellipsis_t ellipsis = dctx_text_trim(ctx);
 
-    switch (state)
+    if (color == kCOLOR_TRANSPARENT)
     {
-    case ekCTRL_STATE_NORMAL:
-        color = osglobals_text_color();
-        break;
+        switch (state)
+        {
+        case ekCTRL_STATE_NORMAL:
+            color = osglobals_text_color();
+            break;
 
-    case ekCTRL_STATE_BKNORMAL:
-        color = osglobals_textbackdrop_color();
-        break;
+        case ekCTRL_STATE_BKNORMAL:
+            color = osglobals_textbackdrop_color();
+            break;
 
-    case ekCTRL_STATE_HOT:
-        color = osglobals_hottext_color();
-        break;
+        case ekCTRL_STATE_HOT:
+            color = osglobals_hottext_color();
+            break;
 
-    case ekCTRL_STATE_BKHOT:
-        color = osglobals_hottextbackdrop_color();
-        break;
+        case ekCTRL_STATE_BKHOT:
+            color = osglobals_hottextbackdrop_color();
+            break;
 
-    case ekCTRL_STATE_PRESSED:
-        color = osglobals_seltext_color();
-        break;
+        case ekCTRL_STATE_PRESSED:
+            color = osglobals_seltext_color();
+            break;
 
-    case ekCTRL_STATE_BKPRESSED:
-        color = osglobals_seltextbackdrop_color();
-        break;
+        case ekCTRL_STATE_BKPRESSED:
+            color = osglobals_seltextbackdrop_color();
+            break;
 
-    case ekCTRL_STATE_DISABLED:
-        color = osglobals_text_color();
-        break;
+        case ekCTRL_STATE_DISABLED:
+            color = osglobals_text_color();
+            break;
 
-        cassert_default();
+            cassert_default();
+        }
     }
 
     draw_text_color(ctx, color);

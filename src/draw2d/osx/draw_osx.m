@@ -809,6 +809,7 @@ static NSColor *i_NSColor(color_t color)
 void draw_text_color(DCtx *ctx, const color_t color)
 {
     cassert_no_null(ctx);
+    ctx->text_color = color;
     [ctx->text_dict setObject:i_NSColor(color) forKey:NSForegroundColorAttributeName];
 }
 

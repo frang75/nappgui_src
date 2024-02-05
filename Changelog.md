@@ -18,9 +18,13 @@
 
 * macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
 
+* macOS Sonoma NSMenu check obsolete. [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#Menus). [Issue](https://github.com/frang75/nappgui_src/issues/96). [Commit](https://github.com/frang75/nappgui_src/commit/197c7db6c41b8bde7e01532d4943ee95d4e8ca7e).
+
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
 
 * `modifiers` field in `EvKey` issue. [Issue](https://github.com/frang75/nappgui_src/issues/95). [Commit](https://github.com/frang75/nappgui_src/commit/68a59be2fd922f0738daeba10fbfb82ed779a693).
+
+* `listbox_color` issue in macOS and GTK+3.
 
 ### Build system
 

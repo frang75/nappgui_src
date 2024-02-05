@@ -194,9 +194,8 @@ align_t dctx_text_intalign(const DCtx *ctx)
 
 color_t dctx_text_color(const DCtx *ctx)
 {
-    unref(ctx);
-    cassert(FALSE);
-	return 0;
+    cassert_no_null(ctx);
+    return ctx->text_color;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -40,6 +40,7 @@ struct _dctx_t
     CGAffineTransform gradient_matrix;
     color_t skcolor;
     color_t fillcolor;
+    color_t text_color;
     color_t gradient_colors[MAX_COLORS];
     real32_t gradient_stops[MAX_COLORS];
     uint32_t gradient_n;
