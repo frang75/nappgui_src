@@ -184,46 +184,50 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
 
 void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
-    const CGFloat *color = nil;
-    color_t ncolor = 0;
+    color_t ncolor = dctx_text_color(ctx);
     ellipsis_t ellipsis = dctx_text_trim(ctx);
 
-    cassert_no_null(ctx);
-    color = osglobals_text_color();
-    
-    switch (state) {
-    case ekCTRL_STATE_NORMAL:
+    if (ncolor == kCOLOR_TRANSPARENT)
+    {
+        const CGFloat *color = nil;
+        
         color = osglobals_text_color();
-        break;
-
-    case ekCTRL_STATE_HOT:
-        color = osglobals_hottx_color();
-        break;
-
-    case ekCTRL_STATE_PRESSED:
-        color = osglobals_seltx_color();
-        break;
-
-    case ekCTRL_STATE_BKNORMAL:
-        color = osglobals_textbackdrop_color();
-        break;
-
-    case ekCTRL_STATE_BKHOT:
-        color = osglobals_hottxbackdrop_color();
-        break;
-
-    case ekCTRL_STATE_BKPRESSED:
-        color = osglobals_seltxbackdrop_color();
-        break;
-
-    case ekCTRL_STATE_DISABLED:
-        color = osglobals_textbackdrop_color();
-        break;
-
-    cassert_default();
+        
+        switch (state) {
+        case ekCTRL_STATE_NORMAL:
+            color = osglobals_text_color();
+            break;
+                
+        case ekCTRL_STATE_HOT:
+            color = osglobals_hottx_color();
+            break;
+                
+        case ekCTRL_STATE_PRESSED:
+            color = osglobals_seltx_color();
+            break;
+                
+        case ekCTRL_STATE_BKNORMAL:
+            color = osglobals_textbackdrop_color();
+            break;
+                
+        case ekCTRL_STATE_BKHOT:
+            color = osglobals_hottxbackdrop_color();
+            break;
+                
+        case ekCTRL_STATE_BKPRESSED:
+            color = osglobals_seltxbackdrop_color();
+            break;
+                
+        case ekCTRL_STATE_DISABLED:
+            color = osglobals_textbackdrop_color();
+            break;
+                
+        cassert_default();
+        }
+        
+        ncolor = color_rgbaf((real32_t)color[0], (real32_t)color[1], (real32_t)color[2], (real32_t)color[3]);
     }
-
-    ncolor = color_rgbaf((real32_t)color[0], (real32_t)color[1], (real32_t)color[2], (real32_t)color[3]);
+    
     draw_text_color(ctx, ncolor);
     draw_text_trim(ctx, ekELLIPEND);
 	draw_text_raster(ctx, text, (real32_t)x, (real32_t)y);
