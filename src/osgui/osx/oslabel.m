@@ -38,6 +38,7 @@
     DCtx *ctx;
     String *text;
     uint32_t flags;
+    color_t color;
     color_t bgcolor;
     NSTrackingArea *tracking_area;
     Listener *OnClick;
@@ -107,11 +108,16 @@
     cassert_no_null(self->ctx);
     nscontext = [NSGraphicsContext currentContext];
     dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, FALSE);
-    if (self->bgcolor != kCOLOR_TRANSPARENT)
+    if (self->bgcolor != kCOLOR_DEFAULT)
     {
         draw_fill_color(self->ctx, self->bgcolor);
         draw_rect(self->ctx, ekFILL, 0, 0, (real32_t)rect.size.width, (real32_t)rect.size.height);
     }
+
+    if (self->color != kCOLOR_DEFAULT)
+        draw_text_color(self->ctx, color);
+    else
+        draw_text_color(self->ctx, ekSYSCOLOR_LABEL);
 
     switch (label_get_type(self->flags))
     {
@@ -141,10 +147,10 @@ OSLabel *oslabel_create(const uint32_t flags)
     label->flags = flags;
     dctx_set_flipped(label->ctx, (bool_t)[label isFlipped]);
     label->text = str_c("");
-    label->bgcolor = kCOLOR_TRANSPARENT;
+    label->color = kCOLOR_DEFAULT;
+    label->bgcolor = kCOLOR_DEFAULT;
     /*draw_font(label->ctx, kFONT_DEFAULT);*/
     draw_text_align(label->ctx, ekLEFT, ekTOP);
-    draw_text_color(label->ctx, ekSYSCOLOR_LABEL);
     draw_text_width(label->ctx, -1);
     draw_text_halign(label->ctx, ekLEFT);
     label->tracking_area = nil;
@@ -305,7 +311,7 @@ void oslabel_color(OSLabel *label, const color_t color)
 {
     OSXLabel *llabel = (OSXLabel*)label;
     cassert_no_null(llabel);
-    draw_text_color(llabel->ctx, color);
+    llabel->color = color;
     [llabel setNeedsDisplay:YES];
 }
 
@@ -380,6 +386,7 @@ void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const rea
     _oscontrol_set_frame(llabel, x, y, width, height);
     draw_text_width(llabel->ctx, width);
     i_update_tracking_area((OSXLabel*)label);
+    [llabel setNeedsDisplay:YES];
 }
 
 /*---------------------------------------------------------------------------*/

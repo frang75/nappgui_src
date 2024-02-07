@@ -24,7 +24,9 @@
 
 * `modifiers` field in `EvKey` issue. [Issue](https://github.com/frang75/nappgui_src/issues/95). [Commit](https://github.com/frang75/nappgui_src/commit/68a59be2fd922f0738daeba10fbfb82ed779a693).
 
-* `listbox_color` issue in macOS and GTK+3.
+* `listbox_color` issue in macOS and GTK+3. [Commit](https://github.com/frang75/nappgui_src/commit/5abe4d13e767ddd1145dfbe5c0cc2b9c0d7c26ab).
+
+* macOS version adapts to Light/Dark/Accents colors at runtime.
 
 ### Build system
 

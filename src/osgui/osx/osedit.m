@@ -748,6 +748,7 @@ void osedit_frame(OSEdit *edit, const real32_t x, const real32_t y, const real32
     cassert_no_null(ledit);
     _oscontrol_set_frame((NSView*)ledit, x, y, width, height);
     _oscontrol_set_frame((NSView*)ledit->field, 0, 0, width, height);
+    [ledit setNeedsDisplay:YES];
 }
 
 /*---------------------------------------------------------------------------*/

@@ -380,14 +380,14 @@ static void i_precompute_system_colors(void)
 
 void gui_update(void)
 {
+    i_precompute_system_colors();
+
     arrpt_foreach(window, i_WINDOWS, Window)
         _window_update(window);
     arrpt_end();
 
     if (i_ONTHEME != NULL)
         listener_event(i_ONTHEME, 0, NULL, NULL, NULL, void, void, void);
-
-    i_precompute_system_colors();
 }
 
 /*---------------------------------------------------------------------------*/
