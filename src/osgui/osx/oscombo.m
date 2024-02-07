@@ -419,6 +419,7 @@ void oscombo_origin(const OSCombo *combo, real32_t *x, real32_t *y)
 void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame((NSView*)combo, x, y, width, height);
+    [(NSView*)combo setNeedsDisplay:YES];
 }
 
 /*---------------------------------------------------------------------------*/

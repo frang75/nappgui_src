@@ -68,9 +68,9 @@ static ListBox *i_simple_listbox(void)
     listbox_add_elem(listbox, "Item 2", NULL);
     listbox_add_elem(listbox, "Item 3", NULL);
     listbox_add_elem(listbox, "Item 4", NULL);
-    listbox_color(listbox, 0, kCOLOR_RED);
-    listbox_color(listbox, 1, kCOLOR_GREEN);
-    listbox_color(listbox, 2, kCOLOR_BLUE);
+    listbox_color(listbox, 0, gui_alt_color(color_rgb(128, 0, 0), kCOLOR_RED));
+    listbox_color(listbox, 1, gui_alt_color(color_rgb(0, 128, 0), kCOLOR_GREEN));
+    listbox_color(listbox, 2, gui_alt_color(color_rgb(0, 0, 128), kCOLOR_BLUE));
     listbox_select(listbox, 0, TRUE);
     return listbox;
 }

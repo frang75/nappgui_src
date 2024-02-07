@@ -12,8 +12,14 @@
 
 #include "osgui_osx.ixx"
 
+void oscolor_init(void);
+
+void oscolor_finish(void);
+
 color_t oscolor_from_NSColor(NSColor *color);
 
 void oscolor_NSColor_rgba(NSColor *color, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a);
+
+void oscolor_NSColor_rgba_v(NSColor *color, CGFloat *rgba);
 
 NSColor *oscolor_NSColor(const color_t color);

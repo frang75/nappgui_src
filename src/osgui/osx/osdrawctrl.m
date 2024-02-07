@@ -187,7 +187,7 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
     color_t ncolor = dctx_text_color(ctx);
     ellipsis_t ellipsis = dctx_text_trim(ctx);
 
-    if (ncolor == kCOLOR_TRANSPARENT)
+    if (ncolor == kCOLOR_DEFAULT)
     {
         const CGFloat *color = nil;
         
@@ -282,8 +282,8 @@ static void i_draw_checkbox(DCtx *ctx, const real32_t x, const real32_t y, const
 
 void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    cassert_unref(width == osglobals_check_width(), width);
-    cassert_unref(height == osglobals_check_height(), height);
+    unref(width);
+    unref(height);
 	i_draw_checkbox(ctx, (real32_t)x, (real32_t)y, TRUE, state);
 }
 
@@ -291,7 +291,7 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
 
 void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    cassert_unref(width == osglobals_check_width(), width);
-    cassert_unref(height == osglobals_check_height(), height);
+    unref(width);
+    unref(height);
 	i_draw_checkbox(ctx, (real32_t)x, (real32_t)y, FALSE, state);
 }

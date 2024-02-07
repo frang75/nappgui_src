@@ -693,6 +693,15 @@ static void i_gradient_vector(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+static color_t i_effective_color(const color_t color)
+{
+    uint8_t r, g, b, a;
+    color_get_rgba(color, &r, &g, &b, &a);
+    return color_rgba(r, g, b, a);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t yy0, const real32_t x1, const real32_t yy1)
 {
     cassert_no_null(ctx);
@@ -711,7 +720,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
             register uint32_t i;
             for(i = 0; i < n; ++i)
             {
-                if (ctx->gradient_colors[i] != color[i])
+                if (ctx->gradient_colors[i] != i_effective_color(color[i]))
                 {
                     CGGradientRelease(ctx->gradient);
                     ctx->gradient = NULL;
@@ -733,7 +742,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
         register uint32_t i, total = n < MAX_COLORS ? n : MAX_COLORS;
         for (i = 0; i < total; ++i)
         {
-            ctx->gradient_colors[i] = color[i];
+            ctx->gradient_colors[i] = i_effective_color(color[i]);
             ctx->gradient_stops[i] = stop[i];
         }
 

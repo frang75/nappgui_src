@@ -91,45 +91,25 @@
     /* https://stackoverflow.com/questions/52504872/updating-for-dark-mode-nscolor-ignores-appearance-changes?rq=1 */
     if (self->theme_changed == TRUE)
     {
-        #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+        bool_t dark_mode = FALSE;
 
-        #if defined (MAC_OS_VERSION_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12
-        NSArray *windows = [NSApp windows];
-        NSWindow *w = nil;
-        if ([windows count] > 0)
-            w = [windows objectAtIndex:0];
-
-        if (w != nil)
-            [NSAppearance setCurrentAppearance:[w effectiveAppearance]];
+        #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+        {
+            NSArray *appers = [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil];
+            NSAppearance *apper = [NSApp effectiveAppearance];
+            NSAppearanceName name = [apper bestMatchFromAppearancesWithNames:appers];
+            if ([name isEqualToString:NSAppearanceNameDarkAqua])
+                dark_mode = TRUE;
+        }
         #endif
 
         osglobals_theme_changed();
 
         if (self->OnThemeChanged != NULL)
             listener_event(self->OnThemeChanged, 0, (OSApp*)self->listener, NULL, NULL, OSApp, void, void);
-        #endif
 
         self->theme_changed = FALSE;
     }
-/*
-    NSColor *c = [[NSColor windowBackgroundColor] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
-    CGFloat rf = 0.f, gf = 0.f, bf = 0.f, af = 0.f;
-    [c getRed:&rf green:&gf blue:&bf alpha:&af];
-    log_printf("Color: %.2f, %.2f, %.2f", rf, gf, bf);
-*/
-/*    NSColor *c1 = [NSColor windowBackgroundColor];
-    CGColorRef cgc = [c1 CGColor];
-    const CGFloat* c = CGColorGetComponents(cgc);
-    log_printf("Color: %.2f, %.2f, %.2f", c[0], c[1], c[2]);
-
-    NSWindow *w = oswindow_win();
-    if (w)
-    {
-        NSColor *c = [[w backgroundColor] colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
-        CGFloat rf = 0.f, gf = 0.f, bf = 0.f, af = 0.f;
-        [c getRed:&rf green:&gf blue:&bf alpha:&af];
-        log_printf("Color: %.2f, %.2f, %.2f", rf, gf, bf);
-    }*/
 
     if (__FALSE_EXPECTED(self->terminate_count > 0))
     {
@@ -178,7 +158,8 @@
     }
 
     #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-    [NSDistributedNotificationCenter.defaultCenter addObserver:self selector:@selector(themeChanged:) name:@"AppleInterfaceThemeChangedNotification" object: nil];
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleInterfaceThemeChangedNotification" object: nil];
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleColorPreferencesChangedNotification" object:nil];
     #endif
 }
 
@@ -237,27 +218,6 @@
     unref(aNotification);
     /* The new theme is not effective yet. We have to catch and notify in next loop cicle */
     self->theme_changed = TRUE;
-
-    /*
-    if (@available(macOS 10_14, *))
-    {
-        NSArray *array = [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil];
-        NSAppearance *aper = [NSApp effectiveAppearance];
-        NSAppearanceName res = [aper bestMatchFromAppearancesWithNames:array];
-        if ([res isEqualToString:NSAppearanceNameDarkAqua])
-        {
-            NSLog(@"Dark mode!!!");
-        }
-        else
-        {
-            NSLog(@"Light mode!!!");
-        }
-    }
-    else
-    {
-        // Fallback on earlier versions
-    }
-    */
 }
 
 /*---------------------------------------------------------------------------*/

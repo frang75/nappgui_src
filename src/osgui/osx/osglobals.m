@@ -24,6 +24,14 @@
 #error This file is only for OSX
 #endif
 
+@interface OSXHeader : NSView
+{
+@public
+    NSTableHeaderCell *cell;
+    BOOL highlight;
+}
+@end
+
 static NSImage *i_UNCHECKBOX_NORMAL_IMAGE = nil;
 static NSImage *i_UNCHECKBOX_PRESSED_IMAGE = nil;
 static NSImage *i_UNCHECKBOX_DISABLE_IMAGE = nil;
@@ -52,18 +60,10 @@ static bool_t i_DARK_MODE = FALSE;
 
 /*---------------------------------------------------------------------------*/
 
-@interface OSXHeader : NSView
-{
-@public
-    NSTableHeaderCell *cell;
-	BOOL highlight;
-}
-@end
-
 @implementation OSXHeader
 
 - (void)drawRect:(NSRect)rect
-{    
+{
     if (self->highlight == YES)
         [self->cell highlight:YES withFrame:rect inView:self];
     else
@@ -80,43 +80,49 @@ static bool_t i_DARK_MODE = FALSE;
 static void i_theme_colors(void)
 {
     CGFloat r, g, b, a;
+
     oscolor_NSColor_rgba([NSColor windowBackgroundColor], &r, &g, &b, &a);
     i_DARK_MODE = (.21 * r + .72 * g + .07 * b) < .5 ? TRUE : FALSE;
 
-    if (i_DARK_MODE == TRUE)
-    {
-        i_SET_COLOR(i_TEXT_COLOR, .86, .86, .86, 1);
-        i_SET_COLOR(i_SELTX_COLOR, .86, .86, .86, 1);
-        i_SET_COLOR(i_HOTTX_COLOR, .86, .86, .86, 1);
-        i_SET_COLOR(i_TEXTBACKDROP_COLOR, .86, .86, .86, 1);
-        i_SET_COLOR(i_SELTXBACKDROP_COLOR, .86, .86, .86, 1);
-        i_SET_COLOR(i_HOTTXBACKDROP_COLOR, .86, .86, .86, 1);
-        i_SET_COLOR(i_BACK_COLOR, r, g, b, 1);
-        i_SET_COLOR(i_SELBG_COLOR, .14, .35, .79, 1);
-        i_SET_COLOR(i_HOTBG_COLOR, r, g, b, 1);
-        i_SET_COLOR(i_BACKBACKDROP_COLOR, r, g, b, 1);
-        i_SET_COLOR(i_SELBGBACKDROP_COLOR, .27, .27, .27, 1);
-        i_SET_COLOR(i_HOTBGBACKDROP_COLOR, r, g, b, 1);
-        i_GRID_COLOR = color_rgbaf(.3f, .3f, .3f, 1.f);
-        i_FOCUS_COLOR = color_rgbaf(.7f, .7f, .7f, 1.f);
-    }
-    else
-    {
-        i_SET_COLOR(i_TEXT_COLOR, 0, 0, 0, 1);
-        i_SET_COLOR(i_SELTX_COLOR, 1, 1, 1, 1);
-        i_SET_COLOR(i_HOTTX_COLOR, 0, 0, 0, 1);
-        i_SET_COLOR(i_TEXTBACKDROP_COLOR, 0, 0, 0, 1);
-        i_SET_COLOR(i_SELTXBACKDROP_COLOR, 0, 0, 0, 1);
-        i_SET_COLOR(i_HOTTXBACKDROP_COLOR, 0, 0, 0, 1);
-        i_SET_COLOR(i_BACK_COLOR, r, g, b, 1);
-        i_SET_COLOR(i_SELBG_COLOR, .2, .447, .855, 1);
-        i_SET_COLOR(i_HOTBG_COLOR, .95, .96, .98, 1);
-        i_SET_COLOR(i_BACKBACKDROP_COLOR, r, g, b, 1);
-        i_SET_COLOR(i_SELBGBACKDROP_COLOR, .827, .827, .827, 1);
-        i_SET_COLOR(i_HOTBGBACKDROP_COLOR, .95, .96, .98, 1);
-        i_GRID_COLOR = color_rgbaf(.8f, .8f, .8f, 1.f);
-        i_FOCUS_COLOR = color_rgbaf(.3f, .3f, .3f, 1.f);
-    }
+    /* Text color (normal, selected, mouse over) */
+    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXT_COLOR);
+    oscolor_NSColor_rgba_v([NSColor selectedControlTextColor], i_SELTX_COLOR);
+    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTX_COLOR);
+
+    /* Text color in not active windows (normal, selected, mouse over) */
+    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXTBACKDROP_COLOR);
+
+    #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+    oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextColor], i_SELTXBACKDROP_COLOR);
+    #else
+    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_SELTXBACKDROP_COLOR);
+    #endif
+
+    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTXBACKDROP_COLOR);
+
+    /* Text background color (normal, selected, mouse over */
+    oscolor_NSColor_rgba_v([NSColor controlColor], i_BACK_COLOR);
+    oscolor_NSColor_rgba_v([NSColor selectedControlColor], i_SELBG_COLOR);
+    oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBG_COLOR);
+
+    /* Text background color in not active windows (normal, selected, mouse over */
+    oscolor_NSColor_rgba_v([NSColor controlColor], i_BACKBACKDROP_COLOR);
+    #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+    oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextBackgroundColor], i_SELBGBACKDROP_COLOR);
+    #else
+    oscolor_NSColor_rgba_v([NSColor controlColor], i_SELBGBACKDROP_COLOR);
+    #endif
+    oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBGBACKDROP_COLOR);
+
+    /* Color for grids */
+    #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+    i_GRID_COLOR = oscolor_from_NSColor([NSColor separatorColor]);
+    #else
+    i_GRID_COLOR = oscolor_from_NSColor([NSColor gridColor]);
+    #endif
+    
+    /* Focus ring color */
+    i_FOCUS_COLOR = oscolor_from_NSColor([NSColor keyboardFocusIndicatorColor]);
 
     unref(a);
 }
@@ -266,7 +272,7 @@ color_t osglobals_color(const syscolor_t *color)
 	#endif
 
     case ekSYSCOLOR_VIEW:
-		return oscolor_from_NSColor([NSColor windowBackgroundColor]);
+		return oscolor_from_NSColor([NSColor controlBackgroundColor]);
 
     case ekSYSCOLOR_LINE:
 		return i_GRID_COLOR;
@@ -406,6 +412,7 @@ void osglobals_OnIdle(void *nonused, Listener *listener)
 
 void osglobals_init(void)
 {
+    oscolor_init();
 	i_theme_colors();
 }
 
@@ -447,6 +454,7 @@ static void i_destroy_header(void)
 
 void osglobals_finish(void)
 {
+    oscolor_finish();
     i_destroy_checkbox();
     i_destroy_header();
 }
@@ -568,7 +576,7 @@ NSImage *osglobals_header_image(const bool_t pressed)
 {
 	if (i_HEADER_NORMAL_IMAGE == nil)
         i_init_header();
-    
+
     if (pressed == TRUE)
         return i_HEADER_PRESSED_IMAGE;
     else

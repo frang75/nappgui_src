@@ -196,6 +196,7 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
             draw_font(ctx, col->font);
             draw_text_width(ctx, (real32_t)(width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
             draw_text_halign(ctx, cell->align);
+            draw_text_color(ctx, kCOLOR_DEFAULT);
             drawctrl_text(ctx, cell->text, (int32_t)(x + i_COLUMN_LEFT_PADDING), (int32_t)(y + col->yoffset), state);
         }
         break;
@@ -585,7 +586,8 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
         draw_text_halign(ctx, col->align);
 
         arrpt_foreach_const(text, col->head_text, String)
-            drawctrl_text(ctx, tc(text), tx, ty, data->focused ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL);
+            draw_text_color(ctx, kCOLOR_DEFAULT);
+        drawctrl_text(ctx, tc(text), tx, ty, data->focused ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL);
         ty += data->head_line_height;
         arrpt_end();
 
