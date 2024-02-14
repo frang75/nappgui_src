@@ -178,7 +178,7 @@ static void i_OnClick(GtkMenuItem *widget, OSMenuItem *item)
         EvMenu params;
         params.index = UINT32_MAX;
         params.state = ekGUI_ON;
-        params.str = NULL;
+        params.text = NULL;
         listener_event(item->OnClick, ekGUI_EVENT_MENU, item, &params, NULL, OSMenuItem, EvMenu, void);
     }
 }

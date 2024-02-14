@@ -261,21 +261,6 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_get_origin_in_screen(const OSControl *control, real32_t *x, real32_t *y)
-{
-    BOOL ret;
-    RECT rect;
-    cassert_no_null(control);
-    cassert_no_null(x);
-    cassert_no_null(y);
-    ret = GetWindowRect(control->hwnd, &rect);
-    cassert_unref(ret != 0, ret);
-    *x = (real32_t)rect.left;
-    *y = (real32_t)rect.top;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height)
 {
     BOOL ret;

@@ -33,6 +33,8 @@ _gui_api void window_show(Window *window);
 
 _gui_api void window_hide(Window *window);
 
+_gui_api void window_overlay(Window *window, Window *parent);
+
 _gui_api uint32_t window_modal(Window *window, Window *parent);
 
 _gui_api void window_stop_modal(Window *window, const uint32_t return_value);
@@ -62,6 +64,10 @@ _gui_api V2Df window_get_origin(const Window *window);
 _gui_api S2Df window_get_size(const Window *window);
 
 _gui_api S2Df window_get_client_size(const Window *window);
+
+_gui_api R2Df window_control_frame(const Window *window, const GuiControl *control);
+
+_gui_api V2Df window_client_to_screen(const Window *window, const V2Df point);
 
 _gui_api void window_defbutton(Window *window, Button *button);
 

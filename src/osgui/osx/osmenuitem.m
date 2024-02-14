@@ -194,7 +194,7 @@ static gui_state_t i_state(const NSInteger state)
         EvMenu params;
         params.index = UINT32_MAX;
         params.state = i_state([(OSXMenuItem*)sender state]);
-        params.str = NULL;
+        params.text = NULL;
         listener_event(((OSXMenuItem*)sender)->OnClick, ekGUI_EVENT_MENU, (OSMenuItem*)sender, &params, NULL, OSMenuItem, EvMenu, void);
     }
 }

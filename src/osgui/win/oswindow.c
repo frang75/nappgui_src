@@ -24,6 +24,7 @@
 #include <core/arrst.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <osbs/osbs.h>
 #include <osbs/bthread.h>
 #include <sewer/cassert.h>
 
@@ -318,6 +319,16 @@ static bool_t i_press_defbutton(OSWindow *window)
     }
 
     return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_activate(OSWindow *window)
+{
+    cassert_no_null(window);
+    /* Force the tabstop because 'WM_ACTIVATE' is not send if hwnd is the current active */
+    SetActiveWindow(window->control.hwnd);
+    ostabstop_restore(&window->tabstop);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -839,16 +850,6 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_activate(OSWindow *window)
-{
-    cassert_no_null(window);
-    /* Force the tabstop because 'WM_ACTIVATE' is not send if hwnd is the current active */
-    SetActiveWindow(window->control.hwnd);
-    ostabstop_restore(&window->tabstop);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
@@ -938,45 +939,63 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
-//void oswindow_launch_sheet(OSWindow *window, OSWindow *parent);
-//void oswindow_launch_sheet(OSWindow *window, OSWindow *parent)
-//{
-//	unref(window);
-//	unref(parent);
-//	cassert(FALSE);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void oswindow_stop_sheet(OSWindow *window, OSWindow *parent);
-//void oswindow_stop_sheet(OSWindow *window, OSWindow *parent)
-//{
-//	unref(window);
-//	unref(parent);
-//	cassert(FALSE);
-//}
-
-/*---------------------------------------------------------------------------*/
-
 void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 {
     cassert_no_null(window);
-    _oscontrol_get_origin_in_screen(&window->control, x, y);
+    cassert_no_null(x);
+    cassert_no_null(y);
+    /* The window top-left corner */
+    if (*x == REAL32_MAX && *y == REAL32_MAX)
+    {
+        RECT rect;
+        _osgui_frame_without_shadows(window->control.hwnd, &rect);
+        *x = (real32_t)rect.left;
+        *y = (real32_t)rect.top;
+    }
+    /* A window inner point (in client area coordinates) */
+    else
+    {
+        POINT pt;
+        pt.x = (LONG)*x;
+        pt.y = (LONG)*y;
+        ClientToScreen(window->control.hwnd, &pt);
+        *x = (real32_t)pt.x;
+        *y = (real32_t)pt.y;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 {
+    RECT rect1;
+    RECT rect2;
     cassert_no_null(window);
-    _oscontrol_set_position((OSControl *)window, (int)x, (int)y);
+
+    {
+        BOOL ret = GetWindowRect(window->control.hwnd, &rect1);
+        cassert_unref(ret != 0, ret);
+    }
+
+    _osgui_frame_without_shadows(window->control.hwnd, &rect2);
+
+    {
+        BOOL ret = SetWindowPos(window->control.hwnd, NULL, (int)x + (rect1.left - rect2.left), (int)y + (rect1.top - rect2.top), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+        cassert_unref(ret != 0, ret);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)window, width, height);
+    RECT rect;
+    cassert_no_null(window);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    _osgui_frame_without_shadows(window->control.hwnd, &rect);
+    *width = (real32_t)(rect.right - rect.left);
+    *height = (real32_t)(rect.bottom - rect.top);
 }
 
 /*---------------------------------------------------------------------------*/

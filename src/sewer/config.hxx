@@ -179,7 +179,8 @@
 /*! <Function pointer cast> */
 #ifdef  __cplusplus
     #if defined (_MSC_VER)
-        #define cast_func_ptr(fptr, type) ((type)(fptr))
+        #define cast_func_ptr(fptr, type) ((type)(void*)fptr)
+        /* #define cast_func_ptr(fptr, type) ((type)(fptr)) // VS2008 */
     #else
         #define cast_func_ptr(fptr, type) ((type)(fptr))
     #endif

@@ -546,35 +546,10 @@ void _view_OnResize(View *view, const S2Df *size)
 
 /*---------------------------------------------------------------------------*/
 
-void view_screen_rect(const View *view, R2Df *rect)
-{
-    cassert_no_null(view);
-    cassert_no_null(rect);
-    _component_get_global_origin((const GuiComponent *)view, &rect->pos);
-    _component_get_size((const GuiComponent *)view, &rect->size);
-}
-
-/*---------------------------------------------------------------------------*/
-
-GuiCtx *_view_context(View *view)
-{
-    cassert_no_null(view);
-    return view->component.context;
-}
-
-/*---------------------------------------------------------------------------*/
-
 Cell *_view_cell(View *view)
 {
     cassert_no_null(view);
     return view->component.parent;
-}
-
-/*---------------------------------------------------------------------------*/
-
-Window *_view_window(View *view)
-{
-    return _component_window((GuiComponent *)view);
 }
 
 /*---------------------------------------------------------------------------*/

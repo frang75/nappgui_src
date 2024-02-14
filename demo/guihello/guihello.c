@@ -9,6 +9,7 @@
 #include "listboxes.h"
 #include "textviews.h"
 #include "table.h"
+#include "flyout.h"
 #include "guibind.h"
 #include "ipinput.h"
 #include "layoutbind.h"
@@ -82,30 +83,33 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = modal_windows(app->window);
         break;
     case 14:
-        panel = hotkeys(app->window);
+        panel = flyout_window(app->window);
         break;
     case 15:
-        panel = guibind();
+        panel = hotkeys(app->window);
         break;
     case 16:
-        panel = layoutbind();
+        panel = guibind();
         break;
     case 17:
-        panel = basic_layout();
+        panel = layoutbind();
         break;
     case 18:
-        panel = sublayouts();
+        panel = basic_layout();
         break;
     case 19:
-        panel = subpanels();
+        panel = sublayouts();
         break;
     case 20:
-        panel = multilayouts();
+        panel = subpanels();
         break;
     case 21:
-        panel = scrollpanel();
+        panel = multilayouts();
         break;
     case 22:
+        panel = scrollpanel();
+        break;
+    case 23:
         panel = ip_input(app->window);
         break;
     }
@@ -151,6 +155,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "TableView", NULL);
     listbox_add_elem(list, "SplitViews", NULL);
     listbox_add_elem(list, "Modal Windows", NULL);
+    listbox_add_elem(list, "Flyout Windows", NULL);
     listbox_add_elem(list, "Hotkeys", NULL);
     listbox_add_elem(list, "Data Binding", NULL);
     listbox_add_elem(list, "Struct Binding", NULL);

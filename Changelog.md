@@ -14,6 +14,14 @@
 
 * `listbox_OnDown()`. [Commit](https://github.com/frang75/nappgui_src/commit/711ea786b8d5dabede70180b57e2414fc8b3533c).
 
+* Overlay windows (flyout) [Issue](https://github.com/frang75/nappgui_src/issues/50). [Doc](https://nappgui.com/en/gui/window.html#h4).
+
+* `window_overlay()`.
+
+* `window_control_frame()` and `window_client_to_screen()` [Issue](https://github.com/frang75/nappgui_src/issues/103).
+
+* `gui_OnIdle()`.
+
 ### Fixed
 
 * macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).

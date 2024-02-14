@@ -38,8 +38,6 @@ void _oscontrol_set_enabled(OSControl *control, const bool_t enabled);
 
 void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y);
 
-void _oscontrol_get_origin_in_screen(const OSControl *control, real32_t *x, real32_t *y);
-
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height);
 
 void _oscontrol_set_position(OSControl *control, const int x, const int y);

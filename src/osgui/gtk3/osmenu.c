@@ -27,9 +27,13 @@ struct _osmenu_t
     GtkWidget *widget;
     OSWindow *window;
     bool_t is_popup;
+#if GTK_CHECK_VERSION(3, 22, 0)
+#else
+    gint popup_x;
+    gint popup_y;
+#endif
     OSMenuItem *parent;
     ArrPt(OSMenuItem) * items;
-
 #if defined(__ASSERTS__)
     bool_t is_alive;
 #endif
@@ -125,21 +129,59 @@ void osmenu_delete_item(OSMenu *menu, OSMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
+#if GTK_CHECK_VERSION(3, 22, 0)
+#else
+static void i_popup_pos(GtkMenu *widget, gint *x, gint *y, gboolean *push_in, gpointer user_data)
+{
+    OSMenu *menu = (OSMenu *)user_data;
+    cassert_no_null(menu);
+    cassert_unref((GtkWidget *)widget == menu->widget, widget);
+    cassert_no_null(x);
+    cassert_no_null(y);
+    cassert_no_null(push_in);
+    *x = menu->popup_x;
+    *y = menu->popup_y;
+    *push_in = TRUE;
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real32_t y)
 {
-    unref(menu);
+    cassert_no_null(menu);
+    cassert(menu->is_popup == TRUE);
     unref(window);
-    unref(x);
-    unref(y);
-    cassert_msg(FALSE, "Not implemented");
+    gtk_widget_show_all(menu->widget);
+
+#if GTK_CHECK_VERSION(3, 22, 0)
+    {
+        GdkDisplay *display = NULL;
+        GdkWindow *window = NULL;
+        GdkRectangle rect;
+        g_object_ref_sink(menu->widget);
+        display = gdk_display_get_default();
+        window = gdk_display_get_default_group(display);
+        rect.x = (int)x;
+        rect.y = (int)y;
+        rect.width = 100;
+        rect.height = 100;
+        gtk_menu_popup_at_rect(GTK_MENU(menu->widget), window, &rect, GDK_GRAVITY_NORTH_WEST, GDK_GRAVITY_NORTH_WEST, NULL);
+    }
+#else
+    menu->popup_x = (gint)x;
+    menu->popup_y = (gint)y;
+    g_object_ref_sink(menu->widget);
+    gtk_menu_popup(GTK_MENU(menu->widget), NULL, NULL, i_popup_pos, menu, 0, 0);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osmenu_hide(OSMenu *menu)
 {
-    unref(menu);
-    cassert_msg(FALSE, "Not implemented");
+    cassert_no_null(menu);
+    gtk_widget_hide(menu->widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -192,7 +234,6 @@ void _osmenu_menubar(OSMenu *menu, OSWindow *window)
         menu->is_alive = TRUE;
         g_signal_connect(menu->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)menu);
 #endif
-        g_object_ref_sink(menu->widget);
         g_object_unref(menu->widget);
         cassert(menu->is_alive == FALSE);
         menu->widget = gtk_menu_bar_new();

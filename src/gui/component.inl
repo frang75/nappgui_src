@@ -41,8 +41,6 @@ void _component_visible(GuiComponent *component, const bool_t visible);
 
 void _component_enabled(GuiComponent *component, const bool_t enabled);
 
-void _component_get_global_origin(const GuiComponent *component, V2Df *origin);
-
 void _component_get_origin(const GuiComponent *component, V2Df *origin);
 
 void _component_get_size(const GuiComponent *component, S2Df *size);

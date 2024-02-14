@@ -32,10 +32,4 @@ void _window_locale(Window *window);
 
 gui_role_t _window_role(const Window *window);
 
-V2Df _window_get_origin(const Window *window);
-
-S2Df _window_get_size(const Window *window);
-
-void window_launch_overlay(Window *window, Window *parent_window);
-
 __END_C

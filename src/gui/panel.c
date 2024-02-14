@@ -286,7 +286,7 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
     cassert_no_null(component);
 
     /* Check if component exists in any panel layout */
-    arrpt_foreach(layout, panel->layouts, Layout) if (_layout_search_component(layout, component) != NULL)
+    arrpt_foreach(layout, panel->layouts, Layout) if (_layout_search_component(layout, component, FALSE) != NULL)
     {
         exists = TRUE;
         break;
@@ -359,6 +359,26 @@ GuiComponent *_panel_find_component(Panel *panel, void *ositem)
     arrpt_end();
 
     return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _panel_in_active_layout(const Panel *panel, const GuiComponent *component)
+{
+    Layout *layout = NULL;
+    cassert_no_null(panel);
+    cassert(panel->active_layout == panel->visible_layout);
+    layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
+    return (bool_t)(_layout_search_component(layout, component, TRUE) != NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Layout *_panel_active_layout(const Panel *panel)
+{
+    cassert_no_null(panel);
+    cassert(panel->active_layout == panel->visible_layout);
+    return arrpt_get(panel->layouts, panel->active_layout, Layout);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -380,64 +380,6 @@ bool_t component_is_attached(const GuiComponent *component)
 
 /*---------------------------------------------------------------------------*/
 
-static Panel *i_panel(const GuiComponent *component)
-{
-    cassert_no_null(component);
-    if (component->parent != NULL)
-    {
-        Layout *layout = _cell_parent(component->parent);
-        return _layout_panel(layout);
-    }
-
-    return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _component_get_global_origin(const GuiComponent *component, V2Df *origin)
-{
-    V2Df pos = {0, 0};
-    V2Df wpos = {0, 0};
-    S2Df psize = {0, 0};
-    S2Df wsize = {0, 0};
-    Panel *panel = NULL;
-    Window *window = NULL;
-    cassert_no_null(component);
-    cassert_no_null(component->context);
-    cassert_no_nullf(component->context->func_get_origin[component->type]);
-    cassert_no_null(origin);
-    component->context->func_get_origin[component->type](component->ositem, &pos.x, &pos.y);
-    panel = i_panel(component);
-    while (panel != NULL)
-    {
-        const GuiComponent *panelcomp = (GuiComponent *)panel;
-        real32_t x, y;
-        window = _panel_get_window(panel);
-        panelcomp->context->func_get_origin[panelcomp->type](panelcomp->ositem, &x, &y);
-        panelcomp->context->func_get_size[panelcomp->type](panelcomp->ositem, &psize.width, &psize.height);
-        pos.x += x;
-        pos.y += y;
-        panel = i_panel(panelcomp);
-    }
-
-    if (window == NULL)
-    {
-        cassert(component->type == ekGUI_TYPE_PANEL);
-        window = _panel_get_window((Panel *)component);
-        component->context->func_get_size[component->type](component->ositem, &psize.width, &psize.height);
-    }
-
-    wpos = _window_get_origin(window);
-    wsize = _window_get_size(window);
-    pos.x += wpos.x;
-    pos.y += wpos.y;
-    pos.x += wsize.width - psize.width;
-    pos.y += wsize.height - psize.height;
-    *origin = pos;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _component_get_origin(const GuiComponent *component, V2Df *origin)
 {
     cassert_no_null(component);

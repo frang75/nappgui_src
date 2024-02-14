@@ -30,13 +30,7 @@ void _view_dimension(View *view, const uint32_t i, real32_t *dim0, real32_t *dim
 
 void _view_OnResize(View *view, const S2Df *size);
 
-void view_screen_rect(const View *view, R2Df *rect);
-
-GuiCtx *_view_context(View *view);
-
 Cell *_view_cell(View *view);
-
-Window *_view_window(View *view);
 
 void *_view_get_native_imp(View *view);
 
