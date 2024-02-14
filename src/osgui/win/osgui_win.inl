@@ -34,6 +34,8 @@ LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand
 
 LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border, HBRUSH padding_bgcolor);
 
+void _osgui_frame_without_shadows(const HWND hwnd, RECT *rect);
+
 vkey_t _osgui_vkey(const WORD key);
 
 uint32_t _osgui_modifiers(void);

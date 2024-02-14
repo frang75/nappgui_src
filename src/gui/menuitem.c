@@ -26,37 +26,36 @@ struct _menu_item_t
 {
     Object object;
     GuiCtx *context;
-    uint32_t tag;
     bool_t is_separator;
     uint16_t index;
     ResId textid;
+    String *text;
     Image *image;
     void *ositem;
     Menu *submenu;
-    Listener *OnClick_listener;
+    Listener *OnClick;
 };
 
 /*---------------------------------------------------------------------------*/
 
 static MenuItem *i_create(
     const GuiCtx *context,
-    const uint32_t tag,
     const bool_t is_separator,
     Image **image,
     void **ositem,
     Menu **submenu,
-    Listener **OnClick_listener)
+    Listener **OnClick)
 {
     MenuItem *item = obj_new(MenuItem);
     item->context = guictx_retain(context);
-    item->tag = tag;
     item->is_separator = is_separator;
     item->index = UINT16_MAX;
     item->textid = NULL;
+    item->text = str_c("");
     item->image = ptr_dget(image, Image);
     item->ositem = ptr_dget_no_null(ositem, void);
     item->submenu = ptr_dget(submenu, Menu);
-    item->OnClick_listener = ptr_dget(OnClick_listener, Listener);
+    item->OnClick = ptr_dget(OnClick, Listener);
     return item;
 }
 
@@ -69,8 +68,7 @@ void _menuitem_destroy(MenuItem **item)
     cassert((*item)->index == UINT16_MAX);
     cassert_no_null((*item)->context);
     cassert_no_nullf((*item)->context->func_menuitem_destroy);
-    cassert((*item)->OnClick_listener == NULL);
-
+    cassert((*item)->OnClick == NULL);
     if ((*item)->submenu != NULL)
     {
         void *ositem;
@@ -82,6 +80,7 @@ void _menuitem_destroy(MenuItem **item)
     }
 
     (*item)->context->func_menuitem_destroy(&(*item)->ositem);
+    str_destopt(&(*item)->text);
     ptr_destopt(image_destroy, &(*item)->image, Image);
     guictx_release(&(*item)->context);
     obj_delete(item, MenuItem);
@@ -147,12 +146,14 @@ static void i_OnMenuItemClick(MenuItem *item, Event *e)
         cassert_default();
     }*/
 
-    if (item->OnClick_listener != NULL)
+    if (item->OnClick != NULL)
     {
-        EvMenu *params = event_params(e, EvMenu);
-        cassert(params->index == UINT32_MAX);
-        params->index = item->index;
-        listener_pass_event(item->OnClick_listener, e, item, MenuItem);
+        EvMenu *p = event_params(e, EvMenu);
+        cassert(p->index == UINT32_MAX);
+        cassert(p->text == NULL);
+        p->index = item->index;
+        p->text = tc(item->text);
+        listener_pass_event(item->OnClick, e, item, MenuItem);
     }
 }
 
@@ -164,14 +165,14 @@ MenuItem *menuitem_create(void)
     void *ositem = NULL;
     Menu *submenu = NULL;
     Image *image = NULL;
-    Listener *OnClick_listener = NULL;
+    Listener *OnClick = NULL;
     MenuItem *item = NULL;
     context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_menuitem_create);
     cassert_no_nullf(context->func_menuitem_OnClick);
     ositem = context->func_menuitem_create((enum_t)ekMENU_ITEM);
-    item = i_create(context, PARAM(tag, UINT32_MAX), PARAM(is_separator, FALSE), &image, &ositem, &submenu, &OnClick_listener);
+    item = i_create(context, PARAM(is_separator, FALSE), &image, &ositem, &submenu, &OnClick);
     context->func_menuitem_OnClick(item->ositem, obj_listener(item, i_OnMenuItemClick, MenuItem));
     return item;
 }
@@ -184,12 +185,12 @@ MenuItem *menuitem_separator(void)
     void *ositem = NULL;
     Menu *submenu = NULL;
     Image *image = NULL;
-    Listener *OnClick_listener = NULL;
+    Listener *OnClick = NULL;
     context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_menuitem_create);
     ositem = context->func_menuitem_create((enum_t)ekMENU_SEPARATOR);
-    return i_create(context, PARAM(tag, UINT32_MAX), PARAM(has_parent, FALSE), &image, &ositem, &submenu, &OnClick_listener);
+    return i_create(context, PARAM(has_parent, FALSE), &image, &ositem, &submenu, &OnClick);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -197,7 +198,7 @@ MenuItem *menuitem_separator(void)
 void menuitem_OnClick(MenuItem *item, Listener *listener)
 {
     cassert_no_null(item);
-    listener_update(&item->OnClick_listener, listener);
+    listener_update(&item->OnClick, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -222,15 +223,24 @@ void menuitem_visible(MenuItem *item, const bool_t visible)
 
 /*---------------------------------------------------------------------------*/
 
-void menuitem_text(MenuItem *item, const char_t *text)
+static void i_update_text(MenuItem *item, const char_t *text, ResId *resid)
 {
-    const char_t *ltext;
+    const char_t *ltext = NULL;
     cassert_no_null(item);
     cassert(item->is_separator == FALSE);
     cassert_no_null(item->context);
     cassert_no_nullf(item->context->func_menuitem_set_text);
-    ltext = _gui_respack_text(text, &item->textid);
+    ltext = _gui_respack_text(text, resid);
     item->context->func_menuitem_set_text(item->ositem, ltext);
+    str_upd(&item->text, ltext);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void menuitem_text(MenuItem *item, const char_t *text)
+{
+    cassert_no_null(item);
+    i_update_text(item, text, &item->textid);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -309,7 +319,7 @@ void _menuitem_unset_parent(MenuItem *item)
 {
     cassert_no_null(item);
     cassert(item->index != UINT16_MAX);
-    listener_destroy(&item->OnClick_listener);
+    listener_destroy(&item->OnClick);
     item->index = UINT16_MAX;
 }
 
@@ -318,10 +328,7 @@ void _menuitem_unset_parent(MenuItem *item)
 void _menuitem_locale(MenuItem *item)
 {
     if (item->textid != NULL)
-    {
-        const char_t *text = _gui_respack_text(item->textid, NULL);
-        item->context->func_menuitem_set_text(item->ositem, text);
-    }
+        i_update_text(item, item->textid, NULL);
 
     if (item->submenu != NULL)
         _menu_locale(item->submenu);

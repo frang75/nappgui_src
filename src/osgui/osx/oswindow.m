@@ -51,6 +51,7 @@
     BOOL last_moved_by_interface;
     BOOL launch_resize_event;
     uint32_t flags;
+    gui_role_t role;
     CGFloat alpha;
     OSTabStop tabstop;
     ArrSt(OSHotKey) *hotkeys;
@@ -221,7 +222,8 @@ static void i_OnFocus(NSResponder *resp, const bool_t focus)
 
 - (void)windowDidBecomeKey:(NSNotification*)notification
 {
-    OSXWindow *window;
+    OSXWindow *window = nil;
+    cassert_no_null(notification);
     window = [notification object];
     cassert_no_null(window);
     i_OnFocus([window firstResponder], TRUE);
@@ -231,10 +233,16 @@ static void i_OnFocus(NSResponder *resp, const bool_t focus)
 
 - (void)windowDidResignKey:(NSNotification*)notification
 {
-    OSXWindow *window;
+    OSXWindow *window = nil;
+    cassert_no_null(notification);
     window = [notification object];
     cassert_no_null(window);
     i_OnFocus([window firstResponder], FALSE);
+    if (window->role == ekGUI_ROLE_OVERLAY)
+    {
+        if (i_close(self, window, ekGUI_CLOSE_DEACT) == TRUE)
+            window->role = ENUM_MAX(gui_role_t);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -436,6 +444,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->last_moved_by_interface = NO;
     window->launch_resize_event = YES;
     window->flags = flags;
+    window->role = ENUM_MAX(gui_role_t);
     window->alpha = .5f;
     window->hotkeys = NULL;
     window->text_editor = nil;
@@ -734,17 +743,18 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     OSXWindow *windowp = (OSXWindow*)window;
-    OSXWindow *parent = NULL;
+    OSXWindow *pwindowp = (OSXWindow*)parent_window;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
-    if (parent_window != nil)
+    if (pwindowp != nil)
     {
         cassert([(NSObject*)parent_window isKindOfClass:[OSXWindow class]] == YES);
-        parent = (OSXWindow*)parent_window;
+        windowp->role = ekGUI_ROLE_OVERLAY;
     }
     else
     {
-        parent = nil;/*(OSXWindow*)window;*/
+        pwindowp = nil;/*(OSXWindow*)window;*/
+        windowp->role = ekGUI_ROLE_MAIN;
     }
 
     ostabstop_restore(&windowp->tabstop);
@@ -755,8 +765,8 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
      * I changed my implementation to open the first window on my app.
      * The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
      */
-    if (parent != nil)
-        [windowp makeKeyAndOrderFront:(OSXWindow*)parent];
+    if (pwindowp != nil)
+        [windowp makeKeyAndOrderFront:pwindowp];
     else
         [windowp orderFrontRegardless];
 }
@@ -766,6 +776,7 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 void oswindow_hide(OSWindow *window, OSWindow *parent_window)
 {
     OSXWindow *parent = NULL;
+    OSXWindow *windowp = (OSXWindow*)window;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
     if (parent_window != nil)
@@ -775,10 +786,11 @@ void oswindow_hide(OSWindow *window, OSWindow *parent_window)
     }
     else
     {
-        parent = (OSXWindow*)window;
+        parent = windowp;
     }
 
-    [(OSXWindow*)window orderOut:parent];
+    windowp->role = ENUM_MAX(gui_role_t);
+    [windowp orderOut:parent];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -809,6 +821,8 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
         wfront = pwindowp;
     }
 
+    windowp->role = ekGUI_ROLE_MODAL;
+
     /* https://developer.apple.com/forums/thread/729496
      * I started seeing same warnings but they weren't there before.
      * Not sure if some behaviour on macOS changed or is just noise, but to on the safe side
@@ -836,10 +850,12 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
 
 void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 {
+    OSXWindow *windowp = (OSXWindow*)window;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
     cassert([NSApp modalWindow] == (OSXWindow*)window);
-    [(OSXWindow*)window close];
+    windowp->role = ENUM_MAX(gui_role_t);
+    [windowp close];
     [NSApp stopModalWithCode:(NSInteger)return_value];
 }
 
@@ -874,16 +890,33 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 {
-    NSRect frame;
-    CGFloat origin_x, origin_y;
-    cassert_no_null(window);
+    OSXWindow *windowp = (OSXWindow*)window;
+    cassert_no_null(windowp);
     cassert_no_null(x);
     cassert_no_null(y);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
-    frame = [(OSXWindow*)window frame];
-    _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
-    *x = (real32_t)origin_x;
-    *y = (real32_t)origin_y;
+    if (*x == REAL32_MAX && *y == REAL32_MAX)
+    {
+        NSRect frame = [windowp frame];
+        CGFloat origin_x, origin_y;
+        _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
+        *x = (real32_t)origin_x;
+        *y = (real32_t)origin_y;
+    }
+    else
+    {
+        NSSize size = [[windowp contentView] frame].size;
+#if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_6
+        NSPoint pt = [windowp convertRectToScreen:NSMakeRect((CGFloat)*x, size.height - (CGFloat)*y, 100, 100)].origin;
+#else
+        NSPoint pt = [windowp convertBaseToScreen:NSMakePoint((CGFloat)*x, size.height - (CGFloat)*y)];
+#endif
+
+        NSSize ssize = [[NSScreen mainScreen] frame].size;
+        *x = (real32_t)pt.x;
+        *y = (real32_t)pt.y;
+        *y = (real32_t)(ssize.height - pt.y);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -922,16 +955,13 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
     NSSize size;
-    real32_t x, y;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
     size.width = (CGFloat)content_width;
     size.height = (CGFloat)content_height;
-    oswindow_get_origin(window, &x, &y);
     ((OSXWindow*)window)->launch_resize_event = NO;
     [(OSXWindow*)window setContentSize:size];
     ((OSXWindow*)window)->launch_resize_event = YES;
-    oswindow_origin(window, x, y);
 }
 
 /*---------------------------------------------------------------------------*/

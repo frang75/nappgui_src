@@ -169,7 +169,6 @@ typedef enum _gui_event_t
     ekGUI_EVENT_TBL_SEL,
     ekGUI_EVENT_TBL_HEADCLICK,
     ekGUI_EVENT_TBL_ROWCLICK,
-
     ekGUI_EVENT_IDLE
 } gui_event_t;
 
@@ -968,7 +967,7 @@ struct _evmenu_t
 {
     uint32_t index;
     gui_state_t state;
-    const char_t *str;
+    const char_t *text;
 };
 
 struct _evscroll_t

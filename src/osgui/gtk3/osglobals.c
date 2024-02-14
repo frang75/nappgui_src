@@ -568,7 +568,6 @@ void osglobals_resolution(const void *non_used, real32_t *width, real32_t *heigh
     cassert_no_null(width);
     cassert_no_null(height);
 #if GTK_CHECK_VERSION(3, 22, 0)
-
     {
         GdkDisplay *display = gdk_display_get_default();
         GdkMonitor *primary_monitor = gdk_display_get_primary_monitor(display);
@@ -577,7 +576,6 @@ void osglobals_resolution(const void *non_used, real32_t *width, real32_t *heigh
         *width = (real32_t)monitor_geometry.width;
         *height = (real32_t)monitor_geometry.height;
     }
-
 #else
     *width = (real32_t)gdk_screen_width();
     *height = (real32_t)gdk_screen_height();
@@ -588,10 +586,30 @@ void osglobals_resolution(const void *non_used, real32_t *width, real32_t *heigh
 
 void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 {
-    cassert(FALSE);
+    /* https://stackoverflow.com/questions/55213291/query-cursor-position-with-gtk */
+    gint ix, iy;
+    GdkDisplay *display = gdk_display_get_default();
+    GdkWindow *window = NULL;
+    GdkDevice *mouse_device = NULL;
+    cassert_no_null(x);
+    cassert_no_null(y);
     unref(non_used);
-    unref(x);
-    unref(y);
+#if GTK_CHECK_VERSION(3, 20, 0)
+    {
+        GdkSeat *seat = gdk_display_get_default_seat(display);
+        mouse_device = gdk_seat_get_pointer(seat);
+    }
+#else
+    {
+        GdkDeviceManager *devman = gdk_display_get_device_manager(display);
+        mouse_device = gdk_device_manager_get_client_pointer(devman);
+    }
+#endif
+
+    window = gdk_display_get_default_group(display);
+    gdk_window_get_device_position(window, mouse_device, &ix, &iy, NULL);
+    *x = (real32_t)ix;
+    *y = (real32_t)iy;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -686,7 +704,7 @@ void osglobals_transitions(void *nonused, const real64_t prtime, const real64_t 
 
 /*---------------------------------------------------------------------------*/
 
-static gboolean i_onidle_listener(Listener *listener)
+static gboolean i_OnIdle(Listener *listener)
 {
     listener_event(listener, ekGUI_EVENT_IDLE, NULL, NULL, NULL, void, void, void);
     listener_destroy(&listener);
@@ -698,7 +716,7 @@ static gboolean i_onidle_listener(Listener *listener)
 void osglobals_OnIdle(void *nonused, Listener *listener)
 {
     unref(nonused);
-    g_idle_add((GSourceFunc)i_onidle_listener, listener);
+    g_idle_add((GSourceFunc)i_OnIdle, listener);
 }
 
 /*---------------------------------------------------------------------------*/

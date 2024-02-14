@@ -17,6 +17,8 @@
 #include "oscontrol_osx.inl"
 #include <draw2d/color.h>
 #include <draw2d/image.h>
+#include <core/arrpt.h>
+#include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
 
@@ -57,6 +59,8 @@ static CGFloat i_HOTBGBACKDROP_COLOR[4];
 static color_t i_GRID_COLOR;
 static color_t i_FOCUS_COLOR;
 static bool_t i_DARK_MODE = FALSE;
+static ArrPt(Listener) *i_ONIDLES = NULL;
+DeclPt(Listener);
 
 /*---------------------------------------------------------------------------*/
 
@@ -398,6 +402,15 @@ void osglobals_transitions(void *nonused, const real64_t prtime, const real64_t 
     unref(nonused);
     unref(prtime);
     unref(crtime);
+    if (i_ONIDLES != NULL)
+    {
+        if (arrpt_size(i_ONIDLES, Listener) > 0)
+        {
+            Listener *listener = arrpt_first(i_ONIDLES, Listener);
+            listener_event(listener, ekGUI_EVENT_IDLE, NULL, NULL, NULL, void, void, void);
+            arrpt_delete(i_ONIDLES, 0, listener_destroy, Listener);
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -405,7 +418,9 @@ void osglobals_transitions(void *nonused, const real64_t prtime, const real64_t 
 void osglobals_OnIdle(void *nonused, Listener *listener)
 {
     unref(nonused);
-    unref(listener);
+    if (i_ONIDLES == NULL)
+        i_ONIDLES = arrpt_create(Listener);
+    arrpt_append(i_ONIDLES, listener, Listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -457,6 +472,7 @@ void osglobals_finish(void)
     oscolor_finish();
     i_destroy_checkbox();
     i_destroy_header();
+    arrpt_destopt(&i_ONIDLES, listener_destroy, Listener);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -30,6 +30,10 @@ GuiComponent *_panel_get_component(Panel *panel);
 
 GuiComponent *_panel_find_component(Panel *panel, void *ositem);
 
+bool_t _panel_in_active_layout(const Panel *panel, const GuiComponent *component);
+
+Layout *_panel_active_layout(const Panel *panel);
+
 void _panel_invalidate_layout(Panel *panel, Layout *layout);
 
 void _panel_panels(const Panel *panel, uint32_t *num_panels, Panel **panels);

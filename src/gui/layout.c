@@ -1084,7 +1084,7 @@ Panel *_layout_panel(const Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-Layout *_layout_search_component(const Layout *layout, const GuiComponent *component)
+Layout *_layout_search_component(const Layout *layout, const GuiComponent *component, const bool_t in_subpanels)
 {
     Layout *find_layout = NULL;
     cassert_no_null(layout);
@@ -1098,10 +1098,21 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
             find_layout = (Layout *)layout;
             break;
         }
+
+        if (in_subpanels == TRUE)
+        {
+            if (cell->content.component->type == ekGUI_TYPE_PANEL)
+            {
+                Panel *panel = (Panel *)cell->content.component;
+                find_layout = _panel_active_layout(panel);
+                if (find_layout != NULL)
+                    break;
+            }
+        }
     }
     else if (cell->type == i_ekLAYOUT)
     {
-        find_layout = _layout_search_component(cell->content.layout, component);
+        find_layout = _layout_search_component(cell->content.layout, component, in_subpanels);
         if (find_layout != NULL)
             break;
     }

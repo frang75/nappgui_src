@@ -177,6 +177,12 @@ static ArrSt(ACCEL) *i_ACCELERATORS = NULL;
 static ArrSt(HWND) *i_HWND_ACCELERATORS = NULL;
 static HACCEL i_ACCEL_TABLE = NULL;
 static uint16_t i_GLOBAL_MENU_ID = 20;
+
+typedef HRESULT(__stdcall *DWMGETWINDOWATTRIBUTE)(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);
+static HMODULE i_DWMAPIDLL = NULL;
+static DWMGETWINDOWATTRIBUTE i_DwmGetWindowAttribute = NULL;
+#define DWMWA_EXTENDED_FRAME_BOUNDS 9
+
 HWND kDEFAULT_PARENT_WINDOW = NULL;
 HCURSOR kNORMAL_ARROW_CURSOR = NULL;
 HCURSOR kSIZING_HORIZONTAL_CURSOR = NULL;
@@ -383,6 +389,23 @@ LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border, HBRUSH padding_bgcolor)
 
 /*---------------------------------------------------------------------------*/
 
+void _osgui_frame_without_shadows(const HWND hwnd, RECT *rect)
+{
+    if (i_DwmGetWindowAttribute != NULL)
+    {
+        HRESULT ok = i_DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, (PVOID)rect, sizeof(RECT));
+        if (ok == S_OK)
+            return;
+    }
+
+    {
+        BOOL ret = GetWindowRect(hwnd, rect);
+        cassert_unref(ret != 0, ret);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 vkey_t _osgui_vkey(const WORD key)
 {
     register uint32_t i, n = kNUM_VKEYS;
@@ -443,6 +466,11 @@ void osgui_start_imp(void)
 
     /* XP Styles */
     osstyleXP_init();
+
+    /* Support for frame without shadows (dwmapi.dll not available in XP) */
+    i_DWMAPIDLL = LoadLibrary(L"dwmapi.dll");
+    if (i_DWMAPIDLL != NULL)
+        i_DwmGetWindowAttribute = cast_func_ptr(GetProcAddress(i_DWMAPIDLL, "DwmGetWindowAttribute"), DWMGETWINDOWATTRIBUTE);
 
     /* GDI Plus */
     /* OJO!!! guiplus de inicia en OSDRAW */
@@ -552,6 +580,10 @@ void osgui_finish_imp(void)
         ret = UnregisterClass(kWINDOW_CLASS, NULL);
         cassert(ret != 0);
     }
+
+    /* Conditional support for frame without shadows (dwmapi.dll not available in XP) */
+    if (i_DWMAPIDLL != NULL)
+        FreeLibrary(i_DWMAPIDLL);
 
     /* XP Styles */
     osstyleXP_remove();

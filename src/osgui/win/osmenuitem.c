@@ -587,7 +587,7 @@ void _osmenuitem_click(OSMenuItem *item, UINT id, UINT type, UINT state)
         EvMenu params;
         params.index = UINT32_MAX;
         params.state = i_state(type, state);
-        params.str = NULL;
+        params.text = NULL;
         listener_event(item->OnClick, ekGUI_EVENT_MENU, item, &params, NULL, OSMenuItem, EvMenu, void);
     }
 }

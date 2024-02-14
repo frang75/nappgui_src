@@ -40,6 +40,7 @@ struct _oswindow_t
     GMainLoop *runloop;
     uint32_t modal_return;
     uint32_t flags;
+    gui_role_t role;
     GtkAccelGroup *accel;
     OSPanel *main_panel;
     gint signal_delete;
@@ -242,10 +243,18 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSWindow *wi
 
 static __INLINE GtkWidget *i_gtk_window(const uint32_t flags)
 {
+    GtkWidget *window = NULL;
     if (flags & ekWINDOW_OFFSCREEN)
-        return gtk_offscreen_window_new();
+    {
+        window = gtk_offscreen_window_new();
+    }
     else
-        return gtk_application_window_new(i_GTK_APP);
+    {
+        window = gtk_application_window_new(i_GTK_APP);
+        gtk_window_set_decorated(GTK_WINDOW(window), (flags & ekWINDOW_TITLE) ? TRUE : FALSE);
+    }
+
+    return window;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -271,6 +280,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     gtk_container_add(GTK_CONTAINER(widget), box);
     _oscontrol_init((OSControl *)window, ekGUI_TYPE_WINDOW, widget, widget, FALSE);
     window->flags = flags;
+    window->role = ENUM_MAX(gui_role_t);
     window->destroy_main_view = TRUE;
     window->is_resizable = (flags & ekWINDOW_RESIZE) == ekWINDOW_RESIZE ? TRUE : FALSE;
     window->resize_event = TRUE;
@@ -561,8 +571,17 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
-    unref(parent_window);
     window->resize_event = FALSE;
+    if (parent_window != NULL)
+    {
+        gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), GTK_WINDOW(parent_window->control.widget));
+        window->role = ekGUI_ROLE_OVERLAY;
+    }
+    else
+    {
+        window->role = ekGUI_ROLE_MAIN;
+    }
+
     gtk_widget_show(window->control.widget);
     ostabstop_restore(&window->tabstop);
 }
@@ -573,6 +592,8 @@ void oswindow_hide(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
     unref(parent_window);
+    window->role = ENUM_MAX(gui_role_t);
+    gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), NULL);
     gtk_widget_hide(window->control.widget);
 }
 
@@ -585,6 +606,7 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
     ostabstop_restore(&window->tabstop);
     gtk_window_set_modal(GTK_WINDOW(window->control.widget), TRUE);
     window->resize_event = FALSE;
+    window->role = ekGUI_ROLE_MODAL;
     window->runloop = g_main_loop_new(NULL, FALSE);
 
     if (parent_window != NULL)
@@ -610,6 +632,7 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
     cassert_no_null(window->runloop);
     cassert(g_main_loop_is_running(window->runloop) == TRUE);
     window->modal_return = return_value;
+    window->role = ENUM_MAX(gui_role_t);
     if (!(window->flags & ekWINDOW_MODAL_NOHIDE))
         gtk_widget_hide(window->control.widget);
     g_main_loop_quit(window->runloop);
@@ -625,8 +648,20 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
     cassert_no_null(x);
     cassert_no_null(y);
     gtk_window_get_position(GTK_WINDOW(window->control.widget), &wx, &wy);
-    *x = (real32_t)wx;
-    *y = (real32_t)wy;
+
+    if (*x == REAL32_MAX && *y == REAL32_MAX)
+    {
+        *x = (real32_t)wx;
+        *y = (real32_t)wy;
+    }
+    else
+    {
+        gint gx, gy;
+        GdkWindow *gdkwindow = gtk_widget_get_window(window->control.widget);
+        gdk_window_get_geometry(gdkwindow, &gx, &gy, NULL, NULL);
+        *x = (real32_t)wx + (real32_t)gx + *x;
+        *y = (real32_t)wy + (real32_t)gy + *y;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -865,7 +900,6 @@ void _oswindow_unset_menubar(OSWindow *window, OSMenu *menu)
 void _oswindow_unset_focus(OSWindow *window)
 {
     cassert_no_null(window);
-
     /* This event can be received during window destroy */
     if (window->tabstop.tablist != NULL)
     {
@@ -885,6 +919,12 @@ void _oswindow_unset_focus(OSWindow *window)
 
         if (control != NULL)
             _oscontrol_unset_focus(control);
+
+        if (window->role == ekGUI_ROLE_OVERLAY)
+        {
+            if (i_close(window, ekGUI_CLOSE_DEACT) == TRUE)
+                window->role = ENUM_MAX(gui_role_t);
+        }
     }
 }
 
