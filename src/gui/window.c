@@ -806,11 +806,18 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
         V2Df panel_pos;
         Layout *layout = _cell_parent(cell);
         Panel *panel = _layout_panel(layout);
-        GuiComponent *panel_component = (GuiComponent *)panel;
-        _component_get_origin(panel_component, &panel_pos);
-        r2d.pos.x += panel_pos.x;
-        r2d.pos.y += panel_pos.y;
-        cell = panel_component->parent;
+        if (panel != NULL)
+        {
+            GuiComponent *panel_component = (GuiComponent *)panel;
+            _component_get_origin(panel_component, &panel_pos);
+            r2d.pos.x += panel_pos.x;
+            r2d.pos.y += panel_pos.y;
+            cell = panel_component->parent;
+        }
+        else
+        {
+            cell = NULL;
+        }
     }
 
     return r2d;
