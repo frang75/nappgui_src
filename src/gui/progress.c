@@ -26,6 +26,8 @@ struct _progress_t
     real32_t max_value;
 };
 
+static const real32_t i_PROGRESS_DEFAULT_WIDTH = 100;
+
 /*---------------------------------------------------------------------------*/
 
 static Progress *i_create_progress(const GuiComponent *component, const real32_t thickness, const real32_t min_value, const real32_t max_value)
@@ -139,7 +141,7 @@ void _progress_dimension(Progress *progress, const uint32_t i, real32_t *dim0, r
     cassert_no_null(dim1);
     if (i == 0)
     {
-        *dim0 = 100.f;
+        *dim0 = i_PROGRESS_DEFAULT_WIDTH;
     }
     else
     {

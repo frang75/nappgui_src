@@ -45,5 +45,3 @@ void _cell_upd_increment(Cell *cell, const bool_t pos);
 bool_t _cell_enabled(const Cell *cell);
 
 __END_C
-
-ArrStFuncs(Cell);

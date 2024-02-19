@@ -65,9 +65,10 @@ void _panel_destroy_all(Panel **panel)
             (*panel)->func_destroy_data(&(*panel)->data);
     }
 
-    _component_destroy_imp(&(*panel)->component);
     arrpt_destroy(&(*panel)->layouts, _layout_destroy, Layout);
-    arrpt_destroy(&(*panel)->children, _component_destroy, GuiComponent);
+    cassert(arrpt_size((*panel)->children, GuiComponent) == 0);
+    arrpt_destroy(&(*panel)->children, NULL, GuiComponent);
+    _component_destroy_imp(&(*panel)->component);
     obj_delete(panel, Panel);
 }
 
@@ -226,19 +227,6 @@ real32_t panel_scroll_height(const Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_detach_component(GuiComponent *panel_component, GuiComponent *component)
-{
-    Panel *panels[GUI_COMPONENT_MAX_PANELS];
-    uint32_t i, num_panels;
-    _component_panels(component, &num_panels, panels);
-    for (i = 0; i < num_panels; ++i)
-        _panel_detach_components(panels[i]);
-
-    _component_detach_from_panel(panel_component, component);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _panel_attach_component(Panel *panel, GuiComponent *component)
 {
     cassert_no_null(panel);
@@ -248,16 +236,6 @@ void _panel_attach_component(Panel *panel, GuiComponent *component)
         arrpt_append(panel->children, component, GuiComponent);
         _component_attach_to_panel((GuiComponent *)panel, component);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _panel_detach_components(Panel *panel)
-{
-    cassert_no_null(panel);
-    arrpt_foreach(child, panel->children, GuiComponent)
-        i_detach_component(&panel->component, child);
-    arrpt_end();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -286,10 +264,15 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
     cassert_no_null(component);
 
     /* Check if component exists in any panel layout */
-    arrpt_foreach(layout, panel->layouts, Layout) if (_layout_search_component(layout, component, FALSE) != NULL)
+    arrpt_foreach(layout, panel->layouts, Layout)
+        /* Avoid previously destroyed layouts */
+        if (layout != NULL)
     {
-        exists = TRUE;
-        break;
+        if (_layout_search_component(layout, component, FALSE) != NULL)
+        {
+            exists = TRUE;
+            break;
+        }
     }
     arrpt_end()
 
@@ -304,7 +287,7 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
 #endif
 
         _component_set_parent_window(component, NULL);
-        i_detach_component(&panel->component, component);
+        _component_detach_from_panel(&panel->component, component);
         index = arrpt_find(panel->children, component, GuiComponent);
         arrpt_delete(panel->children, index, _component_destroy, GuiComponent);
     }
@@ -405,7 +388,8 @@ void _panel_window(Panel *panel, Window *window)
     }
     else
     {
-        obj_release(&panel->window, Window);
+        if (panel->window != NULL)
+            obj_release(&panel->window, Window);
     }
 
     {
@@ -611,20 +595,4 @@ ArrPt(Layout) * _panel_layouts(const Panel *panel)
 {
     cassert_no_null(panel);
     return panel->layouts;
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t _panel_with_scroll(const Panel *panel)
-{
-    cassert_no_null(panel);
-    return (bool_t)((panel->flags & ekVIEW_HSCROLL) != 0 || (panel->flags & ekVIEW_VSCROLL) != 0);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _panel_content_size(Panel *panel, const real32_t width, const real32_t height)
-{
-    cassert_no_null(panel);
-    panel->component.context->func_panel_content_size(panel->component.ositem, width, height, 10, 10);
 }

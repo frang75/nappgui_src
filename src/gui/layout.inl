@@ -38,7 +38,7 @@ void _layout_taborder(const Layout *layout, Window *window);
 
 void _layout_dbind_update(Layout *layout, const DBind *dbind);
 
-ArrSt(Cell) * _layout_cells(Layout *layout);
+ArrPt(Cell) * _layout_cells(Layout *layout);
 
 void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener);
 

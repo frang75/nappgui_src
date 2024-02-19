@@ -98,6 +98,7 @@ struct _evbind_t
     uint16_t size_edit;
 };
 
+#define GuiComponentPtr(ptr) ((GuiComponent *)(ptr))
 #define ViewPtr(ptr) ((View *)(ptr))
 
 #endif

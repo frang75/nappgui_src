@@ -71,6 +71,9 @@
 #define arrpt_insert(array, pos, value, type) \
     (*(const type **)arrpt_##type##_insert(array, pos, 1)) = (value)
 
+#define arrpt_insert_n(array, pos, n, type) \
+    arrpt_##type##_insert(array, pos, n)
+
 #define arrpt_join(dest, src, func_copy, type) \
     arrpt_##type##_join(dest, src, func_copy)
 

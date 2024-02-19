@@ -22,6 +22,7 @@
 #include "vpadding.h"
 #include "modalwin.h"
 #include "multilayout.h"
+#include "dynlay.h"
 #include "scrollpanel.h"
 #include "res_guihello.h"
 
@@ -110,11 +111,14 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = scrollpanel();
         break;
     case 23:
+        panel = dynlay_panel();
+        break;
+    case 24:
         panel = ip_input(app->window);
         break;
     }
 
-    layout_panel(app->layout, panel, 1, 0);
+    layout_panel_replace(app->layout, panel, 1, 0);
 
     if (app->window != NULL)
         window_defbutton(app->window, defbutton);
@@ -164,6 +168,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Subpanels", NULL);
     listbox_add_elem(list, "Multi-Layouts", NULL);
     listbox_add_elem(list, "Scroll panel", NULL);
+    listbox_add_elem(list, "Dynamic layouts", NULL);
     listbox_add_elem(list, "IP Input", NULL);
     listbox_select(list, 0, TRUE);
     listbox_OnSelect(list, listener(app, i_OnSelect, App));
