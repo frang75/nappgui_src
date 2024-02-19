@@ -33,6 +33,8 @@ struct _slider_t
     Listener *OnMoved;
 };
 
+static const real32_t i_SLIDER_DEFAULT_WIDTH = 100;
+
 /*---------------------------------------------------------------------------*/
 
 void _slider_destroy(Slider **slider)
@@ -154,9 +156,6 @@ real32_t slider_get_value(const Slider *slider)
 {
     cassert_no_null(slider);
     return slider->current_pos;
-    /* cassert_no_null(slider->component.context);
-    cassert_no_nullf(slider->component.context->func_slider_get_position);
-    return slider->component.context->func_slider_get_position(slider->component.ositem); */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -170,7 +169,7 @@ void _slider_dimension(Slider *slider, const uint32_t i, real32_t *dim0, real32_
     if (slider->size.width < 0)
     {
         cassert_no_nullf(slider->component.context->func_slider_bounds);
-        slider->component.context->func_slider_bounds(slider->component.ositem, 100, slider->knob_size, &slider->size.width, &slider->size.height);
+        slider->component.context->func_slider_bounds(slider->component.ositem, i_SLIDER_DEFAULT_WIDTH, slider->knob_size, &slider->size.width, &slider->size.height);
     }
 
     if (i == 0)

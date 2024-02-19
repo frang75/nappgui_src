@@ -51,6 +51,8 @@ _gui_api void layout_splitview(Layout *layout, SplitView *view, const uint32_t c
 
 _gui_api void layout_panel(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row);
 
+_gui_api void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row);
+
 _gui_api void layout_layout(Layout *layout, Layout *sublayout, const uint32_t col, const uint32_t row);
 
 _gui_api Label *layout_get_label(Layout *layout, const uint32_t col, const uint32_t row);
@@ -84,6 +86,18 @@ _gui_api SplitView *layout_get_splitview(Layout *layout, const uint32_t col, con
 _gui_api Panel *layout_get_panel(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api Layout *layout_get_layout(Layout *layout, const uint32_t col, const uint32_t row);
+
+_gui_api uint32_t layout_ncols(const Layout *layout);
+
+_gui_api uint32_t layout_nrows(const Layout *layout);
+
+_gui_api void layout_insert_col(Layout *layout, const uint32_t col);
+
+_gui_api void layout_insert_row(Layout *layout, const uint32_t row);
+
+_gui_api void layout_remove_col(Layout *layout, const uint32_t col);
+
+_gui_api void layout_remove_row(Layout *layout, const uint32_t row);
 
 _gui_api void layout_taborder(Layout *layout, const gui_orient_t order);
 

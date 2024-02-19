@@ -49,6 +49,10 @@ _gui_api void guicontrol_enabled(GuiControl *control, const bool_t enabled);
 
 _gui_api void guicontrol_visible(GuiControl *control, const bool_t visible);
 
+_gui_api void guicontrol_tag(GuiControl *control, const uint32_t tag);
+
+_gui_api uint32_t guicontrol_get_tag(const GuiControl *control);
+
 __END_C
 
 #define guicontrol(control) ((GuiControl *)control)

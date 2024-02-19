@@ -23,7 +23,7 @@
 #include "panel.inl"
 #include "popup.inl"
 #include "slider.inl"
-#include <core/arrst.h>
+#include <core/arrpt.h>
 #include <core/dbindh.h>
 #include <core/event.h>
 #include <core/strings.h>
@@ -31,6 +31,8 @@
 #include <sewer/bmem.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
+
+ArrStFuncs(Cell);
 
 /*---------------------------------------------------------------------------*/
 
@@ -414,12 +416,12 @@ static void i_set_empty(Cell *cell, const DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_empty_cells(ArrSt(Cell) * cells, const DBind *dbind)
+static void i_set_empty_cells(ArrPt(Cell) * cells, const DBind *dbind)
 {
-    register uint32_t i, n = arrst_size(cells, Cell);
+    register uint32_t i, n = arrpt_size(cells, Cell);
     for (i = 0; i < n; ++i)
     {
-        Cell *cell = arrst_get(cells, i, Cell);
+        Cell *cell = arrpt_get(cells, i, Cell);
         i_set_empty(cell, dbind);
     }
 }
@@ -596,11 +598,11 @@ void gbind_upd_layout(Layout *layout, const StBind *stbind, const DBind *dbind, 
         case ekDTYPE_UINT64:
         case ekDTYPE_REAL32:
         case ekDTYPE_REAL64: {
-            ArrSt(Cell) *cells = _layout_cells(layout);
-            uint32_t i, n = arrst_size(cells, Cell);
+            ArrPt(Cell) *cells = _layout_cells(layout);
+            uint32_t i, n = arrpt_size(cells, Cell);
             for (i = 0; i < n; ++i)
             {
-                Cell *cell = arrst_get(cells, i, Cell);
+                Cell *cell = arrpt_get(cells, i, Cell);
                 gbind_upd_component(cell, stbind, dbind, obj);
             }
             break;
@@ -617,7 +619,7 @@ void gbind_upd_layout(Layout *layout, const StBind *stbind, const DBind *dbind, 
     }
     else
     {
-        ArrSt(Cell) *cells = _layout_cells(layout);
+        ArrPt(Cell) *cells = _layout_cells(layout);
         i_set_empty_cells(cells, dbind);
     }
 }

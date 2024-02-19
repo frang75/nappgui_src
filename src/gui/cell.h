@@ -15,6 +15,8 @@
 
 __EXTERN_C
 
+_gui_api bool_t cell_empty(Cell *cell);
+
 _gui_api GuiControl *cell_control(Cell *cell);
 
 _gui_api Label *cell_label(Cell *cell);

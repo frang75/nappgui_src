@@ -16,11 +16,35 @@
 
 * Overlay windows (flyout) [Issue](https://github.com/frang75/nappgui_src/issues/50). [Doc](https://nappgui.com/en/gui/window.html#h4). [Commit](https://github.com/frang75/nappgui_src/commit/ee5c8c8d76b3604151f5d4bbea2e2f405dbfc2ed).
 
-* `window_overlay()`. [Commit](https://github.com/frang75/nappgui_src/commit/ee5c8c8d76b3604151f5d4bbea2e2f405dbfc2ed).
+    * `window_overlay()`.
 
-* `window_control_frame()` and `window_client_to_screen()` [Issue](https://github.com/frang75/nappgui_src/issues/103). [Commit](https://github.com/frang75/nappgui_src/commit/ee5c8c8d76b3604151f5d4bbea2e2f405dbfc2ed).
+    * `window_control_frame()` and `window_client_to_screen()` [Issue](https://github.com/frang75/nappgui_src/issues/103).
 
-* `gui_OnIdle()`. [Commit](https://github.com/frang75/nappgui_src/commit/ee5c8c8d76b3604151f5d4bbea2e2f405dbfc2ed).
+    * `gui_OnIdle()`.
+
+* Dynamic layouts [Issue](https://github.com/frang75/nappgui_src/issues/74). [Doc](https://nappgui.com/en/gui/layout.html#h6).
+
+    * `arrpt_insert_n()`.
+
+    * `cell_empty()`.
+
+    * `layout_panel_replace()` [Issue](https://github.com/frang75/nappgui_src/issues/18).
+
+    * `guicontrol_tag()`.
+
+    * `guicontrol_get_tag()`.
+
+    * `layout_ncols()`.
+
+    * `layout_nrows()`.
+
+    * `layout_insert_col()`.
+
+    * `layout_insert_row()`.
+
+    * `layout_remove_col()`.
+
+    * `layout_remove_row()`.
 
 ### Fixed
 

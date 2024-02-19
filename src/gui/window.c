@@ -55,7 +55,6 @@ static void i_detach_main_panel(Panel *main_panel, void *window_renderable_item,
     panel_component = _panel_get_component(main_panel);
     cassert_no_null(panel_component);
     func_detach_main_panel_from_window(window_renderable_item, panel_component->ositem);
-    _panel_detach_components(main_panel);
     _panel_window(main_panel, NULL);
 }
 
