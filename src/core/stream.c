@@ -38,7 +38,8 @@
 
 #define REV_OUT(state) BIT_TEST(state, WRITE_ENDIAN_BIT)
 #define REV_IN(state) BIT_TEST(state, READ_ENDIAN_BIT)
-#define IS_OK(state) !(BIT_TEST(state, END_BIT) || BIT_TEST(state, CORRUPTION_BIT) || BIT_TEST(state, BROKEN_BIT))
+#define IS_READ_OK(state) !(BIT_TEST(state, END_BIT) || BIT_TEST(state, CORRUPTION_BIT) || BIT_TEST(state, BROKEN_BIT))
+#define IS_WRITE_OK(state) !(BIT_TEST(state, CORRUPTION_BIT) || BIT_TEST(state, BROKEN_BIT))
 #define IS_EMPTY(str) ((str)[0] == '\0')
 #define DISK_CACHE 2048
 #define MEM_CACHE 2048
@@ -887,7 +888,7 @@ static void i_write(Stream *stm, const byte_t *data, const uint32_t size, const 
     cassert_no_null(stm);
     cassert(size > 0);
 
-    if (!IS_OK(stm->state))
+    if (!IS_WRITE_OK(stm->state))
         return;
 
     output = stm->output;
@@ -946,6 +947,7 @@ static void i_write(Stream *stm, const byte_t *data, const uint32_t size, const 
         }
 
         stm->write_offset += size;
+        BIT_CLEAR(stm->state, END_BIT);
     }
     else
     {
@@ -972,7 +974,7 @@ static void i_write_utf16(Stream *stm, const char_t *str)
 {
     uint32_t codepoint = unicode_to_u32(str, ekUTF8);
     cassert_no_null(stm);
-    while (IS_OK(stm->state) && codepoint != 0)
+    while (IS_WRITE_OK(stm->state) && codepoint != 0)
     {
         char_t utf16[4];
         uint32_t bytes;
@@ -999,7 +1001,7 @@ static void i_write_utf32(Stream *stm, const char_t *str)
 {
     uint32_t codepoint = unicode_to_u32(str, ekUTF8);
     cassert_no_null(stm);
-    while (IS_OK(stm->state) && codepoint != 0)
+    while (IS_WRITE_OK(stm->state) && codepoint != 0)
     {
         i_write(stm, (const byte_t *)&codepoint, 4, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         str = unicode_next(str, ekUTF8);
@@ -1349,7 +1351,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
     cassert_no_null(stm);
     cassert(stm->type != i_ekDEVNULL);
 
-    if (!IS_OK(stm->state))
+    if (!IS_READ_OK(stm->state))
         return 0;
 
     /* Read first from restore cache */
@@ -1613,7 +1615,7 @@ uint32_t stm_read_char(Stream *stm)
 {
     uint32_t code = 0;
     cassert_no_null(stm);
-    if (!IS_OK(stm->state))
+    if (!IS_READ_OK(stm->state))
         return 0;
 
     if (BIT_TEST(stm->state, READ_UTF8_BIT) == TRUE)
@@ -1651,7 +1653,7 @@ const char_t *stm_read_chars(Stream *stm, const uint32_t n)
     i_Buffer *line;
     register uint32_t i;
     cassert_no_null(stm);
-    if (!IS_OK(stm->state))
+    if (!IS_READ_OK(stm->state))
         return "";
 
     line = &stm->textline;
@@ -1673,7 +1675,7 @@ const char_t *stm_read_line(Stream *stm)
     i_Buffer *line;
     uint32_t code = 0;
     cassert_no_null(stm);
-    if (!IS_OK(stm->state))
+    if (!IS_READ_OK(stm->state))
         return NULL;
 
     line = &stm->textline;
@@ -1695,7 +1697,7 @@ const char_t *stm_read_line(Stream *stm)
 
     i_char_to_cache(stm, 0);
 
-    if (!IS_OK(stm->state))
+    if (!IS_READ_OK(stm->state))
     {
         if (line->roffset == 1)
             return NULL;
@@ -1723,7 +1725,7 @@ const char_t *stm_read_trim(Stream *stm)
     i_Buffer *line;
     uint32_t code = 0;
     cassert_no_null(stm);
-    if (!IS_OK(stm->state))
+    if (!IS_READ_OK(stm->state))
         return "";
 
     line = &stm->textline;
