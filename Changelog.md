@@ -62,6 +62,10 @@
 
 * Read/write memory streams `END_BIT` issue. [Commit](https://github.com/frang75/nappgui_src/commit/3a75a1e7bb261fe567f72e487696079ca8eae935).
 
+* Missed unix implementation of `bfile_dir_work()`. [Commit](https://github.com/frang75/nappgui_src/commit/5b92d4fd6ca7ebabea180022de52e101bfb323b5).
+
+* macOS `comwin_open_file()` issue with file types. [Issue](https://github.com/frang75/nappgui_src/issues/107).
+
 ### Build system
 
 * Fix Multi-config install issue [Commit](https://github.com/frang75/nappgui_src/commit/5eb39e984bbebed023bc4846dc5e99e318ab89f8).

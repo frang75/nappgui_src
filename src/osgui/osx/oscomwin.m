@@ -37,7 +37,7 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
         for (i = 0; i < size; ++i)
         {
             NSString *ext = [NSString stringWithUTF8String:ftypes[i]];
-            UTType *type = [UTType typeWithIdentifier:ext];
+            UTType *type = [UTType typeWithFilenameExtension:ext];
             if (type != nil)
                 [array addObject:type];
         }
