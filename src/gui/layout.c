@@ -373,7 +373,6 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
     bool_t visible = FALSE, enabled = FALSE, displayed = FALSE, tabstop = FALSE;
     i_CellDim dim0, dim1;
     i_CellContent content;
-    GuiComponent *current_component;
     Window *parent_window;
     cassert_no_null(layout);
     cassert_no_null(layout->panel);
@@ -389,7 +388,6 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
     tabstop = cell->tabstop;
     dim0 = cell->dim[0];
     dim1 = cell->dim[1];
-    current_component = cell->content.component;
     i_remove_cell(cell);
     cassert(cell->type == i_ekEMPTY);
     i_init_cell(cell, i_ekCOMPONENT, visible, enabled, displayed, tabstop, &dim0, &dim1, &content, layout);
