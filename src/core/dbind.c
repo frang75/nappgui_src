@@ -3117,10 +3117,7 @@ real32_t dbind_string_to_real32(const DBind *dbind, const real32_t value, const 
     }
     else
     {
-        char_t dest[128];
-        real32_t val;
-        tfilter_number(src, dest, sizeof(dest), dbind->attr.real32t.dec, (bool_t)(dbind->attr.real32t.min < 0));
-        val = str_to_r32(dest, NULL);
+        real32_t val = str_to_r32(src, NULL);
         val = bmath_clampf(val, (real32_t)dbind->attr.real32t.min, (real32_t)dbind->attr.real32t.max);
         return bmath_round_stepf(val, (real32_t)dbind->attr.real32t.prec);
     }
@@ -3138,10 +3135,7 @@ real64_t dbind_string_to_real64(const DBind *dbind, const real64_t value, const 
     }
     else
     {
-        char_t dest[128];
-        real64_t val;
-        tfilter_number(src, dest, sizeof(dest), dbind->attr.real64t.dec, (bool_t)(dbind->attr.real64t.min < 0));
-        val = str_to_r64(dest, NULL);
+        real64_t val = str_to_r64(src, NULL);
         val = bmath_clampd(val, dbind->attr.real64t.min, dbind->attr.real64t.max);
         return bmath_round_stepd(val, dbind->attr.real64t.prec);
     }

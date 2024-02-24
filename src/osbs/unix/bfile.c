@@ -57,6 +57,14 @@ struct _dir_t
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t bfile_dir_work(char_t *pathname, const uint32_t size)
+{
+    getcwd(pathname, size);
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 {
     int res = mkdir((const char *)pathname, (mode_t)(S_IRUSR | S_IWUSR | S_IXUSR));

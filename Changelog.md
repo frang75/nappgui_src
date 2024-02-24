@@ -58,7 +58,9 @@
 
 * `listbox_color` issue in macOS and GTK+3. [Commit](https://github.com/frang75/nappgui_src/commit/5abe4d13e767ddd1145dfbe5c0cc2b9c0d7c26ab).
 
-* macOS version adapts to Light/Dark/Accents colors at runtime.
+* macOS version adapts to Light/Dark/Accents colors at runtime. [Commit](https://github.com/frang75/nappgui_src/commit/46a3e4aa3dd920bd85d89b3387e3b2169b3a0b1e).
+
+* Read/write memory streams `END_BIT` issue. [Commit](https://github.com/frang75/nappgui_src/commit/3a75a1e7bb261fe567f72e487696079ca8eae935).
 
 ### Build system
 
