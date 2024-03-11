@@ -46,6 +46,12 @@
 
     * `layout_remove_row()`.
 
+* `label_size_text()`.
+
+### Improved
+
+* DrawBig demo [Doc](https://nappgui.com/en/howto/drawbig.html).
+
 ### Fixed
 
 * macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
@@ -64,7 +70,7 @@
 
 * Missed unix implementation of `bfile_dir_work()`. [Commit](https://github.com/frang75/nappgui_src/commit/5b92d4fd6ca7ebabea180022de52e101bfb323b5).
 
-* macOS `comwin_open_file()` issue with file types. [Issue](https://github.com/frang75/nappgui_src/issues/107).
+* macOS `comwin_open_file()` issue with file types. [Issue](https://github.com/frang75/nappgui_src/issues/107). [Commit](https://github.com/frang75/nappgui_src/commit/32acdb539adeed859986cb6472c34c29a4b0ebd0).
 
 ### Build system
 

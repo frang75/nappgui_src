@@ -185,10 +185,10 @@ static void i_OnClick(GtkMenuItem *widget, OSMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-OSMenuItem *osmenuitem_create(const menu_flag_t flag)
+OSMenuItem *osmenuitem_create(const uint32_t flags)
 {
     OSMenuItem *item = heap_new0(OSMenuItem);
-    if (flag == ekMENU_ITEM)
+    if ((menu_flag_t)flags == ekMENU_ITEM)
     {
         item->widget = gtk_menu_item_new();
         item->box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
@@ -207,7 +207,7 @@ OSMenuItem *osmenuitem_create(const menu_flag_t flag)
     }
     else
     {
-        cassert(flag == ekMENU_SEPARATOR);
+        cassert((menu_flag_t)flags == ekMENU_SEPARATOR);
         item->widget = gtk_separator_menu_item_new();
         item->key = ENUM_MAX(vkey_t);
     }
@@ -301,7 +301,7 @@ static __INLINE GdkModifierType i_kmod(const uint32_t modifiers)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers)
+void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifiers)
 {
     cassert_no_null(item);
     if (item->accel != NULL)

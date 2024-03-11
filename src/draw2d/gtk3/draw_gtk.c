@@ -365,7 +365,7 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_draw(DCtx *ctx, const drawop_t op)
+static void i_draw(DCtx *ctx, const drawop_t op)
 {
     cassert_no_null(ctx);
     switch (op)

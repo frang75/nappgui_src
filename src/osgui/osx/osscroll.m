@@ -356,10 +356,8 @@ void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, c
     {
         uint32_t motion_px = page - scroller->knob_size;
         scroller->px_scroll = (double)(max - page)/(double)motion_px;
-        cassert(scroller->px_scroll >= 1);
     }
 
-    cassert(scroller->knob_size < page);
     [scroller setKnobProportion:(CGFloat)((double)scroller->knob_size/(double)page)];
     osscroll_set_pos(scroll, pos);
 }

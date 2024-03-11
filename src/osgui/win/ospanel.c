@@ -101,7 +101,7 @@ static HBRUSH i_brush(OSControl *control, const ArrSt(Area) * areas, COLORREF *c
     rc.top = rect.top;
     rc.bottom = rect.bottom;
 
-    arrst_foreach_const(area, areas, Area)
+    arrst_forback_const(area, areas, Area)
     {
         RECT inter;
         if (IntersectRect(&inter, &area->rect, &rc) == TRUE)

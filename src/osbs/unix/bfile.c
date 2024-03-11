@@ -59,7 +59,9 @@ struct _dir_t
 
 uint32_t bfile_dir_work(char_t *pathname, const uint32_t size)
 {
-    getcwd(pathname, size);
+    const char *buff = getcwd(pathname, size);
+    if (buff != NULL)
+        return (uint32_t)(strlen(pathname) + 1);
     return 0;
 }
 

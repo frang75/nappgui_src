@@ -254,7 +254,9 @@ void osslider_origin(const OSSlider *slider, real32_t *x, real32_t *y)
 
 void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
+    cassert_no_null(slider);
     _oscontrol_set_frame((OSControl *)slider, x, y, width, height);
+    InvalidateRect(slider->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

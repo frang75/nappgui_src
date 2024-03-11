@@ -273,7 +273,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSEdit *ed
 
 /*---------------------------------------------------------------------------*/
 
-OSEdit *osedit_create(const edit_flag_t flags)
+OSEdit *osedit_create(const uint32_t flags)
 {
     OSEdit *edit = heap_new0(OSEdit);
     Font *font = osgui_create_default_font();
