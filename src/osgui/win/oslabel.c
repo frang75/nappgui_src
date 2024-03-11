@@ -305,7 +305,9 @@ void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
+    cassert_no_null(label);
     _oscontrol_set_frame((OSControl *)label, x, y, width, height);
+    InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -324,9 +324,6 @@ OSView *osview_create(const uint32_t flags)
     OSView *view = heap_new0(OSView);
     DWORD dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-    if (flags & ekVIEW_BORDER)
-        dwStyle |= WS_BORDER;
-
     if (flags & ekVIEW_HSCROLL)
         dwStyle |= WS_HSCROLL;
 

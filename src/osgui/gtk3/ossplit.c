@@ -177,7 +177,7 @@ static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSSplit *v
 
 /*---------------------------------------------------------------------------*/
 
-OSSplit *ossplit_create(const split_flag_t flags)
+OSSplit *ossplit_create(const uint32_t flags)
 {
     OSSplit *view = heap_new0(OSSplit);
     GtkWidget *widget = gtk_layout_new(NULL, NULL);

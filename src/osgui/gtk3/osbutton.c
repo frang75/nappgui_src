@@ -149,7 +149,7 @@ static gboolean i_OnPushDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-OSButton *osbutton_create(const button_flag_t flags)
+OSButton *osbutton_create(const uint32_t flags)
 {
     OSButton *button = heap_new0(OSButton);
     GtkWidget *widget = NULL;
