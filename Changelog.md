@@ -46,11 +46,11 @@
 
     * `layout_remove_row()`.
 
-* `label_size_text()`.
+* `label_size_text()`. [Doc](https://nappgui.com/en/gui/label.html#f5). [Commit](https://github.com/frang75/nappgui_src/commit/e63bd8aaf157ad029e0174fcabc2987393d6885f).
 
 ### Improved
 
-* DrawBig demo [Doc](https://nappgui.com/en/howto/drawbig.html).
+* DrawBig demo [Doc](https://nappgui.com/en/howto/drawbig.html). [Commit](https://github.com/frang75/nappgui_src/commit/e63bd8aaf157ad029e0174fcabc2987393d6885f).
 
 ### Fixed
 
@@ -71,6 +71,8 @@
 * Missed unix implementation of `bfile_dir_work()`. [Commit](https://github.com/frang75/nappgui_src/commit/5b92d4fd6ca7ebabea180022de52e101bfb323b5).
 
 * macOS `comwin_open_file()` issue with file types. [Issue](https://github.com/frang75/nappgui_src/issues/107). [Commit](https://github.com/frang75/nappgui_src/commit/32acdb539adeed859986cb6472c34c29a4b0ebd0).
+
+* macOS `ekGUI_CURSOR_SIZENS` bitmap.
 
 ### Build system
 

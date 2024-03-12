@@ -350,7 +350,7 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         nscursor = [[NSCursor resizeLeftRightCursor] retain];
         break;
     case ekGUI_CURSOR_SIZENS:
-        nscursor = [[NSCursor resizeDownCursor] retain];
+        nscursor = [[NSCursor resizeUpDownCursor] retain];
         break;
     case ekGUI_CURSOR_USER:
     {
