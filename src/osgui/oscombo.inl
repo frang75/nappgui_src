@@ -16,4 +16,8 @@ __EXTERN_C
 
 void oscombo_detach_and_destroy(OSCombo **combo, OSPanel *panel);
 
+bool_t oscombo_resign_focus(const OSCombo *combo);
+
+void oscombo_focus(OSCombo *combo, const bool_t focus);
+
 __END_C

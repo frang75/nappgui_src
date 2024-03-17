@@ -22,7 +22,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
 
 void osfont_destroy(OSFont **font);
 
-const char_t *osfont_family(const char_t *family);
+String *osfont_family_name(const OSFont *font);
 
 void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *cell_size);
 

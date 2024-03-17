@@ -30,6 +30,40 @@ struct _structtypes_t
     real32_t length6;
 };
 
+static bool_t i_DATA_BINDED = FALSE;
+
+/*---------------------------------------------------------------------------*/
+
+static void i_data_bind(void)
+{
+    if (i_DATA_BINDED == TRUE)
+        return;
+
+    dbind(Vector, real32_t, x);
+    dbind(Vector, real32_t, y);
+    dbind(Vector, real32_t, z);
+    dbind(StructTypes, String *, name);
+    dbind(StructTypes, Vector, vec1);
+    dbind(StructTypes, Vector, vec2);
+    dbind(StructTypes, Vector, vec3);
+    dbind(StructTypes, Vector *, pvec1);
+    dbind(StructTypes, Vector *, pvec2);
+    dbind(StructTypes, Vector *, pvec3);
+    dbind(StructTypes, real32_t, length1);
+    dbind(StructTypes, real32_t, length2);
+    dbind(StructTypes, real32_t, length3);
+    dbind(StructTypes, real32_t, length4);
+    dbind(StructTypes, real32_t, length5);
+    dbind(StructTypes, real32_t, length6);
+    dbind_range(Vector, real32_t, x, -5, 5);
+    dbind_range(Vector, real32_t, y, -5, 5);
+    dbind_range(Vector, real32_t, z, -5, 5);
+    dbind_increment(Vector, real32_t, x, .1f);
+    dbind_increment(Vector, real32_t, y, .1f);
+    dbind_increment(Vector, real32_t, z, .1f);
+    i_DATA_BINDED = TRUE;
+}
+
 /*---------------------------------------------------------------------------*/
 
 static void i_destroy_data(StructTypes **data)
@@ -295,6 +329,10 @@ Panel* layoutbind(void)
     Layout *layout = NULL;
     Panel *panel = NULL;
     StructTypes *data = heap_new(StructTypes);
+    i_data_bind();
+    layout = i_layout();
+    panel = panel_create();
+    panel_layout(panel, layout);
     data->name = str_c("Generic Object");
     data->pvec1 = heap_new(Vector);
     data->pvec2 = heap_new(Vector);
@@ -311,35 +349,8 @@ Panel* layoutbind(void)
     data->length4 = i_vec_length(data->pvec1);
     data->length5 = i_vec_length(data->pvec2);
     data->length6 = i_vec_length(data->pvec3);
-
-    dbind(Vector, real32_t, x);
-    dbind(Vector, real32_t, y);
-    dbind(Vector, real32_t, z);
-    dbind(StructTypes, String*, name);
-    dbind(StructTypes, Vector, vec1);
-    dbind(StructTypes, Vector, vec2);
-    dbind(StructTypes, Vector, vec3);
-    dbind(StructTypes, Vector*, pvec1);
-    dbind(StructTypes, Vector*, pvec2);
-    dbind(StructTypes, Vector*, pvec3);
-    dbind(StructTypes, real32_t, length1);
-    dbind(StructTypes, real32_t, length2);
-    dbind(StructTypes, real32_t, length3);
-    dbind(StructTypes, real32_t, length4);
-    dbind(StructTypes, real32_t, length5);
-    dbind(StructTypes, real32_t, length6);
-    dbind_range(Vector, real32_t, x, -5, 5);
-    dbind_range(Vector, real32_t, y, -5, 5);
-    dbind_range(Vector, real32_t, z, -5, 5);
-    dbind_increment(Vector, real32_t, x, .1f);
-    dbind_increment(Vector, real32_t, y, .1f);
-    dbind_increment(Vector, real32_t, z, .1f);
-
-    layout = i_layout();
-    panel = panel_create();
     layout_dbind(layout, listener(NULL, i_OnDataChange, void), StructTypes);
     layout_dbind_obj(layout, data, StructTypes);
     panel_data(panel, &data, i_destroy_data, StructTypes);
-    panel_layout(panel, layout);
     return panel;
 }

@@ -211,11 +211,11 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
             lpanel->areas = arrst_create(Area);
 
         arrst_foreach(larea, lpanel->areas, Area)
-        if (larea->obj == obj)
-        {
-            area = larea;
-            break;
-        }
+            if (larea->obj == obj)
+            {
+                area = larea;
+                break;
+            }
         arrst_end();
 
         if (area == NULL)

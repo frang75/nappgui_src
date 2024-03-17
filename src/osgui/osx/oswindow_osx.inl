@@ -18,9 +18,9 @@ BOOL _oswindow_in_destroy(NSWindow *window);
 
 NSView *_oswindow_main_view(OSWindow *window);
 
-void _oswindow_next_tabstop(NSWindow *window);
+void _oswindow_next_tabstop(NSWindow *window, const bool_t keypress);
 
-void _oswindow_prev_tabstop(NSWindow *window);
+void _oswindow_prev_tabstop(NSWindow *window, const bool_t keypress);
 
 void _oswindow_restore_focus(NSWindow *window);
 

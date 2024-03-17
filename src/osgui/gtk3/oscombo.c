@@ -487,25 +487,9 @@ void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const rea
 
 /*---------------------------------------------------------------------------*/
 
-void _oscombo_set_focus(OSCombo *combo)
+bool_t oscombo_resign_focus(const OSCombo *combo)
 {
-    cassert_no_null(combo);
-#if GTK_CHECK_VERSION(3, 16, 0)
-#else
-
-#endif
-
-    if (combo->OnFocus != NULL)
-    {
-        bool_t params = TRUE;
-        listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscombo_unset_focus(OSCombo *combo)
-{
+    bool_t lost_focus = TRUE;
     GtkWidget *entry = NULL;
     cassert_no_null(combo);
     cassert(GTK_IS_EVENT_BOX(combo->control.widget));
@@ -515,19 +499,27 @@ void _oscombo_unset_focus(OSCombo *combo)
     {
         EvText params;
         params.text = (const char_t *)gtk_entry_get_text(GTK_ENTRY(entry));
-        listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, NULL, OSCombo, EvText, void);
+        listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
     }
 
+    return lost_focus;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_focus(OSCombo *combo, const bool_t focus)
+{
+    cassert_no_null(combo);
     if (combo->OnFocus != NULL)
     {
-        bool_t params = FALSE;
+        bool_t params = focus;
         listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtkWidget *_oscombo_focus(OSCombo *combo)
+GtkWidget *_oscombo_focus_widget(OSCombo *combo)
 {
     cassert_no_null(combo);
     cassert(GTK_IS_EVENT_BOX(combo->control.widget));
@@ -544,7 +536,8 @@ void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index,
     cassert_no_null(imgheight);
     switch (op)
     {
-    case ekCTRL_OP_ADD: {
+    case ekCTRL_OP_ADD:
+    {
         String *str = str_c(text);
         Image *img = image ? image_copy(image) : NULL;
         arrpt_append(texts, str, String);
@@ -557,7 +550,8 @@ void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index,
         arrpt_delete(images, index, i_img_dest, Image);
         break;
 
-    case ekCTRL_OP_INS: {
+    case ekCTRL_OP_INS:
+    {
         String *str = str_c(text);
         Image *img = image ? image_copy(image) : NULL;
         arrpt_insert(texts, index, str, String);
@@ -565,7 +559,8 @@ void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index,
         break;
     }
 
-    case ekCTRL_OP_SET: {
+    case ekCTRL_OP_SET:
+    {
         String **str = arrpt_all(texts, String) + index;
         str_upd(str, text);
         if (image != NULL)

@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         bstd_printf("ArrSt(int16_t) from Json: ");
         arrst_foreach(id, json, int16_t)
             bstd_printf("%d ", *id);
-        arrst_end()
+        arrst_end();
         bstd_printf("\n");
         json_destroy(&json, ArrSt(int16_t));
         stm_close(&stm);
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
         bstd_printf("ArrPt(String) from Json: ");
         arrpt_foreach(str, json, String)
             bstd_printf("%s ", tc(str));
-        arrpt_end()
+        arrpt_end();
         bstd_printf("\n");
         json_destroy(&json, ArrPt(String));
         stm_close(&stm);
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
         bstd_printf("Products object from Json: size %d\n", json->size);
         arrst_foreach(elem, json->data, Product)
             bstd_printf("    Product: %s Price %.2f\n", tc(elem->description), elem->price);
-        arrst_end()
+        arrst_end();
         bstd_printf("\n");
         json_destroy(&json, Products);
         stm_close(&stm);

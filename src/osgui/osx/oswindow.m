@@ -207,37 +207,12 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFocus(NSResponder *resp, const bool_t focus)
-{
-    if ([resp isKindOfClass:[NSView class]])
-	{
-		if (_osview_is((NSView*)resp) == TRUE)
-    	{
-        	_osview_OnFocus((NSView*)resp, focus);
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-- (void)windowDidBecomeKey:(NSNotification*)notification
-{
-    OSXWindow *window = nil;
-    cassert_no_null(notification);
-    window = [notification object];
-    cassert_no_null(window);
-    i_OnFocus([window firstResponder], TRUE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 - (void)windowDidResignKey:(NSNotification*)notification
 {
     OSXWindow *window = nil;
     cassert_no_null(notification);
     window = [notification object];
     cassert_no_null(window);
-    i_OnFocus([window firstResponder], FALSE);
     if (window->role == ekGUI_ROLE_OVERLAY)
     {
         if (i_close(self, window, ekGUI_CLOSE_DEACT) == TRUE)
@@ -334,9 +309,9 @@ static void i_OnFocus(NSResponder *resp, const bool_t focus)
 #endif
 
         if (previous == YES)
-            ostabstop_prev(&self->tabstop);
+            ostabstop_prev(&self->tabstop, TRUE);
         else
-            ostabstop_next(&self->tabstop);
+            ostabstop_next(&self->tabstop, TRUE);
 
         return YES;
     }
@@ -667,9 +642,9 @@ gui_focus_t oswindow_tabstop(OSWindow *window, const bool_t next)
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
     if (next == TRUE)
-        return ostabstop_next(&windowp->tabstop);
+        return ostabstop_next(&windowp->tabstop, FALSE);
     else
-        return ostabstop_prev(&windowp->tabstop);
+        return ostabstop_prev(&windowp->tabstop, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -690,6 +665,15 @@ OSControl *oswindow_get_focus(const OSWindow *window)
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
     return windowp->tabstop.current;
+}
+
+/*---------------------------------------------------------------------------*/
+
+gui_tab_t oswindow_info_focus(const OSWindow *window, void **next_ctrl)
+{
+    OSXWindow *windowp = (OSXWindow*)window;
+    cassert_no_null(windowp);
+    return ostabstop_info_focus(&windowp->tabstop, next_ctrl);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1005,27 +989,6 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
 
 /*---------------------------------------------------------------------------*/
 
-OSWidget *oswindow_widget_get_focus(OSWindow *window)
-{
-    OSXWindow *windowp = (OSXWindow*)window;
-    NSResponder *resp = nil;
-    cassert_no_null(window);
-    cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
-    resp = [windowp firstResponder];
-    if ([resp isKindOfClass:[NSView class]] == YES)
-    {
-        return OSWidgetPtr((NSView*)resp);
-    }
-    else
-    {
-        /* First responder is the window itself */
-        cassert(resp == windowp);
-        return NULL;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 {
     OSXWindow *windowp = (OSXWindow*)window;
@@ -1062,15 +1025,23 @@ static void i_get_controls(NSView *view, ArrPt(OSControl) *controls)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(OSControl) *oswindow_all_controls(OSWindow *window)
+void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     OSXWindow *windowp = (OSXWindow*)window;
     NSView *main_view = nil;
-    ArrPt(OSControl) *controls = arrpt_create(OSControl);
     cassert_no_null(windowp);
+    cassert(arrpt_size(controls, OSControl) == 0);
     main_view = [windowp contentView];
     i_get_controls(main_view, controls);
-    return controls;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const ArrPt(OSControl) *oswindow_get_all_controls(const OSWindow *window)
+{
+    OSXWindow *windowp = (OSXWindow*)window;
+    cassert_no_null(windowp);
+    return windowp->tabstop.controls;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1109,22 +1080,22 @@ NSView *_oswindow_main_view(OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-void _oswindow_next_tabstop(NSWindow *window)
+void _oswindow_next_tabstop(NSWindow *window, const bool_t keypress)
 {
     OSXWindow *windowp = (OSXWindow*)window;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
-    ostabstop_next(&windowp->tabstop);
+    ostabstop_next(&windowp->tabstop, keypress);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _oswindow_prev_tabstop(NSWindow *window)
+void _oswindow_prev_tabstop(NSWindow *window, const bool_t keypress)
 {
     OSXWindow *windowp = (OSXWindow*)window;
     cassert_no_null(window);
     cassert([(NSResponder*)window isKindOfClass:[OSXWindow class]] == YES);
-    ostabstop_prev(&windowp->tabstop);
+    ostabstop_prev(&windowp->tabstop, keypress);
 }
 
 /*---------------------------------------------------------------------------*/

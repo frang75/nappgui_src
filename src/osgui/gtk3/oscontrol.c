@@ -37,15 +37,18 @@
 
 static void i_OnFocus(GtkWidget *widget, OSControl *control)
 {
-    _oscontrol_set_focus(control);
     unref(widget);
+    unref(control);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static gboolean i_OnFocusOut(GtkWidget *widget, GdkEvent *e, OSControl *control)
 {
-    _oscontrol_unset_focus(control);
+    cassert_no_null(control);
+    if (control->type == ekGUI_TYPE_WINDOW)
+        _oswindow_unset_focus((OSWindow *)control);
+
     unref(widget);
     unref(e);
     return FALSE;
@@ -132,60 +135,6 @@ void _oscontrol_destroy(OSControl *control)
 #if defined(__ASSERTS__)
     /*cassert(control->is_alive == FALSE);*/
 #endif
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_set_focus(OSControl *control)
-{
-    cassert_no_null(control);
-    switch (control->type)
-    {
-    case ekGUI_TYPE_EDITBOX:
-        _osedit_set_focus((OSEdit *)control);
-        break;
-    case ekGUI_TYPE_POPUP:
-        _ospopup_set_focus(OSPopUpPtr(control));
-        break;
-    case ekGUI_TYPE_COMBOBOX:
-        _oscombo_set_focus((OSCombo *)control);
-        break;
-    case ekGUI_TYPE_CUSTOMVIEW:
-        _osview_set_focus((OSView *)control);
-        break;
-    case ekGUI_TYPE_TEXTVIEW:
-        _ostext_set_focus((OSText *)control);
-        break;
-    default:
-        break;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_unset_focus(OSControl *control)
-{
-    cassert_no_null(control);
-    switch (control->type)
-    {
-    case ekGUI_TYPE_EDITBOX:
-        _osedit_unset_focus((OSEdit *)control);
-        break;
-    case ekGUI_TYPE_COMBOBOX:
-        _oscombo_unset_focus((OSCombo *)control);
-        break;
-    case ekGUI_TYPE_CUSTOMVIEW:
-        _osview_unset_focus((OSView *)control);
-        break;
-    case ekGUI_TYPE_TEXTVIEW:
-        _ostext_unset_focus((OSText *)control);
-        break;
-    case ekGUI_TYPE_WINDOW:
-        _oswindow_unset_focus((OSWindow *)control);
-        break;
-    default:
-        break;
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -710,22 +659,22 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
         return (OSWidget *)control->widget;
 
     case ekGUI_TYPE_TEXTVIEW:
-        return (OSWidget *)_ostext_focus((OSText *)control);
+        return (OSWidget *)_ostext_focus_widget((OSText *)control);
 
     case ekGUI_TYPE_CUSTOMVIEW:
-        return (OSWidget *)_osview_focus((OSView *)control);
+        return (OSWidget *)_osview_focus_widget((OSView *)control);
 
     case ekGUI_TYPE_EDITBOX:
-        return (OSWidget *)_osedit_focus((OSEdit *)control);
+        return (OSWidget *)_osedit_focus_widget((OSEdit *)control);
 
     case ekGUI_TYPE_BUTTON:
-        return (OSWidget *)_osbutton_focus((OSButton *)control);
+        return (OSWidget *)_osbutton_focus_widget((OSButton *)control);
 
     case ekGUI_TYPE_POPUP:
-        return (OSWidget *)_ospopup_focus((OSPopUp *)control);
+        return (OSWidget *)_ospopup_focus_widget((OSPopUp *)control);
 
     case ekGUI_TYPE_COMBOBOX:
-        return (OSWidget *)_oscombo_focus((OSCombo *)control);
+        return (OSWidget *)_oscombo_focus_widget((OSCombo *)control);
 
     case ekGUI_TYPE_TABLEVIEW:
     case ekGUI_TYPE_TREEVIEW:

@@ -287,7 +287,8 @@ static ArrSt(NToken) * i_tokens_unix_regex(const char_t *regex)
                 arrst_append(opens, token, NToken);
                 break;
 
-            case ']': {
+            case ']':
+            {
                 NToken *last = arrst_last(opens, NToken);
                 token.symbol = ekRIGH_PAR;
                 token.from = ']';
@@ -304,7 +305,8 @@ static ArrSt(NToken) * i_tokens_unix_regex(const char_t *regex)
                 arrst_append(opens, token, NToken);
                 break;
 
-            case ')': {
+            case ')':
+            {
                 NToken *last = arrst_last(opens, NToken);
                 token.symbol = ekRIGH_PAR;
                 token.from = ')';
@@ -417,13 +419,13 @@ static void i_regex_to_infix(ArrSt(NToken) * *tokens)
     ArrSt(NToken) *stack = arrst_create(NToken);
     arrst_foreach(token, *tokens, NToken) switch (token->symbol)
     {
-    /* If the token is a number, then: 
+    /* If the token is a number, then:
             Push it to the output queue. */
     case ekCHAR:
         arrst_append(output, *token, NToken);
         break;
 
-    /* If the token is an operator, then: 
+    /* If the token is an operator, then:
            while (there is an operator at the top of the operator stack with greater precedence)
               and (the operator at the top of the operator stack is not a left parenthesis):
             pop operators from the operator stack onto the output queue.
@@ -688,14 +690,16 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) * tokens)
 
     arrst_foreach_const(token, tokens, NToken) switch (token->symbol)
     {
-    case ekCHAR: {
+    case ekCHAR:
+    {
         NFA *nfa1 = i_nfa_base(token->from, token->to);
         cassert(i_check_nfa(nfa1) == TRUE);
         arrpt_append(stack, nfa1, NFA);
         break;
     }
 
-    case ekOR: {
+    case ekOR:
+    {
         NFA *nfa1, *nfa2;
         nfa2 = arrpt_last(stack, NFA);
         arrpt_pop(stack, NULL, NFA);
@@ -706,7 +710,8 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) * tokens)
         break;
     }
 
-    case ekCONCAT: {
+    case ekCONCAT:
+    {
         NFA *nfa1, *nfa2;
         nfa2 = arrpt_last(stack, NFA);
         arrpt_pop(stack, NULL, NFA);
@@ -717,7 +722,8 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) * tokens)
         break;
     }
 
-    case ekCLOSURE: {
+    case ekCLOSURE:
+    {
         NFA *nfa1 = arrpt_last(stack, NFA);
         i_nfa_closure(nfa1);
         cassert(i_check_nfa(nfa1) == TRUE);

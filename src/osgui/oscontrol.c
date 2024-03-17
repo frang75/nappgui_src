@@ -58,9 +58,9 @@ const char_t *oscontrol_type_str(const gui_type_t type)
     case ekGUI_TYPE_SPLITVIEW:
         return "OSSplitView";
     case ekGUI_TYPE_CUSTOMVIEW:
-        return "OSCView";
-    case ekGUI_TYPE_PANEL:
         return "OSView";
+    case ekGUI_TYPE_PANEL:
+        return "OSPanel";
     case ekGUI_TYPE_LINE:
         return "OSLine";
     case ekGUI_TYPE_HEADER:

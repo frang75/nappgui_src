@@ -156,25 +156,6 @@ void osfont_destroy(OSFont **font)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *osfont_family(const char_t *family)
-{
-    if (str_equ_c(family, "__SYSTEM__") == TRUE)
-    {
-        cassert(kSYSTEM_FONT != NULL);
-        return tc(kSYSTEM_FONT);
-    }
-    else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
-    {
-        return "DejaVu Sans Mono";
-    }
-    else
-    {
-        return family;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     int w, h;
@@ -199,6 +180,18 @@ const void *osfont_native(const OSFont *font)
 {
     cassert_no_null(font);
     return (void *)font;
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *osfont_family_name(const OSFont *font)
+{
+    const PangoFontDescription *ffont = NULL;
+    const char *desc = NULL;
+    cassert_no_null(font);
+    ffont = (PangoFontDescription *)font;
+    desc = pango_font_description_get_family(ffont);
+    return str_c(desc);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -499,7 +499,8 @@ static gui_state_t i_get_state(const button_flag_t flags, HWND hwnd)
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
-    case ekBUTTON_FLATGLE: {
+    case ekBUTTON_FLATGLE:
+    {
         register LRESULT state = SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0);
         if (state == BST_CHECKED)
         {
@@ -550,7 +551,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
-    case ekBUTTON_HEADER: {
+    case ekBUTTON_HEADER:
+    {
         real32_t woff, hoff;
         real32_t fheight;
         _oscontrol_text_bounds((const OSControl *)button, text, button->font, -1.f, width, &fheight);

@@ -32,7 +32,8 @@ typedef struct _enumbind_t EnumBind;
 typedef struct _enumvbind_t EnumVBind;
 typedef struct _databind_t DataBind;
 
-union _attribs_t {
+union _attribs_t
+{
     struct _bool_
     {
         bool_t def;
@@ -799,7 +800,8 @@ static void i_add_member(StBind *stbind, const char_t *mname, const char_t *mtyp
                 member->attr.stringt.def = str_c("");
                 break;
 
-            case ekDTYPE_ENUM: {
+            case ekDTYPE_ENUM:
+            {
                 const EnumVBind *first;
                 cassert(str_equ(subtype, mtype) == TRUE);
                 member->attr.enumt.ebind = i_find_enum(mtype, NULL);
@@ -1075,14 +1077,16 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         }
         break;
 
-    case ekDTYPE_STRING_PTR: {
+    case ekDTYPE_STRING_PTR:
+    {
         String **str = (String **)(data + member->offset);
         cassert(*str == NULL);
         *str = str_copy(member->attr.stringt.def);
         break;
     }
 
-    case ekDTYPE_ARRAY: {
+    case ekDTYPE_ARRAY:
+    {
         char_t atype[128] = ARRST;
         const char_t *subtype = i_subtype_str(member);
         Array **array = (Array **)(data + member->offset);
@@ -1093,7 +1097,8 @@ static void i_init_object(byte_t *data, const StBind *stbind, const uint16_t siz
         break;
     }
 
-    case ekDTYPE_ARRPTR: {
+    case ekDTYPE_ARRPTR:
+    {
         char_t atype[128] = ARRPT;
         const char_t *subtype = i_subtype_str(member);
         Array **array = (Array **)(data + member->offset);
@@ -1170,14 +1175,16 @@ byte_t *dbind_create_imp(const char_t *type)
     byte_t *data = NULL;
     switch (dtype)
     {
-    case ekDTYPE_OBJECT: {
+    case ekDTYPE_OBJECT:
+    {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         data = heap_calloc_imp(size, type, TRUE);
         i_init_object(data, stbind, size);
         break;
     }
 
-    case ekDTYPE_ARRAY: {
+    case ekDTYPE_ARRAY:
+    {
         char_t atype[128] = ARRST;
         uint16_t esize;
         i_data_type(tc(subtype), NULL, &esize);
@@ -1186,7 +1193,8 @@ byte_t *dbind_create_imp(const char_t *type)
         break;
     }
 
-    case ekDTYPE_ARRPTR: {
+    case ekDTYPE_ARRPTR:
+    {
         char_t atype[128] = ARRPT;
         str_cat_c(atype, 128, tc(subtype));
         data = (byte_t *)array_create(sizeofptr, atype);
@@ -1314,7 +1322,8 @@ void dbind_init_imp(byte_t *data, const char_t *type)
         *((enum_t *)data) = (enum_t)0;
         break;
 
-    case ekDTYPE_OBJECT: {
+    case ekDTYPE_OBJECT:
+    {
         StBind *stbind = i_find_stbind(type, NULL);
         bmem_set_zero(data, size);
         i_init_object(data, stbind, size);
@@ -1382,7 +1391,8 @@ static void i_destroy_arrpt(Array **array, const char_t *type)
 
         switch (dtype)
         {
-        case ekDTYPE_OBJECT: {
+        case ekDTYPE_OBJECT:
+        {
             StBind *stbind = i_find_stbind(tc(subtype), NULL);
             byte_t *data = array_all(*array);
             uint32_t i, n = array_size(*array);
@@ -1441,7 +1451,8 @@ static void i_remove_object(byte_t *data, const StBind *stbind, const uint16_t s
         i_destroy_object((byte_t **)(data + member->offset), member->attr.object.stbind, member->size);
         break;
 
-    case ekDTYPE_OBJECT_OPAQUE: {
+    case ekDTYPE_OBJECT_OPAQUE:
+    {
         byte_t **obj = (byte_t **)(data + member->offset);
         if (*obj != NULL)
         {
@@ -1500,7 +1511,8 @@ void dbind_remove_imp(byte_t *data, const char_t *type)
     dtype = i_data_type(type, &subtype, &size);
     switch (dtype)
     {
-    case ekDTYPE_OBJECT: {
+    case ekDTYPE_OBJECT:
+    {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         i_remove_object(data, stbind, size);
         break;
@@ -1556,7 +1568,8 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
     dtype = i_data_type(type, &subtype, &size);
     switch (dtype)
     {
-    case ekDTYPE_OBJECT: {
+    case ekDTYPE_OBJECT:
+    {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         i_destroy_object(data, stbind, size);
         break;
@@ -1606,7 +1619,8 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
     case ekDTYPE_ENUM:
         heap_free(data, sizeof(enum_t), tc(subtype));
         break;
-    case ekDTYPE_OBJECT_OPAQUE: {
+    case ekDTYPE_OBJECT_OPAQUE:
+    {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         cassert_no_null(stbind);
         cassert_no_nullf(stbind->func_destroy);
@@ -1809,7 +1823,8 @@ static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t
         *((String **)data) = str_read(stm);
         return (bool_t)(stm_state(stm) == ekSTOK);
 
-    case ekDTYPE_ARRAY: {
+    case ekDTYPE_ARRAY:
+    {
         uint16_t size;
         dtype_t dtype;
         cassert(*(Array **)data != NULL);
@@ -1875,7 +1890,8 @@ static void *i_create_type(Stream *stm, const char_t *type)
             dbind_destroy_imp(&obj, type);
         break;
 
-    case ekDTYPE_ARRAY: {
+    case ekDTYPE_ARRAY:
+    {
         StBind *stbind = i_find_stbind(tc(subtype), NULL);
         uint16_t adsize;
         dtype_t adtype;
@@ -1896,7 +1912,8 @@ static void *i_create_type(Stream *stm, const char_t *type)
         break;
     }
 
-    case ekDTYPE_ARRPTR: {
+    case ekDTYPE_ARRPTR:
+    {
         char_t atype[128] = ARRPT;
         Array *array;
         cassert_msg(i_find_stbind(tc(subtype), NULL) != NULL, "DBind unknown type");
@@ -2160,7 +2177,8 @@ static void i_write_value(Stream *stm, DBind *dbind, dtype_t type, const char_t 
     case ekDTYPE_REAL64:
         stm_write_r64(stm, *(real64_t *)data);
         break;
-    case ekDTYPE_ENUM: {
+    case ekDTYPE_ENUM:
+    {
         enum_t edata = *(enum_t *)data;
         stm_write_enum(stm, edata, enum_t);
         break;
@@ -2281,12 +2299,14 @@ void dbind_default_imp(const char_t *type, const char_t *mname, const void *valu
         dbind->attr.enumt.def = *(enum_t *)value;
         break;
 
-    case ekDTYPE_STRING: {
+    case ekDTYPE_STRING:
+    {
         dbind->attr.stringt.def = str_c(*(const char_t **)value);
         break;
     }
 
-    case ekDTYPE_OBJECT_OPAQUE: {
+    case ekDTYPE_OBJECT_OPAQUE:
+    {
         const void *obj = *((const void **)value);
         if (dbind->attr.object.def != NULL)
         {

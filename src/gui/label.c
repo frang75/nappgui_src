@@ -108,7 +108,6 @@ static void i_OnClick(Label *label, Event *event)
     params->text = tc(label->text);
     params->cpos = 0;
     params->len = 0;
-    params->next_ctrl = NULL;
     listener_pass_event(label->OnClick, event, label, Label);
 }
 
@@ -283,7 +282,8 @@ void _label_dimension(Label *label, const uint32_t i, real32_t *dim0, real32_t *
         case ekLABEL_SINGLE:
             *dim1 = label->size.height;
             break;
-        case ekLABEL_MULTI: {
+        case ekLABEL_MULTI:
+        {
             real32_t width = 0.f;
             const char_t *size_text = str_empty(label->size_text) ? tc(label->text) : tc(label->size_text);
             label->component.context->func_label_bounds(label->component.ositem, size_text, *dim0, &width, dim1);

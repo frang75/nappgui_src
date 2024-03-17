@@ -104,6 +104,7 @@
 - (void) drawRect:(NSRect)rect
 {
     NSGraphicsContext *nscontext;
+    NSRect r2 = [self bounds];
     unref(rect);
     cassert_no_null(self->ctx);
     nscontext = [NSGraphicsContext currentContext];

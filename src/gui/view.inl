@@ -40,10 +40,6 @@ void view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32);
 
 void view_OnImage(View *view, FPtr_set_image func_image);
 
-bool_t view_enabled(const View *view);
-
-void view_upd_uint32(View *view, const uint32_t value);
-
 void _view_empty(View *view);
 
 void _view_uint32(View *view, const uint32_t value);

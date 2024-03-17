@@ -14,8 +14,6 @@
 
 BOOL _osview_is(NSView *view);
 
-void _osview_OnFocus(NSView *view, const bool_t focus);
-
-NSView *_osview_focus(NSView *view);
+NSView *_osview_focus_widget(NSView *view);
 
 void _osview_scroll_event(NSView *view, const gui_orient_t orient, const gui_scroll_t event);

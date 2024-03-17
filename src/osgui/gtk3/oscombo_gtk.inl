@@ -14,11 +14,7 @@
 
 __EXTERN_C
 
-void _oscombo_set_focus(OSCombo *combo);
-
-void _oscombo_unset_focus(OSCombo *combo);
-
-GtkWidget *_oscombo_focus(OSCombo *combo);
+GtkWidget *_oscombo_focus_widget(OSCombo *combo);
 
 void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) * texts, ArrPt(Image) * images, uint32_t *imgwidth, uint32_t *imgheight);
 

@@ -359,7 +359,7 @@ static bool_t i_limits(OSScroll *scroll, const bool_t visible, const uint32_t vi
 {
     if (visible == TRUE && visible_size > 0 && visible_size < total_size)
     {
-        uint32_t max = total_size - 1;
+        uint32_t max = total_size;
         uint32_t pos = osscroll_pos(scroll);
         uint32_t page = visible_size;
         uint32_t max_pos = total_size - visible_size;

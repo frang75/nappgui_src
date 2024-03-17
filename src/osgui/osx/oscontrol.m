@@ -655,7 +655,7 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
     cassert_no_null(control);
     cassert([(NSObject*)control isKindOfClass:[NSView class]] == YES);
     if (_osview_is((NSView*)control) == YES)
-        return (OSWidget*)_osview_focus((NSView*)control);
+        return (OSWidget*)_osview_focus_widget((NSView*)control);
     return (OSWidget*)control;
 }
 

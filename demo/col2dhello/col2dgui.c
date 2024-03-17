@@ -644,6 +644,7 @@ static void i_draw_poly_triangles(DCtx *ctx, const Pol2Df *poly)
         cassert_unref(tri2d_ccwf(tri) == ccw, ccw);
         draw_tri2df(ctx, ekSTROKE, tri);
     arrst_end();
+
     arrst_destroy(&triangles, NULL, Tri2Df);
 }
 
@@ -778,7 +779,7 @@ static void i_OnDraw(App *app, Event *e)
         if (app->selshape == shape_i)
             i_draw_bbox(p->ctx, shape);
 
-    arrst_end()
+    arrst_end();
 
     if (app->show_seg_pt == TRUE)
     {

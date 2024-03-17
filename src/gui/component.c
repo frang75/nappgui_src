@@ -37,58 +37,58 @@
 /*---------------------------------------------------------------------------*/
 
 static const FPtr_gctx_set_bool i_FUNC_SET_VISIBLE[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_LABEL */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_BUTTON */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_POPUP */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_EDITBOX */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_SLIDER */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_UPDOWN */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_PROGRESS */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_TABLEVIEW */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_gctx_set_bool)NULL, /*_boxview_set_visible,*/  /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_gctx_set_bool)NULL, /*_splitview_set_visible*/ /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_gctx_set_bool)NULL,                            /* ekGUI_TYPE_PANEL */
-    (FPtr_gctx_set_bool)NULL};                           /* ekGUI_TYPE_LINE */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_LABEL */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_BUTTON */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_POPUP */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_EDITBOX */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_SLIDER */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_UPDOWN */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_PROGRESS */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TREEVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_BOXVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_PANEL */
+    (FPtr_gctx_set_bool)NULL}; /* ekGUI_TYPE_LINE */
 
 static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_LABEL */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_BUTTON */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_POPUP */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_EDITBOX */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_SLIDER */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_UPDOWN */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_PROGRESS */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_TABLEVIEW */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_panels)NULL, /*_boxview_panels,*/ /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_panels)_splitview_panels,         /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_panels)NULL,                      /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_panels)_panel_panels,             /* ekGUI_TYPE_PANEL */
-    (FPtr_panels)NULL};                     /* ekGUI_TYPE_LINE */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_LABEL */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_BUTTON */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_POPUP */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_EDITBOX */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_SLIDER */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_UPDOWN */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_PROGRESS */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_TREEVIEW */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_BOXVIEW */
+    (FPtr_panels)_splitview_panels, /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_panels)_panel_panels,     /* ekGUI_TYPE_PANEL */
+    (FPtr_panels)NULL};             /* ekGUI_TYPE_LINE */
 
 static const FPtr_dimension i_FUNC_DIMENSION[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_dimension)_label_dimension,              /* ekGUI_TYPE_LABEL */
-    (FPtr_dimension)_button_dimension,             /* ekGUI_TYPE_BUTTON */
-    (FPtr_dimension)_popup_dimension,              /* ekGUI_TYPE_POPUP */
-    (FPtr_dimension)_edit_dimension,               /* ekGUI_TYPE_EDITBOX */
-    (FPtr_dimension)_combo_dimension,              /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_dimension)_slider_dimension,             /* ekGUI_TYPE_SLIDER */
-    (FPtr_dimension)_updown_dimension,             /* ekGUI_TYPE_UPDOWN */
-    (FPtr_dimension)_progress_dimension,           /* ekGUI_TYPE_PROGRESS */
-    (FPtr_dimension)_textview_dimension,           /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_dimension)NULL /*_tableview_dimension*/, /* ekGUI_TYPE_TABLEVIEW */
-    (FPtr_dimension)NULL,                          /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_dimension)NULL,                          /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_dimension)_splitview_dimension,          /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_dimension)_view_dimension,               /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_dimension)_panel_dimension,              /* ekGUI_TYPE_PANEL */
-    (FPtr_dimension)NULL};                         /* ekGUI_TYPE_LINE */
+    (FPtr_dimension)_label_dimension,     /* ekGUI_TYPE_LABEL */
+    (FPtr_dimension)_button_dimension,    /* ekGUI_TYPE_BUTTON */
+    (FPtr_dimension)_popup_dimension,     /* ekGUI_TYPE_POPUP */
+    (FPtr_dimension)_edit_dimension,      /* ekGUI_TYPE_EDITBOX */
+    (FPtr_dimension)_combo_dimension,     /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_dimension)_slider_dimension,    /* ekGUI_TYPE_SLIDER */
+    (FPtr_dimension)_updown_dimension,    /* ekGUI_TYPE_UPDOWN */
+    (FPtr_dimension)_progress_dimension,  /* ekGUI_TYPE_PROGRESS */
+    (FPtr_dimension)_textview_dimension,  /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_dimension)NULL,                 /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_dimension)NULL,                 /* ekGUI_TYPE_TREEVIEW */
+    (FPtr_dimension)NULL,                 /* ekGUI_TYPE_BOXVIEW */
+    (FPtr_dimension)_splitview_dimension, /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_dimension)_view_dimension,      /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_dimension)_panel_dimension,     /* ekGUI_TYPE_PANEL */
+    (FPtr_dimension)NULL};                /* ekGUI_TYPE_LINE */
 
 static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL,              /* ekGUI_TYPE_LABEL */
@@ -109,40 +109,22 @@ static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL};             /* ekGUI_TYPE_LINE */
 
 static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_LABEL */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_BUTTON */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_POPUP */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_EDITBOX */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_SLIDER */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_UPDOWN */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_PROGRESS */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_TABLEVIEW */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_set_size)NULL, /*_boxview_OnResize,*/ /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_set_size)_splitview_OnResize,         /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_set_size)_view_OnResize,              /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_set_size)NULL,                        /* ekGUI_TYPE_PANEL */
-    (FPtr_set_size)NULL};                       /* ekGUI_TYPE_LINE */
-
-static const FPtr_gctx_call i_FUNC_ON_HIDE[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_LABEL */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_BUTTON */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_POPUP */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_EDITBOX */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_SLIDER */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_UPDOWN */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_PROGRESS */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_gctx_call)NULL, /*_tableview_become_hidden,*/ /* ekGUI_TYPE_TABLEVIEW */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_gctx_call)NULL,                               /* ekGUI_TYPE_PANEL */
-    (FPtr_gctx_call)NULL};                              /* ekGUI_TYPE_LINE */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_LABEL */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_BUTTON */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_POPUP */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_EDITBOX */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_SLIDER */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_UPDOWN */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_PROGRESS */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_TREEVIEW */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_BOXVIEW */
+    (FPtr_set_size)_splitview_OnResize, /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_set_size)_view_OnResize,      /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_PANEL */
+    (FPtr_set_size)NULL};               /* ekGUI_TYPE_LINE */
 
 static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_gctx_call)_label_locale,  /* ekGUI_TYPE_LABEL */
@@ -163,22 +145,22 @@ static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_gctx_call)NULL};          /* ekGUI_TYPE_LINE */
 
 static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_destroy)_label_destroy,              /* ekGUI_TYPE_LABEL */
-    (FPtr_destroy)_button_destroy,             /* ekGUI_TYPE_BUTTON */
-    (FPtr_destroy)_popup_destroy,              /* ekGUI_TYPE_POPUP */
-    (FPtr_destroy)_edit_destroy,               /* ekGUI_TYPE_EDITBOX */
-    (FPtr_destroy)_combo_destroy,              /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_destroy)_slider_destroy,             /* ekGUI_TYPE_SLIDER */
-    (FPtr_destroy)_updown_destroy,             /* ekGUI_TYPE_UPDOWN */
-    (FPtr_destroy)_progress_destroy,           /* ekGUI_TYPE_PROGRESS */
-    (FPtr_destroy)_textview_destroy,           /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_destroy)NULL /*_tableview_destroy*/, /* ekGUI_TYPE_TABLEVIEW */
-    (FPtr_destroy)NULL, /*_treeview_destroy,*/ /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_destroy)NULL, /*_boxview_destroy,*/  /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_destroy)_splitview_destroy,          /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_destroy)_view_destroy,               /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_destroy)_panel_destroy_all,          /* ekGUI_TYPE_PANEL */
-    (FPtr_destroy)NULL /*_line_destroy*/};     /* ekGUI_TYPE_LINE */
+    (FPtr_destroy)_label_destroy,     /* ekGUI_TYPE_LABEL */
+    (FPtr_destroy)_button_destroy,    /* ekGUI_TYPE_BUTTON */
+    (FPtr_destroy)_popup_destroy,     /* ekGUI_TYPE_POPUP */
+    (FPtr_destroy)_edit_destroy,      /* ekGUI_TYPE_EDITBOX */
+    (FPtr_destroy)_combo_destroy,     /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_destroy)_slider_destroy,    /* ekGUI_TYPE_SLIDER */
+    (FPtr_destroy)_updown_destroy,    /* ekGUI_TYPE_UPDOWN */
+    (FPtr_destroy)_progress_destroy,  /* ekGUI_TYPE_PROGRESS */
+    (FPtr_destroy)_textview_destroy,  /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_destroy)NULL,               /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_destroy)NULL,               /* ekGUI_TYPE_TREEVIEW */
+    (FPtr_destroy)NULL,               /* ekGUI_TYPE_BOXVIEW */
+    (FPtr_destroy)_splitview_destroy, /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_destroy)_view_destroy,      /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_destroy)_panel_destroy_all, /* ekGUI_TYPE_PANEL */
+    (FPtr_destroy)NULL};              /* ekGUI_TYPE_LINE */
 
 /*---------------------------------------------------------------------------*/
 
@@ -188,7 +170,7 @@ void _component_init(GuiComponent *component, const GuiCtx *context, const gui_t
     obj_init(&component->object);
     component->context = guictx_retain(context);
     component->type = type;
-    component->parent = NULL;
+    component->panel = NULL;
     component->tag.tag_uint32 = UINT32_MAX;
     component->ositem = ptr_dget_no_null(ositem, void);
 }
@@ -226,6 +208,8 @@ void _component_attach_to_panel(GuiComponent *panel_component, GuiComponent *chi
     cassert_no_null(child_component);
     cassert_no_null(child_component->context);
     cassert_no_nullf(child_component->context->func_attach_to_panel[child_component->type]);
+    cassert(child_component->panel == NULL);
+    child_component->panel = (Panel *)panel_component;
     child_component->context->func_attach_to_panel[child_component->type](child_component->ositem, panel_component->ositem);
 }
 
@@ -238,6 +222,8 @@ void _component_detach_from_panel(GuiComponent *panel_component, GuiComponent *c
     cassert_no_null(child_component);
     cassert_no_null(child_component->context);
     cassert_no_nullf(child_component->context->func_detach_from_panel[child_component->type]);
+    cassert(child_component->panel == (Panel *)panel_component);
+    child_component->panel = NULL;
     child_component->context->func_detach_from_panel[child_component->type](child_component->ositem, panel_component->ositem);
 }
 
@@ -434,26 +420,6 @@ uint32_t _component_get_tag(const GuiComponent *component)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _component_with_OnHide_event(const GuiComponent *component)
-{
-    cassert_no_null(component);
-    if (i_FUNC_ON_HIDE[component->type] != NULL)
-        return TRUE;
-    else
-        return FALSE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _component_OnHide(const GuiComponent *component)
-{
-    cassert_no_null(component);
-    cassert_no_nullf(i_FUNC_ON_HIDE[component->type]);
-    i_FUNC_ON_HIDE[component->type]((void *)component);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _component_locale(GuiComponent *component)
 {
     cassert_no_null(component);
@@ -542,12 +508,18 @@ void *_component_ositem(const GuiComponent *component)
 
 /*---------------------------------------------------------------------------*/
 
+Cell *_component_cell(const GuiComponent *component)
+{
+    cassert_no_null(component);
+    if (component->panel != NULL)
+        return _panel_get_component_cell(component->panel, component);
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Window *_component_window(const GuiComponent *component)
 {
-    Layout *layout = NULL;
-    Panel *panel = NULL;
     cassert_no_null(component);
-    layout = _cell_parent(component->parent);
-    panel = _layout_panel(layout);
-    return _panel_get_window(panel);
+    return _panel_get_window(component->panel);
 }

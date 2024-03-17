@@ -64,7 +64,11 @@ static void i_OnSliderMoved(Slider *slider, Event *e)
         slider->current_pos = p->pos;
     }
 
-    _cell_upd_norm_real32(slider->component.parent, p->pos);
+    {
+        Cell *cell = _component_cell(&slider->component);
+        if (cell != NULL)
+            _cell_upd_norm_real32(cell, p->pos);
+    }
 
     if (slider->OnMoved != NULL)
         listener_pass_event(slider->OnMoved, e, slider, Slider);

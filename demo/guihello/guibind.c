@@ -29,6 +29,37 @@ struct _basictypes_t
 
 #define i_NUM_CONTROLS 9
 
+static bool_t i_DATA_BINDED = FALSE;
+
+/*---------------------------------------------------------------------------*/
+
+static void i_data_bind(void)
+{
+    if (i_DATA_BINDED == FALSE)
+    {
+        dbind_enum(gui_state_t, ekGUI_OFF, "");
+        dbind_enum(gui_state_t, ekGUI_ON, "");
+        dbind_enum(gui_state_t, ekGUI_MIXED, "");
+        dbind_enum(myenum_t, ekRED, "Red");
+        dbind_enum(myenum_t, ekBLUE, "Blue");
+        dbind_enum(myenum_t, ekGREEN, "Green");
+        dbind_enum(myenum_t, ekBLACK, "Black");
+        dbind_enum(myenum_t, ekMAGENTA, "Magenta");
+        dbind_enum(myenum_t, ekCYAN, "Cyan");
+        dbind_enum(myenum_t, ekYELLOW, "Yellow");
+        dbind_enum(myenum_t, ekWHITE, "While");
+        dbind(BasicTypes, bool_t, bool_val);
+        dbind(BasicTypes, uint16_t, uint16_val);
+        dbind(BasicTypes, real32_t, real32_val);
+        dbind(BasicTypes, gui_state_t, enum3_val);
+        dbind(BasicTypes, myenum_t, enum_val);
+        dbind(BasicTypes, String *, str_val);
+        dbind_range(BasicTypes, real32_t, real32_val, -50, 50);
+        dbind_increment(BasicTypes, real32_t, real32_val, 5);
+        i_DATA_BINDED = TRUE;
+    }
+}
+
 /*---------------------------------------------------------------------------*/
 
 static void i_destroy_data(BasicTypes **data)
@@ -149,38 +180,18 @@ Panel* guibind(void)
     Layout *layout = NULL;
     Panel *panel = NULL;
     BasicTypes *data = heap_new(BasicTypes);
+    i_data_bind();
+    layout = i_layout();
+    panel = panel_create();
+    panel_layout(panel, layout);
     data->bool_val = TRUE;
     data->uint16_val = 4;
     data->real32_val = 15.5f;
     data->enum3_val = ekGUI_MIXED;
     data->enum_val = ekCYAN;
     data->str_val = str_c("Text String");
-
-    dbind_enum(gui_state_t, ekGUI_OFF, "");
-    dbind_enum(gui_state_t, ekGUI_ON, "");
-    dbind_enum(gui_state_t, ekGUI_MIXED, "");
-    dbind_enum(myenum_t, ekRED, "Red");
-    dbind_enum(myenum_t, ekBLUE, "Blue");
-    dbind_enum(myenum_t, ekGREEN, "Green");
-    dbind_enum(myenum_t, ekBLACK, "Black");
-    dbind_enum(myenum_t, ekMAGENTA, "Magenta");
-    dbind_enum(myenum_t, ekCYAN, "Cyan");
-    dbind_enum(myenum_t, ekYELLOW, "Yellow");
-    dbind_enum(myenum_t, ekWHITE, "While");
-    dbind(BasicTypes, bool_t, bool_val);
-    dbind(BasicTypes, uint16_t, uint16_val);
-    dbind(BasicTypes, real32_t, real32_val);
-    dbind(BasicTypes, gui_state_t, enum3_val);
-    dbind(BasicTypes, myenum_t, enum_val);
-    dbind(BasicTypes, String*, str_val);
-    dbind_range(BasicTypes, real32_t, real32_val, -50, 50);
-    dbind_increment(BasicTypes, real32_t, real32_val, 5);
-
-    layout = i_layout();
-    panel = panel_create();
     layout_dbind(layout, NULL, BasicTypes);
     layout_dbind_obj(layout, data, BasicTypes);
     panel_data(panel, &data, i_destroy_data, BasicTypes);
-    panel_layout(panel, layout);
     return panel;
 }

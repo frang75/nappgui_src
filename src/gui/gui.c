@@ -409,7 +409,7 @@ void gui_update_transitions(const real64_t prtime, const real64_t crtime)
         params.cframe = UINT32_MAX;
         arrst_foreach(transition, i_TRANSITIONS, Transition)
             listener_event(transition->listener, ekGUI_EVENT_ANIMATION, NULL, &params, NULL, void, EvTransition, void);
-        arrst_end()
+        arrst_end();
     }
 
     {
@@ -522,7 +522,7 @@ void _gui_add_transition_imp(void *owner, Listener *listener)
         cassert(FALSE);
         return;
     }
-    arrst_end()
+    arrst_end();
 
     {
         Transition *transition = arrst_new(i_TRANSITIONS, Transition);
@@ -540,7 +540,7 @@ void _gui_delete_transition_imp(void *owner)
         arrst_delete(i_TRANSITIONS, transition_i, i_remove_transition, Transition);
         return;
     }
-    arrst_end()
+    arrst_end();
 }
 
 /*---------------------------------------------------------------------------*/

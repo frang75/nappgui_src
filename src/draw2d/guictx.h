@@ -1067,6 +1067,7 @@ _draw2d_api void guictx_append_window_manager_imp(
     FPtr_gctx_set_enum2 func_window_tabstop,
     FPtr_gctx_set_ptr3 func_window_set_focus,
     FPtr_gctx_get_ptr func_window_get_focus,
+    FPtr_gctx_get_enum3 func_window_info_focus,
     FPtr_gctx_set_ptr func_attach_main_panel_to_window,
     FPtr_gctx_set_ptr func_detach_main_panel_from_window,
     FPtr_gctx_set_ptr func_attach_window_to_window,
@@ -1102,6 +1103,7 @@ _draw2d_api void guictx_append_window_manager_imp(
     func_window_tabstop,                                                                        \
     func_window_set_focus,                                                                      \
     func_window_get_focus,                                                                      \
+    func_window_info_focus,                                                                     \
     func_attach_main_panel_to_window,                                                           \
     func_detach_main_panel_from_window,                                                         \
     func_attach_window_to_window,                                                               \
@@ -1137,6 +1139,7 @@ _draw2d_api void guictx_append_window_manager_imp(
         FUNC_CHECK_GCTX_SET_ENUM2(func_window_tabstop, window_type, gui_focus_t),               \
         FUNC_CHECK_GCTX_SET_PTR3(func_window_set_focus, window_type, OSControl, gui_focus_t),   \
         FUNC_CHECK_GCTX_GET_PTR(func_window_get_focus, window_type, OSControl),                 \
+        FUNC_CHECK_GCTX_GET_ENUM3(func_window_info_focus, window_type, gui_tab_t),              \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_main_panel_to_window, window_type, panel_type),     \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_main_panel_from_window, window_type, panel_type),   \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_window_to_window, window_type, window_type),        \
@@ -1172,6 +1175,7 @@ _draw2d_api void guictx_append_window_manager_imp(
             (FPtr_gctx_set_enum2)func_window_tabstop,                                           \
             (FPtr_gctx_set_ptr3)func_window_set_focus,                                          \
             (FPtr_gctx_get_ptr)func_window_get_focus,                                           \
+            (FPtr_gctx_get_enum3)func_window_info_focus,                                        \
             (FPtr_gctx_set_ptr)func_attach_main_panel_to_window,                                \
             (FPtr_gctx_set_ptr)func_detach_main_panel_from_window,                              \
             (FPtr_gctx_set_ptr)func_attach_window_to_window,                                    \

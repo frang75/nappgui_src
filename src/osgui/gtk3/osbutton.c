@@ -56,7 +56,8 @@ static gui_state_t i_get_state(const OSButton *button)
         return ekGUI_ON;
 
     case ekBUTTON_RADIO:
-    case ekBUTTON_CHECK2: {
+    case ekBUTTON_CHECK2:
+    {
         gboolean active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button->control.widget));
         return active == TRUE ? ekGUI_ON : ekGUI_OFF;
     }
@@ -72,7 +73,8 @@ static gui_state_t i_get_state(const OSButton *button)
             return active == TRUE ? ekGUI_ON : ekGUI_OFF;
         }
 
-    case ekBUTTON_FLATGLE: {
+    case ekBUTTON_FLATGLE:
+    {
         gboolean active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget));
         return active == TRUE ? ekGUI_ON : ekGUI_OFF;
     }
@@ -290,7 +292,8 @@ void osbutton_image(OSButton *button, const Image *image)
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_FLAT:
-    case ekBUTTON_FLATGLE: {
+    case ekBUTTON_FLATGLE:
+    {
         const char_t *icon_name = _osgui_register_icon(image);
         gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(button->control.widget), icon_name);
         break;
@@ -428,7 +431,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     switch (button_get_type(button->flags))
     {
-    case ekBUTTON_PUSH: {
+    case ekBUTTON_PUSH:
+    {
         GtkRequisition s;
         real32_t tw, th;
         cassert_unref(i_equal_button_label(button, text) == TRUE, text);
@@ -442,7 +446,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
-    case ekBUTTON_RADIO: {
+    case ekBUTTON_RADIO:
+    {
         GtkRequisition s;
         cassert_unref(i_equal_button_label(button, text) == TRUE, text);
         gtk_widget_get_preferred_size(button->control.widget, &s, NULL);
@@ -512,7 +517,7 @@ void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const 
 
 /*---------------------------------------------------------------------------*/
 
-GtkWidget *_osbutton_focus(OSButton *button)
+GtkWidget *_osbutton_focus_widget(OSButton *button)
 {
     cassert_no_null(button);
     switch (button_get_type(button->flags))

@@ -51,7 +51,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_ERASEBKGND:
         return 1;
 
-    case WM_SETCURSOR: {
+    case WM_SETCURSOR:
+    {
         POINT pt;
         GetCursorPos(&pt);
         ScreenToClient(split->control.hwnd, &pt);
@@ -95,7 +96,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         return 0;
 
-    case WM_LBUTTONDOWN: {
+    case WM_LBUTTONDOWN:
+    {
 #if defined __ASSERTS__
         POINTS point;
         POINT pt;

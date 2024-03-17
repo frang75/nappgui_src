@@ -18,10 +18,6 @@ void _oscontrol_init(OSControl *control, const gui_type_t type, GtkWidget *widge
 
 void _oscontrol_destroy(OSControl *control);
 
-void _oscontrol_set_focus(OSControl *control);
-
-void _oscontrol_unset_focus(OSControl *control);
-
 void _oscontrol_set_halign(OSControl *control, const align_t align);
 
 void _oscontrol_text_bounds(const OSControl *control, PangoLayout *layout, const char_t *text, const Font *font, const real32_t refwidth, real32_t *width, real32_t *height);

@@ -133,7 +133,7 @@ uint32_t draw2d_register_font(const char_t *font_family)
 const char_t *draw2d_font_family(const uint32_t family)
 {
     const String *font_family = arrpt_get(i_FONT_FAMILIES, family, String);
-    return osfont_family(tc(font_family));
+    return tc(font_family);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -150,7 +150,7 @@ color_t color_indexed(const uint16_t index, const color_t color)
         ic->color = color;
         return color;
     }
-    arrst_end()
+    arrst_end();
 
     {
         IColor *nc = arrst_new(i_INDEXED_COLORS, IColor);
@@ -168,9 +168,9 @@ color_t draw2d_get_indexed_color(const uint16_t index)
         return kCOLOR_DEFAULT;
 
     arrst_foreach(ic, i_INDEXED_COLORS, IColor) if (ic->index == index) return ic->color;
-    arrst_end()
+    arrst_end();
 
-        cassert(FALSE);
+    cassert(FALSE);
     return kCOLOR_DEFAULT;
 }
 
@@ -339,7 +339,8 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
             }
             break;
 
-        case i_WORD_TYPE_TEXT: {
+        case i_WORD_TYPE_TEXT:
+        {
             char_t word[256];
             real32_t word_width = 0.f, word_height = 0.f;
             register uint32_t size = (uint32_t)(next_text - ctext);

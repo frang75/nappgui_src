@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-GtkWidget *_osbutton_focus(OSButton *button);
+GtkWidget *_osbutton_focus_widget(OSButton *button);
 
 void _osbutton_command(OSButton *button);
 

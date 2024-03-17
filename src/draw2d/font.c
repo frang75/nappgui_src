@@ -14,6 +14,7 @@
 #include "font.inl"
 #include "draw2d.inl"
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -25,6 +26,7 @@ struct _font_t
     real32_t size;
     real32_t cell_size;
     real32_t internal_leading;
+    String *family_name;
     OSFont *osfont;
 };
 
@@ -43,6 +45,7 @@ static Font *i_create_font(const uint32_t family, const real32_t size, const uin
     font->style = style;
     font->cell_size = -1;
     font->internal_leading = -1;
+    font->family_name = NULL;
     font->osfont = NULL;
     return font;
 }
@@ -57,6 +60,7 @@ void font_destroy(Font **font)
     {
         if ((*font)->osfont != NULL)
             osfont_destroy(&(*font)->osfont);
+        str_destopt(&(*font)->family_name);
         heap_delete(font, Font);
     }
     else
@@ -122,22 +126,6 @@ bool_t font_equals(const Font *font1, const Font *font2)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *font_family(const Font *font)
-{
-    cassert_no_null(font);
-    return draw2d_font_family(font->family);
-}
-
-/*---------------------------------------------------------------------------*/
-
-real32_t font_size(const Font *font)
-{
-    cassert_no_null(font);
-    return font->size;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static __INLINE void i_osfont(Font *font)
 {
     cassert_no_null(font);
@@ -146,6 +134,28 @@ static __INLINE void i_osfont(Font *font)
         const char_t *fname = draw2d_font_family(font->family);
         font->osfont = osfont_create(fname, font->size, font->style);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *font_family(const Font *font)
+{
+    cassert_no_null(font);
+    if (font->family_name == NULL)
+    {
+        i_osfont((Font *)font);
+        ((Font *)font)->family_name = osfont_family_name(font->osfont);
+    }
+
+    return tc(font->family_name);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t font_size(const Font *font)
+{
+    cassert_no_null(font);
+    return font->size;
 }
 
 /*---------------------------------------------------------------------------*/

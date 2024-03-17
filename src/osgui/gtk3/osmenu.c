@@ -199,9 +199,11 @@ static void i_remove_all_items(OSMenu *menu)
     cassert_no_null(menu);
     cassert(arrpt_size(menu->items, OSMenuItem) == i_num_children(GTK_CONTAINER(menu->widget)));
     arrpt_foreach(item, menu->items, OSMenuItem)
+    {
         GtkWidget *widget = _osmenuitem_widget(item);
-    g_object_ref(widget);
-    gtk_container_remove(GTK_CONTAINER(menu->widget), widget);
+        g_object_ref(widget);
+        gtk_container_remove(GTK_CONTAINER(menu->widget), widget);
+    }
     arrpt_end();
     cassert(i_num_children(GTK_CONTAINER(menu->widget)) == 0);
 }
@@ -213,9 +215,11 @@ static void i_add_all_items_to_bar(OSMenu *menu)
     cassert_no_null(menu);
     cassert_no_null(menu->widget);
     arrpt_foreach(item, menu->items, OSMenuItem)
+    {
         GtkWidget *widget = _osmenuitem_bar_widget(item);
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu->widget), widget);
-    g_object_unref(widget);
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu->widget), widget);
+        g_object_unref(widget);
+    }
     arrpt_end();
 }
 

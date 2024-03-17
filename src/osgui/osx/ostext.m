@@ -648,6 +648,21 @@ void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32
 
 /*---------------------------------------------------------------------------*/
 
+void ostext_focus(OSText *view, const bool_t focus)
+{
+    OSXTextView *lview;
+    cassert_no_null(view);
+    lview = [(NSScrollView*)view documentView];
+    cassert_no_null(lview);
+    if (lview->OnFocus != NULL)
+    {
+        bool_t params = focus;
+        listener_event(lview->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 BOOL _ostext_is(NSView *view)
 {
     if ([view isKindOfClass:[NSScrollView class]])

@@ -99,7 +99,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             return 0;
         break;
 
-    case WM_CTLCOLOREDIT: {
+    case WM_CTLCOLOREDIT:
+    {
         HBRUSH default_brush = (HBRUSH)CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
         HDC hdc = (HDC)wParam;
         COLORREF color = UINT32_MAX, bgcolor = UINT32_MAX;
@@ -156,34 +157,6 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
         if (_oswindow_mouse_down(OSControlPtr(combo)) == TRUE)
             break;
         return 0;
-
-    case WM_SETFOCUS:
-        if (combo->OnFocus != NULL)
-        {
-            bool_t params = TRUE;
-            listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
-        }
-        break;
-
-    case WM_KILLFOCUS:
-        if (combo->launch_event == TRUE && IsWindowEnabled(combo->control.hwnd) && combo->OnChange != NULL)
-        {
-            char_t *combo_text = NULL;
-            uint32_t tsize = 0;
-            EvText params;
-            combo_text = _oscontrol_get_text((const OSControl *)combo, &tsize);
-            params.text = (const char_t *)combo_text;
-            listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, NULL, OSCombo, EvText, void);
-            heap_free((byte_t **)&combo_text, tsize, "OSControlGetText");
-        }
-
-        if (combo->OnFocus != NULL)
-        {
-            bool_t params = FALSE;
-            listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
-        }
-
-        break;
     }
 
     return combo->def_edit_proc(hwnd, uMsg, wParam, lParam);
@@ -592,7 +565,7 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
 
 /*---------------------------------------------------------------------------*/
 
-HWND _oscombo_focus(OSCombo *combo)
+HWND _oscombo_focus_widget(OSCombo *combo)
 {
     cassert_no_null(combo);
     return combo->edit_hwnd;
@@ -685,4 +658,35 @@ void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_h
 
     height += (num_elems /* - 1*/) * line_height;
     SetWindowPos(combo_hwnd, NULL, 0, 0, rect.right - rect.left, height, SWP_NOMOVE | SWP_NOZORDER);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t oscombo_resign_focus(const OSCombo *combo)
+{
+    bool_t lost_focus = TRUE;
+    if (combo->OnChange != NULL)
+    {
+        char_t *combo_text = NULL;
+        uint32_t tsize = 0;
+        EvText params;
+        combo_text = _oscontrol_get_text((const OSControl *)combo, &tsize);
+        params.text = (const char_t *)combo_text;
+        listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
+        heap_free((byte_t **)&combo_text, tsize, "OSControlGetText");
+    }
+
+    return lost_focus;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_focus(OSCombo *combo, const bool_t focus)
+{
+    cassert_no_null(combo);
+    if (combo->OnFocus != NULL)
+    {
+        bool_t params = focus;
+        listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
+    }
 }

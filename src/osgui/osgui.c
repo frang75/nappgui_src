@@ -373,7 +373,8 @@ void osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t 
             }
             break;
 
-        case i_WORD_TYPE_TEXT: {
+        case i_WORD_TYPE_TEXT:
+        {
             char_t word[128];
             real32_t word_width = 0.f, word_height = 0.f;
             register uint32_t size = (uint32_t)(next_text - ctext);

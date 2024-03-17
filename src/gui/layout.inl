@@ -20,7 +20,7 @@ void _layout_attach_to_panel(Layout *layout, Panel *panel);
 
 Panel *_layout_panel(const Layout *layout);
 
-Layout *_layout_search_component(const Layout *layout, const GuiComponent *component, const bool_t in_subpanels);
+Layout *_layout_search_component(const Layout *layout, const GuiComponent *component, Cell **in_cell, const bool_t in_subpanels);
 
 bool_t _layout_search_layout(const Layout *layout, Layout *sublayout);
 

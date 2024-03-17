@@ -205,23 +205,20 @@ void osfont_destroy(OSFont **font)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *osfont_family(const char_t *family)
+String *osfont_family_name(const OSFont *font)
 {
-    if (str_equ_c(family, "__SYSTEM__") == TRUE)
+    HFONT hfont = (HFONT)font;
+    LOGFONT lf;
+    cassert_no_null(hfont);
+
+    if (GetObject(hfont, sizeof(LOGFONT), &lf) == sizeof(LOGFONT))
     {
-        NONCLIENTMETRICS metrics;
-        i_metrics(&metrics);
-        unicode_convers((const char_t *)metrics.lfMessageFont.lfFaceName, i_FAMILY, ekUTF16, ekUTF8, sizeof(i_FAMILY));
-        return i_FAMILY;
+        char_t faceName[LF_FACESIZE];
+        unicode_convers((const char_t *)lf.lfFaceName, faceName, ekUTF16, ekUTF8, sizeof(faceName));
+        return str_c(faceName);
     }
-    else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
-    {
-        return "Courier New";
-    }
-    else
-    {
-        return family;
-    }
+
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/

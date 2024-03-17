@@ -14,12 +14,8 @@
 
 __EXTERN_C
 
-void _osedit_set_focus(OSEdit *edit);
-
-void _osedit_unset_focus(OSEdit *edit);
-
 bool_t _osedit_autosel(const OSEdit *edit);
 
-GtkWidget *_osedit_focus(OSEdit *edit);
+GtkWidget *_osedit_focus_widget(OSEdit *edit);
 
 __END_C
