@@ -191,14 +191,14 @@ __END_C
 #define stm_read_enum(stm, type) \
     (type) stm_read_i32(stm)
 
-#define stm_lines(line, stm)                     \
-    {                                            \
+#define stm_lines(line, stm) \
+    { \
         const char_t *line = stm_read_line(stm); \
-        while (line != NULL)                     \
+        while (line != NULL) \
         {
 
-#define stm_next(line, stm)    \
+#define stm_next(line, stm) \
     line = stm_read_line(stm); \
-    unref(line);               \
-    }                          \
+    unref(line); \
+    } \
     }

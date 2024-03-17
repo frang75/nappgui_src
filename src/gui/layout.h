@@ -155,18 +155,18 @@ __END_C
     layout_dbind_imp(layout, listener, (const char_t *)#type, (uint16_t)sizeof(type))
 
 #define layout_dbind_obj(layout, obj, type) \
-    (                                       \
-        (void)((type *)obj == obj),         \
+    ( \
+        (void)((type *)obj == obj), \
         layout_dbind_obj_imp(layout, (void *)obj, (const char_t *)#type))
 
-#define layout_dbind_update(layout, type, mtype, mname)  \
-    (                                                    \
-        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype),    \
-        layout_dbind_update_imp(                         \
-            layout,                                      \
-            (const char_t *)#type,                       \
-            (uint16_t)sizeof(type),                      \
-            (const char_t *)#mname,                      \
-            (const char_t *)#mtype,                      \
+#define layout_dbind_update(layout, type, mtype, mname) \
+    ( \
+        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype), \
+        layout_dbind_update_imp( \
+            layout, \
+            (const char_t *)#type, \
+            (uint16_t)sizeof(type), \
+            (const char_t *)#mname, \
+            (const char_t *)#mtype, \
             (uint16_t)STRUCT_MEMBER_OFFSET(type, mname), \
             (uint16_t)STRUCT_MEMBER_SIZE(type, mname)))

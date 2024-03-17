@@ -303,13 +303,13 @@ struct _evfiledir_t
 #include "setst.hxx"
 #include "setpt.hxx"
 
-#define DeclSt(type)  \
+#define DeclSt(type) \
     ArrStDebug(type); \
     SetStDebug(type); \
     ArrStFuncs(type); \
     SetStFuncs(type)
 
-#define DeclPt(type)  \
+#define DeclPt(type) \
     ArrPtDebug(type); \
     SetPtDebug(type); \
     ArrPtFuncs(type); \

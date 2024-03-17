@@ -25,10 +25,10 @@ typedef uint32_t (*i_Fptr_size)(const char_t *str);
 /* 2) Range [0xD800-0xDFFF] is reserved for surrogate pairs (UTF16) */
 /* 3) Two last codepoints of each plane 0xnFFFE and 0xnFFFF are reserved for internal use */
 /* 4) Range [0xFDD0-0xFDEF] is reserved for internal use */
-#define i_UNICODE_VALID_CODEPOINT(codepoint)                            \
-    (bool_t) /* 1) */ ((codepoint) < 0x110000 &&                        \
+#define i_UNICODE_VALID_CODEPOINT(codepoint) \
+    (bool_t) /* 1) */ ((codepoint) < 0x110000 && \
                        /* 2) */ (((codepoint)&0xFFFFF800) != 0xD800) && \
-                       /* 3) */ ((codepoint)&0xFFFE) != 0xFFFE &&       \
+                       /* 3) */ ((codepoint)&0xFFFE) != 0xFFFE && \
                        /* 4) */ ((codepoint) < 0xFDD0 || (codepoint) > 0xFDEF))
 
 #if defined(__ASSERTS__)

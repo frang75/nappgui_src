@@ -66,9 +66,9 @@ _draw2d_api const void *image_native(const Image *image);
 __END_C
 
 #define image_data(image, data, func_destroy_data, type) \
-    (                                                    \
-        (void)((type **)data == data),                   \
-        FUNC_CHECK_DESTROY(func_destroy_data, type),     \
+    ( \
+        (void)((type **)data == data), \
+        FUNC_CHECK_DESTROY(func_destroy_data, type), \
         image_data_imp(image, (void **)data, (FPtr_destroy)func_destroy_data))
 
 #define image_get_data(image, type) \

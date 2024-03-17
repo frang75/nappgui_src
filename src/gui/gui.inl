@@ -45,11 +45,11 @@ const Cursor *_gui_cursor(const gui_cursor_t cursor, const Image *image, const r
 __END_C
 
 #define _gui_add_transition(owner, listener, type) \
-    (                                              \
-        (void)((type *)owner == owner),            \
+    ( \
+        (void)((type *)owner == owner), \
         _gui_add_transition_imp((void *)owner, listener))
 
 #define _gui_delete_transition(owner, type) \
-    (                                       \
-        (void)((type *)owner == owner),     \
+    ( \
+        (void)((type *)owner == owner), \
         _gui_delete_transition_imp((void *)owner))

@@ -42,9 +42,9 @@ _gui_api real32_t panel_scroll_height(const Panel *panel);
 __END_C
 
 #define panel_data(panel, data, func_destroy_data, type) \
-    (                                                    \
-        (void)((type **)data == data),                   \
-        FUNC_CHECK_DESTROY(func_destroy_data, type),     \
+    ( \
+        (void)((type **)data == data), \
+        FUNC_CHECK_DESTROY(func_destroy_data, type), \
         panel_data_imp(panel, (void **)data, (FPtr_destroy)func_destroy_data))
 
 #define panel_get_data(panel, type) \

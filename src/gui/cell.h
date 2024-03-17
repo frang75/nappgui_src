@@ -72,14 +72,14 @@ _gui_api void cell_dbind_imp(
 
 __END_C
 
-#define cell_dbind(cell, type, mtype, mname)             \
-    (                                                    \
-        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype),    \
-        cell_dbind_imp(                                  \
-            cell,                                        \
-            (const char_t *)#type,                       \
-            (uint16_t)sizeof(type),                      \
-            (const char_t *)#mname,                      \
-            (const char_t *)#mtype,                      \
+#define cell_dbind(cell, type, mtype, mname) \
+    ( \
+        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype), \
+        cell_dbind_imp( \
+            cell, \
+            (const char_t *)#type, \
+            (uint16_t)sizeof(type), \
+            (const char_t *)#mname, \
+            (const char_t *)#mtype, \
             (uint16_t)STRUCT_MEMBER_OFFSET(type, mname), \
             (uint16_t)STRUCT_MEMBER_SIZE(type, mname)))

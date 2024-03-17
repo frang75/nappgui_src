@@ -25,6 +25,6 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
 __END_C
 
 #define draw2d_extents(data, func_word_extents, newlines, str, refwidth, width, height, type) \
-    ((void)((type *)(data) == (data)),                                                        \
-     FUNC_CHECK_WORD_EXTENTS(func_word_extents, type),                                        \
+    ((void)((type *)(data) == (data)), \
+     FUNC_CHECK_WORD_EXTENTS(func_word_extents, type), \
      draw2d_extents_imp((void *)data, (FPtr_word_extents)func_word_extents, newlines, str, refwidth, width, height))

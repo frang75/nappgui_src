@@ -68,14 +68,14 @@ __END_C
 #define evbind_object(e, type) \
     (type *)evbind_object_imp(e, (const char_t *)#type)
 
-#define evbind_modify(e, type, mtype, mname)             \
-    (                                                    \
-        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype),    \
-        evbind_modify_imp(                               \
-            e,                                           \
-            (const char_t *)#type,                       \
-            (uint16_t)sizeof(type),                      \
-            (const char_t *)#mname,                      \
-            (const char_t *)#mtype,                      \
+#define evbind_modify(e, type, mtype, mname) \
+    ( \
+        CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype), \
+        evbind_modify_imp( \
+            e, \
+            (const char_t *)#type, \
+            (uint16_t)sizeof(type), \
+            (const char_t *)#mname, \
+            (const char_t *)#mtype, \
             (uint16_t)STRUCT_MEMBER_OFFSET(type, mname), \
             (uint16_t)STRUCT_MEMBER_SIZE(type, mname)))

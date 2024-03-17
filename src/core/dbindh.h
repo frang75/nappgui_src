@@ -159,18 +159,18 @@ _core_api uint32_t dbind_enum_index(const DBind *dbind, const enum_t value);
 __END_C
 
 #define dbind_opaque(type, func_data, func_buffer, func_copy, func_read, func_write, func_destroy) \
-    (                                                                                              \
-        FUNC_CHECK_DATA(func_data, type),                                                          \
-        FUNC_CHECK_BUFFER(func_buffer, type),                                                      \
-        FUNC_CHECK_COPY(func_copy, type),                                                          \
-        FUNC_CHECK_READ(func_read, type),                                                          \
-        FUNC_CHECK_WRITE(func_write, type),                                                        \
-        FUNC_CHECK_DESTROY(func_destroy, type),                                                    \
-        dbind_opaque_imp(                                                                          \
-            (const char_t *)#type,                                                                 \
-            (FPtr_data)func_data,                                                                  \
-            (FPtr_buffer)func_buffer,                                                              \
-            (FPtr_copy)func_copy,                                                                  \
-            (FPtr_read)func_read,                                                                  \
-            (FPtr_write)func_write,                                                                \
+    ( \
+        FUNC_CHECK_DATA(func_data, type), \
+        FUNC_CHECK_BUFFER(func_buffer, type), \
+        FUNC_CHECK_COPY(func_copy, type), \
+        FUNC_CHECK_READ(func_read, type), \
+        FUNC_CHECK_WRITE(func_write, type), \
+        FUNC_CHECK_DESTROY(func_destroy, type), \
+        dbind_opaque_imp( \
+            (const char_t *)#type, \
+            (FPtr_data)func_data, \
+            (FPtr_buffer)func_buffer, \
+            (FPtr_copy)func_copy, \
+            (FPtr_read)func_read, \
+            (FPtr_write)func_write, \
             (FPtr_destroy)func_destroy))

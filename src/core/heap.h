@@ -70,13 +70,13 @@ __END_C
     (type *)heap_calloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR, FALSE)
 
 #define heap_realloc_n(mem, size, new_size, type) \
-    ((void)((type *)mem == mem),                  \
+    ((void)((type *)mem == mem), \
      (type *)heap_realloc((byte_t *)mem, size * (uint32_t)sizeof(type), new_size * (uint32_t)sizeof(type), (const char_t *)#type HEAPARR))
 
-#define heap_delete(obj, type)        \
+#define heap_delete(obj, type) \
     ((void)((obj) == (type **)(obj)), \
      heap_free((byte_t **)(obj), (uint32_t)sizeof(type), (const char_t *)#type))
 
-#define heap_delete_n(objs, n, type)    \
+#define heap_delete_n(objs, n, type) \
     ((void)((objs) == (type **)(objs)), \
      heap_free((byte_t **)(objs), (uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR))
