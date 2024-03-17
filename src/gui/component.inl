@@ -69,19 +69,19 @@ Window *_component_window(const GuiComponent *component);
 
 __END_C
 
-#define component_update_listener(                          \
-    component,                                              \
-    listener,                                               \
-    new_listener,                                           \
-    func_event_handler,                                     \
-    func_set_listener,                                      \
-    type)                                                   \
-    (                                                       \
-        (void)((type *)component == component),             \
+#define component_update_listener( \
+    component, \
+    listener, \
+    new_listener, \
+    func_event_handler, \
+    func_set_listener, \
+    type) \
+    ( \
+        (void)((type *)component == component), \
         FUNC_CHECK_EVENT_HANDLER(func_event_handler, type), \
-        _component_update_listener_imp(                     \
-            (GuiComponent *)component,                      \
-            listener,                                       \
-            new_listener,                                   \
-            (FPtr_event_handler)func_event_handler,         \
+        _component_update_listener_imp( \
+            (GuiComponent *)component, \
+            listener, \
+            new_listener, \
+            (FPtr_event_handler)func_event_handler, \
             func_set_listener))

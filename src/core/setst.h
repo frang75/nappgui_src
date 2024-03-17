@@ -56,58 +56,58 @@
 #define setst_prev_const(set, type) \
     setst_##type##_prev_const(set)
 
-#define setst_foreach(elem, set, type)                                        \
-    {                                                                         \
-        register type *elem = setst_first(set, type);                         \
+#define setst_foreach(elem, set, type) \
+    { \
+        register type *elem = setst_first(set, type); \
         register uint32_t elem##_i = 0, elem##_total = setst_size(set, type); \
-        while (elem != NULL)                                                  \
+        while (elem != NULL) \
         {
 
-#define setst_foreach_const(elem, set, type)                                  \
-    {                                                                         \
-        register const type *elem = setst_first_const(set, type);             \
+#define setst_foreach_const(elem, set, type) \
+    { \
+        register const type *elem = setst_first_const(set, type); \
         register uint32_t elem##_i = 0, elem##_total = setst_size(set, type); \
-        while (elem != NULL)                                                  \
+        while (elem != NULL) \
         {
 
 #define setst_fornext(elem, set, type) \
-    elem = setst_next(set, type);      \
-    elem##_i += 1;                     \
-    unref(elem##_total);               \
-    }                                  \
+    elem = setst_next(set, type); \
+    elem##_i += 1; \
+    unref(elem##_total); \
+    } \
     }
 
 #define setst_fornext_const(elem, set, type) \
-    elem = setst_next_const(set, type);      \
-    elem##_i += 1;                           \
-    unref(elem##_total);                     \
-    }                                        \
+    elem = setst_next_const(set, type); \
+    elem##_i += 1; \
+    unref(elem##_total); \
+    } \
     }
 
-#define setst_forback(elem, set, type)                                                       \
-    {                                                                                        \
-        register type *elem = setst_last(set, type);                                         \
+#define setst_forback(elem, set, type) \
+    { \
+        register type *elem = setst_last(set, type); \
         register uint32_t elem##_total = setst_size(set, type), elem##_i = elem##_total - 1; \
-        while (elem != NULL)                                                                 \
+        while (elem != NULL) \
         {
 
-#define setst_forback_const(elem, set, type)                                                 \
-    {                                                                                        \
-        register type *elem = setst_last_const(set, type);                                   \
+#define setst_forback_const(elem, set, type) \
+    { \
+        register type *elem = setst_last_const(set, type); \
         register uint32_t elem##_total = setst_size(set, type), elem##_i = elem##_total - 1; \
-        while (elem != NULL)                                                                 \
+        while (elem != NULL) \
         {
 
-#define setst_forprev(set, type)  \
+#define setst_forprev(set, type) \
     elem = setst_prev(set, type); \
-    elem##_i -= 1;                \
-    unref(elem##_total);          \
-    }                             \
+    elem##_i -= 1; \
+    unref(elem##_total); \
+    } \
     }
 
-#define setst_forprev_const(set, type)  \
+#define setst_forprev_const(set, type) \
     elem = setst_prev_const(set, type); \
-    elem##_i -= 1;                      \
-    unref(elem##_total);                \
-    }                                   \
+    elem##_i -= 1; \
+    unref(elem##_total); \
+    } \
     }

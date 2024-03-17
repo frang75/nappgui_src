@@ -45,7 +45,7 @@ typedef enum _enum_t
 
 #ifdef __cplusplus
 #define __EXTERN_C \
-    extern "C"     \
+    extern "C" \
     {
 #define __END_C }
 #else

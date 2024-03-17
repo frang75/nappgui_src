@@ -56,24 +56,24 @@ void osapp_OnThemeChanged(OSApp *app, Listener *listener);
 __END_C
 
 #define osapp_init(argc, argv, instance, listener, with_run_loop, func_OnFinishLaunching, func_OnTimerSignal, type) \
-    (                                                                                                               \
-        (void)((type *)listener == listener),                                                                       \
-        FUNC_CHECK_APP_CALL(func_OnFinishLaunching, type),                                                          \
-        FUNC_CHECK_APP_CALL(func_OnTimerSignal, type),                                                              \
-        osapp_init_imp(                                                                                             \
-            argc, argv, instance,                                                                                   \
-            (void *)listener,                                                                                       \
-            with_run_loop,                                                                                          \
-            (FPtr_app_call)func_OnFinishLaunching,                                                                  \
+    ( \
+        (void)((type *)listener == listener), \
+        FUNC_CHECK_APP_CALL(func_OnFinishLaunching, type), \
+        FUNC_CHECK_APP_CALL(func_OnTimerSignal, type), \
+        osapp_init_imp( \
+            argc, argv, instance, \
+            (void *)listener, \
+            with_run_loop, \
+            (FPtr_app_call)func_OnFinishLaunching, \
             (FPtr_app_call)func_OnTimerSignal))
 
 #define osapp_terminate(app, abnormal_termination, func_destroy, func_OnExecutionEnd, type) \
-    (                                                                                       \
-        FUNC_CHECK_DESTROY(func_destroy, type),                                             \
-        FUNC_CHECK_APP_VOID(func_OnExecutionEnd),                                           \
-        osapp_terminate_imp(                                                                \
-            app, abnormal_termination,                                                      \
-            (FPtr_destroy)func_destroy,                                                     \
+    ( \
+        FUNC_CHECK_DESTROY(func_destroy, type), \
+        FUNC_CHECK_APP_VOID(func_OnExecutionEnd), \
+        osapp_terminate_imp( \
+            app, abnormal_termination, \
+            (FPtr_destroy)func_destroy, \
             (FPtr_app_void)func_OnExecutionEnd))
 
 #define osapp_listener(type) \

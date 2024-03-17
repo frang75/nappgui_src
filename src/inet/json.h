@@ -29,13 +29,13 @@ __END_C
     (type *)json_read_imp(stm, opts, (const char_t *)#type)
 
 #define json_write(stm, data, opts, type) \
-    ((void)((const type *)data == data),  \
+    ((void)((const type *)data == data), \
      json_write_imp(stm, (const void *)data, opts, (const char_t *)#type))
 
-#define json_destroy(data, type)    \
+#define json_destroy(data, type) \
     ((void)((type **)data == data), \
      json_destroy_imp((void **)data, (const char_t *)#type))
 
-#define json_destopt(data, type)    \
+#define json_destopt(data, type) \
     ((void)((type **)data == data), \
      json_destopt_imp((void **)data, (const char_t *)#type))

@@ -102,62 +102,62 @@
     arrst_##type##_sort(array, func_compare)
 
 #define arrst_sort_ex(array, func_compare, data, type, dtype) \
-    ((void)((data) == (dtype *)(data)),                       \
-     FUNC_CHECK_COMPARE_EX(func_compare, type, dtype),        \
+    ((void)((data) == (dtype *)(data)), \
+     FUNC_CHECK_COMPARE_EX(func_compare, type, dtype), \
      arrst_##type##_sort_ex(array, (FPtr_compare_ex)func_compare, (void *)data))
 
 #define arrst_search(array, func_compare, key, pos, type, ktype) \
-    ((void)((key) == (ktype *)(key)),                            \
-     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype),          \
+    ((void)((key) == (ktype *)(key)), \
+     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
      arrst_##type##_search(array, (FPtr_compare)func_compare, (const void *)key, pos))
 
 #define arrst_search_const(array, func_compare, key, pos, type, ktype) \
-    ((void)((key) == (ktype *)(key)),                                  \
-     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype),                \
+    ((void)((key) == (ktype *)(key)), \
+     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
      arrst_##type##_search_const(array, (FPtr_compare)func_compare, (const void *)key, pos))
 
 #define arrst_bsearch(array, func_compare, key, pos, type, ktype) \
-    ((void)((key) == (ktype *)(key)),                             \
-     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype),           \
+    ((void)((key) == (ktype *)(key)), \
+     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
      arrst_##type##_bsearch(array, (FPtr_compare)func_compare, (const void *)key, pos))
 
 #define arrst_bsearch_const(array, func_compare, key, pos, type, ktype) \
-    ((void)((key) == (ktype *)(key)),                                   \
-     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype),                 \
+    ((void)((key) == (ktype *)(key)), \
+     FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
      arrst_##type##_bsearch_const(array, (FPtr_compare)func_compare, (const void *)key, pos))
 
-#define arrst_foreach(elem, array, type)                                    \
-    {                                                                       \
-        register type *elem = arrst_all(array, type);                       \
+#define arrst_foreach(elem, array, type) \
+    { \
+        register type *elem = arrst_all(array, type); \
         register uint32_t elem##_i, elem##_total = arrst_size(array, type); \
-        for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem)     \
+        for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem) \
         {
 
-#define arrst_foreach_const(elem, array, type)                              \
-    {                                                                       \
-        register const type *elem = arrst_all_const(array, type);           \
+#define arrst_foreach_const(elem, array, type) \
+    { \
+        register const type *elem = arrst_all_const(array, type); \
         register uint32_t elem##_i, elem##_total = arrst_size(array, type); \
-        for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem)     \
+        for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem) \
         {
 
-#define arrst_forback(elem, array, type)                                         \
-    {                                                                            \
-        register type *elem = arrst_all(array, type);                            \
+#define arrst_forback(elem, array, type) \
+    { \
+        register type *elem = arrst_all(array, type); \
         register uint32_t __i, elem##_i, elem##_total = arrst_size(array, type); \
-        elem += elem##_total - 1;                                                \
-        elem##_i = elem##_total - 1;                                             \
-        for (__i = 0; __i < elem##_total; ++__i, --elem##_i, --elem)             \
+        elem += elem##_total - 1; \
+        elem##_i = elem##_total - 1; \
+        for (__i = 0; __i < elem##_total; ++__i, --elem##_i, --elem) \
         {
 
-#define arrst_forback_const(elem, array, type)                                   \
-    {                                                                            \
-        register const type *elem = arrst_all_const(array, type);                \
+#define arrst_forback_const(elem, array, type) \
+    { \
+        register const type *elem = arrst_all_const(array, type); \
         register uint32_t __i, elem##_i, elem##_total = arrst_size(array, type); \
-        elem += elem##_total - 1;                                                \
-        elem##_i = elem##_total - 1;                                             \
-        for (__i = 0; __i < elem##_total; ++__i, --elem##_i, --elem)             \
+        elem += elem##_total - 1; \
+        elem##_i = elem##_total - 1; \
+        for (__i = 0; __i < elem##_total; ++__i, --elem##_i, --elem) \
         {
 
 #define arrst_end() \
-    }               \
+    } \
     }

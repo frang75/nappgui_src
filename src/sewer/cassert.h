@@ -69,7 +69,7 @@ __END_C
 #endif
 
 #define cassert_default() \
-    default:              \
+    default: \
         cassert_default_imp(__FILE__, __LINE__)
 
 #define cassert_unref(cond, v) \

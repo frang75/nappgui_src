@@ -33,7 +33,7 @@ struct i_node_t
     i_Node *rnode;
 };
 
-#define i_NODE_DATA(node)            \
+#define i_NODE_DATA(node) \
     ((void)((i_Node *)node == node), \
      ((byte_t *)node + sizeof(i_Node)))
 

@@ -86,9 +86,9 @@ _gui_api void *view_native(View *view);
 __END_C
 
 #define view_data(view, data, func_destroy_data, type) \
-    (                                                  \
-        (void)((type **)data == data),                 \
-        FUNC_CHECK_DESTROY(func_destroy_data, type),   \
+    ( \
+        (void)((type **)data == data), \
+        FUNC_CHECK_DESTROY(func_destroy_data, type), \
         view_data_imp(view, (void **)data, (FPtr_destroy)func_destroy_data))
 
 #define view_get_data(view, type) \
