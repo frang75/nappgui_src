@@ -91,7 +91,7 @@ static bool_t i_is_update(const char_t *src_dir, const char_t *dest_path, const 
 
 /*---------------------------------------------------------------------------*/
 
-void nrclib_serial_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) * *warnings, ArrPt(String) * *errors, bool_t *regenerated)
+void nrclib_serial_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) **warnings, ArrPt(String) **errors, bool_t *regenerated)
 {
     cassert_no_null(src_dir);
     cassert_no_null(dest_file);
@@ -142,7 +142,7 @@ void nrclib_serial_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(Str
 
 /*---------------------------------------------------------------------------*/
 
-void nrclib_pack_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) * *warnings, ArrPt(String) * *errors, bool_t *regenerated)
+void nrclib_pack_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) **warnings, ArrPt(String) **errors, bool_t *regenerated)
 {
     cassert_no_null(src_dir);
     cassert_no_null(dest_file);

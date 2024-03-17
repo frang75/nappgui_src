@@ -49,8 +49,8 @@ struct _oscombo_t
     Listener *OnChange;
     Listener *OnFocus;
     Listener *OnSelect;
-    ArrPt(String) * texts;
-    ArrPt(Image) * images;
+    ArrPt(String) *texts;
+    ArrPt(Image) *images;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -529,7 +529,7 @@ GtkWidget *_oscombo_focus_widget(OSCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
-void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) * texts, ArrPt(Image) * images, uint32_t *imgwidth, uint32_t *imgheight)
+void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) *texts, ArrPt(Image) *images, uint32_t *imgwidth, uint32_t *imgheight)
 {
     cassert_no_null(combo);
     cassert_no_null(imgwidth);

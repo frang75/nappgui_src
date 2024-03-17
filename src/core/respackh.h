@@ -24,11 +24,11 @@ _core_api void respack_add_cdata(ResPack *pack, const uint32_t type, const byte_
 
 _core_api void *respack_object_imp(const ResPack *pack, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy);
 
-_core_api void *respack_aobj_imp(const ArrPt(ResPack) * packs, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy, bool_t *is_resid);
+_core_api void *respack_aobj_imp(const ArrPt(ResPack) *packs, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy, bool_t *is_resid);
 
-_core_api const char_t *respack_atext(const ArrPt(ResPack) * packs, const ResId id, bool_t *is_resid);
+_core_api const char_t *respack_atext(const ArrPt(ResPack) *packs, const ResId id, bool_t *is_resid);
 
-_core_api const byte_t *respack_afile(const ArrPt(ResPack) * packs, const ResId id, uint32_t *size, bool_t *is_resid);
+_core_api const byte_t *respack_afile(const ArrPt(ResPack) *packs, const ResId id, uint32_t *size, bool_t *is_resid);
 
 __END_C
 

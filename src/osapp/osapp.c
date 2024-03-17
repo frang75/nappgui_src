@@ -87,7 +87,7 @@ struct i_app_t
     FPtr_app_update func_update;
     FPtr_gctx_call func_async_call;
     String *locale;
-    ArrPt(i_Task) * scheduler;
+    ArrPt(i_Task) *scheduler;
 };
 
 DeclSt(i_Task);
@@ -170,7 +170,7 @@ static uint32_t i_dispatch_task(i_Task *task)
 /*---------------------------------------------------------------------------*/
 
 /* This function runs in the MAIN thread */
-static void i_scheduler_cycle(ArrPt(i_Task) * scheduler, const real64_t crtime)
+static void i_scheduler_cycle(ArrPt(i_Task) *scheduler, const real64_t crtime)
 {
     i_Task *deleted_task = NULL;
 

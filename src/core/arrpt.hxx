@@ -28,20 +28,20 @@
 #define ArrPtFuncs(type)                                                                                                                                       \
     ArrPt(type);                                                                                                                                               \
                                                                                                                                                                \
-    static __TYPECHECK ArrPt(type) * arrpt_##type##_create(const uint16_t esize);                                                                              \
-    static ArrPt(type) * arrpt_##type##_create(const uint16_t esize)                                                                                           \
+    static __TYPECHECK ArrPt(type) *arrpt_##type##_create(const uint16_t esize);                                                                               \
+    static ArrPt(type) *arrpt_##type##_create(const uint16_t esize)                                                                                            \
     {                                                                                                                                                          \
         return (ArrPt(type) *)array_create(esize, (const char_t *)(ARRPT #type));                                                                              \
     }                                                                                                                                                          \
                                                                                                                                                                \
-    static __TYPECHECK ArrPt(type) * arrpt_##type##_copy(const struct Arr##Pt##type *array, type *(func_copy)(const type *));                                  \
-    static ArrPt(type) * arrpt_##type##_copy(const struct Arr##Pt##type *array, type *(func_copy)(const type *))                                               \
+    static __TYPECHECK ArrPt(type) *arrpt_##type##_copy(const struct Arr##Pt##type *array, type *(func_copy)(const type *));                                   \
+    static ArrPt(type) *arrpt_##type##_copy(const struct Arr##Pt##type *array, type *(func_copy)(const type *))                                                \
     {                                                                                                                                                          \
         return (ArrPt(type) *)array_copy_ptr((Array *)array, (FPtr_copy)func_copy, (const char_t *)(ARRPT #type));                                             \
     }                                                                                                                                                          \
                                                                                                                                                                \
-    static __TYPECHECK ArrPt(type) * arrpt_##type##_read(Stream *stream, type *(func_read)(Stream *));                                                         \
-    static ArrPt(type) * arrpt_##type##_read(Stream *stream, type *(func_read)(Stream *))                                                                      \
+    static __TYPECHECK ArrPt(type) *arrpt_##type##_read(Stream *stream, type *(func_read)(Stream *));                                                          \
+    static ArrPt(type) *arrpt_##type##_read(Stream *stream, type *(func_read)(Stream *))                                                                       \
     {                                                                                                                                                          \
         return (ArrPt(type) *)array_read_ptr(stream, (FPtr_read)func_read, (const char_t *)(ARRPT #type));                                                     \
     }                                                                                                                                                          \

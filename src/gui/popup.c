@@ -42,7 +42,7 @@ struct _popup_t
     GuiComponent component;
     S2Df size;
     ResId ttipid;
-    ArrSt(PElem) * elems;
+    ArrSt(PElem) *elems;
     Listener *OnChange;
 };
 

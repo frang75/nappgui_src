@@ -396,3 +396,4 @@ BOOL _oslabel_is(NSView *view)
 {
     return [view isKindOfClass:[OSXLabel class]];
 }
+

@@ -96,9 +96,9 @@ struct _layout_t
     Cell *parent;
     Panel *panel;
     bool_t is_row_major_tab;
-    ArrPt(Cell) * cells;
-    ArrSt(i_LineDim) * lines_dim[2];
-    ArrPt(Cell) * cells_dim[2];
+    ArrPt(Cell) *cells;
+    ArrSt(i_LineDim) *lines_dim[2];
+    ArrPt(Cell) *cells_dim[2];
     uint32_t dim_num_elems[2];
     real32_t dim_margin[2];
     color_t bgcolor;
@@ -221,7 +221,7 @@ void _layout_destroy(Layout **layout)
 
 /*---------------------------------------------------------------------------*/
 
-static ArrSt(i_LineDim) * i_create_linedim(const uint32_t num_elems)
+static ArrSt(i_LineDim) *i_create_linedim(const uint32_t num_elems)
 {
     ArrSt(i_LineDim) *dimension = arrst_create(i_LineDim);
     real32_t resize = 1.f / (real32_t)num_elems;
@@ -245,7 +245,7 @@ static ArrSt(i_LineDim) * i_create_linedim(const uint32_t num_elems)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_cell_rowcol_order(ArrPt(Cell) * cells, const uint32_t ncols, const uint32_t nrows, ArrPt(Cell) * cells_dim0, ArrPt(Cell) * cells_dim1)
+static void i_cell_rowcol_order(ArrPt(Cell) *cells, const uint32_t ncols, const uint32_t nrows, ArrPt(Cell) *cells_dim0, ArrPt(Cell) *cells_dim1)
 {
     uint32_t ncells = arrpt_size(cells, Cell);
     cassert(ncells == ncols * nrows);
@@ -840,7 +840,7 @@ void layout_insert_row(Layout *layout, const uint32_t row)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_recompute_resize_percent(ArrSt(i_LineDim) * line_dim)
+static void i_recompute_resize_percent(ArrSt(i_LineDim) *line_dim)
 {
     real32_t norm = 0;
     real32_t nedims = 0;
@@ -1033,7 +1033,7 @@ void layout_vmargin(Layout *layout, const uint32_t row, const real32_t margin)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_expand1(ArrSt(i_LineDim) * line_dim, const uint32_t index)
+static void i_expand1(ArrSt(i_LineDim) *line_dim, const uint32_t index)
 {
     cassert(index < arrst_size(line_dim, i_LineDim));
     arrst_foreach(dim, line_dim, i_LineDim)
@@ -1043,7 +1043,7 @@ static void i_expand1(ArrSt(i_LineDim) * line_dim, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_expand2(ArrSt(i_LineDim) * line_dim, const uint32_t index1, const uint32_t index2, const real32_t exp)
+static void i_expand2(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const uint32_t index2, const real32_t exp)
 {
     cassert(index1 != index2);
     cassert(index1 < arrst_size(line_dim, i_LineDim));
@@ -1063,7 +1063,7 @@ static void i_expand2(ArrSt(i_LineDim) * line_dim, const uint32_t index1, const 
 
 /*---------------------------------------------------------------------------*/
 
-static void i_expand3(ArrSt(i_LineDim) * line_dim, const uint32_t index1, const uint32_t index2, const uint32_t index3, const real32_t exp1, const real32_t exp2)
+static void i_expand3(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const uint32_t index2, const uint32_t index3, const real32_t exp1, const real32_t exp2)
 {
     cassert(index1 != index2);
     cassert(index1 != index3);
@@ -1446,7 +1446,7 @@ bool_t _layout_search_layout(const Layout *layout, Layout *sublayout)
 
 /*---------------------------------------------------------------------------*/
 
-void _layout_components(const Layout *layout, ArrPt(GuiComponent) * components)
+void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components)
 {
     cassert_no_null(layout);
     arrpt_foreach(cell, layout->cells, Cell)
@@ -1585,7 +1585,7 @@ void _layout_dimension(Layout *layout, const uint32_t di, real32_t *dim0, real32
 
 /*---------------------------------------------------------------------------*/
 
-static void i_dimension_resize(ArrSt(i_LineDim) * dim, const real32_t current_size, const real32_t required_size)
+static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_size, const real32_t required_size)
 {
     real32_t diff = required_size - current_size;
     real32_t total = 0;
@@ -1737,7 +1737,7 @@ void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_dimension_size(const ArrSt(i_LineDim) * dim, const real32_t margin)
+static real32_t i_dimension_size(const ArrSt(i_LineDim) *dim, const real32_t margin)
 {
     real32_t size = margin;
     arrst_foreach_const(edim, dim, i_LineDim)
@@ -2054,7 +2054,7 @@ void _layout_dbind_update(Layout *layout, const DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(Cell) * _layout_cells(Layout *layout)
+ArrPt(Cell) *_layout_cells(Layout *layout)
 {
     cassert_no_null(layout);
     return layout->cells;

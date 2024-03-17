@@ -16,6 +16,6 @@ __EXTERN_C
 
 GtkWidget *_oscombo_focus_widget(OSCombo *combo);
 
-void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) * texts, ArrPt(Image) * images, uint32_t *imgwidth, uint32_t *imgheight);
+void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) *texts, ArrPt(Image) *images, uint32_t *imgwidth, uint32_t *imgheight);
 
 __END_C

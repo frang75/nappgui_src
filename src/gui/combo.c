@@ -37,8 +37,8 @@ struct _combo_t
     ResId placid;
     String *placeholder;
     String *text;
-    ArrPt(String) * texts;
-    ArrPt(Image) * images;
+    ArrPt(String) *texts;
+    ArrPt(Image) *images;
     Font *font;
     Font *placeholder_font;
     uint32_t color;
@@ -394,7 +394,7 @@ const char_t *combo_get_text(const Combo *combo, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_delete_duplicates(GuiComponent *component, ArrPt(String) * texts, ArrPt(Image) * images, const char_t *text)
+static void i_delete_duplicates(GuiComponent *component, ArrPt(String) *texts, ArrPt(Image) *images, const char_t *text)
 {
     register uint32_t i = 0, num_elems = 0;
     cassert_no_null(component);
@@ -419,7 +419,7 @@ static void i_delete_duplicates(GuiComponent *component, ArrPt(String) * texts, 
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_exists_substring(ArrPt(String) * texts, const char_t *subtext)
+static bool_t i_exists_substring(ArrPt(String) *texts, const char_t *subtext)
 {
     arrpt_foreach(text, texts, String) if (str_str(tc(text), subtext) != NULL) return TRUE;
     arrpt_end();

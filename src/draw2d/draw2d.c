@@ -46,8 +46,8 @@ DeclSt(IColor);
 #define i_WORD_TYPE_TEXT 3
 
 static uint32_t i_NUM_USERS = 0;
-static ArrPt(String) * i_FONT_FAMILIES;
-static ArrSt(IColor) * i_INDEXED_COLORS;
+static ArrPt(String) *i_FONT_FAMILIES;
+static ArrSt(IColor) *i_INDEXED_COLORS;
 
 /*---------------------------------------------------------------------------*/
 

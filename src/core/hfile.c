@@ -141,7 +141,7 @@ static int i_cmp_entry(const DirEntry *entry1, const DirEntry *entry2)
 
 /*---------------------------------------------------------------------------*/
 
-ArrSt(DirEntry) * hfile_dir_list(const char_t *pathname, const bool_t subdirs, ferror_t *error)
+ArrSt(DirEntry) *hfile_dir_list(const char_t *pathname, const bool_t subdirs, ferror_t *error)
 {
     ArrSt(DirEntry) *entries = arrst_create(DirEntry);
     Dir *dir = bfile_dir_open(pathname, error);
@@ -237,7 +237,7 @@ static bool_t i_except(const char_t *name, const char_t **except, const uint32_t
 
 bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
 {
-    ArrSt(DirEntry) * dir1, *dir2;
+    ArrSt(DirEntry) *dir1, *dir2;
     const DirEntry *files1, *files2;
     uint32_t n1, n2, i1 = 0, i2 = 0;
     bool_t ok = TRUE;

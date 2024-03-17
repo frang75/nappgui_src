@@ -27,7 +27,7 @@ static void i_jump_BOM(const char_t **cp)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_jump_blanks_and_comments(const char_t **cp, const char_t *eof, uint32_t *line, const char_t *filepath, ArrPt(String) * errors)
+static void i_jump_blanks_and_comments(const char_t **cp, const char_t *eof, uint32_t *line, const char_t *filepath, ArrPt(String) *errors)
 {
     bool_t cont = TRUE;
     cassert_no_null(cp);
@@ -93,7 +93,7 @@ static void i_jump_blanks_and_comments(const char_t **cp, const char_t *eof, uin
 
 /*---------------------------------------------------------------------------*/
 
-static String *i_read_id(const char_t **cp, const char_t *eof, uint32_t *line, const char_t *filepath, ArrPt(String) * errors)
+static String *i_read_id(const char_t **cp, const char_t *eof, uint32_t *line, const char_t *filepath, ArrPt(String) *errors)
 {
     const char_t *st = NULL;
     cassert_no_null(cp);
@@ -147,7 +147,7 @@ static String *i_read_text(const char_t **cp, const char_t *eof)
 
 /*---------------------------------------------------------------------------*/
 
-void msgparser_process(const char_t *filepath, const char_t *file_data, const uint32_t file_size, ArrPt(String) * *ids, ArrPt(String) * *texts, ArrPt(String) * errors)
+void msgparser_process(const char_t *filepath, const char_t *file_data, const uint32_t file_size, ArrPt(String) **ids, ArrPt(String) **texts, ArrPt(String) *errors)
 {
     const char_t *cp = NULL;
     const char_t *eof = NULL;

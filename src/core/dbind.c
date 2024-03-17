@@ -115,7 +115,7 @@ struct _stbind_t
     FPtr_read func_read;
     FPtr_write func_write;
     FPtr_destroy func_destroy;
-    ArrSt(DBind) * members;
+    ArrSt(DBind) *members;
 };
 
 struct _enumvbind_t
@@ -128,13 +128,13 @@ struct _enumvbind_t
 struct _enumbind_t
 {
     String *type;
-    ArrSt(EnumVBind) * values;
+    ArrSt(EnumVBind) *values;
 };
 
 struct _databind_t
 {
-    ArrPt(StBind) * stbinds;
-    ArrPt(EnumBind) * ebinds;
+    ArrPt(StBind) *stbinds;
+    ArrPt(EnumBind) *ebinds;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -647,7 +647,7 @@ static dtype_t i_data_type(const char_t *mtypei, String **subtype, uint16_t *siz
 
 /*---------------------------------------------------------------------------*/
 
-static DBind *i_find_member(ArrSt(DBind) * members, const uint16_t moffset, uint32_t *index)
+static DBind *i_find_member(ArrSt(DBind) *members, const uint16_t moffset, uint32_t *index)
 {
     arrst_foreach(member, members, DBind) if (member->offset == moffset)
     {
@@ -2225,7 +2225,7 @@ void dbind_write_imp(Stream *stm, const void *data, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-static DBind *i_find_by_name(ArrSt(DBind) * members, const char_t *name)
+static DBind *i_find_by_name(ArrSt(DBind) *members, const char_t *name)
 {
     arrst_foreach(member, members, DBind) if (str_equ_c(tc(member->name), name) == TRUE) return member;
     arrst_end();

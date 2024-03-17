@@ -67,12 +67,12 @@ _geom2d_api V2Df pol2d_visual_centerf(const Pol2Df *pol, const real32_t norm_tol
 
 _geom2d_api V2Dd pol2d_visual_centerd(const Pol2Dd *pol, const real64_t norm_tol);
 
-_geom2d_api ArrSt(Tri2Df) * pol2d_trianglesf(const Pol2Df *pol);
+_geom2d_api ArrSt(Tri2Df) *pol2d_trianglesf(const Pol2Df *pol);
 
-_geom2d_api ArrSt(Tri2Dd) * pol2d_trianglesd(const Pol2Dd *pol);
+_geom2d_api ArrSt(Tri2Dd) *pol2d_trianglesd(const Pol2Dd *pol);
 
-_geom2d_api ArrPt(Pol2Df) * pol2d_convex_partitionf(const Pol2Df *pol);
+_geom2d_api ArrPt(Pol2Df) *pol2d_convex_partitionf(const Pol2Df *pol);
 
-_geom2d_api ArrPt(Pol2Dd) * pol2d_convex_partitiond(const Pol2Dd *pol);
+_geom2d_api ArrPt(Pol2Dd) *pol2d_convex_partitiond(const Pol2Dd *pol);
 
 __END_C

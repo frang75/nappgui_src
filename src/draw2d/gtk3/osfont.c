@@ -256,9 +256,9 @@ bool_t font_exists_family(const char_t *font_family)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) * font_installed_families(void)
+ArrPt(String) *font_installed_families(void)
 {
-    ArrPt(String) * fonts;
+    ArrPt(String) *fonts;
     PangoFontMap *fontmap;
     PangoFontFamily **families;
     int i, n;

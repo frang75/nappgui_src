@@ -967,7 +967,7 @@ bool_t str_split_trim(const char_t *str, const char_t *substr, String **left, St
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) * str_splits(const char_t *str, const char_t *substr, const bool_t trim)
+ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t trim)
 {
     ArrPt(String) *strs = arrpt_create(String);
     cassert_no_null(str);
@@ -1119,7 +1119,7 @@ const char_t *str_filext(const char_t *pathname)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t str_find(const ArrPt(String) * array, const char_t *str)
+uint32_t str_find(const ArrPt(String) *array, const char_t *str)
 {
     arrpt_foreach_const(astr, array, String) if (str_equ(astr, str) == TRUE) return astr_i;
     arrpt_end();

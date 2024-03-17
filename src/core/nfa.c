@@ -48,9 +48,9 @@ struct _trans_t
 
 struct _nfa_t
 {
-    ArrSt(Trans) * ttable;
-    ArrSt(uint32_t) * current;
-    ArrSt(uint32_t) * temp;
+    ArrSt(Trans) *ttable;
+    ArrSt(uint32_t) *current;
+    ArrSt(uint32_t) *temp;
 };
 
 #define MIN_UNICODE 5
@@ -61,7 +61,7 @@ DeclSt(symbol_t);
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_tokens(Stream *stm, const ArrSt(NToken) * tokens)
+static void i_write_tokens(Stream *stm, const ArrSt(NToken) *tokens)
 {
     arrst_foreach_const(token, tokens, NToken) switch (token->symbol)
     {
@@ -240,7 +240,7 @@ void _nfa_destroy(NFA **nfa)
 
 /*---------------------------------------------------------------------------*/
 
-static ArrSt(NToken) * i_tokens_unix_regex(const char_t *regex)
+static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
 {
     bool_t ok = TRUE;
     ArrSt(NToken) *tokens = arrst_create(NToken);
@@ -364,7 +364,7 @@ static ArrSt(NToken) * i_tokens_unix_regex(const char_t *regex)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_implicits_unix_regex(ArrSt(NToken) * tokens)
+static void i_implicits_unix_regex(ArrSt(NToken) *tokens)
 {
     ArrSt(symbol_t) *implicit = arrst_create(symbol_t);
     register uint32_t i = 0, n = arrst_size(tokens, NToken);
@@ -413,7 +413,7 @@ static void i_implicits_unix_regex(ArrSt(NToken) * tokens)
 
 /*---------------------------------------------------------------------------*/
 /* Shunting-yard algorithm */
-static void i_regex_to_infix(ArrSt(NToken) * *tokens)
+static void i_regex_to_infix(ArrSt(NToken) **tokens)
 {
     ArrSt(NToken) *output = arrst_create(NToken);
     ArrSt(NToken) *stack = arrst_create(NToken);
@@ -495,7 +495,7 @@ static void i_regex_to_infix(ArrSt(NToken) * *tokens)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_offset(ArrSt(Trans) * ttable, const uint32_t offset)
+static void i_offset(ArrSt(Trans) *ttable, const uint32_t offset)
 {
     register uint32_t i, n = arrst_size(ttable, Trans);
     register Trans *trans = arrst_all(ttable, Trans);
@@ -683,7 +683,7 @@ static void i_nfa_closure(NFA *nfa1)
 
 /*---------------------------------------------------------------------------*/
 
-static NFA *i_infix_to_NFA(const ArrSt(NToken) * tokens)
+static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
 {
     ArrPt(NFA) *stack = arrpt_create(NFA);
     NFA *nfa = NULL;
@@ -790,7 +790,7 @@ NFA *_nfa_regex(const char_t *regex, const bool_t verbose)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_state(ArrSt(uint32_t) * states, const uint32_t state)
+static void i_add_state(ArrSt(uint32_t) *states, const uint32_t state)
 {
     arrst_foreach(cstate, states, uint32_t) if (*cstate == state) return;
 
@@ -806,7 +806,7 @@ static void i_add_state(ArrSt(uint32_t) * states, const uint32_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_closure(const ArrSt(Trans) * ttable, ArrSt(uint32_t) * states, const uint32_t state)
+static void i_add_closure(const ArrSt(Trans) *ttable, ArrSt(uint32_t) *states, const uint32_t state)
 {
     const Trans *trans = arrst_get_const(ttable, state, Trans);
 

@@ -28,12 +28,12 @@ struct _menu_t
     GuiCtx *context;
     bool_t has_parent;
     void *ositem;
-    ArrPt(MenuItem) * items;
+    ArrPt(MenuItem) *items;
 };
 
 /*---------------------------------------------------------------------------*/
 
-static Menu *i_create_menu(const GuiCtx *context, const bool_t has_parent, void **ositem, ArrPt(MenuItem) * *items)
+static Menu *i_create_menu(const GuiCtx *context, const bool_t has_parent, void **ositem, ArrPt(MenuItem) **items)
 {
     Menu *menu = obj_new(Menu);
     menu->context = guictx_retain(context);
@@ -51,7 +51,7 @@ Menu *menu_create(void)
     const GuiCtx *context = NULL;
     bool_t has_parent = FALSE;
     void *ositem = NULL;
-    ArrPt(MenuItem) * items;
+    ArrPt(MenuItem) *items;
     context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_menu_create);
@@ -62,7 +62,7 @@ Menu *menu_create(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_detach_menuitems(ArrPt(MenuItem) * items, void *ositem, FPtr_gctx_set_ptr func_detach_menuitem_from_menu)
+static void i_detach_menuitems(ArrPt(MenuItem) *items, void *ositem, FPtr_gctx_set_ptr func_detach_menuitem_from_menu)
 {
     register uint32_t i, num_items;
     register MenuItem **item;

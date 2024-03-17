@@ -46,7 +46,7 @@ static int i_version(void)
 
 /*---------------------------------------------------------------------------*/
 
-static int i_result(ArrPt(String) * *warnings, ArrPt(String) * *errors, const bool_t regenerated)
+static int i_result(ArrPt(String) **warnings, ArrPt(String) **errors, const bool_t regenerated)
 {
     int ret = regenerated ? SUCCESS : SUCCESS_UPTODATE;
     cassert_no_null(warnings);
