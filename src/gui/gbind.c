@@ -427,7 +427,7 @@ static void i_set_empty(Cell *cell, const DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_empty_cells(ArrPt(Cell) * cells, const DBind *dbind)
+static void i_set_empty_cells(ArrPt(Cell) *cells, const DBind *dbind)
 {
     register uint32_t i, n = arrpt_size(cells, Cell);
     for (i = 0; i < n; ++i)

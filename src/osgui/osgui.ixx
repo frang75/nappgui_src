@@ -40,8 +40,8 @@ struct _osframe_t
 
 struct _ostabstop_t
 {
-    ArrPt(OSControl) * controls;
-    ArrPt(OSControl) * tablist;
+    ArrPt(OSControl) *controls;
+    ArrPt(OSControl) *tablist;
     uint32_t tabindex;
     gui_tab_t motion;
     OSWindow *window;

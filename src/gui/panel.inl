@@ -54,7 +54,7 @@ void _panel_locate(Panel *panel);
 
 void _panel_locale(Panel *panel);
 
-ArrPt(Layout) * _panel_layouts(const Panel *panel);
+ArrPt(Layout) *_panel_layouts(const Panel *panel);
 
 void _panel_content_size(Panel *panel, const real32_t width, const real32_t height);
 

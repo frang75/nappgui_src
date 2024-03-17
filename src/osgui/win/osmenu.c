@@ -46,7 +46,7 @@ struct _osmenu_t
     OSWindow *window;
     bool_t is_popup;
     OSMenuItem *parent;
-    ArrPt(OSMenuItem) * items;
+    ArrPt(OSMenuItem) *items;
 };
 
 /*---------------------------------------------------------------------------*/

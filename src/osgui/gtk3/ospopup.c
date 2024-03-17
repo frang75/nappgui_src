@@ -42,8 +42,8 @@ struct _ospopup_t
     GtkCssProvider *font;
     bool_t launch_event;
     Listener *OnSelect;
-    ArrPt(String) * texts;
-    ArrPt(Image) * images;
+    ArrPt(String) *texts;
+    ArrPt(Image) *images;
 };
 
 /*---------------------------------------------------------------------------*/

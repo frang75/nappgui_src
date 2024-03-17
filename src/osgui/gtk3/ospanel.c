@@ -47,7 +47,7 @@ struct _ospanel_t
     GtkWidget *scroll;
     GtkAdjustment *hadjust;
     GtkAdjustment *vadjust;
-    ArrSt(Area) * areas;
+    ArrSt(Area) *areas;
 };
 
 DeclSt(Area);

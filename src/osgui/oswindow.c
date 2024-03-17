@@ -53,7 +53,7 @@ static void i_remove_hotkey(OSHotKey *hotkey)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_hotkey_destroy(ArrSt(OSHotKey) * *hotkeys)
+void oswindow_hotkey_destroy(ArrSt(OSHotKey) **hotkeys)
 {
     cassert_no_null(hotkeys);
     arrst_destopt(hotkeys, i_remove_hotkey, OSHotKey);
@@ -61,7 +61,7 @@ void oswindow_hotkey_destroy(ArrSt(OSHotKey) * *hotkeys)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_hotkey_set(ArrSt(OSHotKey) * *hotkeys, const vkey_t key, const uint32_t modifiers, Listener *listener)
+void oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint32_t modifiers, Listener *listener)
 {
     cassert_no_null(hotkeys);
     if (key != ENUM_MAX(vkey_t))
@@ -113,7 +113,7 @@ void oswindow_hotkey_set(ArrSt(OSHotKey) * *hotkeys, const vkey_t key, const uin
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) * hotkeys, const vkey_t key, const uint32_t modifiers)
+bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) *hotkeys, const vkey_t key, const uint32_t modifiers)
 {
     if (hotkeys != NULL)
     {

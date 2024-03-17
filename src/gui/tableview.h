@@ -69,7 +69,7 @@ _gui_api void tableview_deselect(TableView *view, const uint32_t *rows, const ui
 
 _gui_api void tableview_deselect_all(TableView *view);
 
-_gui_api const ArrSt(uint32_t) * tableview_selected(const TableView *view);
+_gui_api const ArrSt(uint32_t) *tableview_selected(const TableView *view);
 
 _gui_api void tableview_focus_row(TableView *view, const uint32_t row, const align_t align);
 

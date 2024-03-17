@@ -49,7 +49,7 @@ _draw2d_api void font_extents(const Font *font, const char_t *text, const real32
 
 _draw2d_api bool_t font_exists_family(const char_t *family);
 
-_draw2d_api ArrPt(String) * font_installed_families(void);
+_draw2d_api ArrPt(String) *font_installed_families(void);
 
 _draw2d_api const void *font_native(const Font *font);
 

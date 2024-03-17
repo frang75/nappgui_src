@@ -58,17 +58,17 @@ struct i_resource_t
     i_resource_type_t type;
     String *name;
     i_Object global;
-    ArrSt(i_Local) * locals;
+    ArrSt(i_Local) *locals;
 };
 
 struct _resource_pack_t
 {
     uint32_t local_index;
     uint32_t num_locals;
-    ArrPt(String) * local_codes;
-    ArrSt(i_Resource) * resources;
-    ArrPt(String) * warnings;
-    ArrPt(String) * errors;
+    ArrPt(String) *local_codes;
+    ArrSt(i_Resource) *resources;
+    ArrPt(String) *warnings;
+    ArrPt(String) *errors;
 };
 
 DeclSt(i_Local);
@@ -147,7 +147,7 @@ static void i_remove_local(i_Local *local, const i_resource_type_t type)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_init_resource(i_Resource *resource, const uint32_t index, const i_resource_type_t type, String **name, i_Object *global, ArrSt(i_Local) * *locals)
+static void i_init_resource(i_Resource *resource, const uint32_t index, const i_resource_type_t type, String **name, i_Object *global, ArrSt(i_Local) **locals)
 {
     cassert_no_null(resource);
     resource->index = index;
@@ -172,7 +172,7 @@ static void i_remove_resource(i_Resource *resource)
 
 /*---------------------------------------------------------------------------*/
 
-static ResourcePack *i_create_pack(const uint32_t local_index, const uint32_t num_locals, ArrPt(String) * *local_codes, ArrSt(i_Resource) * *resources, ArrPt(String) * warnings, ArrPt(String) * errors)
+static ResourcePack *i_create_pack(const uint32_t local_index, const uint32_t num_locals, ArrPt(String) **local_codes, ArrSt(i_Resource) **resources, ArrPt(String) *warnings, ArrPt(String) *errors)
 {
     ResourcePack *pack = heap_new(ResourcePack);
     pack->local_index = local_index;
@@ -239,7 +239,7 @@ static bool_t i_file_is_resource(const char_t *filename)
 
 /*---------------------------------------------------------------------------*/
 
-static i_Resource *i_resource_by_name(ArrSt(i_Resource) * resources, const char_t *name)
+static i_Resource *i_resource_by_name(ArrSt(i_Resource) *resources, const char_t *name)
 {
     arrst_foreach(resource, resources, i_Resource) if (str_equ(resource->name, name) == TRUE) return resource;
     arrst_end();
@@ -248,7 +248,7 @@ static i_Resource *i_resource_by_name(ArrSt(i_Resource) * resources, const char_
 
 /*---------------------------------------------------------------------------*/
 
-static i_Resource *i_create_new_resource(ArrSt(i_Resource) * resources, const i_resource_type_t type, const char_t *name)
+static i_Resource *i_create_new_resource(ArrSt(i_Resource) *resources, const i_resource_type_t type, const char_t *name)
 {
     if (i_resource_by_name(resources, name) == NULL)
     {
@@ -550,7 +550,7 @@ static int i_compare_resource(const i_Resource *res1, const i_Resource *res2)
 
 /*---------------------------------------------------------------------------*/
 
-ResourcePack *resgen_pack_read(const char_t *src_dir, ArrPt(String) * warnings, ArrPt(String) * errors)
+ResourcePack *resgen_pack_read(const char_t *src_dir, ArrPt(String) *warnings, ArrPt(String) *errors)
 {
     ArrPt(String) *local_codes = NULL;
     ArrSt(i_Resource) *resources = NULL;
@@ -622,7 +622,7 @@ static String *i_local_resname(const String *resource_name, const char_t *local_
 
 /*---------------------------------------------------------------------------*/
 
-void resgen_write_h_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) * errors)
+void resgen_write_h_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) *errors)
 {
     String *pathname = str_printf("%s%c%s.h", dest_path, DIR_SEPARATOR, dest_file);
     Stream *stream = stm_to_file(tc(pathname), NULL);
@@ -819,7 +819,7 @@ static void i_write_message(Stream *stm, const char_t *msg)
 
 /*---------------------------------------------------------------------------*/
 
-void resgen_write_c_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) * errors)
+void resgen_write_c_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) *errors)
 {
     String *pathname = str_printf("%s%c%s.c", dest_path, DIR_SEPARATOR, dest_file);
     Stream *stream = stm_to_file(tc(pathname), NULL);
@@ -961,7 +961,7 @@ static void i_object_write(Stream *stream, const i_Object *object, const i_resou
 
 /*---------------------------------------------------------------------------*/
 
-void resgen_write_packed_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) * errors)
+void resgen_write_packed_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) *errors)
 {
     String *pathname = str_printf("%s%c%s.res", dest_path, DIR_SEPARATOR, dest_file);
     Stream *stream = stm_to_file(tc(pathname), NULL);
@@ -1002,7 +1002,7 @@ void resgen_write_packed_file(const ResourcePack *pack, const char_t *dest_path,
 
 /*---------------------------------------------------------------------------*/
 
-void resgen_write_c_packed_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) * errors)
+void resgen_write_c_packed_file(const ResourcePack *pack, const char_t *dest_path, const char_t *dest_file, ArrPt(String) *errors)
 {
     String *pathname = str_printf("%s%c%s.c", dest_path, DIR_SEPARATOR, dest_file);
     Stream *stream = stm_to_file(tc(pathname), NULL);

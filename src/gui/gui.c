@@ -989,7 +989,7 @@ static void i_OnInfoClick(void *unused, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_info_buttons_layout(const ArrPt(String) * buttons, const uint32_t defindex, Button **defbutton)
+static Layout *i_info_buttons_layout(const ArrPt(String) *buttons, const uint32_t defindex, Button **defbutton)
 {
     uint32_t i, n = arrpt_size(buttons, String);
     Layout *layout = layout_create(n, 1);
@@ -1016,7 +1016,7 @@ static Layout *i_info_buttons_layout(const ArrPt(String) * buttons, const uint32
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t gui_info_window(const bool_t fatal, const char_t *msg, const char_t *caption, const char_t *detail, const char_t *file, const uint32_t line, const ArrPt(String) * buttons, const uint32_t defindex)
+uint32_t gui_info_window(const bool_t fatal, const char_t *msg, const char_t *caption, const char_t *detail, const char_t *file, const uint32_t line, const ArrPt(String) *buttons, const uint32_t defindex)
 {
     ResPack *pack = res_gui_respack("");
     Button *defbutton = NULL;

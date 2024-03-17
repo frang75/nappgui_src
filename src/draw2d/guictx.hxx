@@ -1013,7 +1013,7 @@ struct _evtbrect_t
 
 struct _evtbsel_t
 {
-    ArrSt(uint32_t) * sel;
+    ArrSt(uint32_t) *sel;
 };
 
 struct _evtbcell_t

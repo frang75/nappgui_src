@@ -24,7 +24,7 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
 
 bool_t _layout_search_layout(const Layout *layout, Layout *sublayout);
 
-void _layout_components(const Layout *layout, ArrPt(GuiComponent) * components);
+void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components);
 
 void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size);
 
@@ -38,7 +38,7 @@ void _layout_taborder(const Layout *layout, Window *window);
 
 void _layout_dbind_update(Layout *layout, const DBind *dbind);
 
-ArrPt(Cell) * _layout_cells(Layout *layout);
+ArrPt(Cell) *_layout_cells(Layout *layout);
 
 void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener);
 

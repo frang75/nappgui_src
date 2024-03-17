@@ -33,7 +33,7 @@ struct _osmenu_t
     gint popup_y;
 #endif
     OSMenuItem *parent;
-    ArrPt(OSMenuItem) * items;
+    ArrPt(OSMenuItem) *items;
 #if defined(__ASSERTS__)
     bool_t is_alive;
 #endif

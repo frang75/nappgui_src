@@ -14,8 +14,8 @@
 
 __EXTERN_C
 
-void nrclib_serial_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) * *warnings, ArrPt(String) * *errors, bool_t *regenerated);
+void nrclib_serial_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) **warnings, ArrPt(String) **errors, bool_t *regenerated);
 
-void nrclib_pack_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) * *warnings, ArrPt(String) * *errors, bool_t *regenerated);
+void nrclib_pack_dir(const char_t *src_dir, const char_t *dest_file, ArrPt(String) **warnings, ArrPt(String) **errors, bool_t *regenerated);
 
 __END_C

@@ -24,7 +24,7 @@ struct _osimglist_t
     HIMAGELIST hlist;
     uint32_t img_width;
     uint32_t img_height;
-    ArrPt(Image) * images;
+    ArrPt(Image) *images;
 };
 
 /*---------------------------------------------------------------------------*/

@@ -136,7 +136,7 @@ bool_t ostabstop_can_close_window(OSTabStop *tabstop)
 
 #if defined __ASSERTS__
 
-static bool_t i_dump_controls(const ArrPt(OSControl) * controls, const bool_t print)
+static bool_t i_dump_controls(const ArrPt(OSControl) *controls, const bool_t print)
 {
     if (print == TRUE)
         bstd_printf("Dump controls: %d\n", arrpt_size(controls, OSControl));

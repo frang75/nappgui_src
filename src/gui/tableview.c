@@ -45,7 +45,7 @@ struct _column_t
 {
     ctype_t type;
     ResId head_textid;
-    ArrPt(String) * head_text;
+    ArrPt(String) *head_text;
     Font *font;
     uint32_t width;
     uint32_t yoffset;
@@ -62,8 +62,8 @@ struct _tdata_t
     ScrollView *sview;
     Font *font;
     Font *head_font;
-    ArrSt(Column) * columns;
-    ArrSt(uint32_t) * selected;
+    ArrSt(Column) *columns;
+    ArrSt(uint32_t) *selected;
     align_t focus_align;
     uint32_t num_rows;
     uint32_t focus_row;
@@ -235,7 +235,7 @@ static uint32_t i_num_visible_rows(const uint32_t view_height, const uint32_t he
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_freezed_width(const ArrSt(Column) * columns, const uint32_t freeze_col_id)
+static uint32_t i_freezed_width(const ArrSt(Column) *columns, const uint32_t freeze_col_id)
 {
     uint32_t width = 0;
 
@@ -252,7 +252,7 @@ static uint32_t i_freezed_width(const ArrSt(Column) * columns, const uint32_t fr
 
 /*---------------------------------------------------------------------------*/
 
-static void i_visible_cols(const ArrSt(Column) * columns, const uint32_t freeze_width, const uint32_t freeze_col_id, const uint32_t stx, const uint32_t width, uint32_t *stcol, uint32_t *edcol, uint32_t *x)
+static void i_visible_cols(const ArrSt(Column) *columns, const uint32_t freeze_width, const uint32_t freeze_col_id, const uint32_t stx, const uint32_t width, uint32_t *stcol, uint32_t *edcol, uint32_t *x)
 {
     uint32_t lx = 0, st = UINT32_MAX, ed = UINT32_MAX;
     cassert_no_null(stcol);
@@ -306,7 +306,7 @@ static int i_uint32_cmp(const uint32_t *u1, const uint32_t *u2)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_row_is_selected(const ArrSt(uint32_t) * selected, const uint32_t row)
+static bool_t i_row_is_selected(const ArrSt(uint32_t) *selected, const uint32_t row)
 {
     const uint32_t *elem = arrst_bsearch_const(selected, i_uint32_cmp, &row, NULL, uint32_t, uint32_t);
     return (bool_t)(elem != NULL);
@@ -1068,7 +1068,7 @@ static void i_OnFocus(TableView *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_is_only_selected(const ArrSt(uint32_t) * selected, const uint32_t row)
+static bool_t i_is_only_selected(const ArrSt(uint32_t) *selected, const uint32_t row)
 {
     if (arrst_size(selected, uint32_t) != 1)
         return FALSE;
@@ -1647,7 +1647,7 @@ void tableview_size(TableView *view, S2Df size)
 
 /*---------------------------------------------------------------------------*/
 
-static ArrPt(String) * i_default_col_text(const uint32_t col_i)
+static ArrPt(String) *i_default_col_text(const uint32_t col_i)
 {
     ArrPt(String) *texts = arrpt_create(String);
     String *text = str_printf("Column %d", col_i);
@@ -1919,7 +1919,7 @@ void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_delete_out_bounds(ArrSt(uint32_t) * selected, const uint32_t bound)
+static void i_delete_out_bounds(ArrSt(uint32_t) *selected, const uint32_t bound)
 {
     uint32_t i, n = arrst_size(selected, uint32_t);
     for (i = 0; i < n;)
@@ -2073,7 +2073,7 @@ void tableview_deselect_all(TableView *view)
 
 /*---------------------------------------------------------------------------*/
 
-const ArrSt(uint32_t) * tableview_selected(const TableView *view)
+const ArrSt(uint32_t) *tableview_selected(const TableView *view)
 {
     TData *data = view_get_data((View *)view, TData);
     return data->selected;

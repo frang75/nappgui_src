@@ -18,15 +18,15 @@ void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget);
 
 OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button);
 
-void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) * controls);
+void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls);
 
-const ArrPt(OSControl) * oswindow_get_all_controls(const OSWindow *window);
+const ArrPt(OSControl) *oswindow_get_all_controls(const OSWindow *window);
 
-void oswindow_hotkey_destroy(ArrSt(OSHotKey) * *hotkeys);
+void oswindow_hotkey_destroy(ArrSt(OSHotKey) **hotkeys);
 
-void oswindow_hotkey_set(ArrSt(OSHotKey) * *hotkeys, const vkey_t key, const uint32_t modifiers, Listener *listener);
+void oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint32_t modifiers, Listener *listener);
 
-bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) * hotkeys, const vkey_t key, const uint32_t modifiers);
+bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) *hotkeys, const vkey_t key, const uint32_t modifiers);
 
 void oswindow_set_app(void *app, void *icon);
 

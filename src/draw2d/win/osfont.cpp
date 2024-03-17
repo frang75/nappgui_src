@@ -360,7 +360,7 @@ bool_t font_exists_family(const char_t *family)
 
 typedef struct _font_installed_t
 {
-    ArrPt(String) * font_families;
+    ArrPt(String) *font_families;
 } i_FontInstalled;
 
 /*---------------------------------------------------------------------------*/
@@ -386,7 +386,7 @@ static int CALLBACK i_font_families(const LOGFONT *lpelf, const TEXTMETRIC *lpnt
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) * font_installed_families(void)
+ArrPt(String) *font_installed_families(void)
 {
     HWND hwnd = GetDesktopWindow();
     HDC hdc = GetDC(hwnd);

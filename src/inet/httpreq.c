@@ -31,7 +31,7 @@ struct _http_t
     uint32_t rcode;
     String *rprotocol;
     String *rmsg;
-    ArrSt(Field) * headers;
+    ArrSt(Field) *headers;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -105,7 +105,7 @@ void http_add_header(Http *http, const char_t *name, const char_t *value)
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_field(ArrSt(Field) * fields, const char_t *name)
+static const char_t *i_field(ArrSt(Field) *fields, const char_t *name)
 {
     arrst_foreach(field, fields, Field) if (str_equ_nocase(tc(field->name), name) == TRUE) return tc(field->value);
     arrst_end();

@@ -21,7 +21,7 @@ _core_api bool_t hfile_dir_create(const char_t *pathname, ferror_t *error);
 
 _core_api bool_t hfile_dir_destroy(const char_t *pathname, ferror_t *error);
 
-_core_api ArrSt(DirEntry) * hfile_dir_list(const char_t *pathname, const bool_t subdirs, ferror_t *error);
+_core_api ArrSt(DirEntry) *hfile_dir_list(const char_t *pathname, const bool_t subdirs, ferror_t *error);
 
 _core_api void hfile_dir_entry_remove(DirEntry *entry);
 

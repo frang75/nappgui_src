@@ -269,7 +269,7 @@ static void i_triangulate_polygon(const Pol2D<real> *pol, ArrSt<Tri2D<real> > *t
 
 /*---------------------------------------------------------------------------*/
 
-ArrSt(Tri2Df) * pol2d_trianglesf(const Pol2Df *pol)
+ArrSt(Tri2Df) *pol2d_trianglesf(const Pol2Df *pol)
 {
     ArrSt(Tri2Df) *triangles = arrst_create(Tri2Df);
     i_triangulate_polygon<real32_t>((const Pol2D<real32_t> *)pol, (ArrSt<Tri2D<real32_t> > *)triangles);
@@ -278,7 +278,7 @@ ArrSt(Tri2Df) * pol2d_trianglesf(const Pol2Df *pol)
 
 /*---------------------------------------------------------------------------*/
 
-ArrSt(Tri2Dd) * pol2d_trianglesd(const Pol2Dd *pol)
+ArrSt(Tri2Dd) *pol2d_trianglesd(const Pol2Dd *pol)
 {
     ArrSt(Tri2Dd) *triangles = arrst_create(Tri2Dd);
     i_triangulate_polygon<real64_t>((const Pol2D<real64_t> *)pol, (ArrSt<Tri2D<real64_t> > *)triangles);

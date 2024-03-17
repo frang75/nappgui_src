@@ -54,7 +54,7 @@ struct _ospanel_t
     HBITMAP dbuffer;
     uint32_t flags;
     RECT border;
-    ArrSt(Area) * areas;
+    ArrSt(Area) *areas;
 };
 
 DeclSt(Area);
@@ -91,7 +91,7 @@ static __INLINE void i_area(HDC hdc, const Area *area)
 
 /*---------------------------------------------------------------------------*/
 
-static HBRUSH i_brush(OSControl *control, const ArrSt(Area) * areas, COLORREF *c)
+static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
 {
     OSFrame rect;
     RECT rc;

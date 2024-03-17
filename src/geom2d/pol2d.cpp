@@ -751,7 +751,7 @@ static void i_convex_polygons(const Pol2D<real> *pol, ArrPt<Pol2D<real> > *polys
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(Pol2Df) * pol2d_convex_partitionf(const Pol2Df *pol)
+ArrPt(Pol2Df) *pol2d_convex_partitionf(const Pol2Df *pol)
 {
     ArrPt(Pol2Df) *polys = arrpt_create(Pol2Df);
     i_convex_polygons<real32_t>((const Pol2D<real32_t> *)pol, (ArrPt<Pol2D<real32_t> > *)polys);
@@ -760,7 +760,7 @@ ArrPt(Pol2Df) * pol2d_convex_partitionf(const Pol2Df *pol)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(Pol2Dd) * pol2d_convex_partitiond(const Pol2Dd *pol)
+ArrPt(Pol2Dd) *pol2d_convex_partitiond(const Pol2Dd *pol)
 {
     ArrPt(Pol2Dd) *polys = arrpt_create(Pol2Dd);
     i_convex_polygons<real64_t>((const Pol2D<real64_t> *)pol, (ArrPt<Pol2D<real64_t> > *)polys);

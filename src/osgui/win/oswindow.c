@@ -60,7 +60,7 @@ struct _oswindow_t
     Listener *OnResize;
     Listener *OnClose;
     OSTabStop tabstop;
-    ArrSt(OSHotKey) * hotkeys;
+    ArrSt(OSHotKey) *hotkeys;
 };
 
 DeclPt(Listener);
@@ -1018,7 +1018,7 @@ static BOOL CALLBACK i_get_controls(HWND hwnd, LPARAM lParam)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) * controls)
+void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     cassert_no_null(window);
     cassert(arrpt_size(controls, OSControl) == 0);
@@ -1027,7 +1027,7 @@ void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) * controls)
 
 /*---------------------------------------------------------------------------*/
 
-const ArrPt(OSControl) * oswindow_get_all_controls(const OSWindow *window)
+const ArrPt(OSControl) *oswindow_get_all_controls(const OSWindow *window)
 {
     cassert_no_null(window);
     return window->tabstop.controls;

@@ -51,7 +51,7 @@ struct _ldata_t
 {
     ScrollView *sview;
     Font *font;
-    ArrSt(PElem) * elems;
+    ArrSt(PElem) *elems;
     uint32_t mouse_ypos;
     uint32_t font_height;
     uint32_t cell_height;
@@ -340,7 +340,7 @@ static void i_OnFocus(ListBox *listbox, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_clean_select(ArrSt(PElem) * elems)
+static void i_clean_select(ArrSt(PElem) *elems)
 {
     arrst_foreach(elem, elems, PElem)
         elem->select = FALSE;

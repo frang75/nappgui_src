@@ -45,7 +45,7 @@ struct _respack
     enum i_type_t type;
     String *name;
     Buffer *buffer;
-    ArrSt(i_Resource) * resources;
+    ArrSt(i_Resource) *resources;
 };
 
 DeclSt(i_Resource);
@@ -81,7 +81,7 @@ static void i_remove_resource(i_Resource *resource)
 
 /*---------------------------------------------------------------------------*/
 
-static ResPack *i_create_respack(const enum i_type_t type, String **name, Buffer **buffer, ArrSt(i_Resource) * *resources)
+static ResPack *i_create_respack(const enum i_type_t type, String **name, Buffer **buffer, ArrSt(i_Resource) **resources)
 {
     ResPack *pack = heap_new(ResPack);
     pack->type = type;
@@ -169,7 +169,7 @@ static void i_load_resource(Stream *stream, const uint32_t locale_code, i_Resour
 
 /*---------------------------------------------------------------------------*/
 
-static Buffer *i_load_pack(ArrSt(i_Resource) * resources, const char_t *name, const char_t *locale)
+static Buffer *i_load_pack(ArrSt(i_Resource) *resources, const char_t *name, const char_t *locale)
 {
     String *resfile = NULL;
     Buffer *buffer = NULL;
@@ -338,7 +338,7 @@ void *respack_object_imp(const ResPack *pack, const ResId id, FPtr_create_from_d
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE i_Resource *i_resource(const ArrPt(ResPack) * packs, const ResId id, bool_t *is_resid)
+static __INLINE i_Resource *i_resource(const ArrPt(ResPack) *packs, const ResId id, bool_t *is_resid)
 {
     const char_t *idr = i_magic(id);
     const char_t *packid = NULL;
@@ -364,7 +364,7 @@ static __INLINE i_Resource *i_resource(const ArrPt(ResPack) * packs, const ResId
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *respack_atext(const ArrPt(ResPack) * packs, const ResId id, bool_t *is_resid)
+const char_t *respack_atext(const ArrPt(ResPack) *packs, const ResId id, bool_t *is_resid)
 {
     const i_Resource *resource = i_resource(packs, id, is_resid);
     if (resource != NULL)
@@ -380,7 +380,7 @@ const char_t *respack_atext(const ArrPt(ResPack) * packs, const ResId id, bool_t
 
 /*---------------------------------------------------------------------------*/
 
-const byte_t *respack_afile(const ArrPt(ResPack) * packs, const ResId id, uint32_t *size, bool_t *is_resid)
+const byte_t *respack_afile(const ArrPt(ResPack) *packs, const ResId id, uint32_t *size, bool_t *is_resid)
 {
     i_Resource *resource = i_resource(packs, id, is_resid);
     if (resource != NULL)
@@ -396,7 +396,7 @@ const byte_t *respack_afile(const ArrPt(ResPack) * packs, const ResId id, uint32
 
 /*---------------------------------------------------------------------------*/
 
-void *respack_aobj_imp(const ArrPt(ResPack) * packs, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy, bool_t *is_resid)
+void *respack_aobj_imp(const ArrPt(ResPack) *packs, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy, bool_t *is_resid)
 {
     i_Resource *resource = i_resource(packs, id, is_resid);
     if (resource != NULL)

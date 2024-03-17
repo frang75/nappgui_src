@@ -29,7 +29,7 @@ struct _panel_t
 {
     GuiComponent component;
     Window *window;
-    ArrPt(Layout) * layouts;
+    ArrPt(Layout) *layouts;
     uint32_t visible_layout;
     uint32_t active_layout;
     uint32_t flags;
@@ -38,7 +38,7 @@ struct _panel_t
     S2Df content_size;
     void *data;
     FPtr_destroy func_destroy_data;
-    ArrPt(GuiComponent) * children;
+    ArrPt(GuiComponent) *children;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -437,7 +437,7 @@ Cell *_panel_get_component_cell(Panel *panel, const GuiComponent *component)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_activate_layout(const ArrPt(Layout) * layouts, ArrPt(GuiComponent) * children, const uint32_t active_layout)
+static void i_activate_layout(const ArrPt(Layout) *layouts, ArrPt(GuiComponent) *children, const uint32_t active_layout)
 {
     const Layout *layout = arrpt_get_const(layouts, active_layout, Layout);
     ArrPt(GuiComponent) *layout_components = arrpt_create(GuiComponent);
@@ -617,7 +617,7 @@ void _panel_locale(Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(Layout) * _panel_layouts(const Panel *panel)
+ArrPt(Layout) *_panel_layouts(const Panel *panel)
 {
     cassert_no_null(panel);
     return panel->layouts;
