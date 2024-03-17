@@ -93,7 +93,9 @@ static __INLINE void i_update_button(Button *button, const gui_state_t state)
     }
     else if (button_get_type(button->flags) == ekBUTTON_RADIO)
     {
-        _cell_set_radio(button->component.parent);
+        Cell *cell = _component_cell(&button->component);
+        if (cell != NULL)
+            _cell_set_radio(cell);
     }
 }
 
@@ -116,41 +118,54 @@ static void i_OnClick(Button *button, Event *event)
 
     switch (button_get_type(button->flags))
     {
-    case ekBUTTON_RADIO: {
-        Cell *cell = _cell_radio_dbind_cell(button->component.parent);
-        params->index = _cell_radio_index(button->component.parent);
+    case ekBUTTON_RADIO:
+    {
+        Cell *ccell = _component_cell(&button->component);
+        if (ccell != NULL)
+        {
+            Cell *cell = _cell_radio_dbind_cell(ccell);
+            params->index = _cell_radio_index(ccell);
 
-        if (cell != NULL)
-            _cell_upd_uint32(cell, params->index);
+            if (cell != NULL)
+                _cell_upd_uint32(cell, params->index);
 
-        if (button->OnClick == NULL)
-            sender = _cell_radio_listener(button->component.parent);
-
+            if (button->OnClick == NULL)
+                sender = _cell_radio_listener(ccell);
+        }
         break;
     }
 
     case ekBUTTON_CHECK2:
     case ekBUTTON_FLATGLE:
-        _cell_upd_bool(button->component.parent, params->state == ekGUI_OFF ? FALSE : TRUE);
+    {
+        Cell *cell = _component_cell(&button->component);
+        if (cell != NULL)
+            _cell_upd_bool(cell, params->state == ekGUI_OFF ? FALSE : TRUE);
         break;
+    }
 
-    case ekBUTTON_CHECK3: {
-        uint32_t v = 0;
-        switch (params->state)
+    case ekBUTTON_CHECK3:
+    {
+        Cell *cell = _component_cell(&button->component);
+        if (cell != NULL)
         {
-        case ekGUI_OFF:
-            v = 0;
-            break;
-        case ekGUI_ON:
-            v = 1;
-            break;
-        case ekGUI_MIXED:
-            v = 2;
-            break;
-            cassert_default();
-        }
+            uint32_t v = 0;
+            switch (params->state)
+            {
+            case ekGUI_OFF:
+                v = 0;
+                break;
+            case ekGUI_ON:
+                v = 1;
+                break;
+            case ekGUI_MIXED:
+                v = 2;
+                break;
+                cassert_default();
+            }
 
-        _cell_upd_uint32(button->component.parent, v);
+            _cell_upd_uint32(cell, v);
+        }
         break;
     }
     }
@@ -333,9 +348,10 @@ void button_state(Button *button, const gui_state_t state)
     {
         if (state == ekGUI_ON)
         {
+            Cell *cell = _component_cell(&button->component);
             button->component.context->func_button_set_state(button->component.ositem, (enum_t)state);
-            if (button->component.parent)
-                _cell_set_radio(button->component.parent);
+            if (cell != NULL)
+                _cell_set_radio(cell);
         }
     }
 }
@@ -504,15 +520,19 @@ void _button_uint32(Button *button, const uint32_t value)
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_RADIO:
-        _cell_set_radio_index(button->component.parent, value);
+    {
+        Cell *cell = _component_cell(&button->component);
+        if (cell != NULL)
+            _cell_set_radio_index(cell, value);
         break;
-
+    }
     case ekBUTTON_FLATGLE:
     case ekBUTTON_CHECK2:
         button_state(button, value == 0 ? ekGUI_OFF : ekGUI_ON);
         break;
 
-    case ekBUTTON_CHECK3: {
+    case ekBUTTON_CHECK3:
+    {
         gui_state_t st = ekGUI_MIXED;
         if (value == 0)
             st = ekGUI_OFF;

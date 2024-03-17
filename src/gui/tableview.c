@@ -260,28 +260,28 @@ static void i_visible_cols(const ArrSt(Column) * columns, const uint32_t freeze_
     cassert_no_null(x);
 
     arrst_foreach_const(col, columns, Column)
-
-        if (st == UINT32_MAX)
     {
-        /* The column is completely to the left of the visible area */
-        if (lx + col->width > stx + freeze_width)
+        if (st == UINT32_MAX)
         {
-            if (freeze_col_id == UINT32_MAX || freeze_col_id < col_i)
+            /* The column is completely to the left of the visible area */
+            if (lx + col->width > stx + freeze_width)
             {
-                st = col_i;
-                *x = lx;
+                if (freeze_col_id == UINT32_MAX || freeze_col_id < col_i)
+                {
+                    st = col_i;
+                    *x = lx;
+                }
             }
         }
-    }
-    else if (lx > stx + width)
-    {
-        /* The column is completely to the right of the visible area */
-        ed = col_i;
-        break;
-    }
+        else if (lx > stx + width)
+        {
+            /* The column is completely to the right of the visible area */
+            ed = col_i;
+            break;
+        }
 
-    lx += col->width;
-
+        lx += col->width;
+    }
     arrst_end();
 
     if (st == UINT32_MAX)
@@ -350,7 +350,6 @@ static void i_OnDraw(TableView *view, Event *e)
         uint32_t fill_width = scrollview_content_width(data->sview);
         uint32_t i, j;
 
-        fill_width -= scrollview_scrollbar_width(data->sview);
         fill_width -= i_DOCUMENT_RIGHT_MARGIN;
 
         if (data->head_visible == TRUE)
@@ -670,7 +669,8 @@ static uint32_t i_col_height(const Column *col)
     cassert_no_null(col);
     switch (col->type)
     {
-    case ekCTYPE_TEXT: {
+    case ekCTYPE_TEXT:
+    {
         uint32_t height = i_font_height(col->font);
         height += drawctrl_row_padding(NULL);
         return height;
@@ -689,7 +689,8 @@ static void i_col_y_offset(Column *col, const uint32_t row_height)
     cassert_no_null(col);
     switch (col->type)
     {
-    case ekCTYPE_TEXT: {
+    case ekCTYPE_TEXT:
+    {
         uint32_t height = i_font_height(col->font);
         col->yoffset = (row_height - height) / 2;
         break;
@@ -800,7 +801,7 @@ static void i_document_size(TableView *view, TData *data)
     }
     else
     {
-        theight = scrollview_content_width(data->sview);
+        theight = scrollview_content_height(data->sview);
     }
 
     if (update == TRUE)
@@ -826,7 +827,8 @@ static void i_scroll_to_row(TData *data, const uint32_t row, const align_t align
         ypos = row * data->row_height;
         break;
 
-    case ekCENTER: {
+    case ekCENTER:
+    {
         uint32_t offset = 0;
         ypos = (row + 1) * data->row_height + i_BOTTOM_PADDING;
 

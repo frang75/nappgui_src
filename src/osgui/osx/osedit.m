@@ -88,7 +88,7 @@
 
 -(BOOL)acceptsFirstResponder
 {
-    return [self->field acceptsFirstResponder];
+    return YES;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -181,34 +181,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static void OSX_becomeFirstResponder(OSXEdit *edit, NSTextField *field)
-{
-    cassert_no_null(field);
-    if ([field isEnabled] == YES)
-    {
-        NSWindow *window = [field window];
-        NSText *text = [window fieldEditor:YES forObject:field];
-
-        if (edit->OnFocus != NULL)
-        {
-            bool_t params = TRUE;
-            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, (OSEdit*)edit, &params, NULL, OSEdit, bool_t, void);
-        }
-
-        if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
-        {
-            [text selectAll:nil];
-        }
-        else
-        {
-            NSRange range = [text selectedRange];
-            [text setSelectedRange:NSMakeRange(range.length, 0)];
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void OSX_textDidChange(OSXEdit *edit, NSTextField *field)
 {
     if ([field isEnabled] == YES && edit->OnFilter != NULL)
@@ -241,24 +213,17 @@ static void OSX_textDidEndEditing(OSXEdit *edit, NSNotification *notification)
 {
     unsigned int whyEnd = [[[notification userInfo] objectForKey:@"NSTextMovement"] unsignedIntValue];
     NSWindow *window = [edit window];
-
-    if (edit->OnFocus != NULL)
-    {
-        bool_t params = FALSE;
-        listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, (OSEdit*)edit, &params, NULL, OSEdit, bool_t, void);
-    }
-
     if (whyEnd == NSReturnTextMovement)
     {
         [window keyDown:(NSEvent*)231];
     }
     else if (whyEnd == NSTabTextMovement)
     {
-        _oswindow_next_tabstop(window);
+        _oswindow_next_tabstop(window, TRUE);
     }
     else if (whyEnd == NSBacktabTextMovement)
     {
-        _oswindow_prev_tabstop(window);
+        _oswindow_prev_tabstop(window, TRUE);
     }
 }
 
@@ -268,17 +233,16 @@ static void OSX_textDidEndEditing(OSXEdit *edit, NSNotification *notification)
 
 /*---------------------------------------------------------------------------*/
 
--(BOOL)becomeFirstResponder
+- (BOOL)resignFirstResponder
 {
-    [super becomeFirstResponder];
-    OSX_becomeFirstResponder((OSXEdit*)self->parent, self);
     return YES;
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (BOOL)resignFirstResponder
+-(BOOL)becomeFirstResponder
 {
+    [super becomeFirstResponder];
     return YES;
 }
 
@@ -313,17 +277,16 @@ static void OSX_textDidEndEditing(OSXEdit *edit, NSNotification *notification)
 
 /*---------------------------------------------------------------------------*/
 
--(BOOL)becomeFirstResponder
+- (BOOL)resignFirstResponder
 {
-    [super becomeFirstResponder];
-    OSX_becomeFirstResponder((OSXEdit*)self->parent, self);
     return YES;
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (BOOL)resignFirstResponder
+-(BOOL)becomeFirstResponder
 {
+    [super becomeFirstResponder];
     return YES;
 }
 
@@ -753,7 +716,7 @@ void osedit_frame(OSEdit *edit, const real32_t x, const real32_t y, const real32
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osedit_resign_focus(const OSEdit *edit, const OSControl *next_control)
+bool_t osedit_resign_focus(const OSEdit *edit)
 {
     OSXEdit *ledit = (OSXEdit*)edit;
     NSWindow *window = [ledit window];
@@ -764,7 +727,6 @@ bool_t osedit_resign_focus(const OSEdit *edit, const OSControl *next_control)
     {
         EvText params;
         params.text = (const char_t*)[[ledit->field stringValue] UTF8String];
-        params.next_ctrl = (void*)next_control;
         listener_event(ledit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, &resign, OSEdit, EvText, bool_t);
     }
 
@@ -774,6 +736,39 @@ bool_t osedit_resign_focus(const OSEdit *edit, const OSControl *next_control)
         [window makeFirstResponder:ledit];
 
     return resign;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osedit_focus(OSEdit *edit, const bool_t focus)
+{
+    OSXEdit *ledit = (OSXEdit*)edit;
+    cassert_no_null(ledit);
+
+    if (ledit->OnFocus != NULL)
+    {
+        bool_t params = focus;
+        listener_event(ledit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
+    }
+
+    if (focus == TRUE)
+    {
+        if ([ledit->field isEnabled] == YES)
+        {
+            NSWindow *window = [ledit->field window];
+            NSText *text = [window fieldEditor:YES forObject:ledit->field];
+
+            if (BIT_TEST(ledit->flags, ekEDIT_AUTOSEL) == TRUE)
+            {
+                [text selectAll:nil];
+            }
+            else
+            {
+                NSRange range = [text selectedRange];
+                [text setSelectedRange:NSMakeRange(range.length, 0)];
+            }
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/

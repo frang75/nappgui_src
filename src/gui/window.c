@@ -152,7 +152,8 @@ static void i_OnWindowResize(Window *window, Event *e)
 
     switch (event_type(e))
     {
-    case ekGUI_EVENT_WND_SIZING: {
+    case ekGUI_EVENT_WND_SIZING:
+    {
         S2Df reqsize;
         S2Df finsize;
         EvSize *result = event_result(e, EvSize);
@@ -165,7 +166,8 @@ static void i_OnWindowResize(Window *window, Event *e)
         break;
     }
 
-    case ekGUI_EVENT_WND_SIZE: {
+    case ekGUI_EVENT_WND_SIZE:
+    {
         _layout_locate(window->main_layout);
         if (window->OnResize != NULL)
             listener_pass_event(window->OnResize, e, window, Window);
@@ -620,6 +622,28 @@ GuiControl *window_get_focus(Window *window)
 
 /*---------------------------------------------------------------------------*/
 
+void window_focus_info(const Window *window, FocusInfo *info)
+{
+    void *next = NULL;
+    cassert_no_null(window);
+    cassert_no_null(window->context);
+    cassert_no_null(info);
+    info->action = (gui_tab_t)window->context->func_window_info_focus(window->ositem, &next);
+
+    if (next != NULL)
+    {
+        Panel *panel = i_main_panel(window);
+        info->next = (GuiControl *)_panel_find_component(panel, next);
+        cassert_no_null(info->next);
+    }
+    else
+    {
+        info->next = NULL;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void window_update(Window *window)
 {
     _window_update(window);
@@ -799,7 +823,7 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
     cassert(i_in_active_layout(window, component) == TRUE);
     _component_get_origin(component, &r2d.pos);
     _component_get_size(component, &r2d.size);
-    cell = component->parent;
+    cell = _component_cell(component);
     for (; cell != NULL;)
     {
         V2Df panel_pos;
@@ -811,7 +835,7 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
             _component_get_origin(panel_component, &panel_pos);
             r2d.pos.x += panel_pos.x;
             r2d.pos.y += panel_pos.y;
-            cell = panel_component->parent;
+            cell = _component_cell(panel_component);
         }
         else
         {

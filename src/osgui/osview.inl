@@ -16,8 +16,10 @@ __EXTERN_C
 
 void osview_detach_and_destroy(OSView **view, OSPanel *panel);
 
-bool_t osview_resign_focus(const OSView *view, const OSControl *next_control);
+bool_t osview_resign_focus(const OSView *view);
 
 bool_t osview_accept_focus(const OSView *view);
+
+void osview_focus(OSView *view, const bool_t focus);
 
 __END_C

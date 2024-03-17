@@ -623,7 +623,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_STYLE: {
+    case ekGUI_PROP_STYLE:
+    {
         uint32_t fstyle = *(uint32_t *)value;
         if (view->fstyle & ekFPOINTS)
             fstyle |= ekFPOINTS;
@@ -637,7 +638,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_UNITS: {
+    case ekGUI_PROP_UNITS:
+    {
         uint32_t fstyle = view->fstyle & (~ekFPOINTS);
 
         if (*((const uint32_t *)value) & ekFPOINTS)
@@ -690,7 +692,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_LSPACING: {
+    case ekGUI_PROP_LSPACING:
+    {
         real32_t spacing = *((real32_t *)value);
         gint lspacing = 0;
         if (spacing > 1)
@@ -711,7 +714,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_AFPARSPACE: {
+    case ekGUI_PROP_AFPARSPACE:
+    {
         gint lspace = i_size_pango(*((real32_t *)value), view->fstyle) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->afspace_px)
         {
@@ -723,7 +727,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_BFPARSPACE: {
+    case ekGUI_PROP_BFPARSPACE:
+    {
         gint lspace = i_size_pango(*((real32_t *)value), view->fstyle) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->bfspace_px)
         {
@@ -735,7 +740,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_SELECT: {
+    case ekGUI_PROP_SELECT:
+    {
         int32_t *range = (int32_t *)value;
         view->select_start = range[0];
         view->select_end = range[1];
@@ -882,43 +888,28 @@ void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32
 
 /*---------------------------------------------------------------------------*/
 
-void _ostext_set_focus(OSText *view)
+void ostext_focus(OSText *view, const bool_t focus)
 {
     cassert_no_null(view);
     if (view->OnFocus != NULL)
     {
-        bool_t params = TRUE;
+        bool_t params = focus;
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
     }
 
     if (view->border_color != NULL)
     {
         cassert(GTK_IS_FRAME(view->control.widget));
-        _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+        if (focus == TRUE)
+            _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+        else
+            _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _ostext_unset_focus(OSText *view)
-{
-    cassert_no_null(view);
-    if (view->OnFocus != NULL)
-    {
-        bool_t params = FALSE;
-        listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
-    }
-
-    if (view->border_color != NULL)
-    {
-        cassert(GTK_IS_FRAME(view->control.widget));
-        _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-GtkWidget *_ostext_focus(OSText *view)
+GtkWidget *_ostext_focus_widget(OSText *view)
 {
     cassert_no_null(view);
     return view->tview;

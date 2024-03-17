@@ -292,10 +292,6 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
     OSControl *parent = NULL;
     int scroll_x = 0, scroll_y = 0;
     cassert_no_null(control);
-    cassert(floorf(x) == x);
-    cassert(floorf(y) == y);
-    cassert(floorf(width) == width);
-    cassert(floorf(height) == height);
 
     parent = (OSControl *)GetWindowLongPtr(GetParent(control->hwnd), GWLP_USERDATA);
     if (parent != NULL && parent->type == ekGUI_TYPE_PANEL)
@@ -521,10 +517,10 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
         return (OSWidget *)control->hwnd;
 
     case ekGUI_TYPE_POPUP:
-        return (OSWidget *)_ospopup_focus((OSPopUp *)control);
+        return (OSWidget *)_ospopup_focus_widget((OSPopUp *)control);
 
     case ekGUI_TYPE_COMBOBOX:
-        return (OSWidget *)_oscombo_focus((OSCombo *)control);
+        return (OSWidget *)_oscombo_focus_widget((OSCombo *)control);
 
     case ekGUI_TYPE_TABLEVIEW:
     case ekGUI_TYPE_TREEVIEW:

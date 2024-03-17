@@ -20,7 +20,6 @@ void _component_destroy_imp(GuiComponent *component);
 
 void _component_destroy(GuiComponent **component);
 
-/*! <Layout support> */
 void _component_attach_to_panel(GuiComponent *panel_component, GuiComponent *child_component);
 
 void _component_detach_from_panel(GuiComponent *panel_component, GuiComponent *child_component);
@@ -51,10 +50,6 @@ void _component_set_tag(GuiComponent *component, const uint32_t tag);
 
 uint32_t _component_get_tag(const GuiComponent *component);
 
-bool_t _component_with_OnHide_event(const GuiComponent *component);
-
-void _component_OnHide(const GuiComponent *component);
-
 void _component_locale(GuiComponent *component);
 
 void _component_update_listener_imp(
@@ -67,6 +62,8 @@ void _component_update_listener_imp(
 const char_t *_component_type(const GuiComponent *component);
 
 void *_component_ositem(const GuiComponent *component);
+
+Cell *_component_cell(const GuiComponent *component);
 
 Window *_component_window(const GuiComponent *component);
 

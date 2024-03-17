@@ -129,7 +129,8 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
     case ekINDEX1:
     case ekINDEX2:
     case ekINDEX4:
-    case ekINDEX8: {
+    case ekINDEX8:
+    {
         Palette *defpal = NULL;
         bool_t alpha_palette = FALSE;
         bool_t gray_palette = FALSE;

@@ -30,9 +30,9 @@
     CreateMenu creates a horizontal menu bar, suitable for attaching to a top-level window. This is the sort of menu that says "File, Edit", and so on.
     CreatePopupMenu creates a vertical popup menu, suitable for use as a submenu of another menu (either a horizontal menu bar or another popup menu) or as the root of a context menu.
     If you get the two confused, you can get strange menu behavior. Windows on rare occasions detects that you confused the two and converts as appropriate, but I wouldn't count on Windows successfully reading your mind.
-    
+
     There is no way to take a menu and ASK IT WHETHER IT IS HORIZONTAL OR VERTICAL. You just have to know.
-    
+
     Answers to other questions about menus:
         When a window is destroyed, its menu is also destroyed. When a menu is destroyed, the entire menu tree is destroyed. (All its submenus are destroyed, all the submenu's submenus, etc.) And when you destroy a menu, it had better not be the submenu of some other menu. That other menu would have an invalid menu as a submenu!
         If you remove a submenu from its parent, then you become responsible for destroying it, since it no longer gets destroyed automatically when the parent is destroyed.
@@ -113,8 +113,11 @@ static void i_remove_all_items(OSMenu *menu)
     cassert_no_null(menu);
     cassert_no_null(menu->hmenu);
     n = (uint32_t)GetMenuItemCount(menu->hmenu);
-    arrpt_foreach(item, menu->items, OSMenuItem) if (_osmenuitem_remove_from_hmenu(item, menu) == TRUE)
-        n0 += 1;
+    arrpt_foreach(item, menu->items, OSMenuItem)
+    {
+        if (_osmenuitem_remove_from_hmenu(item, menu) == TRUE)
+            n0 += 1;
+    }
     arrpt_end();
 
     cassert_unref(n == n0, n);

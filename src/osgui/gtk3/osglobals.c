@@ -644,7 +644,8 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         gdkcursor = gdk_cursor_new_for_display(display, GDK_SB_V_DOUBLE_ARROW);
         break;
 
-    case ekGUI_CURSOR_USER: {
+    case ekGUI_CURSOR_USER:
+    {
         const GdkPixbuf *pixbuf = image_native(image);
         gdkcursor = gdk_cursor_new_from_pixbuf(display, (GdkPixbuf *)pixbuf, (gint)hot_x, (gint)hot_y);
         break;
@@ -696,9 +697,12 @@ void osglobals_transitions(void *nonused, const real64_t prtime, const real64_t 
     unref(crtime);
     if (kRESTORE_FOCUS_WIDGET != NULL)
     {
+        /*
+        TODO: Review when Button reject focus
         gtk_window_set_focus(GTK_WINDOW(kRESTORE_FOCUS_WINDOW), kRESTORE_FOCUS_WIDGET);
         kRESTORE_FOCUS_WIDGET = NULL;
         kRESTORE_FOCUS_WINDOW = NULL;
+        */
     }
 }
 

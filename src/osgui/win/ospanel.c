@@ -126,7 +126,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     switch (uMsg)
     {
-    case WM_COMMAND: {
+    case WM_COMMAND:
+    {
         OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         cassert_no_null(control);
         switch (control->type)
@@ -197,15 +198,20 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_NCPAINT:
         if (panel->flags & ekVIEW_BORDER)
-            _osgui_ncpaint(hwnd, &panel->border, NULL);
+        {
+            bool_t focused = (bool_t)(GetFocus() == hwnd);
+            _osgui_ncpaint(hwnd, focused, &panel->border, NULL);
+        }
         break;
 
-    case WM_MEASUREITEM: {
+    case WM_MEASUREITEM:
+    {
         cassert(FALSE);
         break;
     }
 
-    case WM_NOTIFY: {
+    case WM_NOTIFY:
+    {
         const NMHDR *nmhdr = (const NMHDR *)lParam;
         OSControl *control = (OSControl *)GetWindowLongPtr(nmhdr->hwndFrom, GWLP_USERDATA);
         cassert_no_null(control);
@@ -219,7 +225,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_PRINTCLIENT:
         return 0;
 
-    case WM_CTLCOLORSTATIC: {
+    case WM_CTLCOLORSTATIC:
+    {
         HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
         OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         if (control != NULL)
@@ -256,7 +263,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         return (LRESULT)defbrush;
     }
 
-    case WM_CTLCOLOREDIT: {
+    case WM_CTLCOLOREDIT:
+    {
         HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
         OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         HDC hdc = (HDC)wParam;
@@ -286,7 +294,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         return (LRESULT)defbrush;
     }
 
-    case WM_CTLCOLORBTN: {
+    case WM_CTLCOLORBTN:
+    {
         OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
         cassert_unref(control->type != ekGUI_TYPE_COMBOBOX, control);
         break;
@@ -339,7 +348,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 FillRect((HDC)wParam, &rc, defbrush);
                 arrst_foreach(area, panel->areas, Area)
                     i_area((HDC)wParam, area);
-                arrst_end()
+                arrst_end();
             }
 
             if (panel->scroll != NULL)

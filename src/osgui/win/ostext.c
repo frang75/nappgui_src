@@ -52,6 +52,7 @@ struct _ostext_t
     uint32_t num_chars;
     bool_t is_editable;
     bool_t launch_event;
+    bool_t focused;
     RECT border;
     Listener *OnFilter;
     Listener *OnFocus;
@@ -66,43 +67,19 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     switch (uMsg)
     {
-    case WM_NCCALCSIZE: {
+    case WM_NCCALCSIZE:
+    {
         LRESULT res = CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
         res = _osgui_nccalcsize(hwnd, wParam, lParam, TRUE, 0, &view->border);
         return res;
     }
 
-    case WM_NCPAINT: {
+    case WM_NCPAINT:
+    {
         LRESULT res = CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
-        res = _osgui_ncpaint(hwnd, &view->border, NULL);
+        res = _osgui_ncpaint(hwnd, view->focused, &view->border, NULL);
         return res;
     }
-
-    case WM_SETFOCUS:
-        if (view->launch_event == TRUE)
-        {
-            if (view->OnFocus != NULL)
-            {
-                bool_t params = TRUE;
-                listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
-            }
-
-            RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
-        }
-        break;
-
-    case WM_KILLFOCUS:
-        if (view->launch_event == TRUE)
-        {
-            if (view->OnFocus != NULL)
-            {
-                bool_t params = FALSE;
-                listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
-            }
-
-            RedrawWindow(hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
-        }
-        break;
 
     case WM_PAINT:
         if (_oswindow_in_resizing(hwnd) == TRUE)
@@ -153,6 +130,7 @@ OSText *ostext_create(const uint32_t flags)
     i_set_rich_text(view->control.hwnd, TRUE);
     i_set_editable(view->control.hwnd, FALSE);
     view->launch_event = TRUE;
+    view->focused = FALSE;
     view->dyLineSpacing = 20;
     view->num_chars = 0;
     return view;
@@ -333,7 +311,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         view->units = *((const uint32_t *)value);
         break;
 
-    case ekGUI_PROP_SIZE: {
+    case ekGUI_PROP_SIZE:
+    {
         real32_t size = *((real32_t *)value);
         if (view->units & ekFPOINTS)
             size = size * (real32_t)kLOG_PIXY_GUI / 72.f;
@@ -341,7 +320,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_STYLE: {
+    case ekGUI_PROP_STYLE:
+    {
         uint32_t style = *((uint32_t *)value);
         view->dwEffects = 0;
         if (style & ekFBOLD)
@@ -414,7 +394,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         view->dySpaceBefore = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *((real32_t *)value) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
-    case ekGUI_PROP_SELECT: {
+    case ekGUI_PROP_SELECT:
+    {
         int32_t *range = (int32_t *)value;
         int32_t platform_st, platform_ed;
         osgui_select_text(range[0], range[1], &platform_st, &platform_ed);
@@ -432,7 +413,8 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_SCROLL: {
+    case ekGUI_PROP_SCROLL:
+    {
         HWND focus = GetFocus();
         bool_t prev = view->launch_event;
         view->launch_event = FALSE;
@@ -774,4 +756,22 @@ void _ostext_command(OSText *view, WPARAM wParam)
             }
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_focus(OSText *view, const bool_t focus)
+{
+    cassert_no_null(view);
+    cassert(view->launch_event == TRUE);
+
+    view->focused = focus;
+
+    if (view->OnFocus != NULL)
+    {
+        bool_t params = focus;
+        listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
+    }
+
+    RedrawWindow(view->control.hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
 }

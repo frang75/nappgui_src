@@ -76,7 +76,11 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
     const EvButton *params = event_params(event, EvButton);
     cassert_no_null(popup);
 
-    _cell_upd_uint32(popup->component.parent, params->index);
+    {
+        Cell *cell = _component_cell(&popup->component);
+        if (cell != NULL)
+            _cell_upd_uint32(cell, params->index);
+    }
 
     if (popup->OnChange != NULL)
     {

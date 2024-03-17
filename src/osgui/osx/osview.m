@@ -130,32 +130,6 @@
 
 /*---------------------------------------------------------------------------*/
 
--(BOOL)becomeFirstResponder
-{
-    if (self->listeners.is_enabled == YES && self->OnFocus != NULL)
-    {
-        bool_t params = TRUE;
-        listener_event(self->OnFocus, ekGUI_EVENT_FOCUS, (OSView*)self, &params, NULL, OSView, bool_t, void);
-    }
-
-    return YES;
-}
-
-/*---------------------------------------------------------------------------*/
-
--(BOOL)resignFirstResponder
-{
-    if (self->listeners.is_enabled == YES && self->OnFocus != NULL)
-    {
-        bool_t params = FALSE;
-        listener_event(self->OnFocus, ekGUI_EVENT_FOCUS, (OSView*)self, &params, NULL, OSView, bool_t, void);
-    }
-
-    return YES;
-}
-
-/*---------------------------------------------------------------------------*/
-
 - (BOOL)mouseDownCanMoveWindow
 {
     return NO;
@@ -764,13 +738,13 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osview_resign_focus(const OSView *view, const OSControl *next_control)
+bool_t osview_resign_focus(const OSView *view)
 {
     OSXView *lview = i_get_view(view);
     bool_t resign = TRUE;
     cassert_no_null(lview);
     if (lview->OnResignFocus != NULL)
-        listener_event(lview->OnResignFocus, ekGUI_EVENT_FOCUS_RESIGN, view, (void*)next_control, &resign, OSView, void, bool_t);
+        listener_event(lview->OnResignFocus, ekGUI_EVENT_FOCUS_RESIGN, view, NULL, &resign, OSView, void, bool_t);
     return resign;
 }
 
@@ -788,14 +762,7 @@ bool_t osview_accept_focus(const OSView *view)
 
 /*---------------------------------------------------------------------------*/
 
-BOOL _osview_is(NSView *view)
-{
-    return (BOOL)(i_get_view((OSView*)view) != nil);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osview_OnFocus(NSView *view, const bool_t focus)
+void osview_focus(OSView *view, const bool_t focus)
 {
     OSXView *lview = i_get_view((OSView*)view);
     cassert_no_null(lview);
@@ -808,7 +775,14 @@ void _osview_OnFocus(NSView *view, const bool_t focus)
 
 /*---------------------------------------------------------------------------*/
 
-NSView *_osview_focus(NSView *view)
+BOOL _osview_is(NSView *view)
+{
+    return (BOOL)(i_get_view((OSView*)view) != nil);
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSView *_osview_focus_widget(NSView *view)
 {
     OSXView *lview = i_get_view((OSView*)view);
     cassert_no_null(lview);

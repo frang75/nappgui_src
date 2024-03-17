@@ -60,7 +60,7 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = listboxes();
         break;
     case 6:
-        panel = form_basic();
+        panel = form_basic(app->window);
         break;
     case 7:
         panel = sliders();

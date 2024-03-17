@@ -51,7 +51,8 @@ typedef void (*FPtr_panels)(const void *component, uint32_t *num_panels, Panel *
 
 typedef void (*FPtr_set_image)(void *item, const Image *image);
 
-union _tag_t {
+union _tag_t
+{
     uint32_t tag_uint32;
 };
 
@@ -60,7 +61,7 @@ struct _gui_component_t
     Object object;
     GuiCtx *context;
     gui_type_t type;
-    Cell *parent;
+    Panel *panel;
     Tag tag;
     void *ositem;
 };

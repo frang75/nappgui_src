@@ -112,7 +112,8 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         bmem_copy(data, pixel_data, size);
         break;
 
-    case ekRGB24: {
+    case ekRGB24:
+    {
         register uint32_t i, j;
         guchar *dest = NULL;
         colorspace = GDK_COLORSPACE_RGB;
@@ -140,7 +141,8 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         break;
     }
 
-    case ekGRAY8: {
+    case ekGRAY8:
+    {
         register uint32_t i, j;
         guchar *dest = NULL;
         colorspace = GDK_COLORSPACE_RGB;

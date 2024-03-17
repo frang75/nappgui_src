@@ -40,7 +40,8 @@ typedef enum _i_resource_type_t
     i_ekRESOURCE_TYPE_FILE = 2
 } i_resource_type_t;
 
-union i_object_t {
+union i_object_t
+{
     String *string;
     Buffer *file_data;
 };
@@ -277,7 +278,7 @@ static i_Object *i_add_local(i_Resource *resource, const uint32_t index)
     cassert_no_null(resource);
     arrst_foreach(local, resource->locals, i_Local)
         cassert(local->index != index);
-    arrst_end()
+    arrst_end();
 
     {
         i_Local *local;
@@ -403,7 +404,8 @@ static void i_read_file(ResourcePack *pack, const uint32_t local_code, const cha
         break;
 
     case i_ekRESOURCE_TYPE_IMAGE:
-    case i_ekRESOURCE_TYPE_FILE: {
+    case i_ekRESOURCE_TYPE_FILE:
+    {
         String *filename = NULL;
         i_Object *object = NULL;
 
@@ -933,7 +935,8 @@ static void i_object_write(Stream *stream, const i_Object *object, const i_resou
     cassert_no_null(object);
     switch (type)
     {
-    case i_ekRESOURCE_TYPE_MESSAGE: {
+    case i_ekRESOURCE_TYPE_MESSAGE:
+    {
         uint32_t size = str_len(object->string);
         const byte_t *data = (byte_t *)tc(object->string);
         const byte_t end = 0;
@@ -944,7 +947,8 @@ static void i_object_write(Stream *stream, const i_Object *object, const i_resou
     }
 
     case i_ekRESOURCE_TYPE_IMAGE:
-    case i_ekRESOURCE_TYPE_FILE: {
+    case i_ekRESOURCE_TYPE_FILE:
+    {
         uint32_t size = buffer_size(object->file_data);
         const byte_t *data = buffer_data(object->file_data);
         stm_write_u32(stream, size);

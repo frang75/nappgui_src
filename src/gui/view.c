@@ -204,19 +204,8 @@ static void i_OnFocus(View *view, Event *event)
 
 static void i_OnResignFocus(View *view, Event *event)
 {
-    Window *window = _component_window((GuiComponent *)view);
-    Panel *panel = _window_main_panel(window);
-    void *p = event_params(event, void);
-    GuiControl *next_ctrl = NULL;
-    bool_t *res = event_result(event, bool_t);
-
-    if (p != NULL)
-    {
-        next_ctrl = (GuiControl *)_panel_find_component(panel, p);
-        cassert_no_null(next_ctrl);
-    }
-
-    listener_event(view->OnResignFocus, ekGUI_EVENT_FOCUS_RESIGN, view, next_ctrl, res, View, GuiControl, bool_t);
+    cassert_no_null(view);
+    listener_pass_event(view->OnResignFocus, event, view, View);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -549,7 +538,7 @@ void _view_OnResize(View *view, const S2Df *size)
 Cell *_view_cell(View *view)
 {
     cassert_no_null(view);
-    return view->component.parent;
+    return _component_cell(&view->component);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -582,22 +571,6 @@ void view_OnImage(View *view, FPtr_set_image func_image)
 {
     cassert_no_null(view);
     view->func_image = func_image;
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t view_enabled(const View *view)
-{
-    cassert_no_null(view);
-    return _cell_enabled(view->component.parent);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void view_upd_uint32(View *view, const uint32_t value)
-{
-    cassert_no_null(view);
-    _cell_upd_uint32(view->component.parent, value);
 }
 
 /*---------------------------------------------------------------------------*/

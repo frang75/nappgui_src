@@ -265,18 +265,20 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
 
     /* Check if component exists in any panel layout */
     arrpt_foreach(layout, panel->layouts, Layout)
+    {
         /* Avoid previously destroyed layouts */
         if (layout != NULL)
-    {
-        if (_layout_search_component(layout, component, FALSE) != NULL)
         {
-            exists = TRUE;
-            break;
+            if (_layout_search_component(layout, component, NULL, FALSE) != NULL)
+            {
+                exists = TRUE;
+                break;
+            }
         }
     }
-    arrpt_end()
+    arrpt_end();
 
-        if (exists == FALSE)
+    if (exists == FALSE)
     {
         register uint32_t index;
 
@@ -331,13 +333,17 @@ GuiComponent *_panel_get_component(Panel *panel)
 GuiComponent *_panel_find_component(Panel *panel, void *ositem)
 {
     cassert_no_null(panel);
-    arrpt_foreach(component, panel->children, GuiComponent) if (component->ositem == ositem) return component;
-
-    if (component->type == ekGUI_TYPE_PANEL)
+    arrpt_foreach(component, panel->children, GuiComponent)
     {
-        GuiComponent *child = _panel_find_component((Panel *)component, ositem);
-        if (child != NULL)
-            return child;
+        if (component->ositem == ositem)
+            return component;
+
+        if (component->type == ekGUI_TYPE_PANEL)
+        {
+            GuiComponent *child = _panel_find_component((Panel *)component, ositem);
+            if (child != NULL)
+                return child;
+        }
     }
     arrpt_end();
 
@@ -352,7 +358,7 @@ bool_t _panel_in_active_layout(const Panel *panel, const GuiComponent *component
     cassert_no_null(panel);
     cassert(panel->active_layout == panel->visible_layout);
     layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
-    return (bool_t)(_layout_search_component(layout, component, TRUE) != NULL);
+    return (bool_t)(_layout_search_component(layout, component, NULL, TRUE) != NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -415,6 +421,22 @@ Window *_panel_get_window(Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
+Cell *_panel_get_component_cell(Panel *panel, const GuiComponent *component)
+{
+    Cell *cell = NULL;
+    cassert_no_null(panel);
+    cassert(arrpt_find(panel->children, component, GuiComponent) != UINT32_MAX);
+    if (panel->active_layout != UINT32_MAX)
+    {
+        Layout *layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
+        _layout_search_component(layout, component, &cell, FALSE);
+    }
+
+    return cell;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_activate_layout(const ArrPt(Layout) * layouts, ArrPt(GuiComponent) * children, const uint32_t active_layout)
 {
     const Layout *layout = arrpt_get_const(layouts, active_layout, Layout);
@@ -423,12 +445,16 @@ static void i_activate_layout(const ArrPt(Layout) * layouts, ArrPt(GuiComponent)
     _layout_components(layout, layout_components);
 
     /* Show or hide component depending if is in active layout */
-    arrpt_foreach(component, children, GuiComponent) if (arrpt_find(layout_components, component, GuiComponent) != UINT32_MAX)
-        _component_visible(component, TRUE);
-    else _component_visible(component, FALSE);
-    arrpt_end()
+    arrpt_foreach(component, children, GuiComponent)
+    {
+        if (arrpt_find(layout_components, component, GuiComponent) != UINT32_MAX)
+            _component_visible(component, TRUE);
+        else
+            _component_visible(component, FALSE);
+    }
+    arrpt_end();
 
-        arrpt_destroy(&layout_components, NULL, GuiComponent);
+    arrpt_destroy(&layout_components, NULL, GuiComponent);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -595,4 +621,12 @@ ArrPt(Layout) * _panel_layouts(const Panel *panel)
 {
     cassert_no_null(panel);
     return panel->layouts;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _panel_content_size(Panel *panel, const real32_t width, const real32_t height)
+{
+    cassert_no_null(panel);
+    panel->component.context->func_panel_content_size(panel->component.ositem, width, height, 10, 10);
 }

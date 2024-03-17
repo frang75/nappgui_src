@@ -9,11 +9,11 @@
  */
 
 /*
-   The NAppGUI Gui library knows how to compose and manage dynamic graphical
+   The GUI library knows how to compose and manage dynamic graphical
    user interfaces. But it does NOT know how to draw the elements (widgets)
    nor how to get the user events (keyboard, mouse). The drawing and event
    capture tasks are performed through a GuiCtx context object. Currently,
-   NAppGUI implements a native context in OSGui that links to Win32, Cocoa,
+   NAppGUI implements a native context in OSGUI that links to Win32, Cocoa,
    and GTK. However, is opened the possibility of creating alternative contexts
    (for example OpenGL) and the use of them with Gui library to manage interfaces created
    with other technologies.
@@ -27,7 +27,7 @@
    needed to create a context.
    It is NOT documented, it is currently considered part of the final Gui library.
 
-   The OSGui library:
+   The OSGUI library:
 
    Implements a native GUI context, using the core technologies:
    Win32, Cocoa and GTK.
@@ -125,6 +125,16 @@ typedef enum _gui_focus_t
     ekGUI_FOCUS_NO_RESIGN,
     ekGUI_FOCUS_NO_ACCEPT
 } gui_focus_t;
+
+typedef enum _gui_tab_t
+{
+    ekGUI_TAB_KEY = 1,
+    ekGUI_TAB_BACKKEY,
+    ekGUI_TAB_NEXT,
+    ekGUI_TAB_PREV,
+    ekGUI_TAB_MOVE,
+    ekGUI_TAB_CLICK
+} gui_tab_t;
 
 typedef enum _gui_event_t
 {
@@ -552,13 +562,17 @@ typedef enum_t (*FPtr_gctx_get_enum)(const void *item);
 #define FUNC_CHECK_GCTX_GET_ENUM(func, type, type_enum) \
     (void)((type_enum(*)(const type *))func == func)
 
-typedef real32_t (*FPtr_gctx_get_real32e)(const void *item, const enum_t value);
-#define FUNC_CHECK_GCTX_GET_REAL32E(func, type, type_enum) \
-    (void)((real32_t(*)(const type *, const type_enum))func == func)
-
 typedef enum_t (*FPtr_gctx_get_enum2)(const void *item, const enum_t);
 #define FUNC_CHECK_GCTX_GET_ENUM2(func, type, type_enum, type_enum2) \
     (void)((type_enum(*)(const type *, const type_enum2))func == func)
+
+typedef enum_t (*FPtr_gctx_get_enum3)(const void *item, void **ptr);
+#define FUNC_CHECK_GCTX_GET_ENUM3(func, type, type_enum) \
+    (void)((type_enum(*)(const type *, void **ptr))func == func)
+
+typedef real32_t (*FPtr_gctx_get_real32e)(const void *item, const enum_t value);
+#define FUNC_CHECK_GCTX_GET_REAL32E(func, type, type_enum) \
+    (void)((real32_t(*)(const type *, const type_enum))func == func)
 
 typedef void (*FPtr_gctx_get2_real32)(const void *item, real32_t *value1, real32_t *value2);
 #define FUNC_CHECK_GCTX_GET2_REAL32(func, type) \
@@ -830,6 +844,7 @@ struct _guictx_t
     FPtr_gctx_set_enum2 func_window_tabstop;
     FPtr_gctx_set_ptr3 func_window_set_focus;
     FPtr_gctx_get_ptr func_window_get_focus;
+    FPtr_gctx_get_enum3 func_window_info_focus;
     FPtr_gctx_set_ptr func_attach_main_panel_to_window;
     FPtr_gctx_set_ptr func_detach_main_panel_from_window;
     FPtr_gctx_set_ptr func_attach_window_to_window;
@@ -898,7 +913,6 @@ struct _evtext_t
     const char_t *text;
     uint32_t cpos;
     int32_t len;
-    void *next_ctrl;
 };
 
 #define kTEXTFILTER_SIZE 4096

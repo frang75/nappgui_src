@@ -23,9 +23,8 @@
 OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button)
 {
     OSButton *effective = NULL;
-    ArrPt(OSControl) *controls = oswindow_all_controls(window);
-
-    arrpt_foreach(control, controls, OSControl)
+    const ArrPt(OSControl) *controls = oswindow_get_all_controls(window);
+    arrpt_foreach_const(control, controls, OSControl)
     {
         cassert_no_null(control);
         if (oscontrol_type(control) == ekGUI_TYPE_BUTTON)
@@ -42,7 +41,6 @@ OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button)
     }
     arrpt_end();
 
-    arrpt_destroy(&controls, NULL, OSControl);
     return effective;
 }
 

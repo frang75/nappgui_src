@@ -141,7 +141,6 @@
     cassert(self->timer == NULL);
     cassert_no_nullf(self->func_OnFinishLaunching);
 
-    self->func_OnFinishLaunching(self->listener);
     if (self->func_OnTimerSignal != NULL)
     {
         self->timer = [NSTimer timerWithTimeInterval:(.01) target:self selector:@selector(synchronousTimer:) userInfo:nil repeats:YES];
@@ -161,6 +160,8 @@
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleInterfaceThemeChangedNotification" object: nil];
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleColorPreferencesChangedNotification" object:nil];
     #endif
+
+    self->func_OnFinishLaunching(self->listener);
 }
 
 /*---------------------------------------------------------------------------*/

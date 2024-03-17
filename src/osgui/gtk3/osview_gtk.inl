@@ -18,13 +18,9 @@ void _osview_set_capture(OSView *view, OSControl *control);
 
 void _osview_release_capture(OSView *view);
 
-void _osview_set_focus(OSView *view);
+GtkWidget *_osview_focus_widget(OSView *view);
 
-void _osview_unset_focus(OSView *view);
-
-GtkWidget *_osview_focus(OSView *view);
-
-GtkWidget *_osview_area(OSView *view);
+GtkWidget *_osview_area_widget(OSView *view);
 
 void _osview_scroll_event(OSView *view, const gui_orient_t orient, const gui_scroll_t event);
 

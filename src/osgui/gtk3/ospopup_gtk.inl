@@ -14,8 +14,6 @@
 
 __EXTERN_C
 
-GtkWidget *_ospopup_focus(OSPopUp *popup);
-
-void _ospopup_set_focus(OSPopUp *popup);
+GtkWidget *_ospopup_focus_widget(OSPopUp *popup);
 
 __END_C

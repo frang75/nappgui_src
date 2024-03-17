@@ -45,8 +45,15 @@ typedef struct _panel_t Panel;
 typedef struct _window_t Window;
 typedef struct _menu_t Menu;
 typedef struct _menu_item_t MenuItem;
+typedef struct _focus_info_t FocusInfo;
 
 typedef ResPack *(*FPtr_respack)(const char_t *locale);
+
+struct _focus_info_t
+{
+    gui_tab_t action;
+    GuiControl *next;
+};
 
 DeclSt(FPtr_respack);
 

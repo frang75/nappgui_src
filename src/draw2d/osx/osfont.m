@@ -42,7 +42,6 @@ void osfont_alloc_globals(void)
 
 void osfont_dealloc_globals(void)
 {
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -119,7 +118,14 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     }
     else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
     {
+#if defined (MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
+        if (style & ekFBOLD)
+            nsfont = [NSFont monospacedSystemFontOfSize:(CGFloat)size weight:NSFontWeightBold];
+        else
+            nsfont = [NSFont monospacedSystemFontOfSize:(CGFloat)size weight:NSFontWeightLight];
+#else
         name = "Courier New";
+#endif
     }
     else
     {
@@ -160,20 +166,15 @@ void osfont_destroy(OSFont **font)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *osfont_family(const char_t *family)
+String *osfont_family_name(const OSFont *font)
 {
-    if (str_equ_c(family, "__SYSTEM__") == TRUE)
-    {
-        return "__SYSTEM__";
-    }
-    else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
-    {
-        return "Courier New";
-    }
-    else
-    {
-        return family;
-    }
+    NSFont *nsfont = (NSFont*)font;
+    NSString *fname = nil;
+    const char_t *utf8name = NULL;
+    cassert_no_null(nsfont);
+    fname = [nsfont familyName];
+    utf8name = (const char_t*)[fname UTF8String];
+    return str_c(utf8name);    
 }
 
 /*---------------------------------------------------------------------------*/

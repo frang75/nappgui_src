@@ -35,7 +35,8 @@
 
 static win_t i_WIN_VERSION = ENUM_MAX(win_t);
 static endian_t i_ENDIANNESS = ENUM_MAX(endian_t);
-union i_check_endianness {
+union i_check_endianness
+{
     unsigned char bytes[4];
     uint32_t value;
 };

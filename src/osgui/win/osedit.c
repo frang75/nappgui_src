@@ -36,6 +36,7 @@ struct _osedit_t
     uint32_t flags;
     Font *font;
     bool_t launch_event;
+    bool_t focused;
     COLORREF color;
     COLORREF bgcolor;
     HBRUSH bgbrush;
@@ -66,30 +67,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         return _osgui_nccalcsize(hwnd, wParam, lParam, TRUE, edit->wpadding, &edit->border);
 
     case WM_NCPAINT:
-        return _osgui_ncpaint(hwnd, &edit->border, edit->bgbrush);
+        return _osgui_ncpaint(hwnd, edit->focused, &edit->border, edit->bgbrush);
 
     case WM_PAINT:
         if (_oswindow_in_resizing(hwnd) == TRUE)
             return 0;
-        break;
-
-    case WM_SETFOCUS:
-        if (edit->OnFocus != NULL)
-        {
-            bool_t params = TRUE;
-            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
-        }
-
-        if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
-            SendMessage(hwnd, EM_SETSEL, 0, -1);
-        break;
-
-    case WM_KILLFOCUS:
-        if (edit->OnFocus != NULL)
-        {
-            bool_t params = FALSE;
-            listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
-        }
         break;
 
     case WM_LBUTTONDOWN:
@@ -173,6 +155,7 @@ OSEdit *osedit_create(const uint32_t flags)
     _oscontrol_init((OSControl *)edit, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY /*| WS_EX_CLIENTEDGE*/), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     edit->font = osgui_create_default_font();
     edit->launch_event = TRUE;
+    edit->focused = FALSE;
     edit->vpadding = UINT32_MAX;
     edit->timer = 0;
     i_update_vpadding(edit);
@@ -509,23 +492,43 @@ HBRUSH _osedit_background_color(const OSEdit *edit, COLORREF *color)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osedit_resign_focus(const OSEdit *edit, const OSControl *next_control)
+bool_t osedit_resign_focus(const OSEdit *edit)
 {
     bool_t lost_focus = TRUE;
     cassert_no_null(edit);
     if (edit->OnChange != NULL)
     {
-        char_t *edit_text;
-        uint32_t tsize;
+        char_t *edit_text = NULL;
+        uint32_t tsize = 0;
         EvText params;
         edit_text = _oscontrol_get_text((const OSControl *)edit, &tsize);
         params.text = (const char_t *)edit_text;
         params.cpos = UINT32_MAX;
         params.len = INT32_MAX;
-        params.next_ctrl = (void *)next_control;
         listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, &lost_focus, OSEdit, EvText, bool_t);
         heap_free((byte_t **)&edit_text, tsize, "OSControlGetText");
     }
 
     return lost_focus;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osedit_focus(OSEdit *edit, const bool_t focus)
+{
+    cassert_no_null(edit);
+
+    edit->focused = focus;
+
+    if (edit->OnFocus != NULL)
+    {
+        bool_t params = focus;
+        listener_event(edit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
+    }
+
+    if (focus == TRUE)
+    {
+        if (BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
+            SendMessage(edit->control.hwnd, EM_SETSEL, 0, -1);
+    }
 }

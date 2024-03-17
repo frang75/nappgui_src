@@ -232,76 +232,6 @@ static void i_menu_command(HWND hwnd, HMENU popup_hmenu, WORD command_id)
 
 /*---------------------------------------------------------------------------*/
 
-/*#include "log.h"
-static void i_log_control(HWND hwnd, uint32_t taborder)
-{
-    OSControl *control = (OSControl*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-    if (control != NULL)
-    {
-        switch (control->type)
-        {
-            case ekGUI_TYPE_BOXVIEW:
-                log_printf("%d: BoxView", taborder);
-                break;
-            case ekGUI_TYPE_BUTTON:
-                log_printf("%d: Button", taborder);
-                break;
-            case ekGUI_TYPE_EDITBOX:
-                log_printf("%d: EditBox", taborder);
-                break;
-            case ekGUI_TYPE_COMBOBOX:
-                log_printf("%d: ComboBox", taborder);
-                break;
-            case ekGUI_TYPE_CUSTOMVIEW:
-                log_printf("%d: CView", taborder);
-                break;
-            case ekGUI_TYPE_LABEL:
-                log_printf("%d: Label", taborder);
-                break;
-            case ekGUI_TYPE_LINE:
-                log_printf("%d: Line", taborder);
-                break;
-            case ekGUI_TYPE_PANEL:
-                log_printf("%d: Panel", taborder);
-                break;
-            case ekGUI_TYPE_POPUP:
-                log_printf("%d: PopUp", taborder);
-                break;
-            case ekGUI_TYPE_PROGRESS:
-                log_printf("%d: Progress", taborder);
-                break;
-            case ekGUI_TYPE_SLIDER:
-                log_printf("%d: Slider", taborder);
-                break;
-            case ekGUI_TYPE_TABLEVIEW:
-                log_printf("%d: TableView", taborder);
-                break;
-            case ekGUI_TYPE_TEXTVIEW:
-                log_printf("%d: VText", taborder);
-                break;
-            case ekGUI_TYPE_TREEVIEW:
-                log_printf("%d: TreeView", taborder);
-                break;
-            case ekGUI_TYPE_UPDOWN:
-                log_printf("%d: UpDown", taborder);
-                break;
-            case ekGUI_TYPE_WINDOW:
-                log_printf("%d: Window", taborder);
-                break;
-            case ekGUI_TYPE_HEADER:
-                log_printf("%d: Header", taborder);
-                break;
-            cassert_default();
-        }
-    }
-    else
-    {
-        log_printf("%d: Child Window", taborder);
-    }
-}*/
-
-/*---------------------------------------------------------------------------*/
-
 static bool_t i_press_defbutton(OSWindow *window)
 {
     cassert_no_null(window);
@@ -378,7 +308,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
             /* DialogBox "Menu" Commands? */
             switch (LOWORD(wParam))
             {
-            case IDCANCEL: {
+            case IDCANCEL:
+            {
                 i_close(window, ekGUI_CLOSE_ESC);
                 return TRUE;
             }
@@ -508,7 +439,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         i_close(window, ekGUI_CLOSE_BUTTON);
         return 0;
 
-    case WM_MEASUREITEM: {
+    case WM_MEASUREITEM:
+    {
         MEASUREITEMSTRUCT *mi = (MEASUREITEMSTRUCT *)lParam;
         /* Sent by menu */
         cassert((UINT)wParam == 0);
@@ -518,7 +450,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         return TRUE;
     }
 
-    case WM_DRAWITEM: {
+    case WM_DRAWITEM:
+    {
         DRAWITEMSTRUCT *di = (DRAWITEMSTRUCT *)lParam;
         /* Sent by menu */
         cassert((UINT)wParam == 0);
@@ -773,9 +706,9 @@ gui_focus_t oswindow_tabstop(OSWindow *window, const bool_t next)
 {
     cassert_no_null(window);
     if (next == TRUE)
-        return ostabstop_next(&window->tabstop);
+        return ostabstop_next(&window->tabstop, FALSE);
     else
-        return ostabstop_prev(&window->tabstop);
+        return ostabstop_prev(&window->tabstop, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -794,6 +727,14 @@ OSControl *oswindow_get_focus(const OSWindow *window)
 {
     cassert_no_null(window);
     return window->tabstop.current;
+}
+
+/*---------------------------------------------------------------------------*/
+
+gui_tab_t oswindow_info_focus(const OSWindow *window, void **next_ctrl)
+{
+    cassert_no_null(window);
+    return ostabstop_info_focus(&window->tabstop, next_ctrl);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1052,14 +993,6 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
 
 /*---------------------------------------------------------------------------*/
 
-OSWidget *oswindow_widget_get_focus(OSWindow *window)
-{
-    unref(window);
-    return OSWidgetPtr(GetFocus());
-}
-
-/*---------------------------------------------------------------------------*/
-
 void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 {
     unref(window);
@@ -1085,12 +1018,19 @@ static BOOL CALLBACK i_get_controls(HWND hwnd, LPARAM lParam)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(OSControl) * oswindow_all_controls(OSWindow *window)
+void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) * controls)
 {
-    ArrPt(OSControl) *controls = arrpt_create(OSControl);
     cassert_no_null(window);
+    cassert(arrpt_size(controls, OSControl) == 0);
     EnumChildWindows(window->control.hwnd, i_get_controls, (LPARAM)controls);
-    return controls;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const ArrPt(OSControl) * oswindow_get_all_controls(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return window->tabstop.controls;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1246,9 +1186,9 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
                     SHORT rshif_state = GetAsyncKeyState(VK_RSHIFT);
                     BOOL previous = ((0x8000 & lshif_state) != 0) || ((0x8000 & rshif_state) != 0);
                     if (previous == TRUE)
-                        ostabstop_prev(&window->tabstop);
+                        ostabstop_prev(&window->tabstop, TRUE);
                     else
-                        ostabstop_next(&window->tabstop);
+                        ostabstop_next(&window->tabstop, TRUE);
                     return TRUE;
                 }
             }

@@ -334,6 +334,7 @@ GuiCtx *osguictx(void)
         oswindow_tabstop,
         oswindow_focus,
         oswindow_get_focus,
+        oswindow_info_focus,
         oswindow_attach_panel,
         oswindow_detach_panel,
         oswindow_attach_window,

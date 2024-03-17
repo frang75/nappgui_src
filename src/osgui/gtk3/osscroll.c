@@ -117,7 +117,7 @@ static GtkWidget *i_parent(const OSScroll *scroll)
     cassert_no_null(scroll);
     cassert_no_null(scroll->control);
     if (scroll->control->type == ekGUI_TYPE_CUSTOMVIEW)
-        return _osview_area(OSViewPtr(scroll->control));
+        return _osview_area_widget(OSViewPtr(scroll->control));
     cassert(FALSE);
     return NULL;
 }

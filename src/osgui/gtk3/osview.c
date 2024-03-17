@@ -734,43 +734,28 @@ void _osview_release_capture(OSView *view)
 
 /*---------------------------------------------------------------------------*/
 
-void _osview_set_focus(OSView *view)
+void osview_focus(OSView *view, const bool_t focus)
 {
     cassert_no_null(view);
     if (view->OnFocus != NULL)
     {
-        bool_t params = TRUE;
+        bool_t params = focus;
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
     }
 
     if (view->border_color != NULL)
     {
         cassert(GTK_IS_FRAME(view->control.widget));
-        _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+        if (focus == TRUE)
+            _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+        else
+            _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _osview_unset_focus(OSView *view)
-{
-    cassert_no_null(view);
-    if (view->OnFocus != NULL)
-    {
-        bool_t params = FALSE;
-        listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
-    }
-
-    if (view->border_color != NULL)
-    {
-        cassert(GTK_IS_FRAME(view->control.widget));
-        _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-GtkWidget *_osview_focus(OSView *view)
+GtkWidget *_osview_focus_widget(OSView *view)
 {
     cassert_no_null(view);
     cassert_no_null(view->darea);
@@ -779,7 +764,7 @@ GtkWidget *_osview_focus(OSView *view)
 
 /*---------------------------------------------------------------------------*/
 
-GtkWidget *_osview_area(OSView *view)
+GtkWidget *_osview_area_widget(OSView *view)
 {
     cassert_no_null(view);
     cassert_no_null(view->darea);
@@ -797,12 +782,12 @@ void _osview_scroll_event(OSView *view, const gui_orient_t orient, const gui_scr
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osview_resign_focus(const OSView *view, const OSControl *next_control)
+bool_t osview_resign_focus(const OSView *view)
 {
     bool_t resign = TRUE;
     cassert_no_null(view);
     if (view->OnResignFocus != NULL)
-        listener_event(view->OnResignFocus, ekGUI_EVENT_FOCUS_RESIGN, view, (void *)next_control, &resign, OSView, void, bool_t);
+        listener_event(view->OnResignFocus, ekGUI_EVENT_FOCUS_RESIGN, view, NULL, &resign, OSView, void, bool_t);
     return resign;
 }
 

@@ -83,20 +83,23 @@ static void i_OnFilter(Edit *edit, Event *e)
 {
     EvTextFilter *res = event_result(e, EvTextFilter);
     const EvText *p = event_params(e, EvText);
+    Cell *cell = NULL;
+
     cassert_no_null(edit);
+    cell = _component_cell(&edit->component);
     res->apply = FALSE;
 
     /* Native edit doesn't known exactly the inserted or deleted text size */
     if (p->len == INT32_MAX)
         ((EvText *)p)->len = i_text_diff(tc(edit->text), p->text);
 
-    if (edit->component.parent != NULL)
-        res->apply = _cell_filter_str(edit->component.parent, p->text, res->text, sizeof(res->text));
+    if (cell != NULL)
+        res->apply = _cell_filter_str(cell, p->text, res->text, sizeof(res->text));
 
     if (res->apply == FALSE)
     {
-        if (edit->component.parent != NULL)
-            _cell_upd_string(edit->component.parent, p->text);
+        if (cell != NULL)
+            _cell_upd_string(cell, p->text);
 
         if (edit->OnFilter != NULL)
             listener_pass_event(edit->OnFilter, e, edit, Edit);
@@ -113,28 +116,19 @@ static void i_OnFilter(Edit *edit, Event *e)
 static void i_OnChange(Edit *edit, Event *e)
 {
     const EvText *p = event_params(e, EvText);
+    Cell *cell = NULL;
     cassert_no_null(edit);
     cassert_no_null(p);
     cassert(event_type(e) == ekGUI_EVENT_TXTCHANGE);
     cassert(event_sender_imp(e, NULL) == edit->component.ositem);
+    cell = _component_cell(&edit->component);
     str_upd(&edit->text, p->text);
 
-    if (edit->component.parent != NULL)
-        _cell_upd_string(edit->component.parent, p->text);
+    if (cell != NULL)
+        _cell_upd_string(cell, p->text);
 
     if (edit->OnChange != NULL)
-    {
-        Window *window = _component_window((GuiComponent *)edit);
-        Panel *panel = _window_main_panel(window);
-
-        if (p->next_ctrl != NULL)
-        {
-            ((EvText *)p)->next_ctrl = (void *)_panel_find_component(panel, (void *)p->next_ctrl);
-            cassert_no_null(p->next_ctrl);
-        }
-
         listener_pass_event(edit->OnChange, e, edit, Edit);
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -178,6 +172,7 @@ static void i_OnFocus(Edit *edit, Event *e)
     cassert_no_null(p);
     if (*p == TRUE)
     {
+        Cell *cell = _component_cell(&edit->component);
         char_t filter[128];
 
         if (edit->focus_color != kCOLOR_DEFAULT)
@@ -186,9 +181,9 @@ static void i_OnFocus(Edit *edit, Event *e)
         if (edit->bg_focus_color != kCOLOR_DEFAULT)
             edit->component.context->func_edit_set_bg_color(edit->component.ositem, edit->bg_focus_color);
 
-        if (edit->component.parent != NULL)
+        if (cell != NULL)
         {
-            if (_cell_filter_str(edit->component.parent, tc(edit->text), filter, sizeof(filter)) == TRUE)
+            if (_cell_filter_str(cell, tc(edit->text), filter, sizeof(filter)) == TRUE)
                 edit->component.context->func_edit_set_text(edit->component.ositem, filter);
         }
     }

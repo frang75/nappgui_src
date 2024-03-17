@@ -2,4 +2,4 @@
 
 #include <gui/gui.hxx>
 
-Panel *form_basic(void);
+Panel *form_basic(Window *window);

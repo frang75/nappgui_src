@@ -273,7 +273,7 @@ void _ospopup_command(OSPopUp *popup, WPARAM wParam)
 
 /*---------------------------------------------------------------------------*/
 
-HWND _ospopup_focus(OSPopUp *popup)
+HWND _ospopup_focus_widget(OSPopUp *popup)
 {
     cassert_no_null(popup);
     return popup->combo_hwnd;

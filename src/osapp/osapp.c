@@ -277,21 +277,24 @@ static void i_OnNotification(void *sender, Event *e)
 
     switch (type)
     {
-    case ekGUI_NOTIF_LANGUAGE: {
+    case ekGUI_NOTIF_LANGUAGE:
+    {
         const char_t *params = event_params(e, char_t);
         osapp_set_lang(app->osapp, params);
         osgui_redraw_menubar();
         break;
     }
 
-    case ekGUI_NOTIF_WIN_DESTROY: {
+    case ekGUI_NOTIF_WIN_DESTROY:
+    {
         const Window *window = event_params(e, Window);
         OSWindow *oswindow = (OSWindow *)window_imp(window);
         osgui_unset_menubar(NULL, oswindow);
         break;
     }
 
-    case ekGUI_NOTIF_MENU_DESTROY: {
+    case ekGUI_NOTIF_MENU_DESTROY:
+    {
         const Menu *menu = event_params(e, Menu);
         OSMenu *osmenu = (OSMenu *)menu_imp(menu);
         osgui_unset_menubar(osmenu, NULL);

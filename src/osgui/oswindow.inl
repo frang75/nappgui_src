@@ -14,13 +14,13 @@
 
 __EXTERN_C
 
-OSWidget *oswindow_widget_get_focus(OSWindow *window);
-
 void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget);
 
 OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button);
 
-ArrPt(OSControl) * oswindow_all_controls(OSWindow *window);
+void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) * controls);
+
+const ArrPt(OSControl) * oswindow_get_all_controls(const OSWindow *window);
 
 void oswindow_hotkey_destroy(ArrSt(OSHotKey) * *hotkeys);
 

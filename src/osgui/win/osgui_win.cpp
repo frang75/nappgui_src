@@ -326,7 +326,7 @@ LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand
 
 /*---------------------------------------------------------------------------*/
 
-LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border, HBRUSH padding_bgcolor)
+LRESULT _osgui_ncpaint(HWND hwnd, const bool_t focused, const RECT *border, HBRUSH padding_bgcolor)
 {
     HDC hdc = GetWindowDC(hwnd);
     HTHEME theme = NULL;
@@ -336,7 +336,7 @@ LRESULT _osgui_ncpaint(HWND hwnd, const RECT *border, HBRUSH padding_bgcolor)
 
     if (IsWindowEnabled(hwnd) == TRUE)
     {
-        if (GetFocus() == hwnd)
+        if (focused == TRUE)
         {
             theme = osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
             partId = _CP_BORDER;

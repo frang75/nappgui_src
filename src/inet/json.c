@@ -456,49 +456,57 @@ static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, 
     case i_ekNUMBER:
         switch (type)
         {
-        case ekDTYPE_INT8: {
+        case ekDTYPE_INT8:
+        {
             bool_t err;
             *((int8_t *)object) = str_to_i8(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int8_t");
         }
 
-        case ekDTYPE_INT16: {
+        case ekDTYPE_INT16:
+        {
             bool_t err;
             *((int16_t *)object) = str_to_i16(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int16_t");
         }
 
-        case ekDTYPE_INT32: {
+        case ekDTYPE_INT32:
+        {
             bool_t err;
             *((int32_t *)object) = str_to_i32(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int32_t");
         }
 
-        case ekDTYPE_INT64: {
+        case ekDTYPE_INT64:
+        {
             bool_t err;
             *((int64_t *)object) = str_to_i64(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int64_t");
         }
 
-        case ekDTYPE_UINT8: {
+        case ekDTYPE_UINT8:
+        {
             bool_t err;
             *((uint8_t *)object) = str_to_u8(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint8_t");
         }
 
-        case ekDTYPE_UINT16: {
+        case ekDTYPE_UINT16:
+        {
             bool_t err;
             *((uint16_t *)object) = str_to_u16(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint16_t");
         }
 
-        case ekDTYPE_UINT32: {
+        case ekDTYPE_UINT32:
+        {
             bool_t err;
             *((uint32_t *)object) = str_to_u32(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint32_t");
         }
 
-        case ekDTYPE_UINT64: {
+        case ekDTYPE_UINT64:
+        {
             bool_t err;
             *((uint64_t *)object) = str_to_u64(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint64_t");
@@ -532,7 +540,8 @@ static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, 
             }
             break;
 
-        case ekDTYPE_ENUM: {
+        case ekDTYPE_ENUM:
+        {
             bool_t err;
             *((int32_t *)object) = str_to_i32(parser->number, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to enum");
@@ -560,7 +569,8 @@ static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, 
             str_upd((String **)object, parser->lexeme);
             return TRUE;
 
-        case ekDTYPE_OBJECT_OPAQUE: {
+        case ekDTYPE_OBJECT_OPAQUE:
+        {
             uint32_t dsize = b64_decoded_size(parser->lexsize);
             byte_t *data = heap_malloc(dsize, "JsonB64Decode");
             uint32_t size = b64_decode(parser->lexeme, parser->lexsize, data);
@@ -570,61 +580,71 @@ static bool_t i_parse_value(i_Parser *parser, const DBind *dbind, dtype_t type, 
             return TRUE;
         }
 
-        case ekDTYPE_INT8: {
+        case ekDTYPE_INT8:
+        {
             bool_t err;
             *((int8_t *)object) = str_to_i8(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int8_t");
         }
 
-        case ekDTYPE_INT16: {
+        case ekDTYPE_INT16:
+        {
             bool_t err;
             *((int16_t *)object) = str_to_i16(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int16_t");
         }
 
-        case ekDTYPE_INT32: {
+        case ekDTYPE_INT32:
+        {
             bool_t err;
             *((int32_t *)object) = str_to_i32(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int32_t");
         }
 
-        case ekDTYPE_INT64: {
+        case ekDTYPE_INT64:
+        {
             bool_t err;
             *((int64_t *)object) = str_to_i64(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to int64_t");
         }
 
-        case ekDTYPE_UINT8: {
+        case ekDTYPE_UINT8:
+        {
             bool_t err;
             *((uint8_t *)object) = str_to_u8(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint8_t");
         }
 
-        case ekDTYPE_UINT16: {
+        case ekDTYPE_UINT16:
+        {
             bool_t err;
             *((uint16_t *)object) = str_to_u16(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint16_t");
         }
 
-        case ekDTYPE_UINT32: {
+        case ekDTYPE_UINT32:
+        {
             bool_t err;
             *((uint32_t *)object) = str_to_u32(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint32_t");
         }
 
-        case ekDTYPE_UINT64: {
+        case ekDTYPE_UINT64:
+        {
             bool_t err;
             *((uint64_t *)object) = str_to_u64(parser->lexeme, 10, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to uint64_t");
         }
 
-        case ekDTYPE_REAL32: {
+        case ekDTYPE_REAL32:
+        {
             bool_t err;
             *((real32_t *)object) = str_to_r32(parser->lexeme, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to real32_t");
         }
 
-        case ekDTYPE_REAL64: {
+        case ekDTYPE_REAL64:
+        {
             bool_t err;
             *((real64_t *)object) = str_to_r64(parser->lexeme, &err);
             return i_error(!err, FALSE, parser, "Cannot cast to real64_t");
@@ -906,14 +926,16 @@ static void *i_create_type(i_Parser *parser, const char_t *type)
         i_parse_value(parser, NULL, dtype, tc(subtype), &obj);
         break;
 
-    case ekDTYPE_OBJECT_PTR: {
+    case ekDTYPE_OBJECT_PTR:
+    {
         String *err = str_printf("Unexpected double pointer to object '%s'", tc(subtype));
         i_error(FALSE, TRUE, parser, tc(err));
         str_destroy(&err);
         break;
     }
 
-    case ekDTYPE_UNKNOWN: {
+    case ekDTYPE_UNKNOWN:
+    {
         String *err = str_printf("Unknown type '%s'", type);
         i_error(FALSE, TRUE, parser, tc(err));
         str_destroy(&err);

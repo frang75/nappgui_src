@@ -39,7 +39,8 @@ color_t osglobals_color(const syscolor_t *color)
 
     switch (*color)
     {
-    case ekSYSCOLOR_DARKMODE: {
+    case ekSYSCOLOR_DARKMODE:
+    {
         uint32_t c = GetSysColor(COLOR_3DFACE);
         real32_t r = (real32_t)((uint8_t)(c) / 255.f);
         real32_t g = (real32_t)((uint8_t)(c >> 8) / 255.f);

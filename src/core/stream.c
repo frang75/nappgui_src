@@ -90,7 +90,8 @@ struct i_socket_t
     serror_t sock_err;
 };
 
-typedef union i_channel_t {
+typedef union i_channel_t
+{
     i_File file;
     i_Socket sock;
 } i_Channel;
