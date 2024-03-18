@@ -166,7 +166,7 @@ static void i_remove_resource(i_Resource *resource)
     i_remove_object(&resource->global, resource->type);
     arrst_foreach(local, resource->locals, i_Local)
         i_remove_local(local, resource->type);
-    arrst_end();
+    arrst_end()
     arrst_destroy(&resource->locals, NULL, i_Local);
 }
 
@@ -241,8 +241,10 @@ static bool_t i_file_is_resource(const char_t *filename)
 
 static i_Resource *i_resource_by_name(ArrSt(i_Resource) *resources, const char_t *name)
 {
-    arrst_foreach(resource, resources, i_Resource) if (str_equ(resource->name, name) == TRUE) return resource;
-    arrst_end();
+    arrst_foreach(resource, resources, i_Resource)
+        if (str_equ(resource->name, name) == TRUE)
+            return resource;
+    arrst_end()
     return NULL;
 }
 
@@ -278,7 +280,7 @@ static i_Object *i_add_local(i_Resource *resource, const uint32_t index)
     cassert_no_null(resource);
     arrst_foreach(local, resource->locals, i_Local)
         cassert(local->index != index);
-    arrst_end();
+    arrst_end()
 
     {
         i_Local *local;
@@ -362,23 +364,25 @@ static void i_read_msgfile(ResourcePack *pack, const uint32_t local_index, const
 
         if (local_index != UINT32_MAX)
         {
-            arrst_foreach(resource, pack->resources, i_Resource) if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
-            {
-                bool_t with_local = FALSE;
-                arrst_foreach(local, resource->locals, i_Local) if (local->index == local_index)
+            arrst_foreach(resource, pack->resources, i_Resource)
+                if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
                 {
-                    with_local = TRUE;
-                    break;
-                }
-                arrst_end();
+                    bool_t with_local = FALSE;
+                    arrst_foreach(local, resource->locals, i_Local)
+                        if (local->index == local_index)
+                        {
+                            with_local = TRUE;
+                            break;
+                        }
+                    arrst_end()
 
-                if (with_local == FALSE)
-                {
-                    String *warning = str_printf("There is no localized version of the text '%s' in '%s'.", tc(resource->name), pathname);
-                    arrpt_append(pack->warnings, warning, String);
+                    if (with_local == FALSE)
+                    {
+                        String *warning = str_printf("There is no localized version of the text '%s' in '%s'.", tc(resource->name), pathname);
+                        arrpt_append(pack->warnings, warning, String);
+                    }
                 }
-            }
-            arrst_end();
+            arrst_end()
         }
     }
 
@@ -638,28 +642,28 @@ void resgen_write_h_file(const ResourcePack *pack, const char_t *dest_path, cons
         arrst_foreach(resource, pack->resources, i_Resource)
             String *name = i_define_resname(resource->name);
 
-        if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
-        {
-            if (with_texts == FALSE)
+            if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
             {
-                stm_writef(stream, "/* Messages */\n");
-                with_texts = TRUE;
+                if (with_texts == FALSE)
+                {
+                    stm_writef(stream, "/* Messages */\n");
+                    with_texts = TRUE;
+                }
             }
-        }
-        else
-        {
-            if (with_files == FALSE)
+            else
             {
-                if (with_texts == TRUE)
-                    stm_writef(stream, "\n/* Files */\n");
+                if (with_files == FALSE)
+                {
+                    if (with_texts == TRUE)
+                        stm_writef(stream, "\n/* Files */\n");
 
-                with_files = TRUE;
+                    with_files = TRUE;
+                }
             }
-        }
 
-        stm_printf(stream, "extern ResId %s;\n", tc(name));
-        str_destroy(&name);
-        arrst_end();
+            stm_printf(stream, "extern ResId %s;\n", tc(name));
+            str_destroy(&name);
+        arrst_end()
 
         stm_writef(stream, "\n");
         stm_printf(stream, "ResPack *%s_respack(const char_t *locale);\n\n", dest_file);
@@ -732,17 +736,18 @@ static void i_binary_to_ascii(Stream *stream, const byte_t *binary_code, const u
 static bool_t i_write_local(Stream *stream, const i_Resource *resource, const char_t *local_code, const uint32_t local_index)
 {
     cassert_no_null(resource);
-    arrst_foreach(local, resource->locals, i_Local) if (local->index == local_index)
-    {
-        String *name = i_local_resname(resource->name, local_code);
-        if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
-            stm_printf(stream, "        respack_add_msg(pack, %s_TEXT);\n", tc(name));
-        else
-            stm_printf(stream, "        respack_add_cdata(pack, %d, %s_DATA, %s_SIZE);\n", resource->type, tc(name), tc(name));
-        str_destroy(&name);
-        return TRUE;
-    }
-    arrst_end();
+    arrst_foreach(local, resource->locals, i_Local)
+        if (local->index == local_index)
+        {
+            String *name = i_local_resname(resource->name, local_code);
+            if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
+                stm_printf(stream, "        respack_add_msg(pack, %s_TEXT);\n", tc(name));
+            else
+                stm_printf(stream, "        respack_add_cdata(pack, %d, %s_DATA, %s_SIZE);\n", resource->type, tc(name), tc(name));
+            str_destroy(&name);
+            return TRUE;
+        }
+    arrst_end()
     return FALSE;
 }
 
@@ -838,53 +843,53 @@ void resgen_write_c_file(const ResourcePack *pack, const char_t *dest_path, cons
         /* Resource IDs */
         arrst_foreach(resource, pack->resources, i_Resource)
             String *name = i_define_resname(resource->name);
-        stm_printf(stream, "ResId %s = \"N23R3C75::%s::%d\";\n", tc(name), dest_file, resource_i);
-        str_destroy(&name);
-        arrst_end();
+            stm_printf(stream, "ResId %s = \"N23R3C75::%s::%d\";\n", tc(name), dest_file, resource_i);
+            str_destroy(&name);
+        arrst_end()
 
         /* Resource serialized data */
         arrst_foreach(resource, pack->resources, i_Resource)
             String *name = i_global_resname(resource->name);
-        if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
-        {
-            stm_printf(stream, "static const char_t *%s_TEXT = \"", tc(name));
-            i_write_message(stream, tc(resource->global.string));
-            stm_writef(stream, "\";\n");
-            with_texts = TRUE;
-        }
-        else
-        {
-            if (with_files == FALSE)
+            if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
             {
-                if (with_texts == TRUE)
-                    stm_writef(stream, "\n/*---------------------------------------------------------------------------*/\n\n");
-                with_files = TRUE;
+                stm_printf(stream, "static const char_t *%s_TEXT = \"", tc(name));
+                i_write_message(stream, tc(resource->global.string));
+                stm_writef(stream, "\";\n");
+                with_texts = TRUE;
+            }
+            else
+            {
+                if (with_files == FALSE)
+                {
+                    if (with_texts == TRUE)
+                        stm_writef(stream, "\n/*---------------------------------------------------------------------------*/\n\n");
+                    with_files = TRUE;
+                }
+
+                i_binary_to_ascii(stream, buffer_data(resource->global.file_data), buffer_size(resource->global.file_data), 50, TRUE, tc(name));
+                stm_writef(stream, "\n\n/*---------------------------------------------------------------------------*/\n\n");
             }
 
-            i_binary_to_ascii(stream, buffer_data(resource->global.file_data), buffer_size(resource->global.file_data), 50, TRUE, tc(name));
-            stm_writef(stream, "\n\n/*---------------------------------------------------------------------------*/\n\n");
-        }
+            arrst_foreach(local, resource->locals, i_Local)
+                const String *local_code = arrpt_get(pack->local_codes, local->index, String);
+                String *local_name = i_local_resname(resource->name, tc(local_code));
+                if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
+                {
+                    stm_printf(stream, "static const char_t *%s_TEXT = \"", tc(local_name));
+                    i_write_message(stream, tc(local->object.string));
+                    stm_writef(stream, "\";\n");
+                }
+                else
+                {
+                    i_binary_to_ascii(stream, buffer_data(local->object.file_data), buffer_size(local->object.file_data), 50, FALSE, tc(local_name));
+                    stm_writef(stream, "\n\n/*---------------------------------------------------------------------------*/\n\n");
+                }
 
-        arrst_foreach(local, resource->locals, i_Local)
-            const String *local_code = arrpt_get(pack->local_codes, local->index, String);
-        String *local_name = i_local_resname(resource->name, tc(local_code));
-        if (resource->type == i_ekRESOURCE_TYPE_MESSAGE)
-        {
-            stm_printf(stream, "static const char_t *%s_TEXT = \"", tc(local_name));
-            i_write_message(stream, tc(local->object.string));
-            stm_writef(stream, "\";\n");
-        }
-        else
-        {
-            i_binary_to_ascii(stream, buffer_data(local->object.file_data), buffer_size(local->object.file_data), 50, FALSE, tc(local_name));
-            stm_writef(stream, "\n\n/*---------------------------------------------------------------------------*/\n\n");
-        }
+                str_destroy(&local_name);
+            arrst_end()
 
-        str_destroy(&local_name);
-        arrst_end();
-
-        str_destroy(&name);
-        arrst_end();
+            str_destroy(&name);
+        arrst_end()
 
         if (with_files == FALSE)
         {
@@ -899,20 +904,21 @@ void resgen_write_c_file(const ResourcePack *pack, const char_t *dest_path, cons
 
         arrpt_foreach(local_code, pack->local_codes, String)
             stm_printf(stream, "    if (str_equ_c(locale, \"%s\") == TRUE)\n", tc(local_code));
-        stm_writef(stream, "    {\n");
-        arrst_foreach(resource, pack->resources, i_Resource) if (i_write_local(stream, resource, tc(local_code), local_code_i) == FALSE)
-            i_write_global(stream, resource);
-        arrst_end();
-        stm_writef(stream, "        return pack;\n");
-        stm_writef(stream, "    }\n\n");
-        arrpt_end();
+            stm_writef(stream, "    {\n");
+            arrst_foreach(resource, pack->resources, i_Resource)
+                if (i_write_local(stream, resource, tc(local_code), local_code_i) == FALSE)
+                    i_write_global(stream, resource);
+            arrst_end()
+            stm_writef(stream, "        return pack;\n");
+            stm_writef(stream, "    }\n\n");
+        arrpt_end()
 
         stm_writef(stream, "    /* Non-localized pack */\n");
         stm_writef(stream, "    {\n");
         stm_writef(stream, "        unref(locale);\n");
         arrst_foreach(resource, pack->resources, i_Resource)
             i_write_global(stream, resource);
-        arrst_end();
+        arrst_end()
         stm_writef(stream, "        return pack;\n");
         stm_writef(stream, "    }\n");
         stm_writef(stream, "}\n");
@@ -975,19 +981,20 @@ void resgen_write_packed_file(const ResourcePack *pack, const char_t *dest_path,
         stm_write_u32(stream, num_locals);
         arrpt_foreach(local, pack->local_codes, String)
             str_write(stream, local);
-        arrpt_end();
+        arrpt_end()
 
         /* Write resources */
         stm_write_u32(stream, num_res);
-        arrst_foreach(resource, pack->resources, i_Resource) register uint32_t num_localized = arrst_size(resource->locals, i_Local);
-        stm_write_u32(stream, resource->type);
-        i_object_write(stream, &resource->global, resource->type);
-        stm_write_u32(stream, num_localized);
-        arrst_foreach(local, resource->locals, i_Local);
-        stm_write_u32(stream, local->index);
-        i_object_write(stream, &local->object, resource->type);
-        arrst_end();
-        arrst_end();
+        arrst_foreach(resource, pack->resources, i_Resource)
+            register uint32_t num_localized = arrst_size(resource->locals, i_Local);
+            stm_write_u32(stream, resource->type);
+            i_object_write(stream, &resource->global, resource->type);
+            stm_write_u32(stream, num_localized);
+            arrst_foreach(local, resource->locals, i_Local)
+                stm_write_u32(stream, local->index);
+                i_object_write(stream, &local->object, resource->type);
+            arrst_end()
+        arrst_end()
 
         stm_close(&stream);
     }
@@ -1017,9 +1024,9 @@ void resgen_write_c_packed_file(const ResourcePack *pack, const char_t *dest_pat
         /* Resource IDs */
         arrst_foreach(resource, pack->resources, i_Resource)
             String *name = i_define_resname(resource->name);
-        stm_printf(stream, "ResId %s = \"N23R3C75::%s::%d\";\n", tc(name), dest_file, resource_i);
-        str_destroy(&name);
-        arrst_end();
+            stm_printf(stream, "ResId %s = \"N23R3C75::%s::%d\";\n", tc(name), dest_file, resource_i);
+            str_destroy(&name);
+        arrst_end()
 
         stm_writef(stream, "\n/*---------------------------------------------------------------------------*/\n\n");
 

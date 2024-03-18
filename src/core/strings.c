@@ -1121,8 +1121,10 @@ const char_t *str_filext(const char_t *pathname)
 
 uint32_t str_find(const ArrPt(String) *array, const char_t *str)
 {
-    arrpt_foreach_const(astr, array, String) if (str_equ(astr, str) == TRUE) return astr_i;
-    arrpt_end();
+    arrpt_foreach_const(astr, array, String)
+        if (str_equ(astr, str) == TRUE)
+            return astr_i;
+    arrpt_end()
     return UINT32_MAX;
 }
 

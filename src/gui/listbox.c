@@ -219,26 +219,26 @@ static void i_document_size(LData *data)
     arrst_foreach(elem, data->elems, PElem)
         uint32_t tw;
 
-    {
-        real32_t w, h;
-        font_extents(data->font, tc(elem->text), -1, &w, &h);
-        tw = (uint32_t)bmath_ceilf(w);
-        unref(h);
-    }
+        {
+            real32_t w, h;
+            font_extents(data->font, tc(elem->text), -1, &w, &h);
+            tw = (uint32_t)bmath_ceilf(w);
+            unref(h);
+        }
 
-    if (elem->image != NULL)
-    {
-        cassert(elem->imgwidth > 0);
-        cassert(elem->imgheight > 0);
-        tw += elem->imgwidth + i_LEFT_PADDING;
-        if (elem->imgheight > data->row_height)
-            data->row_height = elem->imgheight;
-    }
+        if (elem->image != NULL)
+        {
+            cassert(elem->imgwidth > 0);
+            cassert(elem->imgheight > 0);
+            tw += elem->imgwidth + i_LEFT_PADDING;
+            if (elem->imgheight > data->row_height)
+                data->row_height = elem->imgheight;
+        }
 
-    if (tw > twidth)
-        twidth = tw;
+        if (tw > twidth)
+            twidth = tw;
 
-    arrst_end();
+    arrst_end()
 
     if ((uint32_t)(data->row_height - data->font_height) % 2 == 0)
         data->row_height += 1;
@@ -344,7 +344,7 @@ static void i_clean_select(ArrSt(PElem) *elems)
 {
     arrst_foreach(elem, elems, PElem)
         elem->select = FALSE;
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/

@@ -56,11 +56,14 @@ static int i_compare(const Product *p1, const Product *p2)
 struct i_stl_compare
 {
     inline bool operator()(const Product &lhs, const Product &rhs) const
-    { return lhs.id < rhs.id; }
+    {
+        return lhs.id < rhs.id;
+    }
 
-    inline bool operator()(const Product* lhs, const Product* rhs) const
-    { return lhs->id < rhs->id; }
-
+    inline bool operator()(const Product *lhs, const Product *rhs) const
+    {
+        return lhs->id < rhs->id;
+    }
 };
 
 /*---------------------------------------------------------------------------*/
@@ -86,9 +89,9 @@ int main(int argc, char *argv[])
     SetSt(Product) *setst;
     SetPt(Product) *setpt;
     vector<Product> stl_arrst;
-    vector<Product*> stl_arrpt;
-    set<Product,i_stl_compare> stl_setst;
-    set<Product*,i_stl_compare> stl_setpt;
+    vector<Product *> stl_arrpt;
+    set<Product, i_stl_compare> stl_setst;
+    set<Product *, i_stl_compare> stl_setpt;
     Clock *clock;
     real64_t t;
 
@@ -120,7 +123,7 @@ int main(int argc, char *argv[])
     bmem_shuffle_n(ids, n, uint32_t);
 
     products = heap_new_n(n, Product);
-    pproducts = heap_new_n(n, Product*);
+    pproducts = heap_new_n(n, Product *);
     for (uint32_t i = 0; i < n; ++i)
     {
         i_init(&products[i], ids[i], 100.f + i);
@@ -208,7 +211,7 @@ int main(int argc, char *argv[])
     arrst_foreach(product, arrst, Product)
         if (product->id != product_i)
             bstd_printf("- Sorting error!!!!!\n");
-    arrst_end();
+    arrst_end()
     t = clock_elapsed(clock);
     bstd_printf("- Loop ArrSt(Product): %.6f\n", t);
 
@@ -225,7 +228,7 @@ int main(int argc, char *argv[])
     arrpt_foreach(product, arrpt, Product)
         if (product->id != product_i)
             bstd_printf("- Sorting error!!!!!\n");
-    arrpt_end();
+    arrpt_end()
     t = clock_elapsed(clock);
     bstd_printf("- Loop ArrPt(Product): %.6f\n", t);
 
@@ -248,7 +251,7 @@ int main(int argc, char *argv[])
 
     uint32_t ic = 0;
     clock_reset(clock);
-    for (set<Product,i_stl_compare>::iterator i = stl_setst.begin(); i != stl_setst.end(); ++i)
+    for (set<Product, i_stl_compare>::iterator i = stl_setst.begin(); i != stl_setst.end(); ++i)
     {
         if (i->id != ic++)
             bstd_printf("- Sorting error!!!!!\n");
@@ -266,7 +269,7 @@ int main(int argc, char *argv[])
 
     ic = 0;
     clock_reset(clock);
-    for (set<Product*,i_stl_compare>::iterator i = stl_setpt.begin(); i != stl_setpt.end(); ++i)
+    for (set<Product *, i_stl_compare>::iterator i = stl_setpt.begin(); i != stl_setpt.end(); ++i)
     {
         if ((*i)->id != ic++)
             bstd_printf("- Sorting error!!!!!\n");
@@ -284,9 +287,8 @@ int main(int argc, char *argv[])
         heap_delete(&pproducts[i], Product);
 
     heap_delete_n(&products, n, Product);
-    heap_delete_n(&pproducts, n, Product*);
+    heap_delete_n(&pproducts, n, Product *);
     heap_delete_n(&ids, n, uint32_t);
 
     return 0;
 }
-

@@ -76,16 +76,13 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
     }
 
     arrst_foreach(area, panel->areas, Area)
-    {
         if (area->bgcolor != kCOLOR_TRANSPARENT)
         {
-            {
-                real32_t r, g, b, a;
-                color_get_rgbaf(area->bgcolor, &r, &g, &b, &a);
-                cairo_set_source_rgba(cr, (double)r, (double)g, (double)b, (double)a);
-                cairo_rectangle(cr, (double)area->x, (double)area->y, (double)area->w, (double)area->h);
-                cairo_fill(cr);
-            }
+            real32_t r, g, b, a;
+            color_get_rgbaf(area->bgcolor, &r, &g, &b, &a);
+            cairo_set_source_rgba(cr, (double)r, (double)g, (double)b, (double)a);
+            cairo_rectangle(cr, (double)area->x, (double)area->y, (double)area->w, (double)area->h);
+            cairo_fill(cr);
         }
 
         if (area->skcolor != kCOLOR_TRANSPARENT)
@@ -101,8 +98,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
             cairo_stroke(cr);
             cairo_set_antialias(cr, ca);
         }
-    }
-    arrst_end();
+    arrst_end()
 
     cairo_restore(cr);
     return FALSE;
@@ -205,12 +201,13 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
         if (panel->areas == NULL)
             panel->areas = arrst_create(Area);
 
-        arrst_foreach(larea, panel->areas, Area) if (larea->obj == obj)
-        {
-            area = larea;
-            break;
-        }
-        arrst_end();
+        arrst_foreach(larea, panel->areas, Area)
+            if (larea->obj == obj)
+            {
+                area = larea;
+                break;
+            }
+        arrst_end()
 
         if (area == NULL)
         {

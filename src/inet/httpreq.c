@@ -107,8 +107,10 @@ void http_add_header(Http *http, const char_t *name, const char_t *value)
 
 static const char_t *i_field(ArrSt(Field) *fields, const char_t *name)
 {
-    arrst_foreach(field, fields, Field) if (str_equ_nocase(tc(field->name), name) == TRUE) return tc(field->value);
-    arrst_end();
+    arrst_foreach(field, fields, Field)
+        if (str_equ_nocase(tc(field->name), name) == TRUE)
+            return tc(field->value);
+    arrst_end()
     return NULL;
 }
 
@@ -164,56 +166,56 @@ static bool_t i_response(Http *http)
                 stm_lines(line, stm)
 
                     if (str_empty_c(line) == FALSE)
-                {
-                    /* The headers could contain several responses (redirection)
-                        We get the last one */
-                    if (str_str(line, ":") == NULL)
                     {
-                        const char_t *st = line;
-                        char_t code[64];
-                        uint32_t i = 0;
-
-                        str_destopt(&http->rprotocol);
-                        str_destopt(&http->rmsg);
-
-                        while (*line != ' ')
-                            line++;
-                        http->rprotocol = str_cn(st, (uint32_t)(line - st));
-
-                        line++;
-                        while (*line != ' ' && *line != '\0')
+                        /* The headers could contain several responses (redirection)
+                        We get the last one */
+                        if (str_str(line, ":") == NULL)
                         {
-                            code[i] = *line;
+                            const char_t *st = line;
+                            char_t code[64];
+                            uint32_t i = 0;
+
+                            str_destopt(&http->rprotocol);
+                            str_destopt(&http->rmsg);
+
+                            while (*line != ' ')
+                                line++;
+                            http->rprotocol = str_cn(st, (uint32_t)(line - st));
+
                             line++;
-                            i++;
-                        }
+                            while (*line != ' ' && *line != '\0')
+                            {
+                                code[i] = *line;
+                                line++;
+                                i++;
+                            }
 
-                        code[i] = '\0';
+                            code[i] = '\0';
 
-                        http->rcode = str_to_u32(code, 10, NULL);
+                            http->rcode = str_to_u32(code, 10, NULL);
 
-                        if (*line != '\0')
-                        {
-                            line++;
-                            http->rmsg = str_c(line);
+                            if (*line != '\0')
+                            {
+                                line++;
+                                http->rmsg = str_c(line);
+                            }
+                            else
+                            {
+                                http->rmsg = str_c("");
+                            }
+
+                            arrst_clear(http->headers, i_remove_field, Field);
                         }
                         else
                         {
-                            http->rmsg = str_c("");
+                            Field *header = arrst_new(http->headers, Field);
+                            str_split_trim(line, ":", &header->name, &header->value);
                         }
-
-                        arrst_clear(http->headers, i_remove_field, Field);
                     }
-                    else
-                    {
-                        Field *header = arrst_new(http->headers, Field);
-                        str_split_trim(line, ":", &header->name, &header->value);
-                    }
-                }
 
                 stm_next(line, stm)
 
-                    stm_close(&stm);
+                stm_close(&stm);
                 return TRUE;
             }
             else

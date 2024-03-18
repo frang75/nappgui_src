@@ -421,8 +421,10 @@ static void i_delete_duplicates(GuiComponent *component, ArrPt(String) *texts, A
 
 static bool_t i_exists_substring(ArrPt(String) *texts, const char_t *subtext)
 {
-    arrpt_foreach(text, texts, String) if (str_str(tc(text), subtext) != NULL) return TRUE;
-    arrpt_end();
+    arrpt_foreach(text, texts, String)
+        if (str_str(tc(text), subtext) != NULL)
+            return TRUE;
+    arrpt_end()
     return FALSE;
 }
 

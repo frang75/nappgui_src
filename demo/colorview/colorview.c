@@ -36,7 +36,7 @@ static void i_add(ArrSt(ViewItem) *items, const char_t *name, const color_t colo
 
 /*---------------------------------------------------------------------------*/
 
-static ArrSt(ViewItem)* i_colors(void)
+static ArrSt(ViewItem) *i_colors(void)
 {
     ArrSt(ViewItem) *items = arrst_create(ViewItem);
     i_add(items, "Label", gui_label_color());
@@ -96,7 +96,7 @@ static void i_OnDraw(App *app, Event *e)
         real32_t x = i_HOR_MARGIN + col * cwidth;
         real32_t y = row * cheight + (row + 1) * i_VER_MARGIN;
         i_draw(p->ctx, x, y, cwidth, cheight, item);
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/

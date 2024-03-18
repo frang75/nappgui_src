@@ -260,29 +260,29 @@ static void i_visible_cols(const ArrSt(Column) *columns, const uint32_t freeze_w
     cassert_no_null(x);
 
     arrst_foreach_const(col, columns, Column)
-    {
-        if (st == UINT32_MAX)
         {
-            /* The column is completely to the left of the visible area */
-            if (lx + col->width > stx + freeze_width)
+            if (st == UINT32_MAX)
             {
-                if (freeze_col_id == UINT32_MAX || freeze_col_id < col_i)
+                /* The column is completely to the left of the visible area */
+                if (lx + col->width > stx + freeze_width)
                 {
-                    st = col_i;
-                    *x = lx;
+                    if (freeze_col_id == UINT32_MAX || freeze_col_id < col_i)
+                    {
+                        st = col_i;
+                        *x = lx;
+                    }
                 }
             }
-        }
-        else if (lx > stx + width)
-        {
-            /* The column is completely to the right of the visible area */
-            ed = col_i;
-            break;
-        }
+            else if (lx > stx + width)
+            {
+                /* The column is completely to the right of the visible area */
+                ed = col_i;
+                break;
+            }
 
-        lx += col->width;
-    }
-    arrst_end();
+            lx += col->width;
+        }
+    arrst_end()
 
     if (st == UINT32_MAX)
     {
@@ -586,9 +586,9 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
 
         arrpt_foreach_const(text, col->head_text, String)
             draw_text_color(ctx, kCOLOR_DEFAULT);
-        drawctrl_text(ctx, tc(text), tx, ty, data->focused ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL);
-        ty += data->head_line_height;
-        arrpt_end();
+            drawctrl_text(ctx, tc(text), tx, ty, data->focused ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL);
+            ty += data->head_line_height;
+        arrpt_end()
 
         if (col->indicator != 0)
             drawctrl_indicator(ctx, x, 0, col->width, data->head_height, col->indicator);
@@ -709,9 +709,9 @@ static void i_head_height(TData *data)
 
     arrst_foreach_const(col, data->columns, Column)
         uint32_t n = arrpt_size(col->head_text, String);
-    if (n > num_lines)
-        num_lines = n;
-    arrst_end();
+        if (n > num_lines)
+            num_lines = n;
+    arrst_end()
 
     if (data->head_height_forced != UINT32_MAX)
     {
@@ -738,9 +738,9 @@ static void i_row_height(TData *data)
         data->row_height = 0;
         arrst_foreach(col, data->columns, Column)
             uint32_t height = i_col_height(col);
-        if (height > data->row_height)
-            data->row_height = height;
-        arrst_end();
+            if (height > data->row_height)
+                data->row_height = height;
+        arrst_end()
 
         /* Fix crash if no column defined */
         if (data->row_height == 0)
@@ -756,7 +756,7 @@ static void i_row_height(TData *data)
 
     arrst_foreach(col, data->columns, Column)
         i_col_y_offset(col, data->row_height);
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -773,7 +773,7 @@ static void i_document_size(TableView *view, TData *data)
     {
         arrst_foreach(col, data->columns, Column)
             twidth += col->width;
-        arrst_end();
+        arrst_end()
 
         twidth += i_DOCUMENT_RIGHT_MARGIN;
         data->recompute_width = FALSE;
@@ -1281,12 +1281,12 @@ static void i_left_scroll(TData *data)
         arrst_foreach(col, data->columns, Column)
             uint32_t ncscroll = cscroll + col->width;
 
-        /* This is the left-most visible column --> Jump to column begin */
-        if (scroll_x <= ncscroll)
-            break;
+            /* This is the left-most visible column --> Jump to column begin */
+            if (scroll_x <= ncscroll)
+                break;
 
-        cscroll = ncscroll;
-        arrst_end();
+            cscroll = ncscroll;
+        arrst_end()
 
         scrollview_scroll_x(data->sview, cscroll, TRUE);
     }
@@ -1311,13 +1311,13 @@ static void i_right_scroll(TData *data)
 
         arrst_foreach(col, data->columns, Column)
             uint32_t ncscroll = cscroll + col->width;
-        cscroll = ncscroll;
+            cscroll = ncscroll;
 
-        /* This is the right-most visible column --> Jump to column end */
-        if (scroll_x < ncscroll)
-            break;
+            /* This is the right-most visible column --> Jump to column end */
+            if (scroll_x < ncscroll)
+                break;
 
-        arrst_end();
+        arrst_end()
 
         scrollview_scroll_x(data->sview, cscroll, TRUE);
     }
@@ -1626,7 +1626,7 @@ void tableview_font(TableView *view, const Font *font)
 
     arrst_foreach(col, data->columns, Column)
         updated |= _gui_update_font(&col->font, NULL, font);
-    arrst_end();
+    arrst_end()
 
     if (updated == TRUE)
     {

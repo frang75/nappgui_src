@@ -14,7 +14,7 @@ struct _appdata_t
 
 /*---------------------------------------------------------------------------*/
 
-static void i_destroy_appdata(AppData** data)
+static void i_destroy_appdata(AppData **data)
 {
     heap_delete(data, AppData);
 }
@@ -26,7 +26,8 @@ static void i_OnTableData(AppData *data, Event *e)
 {
     uint32_t etype = event_type(e);
 
-    switch(etype) {
+    switch (etype)
+    {
     case ekGUI_EVENT_TBL_NROWS:
     {
         uint32_t *n = event_result(e, uint32_t);
@@ -39,7 +40,8 @@ static void i_OnTableData(AppData *data, Event *e)
         const EvTbPos *pos = event_params(e, EvTbPos);
         EvTbCell *cell = event_result(e, EvTbCell);
 
-        switch(pos->col) {
+        switch (pos->col)
+        {
         case 0:
             cell->align = ekLEFT;
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Name %d", pos->row);
@@ -85,7 +87,7 @@ static void i_OnTableData(AppData *data, Event *e)
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Extra Data 4 %d", pos->row);
             break;
 
-        cassert_default();
+            cassert_default();
         }
 
         cell->text = data->temp_string;
@@ -162,14 +164,14 @@ static void i_OnPrintsel(AppData *data, Event *e)
         textview_printf(data->text, "%d", *row);
         if (row_i < n - 1)
             textview_writef(data->text, ", ");
-    arrst_end();
+    arrst_end()
     textview_writef(data->text, "\n");
     unref(e);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout* i_table_control_layout(AppData *data)
+static Layout *i_table_control_layout(AppData *data)
 {
     Layout *layout1 = layout_create(3, 1);
     Layout *layout2 = layout_create(1, 6);

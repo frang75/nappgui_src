@@ -349,8 +349,10 @@ bool_t font_exists_family(const char_t *family)
 
     if (font_callback.exists == FALSE && kUSER_FONTS != NULL)
     {
-        arrst_foreach(font, kUSER_FONTS, UserFont) if (str_equ(font->name, family) == TRUE) return TRUE;
-        arrst_end();
+        arrst_foreach(font, kUSER_FONTS, UserFont)
+            if (str_equ(font->name, family) == TRUE)
+                return TRUE;
+        arrst_end()
     }
 
     return font_callback.exists;
