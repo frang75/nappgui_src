@@ -206,7 +206,7 @@ bool_t model_filter(Model *model, const char_t *filter)
     arrpt_foreach(product, model->products, Product)
         if (str_str(tc(product->description), filter) != NULL)
             arrst_append(new_filter, product_i, uint32_t);
-    arrpt_end();
+    arrpt_end()
 
     arrst_destroy(&model->filter, NULL, uint32_t);
     model->filter = new_filter;
@@ -231,19 +231,19 @@ void model_bind(void)
     dbind_enum(type_t, ekHDD, "");
     dbind_enum(type_t, ekSCD, "");
     dbind(Product, type_t, type);
-    dbind(Product, String*, code);
-    dbind(Product, String*, description);
-    dbind(Product, Image*, image64);
+    dbind(Product, String *, code);
+    dbind(Product, String *, description);
+    dbind(Product, Image *, image64);
     dbind(Product, real32_t, price);
     dbind(PJson, int32_t, code);
     dbind(PJson, uint32_t, size);
-    dbind(PJson, ArrPt(Product)*, data);
+    dbind(PJson, ArrPt(Product) *, data);
     dbind_default(Product, real32_t, price, 1);
     dbind_range(Product, real32_t, price, .50f, 1e6f);
     dbind_precision(Product, real32_t, price, .05f);
     dbind_increment(Product, real32_t, price, 5.f);
     dbind_suffix(Product, real32_t, price, "€");
-    dbind_default(Product, Image*, image64, gui_image(NOIMAGE_PNG));
+    dbind_default(Product, Image *, image64, gui_image(NOIMAGE_PNG));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -264,21 +264,21 @@ void model_type(Cell *cell)
 
 void model_code(Cell *cell)
 {
-    cell_dbind(cell, Product, String*, code);
+    cell_dbind(cell, Product, String *, code);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void model_desc(Cell *cell)
 {
-    cell_dbind(cell, Product, String*, description);
+    cell_dbind(cell, Product, String *, description);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void model_image(Cell *cell)
 {
-    cell_dbind(cell, Product, Image*, image64);
+    cell_dbind(cell, Product, Image *, image64);
 }
 
 /*---------------------------------------------------------------------------*/

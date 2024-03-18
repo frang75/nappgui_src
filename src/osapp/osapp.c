@@ -174,34 +174,35 @@ static void i_scheduler_cycle(ArrPt(i_Task) *scheduler, const real64_t crtime)
 {
     i_Task *deleted_task = NULL;
 
-    arrpt_foreach(task, scheduler, i_Task) if (task->state == i_ekSTATE_WAITING)
-    {
-        cassert(task->thread == NULL);
-        task->thread = bthread_create(i_dispatch_task, task, i_Task);
-        task->lastupd = crtime;
-    }
-    else if (task->state == i_ekSTATE_RUNNING)
-    {
-        if (task->func_update != NULL)
+    arrpt_foreach(task, scheduler, i_Task)
+        if (task->state == i_ekSTATE_WAITING)
         {
-            if (crtime - task->lastupd > task->updtime)
+            cassert(task->thread == NULL);
+            task->thread = bthread_create(i_dispatch_task, task, i_Task);
+            task->lastupd = crtime;
+        }
+        else if (task->state == i_ekSTATE_RUNNING)
+        {
+            if (task->func_update != NULL)
             {
-                task->func_update(task->data);
-                task->lastupd = crtime;
+                if (crtime - task->lastupd > task->updtime)
+                {
+                    task->func_update(task->data);
+                    task->lastupd = crtime;
+                }
             }
         }
-    }
-    else if (task->state == i_ekSTATE_FINISH)
-    {
-        if (deleted_task == NULL)
+        else if (task->state == i_ekSTATE_FINISH)
         {
-            uint32_t rvalue = bthread_wait(task->thread);
-            if (task->func_end != NULL)
-                task->func_end(task->data, rvalue);
-            deleted_task = task;
+            if (deleted_task == NULL)
+            {
+                uint32_t rvalue = bthread_wait(task->thread);
+                if (task->func_end != NULL)
+                    task->func_end(task->data, rvalue);
+                deleted_task = task;
+            }
         }
-    }
-    arrpt_end();
+    arrpt_end()
 
     if (deleted_task != NULL)
     {

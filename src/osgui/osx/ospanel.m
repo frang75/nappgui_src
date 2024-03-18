@@ -75,7 +75,7 @@ DeclSt(Area);
                 [area->skcolor set];
                 NSFrameRect(area->rect);
             }
-        arrst_end();
+        arrst_end()
     }
 }
 
@@ -216,7 +216,7 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
                 area = larea;
                 break;
             }
-        arrst_end();
+        arrst_end()
 
         if (area == NULL)
         {

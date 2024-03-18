@@ -60,7 +60,7 @@
 
 * macOS Sonoma NSMenu check obsolete. [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#Menus). [Issue](https://github.com/frang75/nappgui_src/issues/96). [Commit](https://github.com/frang75/nappgui_src/commit/197c7db6c41b8bde7e01532d4943ee95d4e8ca7e).
 
-* macOS Sonoma OSLabel clipping.
+* macOS Sonoma OSLabel clipping. [Commit](https://github.com/frang75/nappgui_src/commit/d7930efee0031f8b4269601fe767a695e5e9ff20).
 
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
 

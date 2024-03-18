@@ -534,9 +534,10 @@ static void i_draw_cloud(DCtx *ctx, const Cloud *cloud)
 {
     arrst_foreach(pt, cloud->pnts, V2Df)
         draw_circle(ctx, ekSTROKE, pt->x + cloud->center.x, pt->y + cloud->center.y, 1);
-    arrst_end();
+    arrst_end()
 
-    switch(cloud->type) {
+    switch (cloud->type)
+    {
     case 0:
     case 1:
     case 2:
@@ -575,7 +576,7 @@ static void i_draw_cloud(DCtx *ctx, const Cloud *cloud)
         break;
     }
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -643,7 +644,7 @@ static void i_draw_poly_triangles(DCtx *ctx, const Pol2Df *poly)
     arrst_foreach(tri, triangles, Tri2Df)
         cassert_unref(tri2d_ccwf(tri) == ccw, ccw);
         draw_tri2df(ctx, ekSTROKE, tri);
-    arrst_end();
+    arrst_end()
 
     arrst_destroy(&triangles, NULL, Tri2Df);
 }
@@ -659,7 +660,7 @@ static void i_draw_poly_convex_parts(DCtx *ctx, const Pol2Df *poly)
         cassert(pol2d_convexf(convex) == TRUE);
         cassert_unref(pol2d_ccwf(convex) == ccw, ccw);
         draw_pol2df(ctx, ekSTROKE, convex);
-    arrpt_end();
+    arrpt_end()
 
     arrpt_destroy(&convex_polys, pol2d_destroyf, Pol2Df);
 }
@@ -670,7 +671,8 @@ static void i_draw_bbox(DCtx *ctx, const Shape *shape)
 {
     Box2Df bbox = kBOX2D_NULLf;
     real32_t p[2] = {2, 2};
-    switch(shape->type) {
+    switch (shape->type)
+    {
     case ekPOINT:
     {
         Cir2Df c = cir2df(shape->body.pnt.x, shape->body.pnt.y, CENTER_RADIUS);
@@ -704,7 +706,7 @@ static void i_draw_bbox(DCtx *ctx, const Shape *shape)
 
     case ekTRIANGLE:
     {
-        const V2Df *points = (const V2Df*)&shape->body.tri.tri;
+        const V2Df *points = (const V2Df *)&shape->body.tri.tri;
         box2d_addnf(&bbox, points, 3);
         break;
     }
@@ -718,7 +720,7 @@ static void i_draw_bbox(DCtx *ctx, const Shape *shape)
         break;
     }
 
-    cassert_default();
+        cassert_default();
     }
 
     draw_line_color(ctx, color_rgb(0, 128, 0));
@@ -732,14 +734,15 @@ static void i_draw_bbox(DCtx *ctx, const Shape *shape)
 static void i_OnDraw(App *app, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
-    real32_t dash[2] = {2,2};
+    real32_t dash[2] = {2, 2};
     draw_clear(p->ctx, color_rgb(255, 212, 255));
 
     arrst_foreach(shape, app->shapes, Shape)
         draw_fill_color(p->ctx, i_color(shape->collisions, shape->mouse));
         draw_line_color(p->ctx, i_color(shape->collisions, shape->mouse));
 
-        switch(shape->type) {
+        switch (shape->type)
+        {
         case ekPOINT:
             i_draw_point(p->ctx, &shape->body.pnt);
             break;
@@ -773,13 +776,13 @@ static void i_OnDraw(App *app, Event *e)
             i_draw_poly(p->ctx, &shape->body.pol);
             break;
 
-        cassert_default();
+            cassert_default();
         }
 
         if (app->selshape == shape_i)
             i_draw_bbox(p->ctx, shape);
 
-    arrst_end();
+    arrst_end()
 
     if (app->show_seg_pt == TRUE)
     {
@@ -788,7 +791,7 @@ static void i_OnDraw(App *app, Event *e)
         draw_line_color(p->ctx, kCOLOR_MAGENTA);
         arrst_foreach(dist, app->dists, Dist)
             draw_line(p->ctx, dist->p0.x, dist->p0.y, dist->p1.x, dist->p1.y);
-        arrst_end();
+        arrst_end()
     }
 
     draw_line_width(p->ctx, 1);
@@ -800,7 +803,7 @@ static void i_OnDraw(App *app, Event *e)
         arrst_foreach(shape, app->shapes, Shape)
             if (shape->type == ekCONVEX_POLY || shape->type == ekSIMPLE_POLY)
                 i_draw_poly_triangles(p->ctx, shape->body.pol.pol);
-        arrst_end();
+        arrst_end()
     }
 
     if (app->show_triangles == FALSE && app->show_convex_parts == TRUE)
@@ -808,7 +811,7 @@ static void i_OnDraw(App *app, Event *e)
         arrst_foreach(shape, app->shapes, Shape)
             if (shape->type == ekSIMPLE_POLY)
                 i_draw_poly_convex_parts(p->ctx, shape->body.pol.pol);
-        arrst_end();
+        arrst_end()
     }
 
     draw_line_dash(p->ctx, NULL, 2);
@@ -828,7 +831,8 @@ static void i_OnMove(App *app, Event *e)
 
 static void i_get_shape_pos(const Shape *shape, V2Df *pos)
 {
-    switch(shape->type) {
+    switch (shape->type)
+    {
     case ekPOINT:
         *pos = shape->body.pnt;
         break;
@@ -863,7 +867,7 @@ static void i_get_shape_pos(const Shape *shape, V2Df *pos)
         *pos = shape->body.pol.center;
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -871,7 +875,8 @@ static void i_get_shape_pos(const Shape *shape, V2Df *pos)
 
 static void i_set_shape_pos(Shape *shape, const V2Df pos)
 {
-    switch(shape->type) {
+    switch (shape->type)
+    {
     case ekPOINT:
         shape->body.pnt = pos;
         break;
@@ -910,7 +915,7 @@ static void i_set_shape_pos(Shape *shape, const V2Df pos)
         col2dhello_update_pol(&shape->body.pol);
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -925,7 +930,7 @@ static void i_OnDown(App *app, Event *e)
             selshape = shape_i;
             break;
         }
-    arrst_end();
+    arrst_end()
 
     if (selshape != app->selshape)
     {
@@ -1009,7 +1014,8 @@ void col2dhello_dbind_shape(App *app)
     if (app->selshape != UINT32_MAX)
     {
         Shape *shape = arrst_get(app->shapes, app->selshape, Shape);
-        switch(shape->type) {
+        switch (shape->type)
+        {
         case ekPOINT:
             panel_visible_layout(app->obj_panel, 1);
             app->sel_area = 0;
@@ -1054,7 +1060,7 @@ void col2dhello_dbind_shape(App *app)
             panel_visible_layout(app->obj_panel, 8);
             break;
 
-        cassert_default();
+            cassert_default();
         }
     }
     else

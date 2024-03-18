@@ -153,7 +153,7 @@ void menu_off_items(Menu *menu)
     cassert_no_null(menu);
     arrpt_foreach(item, menu->items, MenuItem)
         menuitem_state(item, ekGUI_OFF);
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -247,7 +247,7 @@ void _menu_locale(Menu *menu)
     cassert_no_null(menu);
     arrpt_foreach(item, menu->items, MenuItem)
         _menuitem_locale(item);
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/

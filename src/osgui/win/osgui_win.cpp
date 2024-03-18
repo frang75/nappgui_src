@@ -710,12 +710,11 @@ void _osgui_remove_accelerator(WORD cmd)
     cassert_no_null(i_ACCELERATORS);
     cassert_no_null(i_HWND_ACCELERATORS);
 
-    arrst_foreach(accel, i_ACCELERATORS, ACCEL) if (accel->cmd == cmd)
-    {
-        i = accel_i;
+    arrst_foreach(accel, i_ACCELERATORS, ACCEL)
+        if (accel->cmd == cmd)
+            i = accel_i;
         break;
-    }
-    arrst_end();
+    arrst_end()
 
     cassert(i < arrst_size(i_ACCELERATORS, ACCEL));
     cassert(arrst_size(i_HWND_ACCELERATORS, HWND) == arrst_size(i_ACCELERATORS, ACCEL));
@@ -747,14 +746,15 @@ void _osgui_change_accelerator(BYTE fVirt, WORD key, WORD cmd)
     cassert_no_null(i_HWND_ACCELERATORS);
     cassert(arrst_size(i_HWND_ACCELERATORS, HWND) == arrst_size(i_ACCELERATORS, ACCEL));
 
-    arrst_foreach(accel, i_ACCELERATORS, ACCEL) if (accel->cmd == cmd)
-    {
-        i = accel_i;
-        accel->fVirt = fVirt;
-        accel->key = key;
-        break;
-    }
-    arrst_end();
+    arrst_foreach(accel, i_ACCELERATORS, ACCEL)
+        if (accel->cmd == cmd)
+        {
+            i = accel_i;
+            accel->fVirt = fVirt;
+            accel->key = key;
+            break;
+        }
+    arrst_end()
 
     cassert(i < arrst_size(i_ACCELERATORS, ACCEL));
     cassert_no_null(i_ACCEL_TABLE);
@@ -778,12 +778,13 @@ HWND _osgui_hwnd_accelerator(WORD cmd)
     cassert_no_null(i_ACCELERATORS);
     cassert_no_null(i_HWND_ACCELERATORS);
     cassert(arrst_size(i_HWND_ACCELERATORS, HWND) == arrst_size(i_ACCELERATORS, ACCEL));
-    arrst_foreach(accel, i_ACCELERATORS, ACCEL) if (accel->cmd == cmd)
-    {
-        HWND *hwnd = arrst_get(i_HWND_ACCELERATORS, accel_i, HWND);
-        return *hwnd;
-    }
-    arrst_end();
+    arrst_foreach(accel, i_ACCELERATORS, ACCEL)
+        if (accel->cmd == cmd)
+        {
+            HWND *hwnd = arrst_get(i_HWND_ACCELERATORS, accel_i, HWND);
+            return *hwnd;
+        }
+    arrst_end()
     cassert_msg(FALSE, "Unknown win32 acelerator cmd");
     return NULL;
 }

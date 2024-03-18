@@ -251,7 +251,7 @@ static void i_hide_component(GuiComponent *component)
     {
         arrpt_foreach(child, panels[i]->children, GuiComponent)
             i_hide_component(child);
-        arrpt_end();
+        arrpt_end()
     }
 }
 
@@ -265,7 +265,6 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
 
     /* Check if component exists in any panel layout */
     arrpt_foreach(layout, panel->layouts, Layout)
-    {
         /* Avoid previously destroyed layouts */
         if (layout != NULL)
         {
@@ -275,8 +274,7 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
                 break;
             }
         }
-    }
-    arrpt_end();
+    arrpt_end()
 
     if (exists == FALSE)
     {
@@ -334,7 +332,6 @@ GuiComponent *_panel_find_component(Panel *panel, void *ositem)
 {
     cassert_no_null(panel);
     arrpt_foreach(component, panel->children, GuiComponent)
-    {
         if (component->ositem == ositem)
             return component;
 
@@ -344,8 +341,7 @@ GuiComponent *_panel_find_component(Panel *panel, void *ositem)
             if (child != NULL)
                 return child;
         }
-    }
-    arrpt_end();
+    arrpt_end()
 
     return NULL;
 }
@@ -446,13 +442,11 @@ static void i_activate_layout(const ArrPt(Layout) *layouts, ArrPt(GuiComponent) 
 
     /* Show or hide component depending if is in active layout */
     arrpt_foreach(component, children, GuiComponent)
-    {
         if (arrpt_find(layout_components, component, GuiComponent) != UINT32_MAX)
             _component_visible(component, TRUE);
         else
             _component_visible(component, FALSE);
-    }
-    arrpt_end();
+    arrpt_end()
 
     arrpt_destroy(&layout_components, NULL, GuiComponent);
 }
@@ -612,7 +606,7 @@ void _panel_locale(Panel *panel)
     cassert_no_null(panel);
     arrpt_foreach(child, panel->children, GuiComponent)
         _component_locale(child);
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/

@@ -293,14 +293,13 @@ void _popup_dimension(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *
         if (arrst_size(popup->elems, PElem) > 0)
         {
             arrst_foreach(elem, popup->elems, PElem)
-                real32_t width,
-                height;
-            popup->component.context->func_popup_bounds(popup->component.ositem, tc(elem->text), &width, &height);
-            if (width > popup->size.width)
-                popup->size.width = width;
-            if (height > popup->size.height)
-                popup->size.height = height;
-            arrst_end();
+                real32_t width, height;
+                popup->component.context->func_popup_bounds(popup->component.ositem, tc(elem->text), &width, &height);
+                if (width > popup->size.width)
+                    popup->size.width = width;
+                if (height > popup->size.height)
+                    popup->size.height = height;
+            arrst_end()
         }
         else
         {
@@ -323,7 +322,7 @@ void _popup_locale(PopUp *popup)
     cassert_no_null(popup);
     arrst_foreach(elem, popup->elems, PElem)
         const char_t *text = _gui_respack_text(elem->resid, NULL);
-    str_upd(&elem->text, text);
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
-    arrst_end();
+        str_upd(&elem->text, text);
+        popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
+    arrst_end()
 }

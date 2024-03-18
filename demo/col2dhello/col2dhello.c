@@ -25,7 +25,7 @@ static Tri2Df i_triangle(void)
 
 static Pol2Df *i_convex_pol(void)
 {
-    V2Df pt[] = { {4,1}, {2,5}, {-3,5}, {-4,2}, {0,-3} };
+    V2Df pt[] = {{4, 1}, {2, 5}, {-3, 5}, {-4, 2}, {0, -3}};
     Pol2Df *pol = NULL;
     bmem_rev_elems(pt, sizeof(pt) / sizeof(V2Df), V2Df);
     pol = pol2d_createf(pt, sizeof(pt) / sizeof(V2Df));
@@ -38,7 +38,7 @@ static Pol2Df *i_convex_pol(void)
 
 static Pol2Df *i_simple_pol(void)
 {
-    V2Df pt[] = { {9.78f, 12.17f}, {-10.00f, 11.01f}, {-9.68f, 3.20f}, {-9.30f, -5.98f}, {-4.27f, -5.84f}, {-4.03f, -12.17f}, {2.72f, -12.12f}, {2.47f, -6.36f}, {2.04f, 3.26f}, {-1.45f, 3.05f}, {-1.08f, -2.08f}, {-3.98f, -2.38f}, {-4.23f, 2.88f}, {-1.45f, 3.05f}, {2.04f, 3.26f}, {10.00f, 3.75f} };
+    V2Df pt[] = {{9.78f, 12.17f}, {-10.00f, 11.01f}, {-9.68f, 3.20f}, {-9.30f, -5.98f}, {-4.27f, -5.84f}, {-4.03f, -12.17f}, {2.72f, -12.12f}, {2.47f, -6.36f}, {2.04f, 3.26f}, {-1.45f, 3.05f}, {-1.08f, -2.08f}, {-3.98f, -2.38f}, {-4.23f, 2.88f}, {-1.45f, 3.05f}, {2.04f, 3.26f}, {10.00f, 3.75f}};
     Pol2Df *pol = NULL;
     bmem_rev_elems(pt, sizeof(pt) / sizeof(V2Df), V2Df);
     pol = pol2d_createf(pt, sizeof(pt) / sizeof(V2Df));
@@ -209,7 +209,8 @@ static App *i_create(void)
 static void i_remove_bounds(Cloud *cloud)
 {
     cassert_no_null(cloud);
-    switch(cloud->ctype) {
+    switch (cloud->ctype)
+    {
     case 0:
     case 1:
     case 2:
@@ -220,7 +221,7 @@ static void i_remove_bounds(Cloud *cloud)
     case 4:
         pol2d_destroyf(&cloud->bound.poly);
         break;
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -229,7 +230,8 @@ static void i_remove_bounds(Cloud *cloud)
 static void i_remove_shape(Shape *shape)
 {
     cassert_no_null(shape);
-    switch(shape->type){
+    switch (shape->type)
+    {
     case ekPOINT_CLOUD:
         arrst_destroy(&shape->body.cloud.pnts, NULL, V2Df);
         i_remove_bounds(&shape->body.cloud);
@@ -251,7 +253,7 @@ static void i_remove_shape(Shape *shape)
     case ekTRIANGLE:
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -269,7 +271,8 @@ static void i_destroy(App **app)
 
 void col2dhello_new_shape(App *app, const V2Df pos)
 {
-    switch(app->seltype) {
+    switch (app->seltype)
+    {
     case ekPOINT:
         i_new_pnt(app->shapes, pos.x, pos.y);
         break;
@@ -306,7 +309,7 @@ void col2dhello_new_shape(App *app, const V2Df pos)
         i_new_pol(app->shapes, ekSIMPLE_POLY, pos.x, pos.y, 0, 10);
         break;
 
-    cassert_default();
+        cassert_default();
     }
 
     app->selshape = arrst_size(app->shapes, Shape) - 1;
@@ -320,7 +323,8 @@ void col2dhello_update_gui(App *app)
     if (app->selshape != UINT32_MAX)
     {
         Shape *shape = arrst_get(app->shapes, app->selshape, Shape);
-        switch(shape->type) {
+        switch (shape->type)
+        {
         case ekPOINT:
         case ekPOINT_CLOUD:
         case ekSEGMENT:
@@ -348,7 +352,7 @@ void col2dhello_update_gui(App *app)
             app->sel_area = pol2d_areaf(shape->body.pol.pol);
             break;
 
-        cassert_default();
+            cassert_default();
         }
     }
     else
@@ -401,8 +405,8 @@ void col2dhello_update_cloud(Cloud *cloud)
 
     for (i = 0; i < n; ++i)
     {
-        real32_t ox = bmath_randf(- .3f * hw, .3f * hw);
-        real32_t oy = bmath_randf(- .3f * hh, .3f * hh);
+        real32_t ox = bmath_randf(-.3f * hw, .3f * hw);
+        real32_t oy = bmath_randf(-.3f * hh, .3f * hh);
         pt[i].x = bmath_randf(-hw, hw) + ox;
         pt[i].y = bmath_randf(-hh, hh) + oy;
     }
@@ -426,7 +430,8 @@ void col2dhello_update_cloud_bounds(Cloud *cloud)
     uint32_t n = arrst_size(cloud->pnts, V2Df);
 
     i_remove_bounds(cloud);
-    switch(cloud->type) {
+    switch (cloud->type)
+    {
     case 0:
         cloud->bound.cir = cir2d_from_boxf(&cloud->box);
         break;
@@ -446,7 +451,7 @@ void col2dhello_update_cloud_bounds(Cloud *cloud)
     case 4:
         cloud->bound.poly = pol2d_convex_hullf(p, n);
         break;
-    cassert_default();
+        cassert_default();
     }
 
     cloud->ctype = cloud->type;
@@ -511,7 +516,8 @@ static bool_t i_mouse_inside(const Shape *shape, const real32_t mouse_x, const r
 {
     V2Df m = v2df(mouse_x, mouse_y);
 
-    switch(shape->type) {
+    switch (shape->type)
+    {
     case ekPOINT:
         return col2d_point_pointf(&shape->body.pnt, &m, CENTER_RADIUS, NULL);
 
@@ -540,7 +546,7 @@ static bool_t i_mouse_inside(const Shape *shape, const real32_t mouse_x, const r
     case ekSIMPLE_POLY:
         return col2d_poly_pointf(shape->body.pol.pol, &m, NULL);
 
-    cassert_default();
+        cassert_default();
     }
 
     return FALSE;
@@ -552,7 +558,7 @@ void col2dhello_mouse_collisions(App *app, const real32_t mouse_x, const real32_
 {
     arrst_foreach(shape, app->shapes, Shape)
         shape->mouse = i_mouse_inside(shape, mouse_x, mouse_y);
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -579,17 +585,53 @@ void col2dhello_collisions(App *app)
         shape[i].collisions = 0;
 
     for (i = 0; i < n; ++i)
-    for (j = i + 1; j < n; ++j)
-    {
-        const Shape *shape1 = shape[i].type < shape[j].type ? &shape[i] : &shape[j];
-        const Shape *shape2 = shape[i].type < shape[j].type ? &shape[j] : &shape[i];
-        bool_t col = FALSE;
+        for (j = i + 1; j < n; ++j)
+        {
+            const Shape *shape1 = shape[i].type < shape[j].type ? &shape[i] : &shape[j];
+            const Shape *shape2 = shape[i].type < shape[j].type ? &shape[j] : &shape[i];
+            bool_t col = FALSE;
 
-        switch(shape1->type) {
-        case ekPOINT:
-            switch(shape2->type) {
+            switch (shape1->type)
+            {
             case ekPOINT:
-                col = col2d_point_pointf(&shape1->body.pnt, &shape2->body.pnt, CENTER_RADIUS, NULL);
+                switch (shape2->type)
+                {
+                case ekPOINT:
+                    col = col2d_point_pointf(&shape1->body.pnt, &shape2->body.pnt, CENTER_RADIUS, NULL);
+                    break;
+
+                case ekPOINT_CLOUD:
+                    col = FALSE;
+                    break;
+
+                case ekSEGMENT:
+                    col = col2d_segment_pointf(&shape2->body.seg.seg, &shape1->body.pnt, CENTER_RADIUS, NULL);
+                    i_point_segment_dist(&shape2->body.seg.seg, &shape1->body.pnt, app->dists);
+                    break;
+
+                case ekCIRCLE:
+                    col = col2d_circle_pointf(&shape2->body.cir, &shape1->body.pnt, NULL);
+                    break;
+
+                case ekBOX:
+                    col = col2d_box_pointf(&shape2->body.box.box, &shape1->body.pnt, NULL);
+                    break;
+
+                case ekOBB:
+                    col = col2d_obb_pointf(shape2->body.obb.obb, &shape1->body.pnt, NULL);
+                    break;
+
+                case ekTRIANGLE:
+                    col = col2d_tri_pointf(&shape2->body.tri.tri, &shape1->body.pnt, NULL);
+                    break;
+
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_pointf(shape2->body.pol.pol, &shape1->body.pnt, NULL);
+                    break;
+
+                    cassert_default();
+                }
                 break;
 
             case ekPOINT_CLOUD:
@@ -597,202 +639,174 @@ void col2dhello_collisions(App *app)
                 break;
 
             case ekSEGMENT:
-                col = col2d_segment_pointf(&shape2->body.seg.seg, &shape1->body.pnt, CENTER_RADIUS, NULL);
-                i_point_segment_dist(&shape2->body.seg.seg, &shape1->body.pnt, app->dists);
+                switch (shape2->type)
+                {
+                case ekSEGMENT:
+                    col = col2d_segment_segmentf(&shape1->body.seg.seg, &shape2->body.seg.seg, NULL);
+                    break;
+
+                case ekCIRCLE:
+                    col = col2d_circle_segmentf(&shape2->body.cir, &shape1->body.seg.seg, NULL);
+                    break;
+
+                case ekBOX:
+                    col = col2d_box_segmentf(&shape2->body.box.box, &shape1->body.seg.seg, NULL);
+                    break;
+
+                case ekOBB:
+                    col = col2d_obb_segmentf(shape2->body.obb.obb, &shape1->body.seg.seg, NULL);
+                    break;
+
+                case ekTRIANGLE:
+                    col = col2d_tri_segmentf(&shape2->body.tri.tri, &shape1->body.seg.seg, NULL);
+                    break;
+
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_segmentf(shape2->body.pol.pol, &shape1->body.seg.seg, NULL);
+                    break;
+
+                case ekPOINT:
+                case ekPOINT_CLOUD:
+                    cassert_default();
+                }
                 break;
 
             case ekCIRCLE:
-                col = col2d_circle_pointf(&shape2->body.cir, &shape1->body.pnt, NULL);
+                switch (shape2->type)
+                {
+                case ekCIRCLE:
+                    col = col2d_circle_circlef(&shape1->body.cir, &shape2->body.cir, NULL);
+                    break;
+
+                case ekBOX:
+                    col = col2d_box_circlef(&shape2->body.box.box, &shape1->body.cir, NULL);
+                    break;
+
+                case ekOBB:
+                    col = col2d_obb_circlef(shape2->body.obb.obb, &shape1->body.cir, NULL);
+                    break;
+
+                case ekTRIANGLE:
+                    col = col2d_tri_circlef(&shape2->body.tri.tri, &shape1->body.cir, NULL);
+                    break;
+
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_circlef(shape2->body.pol.pol, &shape1->body.cir, NULL);
+                    break;
+
+                case ekPOINT:
+                case ekPOINT_CLOUD:
+                case ekSEGMENT:
+                    cassert_default();
+                }
                 break;
 
             case ekBOX:
-                col = col2d_box_pointf(&shape2->body.box.box, &shape1->body.pnt, NULL);
+                switch (shape2->type)
+                {
+                case ekBOX:
+                    col = col2d_box_boxf(&shape1->body.box.box, &shape2->body.box.box, NULL);
+                    break;
+
+                case ekOBB:
+                    col = col2d_obb_boxf(shape2->body.obb.obb, &shape1->body.box.box, NULL);
+                    break;
+
+                case ekTRIANGLE:
+                    col = col2d_tri_boxf(&shape2->body.tri.tri, &shape1->body.box.box, NULL);
+                    break;
+
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_boxf(shape2->body.pol.pol, &shape1->body.box.box, NULL);
+                    break;
+
+                case ekPOINT:
+                case ekPOINT_CLOUD:
+                case ekSEGMENT:
+                case ekCIRCLE:
+                    cassert_default();
+                }
                 break;
 
             case ekOBB:
-                col = col2d_obb_pointf(shape2->body.obb.obb, &shape1->body.pnt, NULL);
+                switch (shape2->type)
+                {
+                case ekOBB:
+                    col = col2d_obb_obbf(shape1->body.obb.obb, shape2->body.obb.obb, NULL);
+                    break;
+
+                case ekTRIANGLE:
+                    col = col2d_tri_obbf(&shape2->body.tri.tri, shape1->body.obb.obb, NULL);
+                    break;
+
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_obbf(shape2->body.pol.pol, shape1->body.obb.obb, NULL);
+                    break;
+
+                case ekPOINT:
+                case ekPOINT_CLOUD:
+                case ekSEGMENT:
+                case ekCIRCLE:
+                case ekBOX:
+                    cassert_default();
+                }
                 break;
 
             case ekTRIANGLE:
-                col = col2d_tri_pointf(&shape2->body.tri.tri, &shape1->body.pnt, NULL);
+                switch (shape2->type)
+                {
+                case ekTRIANGLE:
+                    col = col2d_tri_trif(&shape1->body.tri.tri, &shape2->body.tri.tri, NULL);
+                    break;
+
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_trif(shape2->body.pol.pol, &shape1->body.tri.tri, NULL);
+                    break;
+
+                case ekPOINT:
+                case ekPOINT_CLOUD:
+                case ekSEGMENT:
+                case ekCIRCLE:
+                case ekBOX:
+                case ekOBB:
+                    cassert_default();
+                }
                 break;
 
             case ekCONVEX_POLY:
             case ekSIMPLE_POLY:
-                col = col2d_poly_pointf(shape2->body.pol.pol, &shape1->body.pnt, NULL);
+                switch (shape2->type)
+                {
+                case ekCONVEX_POLY:
+                case ekSIMPLE_POLY:
+                    col = col2d_poly_polyf(shape1->body.pol.pol, shape2->body.pol.pol, NULL);
+                    break;
+
+                case ekPOINT:
+                case ekPOINT_CLOUD:
+                case ekSEGMENT:
+                case ekCIRCLE:
+                case ekBOX:
+                case ekOBB:
+                case ekTRIANGLE:
+                    cassert_default();
+                }
                 break;
 
-            cassert_default();
+                cassert_default();
             }
-            break;
 
-        case ekPOINT_CLOUD:
-            col = FALSE;
-            break;
-
-        case ekSEGMENT:
-            switch(shape2->type) {
-            case ekSEGMENT:
-                col = col2d_segment_segmentf(&shape1->body.seg.seg, &shape2->body.seg.seg, NULL);
-                break;
-
-            case ekCIRCLE:
-                col = col2d_circle_segmentf(&shape2->body.cir, &shape1->body.seg.seg, NULL);
-                break;
-
-            case ekBOX:
-                col = col2d_box_segmentf(&shape2->body.box.box, &shape1->body.seg.seg, NULL);
-                break;
-
-            case ekOBB:
-                col = col2d_obb_segmentf(shape2->body.obb.obb, &shape1->body.seg.seg, NULL);
-                break;
-
-            case ekTRIANGLE:
-                col = col2d_tri_segmentf(&shape2->body.tri.tri, &shape1->body.seg.seg, NULL);
-                break;
-
-            case ekCONVEX_POLY:
-            case ekSIMPLE_POLY:
-                col = col2d_poly_segmentf(shape2->body.pol.pol, &shape1->body.seg.seg, NULL);
-                break;
-
-            case ekPOINT:
-            case ekPOINT_CLOUD:
-            cassert_default();
+            if (col == TRUE)
+            {
+                shape[i].collisions += 1;
+                shape[j].collisions += 1;
             }
-            break;
-
-        case ekCIRCLE:
-            switch(shape2->type) {
-            case ekCIRCLE:
-                col = col2d_circle_circlef(&shape1->body.cir, &shape2->body.cir, NULL);
-                break;
-
-            case ekBOX:
-                col = col2d_box_circlef(&shape2->body.box.box, &shape1->body.cir, NULL);
-                break;
-
-            case ekOBB:
-                col = col2d_obb_circlef(shape2->body.obb.obb, &shape1->body.cir, NULL);
-                break;
-
-            case ekTRIANGLE:
-                col = col2d_tri_circlef(&shape2->body.tri.tri, &shape1->body.cir, NULL);
-                break;
-
-            case ekCONVEX_POLY:
-            case ekSIMPLE_POLY:
-                col = col2d_poly_circlef(shape2->body.pol.pol, &shape1->body.cir, NULL);
-                break;
-
-            case ekPOINT:
-            case ekPOINT_CLOUD:
-            case ekSEGMENT:
-            cassert_default();
-            }
-            break;
-
-        case ekBOX:
-            switch(shape2->type) {
-            case ekBOX:
-                col = col2d_box_boxf(&shape1->body.box.box, &shape2->body.box.box, NULL);
-                break;
-
-            case ekOBB:
-                col = col2d_obb_boxf(shape2->body.obb.obb, &shape1->body.box.box, NULL);
-                break;
-
-            case ekTRIANGLE:
-                col = col2d_tri_boxf(&shape2->body.tri.tri, &shape1->body.box.box, NULL);
-                break;
-
-            case ekCONVEX_POLY:
-            case ekSIMPLE_POLY:
-                col = col2d_poly_boxf(shape2->body.pol.pol, &shape1->body.box.box, NULL);
-                break;
-
-            case ekPOINT:
-            case ekPOINT_CLOUD:
-            case ekSEGMENT:
-            case ekCIRCLE:
-            cassert_default();
-            }
-            break;
-
-        case ekOBB:
-            switch(shape2->type) {
-            case ekOBB:
-                col = col2d_obb_obbf(shape1->body.obb.obb, shape2->body.obb.obb, NULL);
-                break;
-
-            case ekTRIANGLE:
-                col = col2d_tri_obbf(&shape2->body.tri.tri, shape1->body.obb.obb, NULL);
-                break;
-
-            case ekCONVEX_POLY:
-            case ekSIMPLE_POLY:
-                col = col2d_poly_obbf(shape2->body.pol.pol, shape1->body.obb.obb, NULL);
-                break;
-
-            case ekPOINT:
-            case ekPOINT_CLOUD:
-            case ekSEGMENT:
-            case ekCIRCLE:
-            case ekBOX:
-            cassert_default();
-            }
-            break;
-
-        case ekTRIANGLE:
-            switch(shape2->type) {
-            case ekTRIANGLE:
-                col = col2d_tri_trif(&shape1->body.tri.tri, &shape2->body.tri.tri, NULL);
-                break;
-
-            case ekCONVEX_POLY:
-            case ekSIMPLE_POLY:
-                col = col2d_poly_trif(shape2->body.pol.pol, &shape1->body.tri.tri, NULL);
-                break;
-
-            case ekPOINT:
-            case ekPOINT_CLOUD:
-            case ekSEGMENT:
-            case ekCIRCLE:
-            case ekBOX:
-            case ekOBB:
-            cassert_default();
-            }
-            break;
-
-        case ekCONVEX_POLY:
-        case ekSIMPLE_POLY:
-            switch(shape2->type) {
-            case ekCONVEX_POLY:
-            case ekSIMPLE_POLY:
-                col = col2d_poly_polyf(shape1->body.pol.pol, shape2->body.pol.pol, NULL);
-                break;
-
-            case ekPOINT:
-            case ekPOINT_CLOUD:
-            case ekSEGMENT:
-            case ekCIRCLE:
-            case ekBOX:
-            case ekOBB:
-            case ekTRIANGLE:
-            cassert_default();
-            }
-            break;
-
-        cassert_default();
         }
-
-        if (col == TRUE)
-        {
-            shape[i].collisions += 1;
-            shape[j].collisions += 1;
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -112,8 +112,10 @@ void draw2d_finish(void)
 
 uint32_t draw2d_register_font(const char_t *font_family)
 {
-    arrpt_foreach(family, i_FONT_FAMILIES, String) if (str_cmp(family, font_family) == 0) return family_i;
-    arrpt_end();
+    arrpt_foreach(family, i_FONT_FAMILIES, String)
+        if (str_cmp(family, font_family) == 0)
+            return family_i;
+    arrpt_end()
 
     if (font_exists_family(font_family) == TRUE)
     {
@@ -145,12 +147,13 @@ color_t color_indexed(const uint16_t index, const color_t color)
 
     cassert((uint8_t)(color >> 24) != 0);
 
-    arrst_foreach(ic, i_INDEXED_COLORS, IColor) if (index == ic->index)
-    {
-        ic->color = color;
-        return color;
-    }
-    arrst_end();
+    arrst_foreach(ic, i_INDEXED_COLORS, IColor)
+        if (index == ic->index)
+        {
+            ic->color = color;
+            return color;
+        }
+    arrst_end()
 
     {
         IColor *nc = arrst_new(i_INDEXED_COLORS, IColor);
@@ -167,8 +170,10 @@ color_t draw2d_get_indexed_color(const uint16_t index)
     if (index == 0)
         return kCOLOR_DEFAULT;
 
-    arrst_foreach(ic, i_INDEXED_COLORS, IColor) if (ic->index == index) return ic->color;
-    arrst_end();
+    arrst_foreach(ic, i_INDEXED_COLORS, IColor)
+        if (ic->index == index)
+            return ic->color;
+    arrst_end()
 
     cassert(FALSE);
     return kCOLOR_DEFAULT;

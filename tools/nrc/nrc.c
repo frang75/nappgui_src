@@ -54,11 +54,11 @@ static int i_result(ArrPt(String) **warnings, ArrPt(String) **errors, const bool
 
     arrpt_foreach(error, *errors, String)
         log_printf("[ERROR] %s", tc(error));
-    arrpt_end();
+    arrpt_end()
 
     arrpt_foreach(warning, *warnings, String)
         log_printf("[WARNING] %s", tc(warning));
-    arrpt_end();
+    arrpt_end()
 
     if (arrpt_size(*errors, String) > 0)
         ret = WITH_ERRORS;

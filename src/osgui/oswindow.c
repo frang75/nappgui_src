@@ -25,21 +25,21 @@ OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button)
     OSButton *effective = NULL;
     const ArrPt(OSControl) *controls = oswindow_get_all_controls(window);
     arrpt_foreach_const(control, controls, OSControl)
-    {
-        cassert_no_null(control);
-        if (oscontrol_type(control) == ekGUI_TYPE_BUTTON)
         {
-            OSButton *nbutton = OSButtonPtr(control);
-            bool_t is_default = (bool_t)(nbutton == button);
-            osbutton_set_default(OSButtonPtr(control), is_default);
-            if (is_default == TRUE)
+            cassert_no_null(control);
+            if (oscontrol_type(control) == ekGUI_TYPE_BUTTON)
             {
-                cassert(effective == NULL);
-                effective = nbutton;
+                OSButton *nbutton = OSButtonPtr(control);
+                bool_t is_default = (bool_t)(nbutton == button);
+                osbutton_set_default(OSButtonPtr(control), is_default);
+                if (is_default == TRUE)
+                {
+                    cassert(effective == NULL);
+                    effective = nbutton;
+                }
             }
         }
-    }
-    arrpt_end();
+    arrpt_end()
 
     return effective;
 }
@@ -74,7 +74,6 @@ void oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint
 
         /* Update the hotkey(if exists) */
         arrst_foreach(hotkey, *hotkeys, OSHotKey)
-        {
             if (hotkey->key == key && hotkey->modifiers == modifiers)
             {
                 exists = TRUE;
@@ -84,8 +83,7 @@ void oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint
                     remove = hotkey_i;
                 break;
             }
-        }
-        arrst_end();
+        arrst_end()
 
         if (exists == FALSE)
         {
@@ -118,7 +116,6 @@ bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) *hotkeys, const
     if (hotkeys != NULL)
     {
         arrst_foreach(hotkey, hotkeys, OSHotKey)
-        {
             if (key == hotkey->key && modifiers == hotkey->modifiers)
             {
                 EvKey params;
@@ -128,8 +125,7 @@ bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) *hotkeys, const
                 listener_event(hotkey->listener, ekGUI_EVENT_KEYDOWN, window, &params, NULL, OSWindow, EvKey, void);
                 return TRUE;
             }
-        }
-        arrst_end();
+        arrst_end()
     }
 
     return FALSE;

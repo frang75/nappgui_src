@@ -229,15 +229,13 @@ static ArrSt(i_LineDim) *i_create_linedim(const uint32_t num_elems)
 
     arrst_grow(dimension, num_elems, i_LineDim);
     arrst_foreach(dim, dimension, i_LineDim)
-    {
         if (dim_i == dim_total - 1)
             resize = 1.f - total;
 
         bmem_zero(dim, i_LineDim);
         dim->resize_percent = resize;
         total += resize;
-    }
-    arrst_end();
+    arrst_end()
 
     cassert(bmath_absf(total - 1.f) < i_EPSILON);
     return dimension;
@@ -847,14 +845,12 @@ static void i_recompute_resize_percent(ArrSt(i_LineDim) *line_dim)
     cassert_no_null(line_dim);
     cassert(arrst_size(line_dim, i_LineDim) > 0);
     arrst_foreach(dim, line_dim, i_LineDim)
-    {
         if (dim->resize_percent > i_EPSILON)
         {
             norm += dim->resize_percent;
             nedims += 1;
         }
-    }
-    arrst_end();
+    arrst_end()
 
     /* We must recompute */
     if (bmath_absf(1 - norm) >= i_EPSILON)
@@ -864,11 +860,9 @@ static void i_recompute_resize_percent(ArrSt(i_LineDim) *line_dim)
         {
             real32_t diff = (1.f - norm) / nedims;
             arrst_foreach(dim, line_dim, i_LineDim)
-            {
                 if (dim->resize_percent > i_EPSILON)
                     dim->resize_percent += diff;
-            }
-            arrst_end();
+            arrst_end()
         }
         /* All resize to last dim */
         else
@@ -1038,7 +1032,7 @@ static void i_expand1(ArrSt(i_LineDim) *line_dim, const uint32_t index)
     cassert(index < arrst_size(line_dim, i_LineDim));
     arrst_foreach(dim, line_dim, i_LineDim)
         dim->resize_percent = (dim_i == index) ? 1.f : 0.f;
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1050,15 +1044,13 @@ static void i_expand2(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const u
     cassert(index2 < arrst_size(line_dim, i_LineDim));
     cassert(exp <= 1);
     arrst_foreach(dim, line_dim, i_LineDim)
-    {
         if (dim_i == index1)
             dim->resize_percent = exp;
         else if (dim_i == index2)
             dim->resize_percent = 1.f - exp;
         else
             dim->resize_percent = 0.f;
-    }
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1073,7 +1065,6 @@ static void i_expand3(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const u
     cassert(index3 < arrst_size(line_dim, i_LineDim));
     cassert(exp1 + exp2 <= 1);
     arrst_foreach(dim, line_dim, i_LineDim)
-    {
         if (dim_i == index1)
             dim->resize_percent = exp1;
         else if (dim_i == index2)
@@ -1082,8 +1073,7 @@ static void i_expand3(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const u
             dim->resize_percent = 1.f - exp1 - exp2;
         else
             dim->resize_percent = 0.f;
-    }
-    arrst_end();
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1275,46 +1265,48 @@ void layout_dbind_imp(Layout *layout, Listener *listener, const char_t *type, co
 
 static void i_layout_dbind(Layout *layout, const StBind *stbind, void *obj)
 {
-    arrpt_foreach(cell, layout->cells, Cell) if (cell->dbind != NULL)
-    {
-        switch (cell->type)
+    arrpt_foreach(cell, layout->cells, Cell)
+        if (cell->dbind != NULL)
         {
-        case i_ekCOMPONENT:
-            if (cell->content.component->type == ekGUI_TYPE_PANEL)
+            switch (cell->type)
             {
-                Panel *panel = (Panel *)cell->content.component;
-                ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
-                arrpt_foreach(panel_layout, panel_layouts, Layout)
-                    gbind_upd_layout(panel_layout, stbind, cell->dbind, obj);
-                arrpt_end();
-            }
-            else
-            {
-                gbind_upd_component(cell, stbind, cell->dbind, obj);
-            }
-            break;
+            case i_ekCOMPONENT:
+                if (cell->content.component->type == ekGUI_TYPE_PANEL)
+                {
+                    Panel *panel = (Panel *)cell->content.component;
+                    ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
+                    arrpt_foreach(panel_layout, panel_layouts, Layout)
+                        gbind_upd_layout(panel_layout, stbind, cell->dbind, obj);
+                    arrpt_end()
+                }
+                else
+                {
+                    gbind_upd_component(cell, stbind, cell->dbind, obj);
+                }
+                break;
 
-        case i_ekLAYOUT:
-            gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
-            break;
+            case i_ekLAYOUT:
+                gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
+                break;
 
-        case i_ekEMPTY:
-            cassert_default();
+            case i_ekEMPTY:
+                cassert_default();
+            }
         }
-    }
-    else if (cell->type == i_ekLAYOUT)
-    {
-        i_layout_dbind(cell->content.layout, stbind, obj);
-    }
-    else if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_PANEL)
-    {
-        Panel *panel = (Panel *)cell->content.component;
-        ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
-        arrpt_foreach(panel_layout, panel_layouts, Layout) if (panel_layout->stbind == NULL)
-            i_layout_dbind(panel_layout, stbind, obj);
-        arrpt_end();
-    }
-    arrpt_end();
+        else if (cell->type == i_ekLAYOUT)
+        {
+            i_layout_dbind(cell->content.layout, stbind, obj);
+        }
+        else if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_PANEL)
+        {
+            Panel *panel = (Panel *)cell->content.component;
+            ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
+            arrpt_foreach(panel_layout, panel_layouts, Layout)
+                if (panel_layout->stbind == NULL)
+                    i_layout_dbind(panel_layout, stbind, obj);
+            arrpt_end()
+        }
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1347,19 +1339,20 @@ void _layout_attach_to_panel(Layout *layout, Panel *panel)
     cassert_no_null(layout);
     cassert(layout->panel == NULL || layout->panel == panel);
     layout->panel = panel;
-    arrpt_foreach(cell, layout->cells, Cell) switch (cell->type)
-    {
-    case i_ekCOMPONENT:
-        _panel_attach_component(panel, cell->content.component);
-        break;
-    case i_ekLAYOUT:
-        _layout_attach_to_panel(cell->content.layout, panel);
-        break;
-    case i_ekEMPTY:
-        break;
-        cassert_default();
-    }
-    arrpt_end();
+    arrpt_foreach(cell, layout->cells, Cell)
+        switch (cell->type)
+        {
+        case i_ekCOMPONENT:
+            _panel_attach_component(panel, cell->content.component);
+            break;
+        case i_ekLAYOUT:
+            _layout_attach_to_panel(cell->content.layout, panel);
+            break;
+        case i_ekEMPTY:
+            break;
+            cassert_default();
+        }
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1379,7 +1372,6 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
     cassert_no_null(layout->panel);
 
     arrpt_foreach(cell, layout->cells, Cell)
-    {
         /* In Layout destroy process, can be found NULL-Cells */
         if (cell != NULL)
         {
@@ -1411,8 +1403,7 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
                     break;
             }
         }
-    }
-    arrpt_end();
+    arrpt_end()
 
     return find_layout;
 }
@@ -1430,15 +1421,13 @@ bool_t _layout_search_layout(const Layout *layout, Layout *sublayout)
     else
     {
         arrpt_foreach(cell, layout->cells, Cell)
-        {
             if (cell->type == i_ekLAYOUT)
             {
                 bool_t exists = _layout_search_layout(cell->content.layout, sublayout);
                 if (exists == TRUE)
                     return exists;
             }
-        }
-        arrpt_end();
+        arrpt_end()
 
         return FALSE;
     }
@@ -1450,7 +1439,6 @@ void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components)
 {
     cassert_no_null(layout);
     arrpt_foreach(cell, layout->cells, Cell)
-    {
         switch (cell->type)
         {
         case i_ekCOMPONENT:
@@ -1465,8 +1453,7 @@ void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components)
             break;
             cassert_default();
         }
-    }
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1567,13 +1554,11 @@ void _layout_dimension(Layout *layout, const uint32_t di, real32_t *dim0, real32
     cells = arrpt_all(layout->cells_dim[di], Cell);
 
     arrst_foreach(dim, layout->lines_dim[di], i_LineDim)
-    {
         size += dim->margin;
         i_line_compose(dim, di, cells, layout->dim_num_elems[di]);
         size += dim->size;
         cells += layout->dim_num_elems[di];
-    }
-    arrst_end();
+    arrst_end()
 
     size += layout->dim_margin[di];
 
@@ -1594,17 +1579,14 @@ static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_siz
 
     cassert_no_null(dim);
     arrst_foreach(edim, dim, i_LineDim)
-    {
         norm += edim->resize_percent;
         if (edim->resize_percent > 0)
             last_id = edim_i;
-    }
-    arrst_end();
+    arrst_end()
 
     cassert_unref(bmath_absf(1 - norm) < i_EPSILON, norm);
 
     arrst_foreach(edim, dim, i_LineDim)
-    {
         real32_t increment = 0;
 
         if (edim_i == last_id)
@@ -1619,8 +1601,7 @@ static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_siz
             edim->size = 0;
 
         cassert(edim->size >= 0);
-    }
-    arrst_end();
+    arrst_end()
 
     cassert(bmath_absf(diff - total) < i_EPSILON);
 }
@@ -1709,14 +1690,12 @@ void _layout_expand(Layout *layout, const uint32_t di, const real32_t current_si
     *final_size = 0.f;
 
     arrst_foreach(edim, layout->lines_dim[di], i_LineDim)
-    {
         while (i_line_expand(&edim->size, di, cells, layout->dim_num_elems[di]) == FALSE)
             ;
         *final_size += edim->size;
         *final_size += edim->margin;
         cells += layout->dim_num_elems[di];
-    }
-    arrst_end();
+    arrst_end()
 
     *final_size += layout->dim_margin[di];
 }
@@ -1741,11 +1720,11 @@ static real32_t i_dimension_size(const ArrSt(i_LineDim) *dim, const real32_t mar
 {
     real32_t size = margin;
     arrst_foreach_const(edim, dim, i_LineDim)
-    {
-        size += edim->margin;
-        size += edim->size;
-    }
-    arrst_end();
+        {
+            size += edim->margin;
+            size += edim->size;
+        }
+    arrst_end()
     return size;
 }
 
@@ -1865,7 +1844,6 @@ static void i_layout_visible(Layout *layout, const bool_t parent_visible)
 {
     cassert_no_null(layout);
     arrpt_foreach(cell, layout->cells, Cell)
-    {
         bool_t visible = cell->visible && cell->displayed && parent_visible;
 
         switch (cell->type)
@@ -1880,8 +1858,7 @@ static void i_layout_visible(Layout *layout, const bool_t parent_visible)
             break;
             cassert_default();
         }
-    }
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1890,7 +1867,6 @@ static void i_layout_enabled(Layout *layout, const bool_t parent_enabled)
 {
     cassert_no_null(layout);
     arrpt_foreach(cell, layout->cells, Cell)
-    {
         bool_t enabled = cell->enabled && parent_enabled;
 
         switch (cell->type)
@@ -1905,8 +1881,7 @@ static void i_layout_enabled(Layout *layout, const bool_t parent_enabled)
             break;
             cassert_default();
         }
-    }
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1989,7 +1964,6 @@ void _layout_taborder(const Layout *layout, Window *window)
 static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *dbind, void *obj)
 {
     arrpt_foreach(cell, layout->cells, Cell)
-    {
         bool_t update = FALSE;
 
         /* Update a single object-field (dbind != NULL) */
@@ -2028,18 +2002,15 @@ static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *db
             Panel *panel = (Panel *)cell->content.component;
             ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
             arrpt_foreach(panel_layout, panel_layouts, Layout)
-            {
                 const StBind *lstbind = panel_layout->stbind;
                 void *lobjbind = panel_layout->objbind;
                 if (lstbind != NULL)
                     i_dbind_update(panel_layout, lstbind, dbind, lobjbind);
                 else
                     i_dbind_update(panel_layout, stbind, dbind, obj);
-            }
-            arrpt_end();
+            arrpt_end()
         }
-    }
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2370,7 +2341,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
     {
         arrpt_foreach(lcell, cell->content.layout->cells, Cell)
             i_set_dbind(lcell, dbind);
-        arrpt_end();
+        arrpt_end()
     }
 }
 
@@ -2420,11 +2391,9 @@ void _cell_set_radio(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-    {
         if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
             _button_radio_state((Button *)cell->content.component, (cell == on_cell) ? ekGUI_ON : ekGUI_OFF);
-    }
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2435,14 +2404,12 @@ void _cell_set_radio_index(Cell *on_cell, const uint32_t index)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-    {
         if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
         {
             _button_radio_state((Button *)cell->content.component, (i == index) ? ekGUI_ON : ekGUI_OFF);
             i += 1;
         }
-    }
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2453,7 +2420,6 @@ uint32_t _cell_radio_index(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-    {
         if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
         {
             if (cell == on_cell)
@@ -2461,8 +2427,7 @@ uint32_t _cell_radio_index(Cell *on_cell)
             else
                 i += 1;
         }
-    }
-    arrpt_end();
+    arrpt_end()
     return UINT32_MAX;
 }
 
@@ -2473,14 +2438,12 @@ Button *_cell_radio_listener(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-    {
         if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
         {
             if (_button_radio_listener((const Button *)cell->content.component) != NULL)
                 return (Button *)cell->content.component;
         }
-    }
-    arrpt_end();
+    arrpt_end()
     return NULL;
 }
 
@@ -2491,14 +2454,12 @@ Cell *_cell_radio_dbind_cell(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-    {
         if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
         {
             if (cell->dbind != NULL)
                 return cell;
         }
-    }
-    arrpt_end();
+    arrpt_end()
     return NULL;
 }
 

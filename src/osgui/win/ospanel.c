@@ -102,18 +102,18 @@ static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
     rc.bottom = rect.bottom;
 
     arrst_forback_const(area, areas, Area)
-    {
-        RECT inter;
-        if (IntersectRect(&inter, &area->rect, &rc) == TRUE)
         {
-            if (area->bgbrush != NULL)
+            RECT inter;
+            if (IntersectRect(&inter, &area->rect, &rc) == TRUE)
             {
-                ptr_assign(c, area->bgcolor);
-                return area->bgbrush;
+                if (area->bgbrush != NULL)
+                {
+                    ptr_assign(c, area->bgcolor);
+                    return area->bgbrush;
+                }
             }
         }
-    }
-    arrst_end();
+    arrst_end()
     return NULL;
 }
 
@@ -348,7 +348,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 FillRect((HDC)wParam, &rc, defbrush);
                 arrst_foreach(area, panel->areas, Area)
                     i_area((HDC)wParam, area);
-                arrst_end();
+                arrst_end()
             }
 
             if (panel->scroll != NULL)
@@ -426,12 +426,13 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
         if (panel->areas == NULL)
             panel->areas = arrst_create(Area);
 
-        arrst_foreach(larea, panel->areas, Area) if (larea->obj == obj)
-        {
-            area = larea;
-            break;
-        }
-        arrst_end();
+        arrst_foreach(larea, panel->areas, Area)
+            if (larea->obj == obj)
+            {
+                area = larea;
+                break;
+            }
+        arrst_end()
 
         if (area == NULL)
         {

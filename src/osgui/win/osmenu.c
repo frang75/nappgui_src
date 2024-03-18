@@ -114,11 +114,9 @@ static void i_remove_all_items(OSMenu *menu)
     cassert_no_null(menu->hmenu);
     n = (uint32_t)GetMenuItemCount(menu->hmenu);
     arrpt_foreach(item, menu->items, OSMenuItem)
-    {
         if (_osmenuitem_remove_from_hmenu(item, menu) == TRUE)
             n0 += 1;
-    }
-    arrpt_end();
+    arrpt_end()
 
     cassert_unref(n == n0, n);
     cassert(GetMenuItemCount(menu->hmenu) == 0);
@@ -132,7 +130,7 @@ static void i_add_all_items(OSMenu *menu)
     cassert_no_null(menu->hmenu);
     arrpt_foreach(item, menu->items, OSMenuItem)
         _osmenuitem_insert_in_hmenu(item, menu);
-    arrpt_end();
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/

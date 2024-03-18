@@ -142,13 +142,13 @@ static bool_t i_dump_controls(const ArrPt(OSControl) *controls, const bool_t pri
         bstd_printf("Dump controls: %d\n", arrpt_size(controls, OSControl));
 
     arrpt_foreach_const(control, controls, OSControl)
-    {
-        gui_type_t type = oscontrol_type(control);
-        const char_t *str = oscontrol_type_str(type);
-        if (print == TRUE)
-            bstd_printf("  - %d: %s\n", control_i, str);
-    }
-    arrpt_end();
+        {
+            gui_type_t type = oscontrol_type(control);
+            const char_t *str = oscontrol_type_str(type);
+            if (print == TRUE)
+                bstd_printf("  - %d: %s\n", control_i, str);
+        }
+    arrpt_end()
 
     return TRUE;
 }

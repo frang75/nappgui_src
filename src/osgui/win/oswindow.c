@@ -1234,7 +1234,7 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
                     break;
                 }
             }
-            arrpt_end();
+            arrpt_end()
             */
         }
     }

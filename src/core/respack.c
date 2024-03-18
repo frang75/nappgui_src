@@ -351,13 +351,14 @@ static __INLINE i_Resource *i_resource(const ArrPt(ResPack) *packs, const ResId 
     packid = str_str(idr, "::");
     if (packid != NULL)
     {
-        arrpt_foreach_const(pack, packs, ResPack) if (str_cmp_cn(tc(pack->name), idr, (uint32_t)(packid - idr)) == 0)
-        {
-            uint32_t idx;
-            idx = str_to_u32(packid + 2, 10, NULL);
-            return arrst_get(pack->resources, idx, i_Resource);
-        }
-        arrpt_end();
+        arrpt_foreach_const(pack, packs, ResPack)
+            if (str_cmp_cn(tc(pack->name), idr, (uint32_t)(packid - idr)) == 0)
+            {
+                uint32_t idx;
+                idx = str_to_u32(packid + 2, 10, NULL);
+                return arrst_get(pack->resources, idx, i_Resource);
+            }
+        arrpt_end()
     }
     return NULL;
 }
