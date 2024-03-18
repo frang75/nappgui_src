@@ -143,6 +143,12 @@ OSLabel *oslabel_create(const uint32_t flags)
     OSXLabel *label = nil;
     heap_auditor_add("OSXLabel");
     label = [[OSXLabel alloc] initWithFrame:NSZeroRect];
+
+    /* https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView */
+#if defined (MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
+    [label setClipsToBounds:YES];
+#endif
+
     _oscontrol_init(label);
     label->ctx = dctx_create();
     label->flags = flags;
