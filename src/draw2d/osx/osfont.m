@@ -23,7 +23,7 @@
 #include <core/strings.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -35,7 +35,6 @@
 
 void osfont_alloc_globals(void)
 {
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -86,10 +85,10 @@ static NSFont *i_convent_to_italic(NSFont *font, const CGFloat height, NSFontMan
             NSAffineTransform *italic_transform = nil;
             data.m11 = 1.f;
             data.m12 = 0.f;
-            data.m21 = - tanf(/*italic_angle*/-10.f * 0.017453292519943f);
+            data.m21 = -tanf(/*italic_angle*/ -10.f * 0.017453292519943f);
             data.m22 = 1.f;
-            data.tX  = 0.f;
-            data.tY  = 0.f;
+            data.tX = 0.f;
+            data.tY = 0.f;
             italic_transform = [NSAffineTransform transform];
             [italic_transform setTransformStruct:data];
             [font_transform appendTransform:italic_transform];
@@ -118,7 +117,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     }
     else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
     {
-#if defined (MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
+#if defined(MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
         if (style & ekFBOLD)
             nsfont = [NSFont monospacedSystemFontOfSize:(CGFloat)size weight:NSFontWeightBold];
         else
@@ -152,7 +151,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
         [nsfont retain];
     }
 
-    return (OSFont*)nsfont;
+    return (OSFont *)nsfont;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -161,30 +160,30 @@ void osfont_destroy(OSFont **font)
 {
     cassert_no_null(font);
     cassert_no_null(*font);
-    [(NSFont*)*font release];
+    [(NSFont *)*font release];
 }
 
 /*---------------------------------------------------------------------------*/
 
 String *osfont_family_name(const OSFont *font)
 {
-    NSFont *nsfont = (NSFont*)font;
+    NSFont *nsfont = (NSFont *)font;
     NSString *fname = nil;
     const char_t *utf8name = NULL;
     cassert_no_null(nsfont);
     fname = [nsfont familyName];
-    utf8name = (const char_t*)[fname UTF8String];
-    return str_c(utf8name);    
+    utf8name = (const char_t *)[fname UTF8String];
+    return str_c(utf8name);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *cell_size)
 {
-    NSFont *nsfont = (NSFont*)font;
-	/*NSRect rect = [nsfont boundingRectForFont];*/
+    NSFont *nsfont = (NSFont *)font;
+    /*NSRect rect = [nsfont boundingRectForFont];*/
     CGFloat ascender = [nsfont ascender];
-    CGFloat descender = - [nsfont descender];
+    CGFloat descender = -[nsfont descender];
     CGFloat leading = [nsfont leading];
     cassert_no_null(internal_leading);
     cassert_no_null(cell_size);
@@ -200,7 +199,7 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
     id objects[1];
     id keys[1];
     NSUInteger count = sizeof(objects) / sizeof(id);
-    objects[0] = (NSFont*)font;
+    objects[0] = (NSFont *)font;
     keys[0] = NSFontAttributeName;
     cassert(count == 1);
     data.dict = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
@@ -211,7 +210,7 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
 
 const void *osfont_native(const OSFont *font)
 {
-    return (void*)font;
+    return (void *)font;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -227,7 +226,7 @@ bool_t font_exists_family(const char_t *ffamily)
     count = [families count];
     for (i = 0; i < count; ++i)
     {
-        NSString *family = (NSString*)[families objectAtIndex:i];
+        NSString *family = (NSString *)[families objectAtIndex:i];
         const char_t *family_str = [family UTF8String];
         if (str_equ_c(ffamily, family_str) == TRUE)
             return TRUE;
@@ -251,7 +250,7 @@ ArrPt(String) *font_installed_families(void)
     font_families = arrpt_create(String);
     for (i = 0; i < count; ++i)
     {
-        NSString *family = (NSString*)[families objectAtIndex:i];
+        NSString *family = (NSString *)[families objectAtIndex:i];
         const char_t *family_str = [family UTF8String];
         String *ffamily = str_c(family_str);
         arrpt_append(font_families, ffamily, String);

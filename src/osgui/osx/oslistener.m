@@ -18,7 +18,7 @@
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -103,7 +103,7 @@ void _oslistener_mouse_enter(const NSView *view, NSEvent *theEvent, const OSScro
             params.x += osscrolls_x_pos(scroll);
             params.y += osscrolls_y_pos(scroll);
         }
-        listener_event(listeners->OnEnter, ekGUI_EVENT_ENTER, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+        listener_event(listeners->OnEnter, ekGUI_EVENT_ENTER, (OSView *)view, &params, NULL, OSView, EvMouse, void);
     }
 }
 
@@ -113,7 +113,7 @@ void _oslistener_mouse_exit(const NSView *view, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     if (listeners->is_enabled && listeners->OnExit != NULL)
-        listener_event(listeners->OnExit, ekGUI_EVENT_EXIT, (OSView*)view, NULL, NULL, OSView, void, void);
+        listener_event(listeners->OnExit, ekGUI_EVENT_EXIT, (OSView *)view, NULL, NULL, OSView, void, void);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -144,7 +144,7 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
                 params.x += osscrolls_x_pos(scroll);
                 params.y += osscrolls_y_pos(scroll);
             }
-            listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+            listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, (OSView *)view, &params, NULL, OSView, EvMouse, void);
         }
     }
 }
@@ -171,7 +171,7 @@ void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mou
             params.x += osscrolls_x_pos(scroll);
             params.y += osscrolls_y_pos(scroll);
         }
-        listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+        listener_event(listeners->OnDown, ekGUI_EVENT_DOWN, (OSView *)view, &params, NULL, OSView, EvMouse, void);
     }
 }
 
@@ -204,7 +204,7 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
                 params.x += osscrolls_x_pos(scroll);
                 params.y += osscrolls_y_pos(scroll);
             }
-            listener_event(listeners->OnUp, ekGUI_EVENT_UP, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+            listener_event(listeners->OnUp, ekGUI_EVENT_UP, (OSView *)view, &params, NULL, OSView, EvMouse, void);
         }
 
         if (listeners->OnClick != NULL)
@@ -216,7 +216,7 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
             params.count = (uint32_t)[theEvent clickCount];
             params.modifiers = osgui_modifiers([theEvent modifierFlags]);
             params.tag = 0;
-            listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+            listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, (OSView *)view, &params, NULL, OSView, EvMouse, void);
         }
     }
 }
@@ -242,7 +242,7 @@ void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui
             params.x += osscrolls_x_pos(scroll);
             params.y += osscrolls_y_pos(scroll);
         }
-        listener_event(OnDrag_listener, ekGUI_EVENT_DRAG, (OSView*)view, &params, NULL, OSView, EvMouse, void);
+        listener_event(OnDrag_listener, ekGUI_EVENT_DRAG, (OSView *)view, &params, NULL, OSView, EvMouse, void);
     }
 }
 
@@ -273,7 +273,7 @@ void _oslistener_scroll_whell(const NSView *view, NSEvent *theEvent, const OSScr
             params.x += osscrolls_x_pos(scroll);
             params.y += osscrolls_y_pos(scroll);
         }
-        listener_event(listeners->OnWheel, ekGUI_EVENT_WHEEL, (OSView*)view, &params, NULL, OSView, EvWheel, void);
+        listener_event(listeners->OnWheel, ekGUI_EVENT_WHEEL, (OSView *)view, &params, NULL, OSView, EvWheel, void);
     }
 }
 
@@ -285,7 +285,7 @@ static __INLINE void i_launch_key_event(const NSView *view, const gui_event_t ev
     cassert_no_null(OnKey);
     params.key = virtual_key_code;
     params.modifiers = modifiers;
-    listener_event(OnKey, evtype, (OSView*)view, &params, NULL, OSView, EvKey, void);
+    listener_event(OnKey, evtype, (OSView *)view, &params, NULL, OSView, EvKey, void);
 }
 
 /*---------------------------------------------------------------------------*/

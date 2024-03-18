@@ -26,7 +26,7 @@
 #include <core/strings.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -34,7 +34,7 @@
 
 @interface OSXLabel : NSView
 {
-    @public
+  @public
     DCtx *ctx;
     String *text;
     uint32_t flags;
@@ -53,7 +53,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseEntered:(NSEvent*)theEvent
+- (void)mouseEntered:(NSEvent *)theEvent
 {
     cassert_no_null(theEvent);
     if (self->OnMouseEntered != NULL)
@@ -66,29 +66,29 @@
         params.count = 0;
         params.modifiers = 0;
         params.tag = 0;
-        listener_event(self->OnMouseEntered, ekGUI_EVENT_ENTER, (OSLabel*)self, &params, NULL, OSLabel, EvMouse, void);
+        listener_event(self->OnMouseEntered, ekGUI_EVENT_ENTER, (OSLabel *)self, &params, NULL, OSLabel, EvMouse, void);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseExited:(NSEvent*)theEvent
+- (void)mouseExited:(NSEvent *)theEvent
 {
     unref(theEvent);
     if (self->OnMouseExited != NULL)
-        listener_event(self->OnMouseExited, ekGUI_EVENT_EXIT, (OSLabel*)self, NULL, NULL, OSLabel, void, void);
+        listener_event(self->OnMouseExited, ekGUI_EVENT_EXIT, (OSLabel *)self, NULL, NULL, OSLabel, void, void);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseUp:(NSEvent*)theEvent
+- (void)mouseUp:(NSEvent *)theEvent
 {
     unref(theEvent);
     if (self->OnClick != NULL)
     {
         EvText params;
         params.text = NULL;
-        listener_event(self->OnClick, ekGUI_EVENT_LABEL, (OSLabel*)self, &params, NULL, OSLabel, EvText, void);
+        listener_event(self->OnClick, ekGUI_EVENT_LABEL, (OSLabel *)self, &params, NULL, OSLabel, EvText, void);
     }
 }
 
@@ -101,7 +101,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void) drawRect:(NSRect)rect
+- (void)drawRect:(NSRect)rect
 {
     NSGraphicsContext *nscontext;
     NSRect r2 = [self bounds];
@@ -122,12 +122,12 @@
 
     switch (label_get_type(self->flags))
     {
-        case ekLABEL_SINGLE:
-            draw_text_single_line(self->ctx, tc(self->text), 0, 0);
-            break;
-        case ekLABEL_MULTI:
-            draw_text(self->ctx, tc(self->text), 0, 0);
-            break;
+    case ekLABEL_SINGLE:
+        draw_text_single_line(self->ctx, tc(self->text), 0, 0);
+        break;
+    case ekLABEL_MULTI:
+        draw_text(self->ctx, tc(self->text), 0, 0);
+        break;
         cassert_default();
     }
 
@@ -145,7 +145,7 @@ OSLabel *oslabel_create(const uint32_t flags)
     label = [[OSXLabel alloc] initWithFrame:NSZeroRect];
 
     /* https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView */
-#if defined (MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
+#if defined(MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
     [label setClipsToBounds:YES];
 #endif
 
@@ -164,7 +164,7 @@ OSLabel *oslabel_create(const uint32_t flags)
     label->OnClick = NULL;
     label->OnMouseEntered = NULL;
     label->OnMouseExited = NULL;
-    return (OSLabel*)label;
+    return (OSLabel *)label;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -173,7 +173,7 @@ void oslabel_destroy(OSLabel **label)
 {
     OSXLabel *llabel = nil;
     cassert_no_null(label);
-    llabel = (OSXLabel*)*label;
+    llabel = (OSXLabel *)*label;
     cassert_no_null(llabel);
     listener_destroy(&llabel->OnClick);
     listener_destroy(&llabel->OnMouseEntered);
@@ -246,7 +246,7 @@ static void i_update_tracking_area(OSXLabel *label)
 
 void oslabel_OnClick(OSLabel *label, Listener *listener)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     listener_update(&llabel->OnClick, listener);
     i_update_tracking_area(llabel);
@@ -256,7 +256,7 @@ void oslabel_OnClick(OSLabel *label, Listener *listener)
 
 void oslabel_OnEnter(OSLabel *label, Listener *listener)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     listener_update(&llabel->OnMouseEntered, listener);
     i_update_tracking_area(llabel);
@@ -266,7 +266,7 @@ void oslabel_OnEnter(OSLabel *label, Listener *listener)
 
 void oslabel_OnExit(OSLabel *label, Listener *listener)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     listener_update(&llabel->OnMouseExited, listener);
     i_update_tracking_area(llabel);
@@ -276,7 +276,7 @@ void oslabel_OnExit(OSLabel *label, Listener *listener)
 
 void oslabel_text(OSLabel *label, const char_t *text)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     str_upd(&llabel->text, text);
     [llabel setNeedsDisplay:YES];
@@ -286,7 +286,7 @@ void oslabel_text(OSLabel *label, const char_t *text)
 
 void oslabel_font(OSLabel *label, const Font *font)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     draw_font(llabel->ctx, font);
     [llabel setNeedsDisplay:YES];
@@ -296,7 +296,7 @@ void oslabel_font(OSLabel *label, const Font *font)
 
 void oslabel_align(OSLabel *label, const align_t align)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     draw_text_halign(llabel->ctx, align);
     [llabel setNeedsDisplay:YES];
@@ -306,7 +306,7 @@ void oslabel_align(OSLabel *label, const align_t align)
 
 void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     draw_text_trim(llabel->ctx, ellipsis);
     [llabel setNeedsDisplay:YES];
@@ -316,7 +316,7 @@ void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis)
 
 void oslabel_color(OSLabel *label, const color_t color)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     llabel->color = color;
     [llabel setNeedsDisplay:YES];
@@ -326,7 +326,7 @@ void oslabel_color(OSLabel *label, const color_t color)
 
 void oslabel_bgcolor(OSLabel *label, const color_t color)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     llabel->bgcolor = color;
     [llabel setNeedsDisplay:YES];
@@ -336,7 +336,7 @@ void oslabel_bgcolor(OSLabel *label, const color_t color)
 
 void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     draw_text_extents(llabel->ctx, text, refwidth, width, height);
 }
@@ -345,21 +345,21 @@ void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t ref
 
 void oslabel_attach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView*)label);
+    _ospanel_attach_control(panel, (NSView *)label);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_detach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView*)label);
+    _ospanel_detach_control(panel, (NSView *)label);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_visible(OSLabel *label, const bool_t is_visible)
 {
-    _oscontrol_set_visible((NSView*)label, is_visible);
+    _oscontrol_set_visible((NSView *)label, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -374,25 +374,25 @@ void oslabel_enabled(OSLabel *label, const bool_t is_enabled)
 
 void oslabel_size(const OSLabel *label, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView*)label, width, height);
+    _oscontrol_get_size((NSView *)label, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView*)label, x, y);
+    _oscontrol_get_origin((NSView *)label, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    OSXLabel *llabel = (OSXLabel*)label;
+    OSXLabel *llabel = (OSXLabel *)label;
     cassert_no_null(llabel);
     _oscontrol_set_frame(llabel, x, y, width, height);
     draw_text_width(llabel->ctx, width);
-    i_update_tracking_area((OSXLabel*)label);
+    i_update_tracking_area((OSXLabel *)label);
     [llabel setNeedsDisplay:YES];
 }
 

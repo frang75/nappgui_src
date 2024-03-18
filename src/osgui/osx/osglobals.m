@@ -22,13 +22,13 @@
 #include <core/heap.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 @interface OSXHeader : NSView
 {
-@public
+  @public
     NSTableHeaderCell *cell;
     BOOL highlight;
 }
@@ -71,13 +71,13 @@ DeclPt(Listener);
     if (self->highlight == YES)
         [self->cell highlight:YES withFrame:rect inView:self];
     else
-	    [self->cell drawWithFrame:rect inView:self];
+        [self->cell drawWithFrame:rect inView:self];
 }
 @end
 
 /*---------------------------------------------------------------------------*/
 
-#define i_SET_COLOR(v, r, g, b, a) ((v)[0]=(CGFloat)(r),(v)[1]=(CGFloat)(g),(v)[2]=(CGFloat)(b),(v)[3]=(CGFloat)(a))
+#define i_SET_COLOR(v, r, g, b, a) ((v)[0] = (CGFloat)(r), (v)[1] = (CGFloat)(g), (v)[2] = (CGFloat)(b), (v)[3] = (CGFloat)(a))
 
 /*---------------------------------------------------------------------------*/
 
@@ -96,11 +96,11 @@ static void i_theme_colors(void)
     /* Text color in not active windows (normal, selected, mouse over) */
     oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXTBACKDROP_COLOR);
 
-    #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextColor], i_SELTXBACKDROP_COLOR);
-    #else
+#else
     oscolor_NSColor_rgba_v([NSColor controlTextColor], i_SELTXBACKDROP_COLOR);
-    #endif
+#endif
 
     oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTXBACKDROP_COLOR);
 
@@ -111,20 +111,20 @@ static void i_theme_colors(void)
 
     /* Text background color in not active windows (normal, selected, mouse over */
     oscolor_NSColor_rgba_v([NSColor controlColor], i_BACKBACKDROP_COLOR);
-    #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextBackgroundColor], i_SELBGBACKDROP_COLOR);
-    #else
+#else
     oscolor_NSColor_rgba_v([NSColor controlColor], i_SELBGBACKDROP_COLOR);
-    #endif
+#endif
     oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBGBACKDROP_COLOR);
 
-    /* Color for grids */
-    #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+/* Color for grids */
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     i_GRID_COLOR = oscolor_from_NSColor([NSColor separatorColor]);
-    #else
+#else
     i_GRID_COLOR = oscolor_from_NSColor([NSColor gridColor]);
-    #endif
-    
+#endif
+
     /* Focus ring color */
     i_FOCUS_COLOR = oscolor_from_NSColor([NSColor keyboardFocusIndicatorColor]);
 
@@ -133,7 +133,7 @@ static void i_theme_colors(void)
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
 #define REGULAR_SQUARE_BEZEL NSBezelStyleRegularSquare
 #define SWITCH_BUTTON NSButtonTypeSwitch
 #define RADIO_BUTTON NSButtonTypeRadio
@@ -144,7 +144,7 @@ static void i_theme_colors(void)
 #define RADIO_BUTTON NSRadioButton
 #endif
 
-#if defined (MAC_OS_X_VERSION_10_13) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_13
+#if defined(MAC_OS_X_VERSION_10_13) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_13
 #define BUTTON_ON NSControlStateValueOn
 #define BUTTON_OFF NSControlStateValueOff
 #else
@@ -174,10 +174,10 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
         unsigned char *pixplanes[5] = {NULL, NULL, NULL, NULL, NULL};
         uint32_t *buffer = NULL;
         CGFloat scale = w / rect.size.width;
-        NSInteger i= 0, j = 0;
+        NSInteger i = 0, j = 0;
         cassert([irep bitsPerPixel] == 32);
         [irep getBitmapDataPlanes:pixplanes];
-        buffer = (uint32_t*)pixplanes[0];
+        buffer = (uint32_t *)pixplanes[0];
 
         for (j = 0; j < h; ++j)
         {
@@ -185,10 +185,14 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
             {
                 if (buffer[i] != 0)
                 {
-                    if (i < x0) x0 = i;
-                    if (i > x1) x1 = i;
-                    if (j < yy0) yy0 = j;
-                    if (j > yy1) yy1 = j;
+                    if (i < x0)
+                        x0 = i;
+                    if (i > x1)
+                        x1 = i;
+                    if (j < yy0)
+                        yy0 = j;
+                    if (j > yy1)
+                        yy1 = j;
                 }
             }
 
@@ -213,9 +217,9 @@ static void i_init_checkbox(void)
     cassert(i_UNCHECKBOX_NORMAL_IMAGE == nil);
     cassert(i_UNCHECKBOX_PRESSED_IMAGE == nil);
     cassert(i_UNCHECKBOX_DISABLE_IMAGE == nil);
-	cassert(i_CHECKBOX_NORMAL_IMAGE == nil);
-	cassert(i_CHECKBOX_PRESSED_IMAGE == nil);
-	cassert(i_CHECKBOX_DISABLE_IMAGE == nil);
+    cassert(i_CHECKBOX_NORMAL_IMAGE == nil);
+    cassert(i_CHECKBOX_PRESSED_IMAGE == nil);
+    cassert(i_CHECKBOX_DISABLE_IMAGE == nil);
 
     [button setTitle:@""];
     [button setBezelStyle:REGULAR_SQUARE_BEZEL];
@@ -264,34 +268,35 @@ device_t osglobals_device(const void *non_used)
 color_t osglobals_color(const syscolor_t *color)
 {
     cassert_no_null(color);
-    switch (*color) {
-	case ekSYSCOLOR_DARKMODE:
-		return (color_t)i_DARK_MODE;
+    switch (*color)
+    {
+    case ekSYSCOLOR_DARKMODE:
+        return (color_t)i_DARK_MODE;
 
     case ekSYSCOLOR_LABEL:
-	#if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-    	return oscolor_from_NSColor([NSColor labelColor]);
-	#else
-	    return oscolor_from_NSColor([NSColor controlTextColor]);
-	#endif
+#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+        return oscolor_from_NSColor([NSColor labelColor]);
+#else
+        return oscolor_from_NSColor([NSColor controlTextColor]);
+#endif
 
     case ekSYSCOLOR_VIEW:
-		return oscolor_from_NSColor([NSColor controlBackgroundColor]);
+        return oscolor_from_NSColor([NSColor controlBackgroundColor]);
 
     case ekSYSCOLOR_LINE:
-		return i_GRID_COLOR;
+        return i_GRID_COLOR;
 
     case ekSYSCOLOR_LINK:
-	#if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-    	return oscolor_from_NSColor([NSColor linkColor]);
-	#else
-    	return oscolor_from_NSColor([NSColor colorWithCalibratedRed:0 green:(CGFloat).410 blue:(CGFloat).853 alpha:1]);
-	#endif
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+        return oscolor_from_NSColor([NSColor linkColor]);
+#else
+        return oscolor_from_NSColor([NSColor colorWithCalibratedRed:0 green:(CGFloat).410 blue:(CGFloat).853 alpha:1]);
+#endif
 
     case ekSYSCOLOR_BORDER:
         return i_GRID_COLOR;
 
-	cassert_default();
+        cassert_default();
     }
 
     return kCOLOR_BLACK;
@@ -333,7 +338,8 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y)
 {
     NSCursor *nscursor = nil;
-    switch (cursor) {
+    switch (cursor)
+    {
     case ekGUI_CURSOR_ARROW:
         nscursor = [[NSCursor arrowCursor] retain];
         break;
@@ -354,16 +360,16 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         break;
     case ekGUI_CURSOR_USER:
     {
-        NSImage *nsimage = (NSImage*)image_native(image);
+        NSImage *nsimage = (NSImage *)image_native(image);
         nscursor = [[NSCursor alloc] initWithImage:nsimage hotSpot:NSMakePoint((CGFloat)hot_x, (CGFloat)hot_y)];
         break;
     }
 
-    cassert_default();
+        cassert_default();
     }
 
     heap_auditor_add("NSCursor");
-    return (Cursor*)nscursor;
+    return (Cursor *)nscursor;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -372,7 +378,7 @@ void osglobals_cursor_destroy(Cursor **cursor)
 {
     cassert_no_null(cursor);
     cassert_no_null(*cursor);
-    [(NSCursor*)*cursor release];
+    [(NSCursor *)*cursor release];
     heap_auditor_delete("NSCursor");
     *cursor = NULL;
 }
@@ -382,16 +388,17 @@ void osglobals_cursor_destroy(Cursor **cursor)
 void osglobals_value(const uint32_t index, void *value)
 {
     cassert_no_null(value);
-    switch (index) {
+    switch (index)
+    {
     case 0:
-        (*(uint32_t*)value) = 0;
+        (*(uint32_t *)value) = 0;
         break;
 
     case 1:
-        (*(uint32_t*)value) = 0;
+        (*(uint32_t *)value) = 0;
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -428,7 +435,7 @@ void osglobals_OnIdle(void *nonused, Listener *listener)
 void osglobals_init(void)
 {
     oscolor_init();
-	i_theme_colors();
+    i_theme_colors();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -479,7 +486,7 @@ void osglobals_finish(void)
 
 uint32_t osglobals_check_width(void)
 {
-	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
+    if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
     return (uint32_t)i_CHECKBOX_RECT.size.width;
 }
@@ -488,7 +495,7 @@ uint32_t osglobals_check_width(void)
 
 uint32_t osglobals_check_height(void)
 {
-	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
+    if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
     return (uint32_t)i_CHECKBOX_RECT.size.height;
 }
@@ -497,7 +504,7 @@ uint32_t osglobals_check_height(void)
 
 NSSize osglobals_check_size(void)
 {
-	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
+    if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
     return i_CHECKBOX_RECT.size;
 }
@@ -506,9 +513,9 @@ NSSize osglobals_check_size(void)
 
 NSRect osglobals_check_rect(void)
 {
-	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
+    if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
-	return i_CHECKBOX_RECT;
+    return i_CHECKBOX_RECT;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -517,11 +524,11 @@ static void i_init_header(void)
 {
     OSXHeader *view = [[OSXHeader alloc] initWithFrame:NSMakeRect(0, 0, 100, 50)];
     view->cell = [[NSTableHeaderCell alloc] init];
-   	cassert(i_HEADER_NORMAL_IMAGE == nil);
+    cassert(i_HEADER_NORMAL_IMAGE == nil);
     cassert(i_HEADER_PRESSED_IMAGE == nil);
     [view->cell setTitle:@""];
     view->highlight = NO;
-	i_HEADER_NORMAL_IMAGE = i_image_from_view(view, &i_HEADER_RECT);
+    i_HEADER_NORMAL_IMAGE = i_image_from_view(view, &i_HEADER_RECT);
     view->highlight = YES;
     i_HEADER_PRESSED_IMAGE = i_image_from_view(view, nil);
     [view->cell release];
@@ -541,12 +548,13 @@ NSRect osglobals_header_rect(void)
 
 NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state)
 {
-	if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
+    if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
 
     if (pressed == TRUE)
     {
-        switch (state) {
+        switch (state)
+        {
         case ekCTRL_STATE_NORMAL:
         case ekCTRL_STATE_BKNORMAL:
         case ekCTRL_STATE_HOT:
@@ -560,12 +568,13 @@ NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state
         case ekCTRL_STATE_DISABLED:
             return i_CHECKBOX_DISABLE_IMAGE;
 
-		cassert_default();
+            cassert_default();
         }
     }
     else
     {
-        switch (state) {
+        switch (state)
+        {
         case ekCTRL_STATE_NORMAL:
         case ekCTRL_STATE_BKNORMAL:
         case ekCTRL_STATE_HOT:
@@ -579,7 +588,7 @@ NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state
         case ekCTRL_STATE_DISABLED:
             return i_UNCHECKBOX_DISABLE_IMAGE;
 
-		cassert_default();
+            cassert_default();
         }
     }
 
@@ -590,7 +599,7 @@ NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state
 
 NSImage *osglobals_header_image(const bool_t pressed)
 {
-	if (i_HEADER_NORMAL_IMAGE == nil)
+    if (i_HEADER_NORMAL_IMAGE == nil)
         i_init_header();
 
     if (pressed == TRUE)
@@ -603,28 +612,28 @@ NSImage *osglobals_header_image(const bool_t pressed)
 
 const CGFloat *osglobals_text_color(void)
 {
-	return i_TEXT_COLOR;
+    return i_TEXT_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
 const CGFloat *osglobals_seltx_color(void)
 {
-	return i_SELTX_COLOR;
+    return i_SELTX_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
 const CGFloat *osglobals_hottx_color(void)
 {
-	return i_HOTTX_COLOR;
+    return i_HOTTX_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
 const CGFloat *osglobals_textbackdrop_color(void)
 {
-	return i_TEXTBACKDROP_COLOR;
+    return i_TEXTBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -638,7 +647,7 @@ const CGFloat *osglobals_seltxbackdrop_color(void)
 
 const CGFloat *osglobals_hottxbackdrop_color(void)
 {
-	return i_HOTTXBACKDROP_COLOR;
+    return i_HOTTXBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -694,7 +703,7 @@ color_t osglobals_focus_color(void)
 
 void osglobals_theme_changed(void)
 {
-	i_theme_colors();
+    i_theme_colors();
     i_destroy_checkbox();
     i_destroy_header();
 }

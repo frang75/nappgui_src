@@ -24,7 +24,7 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -78,7 +78,7 @@ void dctx_destroy(DCtx **ctx)
     if ((*ctx)->context != NULL)
     {
         CGContextRelease((*ctx)->context);
-    	(*ctx)->context = NULL;
+        (*ctx)->context = NULL;
     }
 
     [(*ctx)->text_dict release];
@@ -97,11 +97,11 @@ void dctx_destroy(DCtx **ctx)
 
 static __INLINE CGContextRef i_CGContext(NSGraphicsContext *nscontext)
 {
-    #if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
     return [nscontext CGContext];
-    #else
+#else
     return (CGContextRef)[nscontext graphicsPort];
-    #endif
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -113,7 +113,7 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     unref(background);
     ctx->width = width;
     ctx->height = height;
-    ctx->context = i_CGContext((NSGraphicsContext*)gcontext);
+    ctx->context = i_CGContext((NSGraphicsContext *)gcontext);
     CGContextSaveGState(ctx->context);
     CGContextTranslateCTM(ctx->context, -(CGFloat)offset_x, -(CGFloat)offset_y);
     ctx->origin = CGContextGetCTM(ctx->context);
@@ -212,14 +212,15 @@ color_t dctx_background_color(const DCtx *ctx)
 {
     unref(ctx);
     cassert(FALSE);
-	return 0;
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static ellipsis_t i_ellipsis(NSLineBreakMode mode)
 {
-    switch(mode){
+    switch (mode)
+    {
     case NSLineBreakByWordWrapping:
         return ekELLIPMLINE;
     case NSLineBreakByClipping:
@@ -258,7 +259,7 @@ void *dctx_internal_bitmap(DCtx *ctx)
 {
     unref(ctx);
     cassert(FALSE);
-	return NULL;
+    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -288,11 +289,11 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
     byte_t *pixdata = heap_malloc(width * height * 4, "OSXBitmapContextData");
     NSGraphicsContext *nscontext = nil;
-    ctx->context = CGBitmapContextCreate((void*)pixdata, (size_t)width, (size_t)height, 8, (size_t)(width * 4), space, (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
+    ctx->context = CGBitmapContextCreate((void *)pixdata, (size_t)width, (size_t)height, 8, (size_t)(width * 4), space, (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
     CGColorSpaceRelease(space);
 
-#if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-	nscontext = [NSGraphicsContext graphicsContextWithCGContext:ctx->context flipped:YES];
+#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+    nscontext = [NSGraphicsContext graphicsContextWithCGContext:ctx->context flipped:YES];
 #else
     nscontext = [NSGraphicsContext graphicsContextWithGraphicsPort:ctx->context flipped:YES];
 #endif
@@ -391,4 +392,3 @@ void dctx_set_default_osfont(DCtx *ctx, const void *font)
     unref(font);
     cassert(FALSE);
 }
-

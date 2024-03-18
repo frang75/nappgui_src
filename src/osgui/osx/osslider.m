@@ -21,7 +21,7 @@
 #include <core/heap.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -29,7 +29,7 @@
 
 @interface OSXSlider : NSSlider
 {
-    @public
+  @public
     uint32_t flags;
     Listener *OnMoved;
 }
@@ -59,29 +59,29 @@
         params.pos = (real32_t)[sender floatValue];
         params.incr = 0;
         params.step = UINT32_MAX;
-        listener_event(self->OnMoved, ekGUI_EVENT_SLIDER, (OSSlider*)sender, &params, NULL, OSSlider, EvSlider, void);
+        listener_event(self->OnMoved, ekGUI_EVENT_SLIDER, (OSSlider *)sender, &params, NULL, OSSlider, EvSlider, void);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
--(BOOL) acceptsFirstResponder
+- (BOOL)acceptsFirstResponder
 {
     return YES;
 }
 
 /*---------------------------------------------------------------------------*/
 
--(BOOL)becomeFirstResponder
+- (BOOL)becomeFirstResponder
 {
     return YES;
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseDown:(NSEvent*)theEvent
+- (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down((OSControl*)self) == TRUE)
+    if (_oswindow_mouse_down((OSControl *)self) == TRUE)
         [super mouseDown:theEvent];
 }
 
@@ -120,7 +120,7 @@ OSSlider *osslider_create(const uint32_t flags)
     [slider setMaxValue:1.];
     [slider setFloatValue:slider_get_type(flags) == ekSLIDER_HORZ ? 0.f : 1.f];
 
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     [slider setVertical:(BOOL)(slider_get_type(flags) == ekSLIDER_VERT)];
 #endif
 
@@ -128,7 +128,7 @@ OSSlider *osslider_create(const uint32_t flags)
     [slider setTarget:slider];
     [slider setAction:@selector(onSliderMoved:)];
     [slider setNumberOfTickMarks:0];
-    return (OSSlider*)slider;
+    return (OSSlider *)slider;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,8 +137,8 @@ void osslider_destroy(OSSlider **slider)
 {
     cassert_no_null(slider);
     cassert_no_null(*slider);
-    listener_destroy(&((OSXSlider*)*slider)->OnMoved);
-    [*(OSXSlider**)slider release];
+    listener_destroy(&((OSXSlider *)*slider)->OnMoved);
+    [*(OSXSlider **)slider release];
     heap_auditor_delete("OSXSlider");
     *slider = NULL;
 }
@@ -149,14 +149,14 @@ void osslider_OnMoved(OSSlider *slider, Listener *listener)
 {
     cassert_no_null(slider);
     cassert_no_null(listener);
-    listener_update(&((OSXSlider*)slider)->OnMoved, listener);
+    listener_update(&((OSXSlider *)slider)->OnMoved, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_tooltip(OSSlider *slider, const char_t *text)
 {
-    _oscontrol_tooltip_set((OSXSlider*)slider, text);
+    _oscontrol_tooltip_set((OSXSlider *)slider, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -168,7 +168,7 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
     unref(slider);
     unref(num_tickmarks);
     unref(tickmarks_at_left_top);
-/*
+    /*
     switch (((OSXSlider*)slider)->hv)
     {
         case ekGUI_VERTICAL:
@@ -188,7 +188,7 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
 
     [(OSXSlider*)slider setFrameSize:size];
 */
-/*
+    /*
    [(OSXSlider*)slider setNumberOfTickMarks:(NSInteger)num_tickmarks];
    [(OSXSlider*)slider setAllowsTickMarkValuesOnly:NO];
 
@@ -204,7 +204,7 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
 
 void osslider_position(OSSlider *slider, const real32_t position)
 {
-    OSXSlider *lslider = (OSXSlider*)slider;
+    OSXSlider *lslider = (OSXSlider *)slider;
     real32_t pos = position;
     cassert_no_null(lslider);
     cassert(position >= 0.f && position <= 1.f);
@@ -218,21 +218,22 @@ void osslider_position(OSSlider *slider, const real32_t position)
 real32_t osslider_get_position(const OSSlider *slider)
 {
     cassert_no_null(slider);
-    return (real32_t)[(OSXSlider*)slider floatValue];
+    return (real32_t)[(OSXSlider *)slider floatValue];
 }
 
 /*---------------------------------------------------------------------------*/
 
 static real32_t i_slider_without_tickmarks_height(const gui_size_t knob_size)
 {
-    switch(knob_size) {
+    switch (knob_size)
+    {
     case ekGUI_SIZE_MINI:
         return 12.f;
     case ekGUI_SIZE_SMALL:
         return 15.f;
     case ekGUI_SIZE_REGULAR:
         return 25.f;
-	cassert_default();
+        cassert_default();
     }
 
     return 0.f;
@@ -242,20 +243,20 @@ static real32_t i_slider_without_tickmarks_height(const gui_size_t knob_size)
 
 void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_size_t knob_size, real32_t *width, real32_t *height)
 {
-    OSXSlider *lslider = (OSXSlider*)slider;
+    OSXSlider *lslider = (OSXSlider *)slider;
     cassert_no_null(lslider);
     cassert_no_null(width);
     cassert_no_null(height);
     switch (slider_get_type(lslider->flags))
     {
-        case ekSLIDER_HORZ:
-            *width = length;
-            *height = i_slider_without_tickmarks_height(knob_size);
-            break;
-        case ekSLIDER_VERT:
-            *width = i_slider_without_tickmarks_height(knob_size);
-            *height = length;
-            break;
+    case ekSLIDER_HORZ:
+        *width = length;
+        *height = i_slider_without_tickmarks_height(knob_size);
+        break;
+    case ekSLIDER_VERT:
+        *width = i_slider_without_tickmarks_height(knob_size);
+        *height = length;
+        break;
         cassert_default();
     }
 }
@@ -264,49 +265,49 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
 
 void osslider_attach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView*)slider);
+    _ospanel_attach_control(panel, (NSView *)slider);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_detach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView*)slider);
+    _ospanel_detach_control(panel, (NSView *)slider);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_visible(OSSlider *slider, const bool_t is_visible)
 {
-    _oscontrol_set_visible((NSView*)slider, is_visible);
+    _oscontrol_set_visible((NSView *)slider, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_enabled(OSSlider *slider, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((NSControl*)slider, is_enabled);
+    _oscontrol_set_enabled((NSControl *)slider, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_size(const OSSlider *slider, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView*)slider, width, height);
+    _oscontrol_get_size((NSView *)slider, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_origin(const OSSlider *slider, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView*)slider, x, y);
+    _oscontrol_get_origin((NSView *)slider, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView*)slider, x, y, width, height);
+    _oscontrol_set_frame((NSView *)slider, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

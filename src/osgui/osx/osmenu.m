@@ -17,7 +17,7 @@
 #include <sewer/cassert.h>
 #include <core/heap.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -25,7 +25,7 @@
 
 @interface OSXMenu : NSMenu
 {
-    @public
+  @public
     void *non_used;
 }
 @end
@@ -50,7 +50,7 @@ OSMenu *osmenu_create(const enum_t flags)
     heap_auditor_add("OSXMenu");
     [menu setAutoenablesItems:NO];
     [menu setShowsStateColumn:YES];
-    return (OSMenu*)menu;
+    return (OSMenu *)menu;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -59,7 +59,7 @@ void osmenu_destroy(OSMenu **menu)
 {
     OSXMenu *menup = nil;
     cassert_no_null(menu);
-    menup = (OSXMenu*)*menu;
+    menup = (OSXMenu *)*menu;
     cassert_no_null(menup);
     cassert([menup supermenu] == nil);
     cassert([NSApp mainMenu] != menup);
@@ -80,17 +80,17 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
     NSMenuItem *item = nil;
     cassert_no_null(menu);
     cassert_no_null(menuitem);
-    cassert([(NSObject*)menu isKindOfClass:[OSXMenu class]] == YES);
-    cassert([(NSObject*)menuitem isKindOfClass:[NSMenuItem class]] == YES);
-    num_items = [[(OSXMenu*)menu itemArray] count];
-    item = (NSMenuItem*)menuitem;
+    cassert([(NSObject *)menu isKindOfClass:[OSXMenu class]] == YES);
+    cassert([(NSObject *)menuitem isKindOfClass:[NSMenuItem class]] == YES);
+    num_items = [[(OSXMenu *)menu itemArray] count];
+    item = (NSMenuItem *)menuitem;
     cassert([item menu] == nil);
     /* retain_count = [item retainCount]; */
-    [(OSXMenu*)menu addItem:item];
+    [(OSXMenu *)menu addItem:item];
     /* retain_count2 = [item retainCount]; */
     /* cassert([item retainCount] == retain_count + 1); */
-    cassert([item menu] == (OSXMenu*)menu);
-    cassert_unref([[(OSXMenu*)menu itemArray] count] == num_items + 1, num_items);
+    cassert([item menu] == (OSXMenu *)menu);
+    cassert_unref([[(OSXMenu *)menu itemArray] count] == num_items + 1, num_items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -101,14 +101,14 @@ void osmenu_delete_item(OSMenu *menu, OSMenuItem *menuitem)
     NSMenuItem *item = nil;
     cassert_no_null(menu);
     cassert_no_null(menuitem);
-    cassert([(NSObject*)menu isKindOfClass:[OSXMenu class]] == YES);
-    num_items = [[(OSXMenu*)menu itemArray] count];
+    cassert([(NSObject *)menu isKindOfClass:[OSXMenu class]] == YES);
+    num_items = [[(OSXMenu *)menu itemArray] count];
     cassert(num_items > 0);
-    item = (NSMenuItem*)menuitem;
-    cassert([item menu] == (OSXMenu*)menu);
-    [(OSXMenu*)menu removeItem:item];
+    item = (NSMenuItem *)menuitem;
+    cassert([item menu] == (OSXMenu *)menu);
+    [(OSXMenu *)menu removeItem:item];
     cassert([item menu] == nil);
-    cassert_unref([[(OSXMenu*)menu itemArray] count] == num_items - 1, num_items);
+    cassert_unref([[(OSXMenu *)menu itemArray] count] == num_items - 1, num_items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -118,12 +118,12 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
     NSView *view = nil;
     CGFloat ly = 0.f;
     cassert_no_null(menu);
-    cassert([(NSObject*)menu isKindOfClass:[OSXMenu class]] == YES);
+    cassert([(NSObject *)menu isKindOfClass:[OSXMenu class]] == YES);
     /* TODO: Use vuew (convert from screen to view coordinate) */
     view = _oswindow_main_view(window);
     unref(view);
     ly = [[NSScreen mainScreen] frame].size.height - (CGFloat)y;
-    [(OSXMenu*)menu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, ly) inView:nil];
+    [(OSXMenu *)menu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, ly) inView:nil];
 }
 
 /*---------------------------------------------------------------------------*/

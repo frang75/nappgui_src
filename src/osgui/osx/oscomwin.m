@@ -17,19 +17,19 @@
 #include <core/strings.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
+#if defined(MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
 
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32_t size)
 {
-    NSMutableArray<UTType*> *array = [NSMutableArray array];
+    NSMutableArray<UTType *> *array = [NSMutableArray array];
 
     if (ftypes != NULL && size > 0)
     {
@@ -56,7 +56,7 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:(NSUInteger)size];
         for (i = 0; i < size; ++i)
         {
-            NSString *str = [NSString stringWithUTF8String:(const char*)ftypes[i]];
+            NSString *str = [NSString stringWithUTF8String:(const char *)ftypes[i]];
             [array addObject:str];
         }
 
@@ -77,7 +77,7 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
     NSOpenPanel *open_panel = [NSOpenPanel openPanel];
     BOOL dirsel = NO;
 
-    #if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
     if (startdir != NULL)
     {
         NSString *str = [[NSString alloc] initWithUTF8String:startdir];
@@ -91,15 +91,15 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
         [open_panel setDirectoryURL:nil];
     }
 
-    #else
+#else
     unref(startdir);
-    #endif
+#endif
 
     [open_panel setAllowsMultipleSelection:FALSE];
     if (ftypes != NULL)
     {
         cassert(size > 0);
-        if (size == 1 && strcmp((const char*)ftypes[0], "..DIR..") == 0)
+        if (size == 1 && strcmp((const char *)ftypes[0], "..DIR..") == 0)
             dirsel = YES;
     }
 
@@ -136,7 +136,7 @@ static const char_t *i_open_file_selected(NSOpenPanel *open_panel)
     cassert([urls count] == 1);
     url = [urls objectAtIndex:0];
     cassert_no_null(url);
-    return (const char_t*)[[url path] UTF8String];
+    return (const char_t *)[[url path] UTF8String];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -147,7 +147,7 @@ static const char_t *i_save_file_selected(NSSavePanel *save_panel)
     cassert_no_null(save_panel);
     url = [save_panel URL];
     cassert_no_null(url);
-    return (const char_t*)[[url path] UTF8String];
+    return (const char_t *)[[url path] UTF8String];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -159,7 +159,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     {
         NSOpenPanel *open_panel = i_open_file(ftypes, size, start_dir);
 
-        #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
         {
             NSModalResponse ret = [open_panel runModal];
             if (ret == NSModalResponseOK)
@@ -167,7 +167,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             else
                 return NULL;
         }
-        #else
+#else
         {
             NSUInteger ret = (NSUInteger)[open_panel runModal];
             if (ret == NSFileHandlingPanelOKButton)
@@ -175,13 +175,13 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             else
                 return NULL;
         }
-        #endif
+#endif
     }
     else
     {
         NSSavePanel *save_panel = i_save_file(ftypes, size);
 
-        #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
         {
             NSModalResponse ret = [save_panel runModal];
             if (ret == NSModalResponseOK)
@@ -189,7 +189,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             else
                 return NULL;
         }
-        #else
+#else
         {
             NSUInteger ret = (NSUInteger)[save_panel runModal];
             if (ret == NSFileHandlingPanelOKButton)
@@ -197,7 +197,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             else
                 return NULL;
         }
-        #endif
+#endif
     }
 }
 
@@ -205,7 +205,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
 @interface NSColorChoose : NSObject
 {
-    @public
+  @public
     Listener *OnChange;
 }
 @end
@@ -260,7 +260,8 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         CGFloat sh = [[NSScreen mainScreen] frame].size.height;
         if (halign != ekLEFT || valign != ekTOP)
         {
-            switch (halign) {
+            switch (halign)
+            {
             case ekLEFT:
             case ekJUSTIFY:
                 break;
@@ -270,10 +271,11 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
             case ekRIGHT:
                 origin.x -= size.width;
                 break;
-            cassert_default();
+                cassert_default();
             }
 
-            switch (valign) {
+            switch (valign)
+            {
             case ekTOP:
             case ekJUSTIFY:
                 break;
@@ -283,19 +285,16 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
             case ekBOTTOM:
                 origin.x -= size.height;
                 break;
-            cassert_default();
+                cassert_default();
             }
         }
 
         origin.y = sh - origin.y - size.height;
         [panel setFrameOrigin:origin];
-        [panel makeKeyAndOrderFront:(NSWindow*)parent];
+        [panel makeKeyAndOrderFront:(NSWindow *)parent];
     }
 
-
-
-
-/* 
+    /* 
 //    ret = [NSApp runModalForWindow:panel];
 
 //#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
@@ -404,7 +403,7 @@ void oscommon_file(
                 listener_launch_event(OnAccept_listener, &event);
             }
         }];*/
-  /*  }
+/*  }
 }*/
 
 /*---------------------------------------------------------------------------*/
@@ -477,5 +476,3 @@ void oscommon_colour_get_origin(real32_t *x, real32_t *y)
     *x = (real32_t)origin.x;
     *y = (real32_t)origin.y;
 }*/
-
-

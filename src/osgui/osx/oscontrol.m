@@ -35,7 +35,7 @@
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -63,17 +63,17 @@ void _oscontrol_origin_in_screen_coordinates(const NSRect *frame, CGFloat *x, CG
 
 static __INLINE NSTextAlignment i_text_alignment(const align_t halign)
 {
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     switch (halign)
     {
-        case ekLEFT:
-            return NSTextAlignmentLeft;
-        case ekCENTER:
-            return NSTextAlignmentCenter;
-        case ekJUSTIFY:
-            return NSTextAlignmentJustified;
-        case ekRIGHT:
-            return NSTextAlignmentRight;
+    case ekLEFT:
+        return NSTextAlignmentLeft;
+    case ekCENTER:
+        return NSTextAlignmentCenter;
+    case ekJUSTIFY:
+        return NSTextAlignmentJustified;
+    case ekRIGHT:
+        return NSTextAlignmentRight;
         cassert_default();
     }
     return NSTextAlignmentLeft;
@@ -81,14 +81,14 @@ static __INLINE NSTextAlignment i_text_alignment(const align_t halign)
 #else
     switch (halign)
     {
-        case ekLEFT:
-            return NSLeftTextAlignment;
-        case ekCENTER:
-            return NSCenterTextAlignment;
-        case ekJUSTIFY:
-            return NSJustifiedTextAlignment;
-        case ekRIGHT:
-            return NSRightTextAlignment;
+    case ekLEFT:
+        return NSLeftTextAlignment;
+    case ekCENTER:
+        return NSCenterTextAlignment;
+    case ekJUSTIFY:
+        return NSJustifiedTextAlignment;
+    case ekRIGHT:
+        return NSRightTextAlignment;
         cassert_default();
     }
 
@@ -107,26 +107,26 @@ NSTextAlignment _oscontrol_text_alignment(const align_t halign)
 
 static __INLINE NSControlSize i_control_size(const gui_size_t size)
 {
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     switch (size)
     {
-        case ekGUI_SIZE_MINI:
-            return NSControlSizeMini;
-        case ekGUI_SIZE_SMALL:
-            return NSControlSizeSmall;
-        case ekGUI_SIZE_REGULAR:
-            return NSControlSizeRegular;
+    case ekGUI_SIZE_MINI:
+        return NSControlSizeMini;
+    case ekGUI_SIZE_SMALL:
+        return NSControlSizeSmall;
+    case ekGUI_SIZE_REGULAR:
+        return NSControlSizeRegular;
         cassert_default();
     }
 #else
     switch (size)
     {
-        case ekGUI_SIZE_MINI:
-            return NSMiniControlSize;
-        case ekGUI_SIZE_SMALL:
-            return NSSmallControlSize;
-        case ekGUI_SIZE_REGULAR:
-            return NSRegularControlSize;
+    case ekGUI_SIZE_MINI:
+        return NSMiniControlSize;
+    case ekGUI_SIZE_SMALL:
+        return NSSmallControlSize;
+    case ekGUI_SIZE_REGULAR:
+        return NSRegularControlSize;
         cassert_default();
     }
 #endif
@@ -162,7 +162,7 @@ NSControlSize _oscontrol_control_size(const gui_size_t size)
 void _oscontrol_cell_set_image(NSCell *cell, const Image *image)
 {
     cassert_no_null(cell);
-    [cell setImage:(NSImage*)image_native(image)];
+    [cell setImage:(NSImage *)image_native(image)];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -176,7 +176,7 @@ void _oscontrol_text_bounds(const Font *font, const char_t *text, const real32_t
     style = font_style(font);
     undertype = (style & ekFUNDERLINE) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
     strikeout = (style & ekFSTRIKEOUT) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
-    data.dict = [[NSDictionary alloc] initWithObjectsAndKeys:(NSFont*)font_native(font), NSFontAttributeName, undertype, NSUnderlineStyleAttributeName, strikeout, NSStrikethroughStyleAttributeName, nil];
+    data.dict = [[NSDictionary alloc] initWithObjectsAndKeys:(NSFont *)font_native(font), NSFontAttributeName, undertype, NSUnderlineStyleAttributeName, strikeout, NSStrikethroughStyleAttributeName, nil];
     osgui_text_bounds(&data, text, refwidth, width, height);
     [data.dict release];
 }
@@ -188,7 +188,7 @@ void _oscontrol_tooltip_set(NSView *view, const char_t *text)
     cassert_no_null(view);
     if (text != NULL)
     {
-        NSString *str = [[NSString alloc] initWithUTF8String:(const char*)text];
+        NSString *str = [[NSString alloc] initWithUTF8String:(const char *)text];
         [view setToolTip:str];
         [str release];
     }
@@ -222,11 +222,11 @@ static NSColor *i_control_color(NSControl *control, const color_t color)
         {
             if ([control isKindOfClass:[NSTextField class]])
             {
-                #if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
                 return [NSColor labelColor];
-                #else
+#else
                 return [NSColor controlTextColor];
-                #endif
+#endif
             }
             else
             {
@@ -259,7 +259,8 @@ static NSDictionary *i_text_attribs(NSControl *control, const align_t align, con
     objects[0] = (fstyle & ekFUNDERLINE) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
     objects[1] = (fstyle & ekFSTRIKEOUT) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
 
-    switch (align) {
+    switch (align)
+    {
     case ekLEFT:
     case ekJUSTIFY:
         objects[2] = kLEFT_PARAGRAPH_STYLE;
@@ -270,7 +271,7 @@ static NSDictionary *i_text_attribs(NSControl *control, const align_t align, con
     case ekCENTER:
         objects[2] = kCENTER_PARAGRAPH_STYLE;
         break;
-    cassert_default();
+        cassert_default();
     }
 
     objects[3] = i_control_color(control, color);
@@ -317,14 +318,14 @@ static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString 
 
     /*if (fstyle & ekFSTRIKEOUT || fstyle & ekFUNDERLINE)*/
     {
-        NSFont *font = (NSFont*)font_native(attrs->font);
+        NSFont *font = (NSFont *)font_native(attrs->font);
         NSDictionary *dict = i_text_attribs(control, attrs->align, attrs->color, fstyle, font);
         NSAttributedString *mstr = [[NSAttributedString alloc] initWithString:str attributes:dict];
         /*NSMutableAttributedString *mstr2 = [[NSMutableAttributedString alloc] initWithAttributedString:mstr];*/
         [cell setFont:font];
 
         if ([cell isKindOfClass:[NSButtonCell class]])
-            [(NSButtonCell*)cell setAttributedTitle:mstr];
+            [(NSButtonCell *)cell setAttributedTitle:mstr];
         else
             [cell setAttributedStringValue:mstr];
 
@@ -349,7 +350,7 @@ static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString 
 
 void _oscontrol_set_text(NSControl *control, const OSTextAttr *attrs, const char_t *text)
 {
-    NSString *str = [[NSString alloc] initWithUTF8String:(const char*)text];
+    NSString *str = [[NSString alloc] initWithUTF8String:(const char *)text];
     i_update_text(control, attrs, str);
     [str release];
 }
@@ -499,7 +500,7 @@ static void i_print_frame(NSView *object, const real32_t x, const real32_t y, co
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
 
 static BOOL i_check_control_frame(NSView *object)
 {
@@ -617,8 +618,8 @@ gui_type_t oscontrol_type(const OSControl *control)
 {
     gui_type_t type = ENUM_MAX(gui_type_t);
     cassert_no_null(control);
-    cassert([(NSObject*)control isKindOfClass:[NSView class]] == YES);
-    type = i_oscontrol_type((NSView*)control);
+    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
+    type = i_oscontrol_type((NSView *)control);
     cassert(type != ENUM_MAX(gui_type_t));
     return type;
 }
@@ -628,8 +629,8 @@ gui_type_t oscontrol_type(const OSControl *control)
 OSControl *oscontrol_parent(const OSControl *control)
 {
     cassert_no_null(control);
-    cassert([(NSObject*)control isKindOfClass:[NSView class]] == YES);
-    return (OSControl*)[(NSView*)control superview];
+    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
+    return (OSControl *)[(NSView *)control superview];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -639,9 +640,9 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
     real32_t x, y, w, h;
     cassert_no_null(control);
     cassert_no_null(rect);
-    cassert([(NSObject*)control isKindOfClass:[NSView class]] == YES);
-    _oscontrol_get_origin((NSView*)control, &x, &y);
-    _oscontrol_get_size((NSView*)control, &w, &h);
+    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
+    _oscontrol_get_origin((NSView *)control, &x, &y);
+    _oscontrol_get_size((NSView *)control, &w, &h);
     rect->left = (int32_t)x;
     rect->top = (int32_t)y;
     rect->right = rect->left + (int32_t)w;
@@ -653,10 +654,10 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
 OSWidget *oscontrol_focus_widget(const OSControl *control)
 {
     cassert_no_null(control);
-    cassert([(NSObject*)control isKindOfClass:[NSView class]] == YES);
-    if (_osview_is((NSView*)control) == YES)
-        return (OSWidget*)_osview_focus_widget((NSView*)control);
-    return (OSWidget*)control;
+    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
+    if (_osview_is((NSView *)control) == YES)
+        return (OSWidget *)_osview_focus_widget((NSView *)control);
+    return (OSWidget *)control;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -664,7 +665,7 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
 bool_t oscontrol_widget_visible(const OSWidget *widget)
 {
     cassert_no_null(widget);
-    return (bool_t)![(NSView*)widget isHidden];
+    return (bool_t) ![(NSView *)widget isHidden];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -672,8 +673,8 @@ bool_t oscontrol_widget_visible(const OSWidget *widget)
 bool_t oscontrol_widget_enable(const OSWidget *widget)
 {
     cassert_no_null(widget);
-    if ([(NSObject*)widget isKindOfClass:[NSControl class]] == YES)
-        return (bool_t)[(NSControl*)widget isEnabled];
+    if ([(NSObject *)widget isKindOfClass:[NSControl class]] == YES)
+        return (bool_t)[(NSControl *)widget isEnabled];
     else
         return TRUE;
 }

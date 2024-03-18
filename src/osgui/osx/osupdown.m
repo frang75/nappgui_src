@@ -20,13 +20,13 @@
 #include <core/heap.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 @interface OSXUpDown : NSStepper
 {
-    @public
+  @public
     double value;
     Listener *OnClick;
 }
@@ -52,16 +52,16 @@
         else
             params.index = 1;
         params.text = "";
-        listener_event(self->OnClick, ekGUI_EVENT_UPDOWN, (OSUpDown*)self, &params, NULL, OSUpDown, EvButton, void);
+        listener_event(self->OnClick, ekGUI_EVENT_UPDOWN, (OSUpDown *)self, &params, NULL, OSUpDown, EvButton, void);
         self->value = lvalue;
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseDown:(NSEvent*)theEvent
+- (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down((OSControl*)self) == TRUE)
+    if (_oswindow_mouse_down((OSControl *)self) == TRUE)
     {
         [super mouseDown:theEvent];
     }
@@ -89,7 +89,7 @@ OSUpDown *osupdown_create(const uint32_t flags)
     _oscontrol_cell_set_control_size([updown cell], ekGUI_SIZE_REGULAR);
     updown->OnClick = NULL;
     updown->value = 0.;
-    return (OSUpDown*)updown;
+    return (OSUpDown *)updown;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -98,8 +98,8 @@ void osupdown_destroy(OSUpDown **updown)
 {
     cassert_no_null(updown);
     cassert_no_null(*updown);
-    listener_destroy(&((OSXUpDown*)*updown)->OnClick);
-    [*(OSXUpDown**)updown release];
+    listener_destroy(&((OSXUpDown *)*updown)->OnClick);
+    [*(OSXUpDown **)updown release];
     *updown = NULL;
     heap_auditor_delete("OSXUpDown");
 }
@@ -110,7 +110,7 @@ void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 {
     cassert_no_null(updown);
     cassert_no_null(listener);
-    listener_update(&((OSXUpDown*)updown)->OnClick, listener);
+    listener_update(&((OSXUpDown *)updown)->OnClick, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -118,56 +118,56 @@ void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
     cassert_no_null(updown);
-    _oscontrol_tooltip_set((OSXUpDown*)updown, text);
+    _oscontrol_tooltip_set((OSXUpDown *)updown, text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_attach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView*)updown);
+    _ospanel_attach_control(panel, (NSView *)updown);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_detach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView*)updown);
+    _ospanel_detach_control(panel, (NSView *)updown);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_visible(OSUpDown *updown, const bool_t is_visible)
 {
-    _oscontrol_set_visible((NSView*)updown, is_visible);
+    _oscontrol_set_visible((NSView *)updown, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_enabled(OSUpDown *updown, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((NSControl*)updown, is_enabled);
+    _oscontrol_set_enabled((NSControl *)updown, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView*)updown, width, height);
+    _oscontrol_get_size((NSView *)updown, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_origin(const OSUpDown *updown, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView*)updown, x, y);
+    _oscontrol_get_origin((NSView *)updown, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_frame(OSUpDown *updown, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView*)updown, x, y, width, height);
+    _oscontrol_set_frame((NSView *)updown, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

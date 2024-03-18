@@ -25,11 +25,11 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
-#if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
+#if defined(MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #endif
 
@@ -37,14 +37,12 @@
 
 void osimage_alloc_globals(void)
 {
-
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osimage_dealloc_globals(void)
 {
-
 }
 
 /*---------------------------------------------------------------------------*/
@@ -58,7 +56,8 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     NSBitmapImageRep *irep = NULL;
     NSImage *image = NULL;
 
-    switch (format) {
+    switch (format)
+    {
     case ekGRAY8:
         has_alpha = NO;
         colour_space = NSCalibratedWhiteColorSpace;
@@ -77,22 +76,22 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         sampes_per_pixel = 4;
         bits_per_pixel = 32;
         break;
-    cassert_default();
+        cassert_default();
     }
 
     irep = [[NSBitmapImageRep alloc]
-                        /* Allocates memory for pixel data */
-                        initWithBitmapDataPlanes:nil
-                        pixelsWide:(NSInteger)width
-                        pixelsHigh:(NSInteger)height
-                        bitsPerSample:8
-                        samplesPerPixel:sampes_per_pixel
+        /* Allocates memory for pixel data */
+        initWithBitmapDataPlanes:nil
+                      pixelsWide:(NSInteger)width
+                      pixelsHigh:(NSInteger)height
+                   bitsPerSample:8
+                 samplesPerPixel:sampes_per_pixel
                         hasAlpha:has_alpha
                         isPlanar:NO
-                        colorSpaceName:colour_space
-                        bitmapFormat:(NSBitmapFormat)0
-                        bytesPerRow:(NSInteger)width * (bits_per_pixel >> 3)
-                        bitsPerPixel:bits_per_pixel];
+                  colorSpaceName:colour_space
+                    bitmapFormat:(NSBitmapFormat)0
+                     bytesPerRow:(NSInteger)width * (bits_per_pixel >> 3)
+                    bitsPerPixel:bits_per_pixel];
 
     image = [[NSImage alloc] initWithSize:NSMakeSize((CGFloat)width, (CGFloat)height)];
     [image addRepresentation:irep];
@@ -107,11 +106,11 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         cassert(planes[2] == NULL);
         cassert(planes[3] == NULL);
         cassert(planes[4] == NULL);
-        memcpy((void*)planes[0], (const void*)pixel_data, (size_t)(((NSUInteger)bits_per_pixel >> 3) * width * height));
+        memcpy((void *)planes[0], (const void *)pixel_data, (size_t)(((NSUInteger)bits_per_pixel >> 3) * width * height));
     }
 
     [irep release];
-    return (OSImage*)image;
+    return (OSImage *)image;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -120,22 +119,22 @@ OSImage *osimage_create_from_data(const byte_t *data, const uint32_t size_in_byt
 {
     NSData *ldata = NULL;
     NSImage *image = NULL;
-    ldata = [NSData dataWithBytes/*NoCopy*/:(void*)data length:(NSUInteger)size_in_bytes];
+    ldata = [NSData dataWithBytes /*NoCopy*/:(void *)data length:(NSUInteger)size_in_bytes];
     cassert_no_null(ldata);
     image = [[NSImage alloc] initWithData:ldata];
-    cassert([[(NSImage*)image representations] count] == 1);
-    cassert([[[(NSImage*)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
+    cassert([[(NSImage *)image representations] count] == 1);
+    cassert([[[(NSImage *)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
 
     /* NSImage size sometimes is not equal than bitmap size ¿? */
     {
-        NSBitmapImageRep *irep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+        NSBitmapImageRep *irep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
         NSInteger pixels_wide = [irep pixelsWide];
         NSInteger pixels_high = [irep pixelsHigh];
         cassert([[image representations] count] == 1);
         [image setSize:NSMakeSize((CGFloat)pixels_wide, (CGFloat)pixels_high)];
     }
 
-    return (OSImage*)image;
+    return (OSImage *)image;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -151,8 +150,8 @@ OSImage *osimage_create_from_type(const char_t *file_type)
     else
         nsfile_type = [NSString stringWithUTF8String:file_type];
 
-    /* osimage_from_file 'NSIconRepImageRep' with 3 (more than 1) representations */
-#if defined (MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
+        /* osimage_from_file 'NSIconRepImageRep' with 3 (more than 1) representations */
+#if defined(MAC_OS_VERSION_12_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_12_0
     {
         UTType *type = [UTType typeWithIdentifier:nsfile_type];
         if (type != nil)
@@ -165,7 +164,7 @@ OSImage *osimage_create_from_type(const char_t *file_type)
     if (image != nil)
         [image retain];
 
-    return (OSImage*)image;
+    return (OSImage *)image;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -191,20 +190,20 @@ static NSBitmapImageRep *i_scale_bitmap(const NSBitmapImageRep *bitmap, const ui
 
 OSImage *osimage_create_scaled(const OSImage *image, const uint32_t new_width, const uint32_t new_height)
 {
-    NSImage *src_image = (NSImage*)image;
+    NSImage *src_image = (NSImage *)image;
     NSBitmapImageRep *src_bitmap, *dest_bitmap;
     NSImage *scaled_image = nil;
     cassert_no_null(src_image);
     cassert([[src_image representations] count] == 1);
     cassert([[[src_image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
-    src_bitmap = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+    src_bitmap = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
     cassert_no_null(src_bitmap);
     dest_bitmap = i_scale_bitmap(src_bitmap, new_width, new_height);
     scaled_image = [[NSImage alloc] initWithSize:NSMakeSize((CGFloat)new_width, (CGFloat)new_height)];
     [scaled_image addRepresentation:dest_bitmap];
     cassert([scaled_image retainCount] == 1);
     [dest_bitmap release];
-    return (OSImage*)scaled_image;
+    return (OSImage *)scaled_image;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -217,7 +216,7 @@ OSImage *osimage_from_context(DCtx **ctx)
     cassert_no_null(ctx);
     cassert_no_null(*ctx);
     cassert_no_null((*ctx)->context);
-    pixdata = (byte_t*)CGBitmapContextGetData((*ctx)->context);
+    pixdata = (byte_t *)CGBitmapContextGetData((*ctx)->context);
     width = (uint32_t)CGBitmapContextGetWidth((*ctx)->context);
     height = (uint32_t)CGBitmapContextGetHeight((*ctx)->context);
     image = osimage_create_from_pixels(width, height, ekRGBA32, pixdata);
@@ -232,7 +231,7 @@ void osimage_destroy(OSImage **image)
 {
     cassert_no_null(image);
     cassert_no_null(*image);
-    [(NSImage*)(*image) release];
+    [(NSImage *)(*image) release];
     *image = NULL;
 }
 
@@ -240,7 +239,7 @@ void osimage_destroy(OSImage **image)
 
 static bool_t i_gray_image(const byte_t *data, const uint32_t width, const uint32_t height, const uint32_t bpp)
 {
-	uint32_t n = width * height, i = 0;
+    uint32_t n = width * height, i = 0;
     for (i = 0; i < n; ++i)
     {
         if (data[0] != data[1] || data[0] != data[2])
@@ -256,7 +255,7 @@ static bool_t i_gray_image(const byte_t *data, const uint32_t width, const uint3
 
 static bool_t i_has_alpha(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-	uint32_t n = width * height, i = 0;
+    uint32_t n = width * height, i = 0;
     for (i = 0; i < n; ++i)
     {
         if (data[3] != 255)
@@ -272,7 +271,7 @@ static bool_t i_has_alpha(const byte_t *data, const uint32_t width, const uint32
 
 static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const uint32_t height, const uint32_t bpp, const pixformat_t format)
 {
-	Pixbuf *pixels = pixbuf_create(width, height, format);
+    Pixbuf *pixels = pixbuf_create(width, height, format);
     byte_t *pdata = pixbuf_data(pixels);
     register uint32_t n = width * height, i = 0;
     if (format == ekRGBA32)
@@ -332,13 +331,13 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
     NSInteger pixels_high = 0;
     NSInteger bits_per_pixel = 0;
     cassert_no_null(image);
-    cassert([[(NSImage*)image representations] count] == 1);
-    cassert([[[(NSImage*)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
-    irep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+    cassert([[(NSImage *)image representations] count] == 1);
+    cassert([[[(NSImage *)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
+    irep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
     cassert_no_null(irep);
     pixels_wide = [irep pixelsWide];
     pixels_high = [irep pixelsHigh];
-	bits_per_pixel = [irep bitsPerPixel];
+    bits_per_pixel = [irep bitsPerPixel];
     ptr_assign(width, (uint32_t)pixels_wide);
     ptr_assign(height, (uint32_t)pixels_high);
 
@@ -353,23 +352,23 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
         if (bits_per_pixel == 8)
         {
             cassert([irep samplesPerPixel] == 1);
-			lformat = ekGRAY8;
+            lformat = ekGRAY8;
         }
         else if (bits_per_pixel == 24)
         {
             cassert([irep samplesPerPixel] == 3);
-            if (i_gray_image((const byte_t*)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high, 3) == TRUE)
-				lformat = ekGRAY8;
+            if (i_gray_image((const byte_t *)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high, 3) == TRUE)
+                lformat = ekGRAY8;
             else
                 lformat = ekRGB24;
         }
         else if (bits_per_pixel == 32)
         {
             cassert([irep samplesPerPixel] == 4 || [irep samplesPerPixel] == 3);
-            if (i_has_alpha((const byte_t*)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high) == TRUE)
+            if (i_has_alpha((const byte_t *)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high) == TRUE)
                 lformat = ekRGBA32;
-            else if (i_gray_image((const byte_t*)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high, 4) == TRUE)
-				lformat = ekGRAY8;
+            else if (i_gray_image((const byte_t *)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high, 4) == TRUE)
+                lformat = ekGRAY8;
             else
                 lformat = ekRGB24;
         }
@@ -379,7 +378,7 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
         if (pixels != NULL)
         {
             if (lformat != ENUM_MAX(pixformat_t))
-            	*pixels = i_bitmap_pixels((const byte_t*)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high, (uint32_t)(bits_per_pixel / 8), lformat);
+                *pixels = i_bitmap_pixels((const byte_t *)pixel_data_planes[0], (uint32_t)pixels_wide, (uint32_t)pixels_high, (uint32_t)(bits_per_pixel / 8), lformat);
             else
                 *pixels = NULL;
         }
@@ -390,31 +389,31 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 
 static NSBitmapImageFileType i_codec(const codec_t codec)
 {
-#if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     switch (codec)
     {
-        case ekJPG:
-            return NSBitmapImageFileTypeJPEG;
-        case ekPNG:
-            return NSBitmapImageFileTypePNG;
-        case ekBMP:
-            return NSBitmapImageFileTypeBMP;
-        case ekGIF:
-            return NSBitmapImageFileTypeGIF;
+    case ekJPG:
+        return NSBitmapImageFileTypeJPEG;
+    case ekPNG:
+        return NSBitmapImageFileTypePNG;
+    case ekBMP:
+        return NSBitmapImageFileTypeBMP;
+    case ekGIF:
+        return NSBitmapImageFileTypeGIF;
         cassert_default();
     }
     return NSBitmapImageFileTypeJPEG;
 #else
     switch (codec)
     {
-        case ekJPG:
-            return NSJPEGFileType;
-        case ekPNG:
-            return NSPNGFileType;
-        case ekBMP:
-            return NSBMPFileType;
-        case ekGIF:
-            return NSGIFFileType;
+    case ekJPG:
+        return NSJPEGFileType;
+    case ekPNG:
+        return NSPNGFileType;
+    case ekBMP:
+        return NSBMPFileType;
+    case ekGIF:
+        return NSGIFFileType;
         cassert_default();
     }
     return NSJPEGFileType;
@@ -439,14 +438,14 @@ void osimage_write(const OSImage *image, const codec_t codec, Stream *stream)
     NSBitmapImageFileType type = (NSBitmapImageFileType)1000;
     NSData *edata = NULL;
     cassert_no_null(image);
-    cassert([[(NSImage*)image representations] count] == 1);
-    cassert([[[(NSImage*)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
-    irep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+    cassert([[(NSImage *)image representations] count] == 1);
+    cassert([[[(NSImage *)image representations] objectAtIndex:0] isKindOfClass:[NSBitmapImageRep class]]);
+    irep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
     cassert_no_null(irep);
     type = i_codec(codec);
     edata = [irep representationUsingType:type properties:[NSDictionary dictionary]];
     cassert_no_null(edata);
-    stm_write(stream, (const byte_t*)[edata bytes], (uint32_t)[edata length]);
+    stm_write(stream, (const byte_t *)[edata bytes], (uint32_t)[edata length]);
     /*[edata release]; No release (NSApplication crash) */
 }
 
@@ -459,8 +458,8 @@ void osimage_frames(const OSImage *image, uint32_t *num_frames, uint32_t *num_lo
     cassert_no_null(image);
     cassert_no_null(num_frames);
     unref(num_loops);
-    cassert([[(NSImage*)image representations] count] == 1);
-    irep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+    cassert([[(NSImage *)image representations] count] == 1);
+    irep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
     cassert_no_null(irep);
     frames = [irep valueForProperty:@"NSImageFrameCount"];
     if (frames != nil)
@@ -478,8 +477,8 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
     NSNumber *frame = nil;
     cassert_no_null(image);
     cassert_no_null(frame_length);
-    cassert([[(NSImage*)image representations] count] == 1);
-    irep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+    cassert([[(NSImage *)image representations] count] == 1);
+    irep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
     cassert_no_null(irep);
     current_frame = [irep valueForProperty:@"NSImageCurrentFrame"];
     [irep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
@@ -503,7 +502,7 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 
 const void *osimage_native(const OSImage *image)
 {
-    return (const void*)image;
+    return (const void *)image;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -532,4 +531,3 @@ void osimage_draw(const OSImage *image, void *view, const real32_t x, const real
 #endif
 }
 */
-
