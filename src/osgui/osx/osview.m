@@ -26,8 +26,7 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
-
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -35,7 +34,7 @@
 
 @interface OSXView : NSView
 {
-@public
+  @public
     OSScrolls *scroll;
     DCtx *ctx;
     uint32_t flags;
@@ -56,14 +55,14 @@
 
 /*---------------------------------------------------------------------------*/
 
--(void)drawFocusRingMask
+- (void)drawFocusRingMask
 {
     NSRectFill([self bounds]);
 }
 
 /*---------------------------------------------------------------------------*/
 
--(NSRect)focusRingMaskBounds
+- (NSRect)focusRingMaskBounds
 {
     return [self bounds];
 }
@@ -102,7 +101,7 @@
             params.ctx = self->ctx;
             nscontext = [NSGraphicsContext currentContext];
             dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, params.x, params.y, 0, TRUE);
-            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView*)self, &params, NULL, OSView, EvDraw, void);
+            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
             dctx_unset_gcontext(self->ctx);
 
             if (self->OnOverlay != NULL)
@@ -110,20 +109,20 @@
                 params.x = 0;
                 params.y = 0;
                 dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, TRUE);
-                listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, (OSView*)self, &params, NULL, OSView, EvDraw, void);
+                listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, (OSView *)self, &params, NULL, OSView, EvDraw, void);
                 dctx_unset_gcontext(self->ctx);
             }
         }
         else
         {
-            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView*)self, &params, NULL, OSView, EvDraw, void);
+            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
         }
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
--(BOOL)acceptsFirstResponder
+- (BOOL)acceptsFirstResponder
 {
     return YES;
 }
@@ -137,7 +136,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseEntered:(NSEvent*)theEvent
+- (void)mouseEntered:(NSEvent *)theEvent
 {
     self->mouse_inside = YES;
     _oslistener_mouse_enter(self, theEvent, self->scroll, &self->listeners);
@@ -145,7 +144,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseExited:(NSEvent*)theEvent
+- (void)mouseExited:(NSEvent *)theEvent
 {
     unref(theEvent);
     self->mouse_inside = NO;
@@ -154,7 +153,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseMoved:(NSEvent*)theEvent
+- (void)mouseMoved:(NSEvent *)theEvent
 {
     if (self->mouse_inside == YES)
         _oslistener_mouse_moved(self, theEvent, self->scroll, &self->listeners);
@@ -162,7 +161,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseDown:(NSEvent*)theEvent
+- (void)mouseDown:(NSEvent *)theEvent
 {
     if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
         _oslistener_mouse_down(self, theEvent, ekGUI_MOUSE_LEFT, self->scroll, &self->listeners);
@@ -170,7 +169,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)rightMouseDown:(NSEvent*)theEvent
+- (void)rightMouseDown:(NSEvent *)theEvent
 {
     if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
         _oslistener_mouse_down(self, theEvent, ekGUI_MOUSE_RIGHT, self->scroll, &self->listeners);
@@ -178,7 +177,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)otherMouseDown:(NSEvent*)theEvent
+- (void)otherMouseDown:(NSEvent *)theEvent
 {
     if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
         _oslistener_mouse_down(self, theEvent, ekGUI_MOUSE_MIDDLE, self->scroll, &self->listeners);
@@ -186,49 +185,49 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseUp:(NSEvent*)theEvent
+- (void)mouseUp:(NSEvent *)theEvent
 {
     _oslistener_mouse_up(self, theEvent, ekGUI_MOUSE_LEFT, self->scroll, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void)rightMouseUp:(NSEvent*)theEvent
+- (void)rightMouseUp:(NSEvent *)theEvent
 {
     _oslistener_mouse_up(self, theEvent, ekGUI_MOUSE_RIGHT, self->scroll, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void)otherMouseUp:(NSEvent*)theEvent
+- (void)otherMouseUp:(NSEvent *)theEvent
 {
     _oslistener_mouse_up(self, theEvent, ekGUI_MOUSE_MIDDLE, self->scroll, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseDragged:(NSEvent*)theEvent
+- (void)mouseDragged:(NSEvent *)theEvent
 {
     _oslistener_mouse_dragged(self, theEvent, ekGUI_MOUSE_LEFT, self->scroll, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void)rightMouseDragged:(NSEvent*)theEvent
+- (void)rightMouseDragged:(NSEvent *)theEvent
 {
     _oslistener_mouse_dragged(self, theEvent, ekGUI_MOUSE_RIGHT, self->scroll, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void)otherMouseDragged:(NSEvent*)theEvent
+- (void)otherMouseDragged:(NSEvent *)theEvent
 {
     _oslistener_mouse_dragged(self, theEvent, ekGUI_MOUSE_MIDDLE, self->scroll, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void)scrollWheel:(NSEvent*)theEvent
+- (void)scrollWheel:(NSEvent *)theEvent
 {
     if (self->scroll != nil)
     {
@@ -242,7 +241,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)keyDown:(NSEvent*)theEvent
+- (void)keyDown:(NSEvent *)theEvent
 {
     if (_oswindow_key_down(OSControlPtr(self), theEvent) == FALSE)
         _oslistener_key_down(self, theEvent, &self->listeners);
@@ -250,14 +249,14 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)keyUp:(NSEvent*)theEvent
+- (void)keyUp:(NSEvent *)theEvent
 {
     _oslistener_key_up(self, theEvent, &self->listeners);
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void) flagsChanged:(NSEvent*)theEvent
+- (void)flagsChanged:(NSEvent *)theEvent
 {
     _oslistener_key_flags_changed(self, theEvent, &self->listeners);
 }
@@ -304,7 +303,7 @@ OSView *osview_create(const uint32_t flags)
     _oslistener_init(&view->listeners);
 
     /* https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView */
-#if defined (MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
+#if defined(MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_14
     [view setClipsToBounds:YES];
 #endif
 
@@ -322,7 +321,7 @@ OSView *osview_create(const uint32_t flags)
     else
         [view setFocusRingType:NSFocusRingTypeNone];
 
-    return (OSView*)view;
+    return (OSView *)view;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -330,9 +329,9 @@ OSView *osview_create(const uint32_t flags)
 static OSXView *i_get_view(const OSView *view)
 {
     cassert_no_null(view);
-    if([(NSView*)view isKindOfClass:[OSXView class]])
+    if ([(NSView *)view isKindOfClass:[OSXView class]])
     {
-        return (OSXView*)view;
+        return (OSXView *)view;
     }
 
     return nil;
@@ -644,7 +643,7 @@ void osview_content_size(OSView *view, const real32_t width, const real32_t heig
 
 real32_t osview_scale_factor(const OSView *view)
 {
-#if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
     OSXView *lview = i_get_view(view);
     NSWindow *window = nil;
     cassert_no_null(lview);
@@ -672,21 +671,21 @@ void osview_set_need_display(OSView *view)
 
 void *osview_get_native_view(const OSView *view)
 {
-    return (void*)view;
+    return (void *)view;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_attach(OSView *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView*)view);
+    _ospanel_attach_control(panel, (NSView *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_detach(OSView *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView*)view);
+    _ospanel_detach_control(panel, (NSView *)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -711,14 +710,14 @@ void osview_enabled(OSView *view, const bool_t is_enabled)
 
 void osview_size(const OSView *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView*)view, width, height);
+    _oscontrol_get_size((NSView *)view, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_origin(const OSView *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView*)view, x, y);
+    _oscontrol_get_origin((NSView *)view, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -727,7 +726,7 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    _oscontrol_set_frame((NSView*)lview, x, y, width, height);
+    _oscontrol_set_frame((NSView *)lview, x, y, width, height);
 
     if (lview->scroll)
         osscrolls_control_size(lview->scroll, (uint32_t)width, (uint32_t)height);
@@ -764,12 +763,12 @@ bool_t osview_accept_focus(const OSView *view)
 
 void osview_focus(OSView *view, const bool_t focus)
 {
-    OSXView *lview = i_get_view((OSView*)view);
+    OSXView *lview = i_get_view((OSView *)view);
     cassert_no_null(lview);
     if (lview->listeners.is_enabled == YES && lview->OnFocus != NULL)
     {
         bool_t params = focus;
-        listener_event(lview->OnFocus, ekGUI_EVENT_FOCUS, (OSView*)lview, &params, NULL, OSView, bool_t, void);
+        listener_event(lview->OnFocus, ekGUI_EVENT_FOCUS, (OSView *)lview, &params, NULL, OSView, bool_t, void);
     }
 }
 
@@ -777,23 +776,23 @@ void osview_focus(OSView *view, const bool_t focus)
 
 BOOL _osview_is(NSView *view)
 {
-    return (BOOL)(i_get_view((OSView*)view) != nil);
+    return (BOOL)(i_get_view((OSView *)view) != nil);
 }
 
 /*---------------------------------------------------------------------------*/
 
 NSView *_osview_focus_widget(NSView *view)
 {
-    OSXView *lview = i_get_view((OSView*)view);
+    OSXView *lview = i_get_view((OSView *)view);
     cassert_no_null(lview);
-    return (NSView*)lview;
+    return (NSView *)lview;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _osview_scroll_event(NSView *view, const gui_orient_t orient, const gui_scroll_t event)
 {
-    OSXView *lview = (OSXView*)view;
+    OSXView *lview = (OSXView *)view;
     cassert_no_null(lview);
     cassert_no_null(lview->scroll);
     cassert([view isKindOfClass:[OSXView class]]);
@@ -925,4 +924,3 @@ OSImageView *osimageview_create(void)
 }
 
 */
-

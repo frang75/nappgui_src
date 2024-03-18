@@ -22,13 +22,13 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 @interface OSXSplitView : NSView
 {
-@public
+  @public
     uint32_t flags;
     NSTrackingArea *track_area;
     NSRect divrect;
@@ -36,8 +36,8 @@
     Listener *OnDrag;
 }
 
-- (void) mouseDragged:(NSEvent*)theEvent;
-- (void) mouseUp:(NSEvent*)theEvent;
+- (void)mouseDragged:(NSEvent *)theEvent;
+- (void)mouseUp:(NSEvent *)theEvent;
 
 @end
 
@@ -53,7 +53,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
     if ([view isKindOfClass:[OSXSplitView class]])
     {
-        OSXSplitView *split = (OSXSplitView*)view;
+        OSXSplitView *split = (OSXSplitView *)view;
         if (NSPointInRect(pt, split->divrect) == YES)
         {
             if (split_get_type(split->flags) == ekSPLIT_HORZ)
@@ -75,7 +75,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseMoved:(NSEvent*)event
+- (void)mouseMoved:(NSEvent *)event
 {
     cassert_no_null(event);
     if (self->left_button == FALSE)
@@ -89,7 +89,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
-- (NSView*)hitTest:(NSPoint)aPoint
+- (NSView *)hitTest:(NSPoint)aPoint
 {
     if (self->left_button == FALSE)
     {
@@ -105,7 +105,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
             NSView *child1 = nil;
             NSView *hit1 = nil;
             cassert(count == 1 || count == 2);
-            child1 = (NSView*)[children objectAtIndex:0];
+            child1 = (NSView *)[children objectAtIndex:0];
             hit1 = [child1 hitTest:aPoint];
             if (hit1 != nil)
             {
@@ -113,7 +113,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
             }
             else if (count == 2)
             {
-                NSView *child2 = (NSView*)[children objectAtIndex:1];
+                NSView *child2 = (NSView *)[children objectAtIndex:1];
                 return [child2 hitTest:aPoint];
             }
             else
@@ -130,7 +130,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseDragged:(NSEvent*)theEvent
+- (void)mouseDragged:(NSEvent *)theEvent
 {
     /* Called whenever graphics state updated (such as window resize)
      * OpenGL rendering is not synchronous with other rendering on the OSX.
@@ -155,7 +155,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
--(void)mouseDown:(NSEvent*)theEvent
+- (void)mouseDown:(NSEvent *)theEvent
 {
     unref(theEvent);
     cassert(self->left_button == FALSE);
@@ -164,7 +164,7 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseUp:(NSEvent*)theEvent
+- (void)mouseUp:(NSEvent *)theEvent
 {
     unref(theEvent);
     if (self->left_button == TRUE)
@@ -214,7 +214,7 @@ OSSplit *ossplit_create(const uint32_t flags)
     view->OnDrag = NULL;
     [view addTrackingArea:view->track_area];
     [view setAutoresizesSubviews:NO];
-    return (OSSplit*)view;
+    return (OSSplit *)view;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -223,7 +223,7 @@ void ossplit_destroy(OSSplit **view)
 {
     OSXSplitView *split = nil;
     cassert_no_null(view);
-    split = *(OSXSplitView**)view;
+    split = *(OSXSplitView **)view;
     cassert_no_null(split);
     cassert([[split subviews] count] == 0);
     listener_destroy(&split->OnDrag);
@@ -235,7 +235,7 @@ void ossplit_destroy(OSSplit **view)
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
 static BOOL i_exists_subview(OSXSplitView *view, NSView *subview)
 {
     NSArray *subviews = [view subviews];
@@ -258,9 +258,9 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
 {
     cassert_no_null(view);
     cassert_no_null(control);
-    cassert(i_exists_subview((OSXSplitView*)view, (NSView*)control) == NO);
-    [(OSXSplitView*)view addSubview:(NSView*)control];
-    cassert(i_exists_subview((OSXSplitView*)view, (NSView*)control) == YES);
+    cassert(i_exists_subview((OSXSplitView *)view, (NSView *)control) == NO);
+    [(OSXSplitView *)view addSubview:(NSView *)control];
+    cassert(i_exists_subview((OSXSplitView *)view, (NSView *)control) == YES);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -269,10 +269,10 @@ void ossplit_detach_control(OSSplit *view, OSControl *control)
 {
     cassert_no_null(view);
     cassert_no_null(control);
-    cassert([(NSView*)control superview] == (OSXSplitView*)view);
-    cassert(i_exists_subview((OSXSplitView*)view, (NSView*)control) == YES);
-    [(NSView*)control removeFromSuperviewWithoutNeedingDisplay];
-    cassert(i_exists_subview((OSXSplitView*)view, (NSView*)control) == NO);
+    cassert([(NSView *)control superview] == (OSXSplitView *)view);
+    cassert(i_exists_subview((OSXSplitView *)view, (NSView *)control) == YES);
+    [(NSView *)control removeFromSuperviewWithoutNeedingDisplay];
+    cassert(i_exists_subview((OSXSplitView *)view, (NSView *)control) == NO);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -280,14 +280,14 @@ void ossplit_detach_control(OSSplit *view, OSControl *control)
 void ossplit_OnDrag(OSSplit *view, Listener *listener)
 {
     cassert_no_null(view);
-    listener_update(&((OSXSplitView*)view)->OnDrag, listener);
+    listener_update(&((OSXSplitView *)view)->OnDrag, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    OSXSplitView *split = (OSXSplitView*)view;
+    OSXSplitView *split = (OSXSplitView *)view;
     cassert_no_null(split);
     split->divrect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
 }
@@ -296,21 +296,21 @@ void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const
 
 void ossplit_attach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView*)view);
+    _ospanel_attach_control(panel, (NSView *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_detach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView*)view);
+    _ospanel_detach_control(panel, (NSView *)view);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_visible(OSSplit *view, const bool_t is_visible)
 {
-    _oscontrol_set_visible((NSView*)view, is_visible);
+    _oscontrol_set_visible((NSView *)view, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -325,21 +325,21 @@ void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
 
 void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView*)view, width, height);
+    _oscontrol_get_size((NSView *)view, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView*)view, x, y);
+    _oscontrol_get_origin((NSView *)view, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    OSXSplitView *split = (OSXSplitView*)view;
+    OSXSplitView *split = (OSXSplitView *)view;
     cassert_no_null(split);
     _oscontrol_set_frame(split, x, y, width, height);
     [split removeTrackingArea:split->track_area];

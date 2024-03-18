@@ -20,7 +20,7 @@
 #include <draw2d/font.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -91,15 +91,20 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 static void i_draw_image(DCtx *ctx, NSImage *image, NSRect fromRect, NSRect toRect)
 {
     draw_set_raster_mode(ctx);
-    
+
     {
-#if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
         NSCompositingOperation op = NSCompositingOperationSourceOver;
 #else
         NSCompositingOperation op = NSCompositeSourceOver;
 #endif
-        [image drawInRect:toRect fromRect:fromRect operation:op fraction:1.0f respectFlipped:YES hints:nil];
+        [image drawInRect:toRect
+                  fromRect:fromRect
+                 operation:op
+                  fraction:1.0f
+            respectFlipped:YES
+                     hints:nil];
 #else
 #error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
 #endif
@@ -111,8 +116,8 @@ static void i_draw_image(DCtx *ctx, NSImage *image, NSRect fromRect, NSRect toRe
 void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
     NSRect fromRect = osglobals_header_rect();
-	NSRect toRect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
-	NSImage *image = osglobals_header_image((bool_t)(state == ekCTRL_STATE_PRESSED));    
+    NSRect toRect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
+    NSImage *image = osglobals_header_image((bool_t)(state == ekCTRL_STATE_PRESSED));
     i_draw_image(ctx, image, fromRect, toRect);
 }
 
@@ -140,7 +145,8 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     cassert_no_null(ctx);
     draw_set_raster_mode(ctx);
 
-    switch (state) {
+    switch (state)
+    {
     case ekCTRL_STATE_NORMAL:
         color = osglobals_back_color();
         break;
@@ -150,8 +156,8 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
         break;
 
     case ekCTRL_STATE_PRESSED:
-	    color = osglobals_selbg_color();
-    	break;
+        color = osglobals_selbg_color();
+        break;
 
     case ekCTRL_STATE_BKNORMAL:
         color = osglobals_backbackdrop_color();
@@ -169,7 +175,7 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
         color = osglobals_backbackdrop_color();
         break;
 
-    cassert_default();
+        cassert_default();
     }
 
     rect.origin.x = (CGFloat)x;
@@ -190,48 +196,49 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
     if (ncolor == kCOLOR_DEFAULT)
     {
         const CGFloat *color = nil;
-        
+
         color = osglobals_text_color();
-        
-        switch (state) {
+
+        switch (state)
+        {
         case ekCTRL_STATE_NORMAL:
             color = osglobals_text_color();
             break;
-                
+
         case ekCTRL_STATE_HOT:
             color = osglobals_hottx_color();
             break;
-                
+
         case ekCTRL_STATE_PRESSED:
             color = osglobals_seltx_color();
             break;
-                
+
         case ekCTRL_STATE_BKNORMAL:
             color = osglobals_textbackdrop_color();
             break;
-                
+
         case ekCTRL_STATE_BKHOT:
             color = osglobals_hottxbackdrop_color();
             break;
-                
+
         case ekCTRL_STATE_BKPRESSED:
             color = osglobals_seltxbackdrop_color();
             break;
-                
+
         case ekCTRL_STATE_DISABLED:
             color = osglobals_textbackdrop_color();
             break;
-                
-        cassert_default();
+
+            cassert_default();
         }
-        
+
         ncolor = color_rgbaf((real32_t)color[0], (real32_t)color[1], (real32_t)color[2], (real32_t)color[3]);
     }
-    
+
     draw_text_color(ctx, ncolor);
     draw_text_trim(ctx, ekELLIPEND);
-	draw_text_raster(ctx, text, (real32_t)x, (real32_t)y);
-	draw_text_trim(ctx, ellipsis);
+    draw_text_raster(ctx, text, (real32_t)x, (real32_t)y);
+    draw_text_trim(ctx, ellipsis);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -247,7 +254,7 @@ void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
     dctx_line_dash(ctx, cpattern, &patsize);
     draw_line_dash(ctx, pattern, 2);
     draw_line_color(ctx, fcolor);
-    draw_rect_imp(ctx, ekSTROKE, (real32_t)(x+1), (real32_t)(y+1), (real32_t)(width-2), (real32_t)(height-2), TRUE);
+    draw_rect_imp(ctx, ekSTROKE, (real32_t)(x + 1), (real32_t)(y + 1), (real32_t)(width - 2), (real32_t)(height - 2), TRUE);
     draw_line_color(ctx, lcolor);
     draw_line_dash(ctx, cpattern, patsize);
     unref(state);
@@ -264,7 +271,7 @@ void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_
 
 void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
-	draw_image_raster(ctx, image, (real32_t)x, (real32_t)y);
+    draw_image_raster(ctx, image, (real32_t)x, (real32_t)y);
     unref(state);
 }
 
@@ -284,7 +291,7 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
 {
     unref(width);
     unref(height);
-	i_draw_checkbox(ctx, (real32_t)x, (real32_t)y, TRUE, state);
+    i_draw_checkbox(ctx, (real32_t)x, (real32_t)y, TRUE, state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -293,5 +300,5 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
 {
     unref(width);
     unref(height);
-	i_draw_checkbox(ctx, (real32_t)x, (real32_t)y, FALSE, state);
+    i_draw_checkbox(ctx, (real32_t)x, (real32_t)y, FALSE, state);
 }

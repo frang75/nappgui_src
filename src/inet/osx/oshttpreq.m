@@ -22,16 +22,16 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-@interface OSXURLDelegate : NSObject<NSURLSessionDelegate, NSURLSessionDataDelegate, NSURLSessionTaskDelegate>
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+@interface OSXURLDelegate : NSObject <NSURLSessionDelegate, NSURLSessionDataDelegate, NSURLSessionTaskDelegate>
 {
-@public
+  @public
     OSHttp *http;
     bool_t auto_redirect;
 }
@@ -49,7 +49,7 @@ struct _oshttp_t
     bool_t secure;
     bool_t response;
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     Mutex *mutex;
     NSURLSession *session;
     OSXURLDelegate *delegate;
@@ -64,13 +64,13 @@ struct _oshttp_t
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
 
 @implementation OSXURLDelegate
 
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
 
-- (void)URLSession:(NSURLSession*)session task:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics*)metrics
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics
 {
     NSArray *ar = [metrics transactionMetrics];
 
@@ -81,7 +81,7 @@ struct _oshttp_t
         {
             bmutex_lock(self->http->mutex);
             if (self->http->protocol != NULL)
-                self->http->protocol = str_c((const char_t*)[str UTF8String]);
+                self->http->protocol = str_c((const char_t *)[str UTF8String]);
             bmutex_unlock(self->http->mutex);
         }
     }
@@ -92,9 +92,9 @@ struct _oshttp_t
 /*---------------------------------------------------------------------------*/
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
-                     willPerformHTTPRedirection:(NSHTTPURLResponse *)response
-                                     newRequest:(NSURLRequest *)request
-                              completionHandler:(void (^)(NSURLRequest * _Nullable))completionHandler
+    willPerformHTTPRedirection:(NSHTTPURLResponse *)response
+                    newRequest:(NSURLRequest *)request
+             completionHandler:(void (^)(NSURLRequest *_Nullable))completionHandler
 {
     unref(session);
     unref(task);
@@ -137,7 +137,7 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
     http->port = port;
     http->secure = secure;
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     http->delegate = [[OSXURLDelegate alloc] init];
     http->delegate->http = http;
     http->delegate->auto_redirect = TRUE;
@@ -161,7 +161,7 @@ void oshttp_destroy(OSHttp **http)
     cassert_no_null(*http);
     str_destroy(&(*http)->host_url);
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     [(*http)->session release];
     [(*http)->delegate release];
     bmutex_close(&(*http)->mutex);
@@ -234,7 +234,8 @@ void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
 
 static ierror_t i_http_error(const NSInteger code)
 {
-    switch(code) {
+    switch (code)
+    {
     case NSURLErrorUnknown:
         return ekIUNDEF;
     case NSURLErrorCancelled:
@@ -290,7 +291,7 @@ static ierror_t i_http_error(const NSInteger code)
 
 static void i_response(NSData *data, NSURLResponse *response, NSError *error, OSHttp *http)
 {
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     bmutex_lock(http->mutex);
 #endif
 
@@ -305,7 +306,7 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
     }
     else if (data != nil)
     {
-        NSHTTPURLResponse *http_response = (NSHTTPURLResponse*)response;
+        NSHTTPURLResponse *http_response = (NSHTTPURLResponse *)response;
         NSInteger code = [http_response statusCode];
         NSDictionary *rheaders = [http_response allHeaderFields];
         NSString *rmessage = [NSHTTPURLResponse localizedStringForStatusCode:code];
@@ -321,7 +322,7 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
         stm_write_char(http->headers, 13);
         stm_write_char(http->headers, 10);
 
-        for (NSString* key in rheaders)
+        for (NSString *key in rheaders)
         {
             NSString *value = [rheaders objectForKey:key];
             stm_printf(http->headers, "%s: %s", [key UTF8String], [value UTF8String]);
@@ -340,7 +341,7 @@ static void i_response(NSData *data, NSURLResponse *response, NSError *error, OS
         http->response = TRUE;
     }
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     bmutex_unlock(http->mutex);
 #endif
 }
@@ -368,7 +369,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
 
     if (data != NULL)
     {
-        NSData *nsdata = [NSData dataWithBytes:(const void*)data length:(NSUInteger)size];
+        NSData *nsdata = [NSData dataWithBytes:(const void *)data length:(NSUInteger)size];
         [http->request setHTTPBody:nsdata];
     }
     else
@@ -376,33 +377,33 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
         cassert(size == 0);
     }
 
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-	{
-    	// Synchronous request
-	    bool_t end = FALSE;
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+    {
+        // Synchronous request
+        bool_t end = FALSE;
         NSURLSessionTask *task = nil;
-    	http->delegate->auto_redirect = auto_redirect;
-        task = [http->session dataTaskWithRequest:http->request completionHandler:^(NSData * _Nullable ddata, NSURLResponse * _Nullable response, NSError * _Nullable lerror)
-    	{
-        	i_response(ddata, response, lerror, http);
-	    } ];
+        http->delegate->auto_redirect = auto_redirect;
+        task = [http->session dataTaskWithRequest:http->request
+                                completionHandler:^(NSData *_Nullable ddata, NSURLResponse *_Nullable response, NSError *_Nullable lerror) {
+                                  i_response(ddata, response, lerror, http);
+                                }];
 
-    	[task resume];
+        [task resume];
 
-	    while(!end)
-    	{
-        	bmutex_lock(http->mutex);
-		    end = http->response;
-    	    bmutex_unlock(http->mutex);
-	    }
+        while (!end)
+        {
+            bmutex_lock(http->mutex);
+            end = http->response;
+            bmutex_unlock(http->mutex);
+        }
     }
 #else
     {
         NSURLResponse *response = nil;
-	    NSError *lerror = nil;
-    	NSData *ddata = [NSURLConnection sendSynchronousRequest:http->request returningResponse:&response error:&lerror];
-	    unref(auto_redirect);
-    	i_response(ddata, response, lerror, http);
+        NSError *lerror = nil;
+        NSData *ddata = [NSURLConnection sendSynchronousRequest:http->request returningResponse:&response error:&lerror];
+        unref(auto_redirect);
+        i_response(ddata, response, lerror, http);
     }
 #endif
 
@@ -429,7 +430,7 @@ Stream *oshttp_response(OSHttp *http)
 {
     Stream *stm = NULL;
     cassert_no_null(http);
-	cassert(http->response == TRUE);
+    cassert(http->response == TRUE);
     if (http->error == ekIOK)
     {
         stm = http->headers;
@@ -444,7 +445,7 @@ Stream *oshttp_response(OSHttp *http)
 void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
 {
     cassert_no_null(http);
-	cassert(http->response == TRUE);
+    cassert(http->response == TRUE);
 
     if (http->error == ekIOK)
     {
@@ -452,6 +453,5 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
         stm_pipe(http->body, body, size);
     }
 
-	ptr_assign(error, http->error);
+    ptr_assign(error, http->error);
 }
-

@@ -19,20 +19,20 @@
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
-@interface OSXAppDelegate : NSObject<NSApplicationDelegate>
+@interface OSXAppDelegate : NSObject <NSApplicationDelegate>
 #else
 @interface OSXAppDelegate : NSObject
 #endif
 {
-@public
+  @public
     uint32_t argc;
     char_t **argv;
-	NSTimer *timer;
+    NSTimer *timer;
     uint32_t terminate_count;
     bool_t abnormal_termination;
     bool_t theme_changed;
@@ -49,7 +49,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define i_TERMINATE_COUNTLOOP   15
+#define i_TERMINATE_COUNTLOOP 15
 
 /*---------------------------------------------------------------------------*/
 
@@ -85,7 +85,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)synchronousTimer:(NSTimer*)t
+- (void)synchronousTimer:(NSTimer *)t
 {
     unref(t);
     /* https://stackoverflow.com/questions/52504872/updating-for-dark-mode-nscolor-ignores-appearance-changes?rq=1 */
@@ -93,7 +93,7 @@
     {
         bool_t dark_mode = FALSE;
 
-        #if defined (MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
         {
             NSArray *appers = [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil];
             NSAppearance *apper = [NSApp effectiveAppearance];
@@ -101,12 +101,12 @@
             if ([name isEqualToString:NSAppearanceNameDarkAqua])
                 dark_mode = TRUE;
         }
-        #endif
+#endif
 
         osglobals_theme_changed();
 
         if (self->OnThemeChanged != NULL)
-            listener_event(self->OnThemeChanged, 0, (OSApp*)self->listener, NULL, NULL, OSApp, void, void);
+            listener_event(self->OnThemeChanged, 0, (OSApp *)self->listener, NULL, NULL, OSApp, void, void);
 
         self->theme_changed = FALSE;
     }
@@ -124,7 +124,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)terminateTimer:(NSTimer*)t
+- (void)terminateTimer:(NSTimer *)t
 {
     unref(t);
     if (__FALSE_EXPECTED(self->terminate_count > 0))
@@ -135,7 +135,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)applicationDidFinishLaunching:(NSNotification*)aNotification
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     unref(aNotification);
     cassert(self->timer == NULL);
@@ -156,10 +156,13 @@
         [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSModalPanelRunLoopMode];
     }
 
-    #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-    [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleInterfaceThemeChangedNotification" object: nil];
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+    [[NSDistributedNotificationCenter defaultCenter] addObserver:self
+                                                        selector:@selector(themeChanged:)
+                                                            name:@"AppleInterfaceThemeChangedNotification"
+                                                          object:nil];
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleColorPreferencesChangedNotification" object:nil];
-    #endif
+#endif
 
     self->func_OnFinishLaunching(self->listener);
 }
@@ -176,7 +179,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)theApplication
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication
 {
     unref(theApplication);
     return NO;
@@ -184,7 +187,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
     unref(sender);
     if (self->listener != NULL)
@@ -199,7 +202,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void)applicationWillTerminate:(NSNotification*)aNotification
+- (void)applicationWillTerminate:(NSNotification *)aNotification
 {
     unref(aNotification);
     cassert(self->listener == NULL);
@@ -214,7 +217,7 @@
 
 /*---------------------------------------------------------------------------*/
 
--(void)themeChanged:(NSNotification*)aNotification
+- (void)themeChanged:(NSNotification *)aNotification
 {
     unref(aNotification);
     /* The new theme is not effective yet. We have to catch and notify in next loop cicle */
@@ -223,7 +226,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-- (void) dealloc
+- (void)dealloc
 {
     [super dealloc];
 }
@@ -233,13 +236,13 @@
 /*---------------------------------------------------------------------------*/
 
 OSApp *osapp_init_imp(
-                    uint32_t argc,
-                    char_t **argv,
-                    void *instance,
-                    void *listener,
-                    const bool_t with_run_loop,
-                    FPtr_app_call func_OnFinishLaunching,
-                    FPtr_app_call func_OnTimerSignal)
+    uint32_t argc,
+    char_t **argv,
+    void *instance,
+    void *listener,
+    const bool_t with_run_loop,
+    FPtr_app_call func_OnFinishLaunching,
+    FPtr_app_call func_OnTimerSignal)
 {
     NSApplication *app;
     OSXAppDelegate *delegate;
@@ -261,21 +264,21 @@ OSApp *osapp_init_imp(
     delegate->func_OnExecutionEnd = NULL;
     delegate->OnThemeChanged = NULL;
     [NSApp setDelegate:delegate];
-    return (OSApp*)app;
+    return (OSApp *)app;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void *osapp_init_pool(void)
 {
-	return (void*)[[NSAutoreleasePool alloc] init];
+    return (void *)[[NSAutoreleasePool alloc] init];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osapp_release_pool(void *pool)
 {
-    [(NSAutoreleasePool*)pool drain];
+    [(NSAutoreleasePool *)pool drain];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -284,21 +287,21 @@ void *osapp_listener_imp(void)
 {
     cassert_no_null(NSApp);
     cassert_no_null([NSApp delegate]);
-    return ((OSXAppDelegate*)[NSApp delegate])->listener;
+    return ((OSXAppDelegate *)[NSApp delegate])->listener;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osapp_terminate_imp(
-                    OSApp **app,
-                    const bool_t abnormal_termination,
-                    FPtr_destroy func_destroy,
-                    FPtr_app_void func_OnExecutionEnd)
+    OSApp **app,
+    const bool_t abnormal_termination,
+    FPtr_destroy func_destroy,
+    FPtr_app_void func_OnExecutionEnd)
 {
     OSXAppDelegate *delegate;
     cassert_no_null(app);
     cassert_no_null(*app);
-    cassert((NSApplication*)(*app) == NSApp);
+    cassert((NSApplication *)(*app) == NSApp);
     delegate = [NSApp delegate];
     cassert_no_null(delegate);
     cassert(delegate->func_destroy == NULL);
@@ -316,8 +319,8 @@ uint32_t osapp_argc(OSApp *app)
 {
     OSXAppDelegate *delegate = NULL;
     cassert_no_null(app);
-    cassert((NSApplication*)app == NSApp);
-    delegate = [(NSApplication*)app delegate];
+    cassert((NSApplication *)app == NSApp);
+    delegate = [(NSApplication *)app delegate];
     return delegate->argc;
 }
 
@@ -327,9 +330,9 @@ void osapp_argv(OSApp *app, const uint32_t idx, char_t *argv, const uint32_t max
 {
     OSXAppDelegate *delegate = NULL;
     cassert_no_null(app);
-    cassert((NSApplication*)app == NSApp);
-    delegate = [(NSApplication*)app delegate];
-    unicode_convers((const char_t*)delegate->argv[idx], argv, ekUTF8, ekUTF8, max_size);
+    cassert((NSApplication *)app == NSApp);
+    delegate = [(NSApplication *)app delegate];
+    unicode_convers((const char_t *)delegate->argv[idx], argv, ekUTF8, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -337,8 +340,8 @@ void osapp_argv(OSApp *app, const uint32_t idx, char_t *argv, const uint32_t max
 void osapp_run(OSApp *app)
 {
     cassert_no_null(app);
-    cassert((NSApplication*)app == NSApp);
-    [(NSApplication*)app run];
+    cassert((NSApplication *)app == NSApp);
+    [(NSApplication *)app run];
     cassert(FALSE);
 }
 
@@ -347,8 +350,8 @@ void osapp_run(OSApp *app)
 void osapp_request_user_attention(OSApp *app)
 {
     cassert_no_null(app);
-    cassert((NSApplication*)app == NSApp);
-    [(NSApplication*)app requestUserAttention:NSCriticalRequest];
+    cassert((NSApplication *)app == NSApp);
+    [(NSApplication *)app requestUserAttention:NSCriticalRequest];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -356,8 +359,8 @@ void osapp_request_user_attention(OSApp *app)
 void osapp_cancel_user_attention(OSApp *app)
 {
     cassert_no_null(app);
-    cassert((NSApplication*)app == NSApp);
-    [(NSApplication*)app cancelUserAttentionRequest:NSCriticalRequest];
+    cassert((NSApplication *)app == NSApp);
+    [(NSApplication *)app cancelUserAttentionRequest:NSCriticalRequest];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -371,14 +374,14 @@ void *osapp_begin_thread(OSApp *app)
     /* This snipplet avoid memory leaks */
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     unref(app);
-    return (void*)pool;
+    return (void *)pool;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osapp_end_thread(OSApp *app, void *data)
 {
-    NSAutoreleasePool *pool = (NSAutoreleasePool*)data;
+    NSAutoreleasePool *pool = (NSAutoreleasePool *)data;
     unref(app);
     [pool drain];
 }
@@ -399,9 +402,9 @@ void osapp_set_lang(OSApp *app, const char_t *lang)
     NSAutoreleasePool *pool = nil;
     NSString *str = nil;
     cassert_no_null(app);
-    cassert((NSApplication*)app == NSApp);
+    cassert((NSApplication *)app == NSApp);
     pool = [[NSAutoreleasePool alloc] init];
-    str = [[NSString alloc] initWithUTF8String:(const char*)lang];
+    str = [[NSString alloc] initWithUTF8String:(const char *)lang];
     [[NSUserDefaults standardUserDefaults] setObject:[NSArray arrayWithObject:str] forKey:@"AppleLanguages"];
     [str release];
     [pool drain];
@@ -411,6 +414,6 @@ void osapp_set_lang(OSApp *app, const char_t *lang)
 
 void osapp_OnThemeChanged(OSApp *app, Listener *listener)
 {
-    OSXAppDelegate *delegate = [(NSApplication*)app delegate];
+    OSXAppDelegate *delegate = [(NSApplication *)app delegate];
     listener_update(&delegate->OnThemeChanged, listener);
 }

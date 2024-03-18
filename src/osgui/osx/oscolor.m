@@ -14,13 +14,13 @@
 #include <draw2d/color.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
 @interface OSXViewRGBA : NSView
 {
-@public
+  @public
     NSColor *nscolor;
 }
 @end
@@ -39,7 +39,7 @@ static OSXViewRGBA *i_COLOR_VIEW = nil;
 
 /*---------------------------------------------------------------------------*/
 
-- (void)getRed:(CGFloat*)r green:(CGFloat*)g blue:(CGFloat*)b alpha:(CGFloat*)a
+- (void)getRed:(CGFloat *)r green:(CGFloat *)g blue:(CGFloat *)b alpha:(CGFloat *)a
 {
     NSRect rect = [self frame];
     NSBitmapImageRep *irep = [self bitmapImageRepForCachingDisplayInRect:rect];
@@ -56,7 +56,7 @@ static OSXViewRGBA *i_COLOR_VIEW = nil;
 
 static void i_NSColor_rgba(NSColor *color, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
 {
-#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     NSAppearance *aper = [NSApp effectiveAppearance];
     [i_COLOR_VIEW setAppearance:aper];
 #endif

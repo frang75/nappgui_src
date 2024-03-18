@@ -22,7 +22,7 @@
 #include <sewer/bmath.h>
 #include <sewer/cassert.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -112,8 +112,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
     if (frame_index != UINT32_MAX)
     {
         NSBitmapImageRep *image_rep = nil;
-        cassert([[(NSImage*)image representations] count] == 1);
-        image_rep = (NSBitmapImageRep*)[[(NSImage*)image representations] objectAtIndex:0];
+        cassert([[(NSImage *)image representations] count] == 1);
+        image_rep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
         cassert_no_null(image_rep);
         [image_rep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
     }
@@ -122,8 +122,9 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         NSRect rect;
         /*BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;*/
         rect.origin = NSMakePoint((CGFloat)x, (CGFloat)y);
-        rect.size = [(NSImage*)image size];
-        switch(ctx->image_halign) {
+        rect.size = [(NSImage *)image size];
+        switch (ctx->image_halign)
+        {
         case ekLEFT:
         case ekJUSTIFY:
             break;
@@ -135,7 +136,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
             break;
         }
 
-        switch(ctx->image_valign) {
+        switch (ctx->image_valign)
+        {
         case ekTOP:
         case ekJUSTIFY:
             break;
@@ -148,16 +150,21 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         }
 
         {
-        	#if defined (MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-            	#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-	            NSCompositingOperation op = NSCompositingOperationSourceOver;
-    	        #else
-        	    NSCompositingOperation op = NSCompositeSourceOver;
-            	#endif
-	            [(NSImage*)image drawInRect:rect fromRect:NSZeroRect operation:op fraction:1.0f respectFlipped:ctx->is_flipped hints:nil];
-    	    #else
-        	    #error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
-	        #endif
+#if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+            NSCompositingOperation op = NSCompositingOperationSourceOver;
+#else
+            NSCompositingOperation op = NSCompositeSourceOver;
+#endif
+            [(NSImage *)image drawInRect:rect
+                                fromRect:NSZeroRect
+                               operation:op
+                                fraction:1.0f
+                          respectFlipped:ctx->is_flipped
+                                   hints:nil];
+#else
+#error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
+#endif
         }
     }
 }
@@ -186,7 +193,7 @@ static CGPathRef i_solid_path(DCtx *ctx)
 {
     CGPathRef path = CGContextCopyPath(ctx->context);
 
-#if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
     CGPathRef spath = NULL;
     if (ctx->dash_count > 0)
     {
@@ -209,7 +216,7 @@ static CGPathRef i_solid_path(DCtx *ctx)
     CGPathRelease(path);
     return spath;
 #else
-	return path;
+    return path;
 #endif
 }
 
@@ -232,7 +239,8 @@ static void i_stroke_path(DCtx *ctx)
     cassert_no_null(ctx);
     if (ctx->line_fill == TRUE)
     {
-        switch (ctx->fillmode) {
+        switch (ctx->fillmode)
+        {
         case ekFILL_SOLID:
         {
             CGFloat r, g, b, a;
@@ -255,7 +263,7 @@ static void i_stroke_path(DCtx *ctx)
             break;
         }
 
-        cassert_default();
+            cassert_default();
         }
     }
     else
@@ -266,7 +274,6 @@ static void i_stroke_path(DCtx *ctx)
         CGContextStrokePath(ctx->context);
     }
 }
-
 
 /*---------------------------------------------------------------------------*/
 
@@ -362,7 +369,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
     {
         CGFloat p[16];
         register uint32_t i, n = ctx->dash_count;
-        for(i = 0; i < n; ++i)
+        for (i = 0; i < n; ++i)
             p[i] = ctx->line_dash[i] * ctx->line_width;
         CGContextSetLineDash(ctx->context, 0.f, p, ctx->dash_count);
     }
@@ -372,14 +379,15 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 static __INLINE CGLineCap i_linecap(const linecap_t linecap)
 {
-    switch (linecap) {
+    switch (linecap)
+    {
     case ekLCFLAT:
         return kCGLineCapButt;
     case ekLCSQUARE:
         return kCGLineCapSquare;
     case ekLCROUND:
         return kCGLineCapRound;
-    cassert_default();
+        cassert_default();
     }
     return kCGLineCapButt;
 }
@@ -397,14 +405,15 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 static __INLINE CGLineJoin i_linejoin(const linejoin_t join)
 {
-    switch(join) {
+    switch (join)
+    {
     case ekLJMITER:
         return kCGLineJoinMiter;
     case ekLJROUND:
         return kCGLineJoinRound;
     case ekLJBEVEL:
         return kCGLineJoinBevel;
-    cassert_default();
+        cassert_default();
     }
     return kCGLineJoinMiter;
 }
@@ -456,13 +465,15 @@ static void i_fill_color(DCtx *ctx)
 
 static void i_draw(DCtx *ctx, const drawop_t op)
 {
-    switch(op) {
+    switch (op)
+    {
     case ekSTROKE:
         i_stroke_path(ctx);
         break;
 
     case ekFILL:
-    switch(ctx->fillmode) {
+        switch (ctx->fillmode)
+        {
         case ekFILL_SOLID:
             i_fill_color(ctx);
             CGContextDrawPath(ctx->context, kCGPathFill);
@@ -470,13 +481,15 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
             break;
-        cassert_default(); }
+            cassert_default();
+        }
         break;
 
     case ekFILLSK:
     {
         CGPathRef path = CGContextCopyPath(ctx->context);
-        switch(ctx->fillmode) {
+        switch (ctx->fillmode)
+        {
         case ekFILL_SOLID:
             i_fill_color(ctx);
             CGContextDrawPath(ctx->context, kCGPathFill);
@@ -489,7 +502,7 @@ static void i_draw(DCtx *ctx, const drawop_t op)
             i_stroke_path(ctx);
             break;
 
-        cassert_default();
+            cassert_default();
         }
 
         CGPathRelease(path);
@@ -502,7 +515,8 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         i_stroke_path(ctx);
         CGContextAddPath(ctx->context, path);
 
-        switch(ctx->fillmode) {
+        switch (ctx->fillmode)
+        {
         case ekFILL_SOLID:
             i_fill_color(ctx);
             CGContextDrawPath(ctx->context, kCGPathFill);
@@ -510,13 +524,14 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
             break;
-        cassert_default(); }
+            cassert_default();
+        }
 
         CGPathRelease(path);
         break;
     }
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -666,7 +681,8 @@ static void i_gradient(DCtx *ctx)
 
 static void i_gradient_vector(DCtx *ctx)
 {
-    switch (ctx->wrap) {
+    switch (ctx->wrap)
+    {
     case ekFCLAMP:
         ctx->gradient_rx0 = (CGFloat)ctx->gradient_x0;
         ctx->gradient_ry0 = (CGFloat)ctx->gradient_y0;
@@ -687,7 +703,7 @@ static void i_gradient_vector(DCtx *ctx)
         break;
     }
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -718,7 +734,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
         else
         {
             register uint32_t i;
-            for(i = 0; i < n; ++i)
+            for (i = 0; i < n; ++i)
             {
                 if (ctx->gradient_colors[i] != i_effective_color(color[i]))
                 {
@@ -801,7 +817,7 @@ void draw_font(DCtx *ctx, const Font *font)
     fstyle = font_style(font);
     [ctx->text_dict setObject:(fstyle & ekFUNDERLINE) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSUnderlineStyleAttributeName];
     [ctx->text_dict setObject:(fstyle & ekFSTRIKEOUT) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSStrikethroughStyleAttributeName];
-    [ctx->text_dict setObject:(NSFont*)font_native(font) forKey:NSFontAttributeName];
+    [ctx->text_dict setObject:(NSFont *)font_native(font) forKey:NSFontAttributeName];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -842,7 +858,7 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
 
     rect->origin.x = (CGFloat)x;
     rect->origin.y = (CGFloat)y;
-    str = [NSString stringWithUTF8String:(const char*)text];
+    str = [NSString stringWithUTF8String:(const char *)text];
 
     if (single_line == TRUE)
     {
@@ -864,7 +880,8 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
     rect->size.width = (CGFloat)width;
     rect->size.height = (CGFloat)height;
 
-    switch (ctx->text_halign) {
+    switch (ctx->text_halign)
+    {
     case ekLEFT:
     case ekJUSTIFY:
         break;
@@ -874,10 +891,11 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
     case ekCENTER:
         rect->origin.x -= (CGFloat)round(.5 * width);
         break;
-    cassert_default();
+        cassert_default();
     }
 
-    switch (ctx->text_valign) {
+    switch (ctx->text_valign)
+    {
     case ekTOP:
     case ekJUSTIFY:
         break;
@@ -887,7 +905,7 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
     case ekCENTER:
         rect->origin.y -= (CGFloat)round(.5 * height);
         break;
-    cassert_default();
+        cassert_default();
     }
 
     return str;
@@ -980,8 +998,8 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     {
         NSAttributedString *astr = [[NSAttributedString alloc] initWithString:str attributes:ctx->text_dict];
         NSFont *font = [ctx->text_dict objectForKey:NSFontAttributeName];
-/*        CGFloat h1 = [font xHeight]; */
-/*        CGFloat h2 = [font boundingRectForFont].size.height; */
+        /*        CGFloat h1 = [font xHeight]; */
+        /*        CGFloat h2 = [font boundingRectForFont].size.height; */
         CGFloat h3 = [font ascender] + [font descender];
         CGPathRef path = i_CGPathCreateSingleLineStringWithAttributedString(astr, rect.origin.x, rect.origin.y, h3);
         /* Artistic text only one line */
@@ -1010,23 +1028,24 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
 
     if (ellipsis != ENUM_MAX(ellipsis_t))
     {
-        switch (ellipsis) {
-            case ekELLIPNONE:
-                mode = NSLineBreakByClipping;
-                break;
-            case ekELLIPBEGIN:
-                mode = NSLineBreakByTruncatingHead;
-                break;
-            case ekELLIPMIDDLE:
-                mode = NSLineBreakByTruncatingMiddle;
-                break;
-            case ekELLIPEND:
-                mode = NSLineBreakByTruncatingTail;
-                break;
-            case ekELLIPMLINE:
-                mode = NSLineBreakByWordWrapping;
-                break;
-                cassert_default();
+        switch (ellipsis)
+        {
+        case ekELLIPNONE:
+            mode = NSLineBreakByClipping;
+            break;
+        case ekELLIPBEGIN:
+            mode = NSLineBreakByTruncatingHead;
+            break;
+        case ekELLIPMIDDLE:
+            mode = NSLineBreakByTruncatingMiddle;
+            break;
+        case ekELLIPEND:
+            mode = NSLineBreakByTruncatingTail;
+            break;
+        case ekELLIPMLINE:
+            mode = NSLineBreakByWordWrapping;
+            break;
+            cassert_default();
         }
     }
 
@@ -1046,33 +1065,33 @@ void draw_text_align(DCtx *ctx, const align_t halign, const align_t valign)
 
 static NSTextAlignment i_text_alignment(const align_t halign)
 {
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     switch (halign)
     {
-        case ekLEFT:
-            return NSTextAlignmentLeft;
-        case ekCENTER:
-            return NSTextAlignmentCenter;
-        case ekJUSTIFY:
-            return NSTextAlignmentJustified;
-        case ekRIGHT:
-            return NSTextAlignmentRight;
-            cassert_default();
+    case ekLEFT:
+        return NSTextAlignmentLeft;
+    case ekCENTER:
+        return NSTextAlignmentCenter;
+    case ekJUSTIFY:
+        return NSTextAlignmentJustified;
+    case ekRIGHT:
+        return NSTextAlignmentRight;
+        cassert_default();
     }
     return NSTextAlignmentLeft;
 
 #else
     switch (halign)
     {
-        case ekLEFT:
-            return NSLeftTextAlignment;
-        case ekCENTER:
-            return NSCenterTextAlignment;
-        case ekJUSTIFY:
-            return NSJustifiedTextAlignment;
-        case ekRIGHT:
-            return NSRightTextAlignment;
-            cassert_default();
+    case ekLEFT:
+        return NSLeftTextAlignment;
+    case ekCENTER:
+        return NSCenterTextAlignment;
+    case ekJUSTIFY:
+        return NSJustifiedTextAlignment;
+    case ekRIGHT:
+        return NSRightTextAlignment;
+        cassert_default();
     }
 
     return NSLeftTextAlignment;
@@ -1086,13 +1105,13 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
     cassert_no_null(ctx);
     cassert_no_null(ctx->text_parag);
     {
-	    /* Crash in macOS Mountain Lion and lowers if we reuse the same paragraph */
-    	NSLineBreakMode lb = [ctx->text_parag lineBreakMode];
-	    [ctx->text_parag release];
-    	ctx->text_parag = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] retain];
-	    [ctx->text_parag setLineBreakMode:lb];
-    	[ctx->text_parag setAlignment:i_text_alignment(halign)];
-	    [ctx->text_dict setObject:ctx->text_parag forKey:NSParagraphStyleAttributeName];
+        /* Crash in macOS Mountain Lion and lowers if we reuse the same paragraph */
+        NSLineBreakMode lb = [ctx->text_parag lineBreakMode];
+        [ctx->text_parag release];
+        ctx->text_parag = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] retain];
+        [ctx->text_parag setLineBreakMode:lb];
+        [ctx->text_parag setAlignment:i_text_alignment(halign)];
+        [ctx->text_dict setObject:ctx->text_parag forKey:NSParagraphStyleAttributeName];
     }
 
     /*
@@ -1111,7 +1130,7 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
 static bool_t i_with_newline(const char_t *text)
 {
     cassert_no_null(text);
-    while(*text != 0)
+    while (*text != 0)
     {
         if (*text == '\n')
             return TRUE;
@@ -1217,4 +1236,3 @@ void draw_rect_imp(DCtx *ctx, const drawop_t op, const real32_t x, const real32_
     CGContextAddRect(ctx->context, rect);
     i_draw(ctx, op);
 }
-

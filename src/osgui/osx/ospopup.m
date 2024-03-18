@@ -22,7 +22,7 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
-#if !defined (__MACOS__)
+#if !defined(__MACOS__)
 #error This file is only for OSX
 #endif
 
@@ -30,7 +30,7 @@
 
 @interface OSXPopUp : NSPopUpButton
 {
-    @public
+  @public
     OSTextAttr attrs;
     Listener *OnSelect_listener;
 }
@@ -51,15 +51,15 @@
         params.state = ekGUI_ON;
         params.index = (uint32_t)[self indexOfSelectedItem];
         params.text = NULL; /*(const char_t*)[[self titleOfSelectedItem] UTF8String];*/
-        listener_event(self->OnSelect_listener, ekGUI_EVENT_POPUP, (OSPopUp*)sender, &params, NULL, OSPopUp, EvButton, void);
+        listener_event(self->OnSelect_listener, ekGUI_EVENT_POPUP, (OSPopUp *)sender, &params, NULL, OSPopUp, EvButton, void);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-- (void) mouseDown:(NSEvent*)theEvent
+- (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down((OSControl*)self) == TRUE)
+    if (_oswindow_mouse_down((OSControl *)self) == TRUE)
         [super mouseDown:theEvent];
 }
 
@@ -85,7 +85,7 @@ OSPopUp *ospopup_create(const uint32_t flags)
     [popup setPullsDown:NO];
     [popup setTarget:popup];
     [popup setAction:@selector(onSelectionChange:)];
-    return (OSPopUp*)popup;
+    return (OSPopUp *)popup;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -94,7 +94,7 @@ void ospopup_destroy(OSPopUp **popup)
 {
     OSXPopUp *lpopup;
     cassert_no_null(popup);
-    lpopup = (OSXPopUp*)*popup;
+    lpopup = (OSXPopUp *)*popup;
     cassert_no_null(lpopup);
     listener_destroy(&lpopup->OnSelect_listener);
     _oscontrol_remove_textattr(&lpopup->attrs);
@@ -108,7 +108,7 @@ void ospopup_destroy(OSPopUp **popup)
 void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 {
     cassert_no_null(popup);
-    listener_update(&((OSXPopUp*)popup)->OnSelect_listener, listener);
+    listener_update(&((OSXPopUp *)popup)->OnSelect_listener, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -119,23 +119,23 @@ static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
     cassert_no_null(popup);
     cassert_no_null(text);
     unref(image);
-    str = [[NSString alloc] initWithUTF8String:(const char*)text];
-    [(OSXPopUp*)popup addItemWithTitle:str];
+    str = [[NSString alloc] initWithUTF8String:(const char *)text];
+    [(OSXPopUp *)popup addItemWithTitle:str];
     [str release];
 
     if (image != NULL)
     {
         NSInteger num_items;
         NSMenuItem *item = nil;
-        NSImage *nsimage = (NSImage*)image_native(image);
-        #if defined (__ASSERTS__)
+        NSImage *nsimage = (NSImage *)image_native(image);
+#if defined(__ASSERTS__)
         NSSize size = [nsimage size];
         cassert(size.width == 16.f && size.height == 16.f);
-        #endif
+#endif
 
-        num_items = [(OSXPopUp*)popup numberOfItems];
+        num_items = [(OSXPopUp *)popup numberOfItems];
         cassert(num_items > 0);
-        item = [(OSXPopUp*)popup itemAtIndex:num_items - 1];
+        item = [(OSXPopUp *)popup itemAtIndex:num_items - 1];
         [item setImage:nsimage];
         [item setOnStateImage:nil];
         [item setMixedStateImage:nil];
@@ -155,26 +155,26 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const 
         NSArray *items = nil;
         NSMenuItem *item = nil;
         cassert_no_null(popup);
-        items = [((OSXPopUp*)popup) itemArray];
+        items = [((OSXPopUp *)popup) itemArray];
         cassert_no_null(items);
         cassert(idx < [items count]);
         item = [items objectAtIndex:(NSUInteger)idx];
 
         {
-            NSString *str = [[NSString alloc] initWithUTF8String:(const char*)text];
+            NSString *str = [[NSString alloc] initWithUTF8String:(const char *)text];
             [item setTitle:str];
             [str release];
         }
 
-	#if defined (__ASSERTS__)
+#if defined(__ASSERTS__)
         if (image != NULL)
         {
-            NSSize size = [(NSImage*)image_native(image) size];
+            NSSize size = [(NSImage *)image_native(image) size];
             cassert(size.width == 16.f && size.height == 16.f);
         }
-    #endif
+#endif
 
-        [item setImage:image != NULL ? (NSImage*)image_native(image) : nil];
+        [item setImage:image != NULL ? (NSImage *)image_native(image) : nil];
     }
     else
     {
@@ -194,7 +194,7 @@ void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 
 void ospopup_font(OSPopUp *popup, const Font *font)
 {
-    OSXPopUp *lpopup = (OSXPopUp*)popup;
+    OSXPopUp *lpopup = (OSXPopUp *)popup;
     cassert_no_null(lpopup);
     _oscontrol_set_font(lpopup, &lpopup->attrs, font);
 }
@@ -211,24 +211,24 @@ void ospopup_list_height(OSPopUp *popup, const uint32_t num_elems)
 
 void ospopup_selected(OSPopUp *popup, const uint32_t lindex)
 {
-    OSXPopUp *lpopup = (OSXPopUp*)popup;
+    OSXPopUp *lpopup = (OSXPopUp *)popup;
     cassert_no_null(lpopup);
     if (lindex != UINT32_MAX)
     {
-    	cassert((NSInteger)lindex <= [lpopup numberOfItems]);
-	    [lpopup selectItemAtIndex:(NSInteger)lindex];
+        cassert((NSInteger)lindex <= [lpopup numberOfItems]);
+        [lpopup selectItemAtIndex:(NSInteger)lindex];
     }
     else
     {
-	    [lpopup selectItemAtIndex:-1];
-	}
+        [lpopup selectItemAtIndex:-1];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t ospopup_get_selected(const OSPopUp *popup)
 {
-    OSXPopUp *lpopup = (OSXPopUp*)popup;
+    OSXPopUp *lpopup = (OSXPopUp *)popup;
     cassert_no_null(lpopup);
     return (uint32_t)[lpopup indexOfSelectedItem];
 }
@@ -237,7 +237,7 @@ uint32_t ospopup_get_selected(const OSPopUp *popup)
 
 void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height)
 {
-    OSXPopUp *lpopup = (OSXPopUp*)popup;
+    OSXPopUp *lpopup = (OSXPopUp *)popup;
     cassert_no_null(lpopup);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -250,49 +250,49 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
 
 void ospopup_attach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView*)popup);
+    _ospanel_attach_control(panel, (NSView *)popup);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_detach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView*)popup);
+    _ospanel_detach_control(panel, (NSView *)popup);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_visible(OSPopUp *popup, const bool_t is_visible)
 {
-    _oscontrol_set_visible((NSView*)popup, is_visible);
+    _oscontrol_set_visible((NSView *)popup, is_visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_enabled(OSPopUp *popup, const bool_t is_enabled)
 {
-    _oscontrol_set_enabled((NSControl*)popup, is_enabled);
+    _oscontrol_set_enabled((NSControl *)popup, is_enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_size(const OSPopUp *popup, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView*)popup, width, height);
+    _oscontrol_get_size((NSView *)popup, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_origin(const OSPopUp *popup, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView*)popup, x, y);
+    _oscontrol_get_origin((NSView *)popup, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView*)popup, x, y, width, height);
+    _oscontrol_set_frame((NSView *)popup, x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

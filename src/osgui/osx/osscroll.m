@@ -19,7 +19,7 @@
 
 @interface OSXScroller : NSScroller
 {
-@public
+  @public
     OSControl *control;
     gui_orient_t orient;
     uint32_t pos;
@@ -43,8 +43,8 @@ static NSView *i_parent(OSXScroller *scroller)
 {
     cassert_no_null(scroller);
     cassert_no_null(scroller->control);
-    cassert([(NSObject*)scroller->control isKindOfClass:[NSView class]]);
-    return (NSView*)scroller->control;
+    cassert([(NSObject *)scroller->control isKindOfClass:[NSView class]]);
+    return (NSView *)scroller->control;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -78,12 +78,12 @@ static void i_scroller_event(OSXScroller *scroller)
 static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, double *val)
 {
     double sp = [scroller doubleValue];
-    uint32_t st = (uint32_t)(sp * ((double)scroller->page- (double)scroller->knob_size));
+    uint32_t st = (uint32_t)(sp * ((double)scroller->page - (double)scroller->knob_size));
     uint32_t ed = st + scroller->knob_size;
     cassert_no_null(val);
 
     /* New scroller value associated with click point */
-    *val = ((double)pos - (double)(scroller->knob_size / 2))/(double)(scroller->page - scroller->knob_size);
+    *val = ((double)pos - (double)(scroller->knob_size / 2)) / (double)(scroller->page - scroller->knob_size);
 
     /* Click before the knob */
     if (pos < st)
@@ -104,7 +104,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 
 @implementation OSXScroller
 
-#if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
 
 + (BOOL)isCompatibleWithOverlayScrollers
 {
@@ -115,7 +115,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseDown:(NSEvent*)theEvent
+- (void)mouseDown:(NSEvent *)theEvent
 {
     NSView *parent = i_parent(self);
     NSPoint pt;
@@ -145,7 +145,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseUp:(NSEvent*)theEvent
+- (void)mouseUp:(NSEvent *)theEvent
 {
     self->click_pos = UINT32_MAX;
     self->mouse_click = UINT32_MAX;
@@ -154,13 +154,13 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 
 /*---------------------------------------------------------------------------*/
 
-- (void)mouseDragged:(NSEvent*)theEvent
+- (void)mouseDragged:(NSEvent *)theEvent
 {
     cassert_no_null(self);
     cassert_no_null(theEvent);
     if (self->click_pos != UINT32_MAX)
     {
-        NSView *parent = (NSView*)self->control;
+        NSView *parent = (NSView *)self->control;
         NSPoint pt = [parent convertPoint:[theEvent locationInWindow] fromView:nil];
         CGFloat diff = 0;
         double npos = 0;
@@ -182,7 +182,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 
 /*---------------------------------------------------------------------------*/
 
-- (void)scrollWheel:(NSEvent*)theEvent
+- (void)scrollWheel:(NSEvent *)theEvent
 {
     NSView *parent = i_parent(self);
     gui_scroll_t ev = osscroll_wheel_event(theEvent);
@@ -206,8 +206,8 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 static OSXScroller *i_scroller(OSScroll *scroll)
 {
     cassert_no_null(scroll);
-    cassert([(NSObject*)scroll isKindOfClass:[OSXScroller class]]);
-    return (OSXScroller*)scroll;
+    cassert([(NSObject *)scroll isKindOfClass:[OSXScroller class]]);
+    return (OSXScroller *)scroll;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -215,8 +215,8 @@ static OSXScroller *i_scroller(OSScroll *scroll)
 static const OSXScroller *i_cscroller(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
-    cassert([(NSObject*)scroll isKindOfClass:[OSXScroller class]]);
-    return (OSXScroller*)scroll;
+    cassert([(NSObject *)scroll isKindOfClass:[OSXScroller class]]);
+    return (OSXScroller *)scroll;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -226,8 +226,8 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
     OSXScroller *scroll = [[OSXScroller alloc] initWithFrame:rect];
     NSControlSize csize = _oscontrol_control_size(ekGUI_SIZE_REGULAR);
     heap_auditor_add("OSXScroller");
-#if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
-    [scroll setScrollerStyle:NSScrollerStyleLegacy/*NSScrollerStyleOverlay*/];
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+    [scroll setScrollerStyle:NSScrollerStyleLegacy /*NSScrollerStyleOverlay*/];
     [scroll setKnobStyle:NSScrollerKnobStyleDefault];
 #endif
     [scroll setControlSize:csize];
@@ -238,7 +238,7 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
     scroll->pos = 0;
     scroll->page = 0;
     scroll->max = 0;
-#if defined (MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
     scroll->bar_width = (uint32_t)[OSXScroller scrollerWidthForControlSize:csize scrollerStyle:NSScrollerStyleLegacy];
 #else
     scroll->bar_width = (uint32_t)[OSXScroller scrollerWidthForControlSize:csize];
@@ -246,7 +246,7 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
     scroll->click_pos = UINT32_MAX;
     scroll->mouse_click = UINT32_MAX;
     [i_parent(scroll) addSubview:scroll];
-    return (OSScroll*)scroll;
+    return (OSScroll *)scroll;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -320,7 +320,7 @@ void osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
     OSXScroller *scroller = i_scroller(scroll);
     cassert_no_null(scroller);
     scroller->pos = pos;
-    [scroller setDoubleValue:(double)pos/i_max_val(scroller)];
+    [scroller setDoubleValue:(double)pos / i_max_val(scroller)];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -355,10 +355,10 @@ void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, c
 
     {
         uint32_t motion_px = page - scroller->knob_size;
-        scroller->px_scroll = (double)(max - page)/(double)motion_px;
+        scroller->px_scroll = (double)(max - page) / (double)motion_px;
     }
 
-    [scroller setKnobProportion:(CGFloat)((double)scroller->knob_size/(double)page)];
+    [scroller setKnobProportion:(CGFloat)((double)scroller->knob_size / (double)page)];
     osscroll_set_pos(scroll, pos);
 }
 
@@ -368,7 +368,7 @@ void osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const 
 {
     OSXScroller *scroller = i_scroller(scroll);
     cassert_no_null(scroller);
-    _oscontrol_set_frame((NSView*)scroller, (real32_t)x, (real32_t)y, (real32_t)width, (real32_t)height);
+    _oscontrol_set_frame((NSView *)scroller, (real32_t)x, (real32_t)y, (real32_t)width, (real32_t)height);
 }
 
 /*---------------------------------------------------------------------------*/
