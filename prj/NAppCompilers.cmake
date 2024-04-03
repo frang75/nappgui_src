@@ -200,7 +200,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS arm64)
 
     # ARM 32 bits
-    elseif (${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "armv7")
+    elseif (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "armv7.*")
         set(CMAKE_HOST_ARCHITECTURE "arm")
         set(CMAKE_ARCHITECTURE "arm" CACHE STRING "Processor architecture")
         set_property(CACHE CMAKE_ARCHITECTURE PROPERTY STRINGS arm)

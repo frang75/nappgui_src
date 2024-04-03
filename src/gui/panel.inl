@@ -20,6 +20,8 @@ void _panel_destroy_all(Panel **panel);
 
 void _panel_attach_component(Panel *panel, GuiComponent *component);
 
+void _panel_dettach_component(Panel *panel, GuiComponent *component);
+
 void _panel_destroy_component(Panel *panel, GuiComponent *component);
 
 void _panel_hide_all(Panel *panel);
