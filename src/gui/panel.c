@@ -257,6 +257,30 @@ static void i_hide_component(GuiComponent *component)
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * This function is not used in a general Layout-based composer.
+ * Is required for out-of-the-box uses of NAppGUI (eg. GTNAP)
+ */
+void _panel_dettach_component(Panel *panel, GuiComponent *component)
+{
+    uint32_t index = UINT32_MAX;
+    cassert_no_null(panel);
+    cassert_no_null(component);
+
+    /* Prevent flickering in Windows because destroyed component new parent
+        will be set to NULL (Desktop HWND) when is detached from this panel. */
+#if defined(__WINDOWS__)
+    i_hide_component(component);
+#endif
+
+    _component_set_parent_window(component, NULL);
+    _component_detach_from_panel(&panel->component, component);
+    index = arrpt_find(panel->children, component, GuiComponent);
+    arrpt_delete(panel->children, index, NULL, GuiComponent);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _panel_destroy_component(Panel *panel, GuiComponent *component)
 {
     bool_t exists = FALSE;

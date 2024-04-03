@@ -712,8 +712,10 @@ void _osgui_remove_accelerator(WORD cmd)
 
     arrst_foreach(accel, i_ACCELERATORS, ACCEL)
         if (accel->cmd == cmd)
+        {
             i = accel_i;
-        break;
+            break;
+        }
     arrst_end()
 
     cassert(i < arrst_size(i_ACCELERATORS, ACCEL));

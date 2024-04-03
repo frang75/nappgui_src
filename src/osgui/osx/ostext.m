@@ -564,10 +564,10 @@ const char_t *ostext_get_text(const OSText *view)
 
 void ostext_scroller_visible(OSText *view, const bool_t horizontal, const bool_t vertical)
 {
-    unref(view);
-    unref(horizontal);
-    unref(vertical);
-    cassert(FALSE);
+    NSScrollView *sview = (NSScrollView *)view;
+    cassert_no_null(sview);
+    [sview setHasHorizontalScroller:(BOOL)horizontal];
+    [sview setHasVerticalScroller:(BOOL)vertical];
 }
 
 /*---------------------------------------------------------------------------*/
