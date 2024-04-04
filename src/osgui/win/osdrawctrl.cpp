@@ -17,6 +17,7 @@
 #include <draw2d/color.h>
 #include <draw2d/dctxh.h>
 #include <draw2d/font.h>
+#include <osbs/osbs.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 
@@ -262,13 +263,27 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
     int istate = i_list_state(state);
+    HDC hdc = (HDC)dctx_native(ctx);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
     rect.left = (LONG)x + (LONG)offset_x;
     rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, (HDC)dctx_native(ctx), &rect);
+    if (osbs_windows() > ekWIN_XP3)
+    {
+        osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, hdc, &rect);
+    }
+    else
+    {
+        /* Seems WindowsXP doesn't use Vista Styles for selected text */
+        HBRUSH brush = NULL;
+        if (state == ekCTRL_STATE_PRESSED || state == ekCTRL_STATE_BKPRESSED)
+            brush = GetSysColorBrush(COLOR_HIGHLIGHT);
+        else
+            brush = GetSysColorBrush(COLOR_WINDOW);
+        FillRect(hdc, &rect, brush);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -343,8 +358,20 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
 
     if (dctx_text_color(ctx) == kCOLOR_DEFAULT)
     {
-        int istate = i_list_state(state);
-        osstyleXP_DrawThemeText2(i_list_theme(ctx), hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
+        if (osbs_windows() > ekWIN_XP3)
+        {
+            int istate = i_list_state(state);
+            osstyleXP_DrawThemeText2(i_list_theme(ctx), hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
+        }
+        else
+        {
+            /* Seems WindowsXP doesn't use Vista Styles for selected text */
+            COLORREF color = GetSysColor(COLOR_WINDOWTEXT);
+            if (state == ekCTRL_STATE_PRESSED || state == ekCTRL_STATE_BKPRESSED)
+                color = GetSysColor(COLOR_HIGHLIGHTTEXT);
+            SetTextColor(hdc, color);
+            DrawTextW(hdc, wtext, -1, &rect, format);
+        }
     }
     else
     {
