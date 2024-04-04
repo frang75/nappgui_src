@@ -1774,7 +1774,7 @@ void tableview_header_title(TableView *view, const uint32_t column_id, const cha
     column = arrst_get(data->columns, column_id, Column);
     ltext = _gui_respack_text(text, &column->head_textid);
     arrpt_destroy(&column->head_text, str_destroy, String);
-    column->head_text = str_splits(ltext, "\n", TRUE);
+    column->head_text = str_splits(ltext, "\n", TRUE, FALSE);
     i_head_height(data);
     view_update((View *)view);
 }

@@ -967,7 +967,7 @@ bool_t str_split_trim(const char_t *str, const char_t *substr, String **left, St
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t trim)
+ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t trim, const bool_t add_empty)
 {
     ArrPt(String) *strs = arrpt_create(String);
     cassert_no_null(str);
@@ -985,10 +985,10 @@ ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t 
             else
                 sstr = str_cn(str, n);
 
-            if (str_empty(sstr) == TRUE)
-                str_destroy(&sstr);
-            else
+            if (str_empty(sstr) == FALSE || add_empty == TRUE)
                 arrpt_append(strs, sstr, String);
+            else
+                str_destroy(&sstr);
 
             fstr += sn;
             str = fstr;
@@ -996,31 +996,32 @@ ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t 
         }
 
         /* Compute the last string */
-        if (trim == TRUE)
         {
-            String *sstr = str_trim(str);
-            if (str_empty(sstr) == TRUE)
-                str_destroy(&sstr);
+            String *sstr = NULL;
+            if (trim == TRUE)
+                sstr = str_trim(str);
             else
+                sstr = str_c(str);
+
+            if (str_empty(sstr) == FALSE || add_empty == TRUE)
                 arrpt_append(strs, sstr, String);
-        }
-        else
-        {
-            if (str_empty_c(str) == FALSE)
-            {
-                String *sstr = str_c(str);
-                arrpt_append(strs, sstr, String);
-            }
+            else
+                str_destroy(&sstr);
         }
     }
     else
     {
         String *sstr = NULL;
+
         if (trim == TRUE)
             sstr = str_trim(str);
         else
             sstr = str_c(str);
-        arrpt_append(strs, sstr, String);
+
+        if (str_empty(sstr) == FALSE || add_empty == TRUE)
+            arrpt_append(strs, sstr, String);
+        else
+            str_destroy(&sstr);
     }
 
     return strs;

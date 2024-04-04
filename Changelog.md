@@ -8,7 +8,9 @@
 
 ### Improved
 
-* `gui_text_t` properties in private API.
+* `gui_text_t` properties in private API. [Commit](https://github.com/frang75/nappgui_src/commit/579766ab451eb445ce5013a93892261997137706).
+
+* `str_splits()` adds a new `add_empty` parameters. [Issue](https://github.com/frang75/nappgui_src/issues/124). [Doc](https://nappgui.com/en/core/string.html#f52)
 
 ## v1.4.1 - Apr 3, 2024 (r4993)
 
