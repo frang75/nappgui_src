@@ -6,11 +6,13 @@
 
 * WindowsXP TableView/ListBox select colors. [Commit](https://github.com/frang75/nappgui_src/commit/fd0983ff06cbea190a543e9f119e749c436b954d).
 
+* macOS TableView/ListBox select colors. [Isssue](https://github.com/frang75/nappgui_src/issues/115).
+
 ### Improved
 
 * `gui_text_t` properties in private API. [Commit](https://github.com/frang75/nappgui_src/commit/579766ab451eb445ce5013a93892261997137706).
 
-* `str_splits()` adds a new `add_empty` parameters. [Issue](https://github.com/frang75/nappgui_src/issues/124). [Doc](https://nappgui.com/en/core/string.html#f52)
+* `str_splits()` adds a new `add_empty` parameter. [Issue](https://github.com/frang75/nappgui_src/issues/124). [Doc](https://nappgui.com/en/core/string.html#f52). [Commit](https://github.com/frang75/nappgui_src/commit/845c4c01ca282abbe6751ed51cb6a28b1860076f).
 
 ## v1.4.1 - Apr 3, 2024 (r4993)
 
