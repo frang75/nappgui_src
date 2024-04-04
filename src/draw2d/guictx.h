@@ -715,7 +715,7 @@ _draw2d_api void guictx_append_text_manager_imp(
         FUNC_CHECK_GCTX_SET_TEXT(func_text_insert_text, text_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_text_set_text, text_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_text_set_rtf, text_type, Stream), \
-        FUNC_CHECK_GCTX_SET_PROPERTY(func_text_set_prop, text_type), \
+        FUNC_CHECK_GCTX_SET_PROPERTY(func_text_set_prop, text_type, gui_text_t), \
         FUNC_CHECK_GCTX_SET_BOOL(func_text_set_editable, text_type), \
         FUNC_CHECK_GCTX_GET_TEXT(func_text_get_text, text_type), \
         FUNC_CHECK_GCTX_SET2_BOOL(func_text_scroller_visible, text_type), \
@@ -1154,7 +1154,7 @@ _draw2d_api void guictx_append_window_manager_imp(
         FUNC_CHECK_GCTX_SET2_REAL32(func_window_set_size, window_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_window_set_default_pushbutton, window_type, button_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_window_set_cursor, window_type, Cursor), \
-        FUNC_CHECK_GCTX_SET_PROPERTY(func_window_set_property, window_type), \
+        FUNC_CHECK_GCTX_SET_PROPERTY(func_window_set_property, window_type, gui_prop_t), \
         guictx_append_window_manager_imp( \
             context, \
             (FPtr_gctx_create)func_window_create, \

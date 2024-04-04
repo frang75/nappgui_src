@@ -2,6 +2,14 @@
 
 ## v1.4.2 - WIP
 
+### Fixed
+
+* WindowsXP TableView/ListBox select colors. [Commit](https://github.com/frang75/nappgui_src/commit/fd0983ff06cbea190a543e9f119e749c436b954d).
+
+### Improved
+
+* `gui_text_t` properties in private API.
+
 ## v1.4.1 - Apr 3, 2024 (r4993)
 
 ### Added

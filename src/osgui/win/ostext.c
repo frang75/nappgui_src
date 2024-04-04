@@ -297,21 +297,21 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
+void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 {
     cassert_no_null(view);
     cassert_no_null(value);
     switch (prop)
     {
-    case ekGUI_PROP_FAMILY:
+    case ekGUI_TEXT_FAMILY:
         unicode_convers((const char_t *)value, (char_t *)view->szFaceName, ekUTF8, ekUTF16, sizeof(view->szFaceName));
         break;
 
-    case ekGUI_PROP_UNITS:
+    case ekGUI_TEXT_UNITS:
         view->units = *((const uint32_t *)value);
         break;
 
-    case ekGUI_PROP_SIZE:
+    case ekGUI_TEXT_SIZE:
     {
         real32_t size = *((real32_t *)value);
         if (view->units & ekFPOINTS)
@@ -320,7 +320,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_STYLE:
+    case ekGUI_TEXT_STYLE:
     {
         uint32_t style = *((uint32_t *)value);
         view->dwEffects = 0;
@@ -345,28 +345,28 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_COLOR:
+    case ekGUI_TEXT_COLOR:
         if (*((color_t *)value) == kCOLOR_TRANSPARENT)
             view->crTextColor = 0;
         else
             view->crTextColor = _oscontrol_colorref(*((color_t *)value));
         break;
 
-    case ekGUI_PROP_BGCOLOR:
+    case ekGUI_TEXT_BGCOLOR:
         if (*((color_t *)value) == kCOLOR_TRANSPARENT)
             view->crBackColor = 0;
         else
             view->crBackColor = _oscontrol_colorref(*((color_t *)value));
         break;
 
-    case ekGUI_PROP_PGCOLOR:
+    case ekGUI_TEXT_PGCOLOR:
         if (*((color_t *)value) == kCOLOR_TRANSPARENT)
             SendMessage(view->control.hwnd, EM_SETBKGNDCOLOR, 1, (LPARAM)0);
         else
             SendMessage(view->control.hwnd, EM_SETBKGNDCOLOR, 0, (LPARAM)_oscontrol_colorref(*((color_t *)value)));
         break;
 
-    case ekGUI_PROP_PARALIGN:
+    case ekGUI_TEXT_PARALIGN:
         switch (*((align_t *)value))
         {
         case ekLEFT:
@@ -382,19 +382,19 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_LSPACING:
+    case ekGUI_TEXT_LSPACING:
         view->dyLineSpacing = (LONG)(20 * *((real32_t *)value));
         break;
 
-    case ekGUI_PROP_AFPARSPACE:
+    case ekGUI_TEXT_AFPARSPACE:
         view->dySpaceAfter = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *((real32_t *)value) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
-    case ekGUI_PROP_BFPARSPACE:
+    case ekGUI_TEXT_BFPARSPACE:
         view->dySpaceBefore = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *((real32_t *)value) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
-    case ekGUI_PROP_SELECT:
+    case ekGUI_TEXT_SELECT:
     {
         int32_t *range = (int32_t *)value;
         int32_t platform_st, platform_ed;
@@ -413,7 +413,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_SCROLL:
+    case ekGUI_TEXT_SCROLL:
     {
         HWND focus = GetFocus();
         bool_t prev = view->launch_event;
@@ -425,8 +425,6 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_RESIZE:
-    case ekGUI_PROP_CHILDREN:
         cassert_default();
     }
 }
