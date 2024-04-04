@@ -116,7 +116,7 @@ _core_api bool_t str_split(const char_t *str, const char_t *substr, String **lef
 
 _core_api bool_t str_split_trim(const char_t *str, const char_t *substr, String **left, String **right);
 
-_core_api ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t trim);
+_core_api ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t trim, const bool_t add_empty);
 
 _core_api void str_split_pathname(const char_t *pathname, String **path, String **file);
 
