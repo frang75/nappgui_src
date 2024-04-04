@@ -1,53 +1,33 @@
 # NAppGUI Changelog
 
-## v1.4.1 - WIP
+## v1.4.2 - WIP
+
+## v1.4.1 - Apr 3, 2024 (r4993)
 
 ### Added
 
 * `unicode_convers_nbytes_n()`. [Commit](https://github.com/frang75/nappgui_src/commit/9df21d8294237acb47b6c088a57e58f43ebdfbd8).
-
 * `popup_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/8177e951cdb5a0d9670e7a499491d209a8dfbc9c).
-
 * `modifiers` field in `EvMouse`. [Commit](https://github.com/frang75/nappgui_src/commit/68a59be2fd922f0738daeba10fbfb82ed779a693).
-
 * `tag` field in `EvMouse`. [Commit](https://github.com/frang75/nappgui_src/commit/711ea786b8d5dabede70180b57e2414fc8b3533c).
-
 * `listbox_OnDown()`. [Commit](https://github.com/frang75/nappgui_src/commit/711ea786b8d5dabede70180b57e2414fc8b3533c).
-
 * Overlay windows (flyout) [Issue](https://github.com/frang75/nappgui_src/issues/50). [Doc](https://nappgui.com/en/gui/window.html#h4). [Commit](https://github.com/frang75/nappgui_src/commit/ee5c8c8d76b3604151f5d4bbea2e2f405dbfc2ed).
-
     * `window_overlay()`.
-
     * `window_control_frame()` and `window_client_to_screen()` [Issue](https://github.com/frang75/nappgui_src/issues/103).
-
     * `gui_OnIdle()`.
-
 * Dynamic layouts [Issue](https://github.com/frang75/nappgui_src/issues/74). [Doc](https://nappgui.com/en/gui/layout.html#h6).
-
     * `arrpt_insert_n()`.
-
     * `cell_empty()`.
-
     * `layout_panel_replace()` [Issue](https://github.com/frang75/nappgui_src/issues/18).
-
     * `guicontrol_tag()`.
-
     * `guicontrol_get_tag()`.
-
     * `layout_ncols()`.
-
     * `layout_nrows()`.
-
     * `layout_insert_col()`.
-
     * `layout_insert_row()`.
-
     * `layout_remove_col()`.
-
     * `layout_remove_row()`.
-
 * `label_size_text()`. [Doc](https://nappgui.com/en/gui/label.html#f5). [Commit](https://github.com/frang75/nappgui_src/commit/e63bd8aaf157ad029e0174fcabc2987393d6885f).
-
 * `window_focus_info`.
 
 ### Improved
@@ -57,34 +37,23 @@
 ### Fixed
 
 * macOS Sonoma OSView clipping. [Commit](https://github.com/frang75/nappgui_src/commit/ac038f90e555f8751e4dab1889e0448b47c900ae). [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#NSView).
-
 * macOS Sonoma NSMenu check obsolete. [Doc](https://developer.apple.com/documentation/macos-release-notes/appkit-release-notes-for-macos-14#Menus). [Issue](https://github.com/frang75/nappgui_src/issues/96). [Commit](https://github.com/frang75/nappgui_src/commit/197c7db6c41b8bde7e01532d4943ee95d4e8ca7e).
-
 * macOS Sonoma OSLabel clipping. [Commit](https://github.com/frang75/nappgui_src/commit/d7930efee0031f8b4269601fe767a695e5e9ff20).
-
 * Windows XP THEME issue. [Commit](https://github.com/frang75/nappgui_src/commit/7f4d10bbd53a26c3e6719c859ab585bb53d6888f).
-
 * `modifiers` field in `EvKey` issue. [Issue](https://github.com/frang75/nappgui_src/issues/95). [Commit](https://github.com/frang75/nappgui_src/commit/68a59be2fd922f0738daeba10fbfb82ed779a693).
-
 * `listbox_color` issue in macOS and GTK+3. [Commit](https://github.com/frang75/nappgui_src/commit/5abe4d13e767ddd1145dfbe5c0cc2b9c0d7c26ab).
-
 * macOS version adapts to Light/Dark/Accents colors at runtime. [Commit](https://github.com/frang75/nappgui_src/commit/46a3e4aa3dd920bd85d89b3387e3b2169b3a0b1e).
-
 * Read/write memory streams `END_BIT` issue. [Commit](https://github.com/frang75/nappgui_src/commit/3a75a1e7bb261fe567f72e487696079ca8eae935).
-
 * Missed unix implementation of `bfile_dir_work()`. [Commit](https://github.com/frang75/nappgui_src/commit/5b92d4fd6ca7ebabea180022de52e101bfb323b5).
-
 * macOS `comwin_open_file()` issue with file types. [Issue](https://github.com/frang75/nappgui_src/issues/107). [Commit](https://github.com/frang75/nappgui_src/commit/32acdb539adeed859986cb6472c34c29a4b0ebd0).
-
 * macOS `ekGUI_CURSOR_SIZENS` bitmap [Commit](https://github.com/frang75/nappgui_src/commit/5b247f67a1ac386ac75f2053c715010d9049f0e4).
 
 ### Build system
 
 * Fix Multi-config install issue [Commit](https://github.com/frang75/nappgui_src/commit/5eb39e984bbebed023bc4846dc5e99e318ab89f8).
-
 * Compiler warning in `dlib_proc`. [Commit](https://github.com/frang75/nappgui_src/commit/357960f16e80b9ac72d06c9fb10c9b17fcc4b520).
-
 * GCC Warnings. [Commit](https://github.com/frang75/nappgui_src/commit/16bae6f9c0540e54282a30b1ead3bbf9604b0e7f).
+* RaspPI ARM7. [Commit](https://github.com/frang75/nappgui_src/commit/28f86a97d9e82174babea15fb040d645ebf288a2).
 
 ## v1.4.0 - Dec 31, 2023 (r4772)
 
