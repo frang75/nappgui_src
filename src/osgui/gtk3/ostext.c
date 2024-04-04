@@ -600,12 +600,12 @@ static gboolean i_scroll_to_caret(OSText *view)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
+void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 {
     cassert_no_null(view);
     switch (prop)
     {
-    case ekGUI_PROP_FAMILY:
+    case ekGUI_TEXT_FAMILY:
         if (str_cmp_c(view->ffamily, (const char_t *)value) != 0)
         {
             str_copy_c(view->ffamily, sizeof(view->ffamily), (const char_t *)value);
@@ -614,7 +614,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_SIZE:
+    case ekGUI_TEXT_SIZE:
         if (view->fsize != *((real32_t *)value))
         {
             view->fsize = *((real32_t *)value);
@@ -623,7 +623,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_STYLE:
+    case ekGUI_TEXT_STYLE:
     {
         uint32_t fstyle = *(uint32_t *)value;
         if (view->fstyle & ekFPOINTS)
@@ -638,7 +638,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_UNITS:
+    case ekGUI_TEXT_UNITS:
     {
         uint32_t fstyle = view->fstyle & (~ekFPOINTS);
 
@@ -654,7 +654,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_COLOR:
+    case ekGUI_TEXT_COLOR:
         if (view->color != *((color_t *)value))
         {
             view->color = *((color_t *)value);
@@ -663,7 +663,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_BGCOLOR:
+    case ekGUI_TEXT_BGCOLOR:
         if (view->bgcolor != *((color_t *)value))
         {
             view->bgcolor = *((color_t *)value);
@@ -672,7 +672,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_PGCOLOR:
+    case ekGUI_TEXT_PGCOLOR:
         if (view->pgcolorcss != NULL)
         {
             _oscontrol_widget_remove_provider(view->tview, view->pgcolorcss);
@@ -683,7 +683,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
             _oscontrol_widget_bg_color(view->tview, "textview", *(color_t *)value, &view->pgcolorcss);
         break;
 
-    case ekGUI_PROP_PARALIGN:
+    case ekGUI_TEXT_PARALIGN:
         if (view->align != *((align_t *)value))
         {
             view->align = *((align_t *)value);
@@ -692,7 +692,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         }
         break;
 
-    case ekGUI_PROP_LSPACING:
+    case ekGUI_TEXT_LSPACING:
     {
         real32_t spacing = *((real32_t *)value);
         gint lspacing = 0;
@@ -714,7 +714,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_AFPARSPACE:
+    case ekGUI_TEXT_AFPARSPACE:
     {
         gint lspace = i_size_pango(*((real32_t *)value), view->fstyle) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->afspace_px)
@@ -727,7 +727,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_BFPARSPACE:
+    case ekGUI_TEXT_BFPARSPACE:
     {
         gint lspace = i_size_pango(*((real32_t *)value), view->fstyle) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->bfspace_px)
@@ -740,7 +740,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_SELECT:
+    case ekGUI_TEXT_SELECT:
     {
         int32_t *range = (int32_t *)value;
         view->select_start = range[0];
@@ -749,7 +749,7 @@ void ostext_property(OSText *view, const gui_prop_t prop, const void *value)
         break;
     }
 
-    case ekGUI_PROP_SCROLL:
+    case ekGUI_TEXT_SCROLL:
         /* https://discourse.gnome.org/t/gtk-text-view-scroll-to-iter-does-not-scroll-to-the-desired-position/4257 */
         g_idle_add((GSourceFunc)i_scroll_to_caret, view);
         break;

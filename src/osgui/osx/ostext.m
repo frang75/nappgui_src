@@ -424,7 +424,7 @@ static void i_change_paragraph(OSXTextView *lview)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_property(OSText *view, const gui_prop_t param, const void *value)
+void ostext_property(OSText *view, const gui_text_t param, const void *value)
 {
     OSXTextView *lview = nil;
     cassert_no_null(view);
@@ -433,7 +433,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
 
     switch (param)
     {
-    case ekGUI_PROP_FAMILY:
+    case ekGUI_TEXT_FAMILY:
         if (str_equ_c(lview->ffamily, (const char_t *)value) == FALSE)
         {
             str_copy_c(lview->ffamily, sizeof(lview->ffamily), (const char_t *)value);
@@ -441,10 +441,10 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_UNITS:
+    case ekGUI_TEXT_UNITS:
         break;
 
-    case ekGUI_PROP_SIZE:
+    case ekGUI_TEXT_SIZE:
         if (lview->fsize != *((real32_t *)value))
         {
             lview->fsize = *((real32_t *)value);
@@ -452,7 +452,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_STYLE:
+    case ekGUI_TEXT_STYLE:
         if (lview->fstyle != *((uint32_t *)value))
         {
             lview->fstyle = *((uint32_t *)value);
@@ -460,7 +460,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_COLOR:
+    case ekGUI_TEXT_COLOR:
     {
         NSColor *color = nil;
         if (*(color_t *)value == kCOLOR_TRANSPARENT)
@@ -471,14 +471,14 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         break;
     }
 
-    case ekGUI_PROP_BGCOLOR:
+    case ekGUI_TEXT_BGCOLOR:
     {
         NSColor *color = oscolor_NSColor(*(color_t *)value);
         [lview->dict setValue:color forKey:NSBackgroundColorAttributeName];
         break;
     }
 
-    case ekGUI_PROP_PGCOLOR:
+    case ekGUI_TEXT_PGCOLOR:
         if (*(color_t *)value != kCOLOR_TRANSPARENT)
         {
             NSColor *color = oscolor_NSColor(*(color_t *)value);
@@ -491,7 +491,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_PARALIGN:
+    case ekGUI_TEXT_PARALIGN:
         if (lview->palign != *((align_t *)value))
         {
             lview->palign = *((align_t *)value);
@@ -499,7 +499,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_LSPACING:
+    case ekGUI_TEXT_LSPACING:
         if (lview->pspacing != *((real32_t *)value))
         {
             lview->pspacing = *((real32_t *)value);
@@ -507,7 +507,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_AFPARSPACE:
+    case ekGUI_TEXT_AFPARSPACE:
         if (lview->pafter != *((real32_t *)value))
         {
             lview->pafter = *((real32_t *)value);
@@ -515,7 +515,7 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_BFPARSPACE:
+    case ekGUI_TEXT_BFPARSPACE:
         if (lview->pbefore != *((real32_t *)value))
         {
             lview->pbefore = *((real32_t *)value);
@@ -523,10 +523,10 @@ void ostext_property(OSText *view, const gui_prop_t param, const void *value)
         }
         break;
 
-    case ekGUI_PROP_SELECT:
+    case ekGUI_TEXT_SELECT:
         break;
 
-    case ekGUI_PROP_SCROLL:
+    case ekGUI_TEXT_SCROLL:
     {
         NSRange edrange = NSMakeRange([[lview string] length], 0);
         [lview scrollRangeToVisible:edrange];

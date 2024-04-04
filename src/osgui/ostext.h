@@ -28,7 +28,7 @@ _osgui_api void ostext_set_text(OSText *view, const char_t *text);
 
 _osgui_api void ostext_set_rtf(OSText *view, Stream *rtf_in);
 
-_osgui_api void ostext_property(OSText *view, const gui_prop_t prop, const void *value);
+_osgui_api void ostext_property(OSText *view, const gui_text_t prop, const void *value);
 
 _osgui_api void ostext_editable(OSText *view, const bool_t is_editable);
 

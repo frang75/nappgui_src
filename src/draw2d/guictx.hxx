@@ -232,21 +232,25 @@ typedef enum _gui_role_t
 typedef enum _gui_prop_t
 {
     ekGUI_PROP_RESIZE = 0,
-    ekGUI_PROP_CHILDREN = 1,
-    ekGUI_PROP_FAMILY,
-    ekGUI_PROP_UNITS,
-    ekGUI_PROP_SIZE,
-    ekGUI_PROP_STYLE,
-    ekGUI_PROP_COLOR,
-    ekGUI_PROP_BGCOLOR,
-    ekGUI_PROP_PGCOLOR,
-    ekGUI_PROP_PARALIGN,
-    ekGUI_PROP_LSPACING,
-    ekGUI_PROP_BFPARSPACE,
-    ekGUI_PROP_AFPARSPACE,
-    ekGUI_PROP_SELECT,
-    ekGUI_PROP_SCROLL
+    ekGUI_PROP_CHILDREN
 } gui_prop_t;
+
+typedef enum _gui_text_t
+{
+    ekGUI_TEXT_FAMILY = 0,
+    ekGUI_TEXT_UNITS,
+    ekGUI_TEXT_SIZE,
+    ekGUI_TEXT_STYLE,
+    ekGUI_TEXT_COLOR,
+    ekGUI_TEXT_BGCOLOR,
+    ekGUI_TEXT_PGCOLOR,
+    ekGUI_TEXT_PARALIGN,
+    ekGUI_TEXT_LSPACING,
+    ekGUI_TEXT_BFPARSPACE,
+    ekGUI_TEXT_AFPARSPACE,
+    ekGUI_TEXT_SELECT,
+    ekGUI_TEXT_SCROLL
+} gui_text_t;
 
 typedef enum _clipboard_t
 {
@@ -506,9 +510,9 @@ typedef void (*FPtr_gctx_set_elem)(void *item, const ctrl_op_t op, const uint32_
 #define FUNC_CHECK_GCTX_SET_ELEM(func, type) \
     (void)((void (*)(type *, const ctrl_op_t, const uint32_t, const char_t *, const Image *))func == func)
 
-typedef void (*FPtr_gctx_set_property)(void *item, const gui_prop_t prop, const void *value);
-#define FUNC_CHECK_GCTX_SET_PROPERTY(func, type) \
-    (void)((void (*)(type *, const gui_prop_t, const void *))func == func)
+typedef void (*FPtr_gctx_set_property)(void *item, const enum_t prop, const void *value);
+#define FUNC_CHECK_GCTX_SET_PROPERTY(func, type, prop_type) \
+    (void)((void (*)(type *, const prop_type, const void *))func == func)
 
 typedef void (*FPtr_gctx_set_key)(void *item, const uint32_t key, const uint32_t modifiers);
 #define FUNC_CHECK_GCTX_SET_KEY(func, type) \
