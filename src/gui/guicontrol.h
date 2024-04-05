@@ -45,10 +45,6 @@ _gui_api SplitView *guicontrol_splitview(GuiControl *control);
 
 _gui_api Panel *guicontrol_panel(GuiControl *control);
 
-_gui_api void guicontrol_enabled(GuiControl *control, const bool_t enabled);
-
-_gui_api void guicontrol_visible(GuiControl *control, const bool_t visible);
-
 _gui_api void guicontrol_tag(GuiControl *control, const uint32_t tag);
 
 _gui_api uint32_t guicontrol_get_tag(const GuiControl *control);

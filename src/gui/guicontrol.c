@@ -183,20 +183,6 @@ Panel *guicontrol_panel(GuiControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-void guicontrol_enabled(GuiControl *control, const bool_t enabled)
-{
-    _component_enabled((GuiComponent *)control, enabled);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void guicontrol_visible(GuiControl *control, const bool_t visible)
-{
-    _component_visible((GuiComponent *)control, visible);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void guicontrol_tag(GuiControl *control, const uint32_t tag)
 {
     GuiComponent *component = (GuiComponent *)control;
