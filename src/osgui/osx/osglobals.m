@@ -113,7 +113,7 @@ static void i_theme_colors(void)
 #endif
     oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBG_COLOR);
 
-    /* Text background color in not active windows (normal, selected, mouse over */
+    /* Text background color in not active windows (normal, selected, mouse over) */
     oscolor_NSColor_rgba_v([NSColor controlColor], i_BACKBACKDROP_COLOR);
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextBackgroundColor], i_SELBGBACKDROP_COLOR);
