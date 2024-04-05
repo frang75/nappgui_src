@@ -6,7 +6,11 @@
 
 * WindowsXP TableView/ListBox select colors. [Commit](https://github.com/frang75/nappgui_src/commit/fd0983ff06cbea190a543e9f119e749c436b954d).
 
-* macOS TableView/ListBox select colors. [Isssue](https://github.com/frang75/nappgui_src/issues/115).
+* macOS TableView/ListBox select colors. [Issue](https://github.com/frang75/nappgui_src/issues/115). [Commit](https://github.com/frang75/nappgui_src/commit/7485964f68e5647c5a31e267ce3a8d2b059ca031).
+
+### Removed
+
+* `guicontrol_enabled()` and `guicontrol_visible()` because unsafe. Use `cell_enabled()`, `cell_visible()`.
 
 ### Improved
 
