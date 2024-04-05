@@ -92,7 +92,16 @@ static void i_draw_flat_button(HWND hwnd, const Image *image)
             state = TS_NORMAL;
         }
 
-        osstyleXP_DrawThemeBackground(hwnd, hdc, TP_BUTTON, state, TRUE, &rect, &border);
+        /* WindowsXP draws nothing in TS_NORMAL (doesn't erase background) */
+        if (osbs_windows() > ekWIN_XP3 || state != TS_NORMAL)
+        {
+            osstyleXP_DrawThemeBackground(hwnd, hdc, TP_BUTTON, state, TRUE, &rect, &border);
+        }
+        else
+        {
+            HBRUSH brush = GetSysColorBrush(COLOR_BTNFACE);
+            FillRect(hdc, &rect, brush);
+        }
     }
     else
     {
