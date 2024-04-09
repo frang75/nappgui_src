@@ -377,7 +377,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
         cassert(size == 0);
     }
 
-#if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined(MAC_OS_X_VERSION_10_11) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_11
     {
         /* Synchronous request */
         bool_t end = FALSE;
