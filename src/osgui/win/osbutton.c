@@ -25,6 +25,7 @@
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <osbs/osbs.h>
 #include <osbs/btime.h>
 #include <sewer/bmath.h>
 #include <sewer/cassert.h>

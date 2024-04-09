@@ -6,7 +6,7 @@
 
 * WindowsXP TableView/ListBox select colors. [Commit](https://github.com/frang75/nappgui_src/commit/fd0983ff06cbea190a543e9f119e749c436b954d).
 * macOS TableView/ListBox select colors. [Issue](https://github.com/frang75/nappgui_src/issues/115). [Commit](https://github.com/frang75/nappgui_src/commit/7485964f68e5647c5a31e267ce3a8d2b059ca031).
-* WindowsXP flat buttons drawing.
+* WindowsXP flat buttons drawing. [Commit](https://github.com/frang75/nappgui_src/commit/adbb2db0f614db810a17f6c945a44134294efa60).
 
 ### Removed
 
@@ -16,6 +16,10 @@
 
 * `gui_text_t` properties in private API. [Commit](https://github.com/frang75/nappgui_src/commit/579766ab451eb445ce5013a93892261997137706).
 * `str_splits()` adds a new `add_empty` parameter. [Issue](https://github.com/frang75/nappgui_src/issues/124). [Doc](https://nappgui.com/en/core/string.html#f52). [Commit](https://github.com/frang75/nappgui_src/commit/845c4c01ca282abbe6751ed51cb6a28b1860076f).
+
+### Build system
+
+* macOS Snow Leopard/Lion compiler warnings.
 
 ## v1.4.1 - Apr 3, 2024 (r4993)
 
