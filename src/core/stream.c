@@ -1384,8 +1384,8 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
         else
         {
             byte_t waste[512];
-            uint32_t i, n = remain / sizeof(waste);
-            uint32_t last = remain % sizeof(waste);
+            uint32_t i, n = remain / sizeof32(waste);
+            uint32_t last = remain % sizeof32(waste);
 
             for (i = 0; i < n; ++i)
                 i_read_from_socket(stm, waste, sizeof(waste));

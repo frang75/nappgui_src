@@ -103,6 +103,7 @@
         }
 #endif
 
+        unref(dark_mode);
         osglobals_theme_changed();
 
         if (self->OnThemeChanged != NULL)

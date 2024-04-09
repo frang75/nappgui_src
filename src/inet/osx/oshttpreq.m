@@ -379,7 +379,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
 
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     {
-        // Synchronous request
+        /* Synchronous request */
         bool_t end = FALSE;
         NSURLSessionTask *task = nil;
         http->delegate->auto_redirect = auto_redirect;
