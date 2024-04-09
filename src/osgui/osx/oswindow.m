@@ -300,7 +300,7 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
     {
         BOOL previous = NO;
 
-#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
         NSEventModifierFlags flags = [theEvent modifierFlags];
         previous = (flags & NSEventModifierFlagShift) != 0;
 #else

@@ -9,6 +9,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <stdlib.h>
 #include <sewer/warn.hxx>
 
 using namespace std;

@@ -46,6 +46,7 @@
     Listener *OnAcceptFocus;
     Listener *OnOverlay;
     BOOL mouse_inside;
+    BOOL focused;
 }
 @end
 
@@ -118,6 +119,25 @@
             listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
         }
     }
+
+    /* Draw focus ring in older mac OSX */
+#if defined(MAC_OS_X_VERSION_10_11) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_11
+#else
+    if (self->flags & ekVIEW_BORDER)
+    {
+        if (self->focused == YES)
+        {
+            NSRect r = [self bounds];
+            if (self->scroll != NULL)
+            {
+                r.size.width -= (CGFloat)(osscrolls_bar_width(self->scroll, TRUE) + 2);
+                r.size.height -= (CGFloat)(osscrolls_bar_height(self->scroll, TRUE) + 2);
+            }
+            NSSetFocusRingStyle(NSFocusRingOnly);
+            NSRectFill(r);
+        }
+    }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -299,6 +319,7 @@ OSView *osview_create(const uint32_t flags)
     view->OnAcceptFocus = NULL;
     view->OnOverlay = NULL;
     view->mouse_inside = NO;
+    view->focused = NO;
     view->osdraw.view = view;
     _oslistener_init(&view->listeners);
 
@@ -770,6 +791,14 @@ void osview_focus(OSView *view, const bool_t focus)
         bool_t params = focus;
         listener_event(lview->OnFocus, ekGUI_EVENT_FOCUS, (OSView *)lview, &params, NULL, OSView, bool_t, void);
     }
+
+    lview->focused = (BOOL)focus;
+
+#if defined(MAC_OS_X_VERSION_10_11) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_11
+#else
+    if (lview->flags & ekVIEW_BORDER)
+        [lview setKeyboardFocusRingNeedsDisplayInRect:[lview bounds]];
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

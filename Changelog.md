@@ -7,6 +7,7 @@
 * WindowsXP TableView/ListBox select colors. [Commit](https://github.com/frang75/nappgui_src/commit/fd0983ff06cbea190a543e9f119e749c436b954d).
 * macOS TableView/ListBox select colors. [Issue](https://github.com/frang75/nappgui_src/issues/115). [Commit](https://github.com/frang75/nappgui_src/commit/7485964f68e5647c5a31e267ce3a8d2b059ca031).
 * WindowsXP flat buttons drawing. [Commit](https://github.com/frang75/nappgui_src/commit/adbb2db0f614db810a17f6c945a44134294efa60).
+* macOS Snow Leopard focus ring.
 
 ### Removed
 

@@ -12,7 +12,7 @@ macro(nap_apple_clang_flags)
     	set(FLAGS "${FLAGS} -Wno-extended-offsetof")
     endif()
 
-    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "5.99.9999")
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "6.99.9999")
     	set(FLAGS "${FLAGS} -Wno-undefined-var-template")
     endif()
 

@@ -90,7 +90,7 @@ static void i_theme_colors(void)
 
     /* Text color (normal, selected, mouse over) */
     oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXT_COLOR);
-    oscolor_NSColor_rgba_v([NSColor selectedControlTextColor], i_SELTX_COLOR);
+    oscolor_NSColor_rgba_v([NSColor selectedMenuItemTextColor], i_SELTX_COLOR);
     oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTX_COLOR);
 
     /* Text color in not active windows (normal, selected, mouse over) */
@@ -105,12 +105,13 @@ static void i_theme_colors(void)
     oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTXBACKDROP_COLOR);
 
     /* Text background color (normal, selected, mouse over */
-    oscolor_NSColor_rgba_v([NSColor controlColor], i_BACK_COLOR);
+    oscolor_NSColor_rgba_v([NSColor controlBackgroundColor], i_BACK_COLOR);
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     oscolor_NSColor_rgba_v([NSColor selectedContentBackgroundColor], i_SELBG_COLOR);
 #else
-    oscolor_NSColor_rgba_v([NSColor selectedControlColor], i_SELBG_COLOR);
+    oscolor_NSColor_rgba_v([NSColor selectedMenuItemColor], i_SELBG_COLOR);
 #endif
+
     oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBG_COLOR);
 
     /* Text background color in not active windows (normal, selected, mouse over) */
@@ -122,7 +123,7 @@ static void i_theme_colors(void)
 #endif
     oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBGBACKDROP_COLOR);
 
-/* Color for grids */
+    /* Color for grids */
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     i_GRID_COLOR = oscolor_from_NSColor([NSColor separatorColor]);
 #else
