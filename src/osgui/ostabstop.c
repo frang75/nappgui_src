@@ -340,8 +340,11 @@ static gui_focus_t i_try_change_focus(OSTabStop *tabstop, OSControl *control, co
 
                     if (focus != next_control)
                     {
-                        i_on_focus(focus, FALSE);
-                        i_on_focus(next_control, TRUE);
+                        if (focus != NULL)
+                            i_on_focus(focus, FALSE);
+
+                        if (next_control != NULL)
+                            i_on_focus(next_control, TRUE);
                     }
 
                     fstate = ekGUI_FOCUS_CHANGED;
