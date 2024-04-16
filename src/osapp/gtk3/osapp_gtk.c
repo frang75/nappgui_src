@@ -19,6 +19,7 @@
 #include <osbs/bfile.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
+#include <sewer/unicode.h>
 #include <stdlib.h>
 #include <locale.h>
 
@@ -159,22 +160,21 @@ void osapp_terminate_imp(OSApp **app, const bool_t abnormal_termination, FPtr_de
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argc(OSApp *app)
+uint32_t osapp_argc_imp(OSApp *app)
 {
     cassert_no_null(app);
-    cassert(FALSE);
-    return 0;
+    cassert(app == &i_APP);
+    return app->argc;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_argv(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
+uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
 {
-    unref(app);
-    unref(index);
-    unref(argv);
-    unref(max_size);
-    cassert(FALSE);
+    cassert_no_null(app);
+    cassert(app == &i_APP);
+    cassert(index < app->argc);
+    return unicode_convers((const char_t *)app->argv[index], argv, ekUTF8, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -263,7 +263,7 @@ void osapp_run(OSApp *app)
     cassert(app->with_run_loop == TRUE);
     signal_id = g_signal_connect(app->gtk_app, "activate", G_CALLBACK(i_OnActivate), (gpointer)app);
     cassert_unref(signal_id > 0, signal_id);
-    status = g_application_run(G_APPLICATION(app->gtk_app), app->argc, app->argv);
+    status = g_application_run(G_APPLICATION(app->gtk_app), 0, NULL);
     unref(status);
     app->func_OnExecutionEnd();
 }

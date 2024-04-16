@@ -35,9 +35,9 @@ void osapp_terminate_imp(
     FPtr_destroy func_destroy,
     FPtr_app_void func_OnExecutionEnd);
 
-uint32_t osapp_argc(OSApp *app);
+uint32_t osapp_argc_imp(OSApp *app);
 
-void osapp_argv(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size);
+uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size);
 
 void osapp_run(OSApp *app);
 

@@ -17,6 +17,10 @@ __EXTERN_C
 
 _osapp_api void osapp_finish(void);
 
+_osapp_api uint32_t osapp_argc(void);
+
+_osapp_api uint32_t osapp_argv(const uint32_t index, char_t *argv, const uint32_t size);
+
 _osapp_api void osapp_task_imp(void *data, const real32_t updtime, FPtr_task_main func_task_main, FPtr_task_update func_task_update, FPtr_task_end func_task_end);
 
 _osapp_api void osapp_menubar(Menu *menu, Window *window);

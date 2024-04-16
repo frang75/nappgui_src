@@ -2,13 +2,17 @@
 
 ## v1.4.2 - WIP
 
+### Added
+
+* `osapp_argc()` and `osapp_argv()`.
+
 ### Fixed
 
 * WindowsXP TableView/ListBox select colors. [Commit](https://github.com/frang75/nappgui_src/commit/fd0983ff06cbea190a543e9f119e749c436b954d).
 * macOS TableView/ListBox select colors. [Issue](https://github.com/frang75/nappgui_src/issues/115). [Commit](https://github.com/frang75/nappgui_src/commit/7485964f68e5647c5a31e267ce3a8d2b059ca031).
 * WindowsXP flat buttons drawing. [Commit](https://github.com/frang75/nappgui_src/commit/adbb2db0f614db810a17f6c945a44134294efa60).
 * macOS Snow Leopard focus ring. [Commit](https://github.com/frang75/nappgui_src/commit/0bd24f6dcb2135e8de763a8a98dd64dc7c98d6c6).
-* Crash in ColorView demo. [Issue](https://github.com/frang75/nappgui_src/issues/131).
+* Crash in ColorView demo. [Issue](https://github.com/frang75/nappgui_src/issues/131). [Commit](https://github.com/frang75/nappgui_src/commit/761ce9ab81a33f74f7591609f02508d5da2c1dc7).
 
 ### Removed
 

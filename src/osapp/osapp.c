@@ -376,6 +376,22 @@ void osapp_finish(void)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t osapp_argc(void)
+{
+    i_App *app = osapp_listener(i_App);
+    return osapp_argc_imp(app->osapp);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t osapp_argv(const uint32_t index, char_t *argv, const uint32_t size)
+{
+    i_App *app = osapp_listener(i_App);
+    return osapp_argv_imp(app->osapp, index, argv, size);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osapp_task_imp(void *data, const real32_t updtime, FPtr_task_main func_task_main, FPtr_task_update func_task_update, FPtr_task_end func_task_end)
 {
     i_App *app = osapp_listener(i_App);

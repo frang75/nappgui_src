@@ -316,7 +316,7 @@ void osapp_terminate_imp(
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argc(OSApp *app)
+uint32_t osapp_argc_imp(OSApp *app)
 {
     OSXAppDelegate *delegate = NULL;
     cassert_no_null(app);
@@ -327,13 +327,14 @@ uint32_t osapp_argc(OSApp *app)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_argv(OSApp *app, const uint32_t idx, char_t *argv, const uint32_t max_size)
+uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
 {
     OSXAppDelegate *delegate = NULL;
     cassert_no_null(app);
     cassert((NSApplication *)app == NSApp);
     delegate = [(NSApplication *)app delegate];
-    unicode_convers((const char_t *)delegate->argv[idx], argv, ekUTF8, ekUTF8, max_size);
+    cassert(index < delegate->argc);
+    return unicode_convers((const char_t *)delegate->argv[index], argv, ekUTF8, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/

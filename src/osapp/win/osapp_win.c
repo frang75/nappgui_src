@@ -151,19 +151,21 @@ void osapp_terminate_imp(OSApp **app, const bool_t abnormal_termination, FPtr_de
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argc(OSApp *app)
+uint32_t osapp_argc_imp(OSApp *app)
 {
     cassert_no_null(app);
+    cassert(app == &i_APP);
     return (uint32_t)app->nArgs;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_argv(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
+uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
 {
     cassert_no_null(app);
+    cassert(app == &i_APP);
     cassert(index < (uint32_t)app->nArgs);
-    unicode_convers((const char_t *)app->szArgList[index], argv, ekUTF16, ekUTF8, max_size);
+    return unicode_convers((const char_t *)app->szArgList[index], argv, ekUTF16, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/
