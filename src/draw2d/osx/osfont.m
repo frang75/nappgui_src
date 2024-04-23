@@ -27,9 +27,8 @@
 #error This file is only for OSX
 #endif
 
-/*---------------------------------------------------------------------------*/
-
-#define i_abs(x) (((x) < 0.f) ? -(x) : (x))
+static String *i_SYSTEM_FONT_FAMILY = NULL;
+static String *i_MONOSPACE_FONT_FAMILY = NULL;
 
 /*---------------------------------------------------------------------------*/
 
@@ -41,6 +40,8 @@ void osfont_alloc_globals(void)
 
 void osfont_dealloc_globals(void)
 {
+    str_destopt(&i_SYSTEM_FONT_FAMILY);
+    str_destopt(&i_MONOSPACE_FONT_FAMILY);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -62,6 +63,26 @@ real32_t font_small_size(void)
 real32_t font_mini_size(void)
 {
     return (real32_t)[NSFont smallSystemFontSize] - 2.f;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static const char_t *i_monospace_font_family(void)
+{
+    if (i_MONOSPACE_FONT_FAMILY == NULL)
+    {
+        /* From Catalina, we have a system predefined monospace font */
+#if defined(MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
+        cassert(FALSE);
+        return NULL;
+#else
+        const char_t *desired_fonts[] = {"SF Mono", "Menlo", "Monaco", "Andale Mono", "Courier New"};
+        const char_t *monofont = draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
+        i_MONOSPACE_FONT_FAMILY = str_c(monofont);
+#endif
+    }
+
+    return tc(i_MONOSPACE_FONT_FAMILY);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -117,13 +138,14 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
     }
     else if (str_equ_c(family, "__MONOSPACE__") == TRUE)
     {
+        /* From Catalina, we have a system predefined monospace font */
 #if defined(MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
         if (style & ekFBOLD)
             nsfont = [NSFont monospacedSystemFontOfSize:(CGFloat)size weight:NSFontWeightBold];
         else
             nsfont = [NSFont monospacedSystemFontOfSize:(CGFloat)size weight:NSFontWeightLight];
 #else
-        name = "Courier New";
+        name = i_monospace_font_family();
 #endif
     }
     else
@@ -131,14 +153,15 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t 
         name = family;
     }
 
-    if (nsfont == nil)
+    if (nsfont == nil && name != NULL)
     {
         NSFontManager *fontManager = [NSFontManager sharedFontManager];
         NSString *ffamily = [NSString stringWithUTF8String:name];
         NSUInteger mask = (style & ekFBOLD) ? NSBoldFontMask : 0;
         nsfont = [fontManager fontWithFamily:ffamily traits:(NSFontTraitMask)mask weight:5 size:(CGFloat)size];
-        cassert_fatal_msg(nsfont != nil, "Font is not available on this computer.");
     }
+
+    cassert_fatal_msg(nsfont != nil, "Font is not available on this computer.");
 
     if (nsfont != nil)
     {
@@ -160,48 +183,95 @@ void osfont_destroy(OSFont **font)
 {
     cassert_no_null(font);
     cassert_no_null(*font);
-    [(NSFont *)*font release];
+    [cast(*font, NSFont) release];
+    *font = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
 String *osfont_family_name(const OSFont *font)
 {
-    NSFont *nsfont = (NSFont *)font;
+    NSFont *nsfont = cast(font, NSFont);
     NSString *fname = nil;
     const char_t *utf8name = NULL;
     cassert_no_null(nsfont);
     fname = [nsfont familyName];
-    utf8name = (const char_t *)[fname UTF8String];
+    utf8name = cast_const([fname UTF8String], char_t);
     return str_c(utf8name);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osfont_metrics(const OSFont *font, real32_t *internal_leading, real32_t *cell_size)
+font_family_t osfont_system(const char_t *family)
 {
-    NSFont *nsfont = (NSFont *)font;
-    /*NSRect rect = [nsfont boundingRectForFont];*/
-    CGFloat ascender = [nsfont ascender];
-    CGFloat descender = -[nsfont descender];
-    CGFloat leading = [nsfont leading];
-    cassert_no_null(internal_leading);
-    cassert_no_null(cell_size);
-    *internal_leading = (real32_t)leading;
-    *cell_size = (real32_t)(ascender + descender);
+    if (i_SYSTEM_FONT_FAMILY == NULL)
+    {
+        Font *font = font_system(15, 0);
+        const char_t *family = font_family(font);
+        i_SYSTEM_FONT_FAMILY = str_c(family);
+        font_destroy(&font);
+    }
+
+    if (str_equ(i_SYSTEM_FONT_FAMILY, family) == TRUE)
+        return ekFONT_FAMILY_SYSTEM;
+
+    if (i_MONOSPACE_FONT_FAMILY == NULL)
+    {
+        Font *font = font_monospace(15, 0);
+        const char_t *family = font_family(font);
+        i_MONOSPACE_FONT_FAMILY = str_c(family);
+        font_destroy(&font);
+    }
+
+    if (str_equ(i_MONOSPACE_FONT_FAMILY, family) == TRUE)
+        return ekFONT_FAMILY_MONOSPACE;
+
+    return ENUM_MAX(font_family_t);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osfont_metrics(const OSFont *font, const real32_t size, real32_t *ascent, real32_t *descent, real32_t *leading, real32_t *cell_size, bool_t *monospace)
+{
+    NSFont *nsfont = cast(font, NSFont);
+
+    if (ascent != NULL)
+        *ascent = (real32_t)[nsfont ascender];
+
+    if (descent != NULL)
+        *descent = (real32_t) - [nsfont descender];
+
+    if (leading != NULL)
+    {
+        real32_t width, height;
+        osfont_extents(font, "O", -1, &width, &height);
+        unref(width);
+        *leading = height - size;
+    }
+
+    if (cell_size != NULL)
+    {
+        real32_t width;
+        osfont_extents(font, "O", -1, &width, cell_size);
+        unref(width);
+    }
+
+    if (monospace != NULL)
+        *monospace = (bool_t)[nsfont isFixedPitch];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    MeasureStr data;
     id objects[1];
     id keys[1];
+    MeasureStr data;
     NSUInteger count = sizeof(objects) / sizeof(id);
-    objects[0] = (NSFont *)font;
-    keys[0] = NSFontAttributeName;
+    cassert_no_null(font);
     cassert(count == 1);
+    objects[0] = cast(font, NSFont);
+    keys[0] = NSFontAttributeName;
     data.dict = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
     draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
 }
@@ -210,23 +280,22 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t refwi
 
 const void *osfont_native(const OSFont *font)
 {
-    return (void *)font;
+    return cast(font, void);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t font_exists_family(const char_t *ffamily)
 {
-    NSFontManager *fontManager = nil;
+    NSFontManager *fontManager = [NSFontManager sharedFontManager];
     NSArray *families = nil;
     NSUInteger i, count;
-    fontManager = [NSFontManager sharedFontManager];
     cassert_no_null(fontManager);
     families = [fontManager availableFontFamilies];
     count = [families count];
     for (i = 0; i < count; ++i)
     {
-        NSString *family = (NSString *)[families objectAtIndex:i];
+        NSString *family = cast([families objectAtIndex:i], NSString);
         const char_t *family_str = [family UTF8String];
         if (str_equ_c(ffamily, family_str) == TRUE)
             return TRUE;
@@ -237,24 +306,48 @@ bool_t font_exists_family(const char_t *ffamily)
 
 /*---------------------------------------------------------------------------*/
 
-ArrPt(String) *font_installed_families(void)
+static ArrPt(String) *i_installed_families(const bool_t only_mono)
 {
-    NSFontManager *fontManager = nil;
+    NSFontManager *fontManager = [NSFontManager sharedFontManager];
     NSArray *families = nil;
     NSUInteger i, count;
     ArrPt(String) *font_families = NULL;
-    fontManager = [NSFontManager sharedFontManager];
     cassert_no_null(fontManager);
     families = [fontManager availableFontFamilies];
     count = [families count];
     font_families = arrpt_create(String);
     for (i = 0; i < count; ++i)
     {
-        NSString *family = (NSString *)[families objectAtIndex:i];
-        const char_t *family_str = [family UTF8String];
-        String *ffamily = str_c(family_str);
-        arrpt_append(font_families, ffamily, String);
+        NSString *family = cast([families objectAtIndex:i], NSString);
+        BOOL add = YES;
+
+        if (only_mono == TRUE)
+        {
+            NSFont *nsfont = [fontManager fontWithFamily:family traits:0 weight:5 size:20];
+            add = [nsfont isFixedPitch];
+        }
+
+        if (add == YES)
+        {
+            const char_t *family_str = [family UTF8String];
+            String *ffamily = str_c(family_str);
+            arrpt_append(font_families, ffamily, String);
+        }
     }
 
     return font_families;
+}
+
+/*---------------------------------------------------------------------------*/
+
+ArrPt(String) *font_installed_families(void)
+{
+    return i_installed_families(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+ArrPt(String) *font_installed_monospace(void)
+{
+    return i_installed_families(TRUE);
 }

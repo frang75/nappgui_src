@@ -19,7 +19,8 @@ static void i_OnLayoutWidth(Layout *layout, Event *event)
 {
     const EvButton *p = event_params(event, EvButton);
     real32_t width = 0;
-    switch (p->index) {
+    switch (p->index)
+    {
     case 0:
         width = 0;
         break;
@@ -35,7 +36,7 @@ static void i_OnLayoutWidth(Layout *layout, Event *event)
     case 4:
         width = 400;
         break;
-    cassert_default();
+        cassert_default();
     }
 
     layout_hsize(layout, 0, width);
@@ -180,4 +181,3 @@ Panel *labels_mouse_over(void)
     font_destroy(&font);
     return panel;
 }
-

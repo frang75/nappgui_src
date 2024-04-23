@@ -19,6 +19,7 @@
 #include "osgui.inl"
 #include "oscolor.inl"
 #include <draw2d/color.h>
+#include <draw2d/font.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
@@ -305,42 +306,6 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
 
 /*---------------------------------------------------------------------------*/
 
-static NSFont *i_convent_to_italic(NSFont *font, const CGFloat height, NSFontManager *font_manager)
-{
-    NSFont *italic_font = nil;
-    NSFontTraitMask fontTraits = (NSFontTraitMask)0;
-    cassert_no_null(font);
-
-    italic_font = [font_manager convertFont:font toHaveTrait:NSItalicFontMask];
-    fontTraits = [font_manager traitsOfFont:italic_font];
-
-    if ((fontTraits & NSItalicFontMask) == 0)
-    {
-        NSAffineTransform *font_transform = [NSAffineTransform transform];
-        [font_transform scaleBy:height];
-
-        {
-            NSAffineTransformStruct data;
-            NSAffineTransform *italic_transform = nil;
-            data.m11 = 1.f;
-            data.m12 = 0.f;
-            data.m21 = -tanf(/*italic_angle*/ -10.f * 0.017453292519943f);
-            data.m22 = 1.f;
-            data.tX = 0.f;
-            data.tY = 0.f;
-            italic_transform = [NSAffineTransform transform];
-            [italic_transform setTransformStruct:data];
-            [font_transform appendTransform:italic_transform];
-        }
-
-        italic_font = [NSFont fontWithDescriptor:[italic_font fontDescriptor] textTransform:font_transform];
-    }
-
-    return italic_font;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static NSFont *i_font_create(const char_t *family, const real32_t size, const uint32_t style)
 {
     NSFont *nsfont = nil;
@@ -357,20 +322,9 @@ static NSFont *i_font_create(const char_t *family, const real32_t size, const ui
         return nil;
 
     {
-        NSFontManager *fontManager = [NSFontManager sharedFontManager];
-        NSString *ffamily = [NSString stringWithUTF8String:family];
-        NSUInteger mask = (style & ekFBOLD) ? NSBoldFontMask : 0;
-        nsfont = [fontManager fontWithFamily:ffamily traits:(NSFontTraitMask)mask weight:5 size:(CGFloat)size];
-        cassert_fatal_msg(nsfont != nil, "Font is not available on this computer.");
-    }
-
-    if (nsfont != nil)
-    {
-        if (style & ekFITALIC)
-        {
-            NSFontManager *fontManager = [NSFontManager sharedFontManager];
-            nsfont = i_convent_to_italic(nsfont, (CGFloat)size, fontManager);
-        }
+        Font *font = font_create(family, size, style);
+        nsfont = (NSFont *)font_native(font);
+        font_destroy(&font);
     }
 
     return nsfont;

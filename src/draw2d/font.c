@@ -25,7 +25,11 @@ struct _font_t
     uint32_t style;
     real32_t size;
     real32_t cell_size;
-    real32_t internal_leading;
+    real32_t leading;
+    real32_t ascent;
+    real32_t descent;
+    bool_t monospace;
+    bool_t metrics;
     String *family_name;
     OSFont *osfont;
 };
@@ -44,7 +48,11 @@ static Font *i_create_font(const uint32_t family, const real32_t size, const uin
     font->size = size;
     font->style = style;
     font->cell_size = -1;
-    font->internal_leading = -1;
+    font->leading = -1;
+    font->ascent = -1;
+    font->descent = -1;
+    font->monospace = FALSE;
+    font->metrics = FALSE;
     font->family_name = NULL;
     font->osfont = NULL;
     return font;
@@ -105,8 +113,8 @@ Font *font_with_style(const Font *font, const uint32_t style)
 Font *font_copy(const Font *font)
 {
     cassert_no_null(font);
-    ((Font *)font)->num_instances += 1;
-    return (Font *)font;
+    cast(font, Font)->num_instances += 1;
+    return cast(font, Font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -143,8 +151,8 @@ const char_t *font_family(const Font *font)
     cassert_no_null(font);
     if (font->family_name == NULL)
     {
-        i_osfont((Font *)font);
-        ((Font *)font)->family_name = osfont_family_name(font->osfont);
+        i_osfont(cast(font, Font));
+        cast(font, Font)->family_name = osfont_family_name(font->osfont);
     }
 
     return tc(font->family_name);
@@ -160,16 +168,42 @@ real32_t font_size(const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-/* Review this function -- Can create a GDI font in a GDI+ context!!! */
+static __INLINE void i_metrics(Font *font)
+{
+    cassert_no_null(font);
+    if (font->metrics == FALSE)
+    {
+        i_osfont(font);
+        osfont_metrics(font->osfont, font->size, &font->ascent, &font->descent, &font->leading, &font->cell_size, &font->monospace);
+        font->metrics = TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 real32_t font_height(const Font *font)
 {
     cassert_no_null(font);
-    if (font->cell_size < 0)
-    {
-        i_osfont((Font *)font);
-        osfont_metrics(font->osfont, &((Font *)font)->internal_leading, &((Font *)font)->cell_size);
-    }
+    i_metrics(cast(font, Font));
     return font->cell_size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t font_ascent(const Font *font)
+{
+    cassert_no_null(font);
+    i_metrics(cast(font, Font));
+    return font->ascent;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t font_descent(const Font *font)
+{
+    cassert_no_null(font);
+    i_metrics(cast(font, Font));
+    return font->descent;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -177,12 +211,17 @@ real32_t font_height(const Font *font)
 real32_t font_leading(const Font *font)
 {
     cassert_no_null(font);
-    if (font->internal_leading < 0)
-    {
-        i_osfont((Font *)font);
-        osfont_metrics(font->osfont, &((Font *)font)->internal_leading, &((Font *)font)->cell_size);
-    }
-    return font->internal_leading;
+    i_metrics(cast(font, Font));
+    return font->leading;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t font_is_monospace(const Font *font)
+{
+    cassert_no_null(font);
+    i_metrics(cast(font, Font));
+    return font->monospace;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -198,7 +237,7 @@ uint32_t font_style(const Font *font)
 void font_extents(const Font *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     cassert_no_null(font);
-    i_osfont((Font *)font);
+    i_osfont(cast(font, Font));
     osfont_extents(font->osfont, text, refwidth, width, height);
 }
 
@@ -207,6 +246,6 @@ void font_extents(const Font *font, const char_t *text, const real32_t refwidth,
 const void *font_native(const Font *font)
 {
     cassert_no_null(font);
-    i_osfont((Font *)font);
+    i_osfont(cast(font, Font));
     return font->osfont;
 }

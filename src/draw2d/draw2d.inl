@@ -22,6 +22,8 @@ color_t draw2d_get_indexed_color(const uint16_t index);
 
 void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const bool_t newlines, const char_t *str, const real32_t refwidth, real32_t *width, real32_t *height);
 
+const char_t *draw2d_monospace_family(const char_t **desired_fonts, const uint32_t n);
+
 __END_C
 
 #define draw2d_extents(data, func_word_extents, newlines, str, refwidth, width, height, type) \

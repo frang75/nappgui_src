@@ -40,7 +40,8 @@ static void i_set_panel(App *app, const uint32_t index)
 {
     Panel *panel = NULL;
     Button *defbutton = NULL;
-    switch (index) {
+    switch (index)
+    {
     case 0:
         panel = labels_single_line();
         break;
@@ -229,8 +230,8 @@ static void i_OnClose(App *app, Event *e)
     bool_t *close = event_result(e, bool_t);
     cassert_no_null(app);
 
-    switch(p->origin) {
-
+    switch (p->origin)
+    {
     case ekGUI_CLOSE_ESC:
         i_modal_window(app->window, "Pressed [ESC] key. Press [ESC] again or [RETURN] to exit.");
         osapp_finish();
@@ -246,7 +247,7 @@ static void i_OnClose(App *app, Event *e)
         break;
 
     case ekGUI_CLOSE_DEACT:
-    cassert_default();
+        cassert_default();
     }
 }
 

@@ -152,6 +152,10 @@
 /*! <Pointer sizeof> */
 #define sizeofptr   sizeof(void*)
 
+/*! <Pointer casting> */
+#define cast(ptr, type) ((type*)ptr)
+#define cast_const(ptr, type) ((const type*)ptr)
+
 /*! <Struct Access> */
 #if defined (__clang__)
     /* Avoid Warn Using extended field designator is an extension */

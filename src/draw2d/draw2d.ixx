@@ -17,11 +17,11 @@
 
 typedef struct _measurestr_t MeasureStr;
 
-enum font_family_t
+typedef enum _font_family_t
 {
     ekFONT_FAMILY_SYSTEM = 0,
     ekFONT_FAMILY_MONOSPACE = 1
-};
+} font_family_t;
 
 typedef struct _osfont_t OSFont;
 typedef struct _osimage_t OSImage;

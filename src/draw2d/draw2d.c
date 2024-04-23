@@ -48,6 +48,7 @@ DeclSt(IColor);
 static uint32_t i_NUM_USERS = 0;
 static ArrPt(String) *i_FONT_FAMILIES;
 static ArrSt(IColor) *i_INDEXED_COLORS;
+static String *i_MONOSPACE_FONT_FAMILY = NULL;
 
 /*---------------------------------------------------------------------------*/
 
@@ -99,6 +100,7 @@ void draw2d_finish(void)
         dbind_opaque_destroy("Image");
         arrpt_destroy(&i_FONT_FAMILIES, str_destroy, String);
         arrst_destroy(&i_INDEXED_COLORS, NULL, IColor);
+        str_destopt(&i_MONOSPACE_FONT_FAMILY);
         osfont_dealloc_globals();
         osimage_dealloc_globals();
         draw_dealloc_globals();
@@ -112,22 +114,31 @@ void draw2d_finish(void)
 
 uint32_t draw2d_register_font(const char_t *font_family)
 {
-    arrpt_foreach(family, i_FONT_FAMILIES, String)
-        if (str_cmp(family, font_family) == 0)
-            return family_i;
-    arrpt_end()
+    /* Check if font name is a system font */
+    font_family_t fsystem = osfont_system(font_family);
 
-    if (font_exists_family(font_family) == TRUE)
+    if (fsystem != ENUM_MAX(font_family_t))
     {
-        uint32_t num_elems = arrpt_size(i_FONT_FAMILIES, String);
-        String *family = str_c(font_family);
-        arrpt_append(i_FONT_FAMILIES, family, String);
-        return num_elems;
+        return (uint32_t)fsystem;
     }
     else
     {
-        return (uint32_t)ekFONT_FAMILY_SYSTEM;
+        arrpt_foreach(family, i_FONT_FAMILIES, String)
+            if (str_cmp(family, font_family) == 0)
+                return family_i;
+        arrpt_end()
+
+        if (font_exists_family(font_family) == TRUE)
+        {
+            uint32_t num_elems = arrpt_size(i_FONT_FAMILIES, String);
+            String *family = str_c(font_family);
+            arrpt_append(i_FONT_FAMILIES, family, String);
+            return num_elems;
+        }
     }
+
+    cassert_msg(FALSE, "Font is not available on this computer.");
+    return (uint32_t)ekFONT_FAMILY_SYSTEM;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -380,4 +391,30 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
 
     *width = bmath_ceilf(*width);
     *height = bmath_ceilf(*height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *draw2d_monospace_family(const char_t **desired_fonts, const uint32_t n)
+{
+    if (i_MONOSPACE_FONT_FAMILY == NULL)
+    {
+        ArrPt(String) *installed_fonts = font_installed_monospace();
+        uint32_t i = 0;
+        for (i = 0; i < n && i_MONOSPACE_FONT_FAMILY == NULL; ++i)
+        {
+            arrpt_foreach(f, installed_fonts, String)
+                if (str_equ(f, desired_fonts[i]) == TRUE)
+                {
+                    i_MONOSPACE_FONT_FAMILY = str_copy(f);
+                    break;
+                }
+            arrpt_end()
+        }
+
+        arrpt_destroy(&installed_fonts, str_destroy, String);
+        cassert(i_MONOSPACE_FONT_FAMILY != NULL);
+    }
+
+    return tc(i_MONOSPACE_FONT_FAMILY);
 }

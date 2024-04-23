@@ -73,7 +73,8 @@ struct _oshttp_t
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics
 {
     NSArray *ar = [metrics transactionMetrics];
-
+    unref(session);
+    unref(task);
     for (NSURLSessionTaskTransactionMetrics *tr in ar)
     {
         NSString *str = [tr networkProtocolName];

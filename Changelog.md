@@ -4,7 +4,13 @@
 
 ### Added
 
-* `osapp_argc()` and `osapp_argv()`.
+* `osapp_argc()` and `osapp_argv()`. [Commit](https://github.com/frang75/nappgui_src/commit/10a8dbc659bc270ed6811ff92926d1f0b388818f).
+* Improved font monospace support and metrics. [Doc](https://nappgui.com/en/draw2d/font.html#h5).
+    * `font_ascent()`.
+    * `font_descent()`.
+    * `font_leading()`.
+    * `font_is_monospace()`.
+    * `font_installed_monospace()`.
 
 ### Fixed
 
@@ -13,6 +19,7 @@
 * WindowsXP flat buttons drawing. [Commit](https://github.com/frang75/nappgui_src/commit/adbb2db0f614db810a17f6c945a44134294efa60).
 * macOS Snow Leopard focus ring. [Commit](https://github.com/frang75/nappgui_src/commit/0bd24f6dcb2135e8de763a8a98dd64dc7c98d6c6).
 * Crash in ColorView demo. [Issue](https://github.com/frang75/nappgui_src/issues/131). [Commit](https://github.com/frang75/nappgui_src/commit/761ce9ab81a33f74f7591609f02508d5da2c1dc7).
+* Crash in `str_repl()` on macOS.
 
 ### Removed
 
