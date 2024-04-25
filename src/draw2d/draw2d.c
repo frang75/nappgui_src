@@ -399,17 +399,15 @@ const char_t *draw2d_monospace_family(const char_t **desired_fonts, const uint32
 {
     if (i_MONOSPACE_FONT_FAMILY == NULL)
     {
-        ArrPt(String) *installed_fonts = font_installed_monospace();
         uint32_t i = 0;
+        ArrPt(String) *installed_fonts = font_installed_families();
         for (i = 0; i < n && i_MONOSPACE_FONT_FAMILY == NULL; ++i)
         {
-            arrpt_foreach(f, installed_fonts, String)
-                if (str_equ(f, desired_fonts[i]) == TRUE)
-                {
-                    i_MONOSPACE_FONT_FAMILY = str_copy(f);
-                    break;
-                }
-            arrpt_end()
+            if (arrpt_bsearch_const(installed_fonts, str_cmp, desired_fonts[i], NULL, String, char_t) != NULL)
+            {
+                i_MONOSPACE_FONT_FAMILY = str_c(desired_fonts[i]);
+                break;
+            }
         }
 
         arrpt_destroy(&installed_fonts, str_destroy, String);

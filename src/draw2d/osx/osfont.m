@@ -335,6 +335,7 @@ static ArrPt(String) *i_installed_families(const bool_t only_mono)
         }
     }
 
+    arrpt_sort(font_families, str_scmp, String);
     return font_families;
 }
 

@@ -5,7 +5,7 @@
 ### Added
 
 * `osapp_argc()` and `osapp_argv()`. [Commit](https://github.com/frang75/nappgui_src/commit/10a8dbc659bc270ed6811ff92926d1f0b388818f).
-* Improved font monospace support and metrics. [Doc](https://nappgui.com/en/draw2d/font.html#h5).
+* Improved font monospace support and metrics. [Doc](https://nappgui.com/en/draw2d/font.html#h5). [Commit](https://github.com/frang75/nappgui_src/commit/e3697de2eb0e83da8946bda33ce11fe8ea588618).
     * `font_ascent()`.
     * `font_descent()`.
     * `font_leading()`.
