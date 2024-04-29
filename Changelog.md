@@ -20,6 +20,7 @@
 * macOS Snow Leopard focus ring. [Commit](https://github.com/frang75/nappgui_src/commit/0bd24f6dcb2135e8de763a8a98dd64dc7c98d6c6).
 * Crash in ColorView demo. [Issue](https://github.com/frang75/nappgui_src/issues/131). [Commit](https://github.com/frang75/nappgui_src/commit/761ce9ab81a33f74f7591609f02508d5da2c1dc7).
 * Crash in `str_repl()` on macOS.
+* Fixed `bproc_exec()` with arguments on Unix.
 
 ### Removed
 
