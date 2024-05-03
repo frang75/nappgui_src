@@ -13,7 +13,6 @@
 #include "bproc.h"
 #include "osbs.inl"
 #include <sewer/bmem.h>
-#include <sewer/blib.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -34,9 +33,6 @@
 #define STDOUT_WRITE_CHILD 3
 #define STDERR_READ_PARENT 4
 #define STDERR_WRITE_CHILD 5
-#define MAX_EXEC_ARGS 255
-#define MAX_CMD_SIZE 4096
-#define I_IS_BLANK(c) (bool_t)((c) == ' ' || (c) == '\t' || (c) == '\n' || (c) == '\v' || (c) == '\f' || (c) == '\r')
 
 #if defined __LINUX__
 int kill(pid_t pid, int sig);
@@ -106,55 +102,6 @@ static bool_t i_pipes(int pipes[6])
 
 /*---------------------------------------------------------------------------*/
 
-static void i_args(char *command, char **args)
-{
-    int i = 2;
-    char *cmd = (char *)command;
-    args[0] = (char *)"bash";
-    args[1] = (char *)"-c";
-
-    for (; *cmd != 0 && i < MAX_EXEC_ARGS - 1;)
-    {
-        /* Jump all blanks before arg */
-        for (;; ++cmd)
-        {
-            if (!I_IS_BLANK(*cmd) || *cmd == 0)
-                break;
-            *cmd = 0;
-        }
-
-        /* Set new arg */
-        if (*cmd != 0)
-        {
-            args[i] = cmd;
-            i += 1;
-        }
-
-        /* Jump all non blanks */
-        for (;; ++cmd)
-        {
-            if (I_IS_BLANK(*cmd) || *cmd == 0)
-                break;
-        }
-    }
-
-    args[i] = NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static bool_t i_with_blanks(const char_t *cmd)
-{
-    for (; *cmd != 0; ++cmd)
-    {
-        if (I_IS_BLANK(*cmd))
-            return TRUE;
-    }
-    return FALSE;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static bool_t i_exec(const char_t *command, int *pipes, pid_t *pid)
 {
     cassert_no_null(pipes);
@@ -179,19 +126,7 @@ static bool_t i_exec(const char_t *command, int *pipes, pid_t *pid)
         close(pipes[STDERR_WRITE_CHILD]);
         close(pipes[STDERR_READ_PARENT]);
 
-        if (i_with_blanks(command) == TRUE)
-        {
-            char_t cmd[MAX_CMD_SIZE];
-            char *args[MAX_EXEC_ARGS];
-            blib_strcpy(cmd, sizeof(cmd), command);
-            i_args((char *)cmd, args);
-            execvp("bash", args);
-        }
-        else
-        {
-            execlp("bash", "bash", "-c", command, NULL);
-        }
-
+        execlp("bash", "bash", "-c", command, NULL);
         cassert_msg(FALSE, "It's a zombie!");
         return FALSE;
     }

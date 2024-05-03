@@ -101,7 +101,8 @@ static gboolean i_OnClose(GtkWidget *widget, GdkEvent *event, OSWindow *window)
     cassert_no_null(window);
     cassert_unref(window->control.widget == widget, widget);
     unref(event);
-    return (gboolean)i_close(window, ekGUI_CLOSE_BUTTON);
+    i_close(window, ekGUI_CLOSE_BUTTON);
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
