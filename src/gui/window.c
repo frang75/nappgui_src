@@ -293,7 +293,7 @@ static Window *i_create_window(const uint32_t flags)
     window->role = ENUM_MAX(gui_role_t);
     window->context->func_window_OnResize(window->ositem, obj_listener(window, i_OnWindowResize, Window));
     window->context->func_window_OnClose(window->ositem, obj_listener(window, i_OnWindowClose, Window));
-    window->context->func_window_set_property(window->ositem, ekGUI_PROP_CHILDREN, NULL);
+    window->context->func_window_set_property(window->ositem, (enum_t)ekGUI_PROP_CHILDREN, NULL);
     _gui_add_window(window);
     return window;
 }

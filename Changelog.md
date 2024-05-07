@@ -20,7 +20,7 @@
 * macOS Snow Leopard focus ring. [Commit](https://github.com/frang75/nappgui_src/commit/0bd24f6dcb2135e8de763a8a98dd64dc7c98d6c6).
 * Crash in ColorView demo. [Issue](https://github.com/frang75/nappgui_src/issues/131). [Commit](https://github.com/frang75/nappgui_src/commit/761ce9ab81a33f74f7591609f02508d5da2c1dc7).
 * Crash in `str_repl()` on macOS.[Doc](https://nappgui.com/en/core/string.html#f13).
-* GTK `window_OnClose()` doesn't hide the window when `FALSE` is returned.
+* GTK `window_OnClose()` doesn't hide the window when `FALSE` is returned. [Commit](https://github.com/frang75/nappgui_src/commit/a2dec614102697283d9a80cbd9e9e132fee17dae).
 
 ### Removed
 
@@ -34,6 +34,7 @@
 ### Build system
 
 * macOS Snow Leopard/Lion compiler warnings. [Commit](https://github.com/frang75/nappgui_src/commit/66a2305261121dacd7449d4f689ca18a14fc1dc0).
+* Support for Ubuntu 24.04 LTS (gcc-13, clang-18).
 
 ## v1.4.1 - Apr 3, 2024 (r4993)
 
