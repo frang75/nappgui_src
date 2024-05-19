@@ -121,7 +121,7 @@ static void i_update_vertex(PartitionVertex<real> *v, PartitionVertex<real> *ver
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_add_tri(ArrSt<uint32_t> *tri_vertices, const uint32_t p0, const uint32_t p1, const uint32_t p2, const bool_t revert)
+static ___INLINE void i_add_tri(ArrSt<uint32_t> *tri_vertices, const uint32_t p0, const uint32_t p1, const uint32_t p2, const bool_t revert)
 {
     uint32_t *tri = ArrSt<uint32_t>::new_n(tri_vertices, 3);
     if (revert == TRUE)
@@ -297,7 +297,7 @@ static ArrSt<Tri2D<real> > *i_triangles(const Pol2D<real> *pol)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_init_poly(Poly *poly, const uint32_t n)
+static ___INLINE void i_init_poly(Poly *poly, const uint32_t n)
 {
     cassert_no_null(poly);
     poly->n = n;

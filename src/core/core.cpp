@@ -62,10 +62,10 @@ void core_start(void)
         blib_atexit(i_core_atexit);
 
         i_NUM_USERS = 1;
-#if defined(__APPLE__) || defined(__LINUX__)
-        cassert(sizeof(EventHandler) == 2 * sizeofptr);
-#else
+#if defined(_MSC_VER)
         cassert(sizeof(EventHandler) == sizeofptr);
+#else
+        cassert(sizeof(EventHandler) == 2 * sizeofptr);
 #endif
     }
     else

@@ -889,7 +889,7 @@ const char_t *str_str(const char_t *str, const char_t *substr)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE const char_t *i_last_separator(const char_t *str)
+static ___INLINE const char_t *i_last_separator(const char_t *str)
 {
     register const char_t *lsep = NULL;
     cassert_no_null(str);
@@ -1131,7 +1131,7 @@ uint32_t str_find(const ArrPt(String) *array, const char_t *str)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_ok(const char_t *str, const bool_t allow_minus)
+static ___INLINE bool_t i_ok(const char_t *str, const bool_t allow_minus)
 {
     unref(str);
     unref(allow_minus);

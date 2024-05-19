@@ -66,7 +66,7 @@ void ostabstop_remove(OSTabStop *tabstop)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_tabindex(const OSTabStop *tabstop, const OSControl *control)
+static ___INLINE uint32_t i_tabindex(const OSTabStop *tabstop, const OSControl *control)
 {
     cassert_no_null(tabstop);
     cassert(arrpt_find(tabstop->controls, control, OSControl) != UINT32_MAX);

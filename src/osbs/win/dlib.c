@@ -93,8 +93,18 @@ void *dlib_var_imp(DLib *dlib, const char_t *varname)
 {
     cassert_no_null(dlib);
     cassert_no_null(varname);
+#if defined(_MSC_VER)
 #pragma warning(push, 0)
 #pragma warning(disable : 4064)
+#endif
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
     return (void *)GetProcAddress((HMODULE)dlib, varname);
+#if defined(_MSC_VER)
 #pragma warning(pop)
+#endif
+#if defined(__GNUC__)
+#pragma GCC diagnostic warning "-Wpedantic"
+#endif
 }

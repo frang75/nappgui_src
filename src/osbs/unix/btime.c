@@ -25,7 +25,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint64_t i_timeval_to_micro(const struct timeval *tv)
+static ___INLINE uint64_t i_timeval_to_micro(const struct timeval *tv)
 {
     cassert_no_null(tv);
     return (uint64_t)tv->tv_sec * 1000000 + (uint64_t)tv->tv_usec;
@@ -51,7 +51,7 @@ uint64_t btime_now(void)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_tm_to_date(const struct tm *tinfo, Date *date)
+static ___INLINE void i_tm_to_date(const struct tm *tinfo, Date *date)
 {
     cassert_no_null(tinfo);
     cassert_no_null(date);
@@ -66,7 +66,7 @@ static __INLINE void i_tm_to_date(const struct tm *tinfo, Date *date)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_date_to_tm(const Date *date, struct tm *tinfo)
+static ___INLINE void i_date_to_tm(const Date *date, struct tm *tinfo)
 {
     cassert_no_null(date);
     cassert_no_null(tinfo);
@@ -100,15 +100,15 @@ uint64_t btime_to_micro(const Date *date)
     i_date_to_tm(date, &tinfo);
 
     /*
-    https://stackoverflow.com/questions/38298261/why-there-is-no-inverse-function-for-gmtime-in-libc
-	This function performs the reverse translation that localtime does.
-	The  mktime() function converts a broken-down time structure, expressed as
-    local time, to calendar time representation. The function ignores the values
-    supplied by the caller in the tm_wday and tm_yday fields. The value
-    specified in the tm_isdst field informs mktime() whether or not daylight
-    saving time (DST) is in effect for the time supplied in the tm structure:
-    a positive value means DST is in effect;
- */
+        https://stackoverflow.com/questions/38298261/why-there-is-no-inverse-function-for-gmtime-in-libc
+        This function performs the reverse translation that localtime does.
+        The  mktime() function converts a broken-down time structure, expressed as
+        local time, to calendar time representation. The function ignores the values
+        supplied by the caller in the tm_wday and tm_yday fields. The value
+        specified in the tm_isdst field informs mktime() whether or not daylight
+        saving time (DST) is in effect for the time supplied in the tm structure:
+        a positive value means DST is in effect;
+     */
     tinfo.tm_isdst = 1;
     tv.tv_sec = mktime(&tinfo);
     tv.tv_usec = 0;

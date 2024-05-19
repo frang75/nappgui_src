@@ -168,7 +168,7 @@ static i_Fptr_codepoint_from_str i_func_codepoint_from_str[] = {
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE char_t i_to_uchar(const uint32_t value)
+static ___INLINE char_t i_to_uchar(const uint32_t value)
 {
     cassert(value < 0x100);
     return (char_t)value;
@@ -213,7 +213,7 @@ static uint32_t i_codepoint_to_utf8(const uint32_t codepoint, char_t *utf8_strin
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint16_t i_to_uint16(const uint32_t value)
+static ___INLINE uint16_t i_to_uint16(const uint32_t value)
 {
     cassert(value < 0x10000);
     return (uint16_t)value;

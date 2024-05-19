@@ -510,7 +510,7 @@ static i_Object *i_get_existing_object(const char_t *name)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE byte_t *i_malloc_imp(const uint32_t size, const uint32_t align, const char_t *name, const bool_t equal_sized)
+static ___INLINE byte_t *i_malloc_imp(const uint32_t size, const uint32_t align, const char_t *name, const bool_t equal_sized)
 {
     byte_t *mem = NULL;
 
@@ -605,7 +605,7 @@ byte_t *heap_calloc_imp(const uint32_t size, const char_t *name, const bool_t eq
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE byte_t *i_realloc_imp(byte_t *mem, const uint32_t size, const uint32_t new_size, const uint32_t align, const char_t *name)
+static ___INLINE byte_t *i_realloc_imp(byte_t *mem, const uint32_t size, const uint32_t new_size, const uint32_t align, const char_t *name)
 {
     cassert_no_null(mem);
     cassert(size > 0);

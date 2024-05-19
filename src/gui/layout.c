@@ -113,7 +113,7 @@ static real32_t i_EPSILON = 0.00001f;
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_init_celldim(
+static ___INLINE void i_init_celldim(
     i_CellDim *dim,
     const real32_t forced_size,
     const real32_t padding_before,
@@ -131,7 +131,7 @@ static __INLINE void i_init_celldim(
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_init_cell(
+static ___INLINE void i_init_cell(
     Cell *cell,
     const ctype_t type,
     const bool_t visible,

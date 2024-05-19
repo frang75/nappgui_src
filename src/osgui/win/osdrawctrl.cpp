@@ -25,18 +25,18 @@
 #error This file is only for Windows
 #endif
 
-#if _MSC_VER > 1400
-#define DLISS_NORMAL LISS_NORMAL
-#define DLISS_HOT LISS_HOT
-#define DLISS_SELECTED LISS_SELECTED
-#define DLISS_SELECTEDNOTFOCUS LISS_SELECTEDNOTFOCUS
-#define DLISS_DISABLED LISS_DISABLED
-#else
+#if defined(_MSC_VER) && _MSC_VER <= 1400
 #define DLISS_NORMAL LIS_NORMAL
 #define DLISS_HOT LIS_HOT
 #define DLISS_SELECTED LIS_SELECTED
 #define DLISS_SELECTEDNOTFOCUS LIS_SELECTEDNOTFOCUS
 #define DLISS_DISABLED LIS_DISABLED
+#else
+#define DLISS_NORMAL LISS_NORMAL
+#define DLISS_HOT LISS_HOT
+#define DLISS_SELECTED LISS_SELECTED
+#define DLISS_SELECTEDNOTFOCUS LISS_SELECTEDNOTFOCUS
+#define DLISS_DISABLED LISS_DISABLED
 #endif
 
 static LONG kCHECKBOX_WIDTH = 0;
@@ -127,7 +127,7 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE int i_list_state(const ctrl_state_t state)
+static ___INLINE int i_list_state(const ctrl_state_t state)
 {
     switch (state)
     {
@@ -151,7 +151,7 @@ static __INLINE int i_list_state(const ctrl_state_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE int i_header_state(const ctrl_state_t state)
+static ___INLINE int i_header_state(const ctrl_state_t state)
 {
     switch (state)
     {
@@ -174,7 +174,7 @@ static __INLINE int i_header_state(const ctrl_state_t state)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE HTHEME i_button_theme(DCtx *ctx)
+static ___INLINE HTHEME i_button_theme(DCtx *ctx)
 {
     OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
     cassert_no_null(custom_data);
@@ -183,7 +183,7 @@ static __INLINE HTHEME i_button_theme(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE HTHEME i_list_theme(DCtx *ctx)
+static ___INLINE HTHEME i_list_theme(DCtx *ctx)
 {
     OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
     cassert_no_null(custom_data);
@@ -192,7 +192,7 @@ static __INLINE HTHEME i_list_theme(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE HTHEME i_header_theme(DCtx *ctx)
+static ___INLINE HTHEME i_header_theme(DCtx *ctx)
 {
     OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
     cassert_no_null(custom_data);
@@ -201,7 +201,7 @@ static __INLINE HTHEME i_header_theme(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE SIZE i_sort_size(DCtx *ctx)
+static ___INLINE SIZE i_sort_size(DCtx *ctx)
 {
     SIZE *sz = NULL;
     OSDraw *custom_data = dctx_get_data(ctx, OSDraw);
@@ -531,32 +531,32 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
         rect2.bottom = rect2.top + 10;
         osstyleXP_DrawThemeText(hdc, HP_HEADERSORTARROW, HSAS_SORTEDUP, L"W", UINT32_MAX, flags, rect);
 
-        //LOGFONT lf;
-        //SelectObject(hdc, tv->font);
-        //res = GetThemeFont(i_STYLEXP.theme, hdc, iPartId, iStateId, TMT_FONT, &lf);
-        //cassert_unref(res == S_OK, res);
+        // LOGFONT lf;
+        // SelectObject(hdc, tv->font);
+        // res = GetThemeFont(i_STYLEXP.theme, hdc, iPartId, iStateId, TMT_FONT, &lf);
+        // cassert_unref(res == S_OK, res);
     }
     else
     {
         cassert(FALSE);
-        //UINT state = DFCS_BUTTONPUSH;
-        //if (enabled == FALSE)
+        // UINT state = DFCS_BUTTONPUSH;
+        // if (enabled == FALSE)
         //{
-        //    state |= DFCS_INACTIVE;
-        //}
-        //else if (SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0) == BST_CHECKED)
+        //     state |= DFCS_INACTIVE;
+        // }
+        // else if (SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0) == BST_CHECKED)
         //{
-        //    state |= DFCS_PUSHED;
-        //}
-        //else if (_osgui_hit_test(hwnd) == TRUE)
+        //     state |= DFCS_PUSHED;
+        // }
+        // else if (_osgui_hit_test(hwnd) == TRUE)
         //{
-        //    if ((GetKeyState(VK_LBUTTON) & 0x100) != 0)
-        //        state |= DFCS_PUSHED;
-        //    else
-        //        state |= DFCS_HOT;
-        //}
+        //     if ((GetKeyState(VK_LBUTTON) & 0x100) != 0)
+        //         state |= DFCS_PUSHED;
+        //     else
+        //         state |= DFCS_HOT;
+        // }
 
-        //osstyleXP_DrawNonThemedButtonBackground(hwnd, hdc, FALSE, state, &rect, &border);
+        // osstyleXP_DrawNonThemedButtonBackground(hwnd, hdc, FALSE, state, &rect, &border);
     }
 
     if (image != NULL)

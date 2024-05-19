@@ -147,7 +147,7 @@ static bool_t i_support(const Support *support, const uint32_t idx, const V2D<re
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE bool_t i_point_in_circle(const Cir2D<real> *cir, const V2D<real> *p)
+static ___INLINE bool_t i_point_in_circle(const Cir2D<real> *cir, const V2D<real> *p)
 {
     real sqdist = V2D<real>::sqdist(p, &cir->c);
     return sqdist <= cir->r ? TRUE : FALSE;

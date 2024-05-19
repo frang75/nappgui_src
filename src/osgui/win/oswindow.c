@@ -763,30 +763,34 @@ void oswindow_detach_panel(OSWindow *window, OSPanel *panel)
 
 void oswindow_attach_window(OSWindow *parent_window, OSWindow *child_window)
 {
-    //HWND prevParent = 0;
     unref(parent_window);
     unref(child_window);
-    /*prevParent = SetParent(child_window->control.hwnd, parent_window->control.hwnd);
+    /*
+    HWND prevParent = 0;
+    prevParent = SetParent(child_window->control.hwnd, parent_window->control.hwnd);
     unref(prevParent);
-    prevParent = GetParent(child_window->control.hwnd);*/
-    //SetWindowLong(child_window->control.hwnd, GWL_STYLE, child_window->dwStyle | WS_CHILD);
-    //SetWindowLong(child_window->control.hwnd, GWL_EXSTYLE, child_window->dwExStyle);
-    //oswindow_set_z_order(child_window, parent_window);
+    prevParent = GetParent(child_window->control.hwnd);
+    SetWindowLong(child_window->control.hwnd, GWL_STYLE, child_window->dwStyle | WS_CHILD);
+    SetWindowLong(child_window->control.hwnd, GWL_EXSTYLE, child_window->dwExStyle);
+    oswindow_set_z_order(child_window, parent_window);
+    */
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 {
-    //HWND prevParent = 0;
     unref(parent_window);
     unref(child_window);
-    /* cassert_no_null(parent_window);
-	cassert_no_null(child_window);
+    /*
+    HWND prevParent = 0;
+    cassert_no_null(parent_window);
+    cassert_no_null(child_window);
     prevParent = SetParent(child_window->control.hwnd, GetDesktopWindow());
-    cassert(prevParent == parent_window->control.hwnd);*/
-    /*SetWindowLong(child_window->control.hwnd, GWL_STYLE, child_window->dwStyle);
-    SetWindowLong(child_window->control.hwnd, GWL_EXSTYLE, child_window->dwExStyle);*/
+    cassert(prevParent == parent_window->control.hwnd);
+    SetWindowLong(child_window->control.hwnd, GWL_STYLE, child_window->dwStyle);
+    SetWindowLong(child_window->control.hwnd, GWL_EXSTYLE, child_window->dwExStyle);
+    */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1334,7 +1338,7 @@ uint32_t _oswindow_message_loop(OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE OSWindow *i_root(HWND hwnd)
+static ___INLINE OSWindow *i_root(HWND hwnd)
 {
     HWND root_hwnd = NULL;
     cassert_no_null(hwnd);

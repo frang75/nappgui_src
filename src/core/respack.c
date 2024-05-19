@@ -266,7 +266,7 @@ void respack_add_cdata(ResPack *pack, const uint32_t type, const byte_t *data, c
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE const char_t *i_magic(const ResId id)
+static ___INLINE const char_t *i_magic(const ResId id)
 {
     const char_t *magic = str_str((const char_t *)id, "::");
     if (magic == NULL)
@@ -280,7 +280,7 @@ static __INLINE const char_t *i_magic(const ResId id)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_index(ResId id, const String *name)
+static ___INLINE uint32_t i_index(ResId id, const String *name)
 {
     const char_t *idr = i_magic(id);
     const char_t *packid = NULL;
@@ -338,7 +338,7 @@ void *respack_object_imp(const ResPack *pack, const ResId id, FPtr_create_from_d
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE i_Resource *i_resource(const ArrPt(ResPack) *packs, const ResId id, bool_t *is_resid)
+static ___INLINE i_Resource *i_resource(const ArrPt(ResPack) *packs, const ResId id, bool_t *is_resid)
 {
     const char_t *idr = i_magic(id);
     const char_t *packid = NULL;

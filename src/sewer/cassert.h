@@ -46,27 +46,9 @@ __END_C
 #define cassert_no_null(ptr) \
     cassert_no_null_imp((void *)ptr, #ptr, __FILE__, __LINE__)
 
-#ifdef __cplusplus
-
-#if defined(_MSC_VER)
 #define cassert_no_nullf(fptr) \
-    cassert_no_null_imp((void *)fptr, #fptr, __FILE__, __LINE__)
-#else
-#define cassert_no_nullf(fptr) \
-    cassert_no_nullf_imp((void (*)(void))fptr, #fptr, __FILE__, __LINE__)
-#endif
-
-#else /* C Compiler */
-
-#if defined(_MSC_VER) && _MSC_VER >= 1935 /* Visual Studio 2022 version 17.5.0 */
-#define cassert_no_nullf(fptr) \
-    cassert_no_nullf_imp((void (*)(void))((void *)fptr), #fptr, __FILE__, __LINE__)
-#else
-#define cassert_no_nullf(fptr) \
-    cassert_no_nullf_imp((void (*)(void))fptr, #fptr, __FILE__, __LINE__)
-#endif
-
-#endif
+    if (fptr == NULL) \
+    cassert_no_null_imp(NULL, #fptr, __FILE__, __LINE__)
 
 #define cassert_default() \
     default: \

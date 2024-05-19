@@ -252,7 +252,7 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSEdit *edit
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_with_focus(const OSEdit *edit)
+static ___INLINE bool_t i_with_focus(const OSEdit *edit)
 {
     cassert_no_null(edit);
     return (bool_t)gtk_widget_has_focus(edit->control.widget);

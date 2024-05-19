@@ -33,10 +33,14 @@ uint32_t bstd_sprintf(char_t *str, const uint32_t size, const char_t *format, ..
     int length;
     va_list args;
     va_start(args, format);
+#if defined(_MSC_VER)
 #pragma warning(disable : 4996)
+#endif
     /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
     length = vsnprintf((char *)str, (size_t)size, (const char *)format, args);
+#if defined(_MSC_VER)
 #pragma warning(default : 4996)
+#endif
     va_end(args);
     cassert(length >= 0);
     return (uint32_t)length;
@@ -48,10 +52,14 @@ uint32_t bstd_vsprintf(char_t *str, const uint32_t size, const char_t *format, v
 {
     int length;
     cassert_no_null(format);
+#if defined(_MSC_VER)
 #pragma warning(disable : 4996)
+#endif
     /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
     length = vsnprintf((char *)str, (size_t)size, (const char *)format, args);
+#if defined(_MSC_VER)
 #pragma warning(default : 4996)
+#endif
     cassert(length >= 0);
     return (uint32_t)length;
 }
@@ -70,10 +78,14 @@ uint32_t bstd_printf(const char_t *format, ...)
     {
         va_list args;
         va_start(args, format);
+#if defined(_MSC_VER)
 #pragma warning(disable : 4996)
+#endif
         /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
         length = vsnprintf(NULL, 0, format, args);
+#if defined(_MSC_VER)
 #pragma warning(default : 4996)
+#endif
         va_end(args);
     }
 
@@ -97,6 +109,7 @@ uint32_t bstd_printf(const char_t *format, ...)
     WriteFile(handle, (LPCVOID)buffer, (DWORD)length, &lwsize, NULL);
     unref(lwsize);
 
+#if defined(_MSC_VER)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
@@ -110,6 +123,7 @@ uint32_t bstd_printf(const char_t *format, ...)
         OutputDebugString(wbuffer);
         bmem_free((byte_t *)wbuffer);
     }
+#endif
 
     if (dbuffer != NULL)
         bmem_free((byte_t *)dbuffer);
@@ -131,10 +145,15 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     {
         va_list args;
         va_start(args, format);
+
+#if defined(_MSC_VER)
 #pragma warning(disable : 4996)
+#endif
         /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
         length = vsnprintf(NULL, 0, format, args);
+#if defined(_MSC_VER)
 #pragma warning(default : 4996)
+#endif
         va_end(args);
     }
 
@@ -283,7 +302,7 @@ bool_t bstd_ewrite(const byte_t *data, const uint32_t size, uint32_t *wsize)
 
 void blib_debug_break(void)
 {
-#if (_MSC_VER > 1400)
+#if defined(_MSC_VER) && _MSC_VER > 1400
     if (IsDebuggerPresent() != 0)
         DebugBreak();
 #else

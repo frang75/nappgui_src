@@ -14,6 +14,12 @@ function(nap_generator_multiconfig _ret)
     elseif(CMAKE_GENERATOR MATCHES "Ninja")
         set(${_ret} False PARENT_SCOPE)
 
+    elseif(CMAKE_GENERATOR MATCHES "MinGW Makefiles")
+        set(${_ret} False PARENT_SCOPE)
+
+    elseif(CMAKE_GENERATOR MATCHES "MSYS Makefiles")
+        set(${_ret} False PARENT_SCOPE)
+
     elseif(CMAKE_GENERATOR MATCHES "Unix Makefiles")
         set(${_ret} False PARENT_SCOPE)
 

@@ -20,7 +20,7 @@ typedef void (*i_SWAP)(char *a, char *b, uint32_t size);
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
+static ___INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
 {
     register uint32_t n1 = size / (uint32_t)sizeofptr;
     register uint32_t i;
@@ -37,7 +37,7 @@ static __INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
+static ___INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
 {
     register void *swap = *(void **)a;
     *(void **)a = *(void **)b;
@@ -47,7 +47,7 @@ static __INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_SWAP_GENERAL(char *a, char *b, uint32_t size)
+static ___INLINE void i_SWAP_GENERAL(char *a, char *b, uint32_t size)
 {
     register uint32_t n1 = size / (uint32_t)sizeofptr;
     register uint32_t i;

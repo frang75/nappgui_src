@@ -190,4 +190,4 @@
         return (const type *)array_bsearch_ptr((const Array *)array, func_compare, key, pos); \
     } \
 \
-    __INLINE void arrpt_##type##_end(void)
+    ___INLINE void arrpt_##type##_end(void)

@@ -60,8 +60,8 @@ void draw_dealloc_globals(void)
 {
     cassert(i_kGRAY4_PALETTE == NULL);
 
-    //if (i_kGRAY4_PALETTE != NULL)
-    //    heap_free((byte_t**)&i_kGRAY4_PALETTE, sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
+    // if (i_kGRAY4_PALETTE != NULL)
+    //     heap_free((byte_t**)&i_kGRAY4_PALETTE, sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
 
     if (i_kGRAY8_PALETTE != NULL)
         heap_free((byte_t **)&i_kGRAY8_PALETTE, sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
@@ -89,7 +89,7 @@ void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, re
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_set_gdiplus_mode(DCtx *ctx)
+static ___INLINE void i_set_gdiplus_mode(DCtx *ctx)
 {
     cassert_no_null(ctx);
     if (ctx->gdi_mode == TRUE)
@@ -155,19 +155,19 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 
 /*---------------------------------------------------------------------------*/
 
-//Gdiplus::ColorPalette* _dctx_4bpp_grayscale_palette(void)
+// Gdiplus::ColorPalette* _dctx_4bpp_grayscale_palette(void)
 //{
-//    if (i_kGRAY4_PALETTE == NULL)
-//    {
-//        register uint32_t i = 0;
-//        i_kGRAY4_PALETTE = (Gdiplus::ColorPalette*)heap_malloc(sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
-//        i_kGRAY4_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
-//        i_kGRAY4_PALETTE->Count = 0;
-//        for (i = 0; i < 256; i += 16)
-//            i_kGRAY4_PALETTE->Entries[i] = Gdiplus::Color::MakeARGB(255, (BYTE)i, (BYTE)i, (BYTE)i);
-//    }
+//     if (i_kGRAY4_PALETTE == NULL)
+//     {
+//         register uint32_t i = 0;
+//         i_kGRAY4_PALETTE = (Gdiplus::ColorPalette*)heap_malloc(sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
+//         i_kGRAY4_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
+//         i_kGRAY4_PALETTE->Count = 0;
+//         for (i = 0; i < 256; i += 16)
+//             i_kGRAY4_PALETTE->Entries[i] = Gdiplus::Color::MakeARGB(255, (BYTE)i, (BYTE)i, (BYTE)i);
+//     }
 //	return i_kGRAY4_PALETTE;
-//}
+// }
 
 /*---------------------------------------------------------------------------*/
 
@@ -310,7 +310,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE Gdiplus::LineCap i_linecap(const linecap_t cap)
+static ___INLINE Gdiplus::LineCap i_linecap(const linecap_t cap)
 {
     switch (cap)
     {
@@ -336,7 +336,7 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE Gdiplus::LineJoin i_linejoin(const linejoin_t join)
+static ___INLINE Gdiplus::LineJoin i_linejoin(const linejoin_t join)
 {
     switch (join)
     {
@@ -387,7 +387,7 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const drawop_t op)
+static ___INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const drawop_t op)
 {
     cassert_no_null(path);
     i_set_gdiplus_mode(ctx);
@@ -616,7 +616,7 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE Gdiplus::WrapMode i_wrap(const fillwrap_t wrap)
+static ___INLINE Gdiplus::WrapMode i_wrap(const fillwrap_t wrap)
 {
     switch (wrap)
     {
@@ -688,9 +688,9 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
     //    ReleaseDC(NULL, fhdc);
     //}
 
-    //if (style & ekFCELL)
-    //    *fintleading = (Gdiplus::REAL)font_internal_leading(font);
-    //else
+    // if (style & ekFCELL)
+    //     *fintleading = (Gdiplus::REAL)font_internal_leading(font);
+    // else
     *fintleading = 0;
 }
 
@@ -863,18 +863,18 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             break;
             cassert_default();
         }
-        //switch (ctx->text_intalign) {
-        //case ekLEFT:
-        //case ekJUSTIFY:
-        //    break;
-        //case ekRIGHT:
-        //    origin.X += out.Width;
-        //    break;
-        //case ekCENTER:
-        //    origin.X += out.Width / 2;
-        //    break;
-        //cassert_default();
-        //}
+        // switch (ctx->text_intalign) {
+        // case ekLEFT:
+        // case ekJUSTIFY:
+        //     break;
+        // case ekRIGHT:
+        //     origin.X += out.Width;
+        //     break;
+        // case ekCENTER:
+        //     origin.X += out.Width / 2;
+        //     break;
+        // cassert_default();
+        // }
     }
 
     return Gdiplus::RectF(origin, size);
@@ -1026,7 +1026,7 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE UINT i_gdi_halign(const align_t align)
+static ___INLINE UINT i_gdi_halign(const align_t align)
 {
     switch (align)
     {
@@ -1045,7 +1045,7 @@ static __INLINE UINT i_gdi_halign(const align_t align)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE UINT i_gdi_valign(const align_t align)
+static ___INLINE UINT i_gdi_valign(const align_t align)
 {
     switch (align)
     {

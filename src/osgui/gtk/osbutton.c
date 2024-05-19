@@ -380,7 +380,7 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 #if defined __ASSERTS__
 
-static __INLINE const char *i_button_label(const OSButton *button)
+static ___INLINE const char *i_button_label(const OSButton *button)
 {
     const char *label = NULL;
     cassert_no_null(button);
@@ -393,7 +393,7 @@ static __INLINE const char *i_button_label(const OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_equal_button_label(const OSButton *button, const char_t *text)
+static ___INLINE bool_t i_equal_button_label(const OSButton *button, const char_t *text)
 {
     char_t buff[256];
     _osgui_underline_gtk_text(text, buff, sizeof(buff));

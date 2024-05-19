@@ -379,7 +379,7 @@ File *bfile_open(const char_t *pathname, const file_mode_t mode, ferror_t *error
             ptr_assign(error, ekFOK);
 
 #if defined(__x64__)
-            // Avoid warning C4306: 'type cast' : conversion from 'HFILE' to 'File *' of greater size
+            /* Avoid warning C4306: 'type cast' : conversion from 'HFILE' to 'File *' of greater size */
             return (File *)(uint64_t)file;
 #else
             return (File *)file;

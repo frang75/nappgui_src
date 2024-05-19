@@ -78,8 +78,56 @@ if (WIN32)
 
         set(CMAKE_COMPILER_TOOLSET ${CMAKE_VS_PLATFORM_TOOLSET})
 
+    elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        include(${NAPPGUI_ROOT_PATH}/prj/NAppGCC.cmake)
+
+        # Required macros for Windows (defined in MSVC)
+        add_definitions(-D_WINDOWS -DUNICODE -D_UNICODE)
+
+        if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
+            add_definitions(-D_M_IX86)
+        elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
+            add_definitions(-D_M_AMD64)
+        endif()
+
+        # GCC Version
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.6)
+            message(FATAL_ERROR "GCC 4.6 is the minimum supported version in Linux.")
+        endif()
+
+        # Compiler toolset
+        set(CMAKE_COMPILER_TOOLSET mwgcc${CMAKE_CXX_COMPILER_VERSION})
+        string(REPLACE "." "_" CMAKE_COMPILER_TOOLSET ${CMAKE_COMPILER_TOOLSET})
+
+        # Set extra flags for GCC 'CMAKE_CXX_FLAGS' 'CMAKE_C_FLAGS'
+        nap_gcc_flags(${CMAKE_ARCHITECTURE})
+
+    elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+        include(${NAPPGUI_ROOT_PATH}/prj/NAppClang.cmake)
+
+        # Required macros for Windows (defined in MSVC)
+        add_definitions(-D_WINDOWS -DUNICODE -D_UNICODE)
+
+        if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
+            add_definitions(-D_M_IX86)
+        elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
+            add_definitions(-D_M_AMD64)
+        endif()
+
+        # Clang Version
+        if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+            message(FATAL_ERROR "Clang 5.0 is the minimum supported version in Windows.")
+        endif()
+
+        # Compiler toolset
+        set(CMAKE_COMPILER_TOOLSET mwclang${CMAKE_CXX_COMPILER_VERSION})
+        string(REPLACE "." "_" CMAKE_COMPILER_TOOLSET ${CMAKE_COMPILER_TOOLSET})
+
+        # Set extra flags for Clang 'CMAKE_CXX_FLAGS' 'CMAKE_C_FLAGS'
+        nap_clang_flags(${CMAKE_ARCHITECTURE})
+
     else()
-        message (FATAL_ERROR "Unknown compiler: In Windows, only MSVC is supported")
+        message (FATAL_ERROR "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 
     endif()
 
@@ -145,7 +193,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         endif()
 
         nap_gcc_flags("")
-    
+
     else()
         message (FATAL_ERROR "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 

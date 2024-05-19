@@ -67,14 +67,14 @@ static i_Node *i_create_node(const uint16_t esize, const uint16_t ksize)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_dealloc_node(i_Node **node, const uint16_t esize, const uint16_t ksize)
+static ___INLINE void i_dealloc_node(i_Node **node, const uint16_t esize, const uint16_t ksize)
 {
     heap_free((byte_t **)node, sizeof32(i_Node) + esize + ksize, "RBNode");
 }
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_destroy_node_data(
+static ___INLINE void i_destroy_node_data(
     i_Node *node,
     __DEBUG_PARAMC(const uint16_t esize)
         const uint16_t ksize,
@@ -214,7 +214,7 @@ uint32_t rbtree_size(const RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 #if defined(__ASSERTS__)
-static __INLINE i_Node *i_current_node(const i_Iterator *it)
+static ___INLINE i_Node *i_current_node(const i_Iterator *it)
 {
     i_Node *node;
     cassert_no_null(it);
@@ -448,7 +448,7 @@ static bool_t i_inorder_prev(i_Iterator *it)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_rotate_left(i_Node *node, i_Node *parent, i_Node **root)
+static ___INLINE void i_rotate_left(i_Node *node, i_Node *parent, i_Node **root)
 {
     i_Node *rnode;
     cassert_no_null(node);
@@ -479,7 +479,7 @@ static __INLINE void i_rotate_left(i_Node *node, i_Node *parent, i_Node **root)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_rotate_right(i_Node *node, i_Node *parent, i_Node **root)
+static ___INLINE void i_rotate_right(i_Node *node, i_Node *parent, i_Node **root)
 {
     i_Node *lnode;
     cassert_no_null(node);

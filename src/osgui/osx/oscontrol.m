@@ -61,7 +61,7 @@ void _oscontrol_origin_in_screen_coordinates(const NSRect *frame, CGFloat *x, CG
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE NSTextAlignment i_text_alignment(const align_t halign)
+static ___INLINE NSTextAlignment i_text_alignment(const align_t halign)
 {
 #if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     switch (halign)
@@ -105,7 +105,7 @@ NSTextAlignment _oscontrol_text_alignment(const align_t halign)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE NSControlSize i_control_size(const gui_size_t size)
+static ___INLINE NSControlSize i_control_size(const gui_size_t size)
 {
 #if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
     switch (size)

@@ -68,11 +68,9 @@ OSMenu *osmenu_create(const uint32_t flags)
 void osmenu_destroy(OSMenu **menu)
 {
     BOOL ok = FALSE;
-    int c;
     cassert_no_null(menu);
     cassert_no_null(*menu);
     cassert_no_null((*menu)->hmenu);
-    c = GetMenuItemCount((*menu)->hmenu);
     cassert(GetMenuItemCount((*menu)->hmenu) == 0);
     cassert(arrpt_size((*menu)->items, OSMenuItem) == 0);
     arrpt_destroy(&(*menu)->items, NULL, OSMenuItem);
@@ -258,9 +256,14 @@ void _osmenu_detach_from_item(OSMenu *menu, OSMenuItem *item)
 
 void _osmenu_append_item(HMENU menu, const Font *font, const char_t *text, const Image *image, OSControl *owner)
 {
+    unref(menu);
+    unref(font);
+    unref(text);
+    unref(image);
+    unref(owner);
+    /*
     int index;
     MENUITEMINFO info;
-    //BOOL res;
     cassert_no_null(font);
     cassert_no_null(text);
     unref(image);
@@ -270,7 +273,8 @@ void _osmenu_append_item(HMENU menu, const Font *font, const char_t *text, const
     info.fMask = MIIM_FTYPE | MIIM_DATA;
     info.fType = MFT_OWNERDRAW;
     info.dwItemData = (ULONG_PTR)owner;
-
-    //    res = InsertMenuItem(menu, 0, TRUE, );
-    /*cassert(FALSE);*/
+    BOOL res;
+    res = InsertMenuItem(menu, 0, TRUE, );
+    cassert(FALSE);
+    */
 }

@@ -18,48 +18,49 @@ struct _app_t
 };
 
 static const char_t *i_FILES[] = {
-                            "anim_04_bat.gif",
-                            "anim_04_cube.gif",
-                            "anim_04_dragon.gif",
-                            "anim_04_game.gif",
-                            "anim_04_item.gif",
-                            "anim_04_player.gif",
-                            "static_05_cube.gif",
-                            "home_01_gray.jpg",
-                            "home_01_rgb.jpg",
-                            "home_02_index02.png",
-                            "home_02_index02c.png",
-                            "home_02_index04.png",
-                            "home_02_index04c.png",
-                            "home_02_index16.png",
-                            "home_02_index16c.png",
-                            "home_02_index256.png",
-                            "home_02_index256c.png",
-                            "home_02_rgba.png",
-                            "home_02_rgbac.png",
-                            "sea_01_gray.jpg",
-                            "sea_01_rgb.jpg",
-                            "sea_02_index02.png",
-                            "sea_02_index02c.png",
-                            "sea_02_index04.png",
-                            "sea_02_index04c.png",
-                            "sea_02_index16.png",
-                            "sea_02_index16c.png",
-                            "sea_02_index256.png",
-                            "sea_02_index256c.png",
-                            "sea_02_rgb.png",
-                            "sea_02_rgbc.png",
-                            "sea_03_bmp_index02.bmp",
-                            "sea_03_bmp_index04.bmp",
-                            "sea_03_bmp_index16.bmp",
-                            "sea_03_bmp_index256.bmp",
-                            "sea_03_bmp_rgb.bmp" };
+    "anim_04_bat.gif",
+    "anim_04_cube.gif",
+    "anim_04_dragon.gif",
+    "anim_04_game.gif",
+    "anim_04_item.gif",
+    "anim_04_player.gif",
+    "static_05_cube.gif",
+    "home_01_gray.jpg",
+    "home_01_rgb.jpg",
+    "home_02_index02.png",
+    "home_02_index02c.png",
+    "home_02_index04.png",
+    "home_02_index04c.png",
+    "home_02_index16.png",
+    "home_02_index16c.png",
+    "home_02_index256.png",
+    "home_02_index256c.png",
+    "home_02_rgba.png",
+    "home_02_rgbac.png",
+    "sea_01_gray.jpg",
+    "sea_01_rgb.jpg",
+    "sea_02_index02.png",
+    "sea_02_index02c.png",
+    "sea_02_index04.png",
+    "sea_02_index04c.png",
+    "sea_02_index16.png",
+    "sea_02_index16c.png",
+    "sea_02_index256.png",
+    "sea_02_index256c.png",
+    "sea_02_rgb.png",
+    "sea_02_rgbc.png",
+    "sea_03_bmp_index02.bmp",
+    "sea_03_bmp_index04.bmp",
+    "sea_03_bmp_index16.bmp",
+    "sea_03_bmp_index256.bmp",
+    "sea_03_bmp_rgb.bmp"};
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE String *i_pixformat(const pixformat_t format, const uint32_t ncolors)
+static ___INLINE String *i_pixformat(const pixformat_t format, const uint32_t ncolors)
 {
-    switch (format) {
+    switch (format)
+    {
     case ekINDEX1:
         return str_printf("Indexed 1bbp (%d colors)", ncolors);
     case ekINDEX2:
@@ -75,7 +76,7 @@ static __INLINE String *i_pixformat(const pixformat_t format, const uint32_t nco
     case ekRGBA32:
         return str_c("RGBA32");
     case ekFIMAGE:
-		break;
+        break;
     }
     return str_c("Unknown");
 }
@@ -130,7 +131,7 @@ static void i_download(App *app)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout* i_label(const char_t *title, Label **info)
+static Layout *i_label(const char_t *title, Label **info)
 {
     Layout *layout = layout_create(2, 1);
     Label *label = label_create();
@@ -151,7 +152,7 @@ static Layout* i_label(const char_t *title, Label **info)
 
 static void i_add_files(ListBox *listbox)
 {
-    register uint32_t i, n = sizeof(i_FILES) / sizeof(char_t*);
+    register uint32_t i, n = sizeof(i_FILES) / sizeof(char_t *);
     for (i = 0; i < n; ++i)
         listbox_add_elem(listbox, i_FILES[i], NULL);
     listbox_select(listbox, 0, TRUE);

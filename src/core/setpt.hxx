@@ -122,4 +122,4 @@
         return (const type *)rbtree_prev_ptr((RBTree *)set); \
     } \
 \
-    __INLINE void setpt_##type##_end(void)
+    ___INLINE void setpt_##type##_end(void)

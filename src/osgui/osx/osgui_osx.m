@@ -282,7 +282,7 @@ vkey_t osgui_vkey(unsigned short keycode)
    19 = ALT     6 = Right 5 = Left
     8 = From mouse in always
 */
-static __INLINE bool_t i_modif(NSUInteger flags, uint32_t v1, uint32_t v2)
+static ___INLINE bool_t i_modif(NSUInteger flags, uint32_t v1, uint32_t v2)
 {
     /* BIT 8 indicate mouse */
     cassert(v2 - v1 == 256);

@@ -134,7 +134,7 @@ bool_t font_equals(const Font *font1, const Font *font2)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_osfont(Font *font)
+static ___INLINE void i_osfont(Font *font)
 {
     cassert_no_null(font);
     if (font->osfont == NULL)
@@ -168,7 +168,7 @@ real32_t font_size(const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_metrics(Font *font)
+static ___INLINE void i_metrics(Font *font)
 {
     cassert_no_null(font);
     if (font->metrics == FALSE)

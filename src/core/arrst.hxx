@@ -177,4 +177,4 @@
     { \
         return (const type *)array_bsearch((const Array *)array, func_compare, key, pos); \
     } \
-    __INLINE void arrst_##type##_end(void)
+    ___INLINE void arrst_##type##_end(void)

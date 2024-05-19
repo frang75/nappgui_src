@@ -133,7 +133,7 @@ OBB2Dd *obb2d_from_lined(const V2Dd *p0, const V2Dd *p1, const real64_t thicknes
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE void i_quad_eq(const real a, const real b, const real c, real *r1, real *r2)
+static ___INLINE void i_quad_eq(const real a, const real b, const real c, real *r1, real *r2)
 {
     real sq = BMath<real>::sqrt((b * b) - (4 * a * c));
     *r1 = (-b + sq) / (2 * a);
@@ -143,13 +143,13 @@ static __INLINE void i_quad_eq(const real a, const real b, const real c, real *r
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE bool_t i_angle_equal(const real a1, const real a2)
+static ___INLINE bool_t i_angle_equal(const real a1, const real a2)
 {
     return (bool_t)(BMath<real>::abs(a1 - a2) < BMath<real>::kDEG2RAD);
 }
 
 /*---------------------------------------------------------------------------*/
-//#include "bstd.h"
+// #include "bstd.h"
 template <typename real>
 static OBB2D<real> *i_from_points(const V2D<real> *p, const uint32_t n)
 {
@@ -229,9 +229,9 @@ static OBB2D<real> *i_from_points(const V2D<real> *p, const uint32_t n)
         else
         {
             real varianze0 = 0, varianze1 = 0;
-            //real deviation0 = 0, deviation1 = 0;
-            //V2D<real> t0 = *V2D<real>::kZERO;
-            //V2D<real> t1 = *V2D<real>::kZERO;
+            // real deviation0 = 0, deviation1 = 0;
+            // V2D<real> t0 = *V2D<real>::kZERO;
+            // V2D<real> t1 = *V2D<real>::kZERO;
             V2D<real> v0, v1;
 
             // Eigenvalues
@@ -255,7 +255,7 @@ static OBB2D<real> *i_from_points(const V2D<real> *p, const uint32_t n)
                 // cosTh != cosTH --> Reverse the first vector
                 if (i_angle_equal<real>(BMath<real>::acos(v0.x), BMath<real>::acos(v1.y)) == FALSE)
                 {
-                    //cassert_msg(FALSE, "It's a mirror matrix --> Impossible!");
+                    // cassert_msg(FALSE, "It's a mirror matrix --> Impossible!");
                     v0.x *= (real)-1.0;
                     v0.y *= (real)-1.0;
                 }
@@ -271,44 +271,44 @@ static OBB2D<real> *i_from_points(const V2D<real> *p, const uint32_t n)
                 }
             }
 
-            //if (varianze0 > 0)
-            //    deviation0 = BMath<real>::sqrt(varianze0);
-            //else
-            //    deviation0 = 0;
+            // if (varianze0 > 0)
+            //     deviation0 = BMath<real>::sqrt(varianze0);
+            // else
+            //     deviation0 = 0;
 
-            //if (varianze1 > 0)
-            //    deviation1 = BMath<real>::sqrt(varianze1);
-            //else
-            //    deviation1 = 0;
+            // if (varianze1 > 0)
+            //     deviation1 = BMath<real>::sqrt(varianze1);
+            // else
+            //     deviation1 = 0;
 
-            //bstd_printf("sigma0: %.2f, sigma1: %.2f", deviation0, deviation1);
-            //if (deviation0 > deviation1)
+            // bstd_printf("sigma0: %.2f, sigma1: %.2f", deviation0, deviation1);
+            // if (deviation0 > deviation1)
             if (varianze0 > varianze1)
             {
-                //t0.x = deviation0;
-                //t1.x = - deviation0;
-                //t0.y = 0;
-                //t1.y = 0;
+                // t0.x = deviation0;
+                // t1.x = - deviation0;
+                // t0.y = 0;
+                // t1.y = 0;
                 angle = 0;
             }
             else
             {
-                //t0.x = 0;
-                //t1.x = 0;
-                //t0.y = deviation1;
-                //t1.y = - deviation1;
+                // t0.x = 0;
+                // t1.x = 0;
+                // t0.y = deviation1;
+                // t1.y = - deviation1;
                 angle = BMath<real>::kPI / 2;
             }
 
             {
                 real theta = BMath<real>::acos(v0.x);
-                //real costh = BMath<real>::cos(-theta);
-                //real sinth = BMath<real>::sin(-theta);
-                //V2D<real> p0, p1;
-                //p0.x =  (t0.x * costh) + (t0.y * sinth);
-                //p0.y = -(t0.x * sinth) + (t0.y * costh);
-                //p1.x =  (t1.x * costh) + (t1.y * sinth);
-                //p1.y = -(t1.x * sinth) + (t1.y * costh);
+                // real costh = BMath<real>::cos(-theta);
+                // real sinth = BMath<real>::sin(-theta);
+                // V2D<real> p0, p1;
+                // p0.x =  (t0.x * costh) + (t0.y * sinth);
+                // p0.y = -(t0.x * sinth) + (t0.y * costh);
+                // p1.x =  (t1.x * costh) + (t1.y * sinth);
+                // p1.y = -(t1.x * sinth) + (t1.y * costh);
                 angle += theta;
 
                 dir = V2D<real>::from_angle(angle);
@@ -343,7 +343,7 @@ static OBB2D<real> *i_from_points(const V2D<real> *p, const uint32_t n)
 
         height = BMath<real>::sqrt(max_sqdist);
         width = BMath<real>::max(BMath<real>::abs(min_proj), BMath<real>::abs(max_proj));
-        //bstd_printf(" width: %.2f, height: %.2f\n", width, height);
+        // bstd_printf(" width: %.2f, height: %.2f\n", width, height);
         width *= 2;
         height *= 2;
     }
@@ -703,53 +703,53 @@ Box2Dd obb2d_boxd(const OBB2Dd *obb)
 
 /*---------------------------------------------------------------------------*/
 
-//template<typename real>
-//static void i_corners(const OBB2D<real> *obb, V2D<real> *corner)
+// template<typename real>
+// static void i_corners(const OBB2D<real> *obb, V2D<real> *corner)
 //{
-//    register real c = BMath<real>::cos(obb->angle);
-//    register real s = BMath<real>::sin(obb->angle);
-//    V2D<real> vX(c, s);
-//    V2D<real> vY(-s, c);
-//    vX.x *= obb->hwidth;
-//    vX.y *= obb->hwidth;
-//    vY.x *= obb->hheight;
-//    vY.y *= obb->hheight;
-//    corner[0].x = obb->center.x - vX.x - vY.x;
-//    corner[0].y = obb->center.y - vX.y - vY.y;
-//    corner[1].x = obb->center.x + vX.x - vY.x;
-//    corner[1].y = obb->center.y + vX.y - vY.y;
-//    corner[2].x = obb->center.x + vX.x + vY.x;
-//    corner[2].y = obb->center.y + vX.y + vY.y;
-//    corner[3].x = obb->center.x - vX.x + vY.x;
-//    corner[3].y = obb->center.y - vX.y + vY.y;
-//}
+//     register real c = BMath<real>::cos(obb->angle);
+//     register real s = BMath<real>::sin(obb->angle);
+//     V2D<real> vX(c, s);
+//     V2D<real> vY(-s, c);
+//     vX.x *= obb->hwidth;
+//     vX.y *= obb->hwidth;
+//     vY.x *= obb->hheight;
+//     vY.y *= obb->hheight;
+//     corner[0].x = obb->center.x - vX.x - vY.x;
+//     corner[0].y = obb->center.y - vX.y - vY.y;
+//     corner[1].x = obb->center.x + vX.x - vY.x;
+//     corner[1].y = obb->center.y + vX.y - vY.y;
+//     corner[2].x = obb->center.x + vX.x + vY.x;
+//     corner[2].y = obb->center.y + vX.y + vY.y;
+//     corner[3].x = obb->center.x - vX.x + vY.x;
+//     corner[3].y = obb->center.y - vX.y + vY.y;
+// }
 
 /*---------------------------------------------------------------------------*/
 
-//void obb_cornersf(const OBB2Df *obb, V2Df *corner);
+// void obb_cornersf(const OBB2Df *obb, V2Df *corner);
 //
-//void obb_cornersd(const OBB2Dd *obb, V2Dd *corner);
+// void obb_cornersd(const OBB2Dd *obb, V2Dd *corner);
 //
-//void obb_from_segmentf(OBB2Df *box, const Seg2Df *seg, const real32_t thickness);
+// void obb_from_segmentf(OBB2Df *box, const Seg2Df *seg, const real32_t thickness);
 //
-//void obb_from_segmentd(OBB2Dd *box, const Seg2Dd *seg, const real64_t thickness);
+// void obb_from_segmentd(OBB2Dd *box, const Seg2Dd *seg, const real64_t thickness);
 //
-//void obb_cornersf(const OBB2Df *obb, V2Df *corner)
+// void obb_cornersf(const OBB2Df *obb, V2Df *corner)
 //{
-//    i_corners<real32_t>((const OBB2D<real32_t>*)obb, (V2D<real32_t>*)corner);
-//}
+//     i_corners<real32_t>((const OBB2D<real32_t>*)obb, (V2D<real32_t>*)corner);
+// }
 //
 ///*---------------------------------------------------------------------------*/
 //
-//void obb_cornersd(const OBB2Dd *obb, V2Dd *corner)
+// void obb_cornersd(const OBB2Dd *obb, V2Dd *corner)
 //{
 //    i_corners<real64_t>((const OBB2D<real64_t>*)obb, (V2D<real64_t>*)corner);
 //}
 //
 ///*---------------------------------------------------------------------------*/
 //
-//template<typename real>
-//static void i_from_segment(OBB2D<real> *box, const Seg2D<real> *seg, const real thickness)
+// template<typename real>
+// static void i_from_segment(OBB2D<real> *box, const Seg2D<real> *seg, const real thickness)
 //{
 //    real l;
 //    cassert_no_null(box);
@@ -766,14 +766,14 @@ Box2Dd obb2d_boxd(const OBB2Dd *obb)
 //
 ///*---------------------------------------------------------------------------*/
 //
-//void obb_from_segmentf(OBB2Df *box, const Seg2Df *seg, const real32_t thickness)
+// void obb_from_segmentf(OBB2Df *box, const Seg2Df *seg, const real32_t thickness)
 //{
 //    i_from_segment<real32_t>((OBB2D<real32_t>*)box, (const Seg2D<real32_t>*)seg, thickness);
 //}
 //
 ///*---------------------------------------------------------------------------*/
 //
-//void obb_from_segmentd(OBB2Dd *box, const Seg2Dd *seg, const real64_t thickness)
+// void obb_from_segmentd(OBB2Dd *box, const Seg2Dd *seg, const real64_t thickness)
 //{
 //    i_from_segment<real64_t>((OBB2D<real64_t>*)box, (const Seg2D<real64_t>*)seg, thickness);
 //}
@@ -793,11 +793,11 @@ OBB2D<real32_t> *(*OBB2D<real32_t>::from_line)(const V2D<real32_t> *, const V2D<
 template <>
 OBB2D<real64_t> *(*OBB2D<real64_t>::from_line)(const V2D<real64_t> *, const V2D<real64_t> *, const real64_t) = i_from_line<real64_t>;
 
-//template<>
-//OBB2D<real32_t>*(*OBB2D<real32_t>::from_points)(const V2D<real32_t>*) = i_from_points<real32_t>;
+// template<>
+// OBB2D<real32_t>*(*OBB2D<real32_t>::from_points)(const V2D<real32_t>*) = i_from_points<real32_t>;
 //
-//template<>
-//OBB2D<real64_t>*(*OBB2D<real64_t>::from_points)(const V2D<real64_t>*) = i_from_points<real64_t>;
+// template<>
+// OBB2D<real64_t>*(*OBB2D<real64_t>::from_points)(const V2D<real64_t>*) = i_from_points<real64_t>;
 
 template <>
 OBB2D<real32_t> *(*OBB2D<real32_t>::copy)(const OBB2D<real32_t> *) = i_copy<real32_t>;

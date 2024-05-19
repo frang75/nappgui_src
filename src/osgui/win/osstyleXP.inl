@@ -10,16 +10,7 @@
 
 /* Windows XP Styles */
 
-#include <draw2d/win/draw2d_gdi.ixx>
-#include <sewer/nowarn.hxx>
-#include <uxtheme.h>
-#if _MSC_VER > 1400
-#include <vssym32.h>
-#include <vsstyle.h>
-#else
-#include <tmschema.h>
-#endif
-#include <sewer/warn.hxx>
+#include "osgui_win.ixx"
 
 __EXTERN_C
 

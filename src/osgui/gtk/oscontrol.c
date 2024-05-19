@@ -219,7 +219,7 @@ void _oscontrol_set_enabled(OSControl *control, const bool_t is_enabled)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_widget_allocation(GtkWidget *widget, GtkAllocation *alloc)
+static ___INLINE void i_widget_allocation(GtkWidget *widget, GtkAllocation *alloc)
 {
 #if GTK_CHECK_VERSION(3, 20, 0)
     gtk_widget_get_allocated_size(widget, alloc, NULL);
@@ -260,7 +260,7 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
     cassert_no_null(parent);
     ptype = G_OBJECT_TYPE_NAME(parent);
     /* 	GtkLayout inside GtkLayout
-	https://stackoverflow.com/questions/47879677/is-it-possible-to-put-gtklayouts-inside-gtklayout */
+    https://stackoverflow.com/questions/47879677/is-it-possible-to-put-gtklayouts-inside-gtklayout */
     if (str_equ_c(ptype, "GtkLayout"))
     {
         gtk_layout_move(GTK_LAYOUT(parent), control->widget, (gint)x, (gint)y);

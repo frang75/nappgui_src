@@ -65,7 +65,7 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
                 register uint32_t tsize;
                 tsize = unicode_convers(ftypes[i], (char_t *)type, ekUTF8, ekUTF16, sizeof(type));
                 cassert(tsize < sizeof(type));
-                tsize += 4; // "*."
+                tsize += 4; /* "*." */
                 if (lbufsize > tsize * 2)
                 {
                     register int bytes;
@@ -284,7 +284,7 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             }
         }
 
-        // Avoid to show the dialog outside the screen
+        /* Avoid to show the dialog outside the screen */
         if (cdata->x + (rect.right - rect.left) > screen_width)
             cdata->x = screen_width - (rect.right - rect.left);
 

@@ -25,10 +25,9 @@
 #error This file is only for Windows
 #endif
 
-/* Avoid Microsoft Warnings */
-#pragma warning(push, 0)
+#include <sewer/nowarn.hxx>
 #include <Commctrl.h>
-#pragma warning(pop)
+#include <sewer/warn.hxx>
 
 struct _osslider_t
 {

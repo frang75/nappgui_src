@@ -27,7 +27,6 @@
 #include <sewer/nowarn.hxx>
 #include <Windows.h>
 #include <WinInet.h>
-#pragma comment(lib, "WinInet.lib")
 #include <sewer/warn.hxx>
 
 struct _oshttp_t
@@ -221,8 +220,8 @@ Stream *oshttp_response(OSHttp *http)
 
                 stm_lines(line, stm_src)
                     stm_writef(stm_dest, line);
-                    stm_write_char(stm_dest, 13); // CR '\r'
-                    stm_write_char(stm_dest, 10); // LF '\n'
+                    stm_write_char(stm_dest, 13); /* CR '\r' */
+                    stm_write_char(stm_dest, 10); /* LF '\n' */
                 stm_next(line, stm_src)
 
                 heap_free((byte_t **)&data, (uint32_t)asize, "http_headers");

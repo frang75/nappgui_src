@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     setpt = setpt_create(i_compare, Product);
 
     clock = clock_create(0.);
-    bstd_printf("- Created %d elements of %lu bytes\n", n, sizeof(Product));
+    bstd_printf("- Created %u elements of %u bytes\n", n, sizeof32(Product));
     bstd_printf("- Starting...\n");
 
     // NAppGUI struct array

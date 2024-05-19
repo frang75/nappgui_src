@@ -229,7 +229,7 @@ bool_t col2d_segment_pointd(const Seg2Dd *seg, const V2Dd *pnt, const real64_t t
 template <typename real>
 static bool_t i_line_line(const V2D<real> *a1, const V2D<real> *a2, const V2D<real> *b1, const V2D<real> *b2, Col2D<real> *col)
 {
-    //intersection = Vector2.Zero;
+    // intersection = Vector2.Zero;
     V2D<real> b(a2->x - a1->x, a2->y - a1->y);
     V2D<real> d(b2->x - b1->x, b2->y - b1->y);
     real bDotDPerp = b.x * d.y - b.y * d.x;
@@ -829,37 +829,37 @@ bool_t col2d_obb_boxd(const OBB2Dd *obb, const Box2Dd *box, Col2Dd *col)
 }
 
 /*---------------------------------------------------------------------------*/
-//#include "bstd.h"
-//template<typename real>
-//static void i_dump(const SATPoly<real> *poly)
+// #include "bstd.h"
+// template<typename real>
+// static void i_dump(const SATPoly<real> *poly)
 //{
-//    register uint32_t i = 0;
-//    bstd_printf("Vertices: ");
-//    for (i = 0; i < poly->num_vertices; ++i)
-//    {
-//        bstd_printf("(%.2f,%2.f)", poly->vertex[i].x, poly->vertex[i].y);
-//        if (i < poly->num_vertices - 1)
-//            bstd_printf(", ");
-//    }
+//     register uint32_t i = 0;
+//     bstd_printf("Vertices: ");
+//     for (i = 0; i < poly->num_vertices; ++i)
+//     {
+//         bstd_printf("(%.2f,%2.f)", poly->vertex[i].x, poly->vertex[i].y);
+//         if (i < poly->num_vertices - 1)
+//             bstd_printf(", ");
+//     }
 //
-//    bstd_printf("\n");
-//    bstd_printf("Axis: ");
-//    for (i = 0; i < poly->num_axis; ++i)
-//    {
-//        bstd_printf("(%.2f,%2.f)", poly->axis[i].x, poly->axis[i].y);
-//        if (i < poly->num_axis - 1)
-//            bstd_printf(", ");
-//    }
+//     bstd_printf("\n");
+//     bstd_printf("Axis: ");
+//     for (i = 0; i < poly->num_axis; ++i)
+//     {
+//         bstd_printf("(%.2f,%2.f)", poly->axis[i].x, poly->axis[i].y);
+//         if (i < poly->num_axis - 1)
+//             bstd_printf(", ");
+//     }
 //
-//    bstd_printf("\n");
-//    bstd_printf("Limits: ");
-//    for (i = 0; i < poly->num_axis; ++i)
-//    {
-//        bstd_printf("Min: %.2f Max:%2.f\n", poly->min[i], poly->max[i]);
-//    }
+//     bstd_printf("\n");
+//     bstd_printf("Limits: ");
+//     for (i = 0; i < poly->num_axis; ++i)
+//     {
+//         bstd_printf("Min: %.2f Max:%2.f\n", poly->min[i], poly->max[i]);
+//     }
 //
-//    bstd_printf("\n");
-//}
+//     bstd_printf("\n");
+// }
 
 /*---------------------------------------------------------------------------*/
 
@@ -946,7 +946,7 @@ bool_t col2d_obb_obbd(const OBB2Dd *obb1, const OBB2Dd *obb2, Col2Dd *col)
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE bool_t i_sign(const V2D<real> *p1, const V2D<real> *p2, const V2D<real> *p3)
+static ___INLINE bool_t i_sign(const V2D<real> *p1, const V2D<real> *p2, const V2D<real> *p3)
 {
     return ((p1->x - p3->x) * (p2->y - p3->y) - (p2->x - p3->x) * (p1->y - p3->y)) > 0 ? TRUE : FALSE;
 }
@@ -989,7 +989,7 @@ bool_t col2d_tri_pointd(const Tri2Dd *tri, const V2Dd *pnt, Col2Dd *col)
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE void i_tri_sat(const Tri2D<real> *tri, const V2D<real> **vt, V2D<real> *a, real *min, real *max)
+static ___INLINE void i_tri_sat(const Tri2D<real> *tri, const V2D<real> **vt, V2D<real> *a, real *min, real *max)
 {
     const V2D<real> *v;
     cassert_no_null(tri);

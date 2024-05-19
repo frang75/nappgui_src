@@ -26,10 +26,6 @@
 #error This file is only for Windows
 #endif
 
-#pragma comment(lib, "gdiplus.lib")
-#pragma comment(lib, "Shlwapi.lib")
-#pragma comment(lib, "comctl32.lib")
-
 #include <sewer/nowarn.hxx>
 #include <Commctrl.h>
 #include <Richedit.h>

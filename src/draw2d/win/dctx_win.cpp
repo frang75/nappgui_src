@@ -27,6 +27,13 @@
 #error This file is only for Windows
 #endif
 
+/* Typo error in MinGW */
+#if defined(__MINGW64__) || defined(__MINGW32__)
+#define ROTATETRANSFORM RotateTranform
+#else
+#define ROTATETRANSFORM RotateTransform
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 DCtx *dctx_create(void)
@@ -364,14 +371,14 @@ void _dctx_gradient_transform(DCtx *ctx)
             Gdiplus::REAL sc = ctx->gradient_scale * 10;
             Gdiplus::REAL len = ctx->gradient_scale + 2 * sc;
             ctx->lbrush->TranslateTransform(ctx->gradient_x, ctx->gradient_y);
-            ctx->lbrush->RotateTransform(ctx->gradient_angle);
+            ctx->lbrush->ROTATETRANSFORM(ctx->gradient_angle);
             ctx->lbrush->TranslateTransform(-sc, 0);
             ctx->lbrush->ScaleTransform(len, 1);
         }
         else
         {
             ctx->lbrush->TranslateTransform(ctx->gradient_x, ctx->gradient_y);
-            ctx->lbrush->RotateTransform(ctx->gradient_angle);
+            ctx->lbrush->ROTATETRANSFORM(ctx->gradient_angle);
             ctx->lbrush->ScaleTransform(ctx->gradient_scale, 1);
         }
     }

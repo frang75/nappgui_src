@@ -159,7 +159,7 @@ function(nap_target_rpath targetName isMacOsBundle rpath)
         set_property(TARGET ${targetName} PROPERTY BUILD_WITH_INSTALL_RPATH TRUE)
         set_property(TARGET ${targetName} PROPERTY INSTALL_RPATH "${RUNPATH}")
 
-	elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         # otool -L libdraw2d.dylib
         # @rpath/libgeom2d.dylib (compatibility version 0.0.0, current version 0.0.0)
         # Force to use paths relative to @rpath in dylibs and execs
@@ -206,20 +206,20 @@ function(nap_is_source_subdir subDirName _ret)
 
     string(TOLOWER ${subDirName} subDirLower)
     if (${subDirLower} STREQUAL win)
-	    if (WIN32)
+        if (WIN32)
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
     elseif (${subDirLower} STREQUAL unix)
-	    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin"
+        if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin"
             OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
         endif()
     elseif (${subDirLower} STREQUAL osx)
-	    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
             set(${_ret} TRUE PARENT_SCOPE)
         else()
             set(${_ret} FALSE PARENT_SCOPE)
@@ -373,17 +373,29 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
     set(resPath ${dir}/res)
 
     if (EXISTS ${resPath})
-		# Process Win32 .rc files
-		if (targetType STREQUAL WIN_DESKTOP)
-			# VS2005 does not support .ico with 256 res
-			if(MSVC_VERSION EQUAL 1400 OR MSVC_VERSION LESS 1400)
+        # Process Win32 .rc files
+        if (targetType STREQUAL WIN_DESKTOP)
+
+            # VS2005 does not support .ico with 256 res
+            if(MSVC_VERSION EQUAL 1400 OR MSVC_VERSION LESS 1400)
                 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res.rc "APPLICATION_ICON ICON \"res\\\\logo48.ico\"\n")
-                set(globalRes ${CMAKE_CURRENT_BINARY_DIR}/res.rc ${resPath}/logo48.ico)
-			else()
+                set(globalRes ${resPath}/logo48.ico)
+            else()
                 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res.rc "APPLICATION_ICON ICON \"res\\\\logo256.ico\"\n")
-                set(globalRes ${CMAKE_CURRENT_BINARY_DIR}/res.rc ${resPath}/logo256.ico)
-			endif()
-		endif()
+                set(globalRes ${resPath}/logo256.ico)
+            endif()
+
+            # Copy the manifest file (required by MinGW)
+            if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+                if (NOT EXISTS "${resPath}/Application.manifest")
+                    file(COPY "${NAPPGUI_ROOT_PATH}/prj/templates/Application.manifest" DESTINATION "${resPath}")
+                endif()
+                # https://geekthis.net/post/visual-styles-in-win32-api-c-gcc-mingw/
+                file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/res.rc "1 24 \"res\\\\Application.manifest\"\n")
+            endif()
+
+            set(globalRes ${globalRes} ${CMAKE_CURRENT_BINARY_DIR}/res.rc)
+        endif()
 
         if (EXISTS ${resPath}/license.txt)
             list(APPEND globalRes ${resPath}/license.txt)
@@ -414,7 +426,7 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
             file(MAKE_DIRECTORY ${DEST_RESDIR})
         endif()
 
-	    foreach(resPack ${resPackDirs})
+        foreach(resPack ${resPackDirs})
             # Add resources to IDE
             set(resPackPath ${resPath}/${resPack})
             nap_resource_pattern(${resPackPath} resGlob)
@@ -441,8 +453,8 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
                 message (FATAL_ERROR "Unknown nrc mode")
             endif()
 
-			file(TO_NATIVE_PATH ${resPackPath} RESPACK_NATIVE)
-			file(TO_NATIVE_PATH ${DEST_RESDIR}/${resPack}.c RESDEST_NATIVE)
+            file(TO_NATIVE_PATH ${resPackPath} RESPACK_NATIVE)
+            file(TO_NATIVE_PATH ${DEST_RESDIR}/${resPack}.c RESDEST_NATIVE)
             execute_process(COMMAND "${NAPPGUI_NRC}" "${NRC_OPTION}" "${RESPACK_NATIVE}" "${RESDEST_NATIVE}" RESULT_VARIABLE nrcRes OUTPUT_VARIABLE nrcOut ERROR_VARIABLE nrcErr)
             file(WRITE ${CMAKE_OUTPUT} ${nrcOut})
             file(APPEND ${CMAKE_OUTPUT} ${nrcErr})
@@ -467,7 +479,7 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
 
             set(${_resIncludeDir} ${DEST_RESDIR} PARENT_SCOPE)
 
-	    endforeach()
+            endforeach()
 
     endif()
 
@@ -511,7 +523,7 @@ function(nap_install_resource_packs targetName targetType sourceDir nrcMode)
 
         # Create 'res' directory for packed resources
         # In the same location as executable
-	    if (WIN32)
+        if (WIN32)
             set(resRelative "res")
             add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${targetName}>/${resRelative})
 
@@ -523,18 +535,18 @@ function(nap_install_resource_packs targetName targetType sourceDir nrcMode)
             set(resRelative "res")
             add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${targetName}>/${resRelative})
 
-	    else()
-	       message(FATAL_ERROR "Unknown system")
+            else()
+            message(FATAL_ERROR "Unknown system")
 
         endif()
 
         nap_get_subdirectories(${resPath} resPackDirs)
 
         # Copy all resource packs
-	    foreach(resSubDir ${resPackDirs})
+        foreach(resSubDir ${resPackDirs})
             add_custom_command(TARGET ${targetName} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${destResDir}/${resSubDir}.res $<TARGET_FILE_DIR:${targetName}>/${resRelative})
             install(FILES ${destResDir}/${resSubDir}.res DESTINATION "bin/res")
-	    endforeach()
+            endforeach()
 
     endif()
 
@@ -565,7 +577,7 @@ function(nap_direct_dependencies targetName _ret)
 
     if (NAPPGUI_CACHE_DEPENDS_${targetName})
         set(${_ret} ${NAPPGUI_CACHE_DEPENDS_${targetName}} PARENT_SCOPE)
-	else()
+    else()
         set(${_ret} "" PARENT_SCOPE)
     endif()
 
@@ -575,10 +587,10 @@ endfunction()
 
 function(nap_target_dependencies targetName dependList)
 
-	foreach(depend ${dependList})
+    foreach(depend ${dependList})
 
-		# Dependency is a Target of this solution
-		if (TARGET ${depend})
+        # Dependency is a Target of this solution
+        if (TARGET ${depend})
             get_target_property(TARGET_TYPE ${depend} TYPE)
             if (${TARGET_TYPE} STREQUAL "STATIC_LIBRARY" OR ${TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
                 nap_add_dependency(${targetName} ${depend})
@@ -594,7 +606,7 @@ function(nap_target_dependencies targetName dependList)
             nap_target_dependencies(${targetName} "${childDependList}")
         endif()
 
-	endforeach()
+    endforeach()
 
 endfunction()
 
@@ -710,10 +722,42 @@ function(nap_link_with_libraries targetName firstLevelDepends)
 
         if (_depends1 OR _depends2)
             if (NOT ${TARGET_TYPE} STREQUAL "STATIC_LIBRARY")
-    			target_link_libraries(${targetName} ${COCOA_LIB})
+                target_link_libraries(${targetName} ${COCOA_LIB})
             endif()
         endif()
-	endif()
+    endif()
+
+    # Target should link with winsockets
+    if(WIN32)
+        nap_exists_dependency(${targetName} "osbs" _depends)
+        if (_depends)
+            target_link_libraries(${targetName} ws2_32)
+        endif()
+    endif()
+
+    # Target should link with wininet
+    if(WIN32)
+        nap_exists_dependency(${targetName} "inet" _depends)
+        if (_depends)
+            target_link_libraries(${targetName} wininet)
+        endif()
+    endif()
+
+    # Target should link with gdiplus
+    if(WIN32)
+        nap_exists_dependency(${targetName} "draw2d" _depends)
+        if (_depends)
+            target_link_libraries(${targetName} gdiplus shlwapi)
+        endif()
+    endif()
+
+    # Target should link with comctl32
+    if(WIN32)
+        nap_exists_dependency(${targetName} "osgui" _depends)
+        if (_depends)
+            target_link_libraries(${targetName} comctl32 uxtheme)
+        endif()
+    endif()
 
     # In GCC the g++ linker must be used
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -768,7 +812,7 @@ function(nap_target targetName targetType dependList nrcMode)
 
         # Clang, GNU, Intel, MSVC
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	        target_compile_options(${targetName} PUBLIC "-fPIC;-fvisibility=hidden")
+            target_compile_options(${targetName} PUBLIC "-fPIC;-fvisibility=hidden")
             set_target_properties(${targetName} PROPERTIES LINK_FLAGS "-fPIC")
         endif()
 
@@ -851,10 +895,6 @@ function(nap_target targetName targetType dependList nrcMode)
         # Platform toolset macro
         #set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS VS_PLATFORM=${VS_TOOLSET_NUMBER})
 
-        # Disable linker '4099' "pdb" warnings
-        # Disable linker '4098' mixed (static/dynamic) runtime library warnings
-        set_target_properties(${targetName} PROPERTIES LINK_FLAGS "/ignore:4099 /ignore:4098")
-
         # Force the name of the pdb (vc110.pdb in VS2012)
         set_target_properties(${targetName} PROPERTIES COMPILE_PDB_NAME ${targetName})
     endif()
@@ -921,7 +961,7 @@ function(nap_library libName dependList buildShared nrcMode)
         # endif()
     endif()
 
-	set(NAPPGUI_CACHE_DEPENDS_${libName} "${dependList}" CACHE INTERNAL "")
+    set(NAPPGUI_CACHE_DEPENDS_${libName} "${dependList}" CACHE INTERNAL "")
 
 endfunction()
 
@@ -931,10 +971,13 @@ function(nap_command_app appName dependList nrcMode)
 
     if (WIN32)
         nap_target("${appName}" WIN_CONSOLE "${dependList}" ${nrcMode})
-        foreach(config ${CMAKE_CONFIGURATION_TYPES})
-            string(TOUPPER ${config} configUpper)
-            set_target_properties(${appName} PROPERTIES LINK_FLAGS_${configUpper} "/SUBSYSTEM:CONSOLE")
-        endforeach()
+
+        if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+            foreach(config ${CMAKE_CONFIGURATION_TYPES})
+                string(TOUPPER ${config} configUpper)
+                set_target_properties(${appName} PROPERTIES LINK_FLAGS_${configUpper} "/SUBSYSTEM:CONSOLE")
+            endforeach()
+        endif()
 
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         nap_target("${appName}" APPLE_CONSOLE "${dependList}" ${nrcMode})
@@ -956,12 +999,14 @@ endfunction()
 
 function(nap_desktop_app appName dependList nrcMode)
 
-	if (WIN32)
+    if (WIN32)
         nap_target(${appName} WIN_DESKTOP "${dependList}" ${nrcMode})
-        foreach(config ${CMAKE_CONFIGURATION_TYPES})
-            string(TOUPPER ${config} configUpper)
-            set_target_properties(${appName} PROPERTIES LINK_FLAGS_${configUpper} "/SUBSYSTEM:WINDOWS")
-        endforeach()
+        if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+            foreach(config ${CMAKE_CONFIGURATION_TYPES})
+                string(TOUPPER ${config} configUpper)
+                set_target_properties(${appName} PROPERTIES LINK_FLAGS_${configUpper} "/SUBSYSTEM:WINDOWS")
+            endforeach()
+        endif()
         set(macOSBundle NO)
 
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -989,7 +1034,7 @@ function(nap_desktop_app appName dependList nrcMode)
     else()
         message("Unknown platform")
 
-	endif()
+    endif()
 
     nap_link_with_libraries(${appName} "${dependList}")
     nap_target_rpath(${appName} ${macOSBundle} "")

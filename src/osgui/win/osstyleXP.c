@@ -8,22 +8,22 @@
  *
  */
 
-/* Windows XP Styles 
- * Based on CVisualStylesXP by David Yuheng Zhao 
+/* Windows XP Styles
+ * Based on CVisualStylesXP by David Yuheng Zhao
  */
 
+/*
 /////////////////////////////////////////////////////////////////////////////
 // Copyright (C) 2001-2002 by David Yuheng Zhao
 //
 // Distribute and change freely, except: don't remove my name from the source
 /////////////////////////////////////////////////////////////////////////////
+*/
 
 #include "osstyleXP.inl"
 #include <core/heap.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
-
-#pragma comment(lib, "uxtheme.lib")
 
 #ifndef DTPB_WINDOWDC
 #define DTPB_WINDOWDC 0x00000001

@@ -287,7 +287,7 @@ void osmenuitem_image(OSMenuItem *item, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE GdkModifierType i_kmod(const uint32_t modifiers)
+static ___INLINE GdkModifierType i_kmod(const uint32_t modifiers)
 {
     GdkModifierType mod = 0;
     if (modifiers & ekMKEY_CONTROL)

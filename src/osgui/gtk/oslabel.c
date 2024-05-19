@@ -278,7 +278,7 @@ void oslabel_font(OSLabel *label, const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE GtkJustification i_align(const align_t align, gfloat *xalign)
+static ___INLINE GtkJustification i_align(const align_t align, gfloat *xalign)
 {
     switch (align)
     {

@@ -182,7 +182,7 @@ void oshttp_destroy(OSHttp **http)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_reserved_header(const char_t *header)
+static ___INLINE bool_t i_reserved_header(const char_t *header)
 {
     if (str_equ_nocase(header, "content-length") == TRUE)
         return TRUE;

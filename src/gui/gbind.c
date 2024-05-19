@@ -648,7 +648,7 @@ void gbind_upd_layout(Layout *layout, const StBind *stbind, const DBind *dbind, 
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_on_change(void *obj_edit, const char_t *objtype_edit, const uint16_t offset_edit, const uint16_t size_edit, Layout *notif_layout)
+static ___INLINE bool_t i_on_change(void *obj_edit, const char_t *objtype_edit, const uint16_t offset_edit, const uint16_t size_edit, Layout *notif_layout)
 {
     EvBind params;
     bool_t ok = TRUE;

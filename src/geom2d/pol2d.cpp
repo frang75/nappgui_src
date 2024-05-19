@@ -125,7 +125,7 @@ static bool_t i_convex(const Pol2D<real> *pol)
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE real i_ccw(const V2D<real> *a, const V2D<real> *b, const V2D<real> *c)
+static ___INLINE real i_ccw(const V2D<real> *a, const V2D<real> *b, const V2D<real> *c)
 {
     cassert_no_null(a);
     cassert_no_null(b);
@@ -161,7 +161,7 @@ static void i_min_max_points(const V2D<real> *p, const uint32_t n, uint32_t *min
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE real i_dist(const V2D<real> *a, const V2D<real> *b, const V2D<real> *p, const real ab_dist)
+static ___INLINE real i_dist(const V2D<real> *a, const V2D<real> *b, const V2D<real> *p, const real ab_dist)
 {
     return BMath<real>::abs((b->x - a->x) * (a->y - p->y) - (b->y - a->y) * (a->x - p->x)) / ab_dist;
 }

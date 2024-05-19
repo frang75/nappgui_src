@@ -14,7 +14,7 @@
 
 __EXTERN_C
 
-_osapp_api void osmain_imp(uint32_t argc, char_t **argv, void *instance, const real64_t lframe, FPtr_app_create func_create, FPtr_app_update func_update, FPtr_destroy func_destroy, char_t *options);
+_osapp_api void osmain_imp(uint32_t argc, char_t **argv, void *instance, const real64_t lframe, FPtr_app_create func_create, FPtr_app_update func_update, FPtr_destroy func_destroy, const char_t *options);
 
 __END_C
 

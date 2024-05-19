@@ -387,7 +387,7 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
     cassert_no_null(combo);
     cassert(combo->launch_event == TRUE);
     combo->launch_event = FALSE;
-    ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)((index != UINT32_MAX) ? index : -1), (LPARAM)0);
+    ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (index != UINT32_MAX) ? (WPARAM)index : (WPARAM)-1, (LPARAM)0);
     cassert(ret == (LRESULT)index);
     combo->launch_event = TRUE;
 }
@@ -538,28 +538,30 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
 
         SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)1, (LPARAM)0);
 
-        //if (IsWindowEnabled(combo->control.hwnd) && combo->OnSelect.object != NULL)
-        //{
-        //    Event event;
-        //    EvButton params;
-        //    uint32_t i,n;
-        //    event.type = ekGUI_EVENT_BUTTON_PUSH;
-        //    event.sender1 = combo;
-        //    event.params1 = &params;
-        //    event.result1 = NULL;
-        //    #if defined (__ASSERTS__)
-        //    event.sender_type = "OSCombo";
-        //    event.params_type = "EvButton";
-        //    event.result_type = "";
-        //    #endif
-        //    params.state = ekGUI_ON;
-        //    params.index = (uint16_t)SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-        //    i = SendMessage(combo->combo_hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-        //    n = SendMessage(combo->combo_hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
-        //    cassert(params.index >= 0 && params.index < (uint16_t)SendMessage(combo->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0));
-        //    params.text = NULL;
-        //    listener_event(&combo->OnSelect, &event);
-        //}
+        /*
+        if (IsWindowEnabled(combo->control.hwnd) && combo->OnSelect.object != NULL)
+        {
+            Event event;
+            EvButton params;
+            uint32_t i,n;
+            event.type = ekGUI_EVENT_BUTTON_PUSH;
+            event.sender1 = combo;
+            event.params1 = &params;
+            event.result1 = NULL;
+            #if defined (__ASSERTS__)
+            event.sender_type = "OSCombo";
+            event.params_type = "EvButton";
+            event.result_type = "";
+            #endif
+            params.state = ekGUI_ON;
+            params.index = (uint16_t)SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+            i = SendMessage(combo->combo_hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+            n = SendMessage(combo->combo_hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
+            cassert(params.index >= 0 && params.index < (uint16_t)SendMessage(combo->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0));
+            params.text = NULL;
+            listener_event(&combo->OnSelect, &event);
+        }
+        */
     }
 }
 
@@ -639,14 +641,8 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
 void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_height, uint32_t num_elems)
 {
     uint32_t height = ((14 * HIWORD(GetDialogBaseUnits())) / 8) - 4;
-    //uint32_t num_elems = (uint32_t)SendMessage(hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
     uint32_t line_height = (uint32_t)SendMessage(hwnd, CB_GETITEMHEIGHT, (WPARAM) /*-1*/ 0, (LPARAM)0);
     RECT rect;
-
-    //if (num_elems == 0)
-    //    num_elems = 1;
-    //else if (num_elems > 10)
-    //    num_elems = 10;
 
     GetClientRect(hwnd, &rect);
 

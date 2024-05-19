@@ -521,16 +521,9 @@ static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
     }
 
     {
-        GETTEXTEX gtext;
-        uint32_t num_charsw;
-        gtext.cb = num_chars * sizeof(WCHAR);
-        gtext.flags = GT_DEFAULT;
-        gtext.codepage = 1200;
-        gtext.lpDefaultChar = NULL;
-        gtext.lpUsedDefChar = NULL;
         /* EM_GETSELTEXT: The return value is the number of TCHARs copied into the output buffer, NOT including the null terminator. */
-        num_charsw = (uint32_t)SendMessage(hwnd, EM_GETSELTEXT, (WPARAM)0, (LPARAM)wtext);
-        cassert(num_chars == num_charsw);
+        uint32_t num_charsw = (uint32_t)SendMessage(hwnd, EM_GETSELTEXT, (WPARAM)0, (LPARAM)wtext);
+        cassert_unref(num_chars == num_charsw, num_charsw);
     }
 
     *size = unicode_convers_nbytes((const char_t *)wtext, kWINDOWS_UNICODE, ekUTF8);
@@ -652,13 +645,6 @@ static uint32_t i_get_cursor_pos(HWND hwnd)
     DWORD start;
     SendMessage(hwnd, EM_GETSEL, (WPARAM)&start, (LPARAM)NULL);
     return (uint32_t)start;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_set_cursor_pos(HWND hwnd, const uint32_t pos)
-{
-    SendMessage(hwnd, EM_SETSEL, (WPARAM)pos, (LPARAM)pos);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -25,10 +25,9 @@
 #error This file is only for Windows
 #endif
 
-/* Avoid Microsoft Warnings */
-#pragma warning(push, 0)
+#include <sewer/nowarn.hxx>
 #include <Commctrl.h>
-#pragma warning(pop)
+#include <sewer/warn.hxx>
 
 struct _osupdown_t
 {
@@ -72,7 +71,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 }
 
 /*---------------------------------------------------------------------------*/
-// Height is the same as Edit
+/* Height is the same as Edit */
 /*static void i_size(const gui_size_t size, real32_t *width, real32_t *height)
 {
     switch (size)

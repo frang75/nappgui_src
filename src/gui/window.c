@@ -60,7 +60,7 @@ static void i_detach_main_panel(Panel *main_panel, void *window_renderable_item,
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE Panel *i_main_panel(const Window *window)
+static ___INLINE Panel *i_main_panel(const Window *window)
 {
     GuiControl *control = NULL;
     cassert_no_null(window);
@@ -89,7 +89,7 @@ static void i_destroy(Window **window)
         Panel *main_panel = i_main_panel(*window);
 
 /* Prevent flickering in Windows because the main panel new parent will be
-        set to NULL (Desktop HWND) when is detached from this window. */
+set to NULL (Desktop HWND) when is detached from this window. */
 #if defined(__WINDOWS__)
         _panel_hide_all(main_panel);
 #endif

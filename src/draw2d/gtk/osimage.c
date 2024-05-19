@@ -59,7 +59,7 @@ void osimage_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE OSImage *i_osimage(GdkPixbuf *pixbuf)
+static ___INLINE OSImage *i_osimage(GdkPixbuf *pixbuf)
 {
     OSImage *image = heap_new(OSImage);
     image->pixbuf = pixbuf;
@@ -70,7 +70,7 @@ static __INLINE OSImage *i_osimage(GdkPixbuf *pixbuf)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE OSImage *i_osanimation(GdkPixbufAnimation *animation, const uint32_t num_frames)
+static ___INLINE OSImage *i_osanimation(GdkPixbufAnimation *animation, const uint32_t num_frames)
 {
     OSImage *image = heap_new(OSImage);
     image->pixbuf = NULL;
@@ -178,7 +178,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
+static ___INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 {
     if (size >= 6)
     {
@@ -511,7 +511,7 @@ static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const u
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-static __INLINE GTimeVal i_time_init(void)
+static ___INLINE GTimeVal i_time_init(void)
 {
     GTimeVal tval;
     tval.tv_sec = 0;
@@ -622,7 +622,7 @@ static const GdkPixbuf *i_image_pixbuf(const OSImage *image)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_width(const OSImage *image)
+static ___INLINE uint32_t i_width(const OSImage *image)
 {
     cassert_no_null(image);
     if (image->pixbuf != NULL)
@@ -638,7 +638,7 @@ static __INLINE uint32_t i_width(const OSImage *image)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_height(const OSImage *image)
+static ___INLINE uint32_t i_height(const OSImage *image)
 {
     cassert_no_null(image);
     if (image->pixbuf != NULL)
@@ -720,7 +720,7 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE const gchar *i_codec(const codec_t codec)
+static ___INLINE const gchar *i_codec(const codec_t codec)
 {
     switch (codec)
     {

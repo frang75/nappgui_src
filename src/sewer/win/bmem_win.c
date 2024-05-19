@@ -22,23 +22,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
-#include "warn.hxx"
-
-#if !defined(_MSC_VER)
-#error Unknow compiler
-#endif
 
 #if defined(__MEMORY_AUDITOR__)
 #define _CRTDBG_MAP_ALLOC
-#pragma warning(push, 0)
 #include <stdlib.h>
 
-#if _MSC_VER > 1400
+/* <crtdbg.h> is a Microsoft Visual C++ specific header */
+#if defined(_MSC_VER) && _MSC_VER > 1400
+#define _WITH_CRTDBG 1
 #include <crtdbg.h>
 #endif
-#pragma warning(pop)
-
 #endif
+#include "nowarn.hxx"
 
 #if defined(__MEMORY_SUBSYTEM_CHECKING__)
 
@@ -112,7 +107,7 @@ void _bmem_start(void)
     cassert(i_HEAP == NULL);
 #if defined(__MEMORY_AUDITOR__)
 #else
-//i_HEAP = HeapCreate(0, 0, 0);
+/*i_HEAP = HeapCreate(0, 0, 0);*/
 #endif
 }
 
@@ -130,12 +125,12 @@ void _bmem_finish(void)
 void _bmem_atexit(void)
 {
 #if defined(__MEMORY_AUDITOR__)
-#if _MSC_VER > 1400
+#if _WITH_CRTDBG
     _CrtDumpMemoryLeaks();
 #endif
 #else
     cassert(i_HEAP == NULL);
-//HeapDestroy(i_HEAP);
+/*HeapDestroy(i_HEAP);*/
 #endif
 }
 
@@ -146,13 +141,13 @@ byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
     void *mem = NULL;
 
 #if defined(__MEMORY_AUDITOR__)
-#if _MSC_VER > 1400
+#if _WITH_CRTDBG
     mem = _aligned_malloc_dbg((size_t)size, (size_t)align, __FILE__, __LINE__);
 #else
     mem = _aligned_malloc((size_t)size, (size_t)align);
 #endif
 #else
-    //mem = HeapAlloc(i_HEAP, 0, (SIZE_T)size);
+    /*mem = HeapAlloc(i_HEAP, 0, (SIZE_T)size);*/
     mem = _aligned_malloc((size_t)size, (size_t)align);
 #endif
 
@@ -176,13 +171,13 @@ byte_t *bmem_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t ne
 #endif
 
 #if defined(__MEMORY_AUDITOR__)
-#if _MSC_VER > 1400
+#if _WITH_CRTDBG
     new_mem = _aligned_realloc_dbg(mem, (size_t)new_size, (size_t)align, __FILE__, __LINE__);
 #else
     new_mem = _aligned_realloc(mem, (size_t)new_size, (size_t)align);
 #endif
 #else
-    // new_mem = HeapReAlloc(i_HEAP, 0, (LPVOID)mem, (SIZE_T)size);
+    /* new_mem = HeapReAlloc(i_HEAP, 0, (LPVOID)mem, (SIZE_T)size); */
     new_mem = _aligned_realloc(mem, (size_t)new_size, (size_t)align);
     unref(size);
 #endif
@@ -203,13 +198,13 @@ void bmem_free(byte_t *mem)
 #endif
 
 #if defined(__MEMORY_AUDITOR__)
-#if _MSC_VER > 1400
+#if _WITH_CRTDBG
     _aligned_free_dbg(mem);
 #else
     _aligned_free(mem);
 #endif
 #else
-    //HeapFree(i_HEAP, 0, (LPVOID)mem);
+    /*HeapFree(i_HEAP, 0, (LPVOID)mem);*/
     _aligned_free(mem);
 #endif
 }

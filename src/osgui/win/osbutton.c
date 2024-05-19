@@ -648,8 +648,7 @@ void osbutton_enabled(OSButton *button, const bool_t enabled)
 {
     _oscontrol_set_enabled((OSControl *)button, enabled);
     if (button->flags == ekBUTTON_FLAT || button->flags == ekBUTTON_FLATGLE)
-        ;
-    InvalidateRect(button->control.hwnd, NULL, FALSE);
+        InvalidateRect(button->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

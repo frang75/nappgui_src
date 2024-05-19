@@ -179,7 +179,7 @@ color_t dctx_background_color(const DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
+static ___INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
 {
     switch (ellipsis)
     {
@@ -304,7 +304,7 @@ void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
+static ___INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
 {
     /*if (color != *source_color)*/
     {

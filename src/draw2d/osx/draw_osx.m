@@ -171,7 +171,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_draw_linear(DCtx *ctx)
+static ___INLINE void i_draw_linear(DCtx *ctx)
 {
     CGAffineTransform transform;
     CGContextSaveGState(ctx->context);
@@ -377,7 +377,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE CGLineCap i_linecap(const linecap_t linecap)
+static ___INLINE CGLineCap i_linecap(const linecap_t linecap)
 {
     switch (linecap)
     {
@@ -403,7 +403,7 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE CGLineJoin i_linejoin(const linejoin_t join)
+static ___INLINE CGLineJoin i_linejoin(const linejoin_t join)
 {
     switch (join)
     {
@@ -550,7 +550,7 @@ void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
      * miny    2       3       4
      * midy    1               5
      * maxy    8       7       6
-    */
+     */
     CGFloat minx = (CGFloat)x;
     CGFloat miny = (CGFloat)y;
     CGFloat w = (CGFloat)width;
@@ -1117,9 +1117,9 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
     /*
      TODO Check in lower versions and use this faster alternative
 #if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-	{
+    {
         [ctx->text_parag setAlignment:i_text_alignment(halign)];
-	}
+    }
 #else
 #endif
     */

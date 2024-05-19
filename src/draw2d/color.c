@@ -172,7 +172,7 @@ color_t color_html(const char_t *html)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE color_t i_effective(color_t c)
+static ___INLINE color_t i_effective(color_t c)
 {
     if (i_alpha(c) == 0)
     {

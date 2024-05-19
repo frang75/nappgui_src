@@ -140,7 +140,7 @@ void osbs_memory_mt(Mutex *mutex)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_incr(uint32_t *value)
+static ___INLINE void i_incr(uint32_t *value)
 {
     if (i_MUTEX != NULL)
     {

@@ -326,7 +326,7 @@ void osmain_imp(
     FPtr_app_create func_create,
     FPtr_app_update func_update,
     FPtr_destroy func_destroy,
-    char_t *options)
+    const char_t *options)
 {
     i_App *app = NULL;
     void *pool = NULL;

@@ -72,10 +72,12 @@ macro(nap_msvc_warnings warningList)
 set(${warningList}
     # Warning level
     "/W4"
-    "/wd4530"
-    "/wd4514"
-    "/wd4625"
-    "/wd4626"
+    "/wd4530"   # Disable C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+    "/wd4514"   # Disable 'function' : unreferenced inline function has been removed
+    "/wd4625"   # Disable 'derived class' : copy constructor was implicitly defined as deleted because a base class copy constructor is inaccessible or deleted
+    "/wd4626"   # Disable 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
+    "/wd4098"   # Disable linker mixed (static/dynamic) runtime library warnings
+    "/wd4099"   # Disable linker "pdb" warnings
 
     # Additional warning over W4
     # (level 4) enumerator 'identifier' in a switch of enum 'enumeration' is not explicitly handled by a case label.

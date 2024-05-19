@@ -218,7 +218,7 @@ void oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const real
 
         if (listeners->OnClick != NULL)
         {
-            // Milliseconds
+            /* Milliseconds */
             uint64_t ellapsed = (btime_now() - listeners->mouse_down_time) / 1000;
             UINT max = GetDoubleClickTime();
             real32_t dx = abs_r32(x - listeners->mouse_down_x);

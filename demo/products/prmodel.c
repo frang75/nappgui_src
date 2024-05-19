@@ -183,7 +183,7 @@ static uint32_t i_index(ArrSt(uint32_t) *filter, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_destroy(Product **product)
+static ___INLINE void i_destroy(Product **product)
 {
     dbind_destroy(product, Product);
 }

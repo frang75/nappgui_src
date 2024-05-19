@@ -60,7 +60,7 @@ void _button_destroy(Button **button)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_update_button(Button *button, const gui_state_t state)
+static ___INLINE void i_update_button(Button *button, const gui_state_t state)
 {
     cassert_no_null(button);
     if (button_get_type(button->flags) == ekBUTTON_FLATGLE)

@@ -968,7 +968,7 @@ static EnumBind *i_enum_bind(const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE EnumVBind *i_enum_vbind(EnumBind *ebind, const char_t *name)
+static ___INLINE EnumVBind *i_enum_vbind(EnumBind *ebind, const char_t *name)
 {
     arrst_foreach(evalue, ebind->values, EnumVBind)
         if (str_equ(evalue->name, name) == TRUE)
@@ -2928,7 +2928,7 @@ real64_t dbind_real64(const DBind *dbind, const real64_t value)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE int64_t i_int(const DBind *dbind, const dtype_t type, const int64_t value, const int64_t min, const int64_t max)
+static ___INLINE int64_t i_int(const DBind *dbind, const dtype_t type, const int64_t value, const int64_t min, const int64_t max)
 {
     cassert_no_null(dbind);
     cassert_unref(dbind->type == type, type);
@@ -3024,7 +3024,7 @@ real64_t dbind_incr_real64(const DBind *dbind, const real64_t value, const bool_
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE int64_t i_incr_int(const DBind *dbind, const int64_t value, const bool_t pos)
+static ___INLINE int64_t i_incr_int(const DBind *dbind, const int64_t value, const bool_t pos)
 {
     int64_t v = pos ? value + dbind->attr.intt.incr : value - dbind->attr.intt.incr;
     if (v > dbind->attr.intt.max)

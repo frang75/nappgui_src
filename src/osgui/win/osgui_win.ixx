@@ -22,11 +22,11 @@
 #include <sewer/nowarn.hxx>
 #include <windows.h>
 #include <uxtheme.h>
-#if _MSC_VER > 1400
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+#include <tmschema.h>
+#else
 #include <vssym32.h>
 #include <vsstyle.h>
-#else
-#include <tmschema.h>
 #endif
 #include <sewer/warn.hxx>
 

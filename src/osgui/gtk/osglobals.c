@@ -1041,7 +1041,7 @@ void osglobals_finish(void)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE GtkWidget *i_entry(void)
+static ___INLINE GtkWidget *i_entry(void)
 {
     cassert(kENTRY != NULL);
     return kENTRY;

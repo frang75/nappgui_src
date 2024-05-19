@@ -156,7 +156,7 @@ struct _osmenuitem_t
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE OSMenuItem *i_create(const uint16_t id, const uint8_t state, const char_t *text)
+static ___INLINE OSMenuItem *i_create(const uint16_t id, const uint8_t state, const char_t *text)
 {
     OSMenuItem *item = heap_new0(OSMenuItem);
     item->text = text != NULL ? str_c(text) : NULL;
@@ -550,11 +550,9 @@ void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
 bool_t _osmenuitem_remove_from_hmenu(OSMenuItem *item, OSMenu *menu)
 {
     bool_t ok = FALSE;
-    DWORD err;
     cassert_no_null(item);
     cassert_unref(item->menu == menu, menu);
     ok = (bool_t)RemoveMenu(_osmenu_hmenu(item->menu), item->id, MF_BYCOMMAND);
-    err = GetLastError();
     cassert(ok == TRUE);
     item->menu = NULL;
     return ok;
@@ -620,49 +618,50 @@ void _osmenuitem_draw_image(OSMenuItem *item, UINT id, UINT state, HDC hdc, cons
     unref(hdc);
     unref(rect);
     unref(state);
-
     cassert(FALSE);
-    //if (item->image != NULL)
-    //{
-    //    cassert_no_null(rect);
-    //    if ((state & ODS_GRAYED) != 0)
-    //    {
-    //        UINT w = rect->right - rect->left;
-    //        UINT h = rect->bottom - rect->top;
-    //        HBITMAP bitmap = _osimage_get_hbitmap(item->image);
-    //        HBITMAP hbmMono = CreateBitmap(w, h, 1, 1, NULL);
-    //        HDC hdcMono = CreateCompatibleDC(hdc);
-    //        HBITMAP hbmPrev = SelectObject(hdcMono, hbmMono);
-    //        HDC hdcScreen = CreateCompatibleDC(0);
-    //        HBITMAP hcolPrev = SelectObject(hdcScreen, bitmap);
+    /*
+    if (item->image != NULL)
+    {
+        cassert_no_null(rect);
+        if ((state & ODS_GRAYED) != 0)
+        {
+            UINT w = rect->right - rect->left;
+            UINT h = rect->bottom - rect->top;
+            HBITMAP bitmap = _osimage_get_hbitmap(item->image);
+            HBITMAP hbmMono = CreateBitmap(w, h, 1, 1, NULL);
+            HDC hdcMono = CreateCompatibleDC(hdc);
+            HBITMAP hbmPrev = SelectObject(hdcMono, hbmMono);
+            HDC hdcScreen = CreateCompatibleDC(0);
+            HBITMAP hcolPrev = SelectObject(hdcScreen, bitmap);
 
-    //        //SetBkColor(hdcScreen, GetSysColor(COLOR_DESKTOP));
-    //        BitBlt(hdcMono, 0, 0, w, h, hdcScreen, 0, 0, SRCCOPY);
+           //SetBkColor(hdcScreen, GetSysColor(COLOR_DESKTOP));
+           BitBlt(hdcMono, 0, 0, w, h, hdcScreen, 0, 0, SRCCOPY);
 
-    //          //SetTextColor(hdc, RGB(0xFF,0,0));
-    //          //SetBkColor(hdc, RGB(0,0x80,0));
-    //          BitBlt(hdc, 0, 0, w, h, hdcMono, 0, 0, SRCCOPY);
+             //SetTextColor(hdc, RGB(0xFF,0,0));
+             //SetBkColor(hdc, RGB(0,0x80,0));
+             BitBlt(hdc, 0, 0, w, h, hdcMono, 0, 0, SRCCOPY);
 
-    //            DeleteDC(hdcScreen);
-    //          SelectObject(hdcMono, hbmPrev);
-    //          DeleteDC(hdcMono);
-    //          DeleteObject(hbmMono);
+               DeleteDC(hdcScreen);
+             SelectObject(hdcMono, hbmPrev);
+             DeleteDC(hdcMono);
+             DeleteObject(hbmMono);
 
-    //          /*
-    //        // Create a monochrome bitmap.
-    //     HDC *monoDC = CreateCompatibleDC(0);
-    //     HBITMAP *monoBmp = CreateCompatibleBitmap(monoDC, (rect->right - rect->left), (rect->bottom - rect->top));
-    //     HBITMAP *oldMonoBmp = SelectObject(monoDC, monoBmp);
 
-    //     colorDC.SetBkColor(GetSysColor(COLOR_BTNHIGHLIGHT));
-    //     monoDC.BitBlt(0, 0, size.cx, size.cy, &colorDC, 0, 0, SRCCOPY);*/
+           // Create a monochrome bitmap.
+        HDC *monoDC = CreateCompatibleDC(0);
+        HBITMAP *monoBmp = CreateCompatibleBitmap(monoDC, (rect->right - rect->left), (rect->bottom - rect->top));
+        HBITMAP *oldMonoBmp = SelectObject(monoDC, monoBmp);
 
-    //    }
-    //    else
-    //    {
-    //          SetTextColor(hdc, RGB(0xFF,0,0));
-    //          SetBkColor(hdc, RGB(0,0x80,0));
-    //        _osimage_draw(item->image, hdc, (uint32_t)(rect->left / 2), (uint32_t)rect->top, (uint32_t)(rect->right - rect->left), (uint32_t)(rect->bottom - rect->top));
-    //    }
-    //}
+        colorDC.SetBkColor(GetSysColor(COLOR_BTNHIGHLIGHT));
+        monoDC.BitBlt(0, 0, size.cx, size.cy, &colorDC, 0, 0, SRCCOPY);
+
+       }
+       else
+       {
+             SetTextColor(hdc, RGB(0xFF,0,0));
+             SetBkColor(hdc, RGB(0,0x80,0));
+           _osimage_draw(item->image, hdc, (uint32_t)(rect->left / 2), (uint32_t)rect->top, (uint32_t)(rect->right - rect->left), (uint32_t)(rect->bottom - rect->top));
+       }
+    }
+    */
 }

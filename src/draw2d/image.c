@@ -89,7 +89,7 @@ void image_destroy(Image **image)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_with_alpha(const color_t *palette, const uint32_t palsize)
+static ___INLINE bool_t i_with_alpha(const color_t *palette, const uint32_t palsize)
 {
     register uint32_t i = 0;
     for (i = 0; i < palsize; ++i)
@@ -103,7 +103,7 @@ static __INLINE bool_t i_with_alpha(const color_t *palette, const uint32_t palsi
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE bool_t i_gray_palette(const color_t *palette, const uint32_t palsize)
+static ___INLINE bool_t i_gray_palette(const color_t *palette, const uint32_t palsize)
 {
     register uint32_t i = 0;
     for (i = 0; i < palsize; ++i)
@@ -202,12 +202,12 @@ Image *image_from_pixbuf(const Pixbuf *pixbuf, const Palette *palette)
 static codec_t i_codec(const byte_t first)
 {
     /*
-    Image Headers (only one byte for select)
-    PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
-    JPG: 0xFF 0xD8
-    GIF: 'GIF'
-    BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
- */
+        Image Headers (only one byte for select)
+        PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
+        JPG: 0xFF 0xD8
+        GIF: 'GIF'
+        BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
+     */
     if (first == 0x89)
     {
         return ekPNG;
@@ -517,38 +517,38 @@ Pixbuf *image_pixels(const Image *image, const pixformat_t format)
 
     return pixels;
     /*     if (pixels != NULL)
-    {
-       pixformat_t rformat = pixbuf_format(*pixels);
+        {
+           pixformat_t rformat = pixbuf_format(*pixels);
 
-       if (format == ekOPTIMAL)
-       {
-           if (rformat == ekRGB24 || rformat == ekRGBA32)
+           if (format == ekOPTIMAL)
            {
-               Pixbuf *npixels = NULL;
-               cassert(palette == NULL || *palette == NULL);
-               npixels = imgutil_to_indexed(pixbuf_width(*pixels), pixbuf_height(*pixels), pixbuf_data(*pixels), rformat == ekRGB24 ? 3 : 4, palette);
+               if (rformat == ekRGB24 || rformat == ekRGBA32)
+               {
+                   Pixbuf *npixels = NULL;
+                   cassert(palette == NULL || *palette == NULL);
+                   npixels = imgutil_to_indexed(pixbuf_width(*pixels), pixbuf_height(*pixels), pixbuf_data(*pixels), rformat == ekRGB24 ? 3 : 4, palette);
+                   if (npixels != NULL)
+                   {
+                       pixbuf_destroy(pixels);
+                       *pixels = npixels;
+                   }
+               }
+           }
+           else if (format == ekFIMAGE)
+           {
+               // Keep the image original format
+           }
+           else if (format != rformat)
+           {
+               Pixbuf *npixels = pixbuf_convert(*pixels, palette != NULL ? *palette : NULL, format);
                if (npixels != NULL)
                {
                    pixbuf_destroy(pixels);
                    *pixels = npixels;
                }
            }
-       }
-       else if (format == ekFIMAGE)
-       {
-           // Keep the image original format
-       }
-       else if (format != rformat)
-       {
-           Pixbuf *npixels = pixbuf_convert(*pixels, palette != NULL ? *palette : NULL, format);
-           if (npixels != NULL)
-           {
-               pixbuf_destroy(pixels);
-               *pixels = npixels;
-           }
-       }
-    }
- */
+        }
+     */
 }
 
 /*---------------------------------------------------------------------------*/

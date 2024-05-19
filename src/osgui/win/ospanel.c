@@ -70,7 +70,7 @@ static void i_remove_area(Area *area)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_area(HDC hdc, const Area *area)
+static ___INLINE void i_area(HDC hdc, const Area *area)
 {
     cassert_no_null(area);
     if (area->bgbrush != NULL)

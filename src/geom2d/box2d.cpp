@@ -45,7 +45,7 @@ Box2Dd box2dd(const real64_t minX, const real64_t minY, const real64_t maxX, con
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
-static __INLINE void i_add(Box2D<real> *box, const V2D<real> *p)
+static ___INLINE void i_add(Box2D<real> *box, const V2D<real> *p)
 {
     cassert_no_null(box);
     cassert_no_null(p);

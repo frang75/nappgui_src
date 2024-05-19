@@ -95,7 +95,7 @@ void dctx_destroy(DCtx **ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE CGContextRef i_CGContext(NSGraphicsContext *nscontext)
+static ___INLINE CGContextRef i_CGContext(NSGraphicsContext *nscontext)
 {
 #if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
     return [nscontext CGContext];

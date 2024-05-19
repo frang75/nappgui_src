@@ -32,7 +32,12 @@ function(nap_generate_tools)
         execute_process(
                     COMMAND ${CMAKE_COMMAND}
                     "-E" chdir "${TOOLS_BUILD_DIR}"
-                    ${CMAKE_COMMAND} "-G" "${CMAKE_GENERATOR}" "-DNAPPGUI_ROOT_PATH=${NAPPGUI_ROOT_PATH}"
+                    ${CMAKE_COMMAND} "-G" "${CMAKE_GENERATOR}"
+                    "-DNAPPGUI_ROOT_PATH=${NAPPGUI_ROOT_PATH}"
+                    "-DNAPPGUI_MAJOR=${NAPPGUI_MAJOR}"
+                    "-DNAPPGUI_MINOR=${NAPPGUI_MINOR}"
+                    "-DNAPPGUI_PATCH=${NAPPGUI_PATCH}"
+                    "-DNAPPGUI_BUILD=${NAPPGUI_BUILD}"
                     ${TOOLS_SRC_DIR}
                     RESULT_VARIABLE CMakeConfigResult
                     OUTPUT_VARIABLE CMakeConfigOutput

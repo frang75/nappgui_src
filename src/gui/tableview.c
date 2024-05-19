@@ -651,7 +651,7 @@ static void i_OnOverlay(TableView *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE uint32_t i_font_height(const Font *font)
+static ___INLINE uint32_t i_font_height(const Font *font)
 {
     uint32_t fheight = (uint32_t)bmath_ceilf(font_size(font));
     uint32_t height = (uint32_t)bmath_ceilf(font_height(font));
@@ -888,7 +888,7 @@ static void i_OnSize(TableView *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_set_cursor(TableView *view, TData *data, const gui_cursor_t cursor)
+static ___INLINE void i_set_cursor(TableView *view, TData *data, const gui_cursor_t cursor)
 {
     if (data->cursor != cursor)
     {

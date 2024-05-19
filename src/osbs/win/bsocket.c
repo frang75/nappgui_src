@@ -23,7 +23,6 @@
 #include <winsock2.h>
 #include <mstcpip.h>
 #include <ws2tcpip.h>
-#pragma comment(lib, "ws2_32.lib")
 #include <sewer/warn.hxx>
 
 /*---------------------------------------------------------------------------*/
@@ -82,7 +81,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
     }
 
     /* Connect to the server */
-    if (skID != SOCKET_ERROR)
+    if (skID != (SOCKET)SOCKET_ERROR)
     {
         struct sockaddr_in server;
         server.sin_family = AF_INET;
@@ -176,7 +175,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
     }
     else
     {
-        if (skID != SOCKET_ERROR)
+        if (skID != (SOCKET)SOCKET_ERROR)
             closesocket(skID);
 
         return NULL;
@@ -197,7 +196,7 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
 
     /* Create the socket */
     skID = socket(PF_INET, SOCK_STREAM, 0);
-    if (skID == -1)
+    if (skID == (SOCKET)-1)
     {
         if (error != NULL)
             *error = i_socket_error();
@@ -252,13 +251,16 @@ Socket *bsocket_accept(Socket *lsocket, const uint32_t timeout_ms, serror_t *err
     cassert_no_null(lsocket);
 
     lsockid = (SOCKET)lsocket;
+#if defined(_MSC_VER)
 #pragma warning(disable : 4548)
 #pragma warning(disable : 4127)
+#endif
     FD_ZERO(&set);
     FD_SET(lsockid, &set);
+#if defined(_MSC_VER)
 #pragma warning(default : 4548)
 #pragma warning(default : 4127)
-
+#endif
     if (timeout_ms > 0)
     {
         struct timeval timeout;
@@ -285,7 +287,7 @@ Socket *bsocket_accept(Socket *lsocket, const uint32_t timeout_ms, serror_t *err
 
     sizeSt = sizeof(clData);
     cliID = accept((SOCKET)(intptr_t)lsocket, (struct sockaddr *)&clData, &sizeSt);
-    if (cliID == SOCKET_ERROR)
+    if (cliID == (SOCKET)SOCKET_ERROR)
     {
         if (error != NULL)
             i_socket_error();
@@ -376,28 +378,30 @@ void bsocket_write_timeout(Socket *socket, const uint32_t timeout_ms)
 
 /*---------------------------------------------------------------------------*/
 
-//uint32_t bsocket_get_timeout(Socket *socket);
-//uint32_t bsocket_get_timeout(Socket *lsocket)
-//{
-//    #if defined(__WINDOWS__)
-//    DWORD timeout = 0;
-//    int len = sizeof(DWORD);
-//    #else
-//    struct timeval timeout;
-//    socklen_t len = sizeof(struct timeval);
-//    #endif
-//
-//    int ok = SOCKET_FAIL;
-//    cassert_no_null(lsocket);
-//    ok = getsockopt((SOCKET_ID)(intptr_t)lsocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, &len);
-//    cassert(ok == 0);
-//
-//    #if defined(__WINDOWS__)
-//    return (uint32_t)timeout;
-//    #else
-//    return (uint32_t)((timeout.tv_sec * 1000) + (timeout.tv_usec / 1000));
-//    #endif
-//}
+/*
+uint32_t bsocket_get_timeout(Socket *socket);
+uint32_t bsocket_get_timeout(Socket *lsocket)
+{
+   #if defined(__WINDOWS__)
+   DWORD timeout = 0;
+   int len = sizeof(DWORD);
+   #else
+   struct timeval timeout;
+   socklen_t len = sizeof(struct timeval);
+   #endif
+
+   int ok = SOCKET_FAIL;
+   cassert_no_null(lsocket);
+   ok = getsockopt((SOCKET_ID)(intptr_t)lsocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, &len);
+   cassert(ok == 0);
+
+   #if defined(__WINDOWS__)
+   return (uint32_t)timeout;
+   #else
+   return (uint32_t)((timeout.tv_sec * 1000) + (timeout.tv_usec / 1000));
+   #endif
+}
+*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -503,24 +507,26 @@ bool_t bsocket_write(Socket *lsocket, const byte_t *data, const uint32_t size, u
 
 /*---------------------------------------------------------------------------*/
 
-//bool_t bsocket_shutdown(Socket *socket, serror_t *error);
-//bool_t bsocket_shutdown(Socket *lsocket, serror_t *error)
-//{
-//    int result = 0;
-//    cassert_no_null(lsocket);
-//    result = shutdown((SOCKET_ID)(intptr_t)lsocket, RECV_SHUTDOWN);
-//    if (result == 0)
-//    {
-//        ptr_assign(error, ekSOK);
-//        return TRUE;
-//    }
-//    else
-//    {
-//        if (error != NULL)
-//            *error = i_socket_error();
-//        return FALSE;
-//    }
-//}
+/*
+bool_t bsocket_shutdown(Socket *socket, serror_t *error);
+bool_t bsocket_shutdown(Socket *lsocket, serror_t *error)
+{
+   int result = 0;
+   cassert_no_null(lsocket);
+   result = shutdown((SOCKET_ID)(intptr_t)lsocket, RECV_SHUTDOWN);
+   if (result == 0)
+   {
+       ptr_assign(error, ekSOK);
+       return TRUE;
+   }
+   else
+   {
+       if (error != NULL)
+           *error = i_socket_error();
+       return FALSE;
+   }
+}
+*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -541,7 +547,7 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
         if (addr_list[0] != NULL)
         {
             /* Only for debug (see ip in text) */
-            // const char *ip_str = inet_ntoa(*addr_list[0]);
+            /* const char *ip_str = inet_ntoa(*addr_list[0]); */
             ptr_assign(error, ekSOK);
             return ntohl(addr_list[0]->s_addr);
         }

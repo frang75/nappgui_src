@@ -279,7 +279,7 @@ void _oslistener_scroll_whell(const NSView *view, NSEvent *theEvent, const OSScr
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_launch_key_event(const NSView *view, const gui_event_t evtype, vkey_t virtual_key_code, const uint32_t modifiers, Listener *OnKey)
+static ___INLINE void i_launch_key_event(const NSView *view, const gui_event_t evtype, vkey_t virtual_key_code, const uint32_t modifiers, Listener *OnKey)
 {
     EvKey params;
     cassert_no_null(OnKey);
@@ -320,7 +320,7 @@ void _oslistener_key_up(const NSView *view, NSEvent *theEvent, ViewListeners *li
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE void i_flags_event(const NSView *view, NSUInteger flags, const bool_t press, const bool_t prevpress, const vkey_t key, Listener *OnKeyDown, Listener *OnKeyUp)
+static ___INLINE void i_flags_event(const NSView *view, NSUInteger flags, const bool_t press, const bool_t prevpress, const vkey_t key, Listener *OnKeyDown, Listener *OnKeyUp)
 {
     if (press != prevpress)
     {

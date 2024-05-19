@@ -49,7 +49,7 @@ static NSView *i_parent(OSXScroller *scroller)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE double i_max_val(const OSXScroller *scroller)
+static ___INLINE double i_max_val(const OSXScroller *scroller)
 {
     cassert_no_null(scroller);
     cassert(scroller->max >= scroller->page);

@@ -277,7 +277,7 @@ void ostext_OnFocus(OSText *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static __INLINE gint i_size_pango(const real32_t size, const uint32_t fstyle)
+static ___INLINE gint i_size_pango(const real32_t size, const uint32_t fstyle)
 {
     static gint val = 0;
     if ((fstyle & ekFPOINTS) == ekFPOINTS)

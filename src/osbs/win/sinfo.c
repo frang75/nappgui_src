@@ -23,7 +23,11 @@
 #include <Windows.h>
 #undef __VERSION_HELPERS__
 
+#if defined(_MSC_VER)
 #if _MSC_VER >= 1800
+#define __VERSION_HELPERS__
+#endif
+#elif defined(__GNUC__)
 #define __VERSION_HELPERS__
 #endif
 
@@ -42,7 +46,6 @@ union i_check_endianness
 };
 static const uint32_t i_LITTLE_ENDIAN = 0x03020100;
 static const uint32_t i_BIG_ENDIAN = 0x00010203;
-static const uint32_t i_PDP_ENDIAN = 0x01000302;
 
 /*---------------------------------------------------------------------------*/
 

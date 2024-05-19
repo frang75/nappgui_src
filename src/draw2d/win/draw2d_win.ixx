@@ -17,7 +17,11 @@
 #include "draw2d_gdi.ixx"
 #include <sewer/nowarn.hxx>
 #include <gdiplus.h>
+#if defined(_MSC_VER)
 #include <gdipluspixelformats.h>
+#else
+#include <gdiplus/gdipluspixelformats.h>
+#endif
 #include <sewer/warn.hxx>
 
 struct _dctx_t

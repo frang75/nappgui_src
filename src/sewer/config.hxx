@@ -94,7 +94,7 @@
     #define __MALLOC                        __attribute__((__malloc__))
     #define __PURE                          __attribute__((__pure__))
     #define __CONST                         __attribute__((__const__))
-    #define __INLINE                        inline
+    #define ___INLINE                        inline
     #define __DEPRECATED                    __attribute__((__deprecated__))
     #define __SENTINEL                      __attribute__((__sentinel__))
 
@@ -124,7 +124,7 @@
     #define __MALLOC
     #define __PURE
     #define __CONST
-    #define __INLINE                        _inline
+    #define ___INLINE                        _inline
     #define __DEPRECATED                    _declspec(deprecated)
     #define __SENTINEL
     #define __PRINTF(format_idx, arg_idx)
@@ -182,7 +182,9 @@
 
 /*! <Function pointer cast> */
 #ifdef  __cplusplus
-    #if defined (_MSC_VER)
+    #if defined (__WINDOWS__) && defined(__clang__)
+        #define cast_func_ptr(fptr, type) ((type)(__int64)fptr)
+    #elif defined (__WINDOWS__)
         #define cast_func_ptr(fptr, type) ((type)(void*)fptr)
         /* #define cast_func_ptr(fptr, type) ((type)(fptr)) // VS2008 */
     #else
@@ -192,6 +194,8 @@
 #else /* C Compiler */
     #if defined (_MSC_VER) && _MSC_VER >= 1935 /* Visual Studio 2022 version 17.5.0 */
         #define cast_func_ptr(fptr, type) ((type)(void*)fptr)
+    #elif defined(__WINDOWS__) && !defined(_MSC_VER)
+        #define cast_func_ptr(fptr, type) ((type)(__int64)fptr)
     #else
         #define cast_func_ptr(fptr, type) ((type)fptr)
     #endif

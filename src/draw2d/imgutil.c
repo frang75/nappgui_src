@@ -500,12 +500,12 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
     stm_read(stm_in, &first, 1);
 
     /*
-    Image Headers (only one byte for select)
-    PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
-    JPG: 0xFF 0xD8
-    GIF: 'GIF87a' 'GIF89a'
-    BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
- */
+        Image Headers (only one byte for select)
+        PNG: 0x89 0x50 0x4E 0x47 0x0D 0x0A 0x1A 0x0A
+        JPG: 0xFF 0xD8
+        GIF: 'GIF87a' 'GIF89a'
+        BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
+     */
     if (first == 0x89)
     {
         const byte_t header[] = {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
@@ -1173,7 +1173,7 @@ Pixbuf *imgutil_indexed_to_indexed(const uint32_t width, const uint32_t height, 
 
 /*---------------------------------------------------------------------------*/
 /*
-static __INLINE bool_t i_is_gray_palette(const color_t *palette, const uint32_t n)
+static ___INLINE bool_t i_is_gray_palette(const color_t *palette, const uint32_t n)
 {
    const byte_t *pal = (const byte_t*)palette;
    register uint32_t i;
