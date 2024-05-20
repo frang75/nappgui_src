@@ -302,8 +302,8 @@ void _oscontrol_remove_textattr(OSTextAttr *attr)
 
 static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString *str)
 {
-    register NSCell *cell = [control cell];
-    register uint32_t fstyle = font_style(attrs->font);
+    NSCell *cell = [control cell];
+    uint32_t fstyle = font_style(attrs->font);
 
     cassert_no_null(control);
     cassert_no_null(attrs);

@@ -163,7 +163,7 @@ void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, cons
 
 void popup_clear(PopUp *popup)
 {
-    register uint32_t i, n;
+    uint32_t i, n;
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
     cassert_no_nullf(popup->component.context->func_popup_set_elem);

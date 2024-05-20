@@ -1039,7 +1039,7 @@ void osbutton_vpadding(OSButton *button, const real32_t padding)
 
 void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t refwidth, const real32_t refheight, real32_t *width, real32_t *height)
 {
-    register OSXButton *lbutton = (OSXButton *)button;
+    OSXButton *lbutton = (OSXButton *)button;
     cassert_no_null(lbutton);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -1049,7 +1049,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_PUSH:
     {
         real32_t margin_width, margin_height;
-        register OSXButtonCell *cell = [lbutton cell];
+        OSXButtonCell *cell = [lbutton cell];
         uint32_t imgwidth = 0;
         _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
         _oscontrol_text_bounds(lbutton->attrs.font, "OO", -1.f, &margin_width, &margin_height);
@@ -1093,7 +1093,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
     {
-        register OSXButtonCell *cell = [lbutton cell];
+        OSXButtonCell *cell = [lbutton cell];
         static const real32_t i_CHECK_TEXT_SEP = 5.f;
         _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
         switch (cell->size)

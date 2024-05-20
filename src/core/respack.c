@@ -145,13 +145,13 @@ static void i_load_resource(Stream *stream, const uint32_t locale_code, i_Resour
     const byte_t *data = NULL;
     uint32_t size;
     void *object = NULL;
-    register uint32_t i, num_localized;
+    uint32_t i, num_localized;
     type = stm_read_u32(stream);
     i_load_object(stream, &data, &size, type);
     num_localized = stm_read_u32(stream);
     for (i = 0; i < num_localized; ++i)
     {
-        register uint32_t lcode = stm_read_u32(stream);
+        uint32_t lcode = stm_read_u32(stream);
         if (lcode == locale_code)
         {
             i_load_object(stream, &data, &size, type);
@@ -197,8 +197,8 @@ static Buffer *i_load_pack(ArrSt(i_Resource) *resources, const char_t *name, con
     {
         uint32_t locale_code = UINT32_MAX;
         Stream *stream = stm_from_block(buffer_data(buffer), buffer_size(buffer));
-        register uint32_t num_resources;
-        register uint32_t i, num_locales = stm_read_u32(stream);
+        uint32_t num_resources;
+        uint32_t i, num_locales = stm_read_u32(stream);
         for (i = 0; i < num_locales; ++i)
         {
             uint32_t locale_size = stm_read_u32(stream);

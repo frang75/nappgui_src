@@ -74,7 +74,7 @@ static String *kCSS_TEXTVIEWTEXT = NULL;
 Keep 'max_width', 'max_height' as small as possible, depending of widget type */
 static void i_widget_margins(GtkWidget *widget, const uint32_t max_width, const uint32_t max_height, uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height, uint32_t *color)
 {
-    register uint32_t i, j;
+    uint32_t i, j;
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, max_width, max_height);
     cairo_t *cairo = cairo_create(surface);
     GdkPixbuf *bitmap = NULL;
@@ -210,7 +210,7 @@ So we draw a frame and get the color. We start with the row in the middle,
 to avoid roundness and transparencies in the corner. */
 static color_t i_frame_color(GtkWidget *widget, const uint32_t size, const bool_t middle_i, const bool_t middle_j)
 {
-    register uint32_t i = 0, j = 0;
+    uint32_t i = 0, j = 0;
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
     cairo_t *cairo = cairo_create(surface);
     GdkPixbuf *bitmap = NULL;

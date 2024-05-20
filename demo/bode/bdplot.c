@@ -273,7 +273,7 @@ static bool_t i_xy_from_canvas(const Graph *graph, const R2Df *rect, const real3
     else
     {
         real32_t norm_x, xsize;
-        register uint32_t index;
+        uint32_t index;
         norm_x = (canvas_x - rect->pos.x) / rect->size.width;
         xsize = graph->box.max.x - graph->box.min.x;
         p->x = graph->box.min.x + norm_x * xsize;
@@ -296,10 +296,10 @@ static bool_t i_xy_from_canvas(const Graph *graph, const R2Df *rect, const real3
         /* v2d[index-1].x < p->x < v2d[index].x */
         else if (index < graph->n - 1)
         {
-            register real32_t x0 = graph->points[index-1].x;
-            register real32_t x1 = graph->points[index].x;
-            register real32_t y0 = graph->points[index-1].y;
-            register real32_t y1 = graph->points[index].y;
+            real32_t x0 = graph->points[index-1].x;
+            real32_t x1 = graph->points[index].x;
+            real32_t y0 = graph->points[index-1].y;
+            real32_t y1 = graph->points[index].y;
             p->y = y0 + (p->x - x0) * ((y1 - y0) / (x1 - x0));
             return TRUE;
         }
@@ -400,8 +400,8 @@ static void i_eval_mouse(Graph *graph, real32_t mouse_x, const R2Df *rect, V2Df 
 
 static bool_t i_eval_inverse(const Graph *graph, const real32_t y, real32_t *x)
 {
-    register const V2Df *p;
-    register uint32_t i;
+    const V2Df *p;
+    uint32_t i;
     cassert_no_null(graph);
     cassert(graph->n > 1);
     cassert_no_null(x);
@@ -424,7 +424,7 @@ static void i_draw_graph(DCtx *ctx, Graph *graph, const bool_t main_graph, const
 {
     const V2Df *points = main_graph ? graph->points : graph->spoints;
     real32_t p0x, p0y, p1x, p1y;
-    register uint32_t i, total;
+    uint32_t i, total;
     total = min_u32(graph->dn + 1, graph->n);
     draw_line_color(ctx, color);
     p0x = rect->pos.x + (rect->size.width * (points[0].x - graph->box.min.x) / (graph->box.max.x - graph->box.min.x));
@@ -496,7 +496,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
         real32_t graph_x, graph_y;
         V2Df p0, p1;
         real32_t pattern[2] = {2.f, 2.f};
-        register uint32_t i;
+        uint32_t i;
 
         draw_line_color(ctx, plot->colaxis2);
         draw_line_dash(ctx, pattern, 2);
@@ -648,7 +648,7 @@ void plot_draw_graph1(Plot *plot, DCtx *ctx, const real32_t width, const real32_
     {
         real32_t graph_x, graph_y;
         V2Df p0, p1;
-        register uint32_t i;
+        uint32_t i;
 
         draw_line_color(ctx, plot->colaxis1);
         draw_text_color(ctx, plot->colaxis1);
@@ -804,7 +804,7 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
         real32_t graph_x, graph_y;
         V2Df p0, p1;
         real32_t pattern[2] = {2.f, 2.f};
-        register uint32_t i;
+        uint32_t i;
 
         draw_line_color(ctx, plot->colaxis2);
         draw_line_dash(ctx, pattern, 2);
@@ -886,7 +886,7 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
     {
         real32_t graph_x, graph_y;
         V2Df p0, p1;
-        register uint32_t i;
+        uint32_t i;
 
         draw_line_color(ctx, plot->colaxis1);
         draw_text_color(ctx, plot->colaxis1);

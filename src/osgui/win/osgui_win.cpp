@@ -404,8 +404,8 @@ void _osgui_frame_without_shadows(const HWND hwnd, RECT *rect)
 
 vkey_t _osgui_vkey(const WORD key)
 {
-    register uint32_t i, n = kNUM_VKEYS;
-    register const WORD *keys = kVIRTUAL_KEY;
+    uint32_t i, n = kNUM_VKEYS;
+    const WORD *keys = kVIRTUAL_KEY;
     for (i = 0; i < n; ++i)
     {
         if (keys[i] == key)
@@ -700,7 +700,7 @@ void _osgui_add_accelerator(BYTE fVirt, WORD key, WORD cmd, HWND hwnd)
 
 void _osgui_remove_accelerator(WORD cmd)
 {
-    register uint32_t i = UINT32_MAX;
+    uint32_t i = UINT32_MAX;
     BOOL ok = FALSE;
 
     cassert_no_null(i_ACCELERATORS);
@@ -737,7 +737,7 @@ void _osgui_remove_accelerator(WORD cmd)
 
 void _osgui_change_accelerator(BYTE fVirt, WORD key, WORD cmd)
 {
-    register uint32_t i = UINT32_MAX;
+    uint32_t i = UINT32_MAX;
     BOOL ok = FALSE;
 
     cassert_no_null(i_ACCELERATORS);

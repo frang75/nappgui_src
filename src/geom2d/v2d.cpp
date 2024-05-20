@@ -451,7 +451,7 @@ bool_t v2d_is_normdf(const V2Df *v2d)
 template <typename real>
 static bool_t i_norm(V2D<real> *v)
 {
-    register real dot_prod;
+    real dot_prod;
     cassert_no_null(v);
     dot_prod = v->x * v->x + v->y * v->y;
     if (dot_prod > 0)
@@ -631,7 +631,7 @@ static real i_angle(const V2D<real> *v1, const V2D<real> *v2)
     //c = d / (l1 * l2);
     //return BMath<real>::acos(c);
     // https://www.mathworks.com/matlabcentral/answers/180131-how-can-i-find-the-angle-between-two-vectors-including-directional-information
-    register real y, x;
+    real y, x;
     cassert_no_null(v1);
     cassert_no_null(v2);
     y = v1->x * v2->y - v1->y * v2->x;

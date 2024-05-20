@@ -116,39 +116,39 @@
 
 #define arrpt_foreach(elem, array, type) \
     { \
-        register type **elem##_buf = arrpt_all(array, type); \
-        register uint32_t elem##_i, elem##_total = arrpt_size(array, type); \
+        type **elem##_buf = arrpt_all(array, type); \
+        uint32_t elem##_i, elem##_total = arrpt_size(array, type); \
         for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem##_buf) \
         { \
-            register type *elem = (*elem##_buf);
+            type *elem = (*elem##_buf);
 
 #define arrpt_foreach_const(elem, array, type) \
     { \
-        register const type **elem##_buf = arrpt_all_const(array, type); \
-        register uint32_t elem##_i, elem##_total = arrpt_size(array, type); \
+        const type **elem##_buf = arrpt_all_const(array, type); \
+        uint32_t elem##_i, elem##_total = arrpt_size(array, type); \
         for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem##_buf) \
         { \
-            register const type *elem = (*elem##_buf);
+            const type *elem = (*elem##_buf);
 
 #define arrpt_forback(elem, array, type) \
     { \
-        register type **elem##_buf = arrpt_all(array, type); \
-        register uint32_t i, elem##_i, elem##_total = arrpt_size(array, type); \
+        type **elem##_buf = arrpt_all(array, type); \
+        uint32_t i, elem##_i, elem##_total = arrpt_size(array, type); \
         elem##_buf += elem##_total - 1; \
         elem##_i = elem##_total - 1; \
         for (i = 0; i < elem##_total; ++i, --elem##_i, --elem##_buf) \
         { \
-            register type *elem = (*elem##_buf);
+            type *elem = (*elem##_buf);
 
 #define arrpt_forback_const(elem, array, type) \
     { \
-        register const type **elem##_buf = arrpt_all_const(array, type); \
-        register uint32_t i, elem##_i, elem##_total = arrpt_size(array, type); \
+        const type **elem##_buf = arrpt_all_const(array, type); \
+        uint32_t i, elem##_i, elem##_total = arrpt_size(array, type); \
         elem##_buf += elem##_total - 1; \
         elem##_i = elem##_total - 1; \
         for (i = 0; i < elem##_total; ++i, --elem##_i, --elem##_buf) \
         { \
-            register const type *elem = (*elem##_buf);
+            const type *elem = (*elem##_buf);
 
 #define arrpt_end() \
     } \

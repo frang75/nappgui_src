@@ -57,10 +57,10 @@ color_t color_rgba(const uint8_t r, const uint8_t g, const uint8_t b, const uint
 
 color_t color_rgbaf(const real32_t r, const real32_t g, const real32_t b, const real32_t a)
 {
-    register uint8_t ru = (uint8_t)(r * 255.f);
-    register uint8_t gu = (uint8_t)(g * 255.f);
-    register uint8_t bu = (uint8_t)(b * 255.f);
-    register uint8_t au = (uint8_t)(a * 255.f);
+    uint8_t ru = (uint8_t)(r * 255.f);
+    uint8_t gu = (uint8_t)(g * 255.f);
+    uint8_t bu = (uint8_t)(b * 255.f);
+    uint8_t au = (uint8_t)(a * 255.f);
     cassert(a != 0);
     return (color_t)(((au) << 24) | ((bu) << 16) | ((gu) << 8) | (ru));
 }
@@ -203,7 +203,7 @@ void color_to_hsbf(const color_t color, real32_t *hue, real32_t *sat, real32_t *
     /* Very improbable */
     if (i_alpha(color) == 0)
     {
-        register color_t c = i_effective(color);
+        color_t c = i_effective(color);
         r = (real32_t)i_red(c) / 255.f;
         g = (real32_t)i_green(c) / 255.f;
         b = (real32_t)i_blue(c) / 255.f;
@@ -259,7 +259,7 @@ void color_to_hsbf(const color_t color, real32_t *hue, real32_t *sat, real32_t *
 
 void color_to_html(const color_t color, char_t *html, const uint32_t size)
 {
-    register color_t c = color;
+    color_t c = color;
     if (i_alpha(c) == 0)
         c = i_effective(c);
     bstd_sprintf(html, size, "#%02X%02X%02X", i_red(c), i_green(c), i_blue(c));
@@ -269,7 +269,7 @@ void color_to_html(const color_t color, char_t *html, const uint32_t size)
 
 void color_get_rgb(const color_t color, uint8_t *r, uint8_t *g, uint8_t *b)
 {
-    register color_t c = color;
+    color_t c = color;
     if (i_alpha(c) == 0)
         c = i_effective(c);
     ptr_assign(r, i_red(c));
@@ -281,7 +281,7 @@ void color_get_rgb(const color_t color, uint8_t *r, uint8_t *g, uint8_t *b)
 
 void color_get_rgbf(const color_t color, real32_t *r, real32_t *g, real32_t *b)
 {
-    register color_t c = color;
+    color_t c = color;
     if (i_alpha(c) == 0)
         c = i_effective(c);
     ptr_assign(r, i_redf(c));
@@ -293,7 +293,7 @@ void color_get_rgbf(const color_t color, real32_t *r, real32_t *g, real32_t *b)
 
 void color_get_rgba(const color_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
 {
-    register color_t c = color;
+    color_t c = color;
     if (i_alpha(c) == 0)
         c = i_effective(c);
     ptr_assign(r, i_red(c));
@@ -306,7 +306,7 @@ void color_get_rgba(const color_t color, uint8_t *r, uint8_t *g, uint8_t *b, uin
 
 void color_get_rgbaf(const color_t color, real32_t *r, real32_t *g, real32_t *b, real32_t *a)
 {
-    register color_t c = color;
+    color_t c = color;
     if (i_alpha(c) == 0)
         c = i_effective(c);
     ptr_assign(r, i_redf(c));

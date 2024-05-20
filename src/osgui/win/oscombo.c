@@ -314,10 +314,10 @@ static int i_img_index(HWND hwnd, OSImgList *imglist, const Image *image)
         /* Check for unused image --> replace */
         if (index == -1)
         {
-            register uint32_t num_images = _osimglist_num_elems(imglist);
+            uint32_t num_images = _osimglist_num_elems(imglist);
             if (num_images > 0)
             {
-                register uint32_t i = 0, num_elems = (uint32_t)SendMessage(hwnd, CB_GETCOUNT, 0, 0);
+                uint32_t i = 0, num_elems = (uint32_t)SendMessage(hwnd, CB_GETCOUNT, 0, 0);
                 bool_t *exists = heap_new_n0(num_images, bool_t);
 
                 for (i = 0; i < num_elems; ++i)
@@ -409,7 +409,7 @@ uint32_t oscombo_get_selected(const OSCombo *combo)
 
 void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    register WORD button_height = 0;
+    WORD button_height = 0;
     cassert_no_null(combo);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -598,7 +598,7 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
         }
 
         {
-            register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
+            uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
             cassert_unref(bytes == num_bytes, bytes);
         }
 

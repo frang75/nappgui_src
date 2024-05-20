@@ -254,9 +254,9 @@ static void i_cell_rowcol_order(ArrPt(Cell) *cells, const uint32_t ncols, const 
 
     /* Row major order for column-dimensions (dim[0]) */
     {
-        register uint32_t i, j;
-        register Cell **cell = arrpt_all(cells, Cell);
-        register Cell **dim_cell = arrpt_all(cells_dim0, Cell);
+        uint32_t i, j;
+        Cell **cell = arrpt_all(cells, Cell);
+        Cell **dim_cell = arrpt_all(cells_dim0, Cell);
         for (i = 0; i < ncols; ++i)
         {
             for (j = 0; j < nrows; ++j, ++dim_cell)
@@ -266,9 +266,9 @@ static void i_cell_rowcol_order(ArrPt(Cell) *cells, const uint32_t ncols, const 
 
     /* Column major order for row-dimensions (dim[1]) */
     {
-        register uint32_t i;
-        register Cell **cell = arrpt_all(cells, Cell);
-        register Cell **dim_cell = arrpt_all(cells_dim1, Cell);
+        uint32_t i;
+        Cell **cell = arrpt_all(cells, Cell);
+        Cell **dim_cell = arrpt_all(cells_dim1, Cell);
         for (i = 0; i < ncells; ++i, ++dim_cell, ++cell)
             *dim_cell = *cell;
     }
@@ -315,7 +315,7 @@ Layout *layout_create(const uint32_t ncols, const uint32_t nrows)
 
 static Cell *i_get_cell(Layout *layout, const uint32_t col, const uint32_t row)
 {
-    register uint32_t position = UINT32_MAX;
+    uint32_t position = UINT32_MAX;
     cassert_no_null(layout);
     cassert(col < arrst_size(layout->lines_dim[0], i_LineDim));
     cassert(row < arrst_size(layout->lines_dim[1], i_LineDim));
@@ -405,7 +405,7 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
 void layout_label(Layout *layout, Label *label, const uint32_t col, const uint32_t row)
 {
     Cell *cell = NULL;
-    register align_t align = ekLEFT;
+    align_t align = ekLEFT;
     /* if (_label_is_multiline(label) == TRUE)
        align = ekJUSTIFY; */
     cell = i_set_component(layout, GuiComponentPtr(label), col, row, align, ekCENTER);
@@ -419,7 +419,7 @@ void layout_label(Layout *layout, Label *label, const uint32_t col, const uint32
 void layout_button(Layout *layout, Button *button, const uint32_t col, const uint32_t row)
 {
     Cell *cell = NULL;
-    register align_t align = ekJUSTIFY;
+    align_t align = ekJUSTIFY;
     uint32_t flags = _button_flags(button);
     if (button_get_type(flags) != ekBUTTON_PUSH /* && button_type(flags) != ekBUTTON_HEADER*/)
         align = ekLEFT;
@@ -483,8 +483,8 @@ void layout_updown(Layout *layout, UpDown *updown, const uint32_t col, const uin
 void layout_slider(Layout *layout, Slider *slider, const uint32_t col, const uint32_t row)
 {
     Cell *cell = NULL;
-    register align_t halig = ekJUSTIFY;
-    register align_t valign = ekCENTER;
+    align_t halig = ekJUSTIFY;
+    align_t valign = ekCENTER;
     if (_slider_is_horizontal(slider) == FALSE)
     {
         halig = ekCENTER;
@@ -1146,7 +1146,7 @@ void layout_valign(Layout *layout, const uint32_t col, const uint32_t row, const
 
 void layout_show_col(Layout *layout, const uint32_t col, const bool_t visible)
 {
-    register uint32_t i, num_rows;
+    uint32_t i, num_rows;
     cassert_no_null(layout);
     cassert(col < arrst_size(layout->lines_dim[0], i_LineDim));
     num_rows = arrst_size(layout->lines_dim[1], i_LineDim);
@@ -1162,7 +1162,7 @@ void layout_show_col(Layout *layout, const uint32_t col, const bool_t visible)
 
 void layout_show_row(Layout *layout, const uint32_t row, const bool_t visible)
 {
-    register uint32_t i, num_cols;
+    uint32_t i, num_cols;
     cassert_no_null(layout);
     cassert(row < arrst_size(layout->lines_dim[1], i_LineDim));
     num_cols = arrst_size(layout->lines_dim[0], i_LineDim);
@@ -1460,7 +1460,7 @@ void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components)
 
 static void i_line_compose(i_LineDim *dim, const uint32_t di, Cell **cell, const uint32_t n_cells)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     cassert_no_null(dim);
     cassert_no_null(cell);
     cassert(di <= 1);
@@ -1610,7 +1610,7 @@ static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_siz
 
 static bool_t i_line_expand(real32_t *size, const uint32_t di, Cell **cell, const uint32_t n_cells)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     for (i = 0; i < n_cells; ++i)
     {
         if (cell[i]->displayed == FALSE)
@@ -1732,9 +1732,9 @@ static real32_t i_dimension_size(const ArrSt(i_LineDim) *dim, const real32_t mar
 
 static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_area func_area, void *ospanel)
 {
-    register uint32_t i = 0, j = 0, ncols = 0, nrows = 0;
-    register const i_LineDim *cols = NULL, *rows = NULL;
-    register const Cell **cells = NULL;
+    uint32_t i = 0, j = 0, ncols = 0, nrows = 0;
+    const i_LineDim *cols = NULL, *rows = NULL;
+    const Cell **cells = NULL;
     V2Df lorigin = *origin;
     real32_t xorigin = lorigin.x;
 
@@ -1757,8 +1757,8 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
         lorigin.x = xorigin;
         for (j = 0; j < ncols; ++j)
         {
-            register uint32_t p = i * ncols + j;
-            register const Cell *cell = cells[p];
+            uint32_t p = i * ncols + j;
+            const Cell *cell = cells[p];
 
             lorigin.x += cols[j].margin;
 
@@ -1935,8 +1935,8 @@ static void i_cell_taborder(const Cell *cell, Window *window)
 
 void _layout_taborder(const Layout *layout, Window *window)
 {
-    register const Cell **cells = NULL;
-    register uint32_t i = 0, j = 0, ncols = 0, nrows = 0;
+    const Cell **cells = NULL;
+    uint32_t i = 0, j = 0, ncols = 0, nrows = 0;
     cassert_no_null(layout);
     cells = arrpt_all_const(layout->cells, Cell);
     ncols = arrst_size(layout->lines_dim[0], i_LineDim);
@@ -2275,7 +2275,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
             PopUp *popup = (PopUp *)cell->content.component;
             if (dtype == ekDTYPE_ENUM && _popup_size(popup) == 0)
             {
-                register uint32_t i, n = dbind_enum_count(dbind);
+                uint32_t i, n = dbind_enum_count(dbind);
                 for (i = 0; i < n; ++i)
                 {
                     const char_t *alias = dbind_enum_alias(dbind, i);
@@ -2296,7 +2296,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
                 ListBox *listbox = (ListBox *)cell->content.component;
                 if (dtype == ekDTYPE_ENUM && _listbox_count(listbox) == 0)
                 {
-                    register uint32_t i, n = dbind_enum_count(dbind);
+                    uint32_t i, n = dbind_enum_count(dbind);
                     for (i = 0; i < n; ++i)
                     {
                         const char_t *alias = dbind_enum_alias(dbind, i);

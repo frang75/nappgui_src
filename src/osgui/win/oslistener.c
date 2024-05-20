@@ -272,7 +272,7 @@ static bool_t i_key_event(OSControl *sender, const uint32_t type, WPARAM wParam,
 
         if (wParam == VK_SHIFT)
         {
-            register UINT scancode = (lParam & 0x00ff0000) >> 16;
+            UINT scancode = (lParam & 0x00ff0000) >> 16;
             wParam = MapVirtualKey(scancode, MAPVK_VSC);
             if (wParam == VK_LSHIFT)
                 key = ekKEY_LSHIFT;

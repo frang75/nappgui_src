@@ -53,7 +53,7 @@ static Proc *i_create(HANDLE *pipes, PROCESS_INFORMATION *info)
 
 static void i_close_pipes(HANDLE *pipes)
 {
-    register uint32_t i;
+    uint32_t i;
     cassert_no_null(pipes);
     for (i = 0; i < 6; ++i)
     {

@@ -26,7 +26,7 @@ template <typename real>
 static SATPoly<real> *i_create(const uint32_t num_vertices, const uint32_t num_axis)
 {
     // Only one memory allocation
-    register uint32_t msize = (uint32_t)(sizeof(SATPoly<real>) + num_vertices * sizeof(V2D<real>) + num_axis * sizeof(V2D<real>) + 2 * num_axis * sizeof(real));
+    uint32_t msize = (uint32_t)(sizeof(SATPoly<real>) + num_vertices * sizeof(V2D<real>) + num_axis * sizeof(V2D<real>) + 2 * num_axis * sizeof(real));
     SATPoly<real> *poly = (SATPoly<real> *)heap_malloc(msize, "SATPoly");
     byte_t *mem = ((byte_t *)poly) + sizeof(SATPoly<real>);
     poly->num_vertices = num_vertices;
@@ -60,7 +60,7 @@ static SATPoly<real> *i_copy(const SATPoly<real> *poly)
 template <typename real>
 static void i_destroy(SATPoly<real> **poly)
 {
-    register uint32_t msize = 0;
+    uint32_t msize = 0;
     cassert_no_null(poly);
     cassert_no_null(*poly);
     msize = (uint32_t)(sizeof(SATPoly<real>) + (*poly)->num_vertices * sizeof(V2D<real>) + (*poly)->num_axis * sizeof(V2D<real>) + 2 * (*poly)->num_axis * sizeof(real));
@@ -83,10 +83,10 @@ static Box2D<real> i_bbox(const SATPoly<real> *poly)
 template <typename real>
 static void i_limits(const V2D<real> *vertex, const V2D<real> *axis, const uint32_t num_vertices, const uint32_t num_axis, real *min, real *max)
 {
-    register uint32_t i, j;
+    uint32_t i, j;
     for (i = 0; i < num_axis; ++i)
     {
-        register real t = vertex[0].x * axis[i].x + vertex[0].y * axis[i].y;
+        real t = vertex[0].x * axis[i].x + vertex[0].y * axis[i].y;
         min[i] = t, max[i] = t;
 
         for (j = 1; j < num_vertices; ++j)
@@ -105,11 +105,11 @@ static void i_limits(const V2D<real> *vertex, const V2D<real> *axis, const uint3
 template <typename real>
 static bool_t i_sat_overlaps(const V2D<real> *poly1_axis, const real *poly1_min, const real *poly1_max, const uint32_t poly1_num_axis, const V2D<real> *poly2_vertex, const uint32_t poly2_num_vertices)
 {
-    register uint32_t i, j;
+    uint32_t i, j;
     for (i = 0; i < poly1_num_axis; ++i)
     {
-        register real t = poly2_vertex[0].x * poly1_axis[i].x + poly2_vertex[0].y * poly1_axis[i].y;
-        register real min = t, max = t;
+        real t = poly2_vertex[0].x * poly1_axis[i].x + poly2_vertex[0].y * poly1_axis[i].y;
+        real min = t, max = t;
 
         for (j = 1; j < poly2_num_vertices; ++j)
         {
@@ -285,7 +285,7 @@ bool_t col2d_segment_segmentd(const Seg2Dd *seg1, const Seg2Dd *seg2, Col2Dd *co
 template <typename real>
 static bool_t i_circle_point(const Cir2D<real> *cir, const V2D<real> *p, Col2D<real> *col)
 {
-    register real dX, dY, dot;
+    real dX, dY, dot;
     cassert_no_null(cir);
     cassert_no_null(p);
     dX = p->x - cir->c.x;
@@ -350,7 +350,7 @@ bool_t col2d_circle_segmentd(const Cir2Dd *cir, const Seg2Dd *seg, Col2Dd *col)
 template <typename real>
 static bool_t i_circle_circle(const Cir2D<real> *cir1, const Cir2D<real> *cir2, Col2D<real> *col)
 {
-    register real rt = 0;
+    real rt = 0;
     cassert_no_null(cir1);
     cassert_no_null(cir2);
     rt = cir1->r + cir2->r;
@@ -640,9 +640,9 @@ static bool_t i_obb_point(const OBB2D<real> *obb, const V2D<real> *pt, Col2D<rea
     Box2D<real> b;
     V2D<real> npt;
     V2D<real> oc = OBB2D<real>::center(obb);
-    register real ow = OBB2D<real>::width(obb);
-    register real oh = OBB2D<real>::height(obb);
-    register real oa = OBB2D<real>::angle(obb);
+    real ow = OBB2D<real>::width(obb);
+    real oh = OBB2D<real>::height(obb);
+    real oa = OBB2D<real>::angle(obb);
     cassert_no_null(pt);
     b.min.x = 0;
     b.min.y = 0;
@@ -735,9 +735,9 @@ static bool_t i_obb_circle(const OBB2D<real> *obb, const Cir2D<real> *cir, Col2D
     Box2D<real> b;
     Cir2D<real> nc;
     V2D<real> oc = OBB2D<real>::center(obb);
-    register real ow = OBB2D<real>::width(obb);
-    register real oh = OBB2D<real>::height(obb);
-    register real oa = OBB2D<real>::angle(obb);
+    real ow = OBB2D<real>::width(obb);
+    real oh = OBB2D<real>::height(obb);
+    real oa = OBB2D<real>::angle(obb);
     cassert_no_null(cir);
     b.min.x = 0;
     b.min.y = 0;
@@ -833,7 +833,7 @@ bool_t col2d_obb_boxd(const OBB2Dd *obb, const Box2Dd *box, Col2Dd *col)
 // template<typename real>
 // static void i_dump(const SATPoly<real> *poly)
 //{
-//     register uint32_t i = 0;
+//     uint32_t i = 0;
 //     bstd_printf("Vertices: ");
 //     for (i = 0; i < poly->num_vertices; ++i)
 //     {
@@ -1156,7 +1156,7 @@ bool_t col2d_tri_trid(const Tri2Dd *tri1, const Tri2Dd *tri2, Col2Dd *col)
 template <typename real>
 static bool_t i_point_in_poly(const V2D<real> *v, const uint32_t n, const V2D<real> *pt, Col2D<real> *col)
 {
-    register uint32_t i, j;
+    uint32_t i, j;
     bool_t c = FALSE;
 
     cassert_no_null(v);
@@ -1243,7 +1243,7 @@ static bool_t i_poly_circle(const Pol2D<real> *poly, const Cir2D<real> *cir, Col
 {
     const V2D<real> *v = Pol2D<real>::points(poly);
     uint32_t n = Pol2D<real>::n(poly);
-    register uint32_t i;
+    uint32_t i;
 
     cassert_no_null(cir);
 

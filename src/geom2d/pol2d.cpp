@@ -83,8 +83,8 @@ static bool_t i_check_convex(const V2D<real> *v, const uint32_t n)
 {
     if (n >= 4)
     {
-        register bool_t sign = FALSE;
-        register uint32_t i;
+        bool_t sign = FALSE;
+        uint32_t i;
         for (i = 0; i < n; ++i)
         {
             real dx1 = v[(i + 2) % n].x - v[(i + 1) % n].x;
@@ -449,7 +449,7 @@ template <typename real>
 static void i_compute_area(Pol2DImp<real> *poly)
 {
     const V2D<real> *p;
-    register uint32_t i, n;
+    uint32_t i, n;
     real area = 0;
     cassert_no_null(poly);
     cassert(BIT_TEST(poly->flags, i_AREA_UPDATE) == FALSE);
@@ -522,7 +522,7 @@ Box2Df pol2d_boxf(const Pol2Df *pol)
 {
     Box2Df boxf;
     Box2D<real32_t> box = i_box<real32_t>((const Pol2D<real32_t> *)pol);
-    register Box2D<real32_t> *boxp = (Box2D<real32_t> *)&boxf;
+    Box2D<real32_t> *boxp = (Box2D<real32_t> *)&boxf;
     *boxp = box;
     return boxf;
 }
@@ -533,7 +533,7 @@ Box2Dd pol2d_boxd(const Pol2Dd *pol)
 {
     Box2Dd boxd;
     Box2D<real64_t> box = i_box<real64_t>((const Pol2D<real64_t> *)pol);
-    register Box2D<real64_t> *boxp = (Box2D<real64_t> *)&boxd;
+    Box2D<real64_t> *boxp = (Box2D<real64_t> *)&boxd;
     *boxp = box;
     return boxd;
 }
@@ -589,7 +589,7 @@ static V2D<real> i_centroid(const Pol2D<real> *pol)
     Pol2DImp<real> *poly = (Pol2DImp<real> *)pol;
     real area = i_area<real>(pol);
     const V2D<real> *v = poly->sat->vertex;
-    register uint32_t i, n = poly->sat->num_vertices;
+    uint32_t i, n = poly->sat->num_vertices;
 
     for (i = 0; i < n; ++i)
     {
@@ -696,7 +696,7 @@ static SATPoly<real> *i_sat_poly(const Pol2D<real> *pol)
     {
         V2D<real> *v = poly->sat->vertex;
         V2D<real> *a = poly->sat->axis;
-        register uint32_t i = 0, n = poly->sat->num_vertices;
+        uint32_t i = 0, n = poly->sat->num_vertices;
         cassert(n == poly->sat->num_axis);
 
         for (i = 0; i < n; ++i)

@@ -37,8 +37,8 @@ struct OBB2DImp
 template <typename real>
 static void i_obb_corners(const OBB2DImp<real> *obb, V2D<real> *corner)
 {
-    register real c = BMath<real>::cos(obb->angle);
-    register real s = BMath<real>::sin(obb->angle);
+    real c = BMath<real>::cos(obb->angle);
+    real s = BMath<real>::sin(obb->angle);
     V2D<real> vX(c, s);
     V2D<real> vY(-s, c);
     vX.x *= obb->hwidth;
@@ -453,7 +453,7 @@ void obb2d_updated(OBB2Dd *obb, const V2Dd *center, const real64_t width, const 
 template <typename real>
 static void i_move(OBB2D<real> *obb, const real offset_x, const real offset_y)
 {
-    register OBB2DImp<real> *obbi = (OBB2DImp<real> *)obb;
+    OBB2DImp<real> *obbi = (OBB2DImp<real> *)obb;
     V2D<real> center;
     center.x = obbi->center.x += offset_x;
     center.y = obbi->center.y += offset_y;
@@ -479,7 +479,7 @@ void obb2d_moved(OBB2Dd *obb, const real64_t offset_x, const real64_t offset_y)
 template <typename real>
 static void i_transform(OBB2D<real> *obb, const T2D<real> *t2d)
 {
-    register OBB2DImp<real> *obbi = (OBB2DImp<real> *)obb;
+    OBB2DImp<real> *obbi = (OBB2DImp<real> *)obb;
     V2D<real> center, scale;
     real angle;
     T2D<real>::vmult(&center, t2d, &obbi->center);
@@ -706,8 +706,8 @@ Box2Dd obb2d_boxd(const OBB2Dd *obb)
 // template<typename real>
 // static void i_corners(const OBB2D<real> *obb, V2D<real> *corner)
 //{
-//     register real c = BMath<real>::cos(obb->angle);
-//     register real s = BMath<real>::sin(obb->angle);
+//     real c = BMath<real>::cos(obb->angle);
+//     real s = BMath<real>::sin(obb->angle);
 //     V2D<real> vX(c, s);
 //     V2D<real> vY(-s, c);
 //     vX.x *= obb->hwidth;

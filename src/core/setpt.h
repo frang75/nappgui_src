@@ -58,15 +58,15 @@
 
 #define setpt_foreach(elem, set, type) \
     { \
-        register type *elem = setpt_first(set, type); \
-        register uint32_t elem##_i = 0, elem##_total = setpt_size(set, type); \
+        type *elem = setpt_first(set, type); \
+        uint32_t elem##_i = 0, elem##_total = setpt_size(set, type); \
         while (elem != NULL) \
         {
 
 #define setpt_foreach_const(elem, set, type) \
     { \
-        register const type *elem = setpt_first_const(set, type); \
-        register uint32_t elem##_i = 0, elem##_total = setpt_size(set, type); \
+        const type *elem = setpt_first_const(set, type); \
+        uint32_t elem##_i = 0, elem##_total = setpt_size(set, type); \
         while (elem != NULL) \
         {
 
@@ -86,15 +86,15 @@
 
 #define setpt_forback(elem, set, type) \
     { \
-        register type *elem = setpt_last(set, type); \
-        register uint32_t elem##_total = setpt_size(set, type), elem##_i = elem##_total - 1; \
+        type *elem = setpt_last(set, type); \
+        uint32_t elem##_total = setpt_size(set, type), elem##_i = elem##_total - 1; \
         while (elem != NULL) \
         {
 
 #define setpt_forback_const(elem, set, type) \
     { \
-        register type *elem = setpt_last_const(set, type); \
-        register uint32_t elem##_total = setpt_size(set, type), elem##_i = elem##_total - 1; \
+        type *elem = setpt_last_const(set, type); \
+        uint32_t elem##_total = setpt_size(set, type), elem##_i = elem##_total - 1; \
         while (elem != NULL) \
         {
 

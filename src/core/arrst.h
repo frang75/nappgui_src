@@ -128,22 +128,22 @@
 
 #define arrst_foreach(elem, array, type) \
     { \
-        register type *elem = arrst_all(array, type); \
-        register uint32_t elem##_i, elem##_total = arrst_size(array, type); \
+        type *elem = arrst_all(array, type); \
+        uint32_t elem##_i, elem##_total = arrst_size(array, type); \
         for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem) \
         {
 
 #define arrst_foreach_const(elem, array, type) \
     { \
-        register const type *elem = arrst_all_const(array, type); \
-        register uint32_t elem##_i, elem##_total = arrst_size(array, type); \
+        const type *elem = arrst_all_const(array, type); \
+        uint32_t elem##_i, elem##_total = arrst_size(array, type); \
         for (elem##_i = 0; elem##_i < elem##_total; ++elem##_i, ++elem) \
         {
 
 #define arrst_forback(elem, array, type) \
     { \
-        register type *elem = arrst_all(array, type); \
-        register uint32_t __i, elem##_i, elem##_total = arrst_size(array, type); \
+        type *elem = arrst_all(array, type); \
+        uint32_t __i, elem##_i, elem##_total = arrst_size(array, type); \
         elem += elem##_total - 1; \
         elem##_i = elem##_total - 1; \
         for (__i = 0; __i < elem##_total; ++__i, --elem##_i, --elem) \
@@ -151,8 +151,8 @@
 
 #define arrst_forback_const(elem, array, type) \
     { \
-        register const type *elem = arrst_all_const(array, type); \
-        register uint32_t __i, elem##_i, elem##_total = arrst_size(array, type); \
+        const type *elem = arrst_all_const(array, type); \
+        uint32_t __i, elem##_i, elem##_total = arrst_size(array, type); \
         elem += elem##_total - 1; \
         elem##_i = elem##_total - 1; \
         for (__i = 0; __i < elem##_total; ++__i, --elem##_i, --elem) \

@@ -496,7 +496,7 @@ bool_t bfile_lstat(const char_t *filepath, file_type_t *file_type, uint64_t *fil
 {
     int ret;
     struct stat info;
-    register uint32_t i = 0;
+    uint32_t i = 0;
     while ((ret = lstat((const char *)filepath, &info)) != 0)
     {
         i++;

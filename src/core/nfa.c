@@ -200,8 +200,8 @@ static bool_t i_check_nfa(const NFA *nfa)
 NFA *_nfa_string(const char_t *str)
 {
     NFA *nfa = heap_new0(NFA);
-    register uint32_t codepoint = unicode_to_u32(str, ekUTF8);
-    register uint32_t i = 0;
+    uint32_t codepoint = unicode_to_u32(str, ekUTF8);
+    uint32_t i = 0;
     Trans *trans = NULL;
     nfa->ttable = arrst_create(Trans);
     while (codepoint != 0)
@@ -371,7 +371,7 @@ static ArrSt(NToken) *i_tokens_unix_regex(const char_t *regex)
 static void i_implicits_unix_regex(ArrSt(NToken) *tokens)
 {
     ArrSt(symbol_t) *implicit = arrst_create(symbol_t);
-    register uint32_t i = 0, n = arrst_size(tokens, NToken);
+    uint32_t i = 0, n = arrst_size(tokens, NToken);
     symbol_t prev = ENUM_MAX(symbol_t);
     arrst_append(implicit, ekCONCAT, symbol_t);
     while (i < n)
@@ -502,8 +502,8 @@ static void i_regex_to_infix(ArrSt(NToken) **tokens)
 
 static void i_offset(ArrSt(Trans) *ttable, const uint32_t offset)
 {
-    register uint32_t i, n = arrst_size(ttable, Trans);
-    register Trans *trans = arrst_all(ttable, Trans);
+    uint32_t i, n = arrst_size(ttable, Trans);
+    Trans *trans = arrst_all(ttable, Trans);
 
     cassert(n >= 2);
     n -= 1;
@@ -552,9 +552,9 @@ static NFA *i_nfa_base(const uint32_t from, const uint32_t to)
 
 static void i_nfa_union(NFA *nfa1, NFA *nfa2)
 {
-    register uint32_t n1, n2;
-    register Trans *trans = NULL;
-    register Trans *trans2 = NULL;
+    uint32_t n1, n2;
+    Trans *trans = NULL;
+    Trans *trans2 = NULL;
     cassert_no_null(nfa1);
     cassert_no_null(nfa2);
     n1 = arrst_size(nfa1->ttable, Trans);
@@ -604,9 +604,9 @@ static void i_nfa_union(NFA *nfa1, NFA *nfa2)
 
 static void i_nfa_concat(NFA *nfa1, NFA *nfa2)
 {
-    register uint32_t n1, n2;
-    register Trans *trans = NULL;
-    register Trans *trans2 = NULL;
+    uint32_t n1, n2;
+    Trans *trans = NULL;
+    Trans *trans2 = NULL;
     cassert_no_null(nfa1);
     cassert_no_null(nfa2);
     n1 = arrst_size(nfa1->ttable, Trans);
@@ -645,8 +645,8 @@ static void i_nfa_concat(NFA *nfa1, NFA *nfa2)
 
 static void i_nfa_closure(NFA *nfa1)
 {
-    register uint32_t n1;
-    register Trans *trans = NULL;
+    uint32_t n1;
+    Trans *trans = NULL;
     cassert_no_null(nfa1);
     n1 = arrst_size(nfa1->ttable, Trans);
 
@@ -877,7 +877,7 @@ bool_t _nfa_next(NFA *nfa, const uint32_t codepoint)
 
 bool_t _nfa_accept(NFA *nfa)
 {
-    register uint32_t accept;
+    uint32_t accept;
     cassert_no_null(nfa);
     accept = arrst_size(nfa->ttable, Trans) - 1;
     arrst_foreach(state, nfa->current, uint32_t)

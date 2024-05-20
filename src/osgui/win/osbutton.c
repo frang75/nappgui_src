@@ -511,7 +511,7 @@ static gui_state_t i_get_state(const button_flag_t flags, HWND hwnd)
     case ekBUTTON_RADIO:
     case ekBUTTON_FLATGLE:
     {
-        register LRESULT state = SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0);
+        LRESULT state = SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0);
         if (state == BST_CHECKED)
         {
             return ekGUI_ON;

@@ -164,8 +164,8 @@ RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uin
 
 static uint32_t i_log2(const uint32_t value)
 {
-    register uint32_t valuep = value;
-    register uint32_t log2p = 0;
+    uint32_t valuep = value;
+    uint32_t log2p = 0;
     cassert(value > 0);
     while (valuep > 0)
     {
@@ -179,7 +179,7 @@ static uint32_t i_log2(const uint32_t value)
 
 static void i_update_iterator_size(const uint32_t nelems, i_Iterator *it)
 {
-    register uint32_t path_alloc = i_log2(nelems + 1);
+    uint32_t path_alloc = i_log2(nelems + 1);
     path_alloc += 1;
     path_alloc <<= 1;
     cassert_no_null(it);
@@ -251,9 +251,9 @@ static int i_node_by_key(i_Node *root, const void *key, const bool_t isptr, FPtr
 
     for (;;)
     {
-        register const i_Node *cnode = it->path[it->path_size - 1];
-        register const byte_t *cdata;
-        register int compare;
+        const i_Node *cnode = it->path[it->path_size - 1];
+        const byte_t *cdata;
+        int compare;
         cassert_no_null(cnode);
         cdata = i_NODE_DATA(cnode);
         compare = func_compare(isptr == TRUE ? *((byte_t **)cdata) : cdata, key);
@@ -293,7 +293,7 @@ byte_t *rbtree_get(const RBTree *tree, const void *key, const bool_t isptr)
     cassert_no_null(tree);
     if (__TRUE_EXPECTED(tree->root != NULL))
     {
-        register int result = i_node_by_key(tree->root, key, isptr, tree->func_compare, &((RBTree *)tree)->it);
+        int result = i_node_by_key(tree->root, key, isptr, tree->func_compare, &((RBTree *)tree)->it);
         if (result == 0)
         {
             byte_t *elem;
@@ -512,7 +512,7 @@ static ___INLINE void i_rotate_right(i_Node *node, i_Node *parent, i_Node **root
 
 static void i_restructure_after_insert(i_Iterator *it, i_Node **root)
 {
-    register uint32_t i;
+    uint32_t i;
     cassert_no_null(it);
     cassert(it->path_size > 1);
     i = it->path_size;
@@ -632,7 +632,7 @@ static i_Node *i_insert_node(
 
     if (__TRUE_EXPECTED(*root != NULL))
     {
-        register int result = i_node_by_key(*root, key, isptr, func_compare, it);
+        int result = i_node_by_key(*root, key, isptr, func_compare, it);
         cassert(it->path_size > 0);
         cassert(it->path_size < it->path_alloc);
 
@@ -727,7 +727,7 @@ bool_t rbtree_insert_ptr(RBTree *tree, void *ptr)
 
 static void i_restructure_after_delete(i_Iterator *it, i_Node **root)
 {
-    register uint32_t i;
+    uint32_t i;
 
     cassert_no_null(it);
     cassert(it->path_size > 0);
@@ -889,7 +889,7 @@ static bool_t i_delete_element(
 
     if (__TRUE_EXPECTED(*root != NULL))
     {
-        register int result = i_node_by_key(*root, key, isptr, func_compare, it);
+        int result = i_node_by_key(*root, key, isptr, func_compare, it);
         if (__TRUE_EXPECTED(result == 0))
         {
             i_Node *deleted_node = NULL;
@@ -918,8 +918,8 @@ static bool_t i_delete_element(
             /*! <Deleted_node isn't the root> */
             if (__TRUE_EXPECTED(it->path_size > 1))
             {
-                register i_Node *parent;
-                register i_Node *child;
+                i_Node *parent;
+                i_Node *child;
 
                 parent = it->path[it->path_size - 2];
                 cassert_no_null(parent);

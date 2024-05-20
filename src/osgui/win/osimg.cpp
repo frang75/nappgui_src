@@ -107,10 +107,10 @@ HBITMAP osimg_hbitmap_cache(const Image *image, COLORREF background, LONG *width
 HBITMAP osimg_hbitmap_transparent(const uint32_t width, const uint32_t height)
 {
     HBITMAP hbitmap = NULL;
-    register uint32_t size = 4 * width * height;
+    uint32_t size = 4 * width * height;
     BYTE *pixel_data = (BYTE *)heap_malloc(size, "OSImageTHBitmap");
     Gdiplus::Bitmap *bitmap = NULL;
-    register uint32_t i;
+    uint32_t i;
 
     for (i = 0; i < size; i += 4)
         *((uint32_t *)(pixel_data + i)) = 0x000000FF;

@@ -28,7 +28,7 @@ void bmem_set4(byte_t *dest, const uint32_t size, const byte_t *mask)
     memset_pattern4((void *)dest, (const void *)mask, (size_t)size);
 #else
     {
-        register uint32_t i, blocks = size / 4;
+        uint32_t i, blocks = size / 4;
         for (i = 0; i < blocks; ++i)
         {
             *dest++ = mask[0];
@@ -39,7 +39,7 @@ void bmem_set4(byte_t *dest, const uint32_t size, const byte_t *mask)
     }
 
     {
-        register uint32_t i, rest = size % 4;
+        uint32_t i, rest = size % 4;
         for (i = 0; i < rest; ++i)
             *dest++ = mask[i];
     }
@@ -57,7 +57,7 @@ void bmem_set8(byte_t *dest, const uint32_t size, const byte_t *mask)
     memset_pattern8((void *)dest, (const void *)mask, (size_t)size);
 #else
     {
-        register uint32_t i, blocks = size / 8;
+        uint32_t i, blocks = size / 8;
         for (i = 0; i < blocks; ++i)
         {
             *dest++ = mask[0];
@@ -72,7 +72,7 @@ void bmem_set8(byte_t *dest, const uint32_t size, const byte_t *mask)
     }
 
     {
-        register uint32_t i, rest = size % 8;
+        uint32_t i, rest = size % 8;
         for (i = 0; i < rest; ++i)
             *dest++ = mask[i];
     }
@@ -90,7 +90,7 @@ void bmem_set16(byte_t *dest, const uint32_t size, const byte_t *mask)
     memset_pattern16((void *)dest, (const void *)mask, (size_t)size);
 #else
     {
-        register uint32_t i, blocks = size / 16;
+        uint32_t i, blocks = size / 16;
         for (i = 0; i < blocks; ++i)
         {
             *dest++ = mask[0];
@@ -113,7 +113,7 @@ void bmem_set16(byte_t *dest, const uint32_t size, const byte_t *mask)
     }
 
     {
-        register uint32_t i, rest = size % 16;
+        uint32_t i, rest = size % 16;
         for (i = 0; i < rest; ++i)
             *dest++ = mask[i];
     }
@@ -192,8 +192,8 @@ bool_t bmem_overlaps(const byte_t *mem1, const byte_t *mem2, const uint32_t size
 
 void bmem_rev(byte_t *mem, const uint32_t size)
 {
-    register uint32_t i, m;
-    register byte_t *end, t;
+    uint32_t i, m;
+    byte_t *end, t;
     cassert_no_null(mem);
     end = mem + size - 1;
     m = size / 2;
@@ -254,7 +254,7 @@ void bmem_rev8(byte_t *mem)
 
 void bmem_revcopy(byte_t *dest, const byte_t *src, const uint32_t size)
 {
-    register uint32_t i;
+    uint32_t i;
     dest += size - 1;
     for (i = 0; i < size; ++i, src++, dest--)
         *dest = *src;
@@ -264,8 +264,8 @@ void bmem_revcopy(byte_t *dest, const byte_t *src, const uint32_t size)
 
 void bmem_rev_elems_imp(byte_t *data, const uint32_t num_elems, const uint32_t elem_size)
 {
-    register uint32_t i, j, m;
-    register byte_t *end = NULL, t;
+    uint32_t i, j, m;
+    byte_t *end = NULL, t;
     cassert_no_null(data);
     cassert(num_elems > 0);
     end = data + (num_elems - 1) * elem_size;
@@ -285,9 +285,9 @@ void bmem_rev_elems_imp(byte_t *data, const uint32_t num_elems, const uint32_t e
 
 void bmem_swap(byte_t *mem1, byte_t *mem2, const uint32_t size)
 {
-    register uint32_t sizep = size;
-    register byte_t *mem1p = mem1;
-    register byte_t *mem2p = mem2;
+    uint32_t sizep = size;
+    byte_t *mem1p = mem1;
+    byte_t *mem2p = mem2;
     do
     {
         byte_t tmp = *mem1p;
@@ -300,10 +300,10 @@ void bmem_swap(byte_t *mem1, byte_t *mem2, const uint32_t size)
 
 void bmem_shuffle(byte_t *mem, const uint32_t size, const uint32_t esize)
 {
-    register uint32_t i;
+    uint32_t i;
     for (i = 0; i < size; ++i)
     {
-        register uint32_t j = bmath_randi(0, size - 1);
+        uint32_t j = bmath_randi(0, size - 1);
         bmem_swap(mem + i * esize, mem + j * esize, esize);
     }
 }

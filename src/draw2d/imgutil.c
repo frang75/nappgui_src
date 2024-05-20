@@ -699,7 +699,7 @@ Palette *imgutil_def_palette(const pixformat_t format)
 
 Pixbuf *imgutil_rgba_to_rgb(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-    register uint32_t i, n = width * height;
+    uint32_t i, n = width * height;
     Pixbuf *pixbuf = pixbuf_create(width, height, ekRGB24);
     byte_t *dest = pixbuf_data(pixbuf);
     for (i = 0; i < n; ++i, data += 4, dest += 3)
@@ -716,7 +716,7 @@ Pixbuf *imgutil_rgba_to_rgb(const byte_t *data, const uint32_t width, const uint
 
 Pixbuf *imgutil_rgb_to_rgba(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-    register uint32_t i, n = width * height;
+    uint32_t i, n = width * height;
     Pixbuf *pixbuf = pixbuf_create(width, height, ekRGBA32);
     byte_t *dest = pixbuf_data(pixbuf);
     for (i = 0; i < n; ++i, data += 3, dest += 4)
@@ -734,7 +734,7 @@ Pixbuf *imgutil_rgb_to_rgba(const byte_t *data, const uint32_t width, const uint
 
 Pixbuf *imgutil_rgba_to_gray(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-    register uint32_t i, n = width * height;
+    uint32_t i, n = width * height;
     Pixbuf *pixbuf = pixbuf_create(width, height, ekGRAY8);
     byte_t *dest = pixbuf_data(pixbuf);
     for (i = 0; i < n; ++i, data += 4, dest += 1)
@@ -746,7 +746,7 @@ Pixbuf *imgutil_rgba_to_gray(const byte_t *data, const uint32_t width, const uin
 
 Pixbuf *imgutil_rgb_to_gray(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-    register uint32_t i, n = width * height;
+    uint32_t i, n = width * height;
     Pixbuf *pixbuf = pixbuf_create(width, height, ekGRAY8);
     byte_t *dest = pixbuf_data(pixbuf);
     for (i = 0; i < n; ++i, data += 3, dest += 1)
@@ -758,7 +758,7 @@ Pixbuf *imgutil_rgb_to_gray(const byte_t *data, const uint32_t width, const uint
 
 Buffer *imgutil_gray_to_rgba(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-    register uint32_t i, n = width * height;
+    uint32_t i, n = width * height;
     Buffer *buffer = buffer_create(n * 4);
     byte_t *dest = buffer_data(buffer);
     for (i = 0; i < n; ++i, data += 1, dest += 4)
@@ -776,7 +776,7 @@ Buffer *imgutil_gray_to_rgba(const byte_t *data, const uint32_t width, const uin
 
 Buffer *imgutil_gray_to_rgb(const byte_t *data, const uint32_t width, const uint32_t height)
 {
-    register uint32_t i, n = width * height;
+    uint32_t i, n = width * height;
     Buffer *buffer = buffer_create(n * 3);
     byte_t *dest = buffer_data(buffer);
     for (i = 0; i < n; ++i, data += 1, dest += 3)
@@ -793,9 +793,9 @@ Buffer *imgutil_gray_to_rgb(const byte_t *data, const uint32_t width, const uint
 /*
 static pixformat_t i_gray_to_rgb(const byte_t *data, const uint32_t width, const uint32_t height, const uint32_t bpp, const uint8_t *palette, Buffer **pixels)
 {
-   register uint32_t i, n = width * height;
-   register byte_t imask = (1 << bpp) - 1;
-   register byte_t *pixdata = NULL;
+   uint32_t i, n = width * height;
+   byte_t imask = (1 << bpp) - 1;
+   byte_t *pixdata = NULL;
 
    cassert_no_null(palette);
    *pixels = buffer_create(n * 3);
@@ -804,9 +804,9 @@ static pixformat_t i_gray_to_rgb(const byte_t *data, const uint32_t width, const
    for (i = 0; i < n; ++i)
    {
        Get the pixel value
-       register byte_t ibyte = data[i / (8 / bpp)];
-       register byte_t ipos = i % (8 / (uint8_t)bpp);
-       register byte_t value = (ibyte & (imask << (ipos * bpp))) >> (ipos * bpp);
+       byte_t ibyte = data[i / (8 / bpp)];
+       byte_t ipos = i % (8 / (uint8_t)bpp);
+       byte_t value = (ibyte & (imask << (ipos * bpp))) >> (ipos * bpp);
        value = palette[value];
        pixdata[0] = (uint8_t)value;
        pixdata[1] = (uint8_t)value;
@@ -824,14 +824,14 @@ Pixbuf *imgutil_indexed_to_gray(const uint32_t width, const uint32_t height, con
 {
     Pixbuf *buffer = NULL;
     byte_t *data = NULL;
-    register byte_t ibyte;
-    register byte_t ipos;
-    register byte_t value;
-    register color_t c;
+    byte_t ibyte;
+    byte_t ipos;
+    byte_t value;
+    color_t c;
 
     /* mask = 1, 3, 15, 255 */
-    register byte_t imask = (byte_t)(1 << ibpp) - 1;
-    register uint32_t j, i;
+    byte_t imask = (byte_t)(1 << ibpp) - 1;
+    uint32_t j, i;
 
     cassert(ibpp == 1 || ibpp == 2 || ibpp == 4 || ibpp == 8);
     cassert_no_null(palette);
@@ -894,9 +894,9 @@ static Pixbuf *i_index_to_rgba(const byte_t *data, const uint32_t width, const u
 {
    Palette *pal = NULL;
    Pixbuf *pixbuf = NULL;
-   register color_t *pixdata = NULL;
-   register uint32_t i, n = width * height;
-   register byte_t imask = (byte_t)(1 << bpp) - 1;
+   color_t *pixdata = NULL;
+   uint32_t i, n = width * height;
+   byte_t imask = (byte_t)(1 << bpp) - 1;
 
    if (palette == NULL)
    {
@@ -910,9 +910,9 @@ static Pixbuf *i_index_to_rgba(const byte_t *data, const uint32_t width, const u
    for (i = 0; i < n; ++i)
    {
        Get the pixel value
-       register byte_t ibyte = data[i / (8 / bpp)];
-       register byte_t ipos = (byte_t)(i % (8 / (uint8_t)bpp));
-       register byte_t value = (byte_t)((ibyte & (imask << (ipos * bpp))) >> (ipos * bpp));
+       byte_t ibyte = data[i / (8 / bpp)];
+       byte_t ipos = (byte_t)(i % (8 / (uint8_t)bpp));
+       byte_t value = (byte_t)((ibyte & (imask << (ipos * bpp))) >> (ipos * bpp));
        *pixdata = palette[value];
        pixdata += 1;
    }
@@ -930,14 +930,14 @@ Pixbuf *imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, con
 {
     Pixbuf *buffer = NULL;
     uint32_t *data = NULL;
-    register byte_t ibyte;
-    register byte_t ipos;
-    register byte_t value;
-    register color_t c;
+    byte_t ibyte;
+    byte_t ipos;
+    byte_t value;
+    color_t c;
 
     /* mask = 1, 3, 15, 255 */
-    register byte_t imask = (byte_t)(1 << ibpp) - 1;
-    register uint32_t j, i;
+    byte_t imask = (byte_t)(1 << ibpp) - 1;
+    uint32_t j, i;
 
     cassert(ibpp == 1 || ibpp == 2 || ibpp == 4 || ibpp == 8);
     cassert_no_null(palette);
@@ -992,9 +992,9 @@ Pixbuf *imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, con
 {
    Palette *pal = NULL;
    Pixbuf *pixbuf = NULL;
-   register byte_t *pixdata = NULL;
-   register uint32_t i, n = width * height;
-   register byte_t imask = (byte_t)(1 << bpp) - 1;
+   byte_t *pixdata = NULL;
+   uint32_t i, n = width * height;
+   byte_t imask = (byte_t)(1 << bpp) - 1;
 
    if (palette == NULL)
    {
@@ -1008,10 +1008,10 @@ Pixbuf *imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, con
    for (i = 0; i < n; ++i)
    {
        Get the pixel value
-       register byte_t ibyte = data[i / (8 / bpp)];
-       register byte_t ipos = (byte_t)(i % (8 / (uint8_t)bpp));
-       register byte_t value = (byte_t)((ibyte & (imask << (ipos * bpp))) >> (ipos * bpp));
-       register color_t c = palette[value];
+       byte_t ibyte = data[i / (8 / bpp)];
+       byte_t ipos = (byte_t)(i % (8 / (uint8_t)bpp));
+       byte_t value = (byte_t)((ibyte & (imask << (ipos * bpp))) >> (ipos * bpp));
+       color_t c = palette[value];
        pixdata[0] = (byte_t)c;
        pixdata[1] = (byte_t)(c >> 8);
        pixdata[2] = (byte_t)(c >> 16);
@@ -1031,14 +1031,14 @@ Pixbuf *imgutil_indexed_to_rgb(const uint32_t width, const uint32_t height, cons
 {
     Pixbuf *buffer = NULL;
     byte_t *data = NULL;
-    register byte_t ibyte;
-    register byte_t ipos;
-    register byte_t value;
-    register color_t c;
+    byte_t ibyte;
+    byte_t ipos;
+    byte_t value;
+    color_t c;
 
     /* mask = 1, 3, 15, 255 */
-    register byte_t imask = (byte_t)(1 << ibpp) - 1;
-    register uint32_t j, i;
+    byte_t imask = (byte_t)(1 << ibpp) - 1;
+    uint32_t j, i;
 
     cassert(ibpp == 1 || ibpp == 2 || ibpp == 4 || ibpp == 8);
     cassert_no_null(palette);
@@ -1095,7 +1095,7 @@ Pixbuf *imgutil_indexed_to_rgb(const uint32_t width, const uint32_t height, cons
 
 uint32_t imgutil_effective_palette(const uint32_t *ipalette, const uint32_t isize, uint32_t *opalette, uint8_t *oindex)
 {
-    register uint32_t i, j;
+    uint32_t i, j;
     uint32_t n = 0;
     /* Maximum 8bit palettes */
     cassert(isize <= 256);
@@ -1130,9 +1130,9 @@ Pixbuf *imgutil_indexed_to_indexed(const uint32_t width, const uint32_t height, 
     byte_t *data = NULL;
     uint32_t obpp = pixbuf_format_bpp(oformat);
     /* mask = 1, 3, 15, 255 */
-    register byte_t imask = (byte_t)(1 << ibpp) - 1;
-    register byte_t omask = (byte_t)(1 << obpp) - 1;
-    register uint32_t j, i;
+    byte_t imask = (byte_t)(1 << ibpp) - 1;
+    byte_t omask = (byte_t)(1 << obpp) - 1;
+    uint32_t j, i;
 
     cassert(ibpp == 1 || ibpp == 2 || ibpp == 4 || ibpp == 8);
     cassert(obpp == 1 || obpp == 2 || obpp == 4 || obpp == 8);
@@ -1143,11 +1143,11 @@ Pixbuf *imgutil_indexed_to_indexed(const uint32_t width, const uint32_t height, 
 
     for (j = 0; j < height; ++j)
     {
-        register byte_t ibyte;
-        register byte_t ipos;
-        register byte_t value;
-        register byte_t *obyte;
-        register byte_t opos;
+        byte_t ibyte;
+        byte_t ipos;
+        byte_t value;
+        byte_t *obyte;
+        byte_t opos;
 
         for (i = 0; i < width; ++i)
         {
@@ -1176,7 +1176,7 @@ Pixbuf *imgutil_indexed_to_indexed(const uint32_t width, const uint32_t height, 
 static ___INLINE bool_t i_is_gray_palette(const color_t *palette, const uint32_t n)
 {
    const byte_t *pal = (const byte_t*)palette;
-   register uint32_t i;
+   uint32_t i;
    for (i = 0; i < n; ++i)
    {
        if (pal[0] != pal[1] || pal[0] != pal[2] || pal[3] != 255)
@@ -1200,10 +1200,10 @@ static Pixbuf *i_rgb_to_indexed(const byte_t *pixdata, const uint32_t width, con
     uint32_t bpp = 0;
     pixformat_t format = ENUM_MAX(pixformat_t);
     Pixbuf *pixels = NULL;
-    register uint32_t n = width * height;
-    register byte_t omask = 0;
-    register byte_t *destdata = NULL;
-    register uint32_t i, j;
+    uint32_t n = width * height;
+    byte_t omask = 0;
+    byte_t *destdata = NULL;
+    uint32_t i, j;
 
     cassert(pn <= 256);
 
@@ -1234,7 +1234,7 @@ static Pixbuf *i_rgb_to_indexed(const byte_t *pixdata, const uint32_t width, con
 
     for (i = 0; i < n; ++i)
     {
-        register color_t c;
+        color_t c;
 
         if (bytespp == 3)
             c = i_color(pixdata[0], pixdata[1], pixdata[2], 255);
@@ -1246,8 +1246,8 @@ static Pixbuf *i_rgb_to_indexed(const byte_t *pixdata, const uint32_t width, con
             if (palrgb[j] == c)
             {
                 /* Write the pixel value leaving intact the other bits */
-                register byte_t *obyte = destdata + i / (8 / bpp);
-                register byte_t opos = (byte_t)(i % (8 / (uint8_t)bpp));
+                byte_t *obyte = destdata + i / (8 / bpp);
+                byte_t opos = (byte_t)(i % (8 / (uint8_t)bpp));
                 *obyte &= ~(omask << (opos * bpp));
                 *obyte |= (j << (opos * bpp));
                 break;
@@ -1272,14 +1272,14 @@ static Pixbuf *i_rgb_to_indexed(const byte_t *pixdata, const uint32_t width, con
 
 Pixbuf *imgutil_to_indexed(const uint32_t width, const uint32_t height, const byte_t *pixdata, const uint32_t bytespp, Palette **palette)
 {
-    register uint32_t i, n = width * height;
-    register uint32_t j, pn = 0;
-    register const byte_t *datai = pixdata;
+    uint32_t i, n = width * height;
+    uint32_t j, pn = 0;
+    const byte_t *datai = pixdata;
     color_t pal[256];
 
     for (i = 0; i < n; ++i)
     {
-        register color_t c;
+        color_t c;
 
         if (bytespp == 3)
             c = i_color(datai[0], datai[1], datai[2], 255);

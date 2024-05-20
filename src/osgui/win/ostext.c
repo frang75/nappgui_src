@@ -208,7 +208,7 @@ static void i_add_text(OSText *view, CHARRANGE *cr, const char_t *text)
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
+        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
         cassert_unref(bytes == num_bytes, bytes);
     }
 
@@ -486,7 +486,7 @@ static char_t *i_get_text(HWND hwnd, uint32_t *size, uint32_t *nchars)
     text = (char_t *)heap_malloc(*size, "OSTextText");
 
     {
-        register uint32_t bytes = unicode_convers((const char_t *)wtext, text, kWINDOWS_UNICODE, ekUTF8, *size);
+        uint32_t bytes = unicode_convers((const char_t *)wtext, text, kWINDOWS_UNICODE, ekUTF8, *size);
         cassert_unref(bytes == *size, bytes);
     }
 
@@ -530,7 +530,7 @@ static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
     text = (char_t *)heap_malloc(*size, "OSTextSelText");
 
     {
-        register uint32_t bytes = unicode_convers((const char_t *)wtext, text, kWINDOWS_UNICODE, ekUTF8, *size);
+        uint32_t bytes = unicode_convers((const char_t *)wtext, text, kWINDOWS_UNICODE, ekUTF8, *size);
         cassert_unref(bytes == *size, bytes);
     }
 
@@ -671,7 +671,7 @@ static void i_replace_text(OSText *view, const char_t *text)
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
+        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
         cassert_unref(bytes == num_bytes, bytes);
     }
 

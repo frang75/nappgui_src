@@ -159,7 +159,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 //{
 //     if (i_kGRAY4_PALETTE == NULL)
 //     {
-//         register uint32_t i = 0;
+//         uint32_t i = 0;
 //         i_kGRAY4_PALETTE = (Gdiplus::ColorPalette*)heap_malloc(sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
 //         i_kGRAY4_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
 //         i_kGRAY4_PALETTE->Count = 0;
@@ -175,7 +175,7 @@ Gdiplus::ColorPalette *_dctx_8bpp_grayscale_palette(void)
 {
     if (i_kGRAY8_PALETTE == NULL)
     {
-        register uint32_t i = 0;
+        uint32_t i = 0;
         i_kGRAY8_PALETTE = (Gdiplus::ColorPalette *)heap_malloc(sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
         i_kGRAY8_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
         i_kGRAY8_PALETTE->Count = 256;
@@ -565,7 +565,7 @@ static void i_set_gradient_colors(DCtx *ctx)
 void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1)
 {
     V2Df v;
-    register uint32_t i;
+    uint32_t i;
     cassert_no_null(ctx);
     cassert(n < 16);
     v.x = x1 - x0;
@@ -905,7 +905,7 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -979,7 +979,7 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -1115,7 +1115,7 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     }
 
     {
-        register uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 

@@ -462,8 +462,8 @@ bool_t bfile_lstat(const char_t *pathname, file_type_t *type, uint64_t *size, Da
     if (num_bytes < sizeof(pathnamew))
     {
         WIN32_FILE_ATTRIBUTE_DATA attribs;
-        register BOOL ok = 0;
-        register uint32_t i = 0;
+        BOOL ok = 0;
+        uint32_t i = 0;
         while ((ok = GetFileAttributesEx(pathnamew, GetFileExInfoStandard, &attribs)) == 0)
         {
             i++;

@@ -310,8 +310,8 @@ real64_t bmath_log10d(const real64_t value)
 // uint32_t bmath_log2u32(const uint32_t value);
 // uint32_t bmath_log2u32(const uint32_t value)
 //{
-//     register uint32_t valuep = value;
-//     register uint32_t log2p = 0;
+//     uint32_t valuep = value;
+//     uint32_t log2p = 0;
 //     cassert(valuep > 0);
 //     while (valuep > 0)
 //     {
@@ -327,7 +327,7 @@ real64_t bmath_log10d(const real64_t value)
 // uint32_t bmath_next_power_of_two(const uint32_t value);
 // uint32_t bmath_next_power_of_two(const uint32_t value)
 //{
-//     register uint32_t v = value;
+//     uint32_t v = value;
 //     v--;
 //     v |= v >> 1;
 //     v |= v >> 2;
@@ -371,9 +371,9 @@ real64_t bmath_powd(const real64_t base, const real64_t exponent)
 // uint32_t bmath_powu32(const uint32_t base, const uint32_t exp);
 // uint32_t bmath_powu32(const uint32_t base, const uint32_t exp)
 //{
-//     register uint32_t res = 1;
-//     register uint32_t ibase = base;
-//     register uint32_t iexp = exp;
+//     uint32_t res = 1;
+//     uint32_t ibase = base;
+//     uint32_t iexp = exp;
 //     while (iexp)
 //     {
 //         if (iexp & 1)
@@ -389,7 +389,7 @@ real64_t bmath_powd(const real64_t base, const real64_t exponent)
 // uint32_t bmath_bincoeffu32(const uint32_t upper, const uint32_t lower);
 // uint32_t bmath_bincoeffu32(const uint32_t upper, const uint32_t lower)
 //{
-//     register uint32_t offset;
+//     uint32_t offset;
 //     cassert(upper < i_PASCAL_TRIANGLE_LEVELS);
 //     cassert(lower <= upper);
 //     offset = upper * upper + upper;
@@ -853,7 +853,7 @@ real64_t bmath_ceild(const real64_t value)
 uint32_t bmath_uint32_from_fractionf(const real32_t value, const uint32_t max_iters);
 uint32_t bmath_uint32_from_fractionf(const real32_t value, const uint32_t max_iters)
 {
-    register uint32_t i;
+    uint32_t i;
     real32_t current_value = value;
     cassert(value >= CMath<real32_t>::k0);
     for (i = 0; i < max_iters; ++i)
@@ -984,7 +984,7 @@ uint32_t bmath_uint32_from_fractionf(const real32_t value, const uint32_t max_it
 // void bmath_convers_realfd(real32_t *dest, const real64_t *src, const uint32_t num_elems);
 // void bmath_convers_realfd(real32_t *dest, const real64_t *src, const uint32_t num_elems)
 //{
-//     register uint32_t i;
+//     uint32_t i;
 //     cassert_no_null(dest);
 //     cassert_no_null(src);
 //     for (i = 0; i < num_elems; ++i, ++dest, ++src)
@@ -1082,8 +1082,8 @@ static uint32_t i_next_random(REnv *env)
     /* Generate N words at one time */
     if (env->mti >= N)
     {
-        register uint32_t kk;
-        register uint32_t *mt = env->mt;
+        uint32_t kk;
+        uint32_t *mt = env->mt;
 
         for (kk = 0; kk < N - M; kk++)
         {

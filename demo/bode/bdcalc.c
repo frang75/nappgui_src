@@ -12,7 +12,7 @@ columnas sucesivas las sucesivas potencias
      planta       retardo      PID
 
 Formato de la tabla:
-                                              delay orden 3 
+                                              delay orden 3
                                               ---------------
    0    1   2    3    4    5    6    7    8    9    10    11    12    13    14       15
 log(w), w, w^2, w^3, w^4, w^5, w^6, w^7, w^8, w^9, w^10, w^11, w^12, db(G), phn(G)   phd(G)
@@ -93,17 +93,17 @@ static void retardo(const float r, float *a, float *b)
 
 /*---------------------------------------------------------------------------*/
 
-static void FT(const float *P, const float *Q, 
-               const float *a, const float *b, 
-               float *e, float *f, 
-               float *C, float *D, 
+static void FT(const float *P, const float *Q,
+               const float *a, const float *b,
+               float *e, float *f,
+               float *C, float *D,
                float *Z,
                const float *K, float tabla[decadas*ppd][maxs+4])
 {
     int indice, i, j, k;
     float ReC,ImC,ReD,ImD;
     float signo;
-    
+
     for(i=0;i<10;++i)  C[i]=0.0f;
     for(i=0;i<13;++i)  D[i]=0.0f;
 
@@ -126,14 +126,14 @@ static void FT(const float *P, const float *Q,
         for(j=0;j<5;++j){
             for(k=0;k<3;++k){
                 C[i+j+k]+=a[i]*P[j]*e[k];
-            }    
+            }
         }
     }
     for (i=0;i<4;++i){
         for(j=0;j<9;++j){
             for(k=0;k<2;++k){
                 D[i+j+k]+=b[i]*Q[j]*f[k];
-            }    
+            }
         }
     }
 
@@ -173,7 +173,7 @@ static void FT(const float *P, const float *Q,
         tabla[indice][maxs+2]=bmath_atan2f(ImC,ReC)*180.0f/PI - 180.0f; /* paso a [0,-360] */
         tabla[indice][maxs+3]=bmath_atan2f(ImD,ReD)*180.0f/PI - 180.0f;
     }
-    
+
     /* arreglar numerador */
     for(indice=1;indice<decadas*ppd;++indice){
         while (tabla[indice][maxs+2]-tabla[indice-1][maxs+2]>180.0f)
@@ -193,7 +193,7 @@ static void FT(const float *P, const float *Q,
         /*printf("%6.3f %6.3f\n",tabla[indice][maxs+2],tabla[indice][maxs+3]);*/
         tabla[indice][maxs+2]-=tabla[indice][maxs+3];
     }
-    
+
     return;
 }
 
@@ -219,11 +219,11 @@ static int evo(const float *C, const float *Z, const float T, float evolucion[N]
     /* encontrar máximo coeficiente de Z distinto de cero */
     maxj=12;
     while (Z[maxj]==0) --maxj;
-    
+
     /* condiciones iniciales nulas */
     for(j=0;j<maxj;++j)
         x0[j]=0.0f;
-    
+
     /* integracion mediante RK de cuarto orden */
     for(i=0;i<N;++i){
         if (i==0)
@@ -238,7 +238,7 @@ static int evo(const float *C, const float *Z, const float T, float evolucion[N]
         kas[maxj-1][0]=cu;
         for(j=0;j<maxj;++j)
             kas[maxj-1][0]=kas[maxj-1][0]-Z[j]*x0[j];
-        kas[maxj-1][0]=(h/Z[maxj])*kas[maxj-1][0];    
+        kas[maxj-1][0]=(h/Z[maxj])*kas[maxj-1][0];
 
         /* segundos coeficientes */
         for(j=0;j<maxj-1;++j)
@@ -247,7 +247,7 @@ static int evo(const float *C, const float *Z, const float T, float evolucion[N]
         kas[maxj-1][1]=cu;
         for(j=0;j<maxj;++j)
             kas[maxj-1][1]=kas[maxj-1][1]-Z[j]*(x0[j]+0.5f*kas[j][0]);
-        kas[maxj-1][1]=(h/Z[maxj])*kas[maxj-1][1];    
+        kas[maxj-1][1]=(h/Z[maxj])*kas[maxj-1][1];
 
         /* terceros coeficientes */
         for(j=0;j<maxj-1;++j)
@@ -256,7 +256,7 @@ static int evo(const float *C, const float *Z, const float T, float evolucion[N]
         kas[maxj-1][2]=cu;
         for(j=0;j<maxj;++j)
             kas[maxj-1][2]=kas[maxj-1][2]-Z[j]*(x0[j]+0.5f*kas[j][1]);
-        kas[maxj-1][2]=(h/Z[maxj])*kas[maxj-1][2];    
+        kas[maxj-1][2]=(h/Z[maxj])*kas[maxj-1][2];
 
         /* cuartos coeficientes */
         for(j=0;j<maxj-1;++j)
@@ -265,7 +265,7 @@ static int evo(const float *C, const float *Z, const float T, float evolucion[N]
         kas[maxj-1][3]=cu;
         for(j=0;j<maxj;++j)
             kas[maxj-1][3]=kas[maxj-1][3]-Z[j]*(x0[j]+kas[j][2]);
-        kas[maxj-1][3]=(h/Z[maxj])*kas[maxj-1][3];    
+        kas[maxj-1][3]=(h/Z[maxj])*kas[maxj-1][3];
 
         /* nuevos valores */
         for(j=0;j<maxj;++j){
@@ -282,7 +282,7 @@ static int evo(const float *C, const float *Z, const float T, float evolucion[N]
         /* nuevas c.i. */
         for(j=0;j<maxj;++j){
             x0[j]=x1[j];
-        }    
+        }
     }
     return(-1);
 }
@@ -333,7 +333,7 @@ void bode_update(uint32_t *last_sim_i)
     retardo(_R, _a, _b);
     FT(_P, _Q, _a, _b, _e, _f, _C, _D, _Z, _K, _tabla);
     i=evo(_C, /*_D,*/ _Z, _T, _evolucion);
-    
+
     if (i >= 0)
         *last_sim_i = (uint32_t)i;
 }
@@ -349,7 +349,7 @@ uint32_t bode_npoints(void)
 
 void bode_db_graph(V2Df *v2d, const uint32_t n)
 {
-    register uint32_t i, total = min_u32(decadas * ppd, n);
+    uint32_t i, total = min_u32(decadas * ppd, n);
     for (i = 0; i < total; ++i, v2d++)
     {
         v2d->x = _tabla[i][0];
@@ -361,7 +361,7 @@ void bode_db_graph(V2Df *v2d, const uint32_t n)
 
 void bode_phase_graph(V2Df *v2d, const uint32_t n)
 {
-    register uint32_t i, total = min_u32(decadas * ppd, n);
+    uint32_t i, total = min_u32(decadas * ppd, n);
     for (i = 0; i < total; ++i, v2d++)
     {
         v2d->x = _tabla[i][0];
@@ -380,7 +380,7 @@ uint32_t bode_sim_npoints(void)
 
 void bode_sim_graph(V2Df *v2d, const uint32_t n)
 {
-    register uint32_t i, total = min_u32(N, n);
+    uint32_t i, total = min_u32(N, n);
     for (i = 0; i < total; ++i, v2d++)
     {
         v2d->x = _evolucion[i][0];

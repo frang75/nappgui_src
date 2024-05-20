@@ -108,7 +108,7 @@ Palette *palette_rgb8(void)
 {
     Palette *palette = palette_create(256);
     color_t *colors = palette_colors(palette);
-    register uint32_t i;
+    uint32_t i;
     for (i = 0; i < 256; ++i)
     {
         uint8_t r = (uint8_t)(i & 7);
@@ -187,7 +187,7 @@ Palette *palette_gray8(void)
 {
     Palette *palette = palette_create(16);
     color_t *colors = palette_colors(palette);
-    register uint32_t i;
+    uint32_t i;
     for (i = 0; i < 256; ++i)
         colors[i] = color_gray((uint8_t)i);
     return palette;

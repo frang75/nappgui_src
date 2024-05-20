@@ -122,4 +122,4 @@
         return (const type *)rbtree_prev((RBTree *)set); \
     } \
 \
-    ___INLINE void setst_##type##_end(void)
+    typedef struct _setstend##type##_t setstend##type

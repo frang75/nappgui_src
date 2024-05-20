@@ -22,11 +22,11 @@ typedef void (*i_SWAP)(char *a, char *b, uint32_t size);
 
 static ___INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
 {
-    register uint32_t n1 = size / (uint32_t)sizeofptr;
-    register uint32_t i;
-    register void **_a = (void **)a;
-    register void **_b = (void **)b;
-    register void *swap;
+    uint32_t n1 = size / (uint32_t)sizeofptr;
+    uint32_t i;
+    void **_a = (void **)a;
+    void **_b = (void **)b;
+    void *swap;
     for (i = 0; i < n1; ++i, ++_a, ++_b)
     {
         swap = *_a;
@@ -39,7 +39,7 @@ static ___INLINE void i_SWAP_ALIGN(char *a, char *b, uint32_t size)
 
 static ___INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
 {
-    register void *swap = *(void **)a;
+    void *swap = *(void **)a;
     *(void **)a = *(void **)b;
     *(void **)b = swap;
     unref(size);
@@ -49,12 +49,12 @@ static ___INLINE void i_SWAP_PTR(char *a, char *b, uint32_t size)
 
 static ___INLINE void i_SWAP_GENERAL(char *a, char *b, uint32_t size)
 {
-    register uint32_t n1 = size / (uint32_t)sizeofptr;
-    register uint32_t i;
-    register void **_a = (void **)a;
-    register void **_b = (void **)b;
-    register void *swap;
-    register char swapc;
+    uint32_t n1 = size / (uint32_t)sizeofptr;
+    uint32_t i;
+    void **_a = (void **)a;
+    void **_b = (void **)b;
+    void *swap;
+    char swapc;
     for (i = 0; i < n1; ++i, ++_a, ++_b)
     {
         swap = *_a;
@@ -79,8 +79,8 @@ static ___INLINE void i_SWAP_GENERAL(char *a, char *b, uint32_t size)
 //#define SWAP(a, b, size)\
 //    do\
 //    {\
-//        register uint32_t __size = (size);\
-//        register char *__a = (a), *__b = (b);\
+//        uint32_t __size = (size);\
+//        char *__a = (a), *__b = (b);\
 //        do\
 //        {\
 //            char __tmp = *__a;\
@@ -150,8 +150,8 @@ typedef struct
  **/
 void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t sizeof_elem, FPtr_compare_ex func_compare, const void *user_data)
 {
-    register i_SWAP SWAP_FUNC;
-    register char *base_ptr = (char *)data;
+    i_SWAP SWAP_FUNC;
+    char *base_ptr = (char *)data;
     uint32_t max_thresh = MAX_THRESH * sizeof_elem;
 
     cassert_no_null(base_ptr);
@@ -282,7 +282,7 @@ void _qsort_ex(const void *data, const uint32_t total_elems, const uint32_t size
         char *const end_ptr = &base_ptr[sizeof_elem * (total_elems - 1)];
         char *tmp_ptr = base_ptr;
         char *thresh = min(end_ptr, base_ptr + max_thresh);
-        register char *run_ptr;
+        char *run_ptr;
 
         /* Find smallest element in first threshold and place it at the
         array's beginning.  This is the smallest array element,

@@ -177,4 +177,5 @@
     { \
         return (const type *)array_bsearch((const Array *)array, func_compare, key, pos); \
     } \
-    ___INLINE void arrst_##type##_end(void)
+\
+    typedef struct _arrstend##type##_t arrstend##type

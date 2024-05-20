@@ -256,7 +256,7 @@ static const char_t *i_next_word(const char_t *str, int *word_type)
     }
 
     {
-        register const char_t *end = i_jump_blanks(str);
+        const char_t *end = i_jump_blanks(str);
         if (end != str)
         {
             *word_type = i_WORD_TYPE_BLANCKS;
@@ -265,7 +265,7 @@ static const char_t *i_next_word(const char_t *str, int *word_type)
     }
 
     {
-        register const char_t *end = i_jump_not_blanks(str);
+        const char_t *end = i_jump_not_blanks(str);
         cassert(end != str);
         *word_type = i_WORD_TYPE_TEXT;
         return end;
@@ -325,7 +325,7 @@ void osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t 
     uint32_t num_lines = 0;
     real32_t ref_width = refwidth > 0.f ? refwidth : 1e8f;
     real32_t current_width = 0.f, current_height = 0.f, current_width_without_spaces = 0.f;
-    register const char_t *ctext = text;
+    const char_t *ctext = text;
     cassert_no_null(width);
     cassert_no_null(height);
     *width = 0.f;
@@ -355,7 +355,7 @@ void osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t 
             {
                 char_t word[128];
                 real32_t word_width = 0.f, word_height = 0.f;
-                register uint32_t size = (uint32_t)(next_text - ctext);
+                uint32_t size = (uint32_t)(next_text - ctext);
                 cassert(next_text > ctext);
                 str_copy_cn(word, 128, ctext, size);
                 word[size] = '\0';
@@ -377,7 +377,7 @@ void osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t 
         {
             char_t word[128];
             real32_t word_width = 0.f, word_height = 0.f;
-            register uint32_t size = (uint32_t)(next_text - ctext);
+            uint32_t size = (uint32_t)(next_text - ctext);
             cassert(next_text > ctext);
             cassert(word_type == i_WORD_TYPE_TEXT);
             str_copy_cn(word, 128, ctext, size);

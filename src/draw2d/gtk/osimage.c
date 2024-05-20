@@ -114,7 +114,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
 
     case ekRGB24:
     {
-        register uint32_t i, j;
+        uint32_t i, j;
         guchar *dest = NULL;
         colorspace = GDK_COLORSPACE_RGB;
         has_alpha = FALSE;
@@ -143,7 +143,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
 
     case ekGRAY8:
     {
-        register uint32_t i, j;
+        uint32_t i, j;
         guchar *dest = NULL;
         colorspace = GDK_COLORSPACE_RGB;
         has_alpha = FALSE;
@@ -370,7 +370,7 @@ OSImage *osimage_from_context(DCtx **ctx)
     {
         guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
         gboolean alpha = gdk_pixbuf_get_has_alpha(pixbuf);
-        register uint32_t i, j, offset = alpha ? 4 : 3;
+        uint32_t i, j, offset = alpha ? 4 : 3;
         int stride = gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
         for (j = 0; j < (uint32_t)h; ++j)
         {
@@ -461,7 +461,7 @@ static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const u
 {
     Pixbuf *pixels = pixbuf_create(width, height, format);
     byte_t *pdata = pixbuf_data(pixels);
-    register uint32_t n = width * height, i = 0, j = 0;
+    uint32_t n = width * height, i = 0, j = 0;
     if (format == ekRGBA32)
     {
         cassert(bpp == 4);

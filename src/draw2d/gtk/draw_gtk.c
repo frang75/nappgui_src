@@ -147,7 +147,7 @@ void draw_line(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x
 
 static void i_line_path(cairo_t *cairo, const V2Df *points, const uint32_t n, const bool_t closed)
 {
-    register uint32_t i;
+    uint32_t i;
     cassert_no_null(cairo);
     cassert_no_null(points);
     cassert(n > 0);
@@ -476,7 +476,7 @@ void draw_fill_color(DCtx *ctx, const color_t color)
 
 void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1)
 {
-    register uint32_t i;
+    uint32_t i;
 
     if (ctx->lpattern != NULL)
         cairo_pattern_destroy(ctx->lpattern);

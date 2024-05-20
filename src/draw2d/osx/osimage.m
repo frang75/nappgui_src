@@ -273,7 +273,7 @@ static Pixbuf *i_bitmap_pixels(const byte_t *data, const uint32_t width, const u
 {
     Pixbuf *pixels = pixbuf_create(width, height, format);
     byte_t *pdata = pixbuf_data(pixels);
-    register uint32_t n = width * height, i = 0;
+    uint32_t n = width * height, i = 0;
     if (format == ekRGBA32)
     {
         cassert(bpp == 4);

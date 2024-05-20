@@ -473,7 +473,7 @@ static ArrPt<SATPoly<real> > *i_get_convex_sat_polys(const Pol2D<real> *pol)
     cassert(ArrSt<Poly>::size(polys) == num_polys);
     for (i = 0; i < num_polys; ++i)
     {
-        register uint32_t n = poly[i].n;
+        uint32_t n = poly[i].n;
         SATPoly<real> *sat = SATPoly<real>::create(n, n);
         V2D<real> *v = sat->vertex;
         V2D<real> *a = sat->axis;

@@ -330,7 +330,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     }
     else
     {
-        register uint32_t i;
+        uint32_t i;
         char_t text[256] = "";
         cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
         cassert(lines < 100);

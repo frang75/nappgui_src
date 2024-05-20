@@ -168,7 +168,7 @@ uint32_t textview_printf(TextView *view, const char_t *format, ...)
 
     /* Printf */
     {
-        register uint32_t clength;
+        uint32_t clength;
         va_list args;
         va_start(args, format);
         clength = bstd_vsprintf(text, length, format, args);

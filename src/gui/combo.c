@@ -396,7 +396,7 @@ const char_t *combo_get_text(const Combo *combo, const uint32_t index)
 
 static void i_delete_duplicates(GuiComponent *component, ArrPt(String) *texts, ArrPt(Image) *images, const char_t *text)
 {
-    register uint32_t i = 0, num_elems = 0;
+    uint32_t i = 0, num_elems = 0;
     cassert_no_null(component);
     num_elems = arrpt_size(texts, String);
     cassert(num_elems == arrpt_size(images, Image));
@@ -432,7 +432,7 @@ static bool_t i_exists_substring(ArrPt(String) *texts, const char_t *subtext)
 
 uint32_t combo_count(const Combo *combo)
 {
-    register uint32_t num_elems = 0;
+    uint32_t num_elems = 0;
     cassert_no_null(combo);
     num_elems = arrpt_size(combo->texts, String);
     cassert(num_elems == arrpt_size(combo->images, Image));

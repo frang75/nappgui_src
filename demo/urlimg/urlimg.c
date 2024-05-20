@@ -152,7 +152,7 @@ static Layout *i_label(const char_t *title, Label **info)
 
 static void i_add_files(ListBox *listbox)
 {
-    register uint32_t i, n = sizeof(i_FILES) / sizeof(char_t *);
+    uint32_t i, n = sizeof(i_FILES) / sizeof(char_t *);
     for (i = 0; i < n; ++i)
         listbox_add_elem(listbox, i_FILES[i], NULL);
     listbox_select(listbox, 0, TRUE);

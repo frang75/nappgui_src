@@ -252,8 +252,8 @@ void blib_qsort_ex(const byte_t *array, const uint32_t nelems, const uint32_t si
 
 bool_t blib_bsearch(const byte_t *array, const byte_t *key, const uint32_t nelems, const uint32_t size, FPtr_compare func_compare, uint32_t *pos)
 {
-    register uint32_t st, ed;
-    register int compare;
+    uint32_t st, ed;
+    int compare;
 
     if (nelems == 0)
     {
@@ -304,7 +304,7 @@ bool_t blib_bsearch(const byte_t *array, const byte_t *key, const uint32_t nelem
         }
         else
         {
-            register uint32_t mid = (ed + st) / 2;
+            uint32_t mid = (ed + st) / 2;
             cassert(mid > st && mid < ed);
             compare = func_compare(array + (mid * size), key);
             if (compare < 0)
@@ -328,8 +328,8 @@ bool_t blib_bsearch(const byte_t *array, const byte_t *key, const uint32_t nelem
 
 bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const uint32_t nelems, const uint32_t size, FPtr_compare_ex func_compare, const byte_t *data, uint32_t *pos)
 {
-    register uint32_t st, ed;
-    register int compare;
+    uint32_t st, ed;
+    int compare;
 
     if (nelems == 0)
     {
@@ -380,7 +380,7 @@ bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const uint32_t ne
         }
         else
         {
-            register uint32_t mid = (ed + st) / 2;
+            uint32_t mid = (ed + st) / 2;
             cassert(mid > st && mid < ed);
             compare = func_compare(array + (mid * size), key, data);
             if (compare < 0)

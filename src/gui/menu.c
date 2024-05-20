@@ -64,8 +64,8 @@ Menu *menu_create(void)
 
 static void i_detach_menuitems(ArrPt(MenuItem) *items, void *ositem, FPtr_gctx_set_ptr func_detach_menuitem_from_menu)
 {
-    register uint32_t i, num_items;
-    register MenuItem **item;
+    uint32_t i, num_items;
+    MenuItem **item;
     cassert_no_nullf(func_detach_menuitem_from_menu);
     num_items = arrpt_size(items, MenuItem);
     item = arrpt_all(items, MenuItem);
@@ -209,8 +209,8 @@ uint32_t menu_num_items(const Menu *menu)
 uint32_t menu_item_index(const Menu *menu, const MenuItem *menuitem);
 uint32_t menu_item_index(const Menu *menu, const MenuItem *menuitem)
 {
-    register uint32_t i, num_items;
-    register const MenuItem **item;
+    uint32_t i, num_items;
+    const MenuItem **item;
     cassert_no_null(menu);
     num_items = arrptr_length(menu->items, MenuItem);
     item = arrptr_get_c_buffer(menu->items, MenuItem);

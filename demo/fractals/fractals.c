@@ -66,11 +66,11 @@ static uint32_t i_julia_thread(ThData *data)
     real64_t kimag = data->kimag;
     uint32_t val;
     real64_t creal, cimag;
-    register uint32_t stj = data->j;
-    register uint32_t edj = data->j + data->height;
-    register uint32_t sti = data->i;
-    register uint32_t edi = data->i + data->width;
-    register uint32_t i, j;
+    uint32_t stj = data->j;
+    uint32_t edj = data->j + data->height;
+    uint32_t sti = data->i;
+    uint32_t edi = data->i + data->width;
+    uint32_t i, j;
 
     for(j = stj; j < edj; ++j)
     {
@@ -124,7 +124,7 @@ static void i_julia(const uint32_t nthreads, const bool_t vertical, const real64
     {
         Thread *thread[8];
 
-        register uint32_t i;
+        uint32_t i;
         if (vertical == TRUE)
         {
             uint32_t twidth = width / nthreads;

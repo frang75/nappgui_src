@@ -62,13 +62,13 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
             for (i = 0; i < size; ++i)
             {
                 TCHAR type[32];
-                register uint32_t tsize;
+                uint32_t tsize;
                 tsize = unicode_convers(ftypes[i], (char_t *)type, ekUTF8, ekUTF16, sizeof(type));
                 cassert(tsize < sizeof(type));
                 tsize += 4; /* "*." */
                 if (lbufsize > tsize * 2)
                 {
-                    register int bytes;
+                    int bytes;
                     bytes = wsprintf(file_types, L"*.%s", type);
                     file_types += bytes + 1;
                     bytes = wsprintf(file_types, L"*.%s", type);
@@ -114,7 +114,7 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
 {
     WCHAR ext[32];
     WCHAR *file_ext = NULL;
-    register uint32_t ext_size;
+    uint32_t ext_size;
     ext_size = unicode_convers(extension, (char_t *)ext, ekUTF8, ekUTF16, sizeof(ext));
     cassert(ext_size < sizeof(ext));
     _wcslwr_s(ext, 32);
@@ -165,7 +165,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
             if (start_dir != NULL)
             {
-                register uint32_t bytes = unicode_convers(start_dir, i_FILENAME, ekUTF8, ekUTF16, sizeof(i_FILENAME));
+                uint32_t bytes = unicode_convers(start_dir, i_FILENAME, ekUTF8, ekUTF16, sizeof(i_FILENAME));
                 cassert_unref(bytes < sizeof(i_FILENAME), bytes);
                 bi.lpfn = i_folder_browse;
             }
@@ -180,7 +180,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             item = SHBrowseForFolder(&bi);
             if (item != NULL)
             {
-                register uint32_t bytes;
+                uint32_t bytes;
                 SHGetPathFromIDList(item, dir);
                 bytes = unicode_convers((const char_t *)dir, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
                 cassert(bytes < MAX_PATH);
@@ -226,7 +226,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
         if (ok == TRUE)
         {
-            register uint32_t bytes;
+            uint32_t bytes;
             if (open == FALSE && size == 1)
                 i_force_extension(file, MAX_PATH, ftypes[0]);
 
@@ -307,7 +307,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     CHOOSECOLOR col;
     COLORREF cols[16];
     CData cdata;
-    register uint32_t i;
+    uint32_t i;
 
     col.lStructSize = sizeof(CHOOSECOLOR);
     col.hwndOwner = NULL;

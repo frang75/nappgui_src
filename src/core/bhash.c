@@ -20,7 +20,7 @@
 
 static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, const uint32_t init_hash)
 {
-    register uint32_t hash;
+    uint32_t hash;
 
     cassert_no_null(data);
     cassert(size > 0);
@@ -28,7 +28,7 @@ static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, cons
     hash = init_hash;
 
     {
-        register uint32_t i;
+        uint32_t i;
         for (i = (size >> 2); i > 0; --i)
         {
             uint32_t tmp;
@@ -41,7 +41,7 @@ static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, cons
     }
 
     {
-        register uint32_t rem;
+        uint32_t rem;
         rem = size & 3;
         switch (rem)
         {

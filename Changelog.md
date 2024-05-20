@@ -35,7 +35,8 @@
 
 * macOS Snow Leopard/Lion compiler warnings. [Commit](https://github.com/frang75/nappgui_src/commit/66a2305261121dacd7449d4f689ca18a14fc1dc0).
 * Support for Ubuntu 24.04 LTS (gcc-13, clang-18).
-* Support for MinGW. [Doc](https://nappgui.com/en/guide/win_mac_linux.html#h4).
+* Support for MinGW. [Doc](https://nappgui.com/en/guide/win_mac_linux.html#h4). [Commit](https://github.com/frang75/nappgui_src/commit/5f638074231f028a5eb8a07c2f0d232edad408c6). [Issue](https://github.com/frang75/nappgui_src/issues/125). [Issue](https://github.com/frang75/nappgui_src/issues/48). [Issue](https://github.com/frang75/nappgui_src/issues/5). [Discussion](https://github.com/frang75/nappgui_src/discussions/111).
+* Avoid warnings using modern C/C++ standards. [Issue](https://github.com/frang75/nappgui_src/issues/137).
 
 ## v1.4.1 - Apr 3, 2024 (r4993)
 

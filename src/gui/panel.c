@@ -302,7 +302,7 @@ void _panel_destroy_component(Panel *panel, GuiComponent *component)
 
     if (exists == FALSE)
     {
-        register uint32_t index;
+        uint32_t index;
 
 /* Prevent flickering in Windows because destroyed component new parent
         will be set to NULL (Desktop HWND) when is detached from this panel. */
@@ -419,8 +419,8 @@ void _panel_window(Panel *panel, Window *window)
     }
 
     {
-        register GuiComponent **child;
-        register uint32_t i, num_elems;
+        GuiComponent **child;
+        uint32_t i, num_elems;
         child = arrpt_all(panel->children, GuiComponent);
         num_elems = arrpt_size(panel->children, GuiComponent);
         for (i = 0; i < num_elems; ++i, ++child)

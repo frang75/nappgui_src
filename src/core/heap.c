@@ -192,8 +192,8 @@ static byte_t *i_malloc(i_Memory *memory, const uint32_t size, const uint32_t al
     /* Block can be stored by paged allocator */
     if (__TRUE_EXPECTED(size + align + sizeof(i_Page) + sizeofptr < memory->page_size))
     {
-        register uint32_t mod = memory->current_page->offset % align;
-        register uint32_t offset = memory->current_page->offset;
+        uint32_t mod = memory->current_page->offset % align;
+        uint32_t offset = memory->current_page->offset;
 
         if (mod > 0)
             offset += align - mod;
@@ -288,7 +288,7 @@ static byte_t *i_realloc(i_Memory *memory, byte_t *prev_mem, const uint32_t size
     /* Some of new/previous block can be/is stored in paged allocator */
     if (__TRUE_EXPECTED((prev_size + align + sizeof(i_Page) + sizeofptr < memory->page_size) || (size + align + sizeof(i_Page) + sizeofptr < memory->page_size)))
     {
-        register uint32_t min_size;
+        uint32_t min_size;
         mem = i_malloc(memory, size, align);
         min_size = prev_size < size ? prev_size : size;
         bmem_copy(mem, prev_mem, min_size);
@@ -320,7 +320,7 @@ void _heap_finish(void)
 #if defined(__MEMORY_AUDITOR__)
     {
         bool_t with_object_leaks = FALSE;
-        register uint32_t i;
+        uint32_t i;
         for (i = 0; i < i_MEMORY.num_objects; ++i)
         {
             if (i_MEMORY.objects[i].num_allocs != i_MEMORY.objects[i].num_deallocs)
@@ -380,7 +380,7 @@ void _heap_finish(void)
 #if defined(__MEMORY_AUDITOR__)
             if (i_HEAP_VERBOSE == TRUE)
             {
-                register uint32_t i;
+                uint32_t i;
                 for (i = 0; i < i_MEMORY.num_objects; ++i)
                     log_printf("'%s' a/deallocations: %u, %u (%" PRIu64 ") bytes", i_MEMORY.objects[i].name, i_MEMORY.objects[i].num_allocs, i_MEMORY.objects[i].num_deallocs, i_MEMORY.objects[i].bytes_alloc);
             }
@@ -409,7 +409,7 @@ void _heap_finish(void)
 
 static uint32_t i_next_pow2(const uint32_t value)
 {
-    register uint32_t v = value;
+    uint32_t v = value;
     v--;
     v |= v >> 1;
     v |= v >> 2;
@@ -437,7 +437,7 @@ void _heap_page_size(const uint32_t size)
 /*
 static void i_dump_objects(void)
 {
-   register uint32_t i;
+   uint32_t i;
    log_printf("Num objects: %d", i_MEMORY.num_objects);
    for (i = 0; i < i_MEMORY.num_objects; ++i)
        log_printf("%s %d %d", i_MEMORY.objects[i].name, i_MEMORY.objects[i].num_allocs, i_MEMORY.objects[i].num_deallocs);

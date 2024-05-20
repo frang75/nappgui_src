@@ -386,7 +386,7 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
         color_t *color = palette_colors(palette);
         Gdiplus::PixelFormat pf = bitmap->GetPixelFormat();
         Gdiplus::BitmapData data;
-        register uint32_t i;
+        uint32_t i;
         uint32_t ibpp = 8;
 
         for (i = 0; i < pal->Count; ++i)

@@ -101,7 +101,7 @@ static uint32_t i_codepoint_from_utf8(const char_t *utf8_string, uint32_t *num_b
     /* Two bytes UTF-8 110x xxxx 10xx xxxx */
     if (__TRUE_EXPECTED((*utf8_string & 0xE0) == 0xC0))
     {
-        register uint32_t code = ((uint32_t)(*(utf8_string + 0) & 0x1F) << 6) | (uint32_t)(*(utf8_string + 1) & 0x3F);
+        uint32_t code = ((uint32_t)(*(utf8_string + 0) & 0x1F) << 6) | (uint32_t)(*(utf8_string + 1) & 0x3F);
         cassert(code >= 0x0080 && code <= 0x07FF);
         *num_bytes = 2;
         return i_test_codepoint(code);
@@ -110,7 +110,7 @@ static uint32_t i_codepoint_from_utf8(const char_t *utf8_string, uint32_t *num_b
     /* Three bytes UTF-8 1110 xxxx 10xx xxxx 10xx xxxx */
     if (__TRUE_EXPECTED((*utf8_string & 0xF0) == 0xE0))
     {
-        register uint32_t code = ((uint32_t)(*(utf8_string + 0) & 0x0F) << 12) | ((uint32_t)(*(utf8_string + 1) & 0x3F) << 6) | (uint32_t)(*(utf8_string + 2) & 0x3F);
+        uint32_t code = ((uint32_t)(*(utf8_string + 0) & 0x0F) << 12) | ((uint32_t)(*(utf8_string + 1) & 0x3F) << 6) | (uint32_t)(*(utf8_string + 2) & 0x3F);
         cassert(code >= 0x0800 && code <= 0xFFFF);
         *num_bytes = 3;
         return i_test_codepoint(code);
@@ -119,7 +119,7 @@ static uint32_t i_codepoint_from_utf8(const char_t *utf8_string, uint32_t *num_b
     /* Four bytes UTF-8 1111 0xxx 10xx xxxx 10xx xxxx 10xx xxxx */
     if (__TRUE_EXPECTED((*utf8_string & 0xF8) == 0xF0))
     {
-        register uint32_t code = ((uint32_t)(*(utf8_string + 0) & 0x07) << 18) | ((uint32_t)(*(utf8_string + 1) & 0x3F) << 12) | ((uint32_t)(*(utf8_string + 2) & 0x3F) << 6) | (uint32_t)(*(utf8_string + 3) & 0x3F);
+        uint32_t code = ((uint32_t)(*(utf8_string + 0) & 0x07) << 18) | ((uint32_t)(*(utf8_string + 1) & 0x3F) << 12) | ((uint32_t)(*(utf8_string + 2) & 0x3F) << 6) | (uint32_t)(*(utf8_string + 3) & 0x3F);
         cassert(code >= 0x010000 && code <= 0x1FFFFF);
         *num_bytes = 4;
         return i_test_codepoint(code);
@@ -133,13 +133,13 @@ static uint32_t i_codepoint_from_utf8(const char_t *utf8_string, uint32_t *num_b
 
 static uint32_t i_codepoint_from_utf16(const char_t *utf16_string, uint32_t *num_bytes)
 {
-    register uint16_t code;
+    uint16_t code;
     cassert_no_null(utf16_string);
     cassert_no_null(num_bytes);
     code = *((const uint16_t *)utf16_string);
     if (code >= 0xD800 && code <= 0xDBFF)
     {
-        register uint16_t code2 = *(((const uint16_t *)utf16_string) + 1);
+        uint16_t code2 = *(((const uint16_t *)utf16_string) + 1);
         cassert(code2 >= 0xDC00 && code2 <= 0xDFFF);
         *num_bytes = 4;
         return ((uint32_t)code << 10) + (uint32_t)code2 - 0x35FDC00;
@@ -260,11 +260,11 @@ static i_Fptr_codepoint_to_str i_func_codepoint_to_str[] = {
 /*  Includes the null-terminated character */
 uint32_t unicode_convers_n(const char_t *from_str, char_t *to_str, const unicode_t from, const unicode_t to, const uint32_t isize, const uint32_t osize)
 {
-    register uint32_t null_size = 0;
-    register uint32_t codepoint = 0;
-    register uint32_t byte_count = 0;
+    uint32_t null_size = 0;
+    uint32_t codepoint = 0;
+    uint32_t byte_count = 0;
     uint32_t num_bytes_src = 0;
-    register uint32_t total_bytes_src = 0;
+    uint32_t total_bytes_src = 0;
     cassert_no_null(from_str);
     cassert_no_null(to_str);
     null_size = i_func_codepoint_bytes[to](0);
@@ -273,7 +273,7 @@ uint32_t unicode_convers_n(const char_t *from_str, char_t *to_str, const unicode
     codepoint = i_func_codepoint_from_str[from](from_str, &num_bytes_src);
     while (codepoint != 0)
     {
-        register uint32_t num_bytes_dest = i_func_codepoint_to_str[to](codepoint, to_str);
+        uint32_t num_bytes_dest = i_func_codepoint_to_str[to](codepoint, to_str);
         if (byte_count + num_bytes_dest + null_size <= osize)
         {
             from_str += num_bytes_src;
@@ -291,7 +291,7 @@ uint32_t unicode_convers_n(const char_t *from_str, char_t *to_str, const unicode
     }
 
     {
-        register uint32_t num_bytes_dest = i_func_codepoint_to_str[to](0, to_str);
+        uint32_t num_bytes_dest = i_func_codepoint_to_str[to](0, to_str);
         cassert(num_bytes_dest == null_size);
         byte_count += num_bytes_dest;
     }
@@ -323,8 +323,8 @@ uint32_t unicode_convers_nbytes_n(const char_t *str, const uint32_t isize, const
 {
     uint32_t num_bytes_char = 0;
     uint32_t num_bytes_readed = 0;
-    register uint32_t codepoint = 0;
-    register uint32_t byte_count = 0;
+    uint32_t codepoint = 0;
+    uint32_t byte_count = 0;
     cassert_no_null(str);
     codepoint = i_func_codepoint_from_str[from](str, &num_bytes_char);
     while (codepoint != 0)
@@ -346,7 +346,7 @@ uint32_t unicode_convers_nbytes_n(const char_t *str, const uint32_t isize, const
 
 static uint32_t i_utf8_buffer_size(const char_t *utf8_string)
 {
-    register uint32_t byte_count = 0;
+    uint32_t byte_count = 0;
     cassert_no_null(utf8_string);
     while (*utf8_string != 0)
     {
@@ -362,8 +362,8 @@ static uint32_t i_utf8_buffer_size(const char_t *utf8_string)
 
 static uint32_t i_utf16_buffer_size(const char_t *utf16_string)
 {
-    register uint32_t byte_count = 0;
-    register uint16_t *str = (uint16_t *)utf16_string;
+    uint32_t byte_count = 0;
+    uint16_t *str = (uint16_t *)utf16_string;
     cassert_no_null(utf16_string);
     while (*str != 0)
     {
@@ -379,8 +379,8 @@ static uint32_t i_utf16_buffer_size(const char_t *utf16_string)
 
 static uint32_t i_utf32_buffer_size(const char_t *utf32_string)
 {
-    register uint32_t byte_count = 0;
-    register uint32_t *str = (uint32_t *)utf32_string;
+    uint32_t byte_count = 0;
+    uint32_t *str = (uint32_t *)utf32_string;
     cassert_no_null(utf32_string);
     while (*str != 0)
     {
@@ -411,7 +411,7 @@ uint32_t unicode_nbytes(const char_t *str, const unicode_t format)
 
 static uint32_t i_utf8_num_chars(const char_t *utf8_string)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     cassert_no_null(utf8_string);
     while (*utf8_string != 0)
     {
@@ -427,8 +427,8 @@ static uint32_t i_utf8_num_chars(const char_t *utf8_string)
 
 static uint32_t i_utf16_num_chars(const char_t *utf16_string)
 {
-    register uint16_t *str = (uint16_t *)utf16_string;
-    register uint32_t i = 0;
+    uint16_t *str = (uint16_t *)utf16_string;
+    uint32_t i = 0;
     cassert_no_null(utf16_string);
     while (*str != 0)
     {
@@ -444,8 +444,8 @@ static uint32_t i_utf16_num_chars(const char_t *utf16_string)
 
 static uint32_t i_utf32_num_chars(const char_t *utf32_string)
 {
-    register uint32_t *str = (uint32_t *)utf32_string;
-    register uint32_t i = 0;
+    uint32_t *str = (uint32_t *)utf32_string;
+    uint32_t i = 0;
     cassert_no_null(utf32_string);
     while (*str != 0)
         i += 1;
@@ -500,8 +500,8 @@ bool_t unicode_valid_str(const char_t *str, const unicode_t format)
 
 bool_t unicode_valid_str_n(const char_t *str, const uint32_t size, const unicode_t format)
 {
-    register bool_t ok = TRUE;
-    register uint32_t tn = 0;
+    bool_t ok = TRUE;
+    uint32_t tn = 0;
     uint32_t n;
     uint32_t codepoint = i_func_codepoint_from_str[format](str, &n);
     ok = i_UNICODE_VALID_CODEPOINT(codepoint);
@@ -538,7 +538,7 @@ const char_t *unicode_next(const char_t *str, const unicode_t format)
 
 static const char_t *i_utf8_back(const char_t *utf8_string)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     cassert_no_null(utf8_string);
     for (i = 0; i < 4; ++i)
     {

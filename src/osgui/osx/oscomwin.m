@@ -33,7 +33,7 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
 
     if (ftypes != NULL && size > 0)
     {
-        register uint32_t i;
+        uint32_t i;
         for (i = 0; i < size; ++i)
         {
             NSString *ext = [NSString stringWithUTF8String:ftypes[i]];
@@ -52,7 +52,7 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
 {
     if (ftypes != NULL && size > 0)
     {
-        register uint32_t i;
+        uint32_t i;
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:(NSUInteger)size];
         for (i = 0; i < size; ++i)
         {
@@ -294,7 +294,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         [panel makeKeyAndOrderFront:(NSWindow *)parent];
     }
 
-    /* 
+    /*
 //    ret = [NSApp runModalForWindow:panel];
 
 //#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9

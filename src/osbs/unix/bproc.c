@@ -59,7 +59,7 @@ static Proc *i_create(int *pipes, pid_t pid)
 
 static void i_close_pipes(int *pipes)
 {
-    register uint32_t i;
+    uint32_t i;
     cassert_no_null(pipes);
     for (i = 0; i < 6; ++i)
     {

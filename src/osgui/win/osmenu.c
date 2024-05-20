@@ -107,7 +107,7 @@ void osmenu_delete_item(OSMenu *menu, OSMenuItem *item)
 
 static void i_remove_all_items(OSMenu *menu)
 {
-    register uint32_t n, n0 = 0;
+    uint32_t n, n0 = 0;
     cassert_no_null(menu);
     cassert_no_null(menu->hmenu);
     n = (uint32_t)GetMenuItemCount(menu->hmenu);
@@ -151,7 +151,7 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
     {
         HWND hwnd = NULL;
         BOOL ok = FALSE;
-        register UINT flags = TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_NOANIMATION;
+        UINT flags = TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_NOANIMATION;
         hwnd = _oswindow_set_current_popup_menu(window, menu->hmenu);
         ok = TrackPopupMenu(menu->hmenu, flags, (int)x, (int)y, PARAM(nReserved, 0), hwnd, NULL);
         cassert(ok != 0);

@@ -683,7 +683,7 @@ void resgen_write_h_file(const ResourcePack *pack, const char_t *dest_path, cons
 
 static void i_binary_to_ascii(Stream *stream, const byte_t *binary_code, const uint32_t size, const uint32_t num_bytes_per_row, const bool_t static_keyword, const char_t *variable_name)
 {
-    register uint32_t i, j;
+    uint32_t i, j;
 
     cassert(num_bytes_per_row > 0);
 
@@ -974,8 +974,8 @@ void resgen_write_packed_file(const ResourcePack *pack, const char_t *dest_path,
     cassert_no_null(pack);
     if (stream != NULL)
     {
-        register uint32_t num_locals = arrpt_size(pack->local_codes, String);
-        register uint32_t num_res = arrst_size(pack->resources, i_Resource);
+        uint32_t num_locals = arrpt_size(pack->local_codes, String);
+        uint32_t num_res = arrst_size(pack->resources, i_Resource);
 
         /* Write localization codes */
         stm_write_u32(stream, num_locals);
@@ -986,7 +986,7 @@ void resgen_write_packed_file(const ResourcePack *pack, const char_t *dest_path,
         /* Write resources */
         stm_write_u32(stream, num_res);
         arrst_foreach(resource, pack->resources, i_Resource)
-            register uint32_t num_localized = arrst_size(resource->locals, i_Local);
+            uint32_t num_localized = arrst_size(resource->locals, i_Local);
             stm_write_u32(stream, resource->type);
             i_object_write(stream, &resource->global, resource->type);
             stm_write_u32(stream, num_localized);

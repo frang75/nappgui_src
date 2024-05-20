@@ -286,7 +286,7 @@ void draw_line(DCtx *ctx, const real32_t x0, const real32_t y00, const real32_t 
 
 static void i_line_path(CGContextRef context, const V2Df *points, const uint32_t n, bool_t closed)
 {
-    register uint32_t i;
+    uint32_t i;
     const V2Df *lpoints;
     cassert_no_null(context);
     cassert_no_null(points);
@@ -368,7 +368,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
     if (ctx->dash_count > 0)
     {
         CGFloat p[16];
-        register uint32_t i, n = ctx->dash_count;
+        uint32_t i, n = ctx->dash_count;
         for (i = 0; i < n; ++i)
             p[i] = ctx->line_dash[i] * ctx->line_width;
         CGContextSetLineDash(ctx->context, 0.f, p, ctx->dash_count);
@@ -560,7 +560,7 @@ void draw_rndrect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
     CGFloat maxy = miny + h;
     CGFloat midx = .5f * (minx + maxx);
     CGFloat midy = .5f * (miny + maxy);
-    register CGContextRef context;
+    CGContextRef context;
     cassert_no_null(ctx);
     if (ctx->raster_mode == TRUE)
         i_set_real2d_mode(ctx);
@@ -635,10 +635,10 @@ static void i_gradient(DCtx *ctx)
     CGFloat locations[MAX_RANGE];
     CGFloat colors[4 * MAX_RANGE];
     CGColorSpaceRef cspace = CGColorSpaceCreateDeviceRGB();
-    register uint32_t j, nl = ctx->wrap == ekFCLAMP ? 1 : MAX_RANGE / MAX_COLORS;
-    register uint32_t i, total = ctx->gradient_n;
+    uint32_t j, nl = ctx->wrap == ekFCLAMP ? 1 : MAX_RANGE / MAX_COLORS;
+    uint32_t i, total = ctx->gradient_n;
     bool_t invert = FALSE;
-    register uint32_t ci = 0, li = 0;
+    uint32_t ci = 0, li = 0;
     cassert(nl % 2 == 1);
 
     if (ctx->wrap == ekFFLIP)
@@ -648,7 +648,7 @@ static void i_gradient(DCtx *ctx)
     {
         if (invert == TRUE)
         {
-            register uint32_t ii;
+            uint32_t ii;
             for (i = 0; i < total; ++i)
             {
                 CGFloat *c = &colors[ci];
@@ -733,7 +733,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
         }
         else
         {
-            register uint32_t i;
+            uint32_t i;
             for (i = 0; i < n; ++i)
             {
                 if (ctx->gradient_colors[i] != i_effective_color(color[i]))
@@ -755,7 +755,7 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
 
     if (ctx->gradient == NULL)
     {
-        register uint32_t i, total = n < MAX_COLORS ? n : MAX_COLORS;
+        uint32_t i, total = n < MAX_COLORS ? n : MAX_COLORS;
         for (i = 0; i < total; ++i)
         {
             ctx->gradient_colors[i] = i_effective_color(color[i]);

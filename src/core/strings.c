@@ -186,7 +186,7 @@ String *str_printf(const char_t *format, ...)
 
     /* Printf */
     {
-        register uint32_t clength;
+        uint32_t clength;
         va_list args;
         va_start(args, format);
         clength = bstd_vsprintf(data, length, format, args);
@@ -235,7 +235,7 @@ String *str_path(const platform_t platform, const char_t *format, ...)
 
     /* Printf */
     {
-        register uint32_t clength;
+        uint32_t clength;
         va_list args;
         va_start(args, format);
         clength = bstd_vsprintf(data, length, format, args);
@@ -289,7 +289,7 @@ String *str_cpath(const char_t *format, ...)
 
     /* Printf */
     {
-        register uint32_t clength;
+        uint32_t clength;
         va_list args;
         va_start(args, format);
         clength = bstd_vsprintf(data, length, format, args);
@@ -314,12 +314,12 @@ String *str_cpath(const char_t *format, ...)
 
 String *str_relpath(const platform_t platform, const char_t *path1, const char_t *path2)
 {
-    register uint32_t prefix = str_prefix(path1, path2);
+    uint32_t prefix = str_prefix(path1, path2);
     String *str = NULL;
     if (prefix > 0)
     {
-        register uint32_t s1 = str_len_c(path1);
-        register uint32_t i, n = 0;
+        uint32_t s1 = str_len_c(path1);
+        uint32_t i, n = 0;
         str = str_c("");
 
         prefix -= 1;
@@ -597,7 +597,7 @@ void str_upd(String **str, const char_t *new_str)
 void str_stm_printf(const String *str, Stream *stream);
 void str_stm_printf(const String *str, Stream *stream)
 {
-    register uint32_t size;
+    uint32_t size;
     cassert_no_null(str);
     size = i_SIZE(str);
     if (i_DATA(str)[size - 1] == '\0')
@@ -632,7 +632,7 @@ uint32_t str_nchars(const String *str)
 
 uint32_t str_prefix(const char_t *str1, const char_t *str2)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     cassert_no_null(str1);
     cassert_no_null(str2);
     for (; *str1 != '\0' && *str2 != '\0' && *str1 == *str2; i++, str1++, str2++)
@@ -800,7 +800,7 @@ bool_t str_equ_end(const char_t *str, const char_t *end)
 
 void str_upper(String *str)
 {
-    register char_t *data = NULL, *end_data = NULL;
+    char_t *data = NULL, *end_data = NULL;
     cassert_no_null(str);
     data = i_DATA(str);
     end_data = i_DATA(str) + i_SIZE(str);
@@ -812,7 +812,7 @@ void str_upper(String *str)
 
 void str_lower(String *str)
 {
-    register char_t *data = NULL, *end_data = NULL;
+    char_t *data = NULL, *end_data = NULL;
     cassert_no_null(str);
     data = i_DATA(str);
     end_data = i_DATA(str) + i_SIZE(str);
@@ -824,7 +824,7 @@ void str_lower(String *str)
 
 void str_upper_c(char_t *dest, const uint32_t size, const char_t *str)
 {
-    register char_t *end_dest = dest + size - 1;
+    char_t *end_dest = dest + size - 1;
     cassert_no_null(str);
     for (; dest < end_dest && *str != '\0'; ++dest, ++str)
         *dest = (char_t)unicode_toupper((uint32_t)(*str));
@@ -835,7 +835,7 @@ void str_upper_c(char_t *dest, const uint32_t size, const char_t *str)
 
 void str_lower_c(char_t *dest, const uint32_t size, const char_t *str)
 {
-    register char_t *end_dest = dest + size - 1;
+    char_t *end_dest = dest + size - 1;
     cassert_no_null(str);
     for (; dest < end_dest && *str != '\0'; ++dest, ++str)
         *dest = (char_t)unicode_tolower((uint32_t)(*str));
@@ -846,7 +846,7 @@ void str_lower_c(char_t *dest, const uint32_t size, const char_t *str)
 
 void str_subs(String *str, const char_t replace, const char_t with)
 {
-    register char_t *data = NULL, *end_data = NULL;
+    char_t *data = NULL, *end_data = NULL;
     cassert_no_null(str);
     cassert(unicode_isascii((uint32_t)replace) == TRUE);
     cassert(unicode_isascii((uint32_t)with) == TRUE);
@@ -891,7 +891,7 @@ const char_t *str_str(const char_t *str, const char_t *substr)
 
 static ___INLINE const char_t *i_last_separator(const char_t *str)
 {
-    register const char_t *lsep = NULL;
+    const char_t *lsep = NULL;
     cassert_no_null(str);
     while (*str != '\0')
     {
@@ -1031,7 +1031,7 @@ ArrPt(String) *str_splits(const char_t *str, const char_t *substr, const bool_t 
 
 void str_split_pathname(const char_t *pathname, String **path, String **file)
 {
-    register const char_t *lsep = i_last_separator(pathname);
+    const char_t *lsep = i_last_separator(pathname);
 
     if (lsep != NULL)
     {
@@ -1055,9 +1055,9 @@ void str_split_pathname(const char_t *pathname, String **path, String **file)
 
 void str_split_pathext(const char_t *pathname, String **path, String **file, String **ext)
 {
-    register const char_t *lsep = i_last_separator(pathname);
-    register const char_t *filename = NULL;
-    register const char_t *fileext = NULL;
+    const char_t *lsep = i_last_separator(pathname);
+    const char_t *filename = NULL;
+    const char_t *fileext = NULL;
 
     if (lsep != NULL)
     {
@@ -1095,7 +1095,7 @@ void str_split_pathext(const char_t *pathname, String **path, String **file, Str
 
 const char_t *str_filename(const char_t *pathname)
 {
-    register const char_t *lsep = i_last_separator(pathname);
+    const char_t *lsep = i_last_separator(pathname);
     if (lsep == NULL)
         return pathname;
     else

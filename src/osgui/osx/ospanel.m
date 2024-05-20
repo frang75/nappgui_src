@@ -179,9 +179,9 @@ BOOL _ospanel_is(NSView *view)
 
 void _ospanel_destroy(OSPanel **panel)
 {
-    register OSXPanel *panelp;
-    register NSArray *subviews;
-    register NSUInteger i, num_elems;
+    OSXPanel *panelp;
+    NSArray *subviews;
+    NSUInteger i, num_elems;
     cassert_no_null(panel);
     panelp = i_get_panel(*panel);
     cassert_no_null(panelp);

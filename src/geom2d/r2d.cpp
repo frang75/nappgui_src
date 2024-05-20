@@ -149,7 +149,7 @@ bool_t r2d_containsd(const R2Dd *r2d, const real64_t x, const real64_t y)
 template <typename real>
 static bool_t i_clip(const R2D<real> *viewport, const R2D<real> *r2d)
 {
-    register real x, y;
+    real x, y;
     cassert_no_null(viewport);
     cassert_no_null(r2d);
 
@@ -187,9 +187,9 @@ bool_t r2d_clipd(const R2Dd *viewport, const R2Dd *r2d)
 template <typename real>
 static void i_join(R2D<real> *r2d, const R2D<real> *src)
 {
-    register real minX0, minY0, minX1, minY1;
-    register real maxX0, maxY0, maxX1, maxY1;
-    register real minX, minY, maxX, maxY;
+    real minX0, minY0, minX1, minY1;
+    real maxX0, maxY0, maxX1, maxY1;
+    real minX, minY, maxX, maxY;
     cassert_no_null(r2d);
     cassert_no_null(src);
     minX0 = r2d->pos.x;

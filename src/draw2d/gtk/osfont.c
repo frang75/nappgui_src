@@ -124,8 +124,8 @@ static const char_t *i_monospace_font_family(void)
 
 OSFont *osfont_create(const char_t *family, const real32_t size, const uint32_t style)
 {
-    register const char_t *name = NULL;
-    register gint psize = 0;
+    const char_t *name = NULL;
+    gint psize = 0;
     PangoFontDescription *font = NULL;
 
     if (str_equ_c(family, "__SYSTEM__") == TRUE)

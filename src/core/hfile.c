@@ -220,7 +220,7 @@ Date hfile_date(const char_t *pathname, const bool_t recursive)
 
 static bool_t i_except(const char_t *name, const char_t **except, const uint32_t except_size)
 {
-    register uint32_t i;
+    uint32_t i;
     if (except == NULL)
         return FALSE;
 

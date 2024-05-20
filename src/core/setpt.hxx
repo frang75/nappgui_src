@@ -122,4 +122,4 @@
         return (const type *)rbtree_prev_ptr((RBTree *)set); \
     } \
 \
-    ___INLINE void setpt_##type##_end(void)
+    typedef struct _setptend##type##_t setptend##type

@@ -45,7 +45,7 @@ static uint32_t i_INDEX = 0;
 
 static void i_mem_append(void *ptr)
 {
-    register uint32_t i;
+    uint32_t i;
 
     for (i = 0; i < i_INDEX; ++i)
     {
@@ -65,7 +65,7 @@ static void i_mem_append(void *ptr)
 
 static void i_mem_remove(void *ptr)
 {
-    register uint32_t i;
+    uint32_t i;
 
     for (i = 0; i < i_INDEX; ++i)
     {
@@ -83,7 +83,7 @@ static void i_mem_remove(void *ptr)
 
 static bool_t i_mem_is_empty(void)
 {
-    register uint32_t i;
+    uint32_t i;
 
     for (i = 0; i < i_INDEX; ++i)
     {

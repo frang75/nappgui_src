@@ -70,7 +70,7 @@ static const FPtr_set i_SET[] = {
 
 static uint32_t i_bufsize(const uint32_t width, const uint32_t height, const pixformat_t format)
 {
-    register uint32_t n = 0;
+    uint32_t n = 0;
     switch (format)
     {
     case ekINDEX1:
@@ -112,8 +112,8 @@ static uint32_t i_bufsize(const uint32_t width, const uint32_t height, const pix
 
 static uint32_t i_get1(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width)
 {
-    register byte_t b = data[(y * width + x) / 8];
-    register byte_t pos = (byte_t)((y * width + x) % 8);
+    byte_t b = data[(y * width + x) / 8];
+    byte_t pos = (byte_t)((y * width + x) % 8);
     return (uint32_t)((b >> pos) & 1);
 }
 
@@ -121,8 +121,8 @@ static uint32_t i_get1(const byte_t *data, const uint32_t x, const uint32_t y, c
 
 static uint32_t i_get2(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width)
 {
-    register byte_t b = data[(y * width + x) / 4];
-    register byte_t pos = (byte_t)((y * width + x) % 4);
+    byte_t b = data[(y * width + x) / 4];
+    byte_t pos = (byte_t)((y * width + x) % 4);
     return (uint32_t)((b >> (pos * 2)) & 3);
 }
 
@@ -130,8 +130,8 @@ static uint32_t i_get2(const byte_t *data, const uint32_t x, const uint32_t y, c
 
 static uint32_t i_get4(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width)
 {
-    register byte_t b = data[(y * width + x) / 2];
-    register byte_t pos = (byte_t)((y * width + x) % 2);
+    byte_t b = data[(y * width + x) / 2];
+    byte_t pos = (byte_t)((y * width + x) % 2);
     return (uint32_t)((b >> (pos * 4)) & 7);
 }
 
@@ -146,7 +146,7 @@ static uint32_t i_get8(const byte_t *data, const uint32_t x, const uint32_t y, c
 
 static uint32_t i_get24(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width)
 {
-    register const byte_t *b = data + (y * width + x) * 3;
+    const byte_t *b = data + (y * width + x) * 3;
     return (uint32_t)(((255) << 24) | ((b[2]) << 16) | ((b[1]) << 8) | (b[0]));
 }
 
@@ -154,7 +154,7 @@ static uint32_t i_get24(const byte_t *data, const uint32_t x, const uint32_t y, 
 
 static uint32_t i_get32(const byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width)
 {
-    register const byte_t *b = data + (y * width + x) * 4;
+    const byte_t *b = data + (y * width + x) * 4;
     return (uint32_t)(((b[3]) << 24) | ((b[2]) << 16) | ((b[1]) << 8) | (b[0]));
 }
 
@@ -162,8 +162,8 @@ static uint32_t i_get32(const byte_t *data, const uint32_t x, const uint32_t y, 
 
 static void i_set1(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register byte_t *obyte = data + ((y * width) + x) / 8;
-    register byte_t opos = (byte_t)(((y * width) + x) % 8);
+    byte_t *obyte = data + ((y * width) + x) / 8;
+    byte_t opos = (byte_t)(((y * width) + x) % 8);
     cassert(value < 2);
     *obyte &= ~(1 << opos);
     *obyte |= (value << opos);
@@ -173,8 +173,8 @@ static void i_set1(byte_t *data, const uint32_t x, const uint32_t y, const uint3
 
 static void i_set2(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register byte_t *obyte = data + ((y * width) + x) / 4;
-    register byte_t opos = (byte_t)(((y * width) + x) % 4);
+    byte_t *obyte = data + ((y * width) + x) / 4;
+    byte_t opos = (byte_t)(((y * width) + x) % 4);
     cassert(value < 4);
     *obyte &= ~(3 << (opos * 2));
     *obyte |= (value << (opos * 2));
@@ -184,8 +184,8 @@ static void i_set2(byte_t *data, const uint32_t x, const uint32_t y, const uint3
 
 static void i_set4(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register byte_t *obyte = data + ((y * width) + x) / 2;
-    register byte_t opos = (byte_t)(((y * width) + x) % 2);
+    byte_t *obyte = data + ((y * width) + x) / 2;
+    byte_t opos = (byte_t)(((y * width) + x) % 2);
     cassert(value < 16);
     *obyte &= ~(15 << (opos * 4));
     *obyte |= (value << (opos * 4));
@@ -195,7 +195,7 @@ static void i_set4(byte_t *data, const uint32_t x, const uint32_t y, const uint3
 
 static void i_set8(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register byte_t *obyte = data + ((y * width) + x);
+    byte_t *obyte = data + ((y * width) + x);
     cassert(value < 256);
     *obyte = (byte_t)(value & 0xFF);
 }
@@ -204,7 +204,7 @@ static void i_set8(byte_t *data, const uint32_t x, const uint32_t y, const uint3
 
 static void i_set24(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register byte_t *obyte = data + ((y * width) + x) * 3;
+    byte_t *obyte = data + ((y * width) + x) * 3;
     obyte[0] = (byte_t)(value & 0xFF);
     obyte[1] = (byte_t)((value >> 8) & 0xFF);
     obyte[2] = (byte_t)((value >> 16) & 0xFF);
@@ -214,7 +214,7 @@ static void i_set24(byte_t *data, const uint32_t x, const uint32_t y, const uint
 
 static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    register uint32_t *ovalue = ((uint32_t *)data) + ((y * width) + x);
+    uint32_t *ovalue = ((uint32_t *)data) + ((y * width) + x);
     *ovalue = value;
 }
 
@@ -246,10 +246,10 @@ Pixbuf *pixbuf_copy(const Pixbuf *pixbuf)
 Pixbuf *pixbuf_trim(const Pixbuf *pixbuf, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
 {
     Pixbuf *npixbuf = NULL;
-    register const byte_t *sdata = NULL;
-    register byte_t *data = NULL;
-    register pixformat_t format;
-    register uint32_t i, j, v, w;
+    const byte_t *sdata = NULL;
+    byte_t *data = NULL;
+    pixformat_t format;
+    uint32_t i, j, v, w;
     cassert_no_null(pixbuf);
     npixbuf = pixbuf_create(width, height, pixbuf->format);
     sdata = i_DATA(pixbuf);

@@ -91,7 +91,7 @@ void image_destroy(Image **image)
 
 static ___INLINE bool_t i_with_alpha(const color_t *palette, const uint32_t palsize)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     for (i = 0; i < palsize; ++i)
     {
         if ((byte_t)(palette[i] >> 24) != 255)
@@ -105,7 +105,7 @@ static ___INLINE bool_t i_with_alpha(const color_t *palette, const uint32_t pals
 
 static ___INLINE bool_t i_gray_palette(const color_t *palette, const uint32_t palsize)
 {
-    register uint32_t i = 0;
+    uint32_t i = 0;
     for (i = 0; i < palsize; ++i)
     {
         if (((byte_t)palette[i] != (byte_t)(palette[i] >> 8)) || ((byte_t)palette[i] != (byte_t)(palette[i] >> 16)))
@@ -584,7 +584,7 @@ static void i_frames(Image *image)
     cassert(image->num_frames > 0);
     if (image->num_frames > 1)
     {
-        register uint32_t i = 0;
+        uint32_t i = 0;
         image->frame_length = (real32_t *)heap_malloc(image->num_frames * sizeof32(real32_t), "ImageFrames");
         for (i = 0; i < image->num_frames; ++i)
             osimage_frame(image->osimage, i, image->frame_length + i);

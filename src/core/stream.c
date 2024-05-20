@@ -283,7 +283,7 @@ void stm_close(Stream **stm)
 
 static uint32_t i_next_pow2(const uint32_t value)
 {
-    register uint32_t v = value;
+    uint32_t v = value;
     v--;
     v |= v >> 1;
     v |= v >> 2;
@@ -803,7 +803,7 @@ static void i_stderr_write(Stream *stm, const byte_t *data, const uint32_t size)
 
 static void i_grow_buffer(i_Buffer *output, const uint32_t size, const uint32_t grow_size, const char_t *memname)
 {
-    register uint32_t current_datasize, reqsize;
+    uint32_t current_datasize, reqsize;
     cassert_no_null(output);
     cassert(size > 0);
     cassert(output->woffset + size > output->size);
@@ -814,7 +814,7 @@ static void i_grow_buffer(i_Buffer *output, const uint32_t size, const uint32_t 
     /* Not enough buffer size */
     if (reqsize > output->size)
     {
-        register uint32_t new_size = output->size > 0 ? 2 * output->size : grow_size;
+        uint32_t new_size = output->size > 0 ? 2 * output->size : grow_size;
         byte_t *data = NULL;
 
         while (reqsize > new_size)
@@ -827,7 +827,7 @@ static void i_grow_buffer(i_Buffer *output, const uint32_t size, const uint32_t 
         {
             const byte_t *sdata = output->data + output->roffset;
             byte_t *ddata = data;
-            register uint32_t i;
+            uint32_t i;
             for (i = 0; i < current_datasize; ++i, ++sdata, ++ddata)
                 *ddata = *sdata;
 
@@ -847,7 +847,7 @@ static void i_grow_buffer(i_Buffer *output, const uint32_t size, const uint32_t 
     {
         const byte_t *sdata = output->data + output->roffset;
         byte_t *ddata = output->data;
-        register uint32_t i;
+        uint32_t i;
         for (i = 0; i < current_datasize; ++i, ++sdata, ++ddata)
             *ddata = *sdata;
     }
@@ -885,7 +885,7 @@ static void i_need_buffer_space(Stream *stm, i_Buffer *output, const uint32_t si
 
 static void i_write(Stream *stm, const byte_t *data, const uint32_t size, const bool_t reverse)
 {
-    register i_Buffer *output;
+    i_Buffer *output;
     cassert_no_null(stm);
     cassert(size > 0);
 
@@ -1084,7 +1084,7 @@ uint32_t stm_printf(Stream *stm, const char_t *format, ...)
 
         /* Printf */
         {
-            register uint32_t clength;
+            uint32_t clength;
             va_list args;
             va_start(args, format);
             clength = bstd_vsprintf(data, length, format, args);
@@ -1320,7 +1320,7 @@ static void i_stdin_fill_cache(Stream *stm, const uint32_t size)
 {
     i_Buffer *input;
     uint32_t nreaded;
-    register uint32_t rsize = size;
+    uint32_t rsize = size;
     cassert_no_null(stm);
     cassert(stm->type == i_ekFROMSTDIN);
     input = stm->input;
@@ -1358,8 +1358,8 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
     /* Read first from restore cache */
     if (stm->restore.woffset > stm->restore.roffset)
     {
-        register uint32_t read_restore = stm->restore.woffset - stm->restore.roffset;
-        register byte_t *src = stm->restore.data + stm->restore.roffset;
+        uint32_t read_restore = stm->restore.woffset - stm->restore.roffset;
+        byte_t *src = stm->restore.data + stm->restore.roffset;
         if (read_restore > size)
             read_restore = size;
 
@@ -1374,7 +1374,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
     /* Sockets doesn't use cache */
     if (stm->type == i_ekSOCKET)
     {
-        register uint32_t remain = size - readed;
+        uint32_t remain = size - readed;
 
         if (data != NULL)
         {
@@ -1410,7 +1410,7 @@ static uint32_t i_read(Stream *stm, byte_t *data, const uint32_t size, const boo
         /* readed = 0 -- readed already from 'restore' buffer */
         for (; readed < size;)
         {
-            register uint32_t remain = size - readed;
+            uint32_t remain = size - readed;
             uint32_t available = input->woffset - input->roffset;
 
             /* Fill the read cache */
@@ -1652,7 +1652,7 @@ uint32_t stm_read_char(Stream *stm)
 const char_t *stm_read_chars(Stream *stm, const uint32_t n)
 {
     i_Buffer *line;
-    register uint32_t i;
+    uint32_t i;
     cassert_no_null(stm);
     if (!IS_READ_OK(stm->state))
         return "";

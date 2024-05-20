@@ -153,7 +153,7 @@ void _osimglist_replace(OSImgList *imglist, const int index, const Image *image)
 
 void _osimglist_delete(OSImgList *imglist, const int index, uint8_t *result)
 {
-    register BOOL ok;
+    BOOL ok;
     cassert_no_null(imglist);
     cassert_no_null(imglist->hlist);
     cassert(index > 0);
