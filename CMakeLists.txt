@@ -3,7 +3,14 @@
 # Copyright (C) 2018 Francisco García Collado
 # MIT License (See LICENSE.txt)
 #------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.0)
+
+# https://gitlab.kitware.com/cmake/cmake/-/issues/25196
+if(${CMAKE_VERSION} VERSION_GREATER "3.26.999")
+    cmake_minimum_required(VERSION 3.5)
+else()
+    cmake_minimum_required(VERSION 3.0)
+endif()
+
 project(NAppGUI)
 
 set(NAPPGUI_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
