@@ -396,7 +396,7 @@ void ospanel_destroy(OSPanel **panel)
         ok = DeleteDC((*panel)->memhdc);
         cassert(ok != 0);
         ok = DeleteObject((*panel)->dbuffer);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
     }
     else
     {
@@ -594,7 +594,7 @@ void _ospanel_resize_double_buffer(OSPanel *panel, LONG width, LONG height)
         BOOL ok = FALSE;
         cassert(panel->dbuffer != NULL);
         ok = DeleteObject(panel->dbuffer);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
     }
 
     panel->dbuffer = CreateCompatibleBitmap(hdc, (int)width, (int)height);

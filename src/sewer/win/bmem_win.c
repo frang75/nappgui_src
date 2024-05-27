@@ -104,7 +104,7 @@ static HANDLE i_HEAP = NULL;
 
 void _bmem_start(void)
 {
-    cassert(i_HEAP == NULL);
+    cassert_unref(i_HEAP == NULL, i_HEAP);
 #if defined(__MEMORY_AUDITOR__)
 #else
 /*i_HEAP = HeapCreate(0, 0, 0);*/

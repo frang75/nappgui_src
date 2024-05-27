@@ -116,7 +116,7 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
     WCHAR *file_ext = NULL;
     uint32_t ext_size;
     ext_size = unicode_convers(extension, (char_t *)ext, ekUTF8, ekUTF16, sizeof(ext));
-    cassert(ext_size < sizeof(ext));
+    cassert_unref(ext_size < sizeof(ext), ext_size);
     _wcslwr_s(ext, 32);
 
     {
@@ -183,7 +183,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
                 uint32_t bytes;
                 SHGetPathFromIDList(item, dir);
                 bytes = unicode_convers((const char_t *)dir, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
-                cassert(bytes < MAX_PATH);
+                cassert_unref(bytes < MAX_PATH, bytes);
                 return i_FILENAME;
             }
             else
@@ -231,7 +231,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
                 i_force_extension(file, MAX_PATH, ftypes[0]);
 
             bytes = unicode_convers((const char_t *)file, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
-            cassert(bytes < MAX_PATH);
+            cassert_unref(bytes < MAX_PATH, bytes);
             return i_FILENAME;
         }
         else

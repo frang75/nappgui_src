@@ -80,9 +80,9 @@ void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, re
     cassert_no_null(height);
     num_chars = unicode_nchars(word, ekUTF8);
     num_bytes = unicode_convers(word, (char_t *)wword, ekUTF8, ekUTF16, sizeof(wword));
-    cassert(num_bytes < sizeof(wword));
+    cassert_unref(num_bytes < sizeof(wword), num_bytes);
     ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
-    cassert(ret != 0);
+    cassert_unref(ret != 0, ret);
     *width = (real32_t)word_size.cx;
     *height = (real32_t)word_size.cy;
 }

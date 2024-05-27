@@ -244,7 +244,7 @@ void osapp_open_url(const char_t *url)
     WCHAR wurl[512];
     uint32_t num_bytes = 0;
     num_bytes = unicode_convers(url, (char_t *)wurl, ekUTF8, ekUTF16, sizeof(wurl));
-    cassert(num_bytes < sizeof(wurl));
+    cassert_unref(num_bytes < sizeof(wurl), num_bytes);
     ShellExecute(NULL, L"open", wurl, NULL, NULL, SW_RESTORE);
 }
 

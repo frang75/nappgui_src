@@ -274,7 +274,7 @@ void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
             info.cbSize = sizeof(MENUITEMINFO);
             info.fState = i_item_state((gui_state_t)item->state, item->enabled);
             ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-            cassert(ok == TRUE);
+            cassert_unref(ok == TRUE, ok);
         }
     }
 }
@@ -370,7 +370,7 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
         info.fMask = MIIM_STRING;
         info.dwTypeData = item_text;
         ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert(ok == TRUE);
+        cassert_unref(ok == TRUE, ok);
     }
 }
 
@@ -398,7 +398,7 @@ void osmenuitem_image(OSMenuItem *item, const Image *image)
         info.fMask = MIIM_BITMAP;
         info.hbmpItem = item->hbitmap;
         ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert(ok == TRUE);
+        cassert_unref(ok == TRUE, ok);
     }
 }
 
@@ -448,7 +448,7 @@ void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifie
         info.fMask = MIIM_STRING;
         info.dwTypeData = item_text;
         ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert(ok == TRUE);
+        cassert_unref(ok == TRUE, ok);
     }
 }
 
@@ -470,7 +470,7 @@ void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
             info.fType = i_item_type((gui_state_t)item->state);
             info.fState = i_item_state((gui_state_t)item->state, item->enabled);
             ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-            cassert(ok == TRUE);
+            cassert_unref(ok == TRUE, ok);
         }
     }
 }
@@ -541,7 +541,7 @@ void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
         }
 
         ok = InsertMenuItem(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
     }
 }
 

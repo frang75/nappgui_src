@@ -406,7 +406,7 @@ void bfile_close(File **file)
     cassert_no_null(file);
     cassert_no_null(*file);
     ok = CloseHandle((HANDLE)*file);
-    cassert(ok != 0);
+    cassert_unref(ok != 0, ok);
     _osbs_file_dealloc();
     *file = NULL;
 }

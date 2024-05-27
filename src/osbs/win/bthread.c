@@ -47,7 +47,7 @@ void bthread_close(Thread **thread)
     cassert_no_null(thread);
     cassert_no_null(*thread);
     ok = CloseHandle((HANDLE)*thread);
-    cassert(ok != 0);
+    cassert_unref(ok != 0, ok);
     _osbs_thread_dealloc();
     *thread = NULL;
 }

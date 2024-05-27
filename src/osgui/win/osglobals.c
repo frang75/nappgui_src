@@ -90,7 +90,7 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
     cassert_no_null(x);
     cassert_no_null(y);
     ok = GetCursorPos(&pt);
-    cassert(ok != 0);
+    cassert_unref(ok != 0, ok);
     *x = (real32_t)pt.x;
     *y = (real32_t)pt.y;
 }

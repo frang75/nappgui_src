@@ -412,7 +412,7 @@ bool_t font_exists_family(const char_t *family)
     font_callback.exists = FALSE;
     EnumFontFamilies(hdc, NULL, i_exists_font, (LPARAM)&font_callback);
     ret = ReleaseDC(hwnd, hdc);
-    cassert(ret == 1);
+    cassert_unref(ret == 1, ret);
 
     if (font_callback.exists == FALSE && kUSER_FONTS != NULL)
     {
@@ -469,7 +469,7 @@ static ArrPt(String) *i_installed_families(const bool_t only_monospace)
     font_callback.only_monospace = only_monospace;
     EnumFontFamilies(hdc, NULL, i_font_families, (LPARAM)&font_callback);
     ret = ReleaseDC(hwnd, hdc);
-    cassert(ret == 1);
+    cassert_unref(ret == 1, ret);
     arrpt_sort(font_callback.font_families, str_scmp, String);
     return font_callback.font_families;
 }

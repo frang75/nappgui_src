@@ -208,7 +208,7 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
         int reuseaddr = 1;
         int sok = SOCKET_ERROR;
         sok = setsockopt(skID, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuseaddr, sizeof(reuseaddr));
-        cassert(sok == 0);
+        cassert_unref(sok == 0, sok);
     }
 
     ok = bind(skID, (struct sockaddr *)&server, sizeof(server));

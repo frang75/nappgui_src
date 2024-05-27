@@ -142,7 +142,7 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
         BOOL ok = FALSE;
         i_remove_all_items(menu);
         ok = DestroyMenu(menu->hmenu);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
         menu->hmenu = CreatePopupMenu();
         i_add_all_items(menu);
         menu->is_popup = TRUE;
@@ -154,7 +154,7 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
         UINT flags = TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_NOANIMATION;
         hwnd = _oswindow_set_current_popup_menu(window, menu->hmenu);
         ok = TrackPopupMenu(menu->hmenu, flags, (int)x, (int)y, PARAM(nReserved, 0), hwnd, NULL);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
     }
 }
 
@@ -166,7 +166,7 @@ void osmenu_hide(OSMenu *menu)
     cassert_no_null(menu);
     unref(menu);
     ok = EndMenu();
-    cassert(ok != 0);
+    cassert_unref(ok != 0, ok);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -190,7 +190,7 @@ HMENU _osmenu_menubar(OSMenu *menu, OSWindow *window)
         BOOL ok = FALSE;
         i_remove_all_items(menu);
         ok = DestroyMenu(menu->hmenu);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
         menu->hmenu = CreateMenu();
         i_add_all_items(menu);
         menu->is_popup = FALSE;

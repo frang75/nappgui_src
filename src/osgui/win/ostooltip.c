@@ -87,7 +87,7 @@ static void i_destroy_tooltip(HWND *tooltip_hwnd, HWND control_hwnd)
     ti.uId = (UINT_PTR)control_hwnd;
     SendMessage(*tooltip_hwnd, TTM_DELTOOL, 0, (LPARAM)&ti);
     ret = DestroyWindow(*tooltip_hwnd);
-    cassert(ret != 0);
+    cassert_unref(ret != 0, ret);
     *tooltip_hwnd = NULL;
 }
 

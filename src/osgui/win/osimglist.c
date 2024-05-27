@@ -115,7 +115,7 @@ int _osimglist_add(OSImgList *imglist, const Image *image, uint8_t *result)
         cassert(index > 0);
         cassert((uint32_t)index == arrpt_size(imglist->images, Image));
         ok = DeleteObject(bitmap);
-        cassert(ok != 0);
+        cassert_unref(ok != 0, ok);
     }
 
     image_destroy(&scaled_image);

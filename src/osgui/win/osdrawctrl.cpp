@@ -501,7 +501,7 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
 
     if (use_style == TRUE)
     {
-        DWORD flags;
+        DWORD flags = 0;
         RECT rect2;
 
         switch (align)

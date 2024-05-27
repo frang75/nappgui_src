@@ -417,7 +417,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
             rect.right = LOWORD(lParam);
             rect.bottom = HIWORD(lParam);
             ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
-            cassert(ok != 0);
+            cassert_unref(ok != 0, ok);
             i_resizing(window, 1, &rect);
         }
 
@@ -1116,7 +1116,7 @@ void _oswindow_change_menubar(OSWindow *window, HMENU prev_hmenu, HMENU new_hmen
     cassert(window->bMenu == TRUE);
     cassert(GetMenu(window->control.hwnd) == prev_hmenu);
     ok = SetMenu(window->control.hwnd, new_hmenu);
-    cassert(ok == TRUE);
+    cassert_unref(ok == TRUE, ok);
     cassert(GetMenu(window->control.hwnd) == new_hmenu);
 }
 

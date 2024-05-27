@@ -132,7 +132,7 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
         uint32_t num_chars_copied = 0;
         /* WM_GETTEXT: The return value is the number of characters copied, not including the terminating null character.*/
         num_chars_copied = (uint32_t)SendMessage(control->hwnd, WM_GETTEXT, (WPARAM)num_chars, (LPARAM)wtext);
-        cassert(num_chars == num_chars_copied + 1);
+        cassert_unref(num_chars == num_chars_copied + 1, num_chars_copied);
     }
 
     *tsize = unicode_convers_nbytes((const char_t *)wtext, kWINDOWS_UNICODE, ekUTF8);
@@ -331,7 +331,7 @@ void _oscontrol_detach_from_parent(OSControl *control, OSControl *parent_control
     cassert_no_null(parent_control);
     cassert(GetParent(control->hwnd) == parent_control->hwnd);
     ret = SetParent(control->hwnd, NULL);
-    cassert(ret == parent_control->hwnd);
+    cassert_unref(ret == parent_control->hwnd, ret);
 }
 
 /*---------------------------------------------------------------------------*/

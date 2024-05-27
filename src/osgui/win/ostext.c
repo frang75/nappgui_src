@@ -102,7 +102,7 @@ static void i_set_editable(HWND hwnd, const BOOL is_editable)
 {
     LRESULT res = 0;
     res = SendMessage(hwnd, EM_SETREADONLY, (WPARAM)!is_editable, (LPARAM)0);
-    cassert(res != 0);
+    cassert_unref(res != 0, res);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -113,7 +113,7 @@ static void i_set_rich_text(HWND hwnd, const BOOL rich_text)
     LRESULT res;
     flags = (rich_text == TRUE) ? TM_RICHTEXT : TM_PLAINTEXT;
     res = SendMessage(hwnd, EM_SETTEXTMODE, flags, 0);
-    cassert(res == 0);
+    cassert_unref(res == 0, res);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -479,7 +479,7 @@ static char_t *i_get_text(HWND hwnd, uint32_t *size, uint32_t *nchars)
         gtext.lpUsedDefChar = NULL;
         /* EM_GETTEXTEX: The return value is the number of TCHARs copied into the output buffer, including the null terminator. */
         num_charsw = (uint32_t)SendMessage(hwnd, EM_GETTEXTEX, (WPARAM)&gtext, (LPARAM)wtext);
-        cassert(num_chars == num_charsw + 1);
+        cassert_unref(num_chars == num_charsw + 1, num_charsw);
     }
 
     *size = unicode_convers_nbytes((const char_t *)wtext, kWINDOWS_UNICODE, ekUTF8);

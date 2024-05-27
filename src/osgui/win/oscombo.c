@@ -388,7 +388,7 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
     cassert(combo->launch_event == TRUE);
     combo->launch_event = FALSE;
     ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (index != UINT32_MAX) ? (WPARAM)index : (WPARAM)-1, (LPARAM)0);
-    cassert(ret == (LRESULT)index);
+    cassert_unref(ret == (LRESULT)index, ret);
     combo->launch_event = TRUE;
 }
 
