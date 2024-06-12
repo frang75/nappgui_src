@@ -90,7 +90,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(combo)) == TRUE)
+        if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
             break;
         return 0;
 
@@ -135,7 +135,7 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
     {
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(combo)) == TRUE)
+        if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
             break;
         return 0;
     }
@@ -154,7 +154,7 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
     {
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(combo)) == TRUE)
+        if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
             break;
         return 0;
     }

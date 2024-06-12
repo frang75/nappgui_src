@@ -196,7 +196,7 @@ typedef enum _gui_type_t
 
     /* View Controls */
     ekGUI_TYPE_TEXTVIEW = 8,
-    ekGUI_TYPE_TABLEVIEW = 9,
+    ekGUI_TYPE_WEBVIEW = 9,
     ekGUI_TYPE_TREEVIEW = 10,
     ekGUI_TYPE_BOXVIEW = 11,
     ekGUI_TYPE_SPLITVIEW = 12,
@@ -251,6 +251,13 @@ typedef enum _gui_text_t
     ekGUI_TEXT_SELECT,
     ekGUI_TEXT_SCROLL
 } gui_text_t;
+
+typedef enum _gui_web_t
+{
+    ekGUI_WEB_NAVIGATE = 1,
+    ekGUI_WEB_BACK,
+    ekGUI_WEB_FORWARD
+} gui_web_t;
 
 typedef enum _clipboard_t
 {
@@ -654,6 +661,10 @@ typedef void (*FPtr_gctx_clipboard)(void *, const clipboard_t);
 #define FUNC_CHECK_GCTX_CLIPBOARD(func, type) \
     (void)((void (*)(type *, const clipboard_t))func == func)
 
+typedef void (*FPtr_gctx_command)(void *, const enum_t, const void *, void *);
+#define FUNC_CHECK_GCTX_COMMAND(func, type, enum_type) \
+    (void)((void (*)(type *, const enum_type, const void *, void *))func == func)
+
 struct _guictx_t
 {
     uint32_t retain_count;
@@ -761,6 +772,13 @@ struct _guictx_t
     FPtr_gctx_set2_bool func_text_scroller_visible;
     FPtr_gctx_call func_text_set_need_display;
     FPtr_gctx_clipboard func_text_clipboard;
+
+    /*! <Web view> */
+    FPtr_gctx_set_listener func_web_OnFocus;
+    FPtr_gctx_command func_web_command;
+    FPtr_gctx_set2_bool func_web_scroller_visible;
+    FPtr_gctx_call func_web_set_need_display;
+    FPtr_gctx_clipboard func_web_clipboard;
 
     /*! <Split view> */
     FPtr_gctx_set_ptr func_split_attach_control;

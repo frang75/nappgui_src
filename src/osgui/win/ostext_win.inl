@@ -8,7 +8,7 @@
  *
  */
 
-/* Operating System textview */
+/* Operating System text view */
 
 #include "osgui_win.ixx"
 

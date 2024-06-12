@@ -123,17 +123,17 @@ void osprogress_detach(OSProgress *progress, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osprogress_visible(OSProgress *progress, const bool_t is_visible)
+void osprogress_visible(OSProgress *progress, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)progress, is_visible);
+    _oscontrol_set_visible((NSView *)progress, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osprogress_enabled(OSProgress *progress, const bool_t is_enabled)
+void osprogress_enabled(OSProgress *progress, const bool_t enabled)
 {
     cassert_no_null(progress);
-    unref(is_enabled);
+    unref(enabled);
 }
 
 /*---------------------------------------------------------------------------*/

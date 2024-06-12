@@ -83,7 +83,7 @@
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    if (_oswindow_key_down(OSControlPtr(self), theEvent) == FALSE)
+    if (_oswindow_key_down(cast(self, OSControl), theEvent) == FALSE)
         [super keyDown:theEvent];
 }
 
@@ -347,7 +347,7 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
         {
             vkey_t vkey = osgui_vkey([theEvent keyCode]);
             uint32_t modifiers = osgui_modifiers((NSUInteger)[theEvent modifierFlags]);
-            if (oswindow_hotkey_process(OSWindowPtr(self), self->hotkeys, vkey, modifiers) == TRUE)
+            if (oswindow_hotkey_process(cast(self, OSWindow), self->hotkeys, vkey, modifiers) == TRUE)
                 return YES;
         }
     }

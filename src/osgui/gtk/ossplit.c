@@ -12,12 +12,13 @@
 
 #include "ossplit.h"
 #include "oslistener.inl"
-#include "ossplit_gtk.inl"
-#include "ospanel_gtk.inl"
-#include "ostext_gtk.inl"
-#include "osview_gtk.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
+#include "ospanel_gtk.inl"
+#include "ostext_gtk.inl"
+#include "ossplit_gtk.inl"
+#include "osview_gtk.inl"
+#include "osweb_gtk.inl"
 #include <geom2d/r2d.h>
 #include <core/event.h>
 #include <core/heap.h>
@@ -51,11 +52,13 @@ static void i_set_capture(GtkWidget *widget, OSSplit *split)
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_PANEL)
-                _ospanel_set_capture((OSPanel *)control, (OSControl *)split);
+                _ospanel_set_capture(cast(control, OSPanel), cast(split, OSControl));
             else if (control->type == ekGUI_TYPE_TEXTVIEW)
-                _ostext_set_capture((OSText *)control, (OSControl *)split);
+                _ostext_set_capture(cast(control, OSText), cast(split, OSControl));
             else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-                _osview_set_capture((OSView *)control, (OSControl *)split);
+                _osview_set_capture(cast(control, OSView), cast(split, OSControl));
+            else if (control->type == ekGUI_TYPE_WEBVIEW)
+                _osweb_set_capture(cast(control, OSWeb), cast(split, OSControl));
         }
     }
 }
@@ -75,11 +78,13 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_PANEL)
-                _ospanel_release_capture((OSPanel *)control);
+                _ospanel_release_capture(cast(control, OSPanel));
             else if (control->type == ekGUI_TYPE_TEXTVIEW)
-                _ostext_release_capture((OSText *)control);
+                _ostext_release_capture(cast(control, OSText));
             else if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-                _osview_release_capture((OSView *)control);
+                _osview_release_capture(cast(control, OSView));
+            else if (control->type == ekGUI_TYPE_WEBVIEW)
+                _osweb_release_capture(cast(control, OSWeb));
         }
     }
 }
@@ -254,16 +259,16 @@ void ossplit_detach(OSSplit *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_visible(OSSplit *view, const bool_t is_visible)
+void ossplit_visible(OSSplit *view, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
+void ossplit_enabled(OSSplit *view, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

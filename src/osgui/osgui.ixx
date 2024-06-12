@@ -56,34 +56,4 @@ DeclSt(OSHotKey);
 DeclPt(OSControl);
 DeclPt(OSMenuItem);
 
-#define OSControlPtr(ptr) ((OSControl *)(ptr))
-#define OSWidgetPtr(ptr) ((OSWidget *)(ptr))
-#define OSLabelPtr(ptr) ((OSLabel *)(ptr))
-#define OSButtonPtr(ptr) ((OSButton *)(ptr))
-#define OSPopUpPtr(ptr) ((OSPopUp *)(ptr))
-#define OSEditPtr(ptr) ((OSEdit *)(ptr))
-#define OSComboPtr(ptr) ((OSCombo *)(ptr))
-#define OSSliderPtr(ptr) ((OSSlider *)(ptr))
-#define OSUpDownPtr(ptr) ((OSUpDown *)(ptr))
-#define OSProgressPtr(ptr) ((OSProgress *)(ptr))
-#define OSTextPtr(ptr) ((OSText *)(ptr))
-#define OSViewPtr(ptr) ((OSView *)(ptr))
-#define OSPanelPtr(ptr) ((OSPanel *)(ptr))
-#define OSSplitPtr(ptr) ((OSSplit *)(ptr))
-#define OSWindowPtr(ptr) ((OSWindow *)(ptr))
-
-#define OSControlDPtr(ptr) ((OSControl **)(ptr))
-#define OSLabelDPtr(ptr) ((OSLabel **)(ptr))
-#define OSButtonDPtr(ptr) ((OSButton **)(ptr))
-#define OSPopUpDPtr(ptr) ((OSPopUp **)(ptr))
-#define OSEditDPtr(ptr) ((OSEdit **)(ptr))
-#define OSComboDPtr(ptr) ((OSCombo **)(ptr))
-#define OSSliderDPtr(ptr) ((OSSlider **)(ptr))
-#define OSUpDownDPtr(ptr) ((OSUpDown **)(ptr))
-#define OSProgressDPtr(ptr) ((OSProgress **)(ptr))
-#define OSTextDPtr(ptr) ((OSText **)(ptr))
-#define OSViewDPtr(ptr) ((OSView **)(ptr))
-#define OSPanelDPtr(ptr) ((OSPanel **)(ptr))
-#define OSSplitDPtr(ptr) ((OSSplit **)(ptr))
-
 #endif

@@ -348,17 +348,17 @@ void oscombo_detach(OSCombo *combo, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_visible(OSCombo *combo, const bool_t is_visible)
+void oscombo_visible(OSCombo *combo, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)combo, is_visible);
+    _oscontrol_set_visible((NSView *)combo, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_enabled(OSCombo *combo, const bool_t is_enabled)
+void oscombo_enabled(OSCombo *combo, const bool_t enabled)
 {
     OSXCombo *lcombo = (OSXCombo *)combo;
-    _oscontrol_set_enabled(lcombo, is_enabled);
+    _oscontrol_set_enabled(lcombo, enabled);
     _oscontrol_set_text_color(lcombo, &lcombo->attrs, lcombo->attrs.color);
 }
 

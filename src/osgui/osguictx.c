@@ -21,6 +21,7 @@
 #include "osprogress.h"
 #include "osview.h"
 #include "ostext.h"
+#include "osweb.h"
 #include "ossplit.h"
 #include "ospanel.h"
 #include "oswindow.h"
@@ -279,6 +280,24 @@ GuiCtx *osguictx(void)
         ostext_origin,
         ostext_frame,
         OSText, OSPanel);
+
+    guictx_append_web_manager(
+        context,
+        osweb_create,
+        osweb_destroy,
+        osweb_OnFocus,
+        osweb_command,
+        osweb_scroller_visible,
+        osweb_set_need_display,
+        osweb_clipboard,
+        osweb_attach,
+        osweb_detach,
+        osweb_visible,
+        osweb_enabled,
+        osweb_size,
+        osweb_origin,
+        osweb_frame,
+        OSWeb, OSPanel);
 
     guictx_append_split_manager(
         context,

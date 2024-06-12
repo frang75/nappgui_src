@@ -262,12 +262,12 @@ bool_t osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_s
 
             if (type == ekGUI_TYPE_PANEL)
             {
-                listener_event(scroll->OnScroll, ekGUI_EVENT_SCROLL, OSPanelPtr(scroll->control), &p, &r, OSPanel, EvScroll, real32_t);
+                listener_event(scroll->OnScroll, ekGUI_EVENT_SCROLL, cast(scroll->control, OSPanel), &p, &r, OSPanel, EvScroll, real32_t);
             }
             else
             {
                 cassert(type == ekGUI_TYPE_CUSTOMVIEW);
-                listener_event(scroll->OnScroll, ekGUI_EVENT_SCROLL, OSViewPtr(scroll->control), &p, &r, OSView, EvScroll, real32_t);
+                listener_event(scroll->OnScroll, ekGUI_EVENT_SCROLL, cast(scroll->control, OSView), &p, &r, OSView, EvScroll, real32_t);
             }
 
             pos = (uint32_t)r;

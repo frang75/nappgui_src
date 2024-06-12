@@ -12,8 +12,8 @@
 
 #include "osmenuitem.h"
 #include "osgui.inl"
-#include "osmenuitem_gtk.inl"
 #include "osmenu_gtk.inl"
+#include "osmenuitem_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "osgui_gtk.inl"
 #include <draw2d/image.h>
@@ -245,18 +245,18 @@ void osmenuitem_OnClick(OSMenuItem *item, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_enabled(OSMenuItem *item, const bool_t is_enabled)
+void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
 {
     cassert_no_null(item);
-    gtk_widget_set_sensitive(item->widget, (gboolean)is_enabled);
+    gtk_widget_set_sensitive(item->widget, (gboolean)enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_visible(OSMenuItem *item, const bool_t is_visible)
+void osmenuitem_visible(OSMenuItem *item, const bool_t visible)
 {
     unref(item);
-    unref(is_visible);
+    unref(visible);
     cassert_msg(FALSE, "Not implemented");
 }
 

@@ -813,7 +813,7 @@ void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 
 static void i_get_controls(GtkWidget *widget, gpointer data)
 {
-    OSControl *control = OSControlPtr(g_object_get_data(G_OBJECT(widget), "OSControl"));
+    OSControl *control = cast(g_object_get_data(G_OBJECT(widget), "OSControl"), OSControl);
     if (control != NULL)
     {
         ArrPt(OSControl) *controls = (ArrPt(OSControl) *)data;

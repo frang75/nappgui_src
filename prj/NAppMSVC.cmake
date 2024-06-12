@@ -78,6 +78,7 @@ set(${warningList}
     "/wd4626"   # Disable 'derived class' : assignment operator was implicitly defined as deleted because a base class assignment operator is inaccessible or deleted
     "/wd4098"   # Disable linker mixed (static/dynamic) runtime library warnings
     "/wd4099"   # Disable linker "pdb" warnings
+    "/wd4577"   # 'noexcept' used with no exception handling mode specified; termination on exception is not guaranteed. Specify /EHsc
 
     # Additional warning over W4
     # (level 4) enumerator 'identifier' in a switch of enum 'enumeration' is not explicitly handled by a case label.

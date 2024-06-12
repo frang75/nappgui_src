@@ -43,6 +43,8 @@ _gui_api void layout_view(Layout *layout, View *view, const uint32_t col, const 
 
 _gui_api void layout_textview(Layout *layout, TextView *view, const uint32_t col, const uint32_t row);
 
+_gui_api void layout_webview(Layout *layout, WebView *view, const uint32_t col, const uint32_t row);
+
 _gui_api void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const uint32_t row);
 
 _gui_api void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const uint32_t row);
@@ -76,6 +78,8 @@ _gui_api Progress *layout_get_progress(Layout *layout, const uint32_t col, const
 _gui_api View *layout_get_view(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api TextView *layout_get_textview(Layout *layout, const uint32_t col, const uint32_t row);
+
+_gui_api WebView *layout_get_webview(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api ImageView *layout_get_imageview(Layout *layout, const uint32_t col, const uint32_t row);
 

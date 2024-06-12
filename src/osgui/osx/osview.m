@@ -183,7 +183,7 @@
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         _oslistener_mouse_down(self, theEvent, ekGUI_MOUSE_LEFT, self->scroll, &self->listeners);
 }
 
@@ -191,7 +191,7 @@
 
 - (void)rightMouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         _oslistener_mouse_down(self, theEvent, ekGUI_MOUSE_RIGHT, self->scroll, &self->listeners);
 }
 
@@ -199,7 +199,7 @@
 
 - (void)otherMouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         _oslistener_mouse_down(self, theEvent, ekGUI_MOUSE_MIDDLE, self->scroll, &self->listeners);
 }
 
@@ -263,7 +263,7 @@
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    if (_oswindow_key_down(OSControlPtr(self), theEvent) == FALSE)
+    if (_oswindow_key_down(cast(self, OSControl), theEvent) == FALSE)
         _oslistener_key_down(self, theEvent, &self->listeners);
 }
 
@@ -330,7 +330,7 @@ OSView *osview_create(const uint32_t flags)
 
     if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
     {
-        view->scroll = osscrolls_create(OSControlPtr(view), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
+        view->scroll = osscrolls_create(cast(view, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
     }
     else
     {
@@ -711,20 +711,20 @@ void osview_detach(OSView *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osview_visible(OSView *view, const bool_t is_visible)
+void osview_visible(OSView *view, const bool_t visible)
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    _oscontrol_set_visible(lview, is_visible);
+    _oscontrol_set_visible(lview, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osview_enabled(OSView *view, const bool_t is_enabled)
+void osview_enabled(OSView *view, const bool_t enabled)
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    _oslistener_set_enabled(&lview->listeners, is_enabled);
+    _oslistener_set_enabled(&lview->listeners, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

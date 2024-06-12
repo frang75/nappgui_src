@@ -237,7 +237,7 @@ static bool_t i_press_defbutton(OSWindow *window)
     cassert_no_null(window);
     if (window->tabstop.defbutton != NULL)
     {
-        HWND button_hwnd = OSControlPtr(window->tabstop.defbutton)->hwnd;
+        HWND button_hwnd = cast(window->tabstop.defbutton, OSControl)->hwnd;
         /* Simulates the click hightlight */
         SendMessage(button_hwnd, BM_SETSTATE, 1, 0);
         SendMessage(button_hwnd, WM_PAINT, 0, 0);
@@ -566,7 +566,7 @@ void oswindow_destroy(OSWindow **window)
     }
 
     cassert((*window)->main_panel == NULL);
-    cassert(_oscontrol_num_children(OSControlPtr(*window)) == 0);
+    cassert(_oscontrol_num_children(cast(*window, OSControl)) == 0);
     listener_destroy(&(*window)->OnMoved);
     listener_destroy(&(*window)->OnResize);
     listener_destroy(&(*window)->OnClose);
@@ -770,9 +770,9 @@ void oswindow_attach_window(OSWindow *parent_window, OSWindow *child_window)
     prevParent = SetParent(child_window->control.hwnd, parent_window->control.hwnd);
     unref(prevParent);
     prevParent = GetParent(child_window->control.hwnd);
-    SetWindowLong(child_window->control.hwnd, GWL_STYLE, child_window->dwStyle | WS_CHILD);
-    SetWindowLong(child_window->control.hwnd, GWL_EXSTYLE, child_window->dwExStyle);
-    oswindow_set_z_order(child_window, parent_window);
+    // SetWindowLong(child_window->control.hwnd, GWL_STYLE, child_window->dwStyle | WS_CHILD);
+    // SetWindowLong(child_window->control.hwnd, GWL_EXSTYLE, child_window->dwExStyle);
+    // oswindow_set_z_order(child_window, parent_window);
     */
 }
 
@@ -1006,18 +1006,15 @@ void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
-static BOOL CALLBACK i_get_controls(HWND hwnd, LPARAM lParam)
+static void i_get_controls(OSPanel *panel, ArrPt(OSControl) *controls)
 {
-    OSControl *control = OSControlPtr(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-    if (control != NULL)
-    {
-        ArrPt(OSControl) *controls = (ArrPt(OSControl) *)lParam;
-        if (arrpt_find(controls, control, OSControl) == UINT32_MAX)
-            arrpt_append(controls, control, OSControl);
-    }
-
-    EnumChildWindows(hwnd, i_get_controls, lParam);
-    return TRUE;
+    ArrPt(OSControl) *children = _ospanel_children(panel);
+    arrpt_foreach(child, children, OSControl)
+        cassert(arrpt_find(controls, child, OSControl) == UINT32_MAX);
+        arrpt_append(controls, child, OSControl);
+        if (child->type == ekGUI_TYPE_PANEL)
+            i_get_controls(cast(child, OSPanel), controls);
+    arrpt_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1026,7 +1023,7 @@ void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     cassert_no_null(window);
     cassert(arrpt_size(controls, OSControl) == 0);
-    EnumChildWindows(window->control.hwnd, i_get_controls, (LPARAM)controls);
+    i_get_controls(window->main_panel, controls);
 }
 
 /*---------------------------------------------------------------------------*/

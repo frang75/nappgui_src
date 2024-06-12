@@ -787,6 +787,70 @@ void guictx_append_text_manager_imp(
 
 /*---------------------------------------------------------------------------*/
 
+void guictx_append_web_manager_imp(
+    GuiCtx *context,
+    FPtr_gctx_create func_web_create,
+    FPtr_gctx_destroy func_web_destroy,
+    FPtr_gctx_set_listener func_web_OnFocus,
+    FPtr_gctx_command func_web_command,
+    FPtr_gctx_set2_bool func_web_scroller_visible,
+    FPtr_gctx_call func_web_set_need_display,
+    FPtr_gctx_clipboard func_web_clipboard,
+    FPtr_gctx_set_ptr func_attach_web_to_panel,
+    FPtr_gctx_set_ptr func_detach_web_from_panel,
+    FPtr_gctx_set_bool func_web_set_visible,
+    FPtr_gctx_set_bool func_web_set_enabled,
+    FPtr_gctx_get2_real32 func_web_get_size,
+    FPtr_gctx_get2_real32 func_web_get_origin,
+    FPtr_gctx_set4_real32 func_web_set_frame)
+{
+    cassert_no_null(context);
+    cassert(context->func_create[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_destroy[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_web_OnFocus == NULL);
+    cassert(context->func_web_command == NULL);
+    cassert(context->func_web_scroller_visible == NULL);
+    cassert(context->func_web_set_need_display == NULL);
+    cassert(context->func_web_clipboard == NULL);
+    cassert(context->func_attach_to_panel[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_detach_from_panel[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_set_visible[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_set_enabled[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_get_size[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_get_origin[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert(context->func_set_frame[ekGUI_TYPE_WEBVIEW] == NULL);
+    cassert_no_nullf(func_web_create);
+    cassert_no_nullf(func_web_destroy);
+    cassert_no_nullf(func_web_OnFocus);
+    cassert_no_nullf(func_web_command);
+    cassert_no_nullf(func_web_scroller_visible);
+    cassert_no_nullf(func_web_set_need_display);
+    cassert_no_nullf(func_web_clipboard);
+    cassert_no_nullf(func_attach_web_to_panel);
+    cassert_no_nullf(func_detach_web_from_panel);
+    cassert_no_nullf(func_web_set_visible);
+    cassert_no_nullf(func_web_set_enabled);
+    cassert_no_nullf(func_web_get_size);
+    cassert_no_nullf(func_web_get_origin);
+    cassert_no_nullf(func_web_set_frame);
+    context->func_create[ekGUI_TYPE_WEBVIEW] = func_web_create;
+    context->func_destroy[ekGUI_TYPE_WEBVIEW] = func_web_destroy;
+    context->func_web_OnFocus = func_web_OnFocus;
+    context->func_web_command = func_web_command;
+    context->func_web_scroller_visible = func_web_scroller_visible;
+    context->func_web_set_need_display = func_web_set_need_display;
+    context->func_web_clipboard = func_web_clipboard;
+    context->func_attach_to_panel[ekGUI_TYPE_WEBVIEW] = func_attach_web_to_panel;
+    context->func_detach_from_panel[ekGUI_TYPE_WEBVIEW] = func_detach_web_from_panel;
+    context->func_set_visible[ekGUI_TYPE_WEBVIEW] = func_web_set_visible;
+    context->func_set_enabled[ekGUI_TYPE_WEBVIEW] = func_web_set_enabled;
+    context->func_get_size[ekGUI_TYPE_WEBVIEW] = func_web_get_size;
+    context->func_get_origin[ekGUI_TYPE_WEBVIEW] = func_web_get_origin;
+    context->func_set_frame[ekGUI_TYPE_WEBVIEW] = func_web_set_frame;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void guictx_append_split_manager_imp(
     GuiCtx *gui_context,
     FPtr_gctx_create func_split_create,

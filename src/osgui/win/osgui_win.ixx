@@ -67,8 +67,8 @@ struct _oscontrol_t
     WNDPROC def_wnd_proc;
 
     /* HWND does not save the coordinates of the child with respect to the parent.
-	   They can be calculated with 'MapWindowPoints', but it does not work correctly
-	   on scrolling panels. */
+       They can be calculated with 'MapWindowPoints', but it does not work correctly
+       on scrolling panels. */
     int32_t x;
     int32_t y;
 };

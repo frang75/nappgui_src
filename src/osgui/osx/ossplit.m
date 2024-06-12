@@ -308,17 +308,17 @@ void ossplit_detach(OSSplit *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_visible(OSSplit *view, const bool_t is_visible)
+void ossplit_visible(OSSplit *view, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)view, is_visible);
+    _oscontrol_set_visible((NSView *)view, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
+void ossplit_enabled(OSSplit *view, const bool_t enabled)
 {
     unref(view);
-    unref(is_enabled);
+    unref(enabled);
 }
 
 /*---------------------------------------------------------------------------*/

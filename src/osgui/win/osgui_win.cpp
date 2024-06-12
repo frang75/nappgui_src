@@ -187,6 +187,7 @@ HBRUSH kCHESSBOARD_BRUSH = NULL;
 const TCHAR *kWINDOW_CLASS = L"com.nappgui.window";
 const TCHAR *kVIEW_CLASS = L"com.nappgui.view";
 const TCHAR *kRICHEDIT_CLASS = NULL;
+const TCHAR *kWEBVIEW_CLASS = L"com.nappgui.webview";
 unicode_t kWINDOWS_UNICODE = ENUM_MAX(unicode_t);
 int kLOG_PIXY_GUI = 0;
 LONG kTWIPS_PER_PIXEL_GUI = 0;
@@ -241,6 +242,31 @@ static void i_registry_view_class(void)
     wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = kVIEW_CLASS;
+    wc.hIconSm = LoadCursor(NULL, IDC_ARROW);
+
+    {
+        ATOM ret = RegisterClassEx(&wc);
+        cassert_unref(ret != 0, ret);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_registry_web_class(void)
+{
+    WNDCLASSEX wc;
+    cassert(i_INSTANCE != NULL);
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = CS_GLOBALCLASS;
+    wc.lpfnWndProc = DefWindowProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = sizeof(char *) * 2;
+    wc.hInstance = i_INSTANCE;
+    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+    wc.lpszMenuName = NULL;
+    wc.lpszClassName = kWEBVIEW_CLASS;
     wc.hIconSm = LoadCursor(NULL, IDC_ARROW);
 
     {
@@ -450,6 +476,9 @@ void osgui_start_imp(void)
     /* View Class */
     i_registry_view_class();
 
+    /* WebView Class */
+    i_registry_web_class();
+
     /* Common controls */
     {
         INITCOMMONCONTROLSEX commctrl;
@@ -459,6 +488,14 @@ void osgui_start_imp(void)
         ok = InitCommonControlsEx(&commctrl);
         cassert_unref(ok == TRUE, ok);
     }
+
+    /* Initialize COM library */
+#if defined(NAPPGUI_WEB_SUPPORT)
+    {
+        HRESULT res = CoInitialize(NULL);
+        cassert_unref(res == S_OK, res);
+    }
+#endif
 
     /* XP Styles */
     osstyleXP_init();
@@ -570,6 +607,12 @@ void osgui_finish_imp(void)
         cassert_unref(ret != 0, ret);
     }
 
+    /* Web View Class */
+    {
+        BOOL ret = UnregisterClass(kWEBVIEW_CLASS, NULL);
+        cassert_unref(ret != 0, ret);
+    }
+
     /* Window Class */
     {
         BOOL ret = 0;
@@ -583,6 +626,11 @@ void osgui_finish_imp(void)
 
     /* XP Styles */
     osstyleXP_remove();
+
+    /* CoUInitialize COM library */
+#if defined(NAPPGUI_WEB_SUPPORT)
+    CoUninitialize();
+#endif
 
     /* Brushes and pens */
     DeleteObject(kCHESSBOARD_BRUSH);

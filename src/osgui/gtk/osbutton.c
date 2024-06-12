@@ -13,9 +13,9 @@
 #include "osbutton.h"
 #include "osbutton.inl"
 #include "osgui.inl"
-#include "osbutton_gtk.inl"
 #include "osgui_gtk.inl"
 #include "osglobals_gtk.inl"
+#include "osbutton_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
@@ -106,7 +106,7 @@ static void i_OnClick(GtkWidget *widget, OSButton *button)
         listener_event(button->OnClick, ekGUI_EVENT_BUTTON, button, &params, NULL, OSButton, EvButton, void);
     }
 
-    _oswindow_release_transient_focus(OSControlPtr(button));
+    _oswindow_release_transient_focus(cast(button, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -133,7 +133,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSButton *
 {
     unref(widget);
     unref(event);
-    if (_oswindow_mouse_down(OSControlPtr(button)) == TRUE)
+    if (_oswindow_mouse_down(cast(button, OSControl)) == TRUE)
         return FALSE;
     return TRUE;
 }
@@ -482,16 +482,16 @@ void osbutton_detach(OSButton *button, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_visible(OSButton *button, const bool_t is_visible)
+void osbutton_visible(OSButton *button, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)button, is_visible);
+    _oscontrol_set_visible((OSControl *)button, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_enabled(OSButton *button, const bool_t is_enabled)
+void osbutton_enabled(OSButton *button, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)button, is_enabled);
+    _oscontrol_set_enabled((OSControl *)button, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

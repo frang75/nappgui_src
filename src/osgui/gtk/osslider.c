@@ -68,7 +68,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSSlider *slider
     cassert_no_null(slider);
     unref(widget);
     unref(event);
-    if (_oswindow_mouse_down(OSControlPtr(slider)) == TRUE)
+    if (_oswindow_mouse_down(cast(slider, OSControl)) == TRUE)
         return FALSE;
     return TRUE;
 }
@@ -208,16 +208,16 @@ void osslider_detach(OSSlider *slider, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_visible(OSSlider *slider, const bool_t is_visible)
+void osslider_visible(OSSlider *slider, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)slider, is_visible);
+    _oscontrol_set_visible((OSControl *)slider, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_enabled(OSSlider *slider, const bool_t is_enabled)
+void osslider_enabled(OSSlider *slider, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)slider, is_enabled);
+    _oscontrol_set_enabled((OSControl *)slider, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -20,9 +20,9 @@
 
 Label *guicontrol_label(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_LABEL)
-        return (Label *)component;
+        return cast(component, Label);
     return NULL;
 }
 
@@ -30,9 +30,9 @@ Label *guicontrol_label(GuiControl *control)
 
 Button *guicontrol_button(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_BUTTON)
-        return (Button *)component;
+        return cast(component, Button);
     return NULL;
 }
 
@@ -40,9 +40,9 @@ Button *guicontrol_button(GuiControl *control)
 
 PopUp *guicontrol_popup(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_POPUP)
-        return (PopUp *)component;
+        return cast(component, PopUp);
     return NULL;
 }
 
@@ -50,9 +50,9 @@ PopUp *guicontrol_popup(GuiControl *control)
 
 Edit *guicontrol_edit(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_EDITBOX)
-        return (Edit *)component;
+        return cast(component, Edit);
     return NULL;
 }
 
@@ -60,9 +60,9 @@ Edit *guicontrol_edit(GuiControl *control)
 
 Combo *guicontrol_combo(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_COMBOBOX)
-        return (Combo *)component;
+        return cast(component, Combo);
     return NULL;
 }
 
@@ -70,11 +70,11 @@ Combo *guicontrol_combo(GuiControl *control)
 
 ListBox *guicontrol_listbox(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
     {
         if (str_equ_c(_view_subtype((View *)component), "ListBox") == TRUE)
-            return (ListBox *)component;
+            return cast(component, ListBox);
     }
     return NULL;
 }
@@ -83,9 +83,9 @@ ListBox *guicontrol_listbox(GuiControl *control)
 
 UpDown *guicontrol_updown(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_UPDOWN)
-        return (UpDown *)component;
+        return cast(component, UpDown);
     return NULL;
 }
 
@@ -93,9 +93,9 @@ UpDown *guicontrol_updown(GuiControl *control)
 
 Slider *guicontrol_slider(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_SLIDER)
-        return (Slider *)component;
+        return cast(component, Slider);
     return NULL;
 }
 
@@ -103,9 +103,9 @@ Slider *guicontrol_slider(GuiControl *control)
 
 Progress *guicontrol_progress(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_PROGRESS)
-        return (Progress *)component;
+        return cast(component, Progress);
     return NULL;
 }
 
@@ -113,11 +113,11 @@ Progress *guicontrol_progress(GuiControl *control)
 
 View *guicontrol_view(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
     {
-        if (str_equ_c(_view_subtype((View *)component), "View") == TRUE)
-            return (View *)component;
+        if (str_equ_c(_view_subtype(cast(component, View)), "View") == TRUE)
+            return cast(component, View);
     }
     return NULL;
 }
@@ -126,12 +126,19 @@ View *guicontrol_view(GuiControl *control)
 
 TextView *guicontrol_textview(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
-    if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
-    {
-        if (str_equ_c(_view_subtype((View *)component), "TextView") == TRUE)
-            return (TextView *)component;
-    }
+    GuiComponent *component = cast(control, GuiComponent);
+    if (component != NULL && component->type == ekGUI_TYPE_TEXTVIEW)
+        return cast(component, TextView);
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+WebView *guicontrol_webview(GuiControl *control)
+{
+    GuiComponent *component = cast(control, GuiComponent);
+    if (component != NULL && component->type == ekGUI_TYPE_WEBVIEW)
+        return cast(component, WebView);
     return NULL;
 }
 
@@ -139,11 +146,11 @@ TextView *guicontrol_textview(GuiControl *control)
 
 ImageView *guicontrol_imageview(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
     {
-        if (str_equ_c(_view_subtype((View *)component), "ImageView") == TRUE)
-            return (ImageView *)component;
+        if (str_equ_c(_view_subtype(cast(component, View)), "ImageView") == TRUE)
+            return cast(component, ImageView);
     }
     return NULL;
 }
@@ -152,11 +159,11 @@ ImageView *guicontrol_imageview(GuiControl *control)
 
 TableView *guicontrol_tableview(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
     {
-        if (str_equ_c(_view_subtype((View *)component), "TableView") == TRUE)
-            return (TableView *)component;
+        if (str_equ_c(_view_subtype(cast(component, View)), "TableView") == TRUE)
+            return cast(component, TableView);
     }
     return NULL;
 }
@@ -165,9 +172,9 @@ TableView *guicontrol_tableview(GuiControl *control)
 
 SplitView *guicontrol_splitview(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_SPLITVIEW)
-        return (SplitView *)component;
+        return cast(component, SplitView);
     return NULL;
 }
 
@@ -175,9 +182,9 @@ SplitView *guicontrol_splitview(GuiControl *control)
 
 Panel *guicontrol_panel(GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     if (component != NULL && component->type == ekGUI_TYPE_PANEL)
-        return (Panel *)component;
+        return cast(component, Panel);
     return NULL;
 }
 
@@ -185,7 +192,7 @@ Panel *guicontrol_panel(GuiControl *control)
 
 void guicontrol_tag(GuiControl *control, const uint32_t tag)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     cassert_no_null(component);
     component->tag.tag_uint32 = tag;
 }
@@ -194,7 +201,7 @@ void guicontrol_tag(GuiControl *control, const uint32_t tag)
 
 uint32_t guicontrol_get_tag(const GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     cassert_no_null(component);
     return component->tag.tag_uint32;
 }

@@ -76,7 +76,7 @@ static void i_OnScrollMoved(GtkRange *range, OSScroll *scroll)
 
     if (scroll->control->type == ekGUI_TYPE_CUSTOMVIEW)
     {
-        _osview_scroll_event(OSViewPtr(scroll->control), orient, event);
+        _osview_scroll_event(cast(scroll->control, OSView), orient, event);
     }
     else
     {
@@ -117,7 +117,7 @@ static GtkWidget *i_parent(const OSScroll *scroll)
     cassert_no_null(scroll);
     cassert_no_null(scroll->control);
     if (scroll->control->type == ekGUI_TYPE_CUSTOMVIEW)
-        return _osview_area_widget(OSViewPtr(scroll->control));
+        return _osview_area_widget(cast(scroll->control, OSView));
     cassert(FALSE);
     return NULL;
 }

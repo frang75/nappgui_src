@@ -57,7 +57,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(updown)) == TRUE)
+        if (_oswindow_mouse_down(cast(updown, OSControl)) == TRUE)
             break;
         return 0;
 

@@ -751,6 +751,71 @@ _draw2d_api void guictx_append_text_manager_imp(
             (FPtr_gctx_get2_real32)func_text_get_origin, \
             (FPtr_gctx_set4_real32)func_text_set_frame))
 
+_draw2d_api void guictx_append_web_manager_imp(
+    GuiCtx *context,
+    FPtr_gctx_create func_web_create,
+    FPtr_gctx_destroy func_web_destroy,
+    FPtr_gctx_set_listener func_web_OnFocus,
+    FPtr_gctx_command func_web_command,
+    FPtr_gctx_set2_bool func_web_scroller_visible,
+    FPtr_gctx_call func_web_set_need_display,
+    FPtr_gctx_clipboard func_web_clipboard,
+    FPtr_gctx_set_ptr func_attach_web_to_panel,
+    FPtr_gctx_set_ptr func_detach_web_from_panel,
+    FPtr_gctx_set_bool func_web_set_visible,
+    FPtr_gctx_set_bool func_web_set_enabled,
+    FPtr_gctx_get2_real32 func_web_get_size,
+    FPtr_gctx_get2_real32 func_web_get_origin,
+    FPtr_gctx_set4_real32 func_web_set_frame);
+#define guictx_append_web_manager( \
+    context, \
+    func_web_create, \
+    func_web_destroy, \
+    func_web_OnFocus, \
+    func_web_command, \
+    func_web_scroller_visible, \
+    func_web_set_need_display, \
+    func_web_clipboard, \
+    func_attach_web_to_panel, \
+    func_detach_web_from_panel, \
+    func_web_set_visible, \
+    func_web_set_enabled, \
+    func_web_get_size, \
+    func_web_get_origin, \
+    func_web_set_frame, \
+    web_type, panel_type) \
+    ( \
+        FUNC_CHECK_GCTX_CREATE(func_web_create, web_type), \
+        FUNC_CHECK_GCTX_DESTROY(func_web_destroy, web_type), \
+        FUNC_CHECK_GCTX_SET_LISTENER(func_web_OnFocus, web_type), \
+        FUNC_CHECK_GCTX_COMMAND(func_web_command, web_type, gui_web_t), \
+        FUNC_CHECK_GCTX_SET2_BOOL(func_web_scroller_visible, web_type), \
+        FUNC_CHECK_GCTX_CALL(func_web_set_need_display, web_type), \
+        FUNC_CHECK_GCTX_CLIPBOARD(func_web_clipboard, web_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_attach_web_to_panel, web_type, panel_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_detach_web_from_panel, web_type, panel_type), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_web_set_visible, web_type), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_web_set_enabled, web_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_web_get_size, web_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_web_get_origin, web_type), \
+        FUNC_CHECK_GCTX_SET4_REAL32(func_web_set_frame, web_type), \
+        guictx_append_web_manager_imp( \
+            context, \
+            (FPtr_gctx_create)func_web_create, \
+            (FPtr_gctx_destroy)func_web_destroy, \
+            (FPtr_gctx_set_listener)func_web_OnFocus, \
+            (FPtr_gctx_command)func_web_command, \
+            (FPtr_gctx_set2_bool)func_web_scroller_visible, \
+            (FPtr_gctx_call)func_web_set_need_display, \
+            (FPtr_gctx_clipboard)func_web_clipboard, \
+            (FPtr_gctx_set_ptr)func_attach_web_to_panel, \
+            (FPtr_gctx_set_ptr)func_detach_web_from_panel, \
+            (FPtr_gctx_set_bool)func_web_set_visible, \
+            (FPtr_gctx_set_bool)func_web_set_enabled, \
+            (FPtr_gctx_get2_real32)func_web_get_size, \
+            (FPtr_gctx_get2_real32)func_web_get_origin, \
+            (FPtr_gctx_set4_real32)func_web_set_frame))
+
 _draw2d_api void guictx_append_split_manager_imp(
     GuiCtx *gui_context,
     FPtr_gctx_create func_split_create,

@@ -137,16 +137,16 @@ void osupdown_detach(OSUpDown *updown, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osupdown_visible(OSUpDown *updown, const bool_t is_visible)
+void osupdown_visible(OSUpDown *updown, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)updown, is_visible);
+    _oscontrol_set_visible((NSView *)updown, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osupdown_enabled(OSUpDown *updown, const bool_t is_enabled)
+void osupdown_enabled(OSUpDown *updown, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)updown, is_enabled);
+    _oscontrol_set_enabled((NSControl *)updown, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

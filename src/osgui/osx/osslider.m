@@ -277,16 +277,16 @@ void osslider_detach(OSSlider *slider, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_visible(OSSlider *slider, const bool_t is_visible)
+void osslider_visible(OSSlider *slider, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)slider, is_visible);
+    _oscontrol_set_visible((NSView *)slider, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_enabled(OSSlider *slider, const bool_t is_enabled)
+void osslider_enabled(OSSlider *slider, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)slider, is_enabled);
+    _oscontrol_set_enabled((NSControl *)slider, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

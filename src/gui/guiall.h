@@ -31,6 +31,7 @@
 #include "splitview.h"
 #include "tableview.h"
 #include "textview.h"
+#include "webview.h"
 #include "updown.h"
 #include "view.h"
 #include "window.h"

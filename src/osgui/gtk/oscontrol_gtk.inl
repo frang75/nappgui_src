@@ -22,9 +22,9 @@ void _oscontrol_set_halign(OSControl *control, const align_t align);
 
 void _oscontrol_text_bounds(const OSControl *control, PangoLayout *layout, const char_t *text, const Font *font, const real32_t refwidth, real32_t *width, real32_t *height);
 
-void _oscontrol_set_visible(OSControl *control, const bool_t is_visible);
+void _oscontrol_set_visible(OSControl *control, const bool_t visible);
 
-void _oscontrol_set_enabled(OSControl *control, const bool_t is_enabled);
+void _oscontrol_set_enabled(OSControl *control, const bool_t enabled);
 
 void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y);
 

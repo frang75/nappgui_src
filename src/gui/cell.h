@@ -41,6 +41,8 @@ _gui_api View *cell_view(Cell *cell);
 
 _gui_api TextView *cell_textview(Cell *cell);
 
+_gui_api WebView *cell_webview(Cell *cell);
+
 _gui_api ImageView *cell_imageview(Cell *cell);
 
 _gui_api TableView *cell_tableview(Cell *cell);

@@ -284,16 +284,16 @@ void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_visible(OSPanel *panel, const bool_t is_visible)
+void ospanel_visible(OSPanel *panel, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)panel, is_visible);
+    _oscontrol_set_visible((OSControl *)panel, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_enabled(OSPanel *panel, const bool_t is_enabled)
+void ospanel_enabled(OSPanel *panel, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)panel, is_enabled);
+    _oscontrol_set_enabled((OSControl *)panel, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -331,8 +331,8 @@ void ospanel_position(OSPanel *panel, const real32_t x, const real32_t y)
 
 static void i_destroy_child(GtkWidget *widget, gpointer data)
 {
-    OSPanel *panel = OSPanelPtr(data);
-    OSControl *control = OSControlPtr(g_object_get_data(G_OBJECT(widget), "OSControl"));
+    OSPanel *panel = cast(data, OSPanel);
+    OSControl *control = cast(g_object_get_data(G_OBJECT(widget), "OSControl"), OSControl);
     oscontrol_detach_and_destroy(&control, panel);
 }
 

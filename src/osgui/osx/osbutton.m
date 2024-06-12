@@ -152,14 +152,14 @@ static void i_OnClick(OSXButton *button)
     cassert_no_null(sender);
     cassert(sender == self);
     i_OnClick(self);
-    _oswindow_release_transient_focus(OSControlPtr(self));
+    _oswindow_release_transient_focus(cast(self, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down(OSControlPtr(self)) == TRUE)
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         [super mouseDown:theEvent];
 }
 
@@ -1146,16 +1146,16 @@ void osbutton_detach(OSButton *button, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_visible(OSButton *button, const bool_t is_visible)
+void osbutton_visible(OSButton *button, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)button, is_visible);
+    _oscontrol_set_visible((NSView *)button, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_enabled(OSButton *button, const bool_t is_enabled)
+void osbutton_enabled(OSButton *button, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)button, is_enabled);
+    _oscontrol_set_enabled((NSControl *)button, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -208,7 +208,7 @@ static void i_set_focus(OSTabStop *tabstop, OSControl *control)
     /* Automatic panel scrolling if focused control is not completely visible */
     if (ptype == ekGUI_TYPE_PANEL)
     {
-        OSPanel *panel = OSPanelPtr(parent);
+        OSPanel *panel = cast(parent, OSPanel);
         if (ospanel_with_scroll(panel) == TRUE)
         {
             OSFrame prect, crect;

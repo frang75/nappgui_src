@@ -16,6 +16,7 @@
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "ossplit_gtk.inl"
+#include "ostext_gtk.inl"
 #include "oswindow_gtk.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
@@ -850,18 +851,18 @@ void ostext_detach(OSText *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_visible(OSText *view, const bool_t is_visible)
+void ostext_visible(OSText *view, const bool_t visible)
 {
     cassert_no_null(view);
-    _oscontrol_set_visible((OSControl *)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_enabled(OSText *view, const bool_t is_enabled)
+void ostext_enabled(OSText *view, const bool_t enabled)
 {
     cassert_no_null(view);
-    _oscontrol_set_enabled((OSControl *)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

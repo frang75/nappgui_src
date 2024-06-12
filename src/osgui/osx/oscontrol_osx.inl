@@ -50,9 +50,9 @@ void _oscontrol_attach_to_parent(NSView *control, NSView *parent);
 
 void _oscontrol_detach_from_parent(NSView *control, NSView *parent);
 
-void _oscontrol_set_visible(NSView *object, const bool_t is_visible);
+void _oscontrol_set_visible(NSView *object, const bool_t visible);
 
-void _oscontrol_set_enabled(NSControl *object, const bool_t is_enabled);
+void _oscontrol_set_enabled(NSControl *object, const bool_t enabled);
 
 void _oscontrol_get_size(const NSView *object, real32_t *width, real32_t *height);
 

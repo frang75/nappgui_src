@@ -197,7 +197,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     // This Window must process mouse events
     // case WM_NCHITTEST:
-    //Automatic SetFocus for Mouse Wheel over view without click
+    // Automatic SetFocus for Mouse Wheel over view without click
     //     if (osbs_windows() <= ekWIN_8 && (view->listeners.OnWheel != NULL || view->vscroll != NULL))
     //         SetFocus(hwnd);
     //     return HTCLIENT;
@@ -214,7 +214,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     }
 
     case WM_LBUTTONDOWN:
-        if (_oswindow_mouse_down(OSControlPtr(view)) == TRUE)
+        if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
         {
             POINTS point = MAKEPOINTS(lParam);
             oslistener_mouse_down((OSControl *)view, ekGUI_MOUSE_LEFT, (real32_t)point.x, (real32_t)point.y, view->scroll, &view->listeners);
@@ -222,7 +222,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         return 0;
 
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(view)) == TRUE)
+        if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
             break;
         return 0;
 

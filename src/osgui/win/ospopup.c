@@ -59,7 +59,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(popup)) == TRUE)
+        if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
             break;
         return 0;
     }
@@ -78,7 +78,7 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
     {
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(popup)) == TRUE)
+        if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
             break;
         return 0;
     }

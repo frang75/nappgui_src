@@ -24,6 +24,7 @@
 #include "progress.inl"
 #include "slider.inl"
 #include "textview.inl"
+#include "webview.inl"
 #include "splitview.inl"
 #include "updown.inl"
 #include "window.inl"
@@ -46,7 +47,7 @@ static const FPtr_gctx_set_bool i_FUNC_SET_VISIBLE[GUI_CONTEXT_NUM_COMPONENTS] =
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_UPDOWN */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_PROGRESS */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_WEBVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TREEVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_BOXVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_SPLITVIEW */
@@ -64,7 +65,7 @@ static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_panels)NULL,              /* ekGUI_TYPE_UPDOWN */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_PROGRESS */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_panels)NULL,              /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_WEBVIEW */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_TREEVIEW */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_BOXVIEW */
     (FPtr_panels)_splitview_panels, /* ekGUI_TYPE_SPLITVIEW */
@@ -82,7 +83,7 @@ static const FPtr_dimension i_FUNC_DIMENSION[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_dimension)_updown_dimension,    /* ekGUI_TYPE_UPDOWN */
     (FPtr_dimension)_progress_dimension,  /* ekGUI_TYPE_PROGRESS */
     (FPtr_dimension)_textview_dimension,  /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_dimension)NULL,                 /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_dimension)_webview_dimension,   /* ekGUI_TYPE_WEBVIEW */
     (FPtr_dimension)NULL,                 /* ekGUI_TYPE_TREEVIEW */
     (FPtr_dimension)NULL,                 /* ekGUI_TYPE_BOXVIEW */
     (FPtr_dimension)_splitview_dimension, /* ekGUI_TYPE_SPLITVIEW */
@@ -100,7 +101,7 @@ static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL,              /* ekGUI_TYPE_UPDOWN */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_PROGRESS */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_expand)NULL,              /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_expand)NULL,              /* ekGUI_TYPE_WEBVIEW */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_TREEVIEW */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_BOXVIEW */
     (FPtr_expand)_splitview_expand, /* ekGUI_TYPE_SPLITVIEW */
@@ -118,7 +119,7 @@ static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_UPDOWN */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_PROGRESS */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_set_size)NULL,                /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_WEBVIEW */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_TREEVIEW */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_BOXVIEW */
     (FPtr_set_size)_splitview_OnResize, /* ekGUI_TYPE_SPLITVIEW */
@@ -136,7 +137,7 @@ static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_UPDOWN */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_PROGRESS */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_WEBVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_TREEVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_BOXVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_SPLITVIEW */
@@ -154,7 +155,7 @@ static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_destroy)_updown_destroy,    /* ekGUI_TYPE_UPDOWN */
     (FPtr_destroy)_progress_destroy,  /* ekGUI_TYPE_PROGRESS */
     (FPtr_destroy)_textview_destroy,  /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_destroy)NULL,               /* ekGUI_TYPE_TABLEVIEW */
+    (FPtr_destroy)_webview_destroy,   /* ekGUI_TYPE_WEBVIEW */
     (FPtr_destroy)NULL,               /* ekGUI_TYPE_TREEVIEW */
     (FPtr_destroy)NULL,               /* ekGUI_TYPE_BOXVIEW */
     (FPtr_destroy)_splitview_destroy, /* ekGUI_TYPE_SPLITVIEW */
@@ -316,7 +317,7 @@ void _component_taborder(GuiComponent *component, Window *window)
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_CUSTOMVIEW:
         _window_taborder(window, component->ositem);
@@ -478,8 +479,8 @@ const char_t *_component_type(const GuiComponent *component)
         return _view_subtype((View *)component);
     case ekGUI_TYPE_TEXTVIEW:
         return "TextView";
-    case ekGUI_TYPE_TABLEVIEW:
-        return "TableView";
+    case ekGUI_TYPE_WEBVIEW:
+        return "WebView";
     case ekGUI_TYPE_TREEVIEW:
         return "TreeView";
     case ekGUI_TYPE_BOXVIEW:

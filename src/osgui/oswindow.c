@@ -29,9 +29,9 @@ OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button)
             cassert_no_null(control);
             if (oscontrol_type(control) == ekGUI_TYPE_BUTTON)
             {
-                OSButton *nbutton = OSButtonPtr(control);
+                OSButton *nbutton = cast(control, OSButton);
                 bool_t is_default = (bool_t)(nbutton == button);
-                osbutton_set_default(OSButtonPtr(control), is_default);
+                osbutton_set_default(cast(control, OSButton), is_default);
                 if (is_default == TRUE)
                 {
                     cassert(effective == NULL);

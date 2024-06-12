@@ -30,9 +30,9 @@ _osgui_api void ossplit_attach(OSSplit *view, OSPanel *panel);
 
 _osgui_api void ossplit_detach(OSSplit *view, OSPanel *panel);
 
-_osgui_api void ossplit_visible(OSSplit *view, const bool_t is_visible);
+_osgui_api void ossplit_visible(OSSplit *view, const bool_t visible);
 
-_osgui_api void ossplit_enabled(OSSplit *view, const bool_t is_enabled);
+_osgui_api void ossplit_enabled(OSSplit *view, const bool_t enabled);
 
 _osgui_api void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height);
 

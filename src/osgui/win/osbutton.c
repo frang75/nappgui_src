@@ -249,7 +249,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
-        if (_oswindow_mouse_down(OSControlPtr(button)) == TRUE)
+        if (_oswindow_mouse_down(cast(button, OSControl)) == TRUE)
             break;
         return 0;
     }
@@ -705,7 +705,7 @@ void _osbutton_command(OSButton *button, WPARAM wParam, const bool_t restore_foc
             listener_event(button->OnClick, ekGUI_EVENT_BUTTON, button, &params, NULL, OSButton, EvButton, void);
         }
 
-        _oswindow_release_transient_focus(OSControlPtr(button));
+        _oswindow_release_transient_focus(cast(button, OSControl));
         unref(restore_focus);
     }
 }

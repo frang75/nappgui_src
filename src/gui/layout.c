@@ -528,6 +528,17 @@ void layout_textview(Layout *layout, TextView *view, const uint32_t col, const u
 
 /*---------------------------------------------------------------------------*/
 
+void layout_webview(Layout *layout, WebView *view, const uint32_t col, const uint32_t row)
+{
+    Cell *cell = NULL;
+    cassert_no_null(view);
+    cell = i_set_component(layout, (GuiComponent *)view, col, row, ekJUSTIFY, ekJUSTIFY);
+    cassert(cell->tabstop == TRUE);
+    cell->tabstop = FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, GuiComponentPtr(view), col, row, ekJUSTIFY, ekJUSTIFY);
@@ -688,6 +699,13 @@ View *layout_get_view(Layout *layout, const uint32_t col, const uint32_t row)
 TextView *layout_get_textview(Layout *layout, const uint32_t col, const uint32_t row)
 {
     return guicontrol_textview(layout_control(layout, col, row));
+}
+
+/*---------------------------------------------------------------------------*/
+
+WebView *layout_get_webview(Layout *layout, const uint32_t col, const uint32_t row)
+{
+    return guicontrol_webview(layout_control(layout, col, row));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2142,6 +2160,13 @@ TextView *cell_textview(Cell *cell)
 
 /*---------------------------------------------------------------------------*/
 
+WebView *cell_webview(Cell *cell)
+{
+    return guicontrol_webview(cell_control(cell));
+}
+
+/*---------------------------------------------------------------------------*/
+
 ImageView *cell_imageview(Cell *cell)
 {
     return guicontrol_imageview(cell_control(cell));
@@ -2325,7 +2350,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
             break;
 
         case ekGUI_TYPE_TEXTVIEW:
-        case ekGUI_TYPE_TABLEVIEW:
+        case ekGUI_TYPE_WEBVIEW:
         case ekGUI_TYPE_TREEVIEW:
         case ekGUI_TYPE_BOXVIEW:
         case ekGUI_TYPE_SPLITVIEW:

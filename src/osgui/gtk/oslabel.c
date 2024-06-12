@@ -415,16 +415,16 @@ void oslabel_detach(OSLabel *label, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void oslabel_visible(OSLabel *label, const bool_t is_visible)
+void oslabel_visible(OSLabel *label, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)label, is_visible);
+    _oscontrol_set_visible((OSControl *)label, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oslabel_enabled(OSLabel *label, const bool_t is_enabled)
+void oslabel_enabled(OSLabel *label, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)label, is_enabled);
+    _oscontrol_set_enabled((OSControl *)label, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

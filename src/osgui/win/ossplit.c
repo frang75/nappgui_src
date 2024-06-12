@@ -237,16 +237,16 @@ void ossplit_detach(OSSplit *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_visible(OSSplit *view, const bool_t is_visible)
+void ossplit_visible(OSSplit *view, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_enabled(OSSplit *view, const bool_t is_enabled)
+void ossplit_enabled(OSSplit *view, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

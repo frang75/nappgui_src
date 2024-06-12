@@ -50,6 +50,7 @@ extern HBRUSH kCHESSBOARD_BRUSH;
 extern const TCHAR *kWINDOW_CLASS;
 extern const TCHAR *kVIEW_CLASS;
 extern const TCHAR *kRICHEDIT_CLASS;
+extern const TCHAR *kWEBVIEW_CLASS;
 extern unicode_t kWINDOWS_UNICODE;
 extern int kLOG_PIXY_GUI;
 extern LONG kTWIPS_PER_PIXEL_GUI;

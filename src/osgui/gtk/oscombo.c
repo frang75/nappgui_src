@@ -13,8 +13,8 @@
 #include "oscombo.h"
 #include "oscombo.inl"
 #include "osgui.inl"
-#include "oscombo_gtk.inl"
 #include "osgui_gtk.inl"
+#include "oscombo_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
@@ -96,7 +96,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSCombo *combo)
     cassert(GTK_IS_EVENT_BOX(widget) == TRUE);
     if (event->button.button == 1)
     {
-        if (_oswindow_mouse_down(OSControlPtr(combo)) == TRUE)
+        if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
         {
             bool_t over = FALSE;
 #if GTK_CHECK_VERSION(3, 16, 0)
@@ -450,17 +450,17 @@ void oscombo_detach(OSCombo *combo, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_visible(OSCombo *combo, const bool_t is_visible)
+void oscombo_visible(OSCombo *combo, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)combo, is_visible);
+    _oscontrol_set_visible((OSControl *)combo, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_enabled(OSCombo *combo, const bool_t is_enabled)
+void oscombo_enabled(OSCombo *combo, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)combo, is_enabled);
-    i_set_color(combo, is_enabled ? combo->ccolor : UINT32_MAX);
+    _oscontrol_set_enabled((OSControl *)combo, enabled);
+    i_set_color(combo, enabled ? combo->ccolor : UINT32_MAX);
 }
 
 /*---------------------------------------------------------------------------*/

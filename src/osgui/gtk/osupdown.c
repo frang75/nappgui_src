@@ -104,7 +104,7 @@ static void i_OnClick(OSUpDown *updown, const uint32_t index)
 
 static gboolean i_OnPress(GtkWidget *widget, GdkEventButton *event, OSUpDown *updown)
 {
-    if (_oswindow_mouse_down(OSControlPtr(updown)) == TRUE)
+    if (_oswindow_mouse_down(cast(updown, OSControl)) == TRUE)
     {
         int w = gtk_widget_get_allocated_height(widget);
         int h = gtk_widget_get_allocated_height(widget);
@@ -230,16 +230,16 @@ void osupdown_detach(OSUpDown *updown, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osupdown_visible(OSUpDown *updown, const bool_t is_visible)
+void osupdown_visible(OSUpDown *updown, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)updown, is_visible);
+    _oscontrol_set_visible((OSControl *)updown, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osupdown_enabled(OSUpDown *updown, const bool_t is_enabled)
+void osupdown_enabled(OSUpDown *updown, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)updown, is_enabled);
+    _oscontrol_set_enabled((OSControl *)updown, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -61,7 +61,7 @@ static void i_set_bool(GuiComponent *component, const bool_t value)
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
@@ -127,7 +127,7 @@ static void i_set_enum(GuiComponent *component, const DBind *dbind, const enum_t
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
@@ -190,7 +190,7 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
@@ -262,7 +262,7 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
@@ -300,7 +300,7 @@ static void i_set_string(GuiComponent *component, const char_t *str)
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
@@ -336,7 +336,7 @@ static void i_set_image(GuiComponent *component, const Image *image)
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
@@ -377,7 +377,7 @@ static void i_set_empty(Cell *cell, const DBind *dbind)
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:

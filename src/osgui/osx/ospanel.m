@@ -190,7 +190,7 @@ void _ospanel_destroy(OSPanel **panel)
     for (i = 0; i < num_elems; ++i)
     {
         NSView *child = [subviews objectAtIndex:0];
-        oscontrol_detach_and_destroy(OSControlDPtr(&child), *panel);
+        oscontrol_detach_and_destroy(dcast(&child, OSControl), *panel);
         cassert([subviews count] == num_elems - i - 1);
     }
 
@@ -349,17 +349,17 @@ void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_visible(OSPanel *panel, const bool_t is_visible)
+void ospanel_visible(OSPanel *panel, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)panel, is_visible);
+    _oscontrol_set_visible((NSView *)panel, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_enabled(OSPanel *panel, const bool_t is_enabled)
+void ospanel_enabled(OSPanel *panel, const bool_t enabled)
 {
     unref(panel);
-    unref(is_enabled);
+    unref(enabled);
 }
 
 /*---------------------------------------------------------------------------*/

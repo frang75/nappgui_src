@@ -153,8 +153,9 @@
 #define sizeofptr   sizeof(void*)
 
 /*! <Pointer casting> */
-#define cast(ptr, type) ((type*)ptr)
-#define cast_const(ptr, type) ((const type*)ptr)
+#define cast(ptr, type) ((type*)(ptr))
+#define dcast(dptr, type) ((type**)(dptr))
+#define cast_const(ptr, type) ((const type*)(ptr))
 
 /*! <Struct Access> */
 #if defined (__clang__)

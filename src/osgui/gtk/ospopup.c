@@ -18,6 +18,7 @@
 #include "oscontrol_gtk.inl"
 #include "oscombo_gtk.inl"
 #include "ospanel_gtk.inl"
+#include "ospopup_gtk.inl"
 #include "oswindow_gtk.inl"
 #include <draw2d/font.h>
 #include <draw2d/image.h>
@@ -72,7 +73,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSPopUp *popup)
     cassert(GTK_IS_EVENT_BOX(widget) == TRUE);
     if (event->button.button == 1)
     {
-        if (_oswindow_mouse_down(OSControlPtr(popup)) == TRUE)
+        if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
             gtk_combo_box_popup(GTK_COMBO_BOX(popup->popup));
     }
     return TRUE;
@@ -299,16 +300,16 @@ void ospopup_detach(OSPopUp *popup, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_visible(OSPopUp *popup, const bool_t is_visible)
+void ospopup_visible(OSPopUp *popup, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)popup, is_visible);
+    _oscontrol_set_visible((OSControl *)popup, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_enabled(OSPopUp *popup, const bool_t is_enabled)
+void ospopup_enabled(OSPopUp *popup, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)popup, is_enabled);
+    _oscontrol_set_enabled((OSControl *)popup, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

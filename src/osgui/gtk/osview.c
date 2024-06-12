@@ -19,6 +19,7 @@
 #include "ospanel_gtk.inl"
 #include "osscroll_gtk.inl"
 #include "ossplit_gtk.inl"
+#include "osview_gtk.inl"
 #include "oswindow_gtk.inl"
 #include "osscrolls.inl"
 #include <draw2d/dctxh.h>
@@ -667,16 +668,16 @@ void osview_detach(OSView *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osview_visible(OSView *view, const bool_t is_visible)
+void osview_visible(OSView *view, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)view, is_visible);
+    _oscontrol_set_visible((OSControl *)view, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osview_enabled(OSView *view, const bool_t is_enabled)
+void osview_enabled(OSView *view, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)view, is_enabled);
+    _oscontrol_set_enabled((OSControl *)view, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

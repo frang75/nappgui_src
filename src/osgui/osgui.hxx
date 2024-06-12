@@ -26,6 +26,7 @@ typedef struct _osslider_t OSSlider;
 typedef struct _osupdown_t OSUpDown;
 typedef struct _osprogress_t OSProgress;
 typedef struct _ostext_t OSText;
+typedef struct _osweb_t OSWeb;
 typedef struct _osview_t OSView;
 typedef struct _ossplit_t OSSplit;
 typedef struct _ospanel_t OSPanel;

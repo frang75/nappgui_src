@@ -15,6 +15,7 @@
 #include "osgui.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
+#include "osedit_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
 #include <draw2d/color.h>
@@ -264,7 +265,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSEdit *ed
 {
     unref(widget);
     cassert_no_null(event);
-    if (_oswindow_mouse_down(OSControlPtr(edit)) == FALSE)
+    if (_oswindow_mouse_down(cast(edit, OSControl)) == FALSE)
         return TRUE;
 
     /* Propagate the event */
@@ -771,17 +772,17 @@ void osedit_detach(OSEdit *edit, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_visible(OSEdit *edit, const bool_t is_visible)
+void osedit_visible(OSEdit *edit, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)edit, is_visible);
+    _oscontrol_set_visible((OSControl *)edit, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_enabled(OSEdit *edit, const bool_t is_enabled)
+void osedit_enabled(OSEdit *edit, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)edit, is_enabled);
-    i_set_color(edit, is_enabled ? edit->ccolor : kCOLOR_DEFAULT);
+    _oscontrol_set_enabled((OSControl *)edit, enabled);
+    i_set_color(edit, enabled ? edit->ccolor : kCOLOR_DEFAULT);
 }
 
 /*---------------------------------------------------------------------------*/

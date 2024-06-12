@@ -262,16 +262,16 @@ void ospopup_detach(OSPopUp *popup, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_visible(OSPopUp *popup, const bool_t is_visible)
+void ospopup_visible(OSPopUp *popup, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)popup, is_visible);
+    _oscontrol_set_visible((NSView *)popup, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_enabled(OSPopUp *popup, const bool_t is_enabled)
+void ospopup_enabled(OSPopUp *popup, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)popup, is_enabled);
+    _oscontrol_set_enabled((NSControl *)popup, enabled);
 }
 
 /*---------------------------------------------------------------------------*/

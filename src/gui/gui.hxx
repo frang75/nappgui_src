@@ -36,6 +36,7 @@ typedef struct _slider_t Slider;
 typedef struct _progress_t Progress;
 typedef struct _view_t View;
 typedef struct _textview_t TextView;
+typedef struct _webview_t WebView;
 typedef struct _imageview_t ImageView;
 typedef struct _tableview_t TableView;
 typedef struct _splitview_t SplitView;

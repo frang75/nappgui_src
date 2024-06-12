@@ -23,6 +23,7 @@
 #include "ostext.inl"
 #include "osupdown.inl"
 #include "osview.inl"
+#include "osweb.inl"
 #include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/
@@ -49,8 +50,8 @@ const char_t *oscontrol_type_str(const gui_type_t type)
         return "OSProgress";
     case ekGUI_TYPE_TEXTVIEW:
         return "OSTextView";
-    case ekGUI_TYPE_TABLEVIEW:
-        return "OSTableView";
+    case ekGUI_TYPE_WEBVIEW:
+        return "OSWebView";
     case ekGUI_TYPE_TREEVIEW:
         return "OSTreeView";
     case ekGUI_TYPE_BOXVIEW:
@@ -85,42 +86,44 @@ void oscontrol_detach_and_destroy(OSControl **control, OSPanel *panel)
     switch (type)
     {
     case ekGUI_TYPE_LABEL:
-        oslabel_detach_and_destroy(OSLabelDPtr(control), panel);
+        oslabel_detach_and_destroy(dcast(control, OSLabel), panel);
         break;
     case ekGUI_TYPE_BUTTON:
-        osbutton_detach_and_destroy(OSButtonDPtr(control), panel);
+        osbutton_detach_and_destroy(dcast(control, OSButton), panel);
         break;
     case ekGUI_TYPE_POPUP:
-        ospopup_detach_and_destroy(OSPopUpDPtr(control), panel);
+        ospopup_detach_and_destroy(dcast(control, OSPopUp), panel);
         break;
     case ekGUI_TYPE_EDITBOX:
-        osedit_detach_and_destroy(OSEditDPtr(control), panel);
+        osedit_detach_and_destroy(dcast(control, OSEdit), panel);
         break;
     case ekGUI_TYPE_COMBOBOX:
-        oscombo_detach_and_destroy(OSComboDPtr(control), panel);
+        oscombo_detach_and_destroy(dcast(control, OSCombo), panel);
         break;
     case ekGUI_TYPE_SLIDER:
-        osslider_detach_and_destroy(OSSliderDPtr(control), panel);
+        osslider_detach_and_destroy(dcast(control, OSSlider), panel);
         break;
     case ekGUI_TYPE_UPDOWN:
-        osupdown_detach_and_destroy(OSUpDownDPtr(control), panel);
+        osupdown_detach_and_destroy(dcast(control, OSUpDown), panel);
         break;
     case ekGUI_TYPE_PROGRESS:
-        osprogress_detach_and_destroy(OSProgressDPtr(control), panel);
+        osprogress_detach_and_destroy(dcast(control, OSProgress), panel);
         break;
     case ekGUI_TYPE_TEXTVIEW:
-        ostext_detach_and_destroy(OSTextDPtr(control), panel);
+        ostext_detach_and_destroy(dcast(control, OSText), panel);
         break;
     case ekGUI_TYPE_CUSTOMVIEW:
-        osview_detach_and_destroy(OSViewDPtr(control), panel);
+        osview_detach_and_destroy(dcast(control, OSView), panel);
         break;
     case ekGUI_TYPE_PANEL:
-        ospanel_detach_and_destroy(OSPanelDPtr(control), panel);
+        ospanel_detach_and_destroy(dcast(control, OSPanel), panel);
         break;
     case ekGUI_TYPE_SPLITVIEW:
-        ossplit_detach_and_destroy(OSSplitDPtr(control), panel);
+        ossplit_detach_and_destroy(dcast(control, OSSplit), panel);
         break;
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
+        osweb_detach_and_destroy(dcast(control, OSWeb), panel);
+        break;
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_LINE:

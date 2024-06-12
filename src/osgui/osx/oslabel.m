@@ -356,17 +356,17 @@ void oslabel_detach(OSLabel *label, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void oslabel_visible(OSLabel *label, const bool_t is_visible)
+void oslabel_visible(OSLabel *label, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)label, is_visible);
+    _oscontrol_set_visible((NSView *)label, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oslabel_enabled(OSLabel *label, const bool_t is_enabled)
+void oslabel_enabled(OSLabel *label, const bool_t enabled)
 {
     unref(label);
-    unref(is_enabled);
+    unref(enabled);
 }
 
 /*---------------------------------------------------------------------------*/

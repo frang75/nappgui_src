@@ -13,6 +13,7 @@
 #include "oscomwin.h"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
+#include "oscomwin_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include <draw2d/color.h>
 #include <core/event.h>

@@ -656,9 +656,9 @@ void osedit_detach(OSEdit *edit, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_visible(OSEdit *edit, const bool_t is_visible)
+void osedit_visible(OSEdit *edit, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)edit, is_visible);
+    _oscontrol_set_visible((NSView *)edit, visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -673,17 +673,17 @@ static bool_t i_has_focus(id control)
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_enabled(OSEdit *edit, const bool_t is_enabled)
+void osedit_enabled(OSEdit *edit, const bool_t enabled)
 {
     OSXEdit *ledit = (OSXEdit *)edit;
     cassert_no_null(ledit);
-    if (is_enabled == FALSE)
+    if (enabled == FALSE)
     {
         if (i_has_focus(ledit->field) == TRUE)
             [[ledit->field window] endEditingFor:ledit->field];
     }
 
-    _oscontrol_set_enabled(ledit->field, is_enabled);
+    _oscontrol_set_enabled(ledit->field, enabled);
     _oscontrol_set_text_color(ledit->field, &ledit->attrs, ledit->attrs.color);
 }
 

@@ -37,6 +37,8 @@ _gui_api View *guicontrol_view(GuiControl *control);
 
 _gui_api TextView *guicontrol_textview(GuiControl *control);
 
+_gui_api WebView *guicontrol_webview(GuiControl *control);
+
 _gui_api ImageView *guicontrol_imageview(GuiControl *control);
 
 _gui_api TableView *guicontrol_tableview(GuiControl *control);

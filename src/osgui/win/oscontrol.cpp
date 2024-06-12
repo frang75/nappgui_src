@@ -17,6 +17,7 @@
 #include "oscombo_win.inl"
 #include "ospanel_win.inl"
 #include "ospopup_win.inl"
+#include "osweb_win.inl"
 #include "ostooltip.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
@@ -522,7 +523,9 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_COMBOBOX:
         return (OSWidget *)_oscombo_focus_widget((OSCombo *)control);
 
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
+        return (OSWidget *)_osweb_focus_widget((OSWeb *)control);
+
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:

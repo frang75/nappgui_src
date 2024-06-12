@@ -71,7 +71,7 @@
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    if (_oswindow_key_down(OSControlPtr(self), theEvent) == FALSE)
+    if (_oswindow_key_down(cast(self, OSControl), theEvent) == FALSE)
         [super keyDown:theEvent];
 }
 
@@ -560,17 +560,17 @@ void ostext_detach(OSText *view, OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_visible(OSText *view, const bool_t is_visible)
+void ostext_visible(OSText *view, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)view, is_visible);
+    _oscontrol_set_visible((NSView *)view, visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_enabled(OSText *view, const bool_t is_enabled)
+void ostext_enabled(OSText *view, const bool_t enabled)
 {
     unref(view);
-    unref(is_enabled);
+    unref(enabled);
 }
 
 /*---------------------------------------------------------------------------*/

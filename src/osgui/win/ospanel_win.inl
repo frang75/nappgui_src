@@ -32,4 +32,6 @@ COLORREF _ospanel_background_color(OSPanel *panel, OSControl *control);
 
 void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y);
 
+ArrPt(OSControl) *_ospanel_children(OSPanel *panel);
+
 __END_C

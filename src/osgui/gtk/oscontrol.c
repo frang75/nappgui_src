@@ -11,15 +11,16 @@
 /* Gtk Widgets common functions */
 
 #include "oscontrol.inl"
-#include "oscontrol_gtk.inl"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "osbutton_gtk.inl"
 #include "oscombo_gtk.inl"
+#include "oscontrol_gtk.inl"
 #include "osedit_gtk.inl"
 #include "ospopup_gtk.inl"
 #include "ostext_gtk.inl"
 #include "osview_gtk.inl"
+#include "osweb_gtk.inl"
 #include "oswindow_gtk.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
@@ -200,10 +201,10 @@ void _oscontrol_text_bounds(const OSControl *control, PangoLayout *layout, const
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_set_visible(OSControl *control, const bool_t is_visible)
+void _oscontrol_set_visible(OSControl *control, const bool_t visible)
 {
     cassert_no_null(control);
-    if (is_visible == TRUE)
+    if (visible == TRUE)
         gtk_widget_show(control->widget);
     else
         gtk_widget_hide(control->widget);
@@ -211,10 +212,10 @@ void _oscontrol_set_visible(OSControl *control, const bool_t is_visible)
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_set_enabled(OSControl *control, const bool_t is_enabled)
+void _oscontrol_set_enabled(OSControl *control, const bool_t enabled)
 {
     cassert_no_null(control);
-    gtk_widget_set_sensitive(control->widget, (gboolean)is_enabled);
+    gtk_widget_set_sensitive(control->widget, (gboolean)enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -656,27 +657,29 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
 
     case ekGUI_TYPE_SLIDER:
     case ekGUI_TYPE_UPDOWN:
-        return (OSWidget *)control->widget;
+        return cast(control->widget, OSWidget);
 
     case ekGUI_TYPE_TEXTVIEW:
-        return (OSWidget *)_ostext_focus_widget((OSText *)control);
+        return cast(_ostext_focus_widget(cast(control, OSText)), OSWidget);
 
     case ekGUI_TYPE_CUSTOMVIEW:
-        return (OSWidget *)_osview_focus_widget((OSView *)control);
+        return cast(_osview_focus_widget(cast(control, OSView)), OSWidget);
 
     case ekGUI_TYPE_EDITBOX:
-        return (OSWidget *)_osedit_focus_widget((OSEdit *)control);
+        return cast(_osedit_focus_widget(cast(control, OSEdit)), OSWidget);
 
     case ekGUI_TYPE_BUTTON:
-        return (OSWidget *)_osbutton_focus_widget((OSButton *)control);
+        return cast(_osbutton_focus_widget(cast(control, OSButton)), OSWidget);
 
     case ekGUI_TYPE_POPUP:
-        return (OSWidget *)_ospopup_focus_widget((OSPopUp *)control);
+        return cast(_ospopup_focus_widget(cast(control, OSPopUp)), OSWidget);
 
     case ekGUI_TYPE_COMBOBOX:
-        return (OSWidget *)_oscombo_focus_widget((OSCombo *)control);
+        return cast(_oscombo_focus_widget(cast(control, OSCombo)), OSWidget);
 
-    case ekGUI_TYPE_TABLEVIEW:
+    case ekGUI_TYPE_WEBVIEW:
+        return cast(_osweb_focus_widget(cast(control, OSWeb)), OSWidget);
+
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
