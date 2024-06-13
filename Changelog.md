@@ -11,7 +11,7 @@
     * `font_leading()`.
     * `font_is_monospace()`.
     * `font_installed_monospace()`.
-* WebView support. [Doc](https://nappgui.com/en/gui/webview.html). [Issue](https://github.com/frang75/nappgui_src/issues/83).
+* WebView support. [Doc](https://nappgui.com/en/gui/webview.html). [Issue](https://github.com/frang75/nappgui_src/issues/83). [Commit](https://github.com/frang75/nappgui_src/commit/586a6a156a222c5a30fa03e41efe782f08e898d2).
     * New public header `webview.h`.
     * `guicontrol_webview()`.
     * `layout_webview()`.
