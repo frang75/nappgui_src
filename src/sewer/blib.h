@@ -49,6 +49,8 @@ _sewer_api bool_t blib_bsearch_ex(const byte_t *array, const byte_t *key, const 
 
 _sewer_api const char_t *blib_getenv(const char_t *name);
 
+_sewer_api int32_t blib_setenv(const char_t *name, const char_t *value);
+
 _sewer_api void blib_atexit(void (*func)(void));
 
 _sewer_api void blib_abort(void);

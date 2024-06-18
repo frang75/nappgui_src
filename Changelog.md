@@ -17,6 +17,7 @@
     * `layout_webview()`.
     * `layout_get_webview()`.
     * `cell_webview()`.
+* `blib_setenv()`.
 
 ### Fixed
 
