@@ -17,7 +17,7 @@
 
 void *ptr_dget_imp(void **dptr)
 {
-    void *pointer;
+    void *pointer = NULL;
     cassert_no_null(dptr);
     pointer = *dptr;
     *dptr = NULL;
@@ -28,7 +28,7 @@ void *ptr_dget_imp(void **dptr)
 
 void *ptr_dget_no_null_imp(void **dptr)
 {
-    void *pointer;
+    void *pointer = NULL;
     cassert_no_null(dptr);
     cassert_no_null(*dptr);
     pointer = *dptr;

@@ -1,6 +1,9 @@
 # NAppGUI Changelog
 
-## v1.4.2 - WIP
+## v1.4.3 - WIP
+
+
+## v1.4.2 - Jun 30, 2024 (r5177)
 
 ### Added
 
@@ -17,7 +20,7 @@
     * `layout_webview()`.
     * `layout_get_webview()`.
     * `cell_webview()`.
-* `blib_setenv()`.
+* `blib_setenv()` [Doc](https://nappgui.com/en/sewer/blib.html#f18). [Commit](https://github.com/frang75/nappgui_src/commit/d7e68115418498eea0f8f48cc6966bece5b731f6).
 
 ### Fixed
 

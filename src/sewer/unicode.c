@@ -136,10 +136,10 @@ static uint32_t i_codepoint_from_utf16(const char_t *utf16_string, uint32_t *num
     uint16_t code;
     cassert_no_null(utf16_string);
     cassert_no_null(num_bytes);
-    code = *((const uint16_t *)utf16_string);
+    code = *cast_const(utf16_string, uint16_t);
     if (code >= 0xD800 && code <= 0xDBFF)
     {
-        uint16_t code2 = *(((const uint16_t *)utf16_string) + 1);
+        uint16_t code2 = *(cast_const(utf16_string, uint16_t) + 1);
         cassert(code2 >= 0xDC00 && code2 <= 0xDFFF);
         *num_bytes = 4;
         return ((uint32_t)code << 10) + (uint32_t)code2 - 0x35FDC00;
@@ -156,7 +156,7 @@ static uint32_t i_codepoint_from_utf32(const char_t *utf32_string, uint32_t *num
     cassert_no_null(utf32_string);
     cassert_no_null(num_bytes);
     *num_bytes = 4;
-    return *((uint32_t *)utf32_string);
+    return *cast_const(utf32_string, uint32_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -227,13 +227,13 @@ static uint32_t i_codepoint_to_utf16(const uint32_t codepoint, char_t *utf16_str
     cassert_no_null(utf16_string);
     if (codepoint < 0x10000)
     {
-        *((uint16_t *)utf16_string) = i_to_uint16(codepoint);
+        *cast(utf16_string, uint16_t) = i_to_uint16(codepoint);
         return 2;
     }
     else
     {
-        *((uint16_t *)utf16_string) = i_to_uint16((codepoint - 0x10000) / 0x400 + 0xd800);
-        *(((uint16_t *)utf16_string) + 1) = i_to_uint16((codepoint - 0x10000) % 0x400 + 0xdc00);
+        *cast(utf16_string, uint16_t) = i_to_uint16((codepoint - 0x10000) / 0x400 + 0xd800);
+        *(cast(utf16_string, uint16_t) + 1) = i_to_uint16((codepoint - 0x10000) % 0x400 + 0xdc00);
         return 4;
     }
 }
@@ -244,7 +244,7 @@ static uint32_t i_codepoint_to_utf32(const uint32_t codepoint, char_t *utf32_str
 {
     cassert(i_UNICODE_VALID_CODEPOINT(codepoint) == TRUE);
     cassert_no_null(utf32_string);
-    *((uint32_t *)utf32_string) = codepoint;
+    *cast(utf32_string, uint32_t) = codepoint;
     return 4;
 }
 
@@ -363,7 +363,7 @@ static uint32_t i_utf8_buffer_size(const char_t *utf8_string)
 static uint32_t i_utf16_buffer_size(const char_t *utf16_string)
 {
     uint32_t byte_count = 0;
-    uint16_t *str = (uint16_t *)utf16_string;
+    uint16_t *str = cast(utf16_string, uint16_t);
     cassert_no_null(utf16_string);
     while (*str != 0)
     {
@@ -380,7 +380,7 @@ static uint32_t i_utf16_buffer_size(const char_t *utf16_string)
 static uint32_t i_utf32_buffer_size(const char_t *utf32_string)
 {
     uint32_t byte_count = 0;
-    uint32_t *str = (uint32_t *)utf32_string;
+    uint32_t *str = cast(utf32_string, uint32_t);
     cassert_no_null(utf32_string);
     while (*str != 0)
     {
@@ -427,7 +427,7 @@ static uint32_t i_utf8_num_chars(const char_t *utf8_string)
 
 static uint32_t i_utf16_num_chars(const char_t *utf16_string)
 {
-    uint16_t *str = (uint16_t *)utf16_string;
+    const uint16_t *str = cast_const(utf16_string, uint16_t);
     uint32_t i = 0;
     cassert_no_null(utf16_string);
     while (*str != 0)
@@ -444,7 +444,7 @@ static uint32_t i_utf16_num_chars(const char_t *utf16_string)
 
 static uint32_t i_utf32_num_chars(const char_t *utf32_string)
 {
-    uint32_t *str = (uint32_t *)utf32_string;
+    const uint32_t *str = cast_const(utf32_string, uint32_t);
     uint32_t i = 0;
     cassert_no_null(utf32_string);
     while (*str != 0)

@@ -155,14 +155,14 @@ byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
     i_mem_append(mem);
 #endif
     cassert((mem != NULL) && ((intptr_t)mem % align) == 0);
-    return (byte_t *)mem;
+    return cast(mem, byte_t);
 }
 
 /*---------------------------------------------------------------------------*/
 
 byte_t *bmem_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t new_size, const uint32_t align)
 {
-    void *new_mem;
+    void *new_mem = NULL;
 
     unref(size);
 
@@ -215,7 +215,7 @@ void bmem_set1(byte_t *dest, const uint32_t size, const byte_t mask)
 {
     cassert_no_null(dest);
     cassert(size > 0);
-    memset((void *)dest, (int)mask, (size_t)size);
+    memset(cast(dest, void), (int)mask, (size_t)size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -224,5 +224,5 @@ void bmem_set_zero(byte_t *mem, const uint32_t size)
 {
     cassert_no_null(mem);
     cassert(size > 0);
-    ZeroMemory((void *)mem, (size_t)size);
+    ZeroMemory(cast(mem, void), (size_t)size);
 }

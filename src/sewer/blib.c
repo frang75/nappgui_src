@@ -28,7 +28,7 @@
 uint32_t blib_strlen(const char_t *str)
 {
     cassert_no_null(str);
-    return (uint32_t)strlen((const char *)str);
+    return (uint32_t)strlen(cast_const(str, char));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -37,7 +37,7 @@ char_t *blib_strstr(const char_t *str, const char_t *substr)
 {
     cassert_no_null(str);
     cassert_no_null(substr);
-    return (char_t *)strstr((const char *)str, (const char *)substr);
+    return cast(strstr(cast_const(str, char), cast_const(substr, char)), char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -50,7 +50,7 @@ void blib_strcpy(char_t *dest, const uint32_t size, const char_t *src)
     len = strlen(src);
     if (len >= size)
         len = size - 1;
-    memcpy((char *)dest, (const char *)src, (size_t)len);
+    memcpy(cast(dest, char), cast_const(src, char), (size_t)len);
     dest[len] = '\0';
 }
 
@@ -66,7 +66,7 @@ void blib_strncpy(char_t *dest, const uint32_t size, const char_t *src, const ui
         len = n;
     if (len >= size)
         len = size - 1;
-    memcpy((char *)dest, (const char *)src, (size_t)len);
+    memcpy(cast(dest, char), cast_const(src, char), (size_t)len);
     dest[len] = '\0';
 }
 
@@ -85,7 +85,7 @@ void blib_strcat(char_t *dest, const uint32_t size, const char_t *src)
         size_t len2 = strlen(src);
         if (len2 >= size - len)
             len2 = size - len - 1;
-        memcpy((char *)(dest + len), (const char *)src, (size_t)len2);
+        memcpy(cast(dest + len, char), cast_const(src, char), (size_t)len2);
         dest[len + len2] = '\0';
     }
 }
@@ -96,7 +96,7 @@ int blib_strcmp(const char_t *str1, const char_t *str2)
 {
     cassert_no_null(str1);
     cassert_no_null(str2);
-    return strcmp((const char *)str1, (const char *)str2);
+    return strcmp(cast_const(str1, char), cast_const(str2, char));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -105,7 +105,7 @@ int blib_strncmp(const char_t *str1, const char_t *str2, const uint32_t n)
 {
     cassert_no_null(str1);
     cassert_no_null(str2);
-    return strncmp((const char *)str1, (const char *)str2, (size_t)n);
+    return strncmp(cast_const(str1, char), cast_const(str2, char), (size_t)n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -128,7 +128,7 @@ uint32_t blib_strftime(char_t *dest, const uint32_t size, const char_t *format, 
     tm.tm_hour = (int)hour;
     tm.tm_min = (int)minute;
     tm.tm_sec = (int)second;
-    return (uint32_t)strftime((char *)dest, (size_t)size, (const char *)format, &tm);
+    return (uint32_t)strftime(cast(dest, char), (size_t)size, cast_const(format, char), &tm);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -136,9 +136,9 @@ uint32_t blib_strftime(char_t *dest, const uint32_t size, const char_t *format, 
 int64_t blib_strtol(const char_t *str, char_t **endptr, uint32_t base, bool_t *err)
 {
 #if _MSC_VER > 1700
-    int64_t v = strtoll((const char *)str, (char **)endptr, (int)base);
+    int64_t v = strtoll(cast_const(str, char), dcast(endptr, char), (int)base);
 #else
-    int64_t v = strtol((const char *)str, (char **)endptr, (int)base);
+    int64_t v = strtol(cast_const(str, char), dcast(endptr, char), (int)base);
 #endif
 
     if (err != NULL)
@@ -158,12 +158,12 @@ uint64_t blib_strtoul(const char_t *str, char_t **endptr, uint32_t base, bool_t 
 {
 #if defined(_MSC_VER)
 #if _MSC_VER > 1700
-    uint64_t v = strtoull((const char *)str, (char **)endptr, (int)base);
+    uint64_t v = strtoull(cast_const(str, char), dcast(endptr, char), (int)base);
 #else
-    uint64_t v = strtoul((const char *)str, (char **)endptr, (int)base);
+    uint64_t v = strtoul(cast_const(str, char), dcast(endptr, char), (int)base);
 #endif
 #else
-    uint64_t v = strtoull((const char *)str, (char **)endptr, (int)base);
+    uint64_t v = strtoull(cast_const(str, char), dcast(endptr, char), (int)base);
 #endif
 
     if (err != NULL)
@@ -183,13 +183,13 @@ real32_t blib_strtof(const char_t *str, char_t **endptr, bool_t *err)
 {
 #if defined(_MSC_VER)
 #if _MSC_VER > 1700
-    real32_t v = (real32_t)strtof((const char *)str, (char **)endptr);
+    real32_t v = (real32_t)strtof(cast_const(str, char), dcast(endptr, char));
 #else
-    real32_t v = (real32_t)atof((const char *)str);
+    real32_t v = (real32_t)atof(cast_const(str, char));
     unref(endptr);
 #endif
 #else
-    real32_t v = (real32_t)strtof((const char *)str, (char **)endptr);
+    real32_t v = (real32_t)strtof(cast_const(str, char), dcast(endptr, char));
 #endif
 
     if (err != NULL)
@@ -209,16 +209,16 @@ real64_t blib_strtod(const char_t *str, char_t **endptr, bool_t *err)
 {
 #if defined(_MSC_VER)
 #if _MSC_VER >= 1100
-    real64_t v = (real64_t)strtod((const char *)str, (char **)endptr);
+    real64_t v = (real64_t)strtod(cast_const(str, char), dcast(endptr, char));
 #elif _MSC_VER > 1004
-    real64_t v = (real64_t)atod((const char *)str);
+    real64_t v = (real64_t)atod(cast_const(str, char));
     unref(endptr);
 #else
-    real64_t v = (real64_t)atof((const char *)str);
+    real64_t v = (real64_t)atof(cast_const(str, char));
     unref(endptr);
 #endif
 #else
-    real64_t v = (real64_t)strtod((const char *)str, (char **)endptr);
+    real64_t v = (real64_t)strtod(cast_const(str, char), dcast(endptr, char));
 #endif
 
     if (err != NULL)
@@ -237,7 +237,7 @@ real64_t blib_strtod(const char_t *str, char_t **endptr, bool_t *err)
 void blib_qsort(byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_compare func_compare)
 {
     cassert_no_nullf(func_compare);
-    qsort((void *)array, (size_t)nelems, (size_t)size, func_compare);
+    qsort(cast(array, void), (size_t)nelems, (size_t)size, func_compare);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -245,7 +245,7 @@ void blib_qsort(byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_
 void blib_qsort_ex(const byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_compare_ex func_compare, const byte_t *data)
 {
     cassert_no_nullf(func_compare);
-    _qsort_ex((const void *)array, nelems, size, func_compare, (const void *)data);
+    _qsort_ex(cast_const(array, void), nelems, size, func_compare, (const void *)data);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -62,7 +62,7 @@ byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
         void *mem1 = NULL;
         int ret = 0;
         ret = posix_memalign(&mem1, (size_t)align, (size_t)size);
-        mem = (byte_t *)mem1;
+        mem = cast(mem1, byte_t);
         cassert_unref(ret == 0, ret);
     }
 #else
@@ -70,7 +70,7 @@ byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
         /* Allocates a bigger buffer for alignment purpose, and stores the original allocated
            address just before the aligned buffer for a later call to free */
         void *alloc_mem = malloc((size_t)(size + (align - 1) + sizeofptr));
-        mem = ((byte_t *)alloc_mem) + sizeofptr;
+        mem = cast(alloc_mem, byte_t) + sizeofptr;
         mem += (align - ((size_t)mem & (align - 1)) & (align - 1));
         (void **)mem[-1] = alloc_mem;
     }
@@ -90,7 +90,7 @@ byte_t *bmem_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t ne
 /* We try 'in place' realloc. */
 /* For typical alignments, we can avoid copying. */
 #if defined(HAVE_POSIX_MEMALIGN)
-    mem = (byte_t *)realloc((byte_t *)mem, (size_t)new_size);
+    mem = cast(realloc(cast(mem, void), (size_t)new_size), byte_t);
     if (((intptr_t)mem % (intptr_t)align) == 0)
         return mem;
 #endif
@@ -101,7 +101,7 @@ byte_t *bmem_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t ne
         size_t min_size = size;
         if (new_size < min_size)
             min_size = new_size;
-        memcpy((void *)new_mem, (const void *)mem, min_size);
+        memcpy(cast(new_mem, void), cast_const(mem, void), min_size);
         bmem_free(mem);
         return new_mem;
     }
@@ -113,7 +113,7 @@ void bmem_free(byte_t *mem)
 {
     cassert_no_null(mem);
 #if defined(HAVE_POSIX_MEMALIGN)
-    free((void *)mem);
+    free(cast(mem, void));
 #else
     {
         void *memp = (void **)mem[-1];
@@ -128,7 +128,7 @@ void bmem_set1(byte_t *dest, const uint32_t size, const byte_t mask)
 {
     cassert_no_null(dest);
     cassert(size > 0);
-    memset((void *)dest, (int)mask, (size_t)size);
+    memset(cast(dest, void), (int)mask, (size_t)size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,5 +137,5 @@ void bmem_set_zero(byte_t *dest, const uint32_t size)
 {
     cassert_no_null(dest);
     cassert(size > 0);
-    memset((void *)dest, 0, (size_t)size);
+    memset(cast(dest, void), 0, (size_t)size);
 }

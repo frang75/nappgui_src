@@ -37,7 +37,7 @@ uint32_t bstd_sprintf(char_t *str, const uint32_t size, const char_t *format, ..
 #pragma warning(disable : 4996)
 #endif
     /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
-    length = vsnprintf((char *)str, (size_t)size, (const char *)format, args);
+    length = vsnprintf(cast(str, char), (size_t)size, cast_const(format, char), args);
 #if defined(_MSC_VER)
 #pragma warning(default : 4996)
 #endif
@@ -56,7 +56,7 @@ uint32_t bstd_vsprintf(char_t *str, const uint32_t size, const char_t *format, v
 #pragma warning(disable : 4996)
 #endif
     /* vsnprintf_s doesn't work for str = NULL (for counting chars only) */
-    length = vsnprintf((char *)str, (size_t)size, (const char *)format, args);
+    length = vsnprintf(cast(str, char), (size_t)size, cast_const(format, char), args);
 #if defined(_MSC_VER)
 #pragma warning(default : 4996)
 #endif
@@ -95,7 +95,7 @@ uint32_t bstd_printf(const char_t *format, ...)
     }
     else
     {
-        dbuffer = (char *)bmem_malloc(length + 1);
+        dbuffer = cast(bmem_malloc(length + 1), char);
         buffer = dbuffer;
     }
 
@@ -113,20 +113,20 @@ uint32_t bstd_printf(const char_t *format, ...)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
-        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
+        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, sizeof(wbuffer));
         OutputDebugString(wbuffer);
     }
     else
     {
-        WCHAR *wbuffer = (WCHAR *)bmem_malloc((length + 1) * sizeof(WCHAR));
-        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = cast(bmem_malloc((length + 1) * sizeof(WCHAR)), WCHAR);
+        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
-        bmem_free((byte_t *)wbuffer);
+        bmem_free(cast(wbuffer, byte_t));
     }
 #endif
 
     if (dbuffer != NULL)
-        bmem_free((byte_t *)dbuffer);
+        bmem_free(cast(dbuffer, byte_t));
 
     return (uint32_t)length;
 }
@@ -163,7 +163,7 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     }
     else
     {
-        dbuffer = (char *)bmem_malloc(length + 1);
+        dbuffer = cast(bmem_malloc(length + 1), char);
         buffer = dbuffer;
     }
 
@@ -180,19 +180,19 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
-        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
+        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, sizeof(wbuffer));
         OutputDebugString(wbuffer);
     }
     else
     {
-        WCHAR *wbuffer = (WCHAR *)bmem_malloc((length + 1) * sizeof(WCHAR));
-        unicode_convers((const char_t *)buffer, (char_t *)wbuffer, ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = cast(bmem_malloc((length + 1) * sizeof(WCHAR)), WCHAR);
+        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
-        bmem_free((byte_t *)wbuffer);
+        bmem_free(cast(wbuffer, byte_t));
     }
 
     if (dbuffer != NULL)
-        bmem_free((byte_t *)dbuffer);
+        bmem_free(cast(dbuffer, byte_t));
 
     return (uint32_t)length;
 }
@@ -210,15 +210,15 @@ uint32_t bstd_writef(const char_t *str)
     if (size < 1024)
     {
         WCHAR wbuffer[1024];
-        unicode_convers((const char_t *)str, (char_t *)wbuffer, ekUTF8, ekUTF16, sizeof(wbuffer));
+        unicode_convers(cast_const(str, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, sizeof(wbuffer));
         OutputDebugString(wbuffer);
     }
     else
     {
-        WCHAR *wbuffer = (WCHAR *)bmem_malloc((uint32_t)(size + 1) * sizeof(WCHAR));
-        unicode_convers((const char_t *)str, (char_t *)wbuffer, ekUTF8, ekUTF16, (uint32_t)(size + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = cast(bmem_malloc((uint32_t)(size + 1) * sizeof(WCHAR)), WCHAR);
+        unicode_convers(cast_const(str, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (uint32_t)(size + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
-        bmem_free((byte_t *)wbuffer);
+        bmem_free(cast(wbuffer, byte_t));
     }
 
     return (uint32_t)size;
@@ -261,7 +261,7 @@ bool_t bstd_write(const byte_t *data, const uint32_t size, uint32_t *wsize)
 #if defined __DEBUG__
     {
         unicode_t format = ENUM_MAX(unicode_t);
-        if (unicode_valid_str_n((const char_t *)data, size, ekUTF8) == TRUE)
+        if (unicode_valid_str_n(cast_const(data, char_t), size, ekUTF8) == TRUE)
             format = ekUTF8;
 
         if (format != ENUM_MAX(unicode_t))
@@ -269,16 +269,16 @@ bool_t bstd_write(const byte_t *data, const uint32_t size, uint32_t *wsize)
             if (size < 1024)
             {
                 WCHAR wbuffer[1024];
-                uint32_t n = unicode_convers_n((const char_t *)data, (char_t *)wbuffer, ekUTF8, ekUTF16, size, sizeof(wbuffer));
+                uint32_t n = unicode_convers_n(cast_const(data, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, size, sizeof(wbuffer));
                 cassert(n % sizeof(WCHAR) == 0);
                 OutputDebugString(wbuffer);
             }
             else
             {
-                WCHAR *wbuffer = (WCHAR *)bmem_malloc((size + 1) * sizeof(WCHAR));
-                unicode_convers((const char_t *)data, (char_t *)wbuffer, ekUTF8, ekUTF16, (size + 1) * sizeof(WCHAR));
+                WCHAR *wbuffer = cast(bmem_malloc((size + 1) * sizeof(WCHAR)), WCHAR);
+                unicode_convers(cast_const(data, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (size + 1) * sizeof(WCHAR));
                 OutputDebugString(wbuffer);
-                bmem_free((byte_t *)wbuffer);
+                bmem_free(cast(wbuffer, byte_t));
             }
         }
     }
