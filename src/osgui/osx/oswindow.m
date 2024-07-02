@@ -56,6 +56,7 @@
     OSTabStop tabstop;
     ArrSt(OSHotKey) *hotkeys;
     OSXText *text_editor;
+    NSView *current_focus;
 }
 @end
 
@@ -423,6 +424,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->alpha = .5f;
     window->hotkeys = NULL;
     window->text_editor = nil;
+    window->current_focus = nil;
     ostabstop_init(&window->tabstop, (OSWindow *)window);
     heap_auditor_add("OSXWindowDelegate");
     delegate = [OSXWindowDelegate alloc];
@@ -993,12 +995,15 @@ void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 {
     OSXWindow *windowp = (OSXWindow *)window;
     NSView *view = (NSView *)widget;
-    BOOL ok = NO;
     cassert_no_null(window);
     cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
     cassert([(NSResponder *)widget isKindOfClass:[NSView class]] == YES);
-    ok = [windowp makeFirstResponder:view];
-    cassert_unref(ok == YES, ok);
+    if (windowp->current_focus != view)
+    {
+        BOOL ok = [windowp makeFirstResponder:view];
+        cassert_unref(ok == YES, ok);
+        windowp->current_focus = view;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

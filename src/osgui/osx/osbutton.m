@@ -108,10 +108,6 @@ static void i_OnClick(OSXButton *button)
     if ([button isEnabled] == YES)
     {
         gui_state_t state = i_get_state(button);
-
-        [[button window] endEditingFor:nil];
-        [[button window] makeFirstResponder:button];
-
         if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
         {
             switch (state)

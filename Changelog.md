@@ -2,6 +2,11 @@
 
 ## v1.4.3 - WIP
 
+### Added
+
+* macOS support for `edit_select()`. [Commit](https://github.com/frang75/nappgui_src/commit/d54bdc23f73800817975a840d3d927f00b720452).
+
+* macOs support for `edit_copy()`, `edit_paste()` and `edit_cut()`.
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 
