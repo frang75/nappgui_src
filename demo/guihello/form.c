@@ -1,6 +1,7 @@
 /* Form demo */
 
 #include "form.h"
+#include "res_guihello.h"
 #include <gui/guiall.h>
 
 /*---------------------------------------------------------------------------*/
@@ -14,8 +15,8 @@ struct _form_data_t
     Button *validate_check;
 };
 
-#define BUTTON_YES  1000
-#define BUTTON_NO   1001
+#define BUTTON_YES 1000
+#define BUTTON_NO 1001
 
 /*---------------------------------------------------------------------------*/
 
@@ -70,7 +71,7 @@ static Window *i_modal_window(FormData *data, Edit *edit, const GuiControl *next
     Button *button2 = button_push();
     Panel *panel = panel_create();
     Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
-    String *str = str_printf("Do you want to validate the text '%s' of the EditBox '%p'? The focus will be moved to the '%p' control using the '%s' action.", field_text, (void*)edit, (void*)next, action_text);
+    String *str = str_printf("Do you want to validate the text '%s' of the EditBox '%p'? The focus will be moved to the '%p' control using the '%s' action.", field_text, (void *)edit, (void *)next, action_text);
     label_text(label, tc(str));
     button_text(button1, "Yes");
     button_text(button2, "No");
@@ -148,7 +149,7 @@ static bool_t i_validate_field(FormData *data, Edit *edit, const char_t *text)
     window_origin(data->modal_window, pos);
     modal_value = window_modal(data->modal_window, data->window);
     window_destroy(&data->modal_window);
-    switch(modal_value)
+    switch (modal_value)
     {
     case ekGUI_CLOSE_BUTTON:
     case ekGUI_CLOSE_ESC:
@@ -156,7 +157,7 @@ static bool_t i_validate_field(FormData *data, Edit *edit, const char_t *text)
         return FALSE;
     case BUTTON_YES:
         return TRUE;
-    cassert_default();
+        cassert_default();
     }
 
     return TRUE;
@@ -201,6 +202,7 @@ static Layout *i_numbers(FormData *data, color_t colorbg)
     label_text(label, "Height (cm):");
     edit_text(edit1, "25");
     edit_text(edit2, "175");
+    edit_autoselect(edit1, TRUE);
     edit_align(edit1, ekRIGHT);
     edit_align(edit2, ekRIGHT);
     edit_OnFilter(edit1, listener(NULL, i_OnFilter, void));
@@ -262,6 +264,7 @@ static Layout *i_edits(FormData *data)
     edit_OnChange(edit3, listener(data, i_OnEditChange, FormData));
     edit_OnChange(edit4, listener(data, i_OnEditChange, FormData));
     edit_OnChange(edit5, listener(data, i_OnEditChange, FormData));
+    edit_select(edit1, 2, 6);
     edit_passmode(edit2, TRUE);
     edit_bgcolor_focus(edit1, colorbg);
     edit_bgcolor_focus(edit2, colorbg);
@@ -292,27 +295,93 @@ static Layout *i_edits(FormData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnCopy(FormData *data, Event *e)
+{
+    GuiControl *control = window_get_focus(data->window);
+    Edit *edit = guicontrol_edit(control);
+    unref(e);
+    if (edit != NULL)
+        edit_copy(edit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnPaste(FormData *data, Event *e)
+{
+    GuiControl *control = window_get_focus(data->window);
+    Edit *edit = guicontrol_edit(control);
+    unref(e);
+    if (edit != NULL)
+        edit_paste(edit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnCut(FormData *data, Event *e)
+{
+    GuiControl *control = window_get_focus(data->window);
+    Edit *edit = guicontrol_edit(control);
+    unref(e);
+    if (edit != NULL)
+        edit_cut(edit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_toolbar(FormData *data)
+{
+    Layout *layout = layout_create(4, 1);
+    Button *check = button_check();
+    Button *button1 = button_flat();
+    Button *button2 = button_flat();
+    Button *button3 = button_flat();
+    button_text(check, "Field validations");
+    button_image(button1, gui_image(COPY_PNG));
+    button_image(button2, gui_image(PASTE_PNG));
+    button_image(button3, gui_image(CUT_PNG));
+    button_OnClick(button1, listener(data, i_OnCopy, FormData));
+    button_OnClick(button2, listener(data, i_OnPaste, FormData));
+    button_OnClick(button3, listener(data, i_OnCut, FormData));
+    button_tooltip(button1, "Copy");
+    button_tooltip(button2, "Paste");
+    button_tooltip(button3, "Cut");
+    layout_button(layout, check, 0, 0);
+    layout_button(layout, button1, 1, 0);
+    layout_button(layout, button2, 2, 0);
+    layout_button(layout, button3, 3, 0);
+    layout_tabstop(layout, 0, 0, FALSE);
+    layout_tabstop(layout, 1, 0, FALSE);
+    layout_tabstop(layout, 2, 0, FALSE);
+    layout_tabstop(layout, 3, 0, FALSE);
+    layout_hmargin(layout, 0, 5);
+    layout_hmargin(layout, 1, 5);
+    layout_hmargin(layout, 2, 5);
+    data->validate_check = check;
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_form(FormData *data)
 {
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = i_edits(data);
-    Button *check = button_check();
+    Layout *layout3 = i_toolbar(data);
     Label *label = label_multiline();
     cassert_no_null(data);
-    button_text(check, "Field validations");
     label_text(label, "Please fill in all the information on the form. We will use this data to send commercial mail at all hours, not caring much if it bothers you or not.");
     label_color(label, gui_alt_color(color_rgb(255, 0, 0), color_rgb(180, 180, 180)));
     label_bgcolor(label, gui_alt_color(color_rgb(216, 191, 216), color_rgb(80, 40, 40)));
     label_bgcolor_over(label, gui_alt_color(color_rgb(255, 250, 205), color_rgb(105, 100, 55)));
     label_style_over(label, ekFUNDERLINE);
     layout_layout(layout1, layout2, 0, 0);
-    layout_button(layout1, check, 0, 1);
+    layout_layout(layout1, layout3, 0, 1);
     layout_label(layout1, label, 0, 2);
     layout_hsize(layout1, 0, 300);
+    layout_halign(layout1, 0, 1, ekLEFT);
     layout_vmargin(layout1, 0, 10);
     layout_vmargin(layout1, 1, 10);
     layout_margin(layout1, 10);
-    data->validate_check = check;
     return layout1;
 }
 
@@ -336,4 +405,3 @@ Panel *form_basic(Window *window)
     panel_layout(panel, layout);
     return panel;
 }
-

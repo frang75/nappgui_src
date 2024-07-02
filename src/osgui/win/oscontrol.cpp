@@ -14,6 +14,7 @@
 #include "oscontrol_win.inl"
 #include "osgui.inl"
 #include "osgui_win.inl"
+#include "osbutton_win.inl"
 #include "oscombo_win.inl"
 #include "ospanel_win.inl"
 #include "ospopup_win.inl"
@@ -496,6 +497,15 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
     rect->top = control->y;
     rect->right = rect->left + (int32_t)width;
     rect->bottom = rect->top + (int32_t)height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
+{
+    cassert_no_null(control);
+    if (control->type == ekGUI_TYPE_BUTTON)
+        _osbutton_set_can_focus(cast(control, OSButton), can_focus);
 }
 
 /*---------------------------------------------------------------------------*/

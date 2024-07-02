@@ -22,6 +22,8 @@ OSControl *oscontrol_parent(const OSControl *control);
 
 void oscontrol_frame(const OSControl *control, OSFrame *rect);
 
+void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus);
+
 OSWidget *oscontrol_focus_widget(const OSControl *control);
 
 bool_t oscontrol_widget_visible(const OSWidget *widget);

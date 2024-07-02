@@ -646,6 +646,14 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
 
 /*---------------------------------------------------------------------------*/
 
+void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
+{
+    OSWidget *widget = oscontrol_focus_widget(control);
+    gtk_widget_set_can_focus(cast(widget, GtkWidget), can_focus);
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSWidget *oscontrol_focus_widget(const OSControl *control)
 {
     cassert_no_null(control);

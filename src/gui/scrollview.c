@@ -139,6 +139,8 @@ void scrollview_content_size(ScrollView *view, const uint32_t content_width, con
     view_scroll_size(view->view, &bar_width, &bar_height);
     view->scrollbar_width = (uint32_t)bar_width;
     view->scrollbar_height = (uint32_t)bar_height;
+    twidth += view->scrollbar_width;
+    theight += view->scrollbar_height;
 
     if (twidth < view->control_width)
         twidth = view->control_width;
@@ -148,8 +150,6 @@ void scrollview_content_size(ScrollView *view, const uint32_t content_width, con
 
     view->content_width = twidth;
     view->content_height = theight;
-    twidth += view->scrollbar_width;
-    theight += view->scrollbar_height;
 
     if (twidth != content_width || theight != content_height)
         view_content_size(view->view, s2df((real32_t)twidth, (real32_t)theight), s2df((real32_t)line_width, (real32_t)line_height));

@@ -655,6 +655,14 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
 
 /*---------------------------------------------------------------------------*/
 
+void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
+{
+    unref(control);
+    unref(can_focus);
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSWidget *oscontrol_focus_widget(const OSControl *control)
 {
     cassert_no_null(control);

@@ -15,6 +15,7 @@
 #include "osweb_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
+#include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
 

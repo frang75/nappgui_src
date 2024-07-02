@@ -74,6 +74,7 @@
     uint32_t flags;
     uint32_t vpadding;
     real32_t rpadding;
+    NSRange select;
     CGFloat wpadding;
     OSTextAttr attrs;
     Listener *OnFilter;
@@ -211,8 +212,14 @@ static void OSX_textDidChange(OSXEdit *edit, NSTextField *field)
 
 static void OSX_textDidEndEditing(OSXEdit *edit, NSNotification *notification)
 {
+    OSXEdit *ledit = (OSXEdit *)edit;
     unsigned int whyEnd = [[[notification userInfo] objectForKey:@"NSTextMovement"] unsignedIntValue];
     NSWindow *window = [edit window];
+    NSText *text = [window fieldEditor:YES forObject:ledit->field];
+
+    ledit->select = [text selectedRange];
+    [text setSelectedRange:NSMakeRange(0, 0)];
+
     if (whyEnd == NSReturnTextMovement)
     {
         [window keyDown:(NSEvent *)231];
@@ -383,6 +390,7 @@ OSEdit *osedit_create(const uint32_t flags)
     [field setCell:[[OSXTextFieldCell alloc] init]];
     edit->flags = flags;
     edit->vpadding = UINT32_MAX;
+    edit->select = NSMakeRange(0, 0);
     edit->OnFilter = NULL;
     edit->OnChange = NULL;
     edit->OnFocus = NULL;
@@ -567,9 +575,38 @@ void osedit_autoselect(OSEdit *edit, const bool_t autoselect)
 
 void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
 {
-    unref(edit);
-    unref(start);
-    unref(end);
+    OSXEdit *ledit = (OSXEdit *)edit;
+    cassert_no_null(ledit);
+    /* Deselect all text */
+    if (start == -1 && end == 0)
+    {
+        ledit->select = NSMakeRange(0, 0);
+    }
+    /* Deselect all text and caret to the end */
+    else if (start == -1 && end == -1)
+    {
+        ledit->select = NSMakeRange(NSUIntegerMax, 0);
+    }
+    /* Select all text and caret to the end */
+    else if (start == 0 && end == -1)
+    {
+        ledit->select = NSMakeRange(0, NSUIntegerMax);
+    }
+    /* Select from position to the end */
+    else if (start > 0 && end == -1)
+    {
+        ledit->select = NSMakeRange(start, NSIntegerMax);
+    }
+    /* Deselect all and move the caret */
+    else if (start == end)
+    {
+        ledit->select = NSMakeRange(start, 0);
+    }
+    /* Select from start to end */
+    else
+    {
+        ledit->select = NSMakeRange(start, end - start);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -762,8 +799,7 @@ void osedit_focus(OSEdit *edit, const bool_t focus)
             }
             else
             {
-                NSRange range = [text selectedRange];
-                [text setSelectedRange:NSMakeRange(range.length, 0)];
+                [text setSelectedRange:ledit->select];
             }
         }
     }

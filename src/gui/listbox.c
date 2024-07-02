@@ -141,7 +141,9 @@ static void i_OnDraw(ListBox *listbox, Event *e)
         uint32_t i;
 
         fill_width -= scrollview_scrollbar_width(data->sview);
-        fill_width -= i_RIGHT_PADDING;
+#if defined(__WINDOWS__)
+        fill_width -= 2;
+#endif
 
         draw_font(p->ctx, data->font);
         for (i = strow; i < edrow; ++i)

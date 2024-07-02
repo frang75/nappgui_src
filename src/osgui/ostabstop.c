@@ -196,9 +196,11 @@ static void i_set_focus(OSTabStop *tabstop, OSControl *control)
     cassert_no_null(tabstop);
     cassert(arrpt_find(tabstop->controls, control, OSControl) != UINT32_MAX);
 
+    if (tabstop->transient != NULL)
+        ostabstop_release_transient(tabstop, tabstop->transient);
+
     oswindow_widget_set_focus(tabstop->window, widget);
     tabstop->current = control;
-    cassert(tabstop->transient == NULL);
 
     /* We remember the last tablist focused control */
     tabindex = arrpt_find(tabstop->tablist, control, OSControl);
@@ -302,6 +304,24 @@ static void i_on_focus(OSControl *control, const bool_t focused)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_is_next_transient(const OSTabStop *tabstop, OSControl *focus, OSControl *next)
+{
+    if (next != NULL && focus != next)
+    {
+        /* If button is not in the tablist, can't get the focus */
+        gui_type_t type = oscontrol_type(next);
+        if (type == ekGUI_TYPE_BUTTON && ostabstop_in_tablist(tabstop, next) == FALSE)
+        {
+            oscontrol_set_can_focus(next, FALSE);
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static gui_focus_t i_try_change_focus(OSTabStop *tabstop, OSControl *control, const gui_tab_t motion, const bool_t forward)
 {
     gui_focus_t fstate = ENUM_MAX(gui_focus_t);
@@ -318,11 +338,14 @@ static gui_focus_t i_try_change_focus(OSTabStop *tabstop, OSControl *control, co
     next_control = i_effective_focus(tabstop, control, forward);
     tabstop->next = next_control;
 
+    if (i_is_next_transient(tabstop, focus, next_control) == TRUE)
+        resign = FALSE;
+
     /*
      * 'focus' and 'next_control' can be the same but,
      * we force validation events in non-cycle-one-control tablists
      */
-    if (focus != NULL)
+    if (resign == TRUE && focus != NULL)
         resign = ostabstop_resign_focus(tabstop, focus);
 
     /* The current focused control resign the focus */
@@ -568,6 +591,7 @@ void ostabstop_release_transient(OSTabStop *tabstop, OSControl *control)
     if (tabstop->transient != NULL)
     {
         cassert_unref(tabstop->transient == control, control);
+        oscontrol_set_can_focus(tabstop->transient, TRUE);
         tabstop->transient = NULL;
         if (tabstop->current != NULL)
         {
