@@ -1,7 +1,6 @@
 /* Form demo */
 
 #include "form.h"
-#include "res_guihello.h"
 #include <gui/guiall.h>
 
 /*---------------------------------------------------------------------------*/
@@ -99,7 +98,7 @@ static Window *i_modal_window(FormData *data, Edit *edit, const GuiControl *next
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *i_action_text(const gui_tab_t action)
+static const char_t *i_action_text(const gui_tab_t action)
 {
     switch (action)
     {
@@ -295,67 +294,12 @@ static Layout *i_edits(FormData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnCopy(FormData *data, Event *e)
-{
-    GuiControl *control = window_get_focus(data->window);
-    Edit *edit = guicontrol_edit(control);
-    unref(e);
-    if (edit != NULL)
-        edit_copy(edit);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnPaste(FormData *data, Event *e)
-{
-    GuiControl *control = window_get_focus(data->window);
-    Edit *edit = guicontrol_edit(control);
-    unref(e);
-    if (edit != NULL)
-        edit_paste(edit);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnCut(FormData *data, Event *e)
-{
-    GuiControl *control = window_get_focus(data->window);
-    Edit *edit = guicontrol_edit(control);
-    unref(e);
-    if (edit != NULL)
-        edit_cut(edit);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static Layout *i_toolbar(FormData *data)
 {
-    Layout *layout = layout_create(4, 1);
+    Layout *layout = layout_create(1, 1);
     Button *check = button_check();
-    Button *button1 = button_flat();
-    Button *button2 = button_flat();
-    Button *button3 = button_flat();
     button_text(check, "Field validations");
-    button_image(button1, gui_image(COPY_PNG));
-    button_image(button2, gui_image(PASTE_PNG));
-    button_image(button3, gui_image(CUT_PNG));
-    button_OnClick(button1, listener(data, i_OnCopy, FormData));
-    button_OnClick(button2, listener(data, i_OnPaste, FormData));
-    button_OnClick(button3, listener(data, i_OnCut, FormData));
-    button_tooltip(button1, "Copy");
-    button_tooltip(button2, "Paste");
-    button_tooltip(button3, "Cut");
     layout_button(layout, check, 0, 0);
-    layout_button(layout, button1, 1, 0);
-    layout_button(layout, button2, 2, 0);
-    layout_button(layout, button3, 3, 0);
-    layout_tabstop(layout, 0, 0, FALSE);
-    layout_tabstop(layout, 1, 0, FALSE);
-    layout_tabstop(layout, 2, 0, FALSE);
-    layout_tabstop(layout, 3, 0, FALSE);
-    layout_hmargin(layout, 0, 5);
-    layout_hmargin(layout, 1, 5);
-    layout_hmargin(layout, 2, 5);
     data->validate_check = check;
     return layout;
 }
@@ -382,6 +326,7 @@ static Layout *i_form(FormData *data)
     layout_vmargin(layout1, 0, 10);
     layout_vmargin(layout1, 1, 10);
     layout_margin(layout1, 10);
+    layout_tabstop(layout1, 0, 1, FALSE);
     return layout1;
 }
 

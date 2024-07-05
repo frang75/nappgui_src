@@ -5,8 +5,8 @@
 ### Added
 
 * macOS support for `edit_select()`. [Commit](https://github.com/frang75/nappgui_src/commit/d54bdc23f73800817975a840d3d927f00b720452).
-
-* macOs support for `edit_copy()`, `edit_paste()` and `edit_cut()`.
+* macOs support for `edit_copy()`, `edit_paste()` and `edit_cut()`. [Commit](https://github.com/frang75/nappgui_src/commit/63e667c951ff4850b25de073643c9bdda7069e5e).
+* New demo on text selection and clipboard. [Doc](https://nappgui.com/en/howto/guihello.html#h5)
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 

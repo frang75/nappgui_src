@@ -191,6 +191,7 @@ static void OSX_textDidChange(OSXEdit *edit, NSTextField *field)
         EvTextFilter result;
         params.text = (const char_t *)[[field stringValue] UTF8String];
         params.cpos = (uint32_t)[edit->editor selectedRange].location;
+        params.len = INT32_MAX;
         result.apply = FALSE;
         result.text[0] = '\0';
         result.cpos = UINT32_MAX;
@@ -571,6 +572,16 @@ void osedit_autoselect(OSEdit *edit, const bool_t autoselect)
 
 /*---------------------------------------------------------------------------*/
 
+/* http://alienryderflex.com/hasFocus.html */
+static bool_t i_has_focus(id control)
+{
+    NSWindow *window = [control window];
+    id first = [window firstResponder];
+    return (bool_t)([first isKindOfClass:[NSTextView class]] && [window fieldEditor:NO forObject:nil] != nil && (first == control || [first delegate] == control));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
 {
     OSXEdit *ledit = (OSXEdit *)edit;
@@ -604,6 +615,12 @@ void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
     else
     {
         ledit->select = NSMakeRange(start, end - start);
+    }
+
+    if (i_has_focus(ledit->field) == TRUE)
+    {
+        cassert_no_null(ledit->editor);
+        [ledit->editor setSelectedRange:ledit->select];
     }
 }
 
@@ -665,16 +682,6 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
 
     *width = refwidth;
     *height += ledit->rpadding;
-}
-
-/*---------------------------------------------------------------------------*/
-
-/* http://alienryderflex.com/hasFocus.html */
-static bool_t i_has_focus(id control)
-{
-    NSWindow *window = [control window];
-    id first = [window firstResponder];
-    return (bool_t)([first isKindOfClass:[NSTextView class]] && [window fieldEditor:NO forObject:nil] != nil && (first == control || [first delegate] == control));
 }
 
 /*---------------------------------------------------------------------------*/

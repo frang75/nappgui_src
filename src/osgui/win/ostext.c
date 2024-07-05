@@ -498,50 +498,6 @@ static char_t *i_get_text(HWND hwnd, uint32_t *size, uint32_t *nchars)
 
 /*---------------------------------------------------------------------------*/
 
-static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
-{
-    uint32_t num_chars = 0;
-    WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-    WCHAR *wtext = NULL;
-    char_t *text = NULL;
-
-    cassert_no_null(cr);
-    cassert_no_null(size);
-    num_chars = cr->cpMax - cr->cpMin;
-
-    if (num_chars < WCHAR_BUFFER_SIZE)
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSTextGetText");
-        wtext = wtext_alloc;
-    }
-
-    {
-        /* EM_GETSELTEXT: The return value is the number of TCHARs copied into the output buffer, NOT including the null terminator. */
-        uint32_t num_charsw = (uint32_t)SendMessage(hwnd, EM_GETSELTEXT, (WPARAM)0, (LPARAM)wtext);
-        cassert_unref(num_chars == num_charsw, num_charsw);
-    }
-
-    *size = unicode_convers_nbytes((const char_t *)wtext, kWINDOWS_UNICODE, ekUTF8);
-    text = (char_t *)heap_malloc(*size, "OSTextSelText");
-
-    {
-        uint32_t bytes = unicode_convers((const char_t *)wtext, text, kWINDOWS_UNICODE, ekUTF8, *size);
-        cassert_unref(bytes == *size, bytes);
-    }
-
-    if (wtext_alloc != NULL)
-        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSTextGetText");
-
-    return text;
-}
-
-/*---------------------------------------------------------------------------*/
-
 const char_t *ostext_get_text(const OSText *view)
 {
     cassert_no_null(view);
@@ -649,7 +605,51 @@ static uint32_t i_get_cursor_pos(HWND hwnd)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_replace_text(OSText *view, const char_t *text)
+static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
+{
+    uint32_t num_chars = 0;
+    WCHAR *wtext_alloc = NULL;
+    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
+    WCHAR *wtext = NULL;
+    char_t *text = NULL;
+
+    cassert_no_null(cr);
+    cassert_no_null(size);
+    num_chars = cr->cpMax - cr->cpMin;
+
+    if (num_chars < WCHAR_BUFFER_SIZE)
+    {
+        wtext = wtext_static;
+    }
+    else
+    {
+        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSTextGetText");
+        wtext = wtext_alloc;
+    }
+
+    {
+        /* EM_GETSELTEXT: The return value is the number of TCHARs copied into the output buffer, NOT including the null terminator. */
+        uint32_t num_charsw = (uint32_t)SendMessage(hwnd, EM_GETSELTEXT, (WPARAM)0, (LPARAM)wtext);
+        cassert_unref(num_chars == num_charsw, num_charsw);
+    }
+
+    *size = unicode_convers_nbytes((const char_t *)wtext, kWINDOWS_UNICODE, ekUTF8);
+    text = (char_t *)heap_malloc(*size, "OSTextSelText");
+
+    {
+        uint32_t bytes = unicode_convers((const char_t *)wtext, text, kWINDOWS_UNICODE, ekUTF8, *size);
+        cassert_unref(bytes == *size, bytes);
+    }
+
+    if (wtext_alloc != NULL)
+        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSTextGetText");
+
+    return text;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_replace_seltext(OSText *view, const char_t *text)
 {
     uint32_t num_bytes = 0;
     WCHAR *wtext_alloc = NULL;
@@ -725,13 +725,20 @@ void _ostext_command(OSText *view, WPARAM wParam)
                     bool_t prev = view->launch_event;
                     uint32_t replnchars = unicode_nchars(result.text, ekUTF8);
                     view->launch_event = FALSE;
-                    i_replace_text(view, result.text);
+                    /* Replace the previously selected (inserted) text */
+                    i_replace_seltext(view, result.text);
                     view->launch_event = prev;
 
                     if (replnchars > inschars)
                         view->num_chars += replnchars - inschars;
                     else
                         view->num_chars += inschars - replnchars;
+                }
+                else
+                {
+                    /* Just unselect the previous selected text, remains the caret in its position */
+                    cr.cpMin = cr.cpMax;
+                    SendMessage(view->control.hwnd, EM_EXSETSEL, 0, (LPARAM)&cr);
                 }
             }
             else

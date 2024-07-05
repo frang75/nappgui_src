@@ -5,6 +5,7 @@
 #include "buttons.h"
 #include "sliders.h"
 #include "form.h"
+#include "seltext.h"
 #include "popcom.h"
 #include "listboxes.h"
 #include "textviews.h"
@@ -64,57 +65,60 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = form_basic(app->window);
         break;
     case 7:
-        panel = sliders();
+        panel = seltext(app->window);
         break;
     case 8:
-        panel = vpadding();
+        panel = sliders();
         break;
     case 9:
-        panel = tabstops();
+        panel = vpadding();
         break;
     case 10:
-        panel = textviews();
+        panel = tabstops();
         break;
     case 11:
-        panel = table_view();
+        panel = textviews();
         break;
     case 12:
-        panel = split_panel();
+        panel = table_view();
         break;
     case 13:
-        panel = modal_windows(app->window);
+        panel = split_panel();
         break;
     case 14:
-        panel = flyout_window(app->window);
+        panel = modal_windows(app->window);
         break;
     case 15:
-        panel = hotkeys(app->window);
+        panel = flyout_window(app->window);
         break;
     case 16:
-        panel = guibind();
+        panel = hotkeys(app->window);
         break;
     case 17:
-        panel = layoutbind();
+        panel = guibind();
         break;
     case 18:
-        panel = basic_layout();
+        panel = layoutbind();
         break;
     case 19:
-        panel = sublayouts();
+        panel = basic_layout();
         break;
     case 20:
-        panel = subpanels();
+        panel = sublayouts();
         break;
     case 21:
-        panel = multilayouts();
+        panel = subpanels();
         break;
     case 22:
-        panel = scrollpanel();
+        panel = multilayouts();
         break;
     case 23:
-        panel = dynlay_panel();
+        panel = scrollpanel();
         break;
     case 24:
+        panel = dynlay_panel();
+        break;
+    case 25:
         panel = ip_input(app->window);
         break;
     }
@@ -153,6 +157,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "PopUp Combo", NULL);
     listbox_add_elem(list, "ListBoxes", NULL);
     listbox_add_elem(list, "Form", NULL);
+    listbox_add_elem(list, "Text select", NULL);
     listbox_add_elem(list, "Sliders", NULL);
     listbox_add_elem(list, "Vertical padding", NULL);
     listbox_add_elem(list, "Tabstops", NULL);
