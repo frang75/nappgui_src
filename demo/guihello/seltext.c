@@ -100,13 +100,13 @@ static void i_OnEditFilter(SelData *data, Event *e)
     cassert_no_null(data);
 
     /*
-     * Convert the inserted text in caps
-     * p->text the control current text (const)
-     * r->text the new filterd text
-     * p->cpos current caret position
+     * Convert the inserted text in caps.
+     * p->text the control current text (const).
+     * r->text the new filterd text.
+     * p->cpos current caret position.
      * r->apply = TRUE means the editbox text has to be updated.
-     * p->len number of chars inserted at left of caret (those to be converted to caps)
-     * We are working with UTF8-Strings. No 1-byte/1-char parity. Sequential access.
+     * p->len number of chars inserted at left of caret (to caps).
+     * We are working with UTF8-Strings. Sequential access.
      */
     if (button_get_state(data->caps) == ekGUI_ON && p->len > 0)
     {
@@ -147,13 +147,13 @@ static void i_OnTextViewFilter(SelData *data, Event *e)
     cassert_no_null(data);
 
     /*
-     * Convert the inserted text in caps
-     * p->text the control current text (const)
-     * r->text the new filterd text
-     * p->cpos current caret position
+     * Convert the inserted text in caps.
+     * p->text the inserted text only (const).
+     * r->text the new filterd text.
+     * p->cpos current caret position.
      * r->apply = TRUE means the editbox text has to be updated.
-     * p->len number of chars inserted at left of caret (those to be converted to caps)
-     * We are working with UTF8-Strings. No 1-byte/1-char parity. Sequential access.
+     * p->len number of chars inserted at left of caret (to caps).
+     * We are working with UTF8-Strings. Sequential access.
      */
     if (button_get_state(data->caps) == ekGUI_ON && p->len > 0)
     {

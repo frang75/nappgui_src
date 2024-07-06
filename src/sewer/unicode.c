@@ -568,6 +568,22 @@ const char_t *unicode_back(const char_t *str, const unicode_t format)
 
 /*---------------------------------------------------------------------------*/
 
+const char_t *unicode_move(const char_t *str, const uint32_t nchars, const unicode_t format)
+{
+    uint32_t i = 0;
+    const char_t *pos = str;
+    for (i = 0; i < nchars; ++i)
+    {
+        if (unicode_to_u32(pos, format) == 0)
+            break;
+        pos = unicode_next(pos, format);
+    }
+
+    return pos;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t unicode_isascii(const uint32_t codepoint)
 {
     return (bool_t)(codepoint < 128);

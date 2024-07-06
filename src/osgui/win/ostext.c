@@ -729,10 +729,10 @@ void _ostext_command(OSText *view, WPARAM wParam)
                     i_replace_seltext(view, result.text);
                     view->launch_event = prev;
 
-                    if (replnchars > inschars)
+                    if (replnchars >= inschars)
                         view->num_chars += replnchars - inschars;
                     else
-                        view->num_chars += inschars - replnchars;
+                        view->num_chars -= inschars - replnchars;
                 }
                 else
                 {

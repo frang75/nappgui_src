@@ -906,6 +906,24 @@ void ostext_focus(OSText *view, const bool_t focus)
         else
             _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
     }
+
+    if (focus == TRUE)
+    {
+        /* Select */
+        g_idle_add((GSourceFunc)i_select, view);
+    }
+    else
+    {
+        /* Cache the current selection and deselect */
+        GtkTextIter start, end;
+        GtkTextBuffer *tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
+        GtkTextIter iter;
+        gtk_text_buffer_get_selection_bounds(tbuf, &start, &end);
+        view->select_start = (int32_t)gtk_text_iter_get_offset(&start);
+        view->select_end = (int32_t)gtk_text_iter_get_offset(&end);
+        gtk_text_buffer_get_start_iter(tbuf, &iter);
+        gtk_text_buffer_select_range(tbuf, &iter, &iter);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

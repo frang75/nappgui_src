@@ -78,7 +78,6 @@ TextView *textview_create(void)
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_AFPARSPACE, (void *)&afpspace);
     _component_init(&view->component, context, PARAM(type, ekGUI_TYPE_TEXTVIEW), &ositem);
     context->func_text_OnFocus(view->component.ositem, obj_listener(view, i_OnFocus, TextView));
-    context->func_text_OnFilter(view->component.ositem, obj_listener(view, i_OnFilter, TextView));
     font_destroy(&font);
     return view;
 }
@@ -101,6 +100,10 @@ void textview_OnFilter(TextView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->OnFilter, listener);
+    if (listener != NULL)
+        view->component.context->func_text_OnFilter(view->component.ositem, obj_listener(view, i_OnFilter, TextView));
+    else
+        view->component.context->func_text_OnFilter(view->component.ositem, NULL);
 }
 
 /*---------------------------------------------------------------------------*/

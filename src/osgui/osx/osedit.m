@@ -692,17 +692,16 @@ void osedit_clipboard(OSEdit *edit, const clipboard_t clipboard)
     cassert_no_null(ledit);
     if (ledit->editor != nil)
     {
-        NSRange r = [ledit->editor selectedRange];
         switch (clipboard)
         {
         case ekCLIPBOARD_COPY:
-            [ledit->editor copy:nil];
+            [ledit->editor copy:ledit->editor];
             break;
         case ekCLIPBOARD_CUT:
-            [ledit->editor cut:ledit->field];
+            [ledit->editor cut:ledit->editor];
             break;
         case ekCLIPBOARD_PASTE:
-            [ledit->editor paste:ledit->field];
+            [ledit->editor paste:ledit->editor];
             break;
         }
     }
