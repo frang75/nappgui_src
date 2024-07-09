@@ -27,7 +27,6 @@
 #error This file is only for GTK Toolkit
 #endif
 
-static const char_t *i_HIGH_TEXT = "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 static bool_t i_IMPOSTOR_MAPPED = FALSE;
 static GtkWidget *kWINDOW = NULL;
 static GtkWidget *kLABEL = NULL;
@@ -48,6 +47,7 @@ static uint32_t kCHECK_WIDTH = 0;
 static uint32_t kCHECK_HEIGHT = 0;
 static uint32_t kENTRY_HEIGHT = 0;
 static uint32_t kPROGRESS_HEIGHT = 0;
+static uint32_t kSCROLLBAR_HEIGHT = 0;
 static bool_t kDARK_MODE = FALSE;
 static color_t kLABEL_COLOR = 0;
 static color_t kVIEW_COLOR = 0;
@@ -116,12 +116,12 @@ static void i_widget_margins(GtkWidget *widget, const uint32_t max_width, const 
 
 /*---------------------------------------------------------------------------*/
 /*
-Button states (5)
-Normal
-Prelight - Hot or mouse over
-Backdrop - Background primary window
-Insensitive - Disabled
-*/
+ * Button states (5)
+ * Normal
+ * Prelight - Hot or mouse over
+ * Backdrop - Background primary window
+ * Insensitive - Disabled
+ */
 static void i_button_images(cairo_t *cairo, GtkWidget **button, gdouble offset)
 {
     cairo_translate(cairo, offset, 0);
@@ -186,7 +186,8 @@ static color_t i_backcolor_prop(GtkWidget *widget, GtkStateFlags flags)
 /*---------------------------------------------------------------------------*/
 
 /* Useful debug code to save GdkPixbuf to file  */
-/* #include <draw2d/image.inl>
+/*
+#include <draw2d/image.inl>
 static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
 {
    stm_write((Stream*)stream, (const byte_t*)data, (uint32_t)size);
@@ -204,10 +205,13 @@ static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
 
 /*---------------------------------------------------------------------------*/
 
-/* Trying to consistently get the color of the frame (border, line),
-reading the CSS properties, is a kind of impossible mission.
-So we draw a frame and get the color. We start with the row in the middle,
-to avoid roundness and transparencies in the corner. */
+/*
+ * Trying to consistently get the color of the frame (border, line),
+ * reading the CSS properties, is a kind of impossible mission.
+ * So we draw a frame and get the color. We start with the row in the middle,
+ * to avoid roundness and transparencies in the corner.
+ *
+ */
 static color_t i_frame_color(GtkWidget *widget, const uint32_t size, const bool_t middle_i, const bool_t middle_j)
 {
     uint32_t i = 0, j = 0;
@@ -309,55 +313,19 @@ static void i_precompute_checks(void)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-static gboolean on_scrollbar_enter(GtkWidget *widget, GdkEventCrossing *event, gpointer user_data) {
-    GtkRequisition minimum_size;
-    GtkRequisition natural_size;
-    //gtk_widget_set_state_flags(scroll, GTK_STATE_FLAG_PRELIGHT, FALSE);
-    gtk_widget_get_preferred_size (widget, &minimum_size, &natural_size);
-
-    g_print("Widget entró\n");
-    return FALSE;
-}
-
-static GtkWidget *WIDGET = NULL;
-static GdkEvent *EVENT  = NULL;
-
-static gboolean i_select(void *obj)
+static void i_precompute_scroll(void)
 {
-    gdk_event_put(EVENT);
-
-//    gtk_widget_event(WIDGET, EVENT);
-    return FALSE;
+    GtkAllocation alloc;
+    GtkWidget *scrollbar = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(kSCROLLED));
+    cassert(kSCROLLBAR_HEIGHT == 0);
+    cassert(i_IMPOSTOR_MAPPED == TRUE);
+    gtk_widget_get_allocation(scrollbar, &alloc);
+    kSCROLLBAR_HEIGHT = alloc.width;
+    if (kSCROLLBAR_HEIGHT < 2)
+        kSCROLLBAR_HEIGHT = 2;
+    else
+        kSCROLLBAR_HEIGHT = 12;
 }
-
-static void simulate_enter_notify_event(GtkWidget *widget)
-{
-    GdkEvent *event;
-
-    g_signal_connect(widget, "enter-notify-event", G_CALLBACK(on_scrollbar_enter), NULL);
-
-    // Crear un evento de enter-notify
-    event = gdk_event_new(GDK_ENTER_NOTIFY);
-
-    // Configurar el evento para el widget específico
-    event->crossing.window = gtk_widget_get_window(widget);
-    event->crossing.send_event = TRUE;
-    event->crossing.subwindow = NULL;
-    event->crossing.time = GDK_CURRENT_TIME;
-    WIDGET = widget;
-    EVENT = event;
-
-    // Simular el evento
-    //gdk_event_put(event);
-    g_idle_add((GSourceFunc)i_select, NULL);
-
-    // on_idle
-    // gtk_widget_event(widget, event);
-    // Liberar la memoria del evento
-    //g_free(event);
-}
-*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -385,16 +353,7 @@ static gboolean i_OnWindowDamage(GtkWidget *widget, GdkEventExpose *event, gpoin
 
     i_precompute_colors();
     i_precompute_checks();
-
-    /*
-        TODO: Scrollbars size
-    {
-        GtkWidget *scroll = gtk_scrolled_window_get_vscrollbar(kSCROLLED);
-        simulate_enter_notify_event(scroll);
-
-    }
-    */
-
+    i_precompute_scroll();
     cassert(kHEADER == NULL);
 
     {
@@ -420,7 +379,6 @@ static void i_impostor_window(void)
     GtkTreeViewColumn *column1 = NULL;
     GtkTreeViewColumn *column2 = NULL;
     GtkListStore *store = NULL;
-    GtkTextBuffer *tbuffer = NULL;
     cassert(kWINDOW == NULL);
     kWINDOW = gtk_offscreen_window_new();
     /*kWINDOW = gtk_window_new(GTK_WINDOW_TOPLEVEL);*/
@@ -433,9 +391,8 @@ static void i_impostor_window(void)
     kFRAME = gtk_frame_new(NULL);
     kTABLE = gtk_tree_view_new();
     kSCROLLED = gtk_scrolled_window_new(NULL, NULL);
-    tbuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tview));
-    gtk_text_buffer_set_text(tbuffer, i_HIGH_TEXT, -1);
     gtk_container_add(GTK_CONTAINER(kSCROLLED), tview);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(kSCROLLED), GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(kPROGRESSBAR), 1.);
     gtk_container_add(GTK_CONTAINER(kFRAME), kTABLE);
     renderer = gtk_cell_renderer_text_new();
@@ -1223,6 +1180,14 @@ uint32_t osglobals_progress_height(void)
 {
     cassert(kPROGRESS_HEIGHT != 0);
     return kPROGRESS_HEIGHT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t osglobals_scrollbar_height(void)
+{
+    cassert(kSCROLLBAR_HEIGHT != 0);
+    return kSCROLLBAR_HEIGHT;
 }
 
 /*---------------------------------------------------------------------------*/

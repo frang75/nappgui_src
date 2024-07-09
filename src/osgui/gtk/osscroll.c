@@ -14,6 +14,7 @@
 #include "osscroll_gtk.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
+#include "osglobals_gtk.inl"
 #include "osview_gtk.inl"
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -27,10 +28,6 @@ struct _osscroll_t
     bool_t visible;
     uint32_t pos;
 };
-
-/*---------------------------------------------------------------------------*/
-
-static uint32_t i_BAR_SIZE = 12;
 
 /*---------------------------------------------------------------------------*/
 
@@ -83,32 +80,6 @@ static void i_OnScrollMoved(GtkRange *range, OSScroll *scroll)
         cassert(FALSE);
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-/*
-TODO: Scrollbars size
-static gboolean i_OnScrollEnter(GtkWidget *widget, GdkEventCrossing *event, OSScroll *scroll)
-{
-    cassert_no_null(scroll);
-    cassert_no_null(event);
-    if (event->type == GDK_ENTER_NOTIFY)
-    {
-        GtkRequisition size;
-        gtk_widget_get_preferred_size(widget, &size, NULL);
-        if (scroll->orient == GTK_ORIENTATION_VERTICAL)
-        {
-            i_BAR_SIZE = size.width;
-        }
-        else
-        {
-            i_BAR_SIZE = size.height;
-        }
-    }
-
-    return FALSE;
-}
-*/
 
 /*---------------------------------------------------------------------------*/
 
@@ -193,7 +164,7 @@ uint32_t osscroll_bar_width(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
     cassert_unref(scroll->orient == GTK_ORIENTATION_VERTICAL, scroll);
-    return i_BAR_SIZE;
+    return osglobals_scrollbar_height();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -202,7 +173,7 @@ uint32_t osscroll_bar_height(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
     cassert_unref(scroll->orient == GTK_ORIENTATION_HORIZONTAL, scroll);
-    return i_BAR_SIZE;
+    return osglobals_scrollbar_height();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -248,17 +219,6 @@ void osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const 
     gint ny = (gint)y;
     cassert_no_null(scroll);
     cassert(GTK_IS_LAYOUT(parent));
-    if (scroll->orient == GTK_ORIENTATION_HORIZONTAL)
-    {
-        cassert((uint32_t)height == i_BAR_SIZE);
-        ny -= 1;
-    }
-    else
-    {
-        cassert(scroll->orient == GTK_ORIENTATION_VERTICAL);
-        cassert((uint32_t)width == i_BAR_SIZE);
-        nx -= 1;
-    }
     gtk_layout_move(GTK_LAYOUT(parent), scroll->widget, nx, ny);
     gtk_widget_set_size_request(scroll->widget, (gint)width, (gint)height);
 }
@@ -291,7 +251,6 @@ gui_scroll_t osscroll_wheel_event(const GdkEventScroll *event)
             return ekGUI_SCROLL_STEP_RIGHT;
         else if (event->delta_y < 0)
             return ekGUI_SCROLL_STEP_LEFT;
-
         break;
     }
 
