@@ -52,6 +52,7 @@
     uint32_t flags;
     uint32_t vpadding;
     OSTextAttr attrs;
+    NSString *keyEquivalent;
     Listener *OnClick;
 }
 @end
@@ -842,6 +843,7 @@ OSButton *osbutton_create(const uint32_t flags)
     [button setCell:cell];
     [button setTarget:button];
     [button setAction:@selector(onClickButton:)];
+    button->keyEquivalent = nil;
     i_set_button_type(button, cell, flags);
 
     if (osbutton_text_allowed(flags) == TRUE)
@@ -874,6 +876,10 @@ void osbutton_destroy(OSButton **button)
     listener_destroy(&buttonp->OnClick);
     _oscontrol_remove_textattr(&buttonp->attrs);
     cell = [buttonp cell];
+
+    if (buttonp->keyEquivalent != nil)
+        [buttonp->keyEquivalent release];
+
     ptr_destopt(image_destroy, &cell->image, Image);
     [cell release];
     [buttonp release];
@@ -896,20 +902,25 @@ void osbutton_text(OSButton *button, const char_t *text)
 {
     OSXButton *lbutton = (OSXButton *)button;
     char_t tbuff[256];
-    uint32_t key_equivalent = UINT32_MAX;
     cassert_no_null(lbutton);
     cassert(osbutton_text_allowed(lbutton->flags) == TRUE);
-    key_equivalent = osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
+    lbutton->attrs.mark = osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
     _oscontrol_set_text(lbutton, &lbutton->attrs, tbuff);
-    if (key_equivalent != UINT32_MAX)
+
+    if (lbutton->keyEquivalent != nil)
     {
-        /*
-         TODO
-        unichar c = (unichar)unicode_tolower((uint32_t)tbuff[key_equivalent]);
-        NSString *str = [NSString stringWithCharacters:&c length:1];
-        [lbutton setKeyEquivalent:str];
-        [lbutton setKeyEquivalentModifierMask:NSEventModifierFlagOption];
-         */
+        [lbutton->keyEquivalent release];
+        lbutton->keyEquivalent = nil;
+    }
+
+    if (lbutton->attrs.mark != UINT32_MAX)
+    {
+        const char_t *pos = unicode_move(tbuff, lbutton->attrs.mark, ekUTF8);
+        uint32_t cp = unicode_to_u32(pos, ekUTF8);
+        unichar c = (unichar)unicode_tolower(cp);
+        lbutton->keyEquivalent = [[NSString alloc] initWithCharacters:&c length:1];
+        [lbutton setKeyEquivalent:lbutton->keyEquivalent];
+        [lbutton setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
     }
 }
 
@@ -1206,7 +1217,19 @@ void osbutton_set_default(OSButton *button, const bool_t is_default)
     OSXButton *lbutton = (OSXButton *)button;
     cassert_no_null(lbutton);
     if (is_default == TRUE)
+    {
         [lbutton setKeyEquivalent:@"\r"];
+    }
     else
-        [lbutton setKeyEquivalent:@""];
+    {
+        if (lbutton->keyEquivalent != nil)
+        {
+            [lbutton setKeyEquivalent:lbutton->keyEquivalent];
+            [lbutton setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
+        }
+        else
+        {
+            [lbutton setKeyEquivalent:@""];
+        }
+    }
 }

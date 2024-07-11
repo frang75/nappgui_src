@@ -289,6 +289,7 @@ void _oscontrol_init_textattr(OSTextAttr *attr)
     attr->font = osgui_create_default_font();
     attr->color = kCOLOR_TRANSPARENT;
     attr->align = ekLEFT;
+    attr->mark = UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -317,34 +318,37 @@ static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString 
             str = [cell stringValue];
     }
 
-    /*if (fstyle & ekFSTRIKEOUT || fstyle & ekFUNDERLINE)*/
     {
         NSFont *font = (NSFont *)font_native(attrs->font);
         NSDictionary *dict = i_text_attribs(control, attrs->align, attrs->color, fstyle, font);
-        NSAttributedString *mstr = [[NSAttributedString alloc] initWithString:str attributes:dict];
-        /*NSMutableAttributedString *mstr2 = [[NSMutableAttributedString alloc] initWithAttributedString:mstr];*/
+        NSAttributedString *astr = [[NSAttributedString alloc] initWithString:str attributes:dict];
+        NSMutableDictionary *mdict = nil;
+        NSMutableAttributedString *mastr = nil;
+
+        /* Underline mark for a character and font style is not underline */
+        if (attrs->mark != UINT32_MAX && (fstyle & ekFUNDERLINE) == 0)
+        {
+            mdict = [[NSMutableDictionary alloc] initWithDictionary:dict];
+            [mdict setValue:kUNDERLINE_STYLE_SINGLE forKey:NSUnderlineStyleAttributeName];
+            mastr = [[NSMutableAttributedString alloc] initWithAttributedString:astr];
+            [mastr setAttributes:mdict range:NSMakeRange(attrs->mark, 1)];
+        }
+
         [cell setFont:font];
 
         if ([cell isKindOfClass:[NSButtonCell class]])
-            [(NSButtonCell *)cell setAttributedTitle:mstr];
+            [(NSButtonCell *)cell setAttributedTitle:mastr != nil ? mastr : astr];
         else
-            [cell setAttributedStringValue:mstr];
+            [cell setAttributedStringValue:mastr != nil ? mastr : astr];
 
-        [mstr release];
+        [astr release];
+
+        if (mdict != nil)
+            [mdict release];
+
+        if (mastr != nil)
+            [mastr release];
     }
-    /*else
-    {
-        NSFont *font = (NSFont*)font_native(attrs->font);
-
-        [cell setFont:font];
-
-        if ([cell isKindOfClass:[NSTextFieldCell class]])
-            [(NSTextFieldCell*)cell setTextColor:i_control_color(attrs->color, (bool_t)[control isEnabled])];
-        if ([cell isKindOfClass:[NSButtonCell class]])
-            [(NSButtonCell*)cell setTitle:str];
-        else
-            [cell setStringValue:str];
-    }*/
 }
 
 /*---------------------------------------------------------------------------*/

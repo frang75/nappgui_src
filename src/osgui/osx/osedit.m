@@ -619,8 +619,8 @@ void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
 
     if (i_has_focus(ledit->field) == TRUE)
     {
-        cassert_no_null(ledit->editor);
-        [ledit->editor setSelectedRange:ledit->select];
+        if (ledit->editor != nil)
+            [ledit->editor setSelectedRange:ledit->select];
     }
 }
 

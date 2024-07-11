@@ -11,6 +11,12 @@
 * macOS support for `textview_copy()`, `textview_paste()` and `textview_cut()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * macOS support for `textview_OnFilter()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * `unicode_move()`. [Doc](https://nappgui.com/en/sewer/unicode.html#f15). [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
+* Button shortcuts. [Doc](https://nappgui.com/en/gui/button.html#h2).
+
+### Fixed
+
+* GTK scrollbars position. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
+* GTK flatbutton padding. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 
