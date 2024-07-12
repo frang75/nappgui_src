@@ -402,6 +402,16 @@ void textview_paste(TextView *view)
 
 /*---------------------------------------------------------------------------*/
 
+void textview_wrap(TextView *view, const bool_t wrap)
+{
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_text_set_prop);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_WRAP_MODE, cast_const(&wrap, void));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _textview_dimension(TextView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(view);

@@ -319,18 +319,25 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
     else if (code == kVK_Return || code == kVK_ANSI_KeypadEnter)
     {
-        BOOL def = _osbutton_OnIntro((NSResponder *)self->tabstop.defbutton);
-
-        if (self->flags & ekWINDOW_RETURN)
+        if (ostabstop_capture_return(&self->tabstop) == FALSE)
         {
-            if (i_close([self delegate], self, ekGUI_CLOSE_INTRO) == TRUE)
-                [self orderOut:nil];
+            BOOL def = _osbutton_OnIntro((NSResponder *)self->tabstop.defbutton);
 
-            return YES;
+            if (self->flags & ekWINDOW_RETURN)
+            {
+                if (i_close([self delegate], self, ekGUI_CLOSE_INTRO) == TRUE)
+                    [self orderOut:nil];
+
+                return YES;
+            }
+
+            if (def == YES)
+                return YES;
         }
-
-        if (def == YES)
-            return YES;
+        else
+        {
+            return FALSE;
+        }
     }
 
     else if (code == kVK_Escape)

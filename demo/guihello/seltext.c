@@ -94,6 +94,18 @@ static void i_OnSelect(SelData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnWrap(SelData *data, Event *e)
+{
+    const EvButton *p = event_params(e, EvButton);
+    cassert_no_null(data);
+    if (p->state == ekGUI_ON)
+        textview_wrap(data->text, TRUE);
+    else
+        textview_wrap(data->text, FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnEditFilter(SelData *data, Event *e)
 {
     const EvText *p = event_params(e, EvText);
@@ -189,12 +201,13 @@ static void i_OnTextViewFilter(SelData *data, Event *e)
 
 static Layout *i_text_controls(SelData *data)
 {
-    Layout *layout = layout_create(6, 1);
+    Layout *layout = layout_create(7, 1);
     Button *button1 = button_flat();
     Button *button2 = button_flat();
     Button *button3 = button_flat();
     Button *button4 = button_push();
     Button *button5 = button_check();
+    Button *button6 = button_check();
     Edit *edit = edit_create();
     button_image(button1, gui_image(COPY_PNG));
     button_image(button2, gui_image(PASTE_PNG));
@@ -208,19 +221,24 @@ static Layout *i_text_controls(SelData *data)
     button_tooltip(button3, "Cut");
     button_text(button4, "Select Text");
     button_text(button5, "Caps");
+    button_text(button6, "Wrap");
     button_OnClick(button4, listener(data, i_OnSelect, SelData));
+    button_OnClick(button6, listener(data, i_OnWrap, SelData));
+    button_state(button6, ekGUI_ON);
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);
     layout_edit(layout, edit, 3, 0);
     layout_button(layout, button4, 4, 0);
     layout_button(layout, button5, 5, 0);
+    layout_button(layout, button6, 6, 0);
     layout_hsize(layout, 3, 40);
     layout_hmargin(layout, 0, 5);
     layout_hmargin(layout, 1, 5);
     layout_hmargin(layout, 2, 5);
     layout_hmargin(layout, 3, 5);
     layout_hmargin(layout, 4, 5);
+    layout_hmargin(layout, 5, 5);
     data->edit_range = edit;
     data->caps = button5;
     return layout;
@@ -244,7 +262,7 @@ static Layout *i_layout(SelData *data)
     label_text(label3, "Info");
     edit_text(edit, "This is a text in the EditBox control");
     edit_OnFilter(edit, listener(data, i_OnEditFilter, SelData));
-    textview_writef(text1, "This is another text in the TextView control");
+    textview_writef(text1, "This is another text in the TextView control, wider than the control.");
     textview_editable(text1, TRUE);
     textview_OnFilter(text1, listener(data, i_OnTextViewFilter, SelData));
     layout_label(layout1, label1, 0, 0);

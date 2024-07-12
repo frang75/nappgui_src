@@ -207,20 +207,27 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSWindow *wi
 
     case GDK_KEY_Return:
     case GDK_KEY_KP_Enter:
-        if (window->tabstop.defbutton != NULL)
+        if (ostabstop_capture_return(&window->tabstop) == FALSE)
         {
-            GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(widget));
-            GtkWidget *bfocus = _osbutton_focus_widget(window->tabstop.defbutton);
-            if (gtk_widget_get_can_focus(bfocus) == TRUE)
-                gtk_window_set_focus(GTK_WINDOW(widget), bfocus);
-            _osbutton_command(window->tabstop.defbutton);
-            osglobals_restore_focus(widget, focus);
-        }
+            if (window->tabstop.defbutton != NULL)
+            {
+                GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(widget));
+                GtkWidget *bfocus = _osbutton_focus_widget(window->tabstop.defbutton);
+                if (gtk_widget_get_can_focus(bfocus) == TRUE)
+                    gtk_window_set_focus(GTK_WINDOW(widget), bfocus);
+                _osbutton_command(window->tabstop.defbutton);
+                osglobals_restore_focus(widget, focus);
+            }
 
-        if (window->flags & ekWINDOW_RETURN)
+            if (window->flags & ekWINDOW_RETURN)
+            {
+                i_close(window, ekGUI_CLOSE_INTRO);
+                return TRUE;
+            }
+        }
+        else
         {
-            i_close(window, ekGUI_CLOSE_INTRO);
-            return TRUE;
+            return FALSE;
         }
         break;
 

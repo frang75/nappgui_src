@@ -249,7 +249,8 @@ typedef enum _gui_text_t
     ekGUI_TEXT_BFPARSPACE,
     ekGUI_TEXT_AFPARSPACE,
     ekGUI_TEXT_SELECT,
-    ekGUI_TEXT_SCROLL
+    ekGUI_TEXT_SCROLL,
+    ekGUI_TEXT_WRAP_MODE
 } gui_text_t;
 
 typedef enum _gui_web_t

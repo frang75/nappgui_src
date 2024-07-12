@@ -160,6 +160,13 @@ static void i_OnBufferDelete(GtkTextBuffer *buffer, GtkTextIter *start, GtkTextI
 
 /*---------------------------------------------------------------------------*/
 
+static void i_set_wrap_mode(GtkWidget *tview, const bool_t wrap)
+{
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tview), wrap == TRUE ? GTK_WRAP_WORD : GTK_WRAP_NONE);
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSText *ostext_create(const uint32_t flags)
 {
     OSText *view = heap_new0(OSText);
@@ -189,6 +196,7 @@ OSText *ostext_create(const uint32_t flags)
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view->tview), GTK_WRAP_WORD);
     gtk_text_view_set_left_margin(GTK_TEXT_VIEW(view->tview), 5);
     gtk_text_view_set_right_margin(GTK_TEXT_VIEW(view->tview), 5);
+    i_set_wrap_mode(view->tview, TRUE);
     gtk_container_add(GTK_CONTAINER(scrolled), view->tview);
     top = scrolled;
     focus = view->tview;
@@ -755,6 +763,12 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         g_idle_add((GSourceFunc)i_scroll_to_caret, view);
         break;
 
+    case ekGUI_TEXT_WRAP_MODE:
+    {
+        bool_t wrap = *cast(value, bool_t);
+        i_set_wrap_mode(view->tview, wrap);
+        break;
+    }
         cassert_default();
     }
 }
@@ -924,6 +938,14 @@ void ostext_focus(OSText *view, const bool_t focus)
         gtk_text_buffer_get_start_iter(tbuf, &iter);
         gtk_text_buffer_select_range(tbuf, &iter, &iter);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t ostext_capture_return(OSText *view)
+{
+    cassert_no_null(view);
+    return (bool_t)gtk_text_view_get_editable(GTK_TEXT_VIEW(view->tview));
 }
 
 /*---------------------------------------------------------------------------*/

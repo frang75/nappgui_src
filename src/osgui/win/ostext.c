@@ -118,6 +118,15 @@ static void i_set_rich_text(HWND hwnd, const BOOL rich_text)
 
 /*---------------------------------------------------------------------------*/
 
+/* https://www.autoitscript.com/forum/topic/167566-richedit-toggle-wrapunwrap-how/?do=findComment&comment=1340233 */
+static void i_set_wrap_mode(HWND hwnd, const bool_t wrap)
+{
+    LRESULT res = SendMessage(hwnd, EM_SETTARGETDEVICE, (WPARAM)NULL, (LPARAM)!wrap);
+    cassert_unref(res != 0, res);
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSText *ostext_create(const uint32_t flags)
 {
     OSText *view = NULL;
@@ -125,10 +134,11 @@ OSText *ostext_create(const uint32_t flags)
     unref(flags);
     view = heap_new0(OSText);
     view->control.type = ekGUI_TYPE_TEXTVIEW;
-    dwStyle = WS_CHILD | WS_CLIPSIBLINGS | ES_MULTILINE | ES_WANTRETURN /*| ES_AUTOVSCROLL*/ | WS_VSCROLL /*| WS_HSCROLL*/;
+    dwStyle = WS_CHILD | WS_CLIPSIBLINGS | ES_MULTILINE | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL;
     _oscontrol_init((OSControl *)view, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kRICHEDIT_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     i_set_rich_text(view->control.hwnd, TRUE);
     i_set_editable(view->control.hwnd, FALSE);
+    i_set_wrap_mode(view->control.hwnd, TRUE);
     view->launch_event = TRUE;
     view->focused = FALSE;
     view->dyLineSpacing = 20;
@@ -422,6 +432,13 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         SendMessage(view->control.hwnd, EM_SCROLLCARET, 0, 0);
         SetFocus(focus);
         view->launch_event = prev;
+        break;
+    }
+
+    case ekGUI_TEXT_WRAP_MODE:
+    {
+        bool_t wrap = *cast(value, bool_t);
+        i_set_wrap_mode(view->control.hwnd, wrap);
         break;
     }
 
@@ -765,4 +782,12 @@ void ostext_focus(OSText *view, const bool_t focus)
     }
 
     RedrawWindow(view->control.hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t ostext_capture_return(OSText *view)
+{
+    cassert_no_null(view);
+    return view->is_editable;
 }

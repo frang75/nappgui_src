@@ -12,6 +12,7 @@
 * macOS support for `textview_OnFilter()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * `unicode_move()`. [Doc](https://nappgui.com/en/sewer/unicode.html#f15). [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * Button shortcuts. [Doc](https://nappgui.com/en/gui/button.html#h2).
+* `textview_wrap`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/97).
 
 ### Fixed
 

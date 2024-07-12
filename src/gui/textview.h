@@ -69,4 +69,6 @@ _gui_api void textview_cut(TextView *view);
 
 _gui_api void textview_paste(TextView *view);
 
+_gui_api void textview_wrap(TextView *view, const bool_t wrap);
+
 __END_C

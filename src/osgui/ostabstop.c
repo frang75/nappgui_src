@@ -134,6 +134,22 @@ bool_t ostabstop_can_close_window(OSTabStop *tabstop)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t ostabstop_capture_return(OSTabStop *tabstop)
+{
+    OSControl *control = i_get_focus(tabstop);
+    if (control != NULL)
+    {
+        gui_type_t type = oscontrol_type(control);
+        cassert(arrpt_find(tabstop->controls, control, OSControl) != UINT32_MAX);
+        if (type == ekGUI_TYPE_TEXTVIEW)
+            return ostext_capture_return(cast(control, OSText));
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 #if defined __ASSERTS__
 
 static bool_t i_dump_controls(const ArrPt(OSControl) *controls, const bool_t print)
