@@ -13,12 +13,13 @@
 * `unicode_move()`. [Doc](https://nappgui.com/en/sewer/unicode.html#f15). [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * Button shortcuts. [Doc](https://nappgui.com/en/gui/button.html#h2). [Commit](https://github.com/frang75/nappgui_src/commit/199ffb74dd61105ae6ee541d6c71d21d1fe1d328).
 * `textview_wrap()`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/97). [Commit](https://github.com/frang75/nappgui_src/commit/25ea6095a5143249de454379cf222f06610bb258).
-* `view_allow_tab()`. [Doc](https://nappgui.com/en/gui/view.html#f24).
+* `view_allow_tab()`. [Doc](https://nappgui.com/en/gui/view.html#f24). [Commit](https://github.com/frang75/nappgui_src/commit/811c72ebe9d198e87398c7060628580f81cb8573).
 
 ### Fixed
 
 * GTK scrollbars position. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
 * GTK flatbutton padding. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
+* GTK render listbox checks in Xubuntu.
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 

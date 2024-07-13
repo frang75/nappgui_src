@@ -115,32 +115,6 @@ static void i_widget_margins(GtkWidget *widget, const uint32_t max_width, const 
 }
 
 /*---------------------------------------------------------------------------*/
-/*
- * Button states (5)
- * Normal
- * Prelight - Hot or mouse over
- * Backdrop - Background primary window
- * Insensitive - Disabled
- */
-static void i_button_images(cairo_t *cairo, GtkWidget **button, gdouble offset)
-{
-    cairo_translate(cairo, offset, 0);
-    gtk_widget_draw(button[0], cairo);
-
-    cairo_translate(cairo, offset, 0);
-    gtk_widget_draw(button[1], cairo);
-
-    cairo_translate(cairo, offset, 0);
-    gtk_widget_draw(button[2], cairo);
-
-    cairo_translate(cairo, offset, 0);
-    gtk_widget_draw(button[3], cairo);
-
-    cairo_translate(cairo, offset, 0);
-    gtk_widget_draw(button[4], cairo);
-}
-
-/*---------------------------------------------------------------------------*/
 
 static color_t i_from_gdkcolor(const GdkRGBA *gdkcolor)
 {
@@ -186,6 +160,7 @@ static color_t i_backcolor_prop(GtkWidget *widget, GtkStateFlags flags)
 /*---------------------------------------------------------------------------*/
 
 /* Useful debug code to save GdkPixbuf to file  */
+
 /*
 #include <draw2d/image.inl>
 static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
@@ -279,32 +254,101 @@ static void i_precompute_colors(void)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_equal_images(GdkPixbuf *pixbuf1, const uint32_t x1, const uint32_t y1, GdkPixbuf *pixbuf2, const uint32_t x2, const uint32_t y2, const uint32_t width, const uint32_t height)
+{
+    gboolean alpha1 = gdk_pixbuf_get_has_alpha(pixbuf1);
+    gboolean alpha2 = gdk_pixbuf_get_has_alpha(pixbuf2);
+
+    if (alpha1 == alpha2)
+    {
+        const guchar *pixels1 = gdk_pixbuf_get_pixels(pixbuf1);
+        const guchar *pixels2 = gdk_pixbuf_get_pixels(pixbuf2);
+        uint32_t i, j, offset = alpha1 ? 4 : 3;
+        int stride1 = gdk_pixbuf_get_rowstride(pixbuf1);
+        int stride2 = gdk_pixbuf_get_rowstride(pixbuf2);
+        pixels1 += y1 * stride1;
+        pixels2 += y2 * stride2;
+        for (j = 0; j < height; ++j)
+        {
+            for (i = 0; i < width; ++i)
+            {
+                const guchar *pix1 = pixels1 + (x1 + i) * offset;
+                const guchar *pix2 = pixels2 + (x2 + i) * offset;
+                if (pix1[0] != pix2[0] || pix1[1] != pix2[1] || pix1[2] != pix2[2])
+                    return FALSE;
+            }
+
+            pixels1 += stride1;
+            pixels2 += stride2;
+        }
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_precompute_checks(void)
 {
     uint32_t mx, my, mwidth, mheight, border = 0;
+    gdouble dwidth = 0, dheight = 0;
     cairo_surface_t *surface = NULL;
     cairo_t *cairo = NULL;
-
+    uint32_t i = 0;
     cassert(kCHECK_WIDTH == 0);
     cassert(kCHECK_HEIGHT == 0);
     cassert(kCHECKSBITMAP == NULL);
     cassert(i_IMPOSTOR_MAPPED == TRUE);
     i_widget_margins(kCHECK[0], 30, 30, &mx, &my, &mwidth, &mheight, &border);
+    dwidth = (gdouble)mwidth;
+    dheight = (gdouble)mheight;
 
     /* Image with checkbox and radio states for drawing in contexts */
     surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 10 * mwidth, mheight);
     cairo = cairo_create(surface);
-    cairo_translate(cairo, -(gdouble)(mx + mwidth), -(gdouble)my);
-    i_button_images(cairo, kCHECK, (gdouble)mwidth);
-    i_button_images(cairo, kCHECK + 5, (gdouble)mwidth);
+    cairo_translate(cairo, -(gdouble)mx, -(gdouble)my);
+
+    /*
+    * Button states (5)
+    * Normal
+    * Prelight - Hot or mouse over
+    * Backdrop - Background primary window
+    * Insensitive - Disabled
+    */
+    /* Draw checkboxes */
+    for (i = 0; i < 10; ++i)
+    {
+        gtk_widget_draw(kCHECK[i], cairo);
+        cairo_translate(cairo, dwidth, 0);
+    }
+
     kCHECK_WIDTH = mwidth;
     kCHECK_HEIGHT = mheight;
     kCHECKSBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, 10 * mwidth, mheight);
 
+    /* Checkbox marks have been not rendered. This happens in some versions of Xubuntu. */
+    if (i_equal_images(kCHECKSBITMAP, 0, 0, kCHECKSBITMAP, 5 * mwidth, 0, mwidth, mheight) == TRUE)
+    {
+        g_object_unref(kCHECKSBITMAP);
+        cairo_translate(cairo, -dwidth * 5, 0);
+        for (i = 5; i < 10; ++i)
+        {
+            GtkStyleContext *context = gtk_widget_get_style_context(kCHECK[i]);
+            gtk_render_check(context, cairo, 0, 0, dwidth, dheight);
+            cairo_translate(cairo, dwidth, 0);
+        }
+
+        kCHECKSBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, 10 * mwidth, mheight);
+    }
+
     /*
-    Stream *stm = stm_to_file("/home/fran/Desktop/check.png", NULL);
-    i_pixbuf_save(kCHECKSBITMAP, "png", stm);
-    stm_close(&stm);
+    {
+        Stream *stm = stm_to_file("/home/fran/Desktop/check.png", NULL);
+        i_pixbuf_save(kCHECKSBITMAP, "png", stm);
+        stm_close(&stm);
+    }
     */
 
     cairo_surface_destroy(surface);
@@ -323,7 +367,7 @@ static void i_precompute_scroll(void)
     kSCROLLBAR_HEIGHT = alloc.width;
     if (kSCROLLBAR_HEIGHT < 2)
         kSCROLLBAR_HEIGHT = 2;
-    else
+    else if (kSCROLLBAR_HEIGHT < 12)
         kSCROLLBAR_HEIGHT = 12;
 }
 
@@ -682,16 +726,6 @@ void osglobals_OnIdle(void *nonused, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_null_log(const gchar *log_domain, GLogLevelFlags log_levels, const gchar *message, gpointer user_data)
-{
-    unref(log_domain);
-    unref(log_levels);
-    unref(message);
-    unref(user_data);
-}
-
-/*---------------------------------------------------------------------------*/
-
 #define IS_BLANK(c) (bool_t)((c) == ' ' || (c) == '\n' || (c) == '\t' || (c) == '\v' || (c) == '\f' || (c) == '\r')
 
 static const char *i_get_next_section(const char *css_data, char **pcss, int *n)
@@ -955,10 +989,21 @@ static void i_parse_gtk_theme(void)
 
 /*---------------------------------------------------------------------------*/
 
+static GLogWriterOutput i_null_writter(GLogLevelFlags log_level, const GLogField *fields, gsize n_fields, gpointer user_data)
+{
+    unref(log_level);
+    unref(fields);
+    unref(n_fields);
+    unref(user_data);
+    return G_LOG_WRITER_UNHANDLED;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_init(void)
 {
-    /* Disable unavoidable GLib warnings when processing CSS */
-    g_log_set_handler("GLib", (GLogLevelFlags)0xFFFF, i_null_log, NULL);
+    /* Disable unavoidable GLib/Gtk warnings when processing CSS */
+    g_log_set_writer_func(i_null_writter, NULL, NULL);
     i_parse_gtk_theme();
     i_impostor_window();
 }

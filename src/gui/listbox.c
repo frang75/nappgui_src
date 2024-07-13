@@ -140,7 +140,9 @@ static void i_OnDraw(ListBox *listbox, Event *e)
         uint32_t y = strow * data->row_height;
         uint32_t i;
 
-        fill_width -= scrollview_scrollbar_width(data->sview);
+        if (scrollview_scrollbar_height(data->sview) == 0)
+            fill_width -= scrollview_scrollbar_width(data->sview);
+
 #if defined(__WINDOWS__)
         fill_width -= 2;
 #endif
