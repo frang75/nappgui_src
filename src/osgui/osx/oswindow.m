@@ -299,22 +299,29 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
     if (code == kVK_Tab)
     {
-        BOOL previous = NO;
+        if (ostabstop_capture_tab(&self->tabstop) == FALSE)
+        {
+            BOOL previous = NO;
 
 #if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-        NSEventModifierFlags flgs = [theEvent modifierFlags];
-        previous = (flgs & NSEventModifierFlagShift) != 0;
+            NSEventModifierFlags flgs = [theEvent modifierFlags];
+            previous = (flgs & NSEventModifierFlagShift) != 0;
 #else
-        NSUInteger flgs = [theEvent modifierFlags];
-        previous = (flgs & NSShiftKeyMask) != 0;
+            NSUInteger flgs = [theEvent modifierFlags];
+            previous = (flgs & NSShiftKeyMask) != 0;
 #endif
 
-        if (previous == YES)
-            ostabstop_prev(&self->tabstop, TRUE);
-        else
-            ostabstop_next(&self->tabstop, TRUE);
+            if (previous == YES)
+                ostabstop_prev(&self->tabstop, TRUE);
+            else
+                ostabstop_next(&self->tabstop, TRUE);
 
-        return YES;
+            return YES;
+        }
+        else
+        {
+            return NO;
+        }
     }
 
     else if (code == kVK_Return || code == kVK_ANSI_KeypadEnter)
@@ -336,7 +343,7 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
         }
         else
         {
-            return FALSE;
+            return NO;
         }
     }
 

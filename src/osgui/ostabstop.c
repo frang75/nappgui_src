@@ -142,7 +142,23 @@ bool_t ostabstop_capture_return(OSTabStop *tabstop)
         gui_type_t type = oscontrol_type(control);
         cassert(arrpt_find(tabstop->controls, control, OSControl) != UINT32_MAX);
         if (type == ekGUI_TYPE_TEXTVIEW)
-            return ostext_capture_return(cast(control, OSText));
+            return ostext_capture_return(cast_const(control, OSText));
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t ostabstop_capture_tab(OSTabStop *tabstop)
+{
+    OSControl *control = i_get_focus(tabstop);
+    if (control != NULL)
+    {
+        gui_type_t type = oscontrol_type(control);
+        cassert(arrpt_find(tabstop->controls, control, OSControl) != UINT32_MAX);
+        if (type == ekGUI_TYPE_CUSTOMVIEW)
+            return osview_capture_tab(cast_const(control, OSView));
     }
 
     return FALSE;

@@ -522,9 +522,9 @@ typedef void (*FPtr_gctx_set_property)(void *item, const enum_t prop, const void
 #define FUNC_CHECK_GCTX_SET_PROPERTY(func, type, prop_type) \
     (void)((void (*)(type *, const prop_type, const void *))func == func)
 
-typedef void (*FPtr_gctx_set_key)(void *item, const uint32_t key, const uint32_t modifiers);
+typedef void (*FPtr_gctx_set_key)(void *item, const vkey_t key, const uint32_t modifiers);
 #define FUNC_CHECK_GCTX_SET_KEY(func, type) \
-    (void)((void (*)(type *, const uint32_t, const uint32_t))func == func)
+    (void)((void (*)(type *, const vkey_t, const uint32_t))func == func)
 
 typedef void (*FPtr_gctx_set_hotkey)(void *item, const vkey_t, const uint32_t, Listener *);
 #define FUNC_CHECK_GCTX_SET_HOTKEY(func, type) \
@@ -811,6 +811,7 @@ struct _guictx_t
     FPtr_gctx_set_listener func_view_OnTouchStartPinch;
     FPtr_gctx_set_listener func_view_OnTouchPinching;
     FPtr_gctx_set_listener func_view_OnTouchEndPinch;
+    FPtr_gctx_set_key func_view_allow_key;
     FPtr_gctx_set2_real32 func_view_scroll;
     FPtr_gctx_get2_real32 func_view_scroll_get;
     FPtr_gctx_get2_real32 func_view_scroller_size;

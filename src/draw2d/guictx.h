@@ -904,6 +904,7 @@ _draw2d_api void guictx_append_view_manager_imp(
     FPtr_gctx_set_listener func_view_OnTouchStartPinch,
     FPtr_gctx_set_listener func_view_OnTouchPinching,
     FPtr_gctx_set_listener func_view_OnTouchEndPinch,
+    FPtr_gctx_set_key func_view_allow_key,
     FPtr_gctx_set2_real32 func_view_scroll,
     FPtr_gctx_get2_real32 func_view_scroll_get,
     FPtr_gctx_get2_real32 func_view_scroller_size,
@@ -947,6 +948,7 @@ _draw2d_api void guictx_append_view_manager_imp(
     func_view_OnTouchStartPinch, \
     func_view_OnTouchPinching, \
     func_view_OnTouchEndPinch, \
+    func_view_allow_key, \
     func_view_scroll, \
     func_view_scroll_get, \
     func_view_scroller_size, \
@@ -990,6 +992,7 @@ _draw2d_api void guictx_append_view_manager_imp(
         FUNC_CHECK_GCTX_SET_LISTENER(func_view_OnTouchStartPinch, view_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_view_OnTouchPinching, view_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_view_OnTouchEndPinch, view_type), \
+        FUNC_CHECK_GCTX_SET_KEY(func_view_allow_key, view_type), \
         FUNC_CHECK_GCTX_SET2_REAL32(func_view_scroll, view_type), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_view_scroll_get, view_type), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_view_scroller_size, view_type), \
@@ -1034,6 +1037,7 @@ _draw2d_api void guictx_append_view_manager_imp(
             (FPtr_gctx_set_listener)func_view_OnTouchStartPinch, \
             (FPtr_gctx_set_listener)func_view_OnTouchPinching, \
             (FPtr_gctx_set_listener)func_view_OnTouchEndPinch, \
+            (FPtr_gctx_set_key)func_view_allow_key, \
             (FPtr_gctx_set2_real32)func_view_scroll, \
             (FPtr_gctx_get2_real32)func_view_scroll_get, \
             (FPtr_gctx_get2_real32)func_view_scroller_size, \

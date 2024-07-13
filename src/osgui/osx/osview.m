@@ -47,6 +47,7 @@
     Listener *OnOverlay;
     BOOL mouse_inside;
     BOOL focused;
+    BOOL allow_tab;
 }
 @end
 
@@ -320,6 +321,7 @@ OSView *osview_create(const uint32_t flags)
     view->OnOverlay = NULL;
     view->mouse_inside = NO;
     view->focused = NO;
+    view->allow_tab = NO;
     view->osdraw.view = view;
     _oslistener_init(&view->listeners);
 
@@ -606,6 +608,17 @@ void osview_OnScroll(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value)
+{
+    OSXView *lview = i_get_view(view);
+    cassert_no_null(lview);
+    cassert(key == ekKEY_TAB);
+    cassert(value == 0 || value == 1);
+    lview->allow_tab = (BOOL)value;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 {
     OSXView *lview = i_get_view(view);
@@ -799,6 +812,17 @@ void osview_focus(OSView *view, const bool_t focus)
     if (lview->flags & ekVIEW_BORDER)
         [lview setKeyboardFocusRingNeedsDisplayInRect:[lview bounds]];
 #endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osview_capture_tab(const OSView *view)
+{
+    OSXView *lview = i_get_view(view);
+    cassert_no_null(lview);
+    if (lview->listeners.OnKeyDown == NULL)
+        return FALSE;
+    return (bool_t)lview->allow_tab;
 }
 
 /*---------------------------------------------------------------------------*/

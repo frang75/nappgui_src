@@ -467,6 +467,15 @@ void view_OnScroll(View *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void view_allow_tab(View *view, const bool_t allow)
+{
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    view->component.context->func_view_allow_key(view->component.ositem, ekKEY_TAB, (uint32_t)allow);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void view_keybuf(View *view, KeyBuf *buffer)
 {
     cassert_no_null(view);

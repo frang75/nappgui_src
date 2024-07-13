@@ -301,7 +301,7 @@ static ___INLINE GdkModifierType i_kmod(const uint32_t modifiers)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifiers)
+void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers)
 {
     cassert_no_null(item);
     if (item->accel != NULL)

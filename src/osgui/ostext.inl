@@ -18,6 +18,6 @@ void ostext_detach_and_destroy(OSText **view, OSPanel *panel);
 
 void ostext_focus(OSText *view, const bool_t focus);
 
-bool_t ostext_capture_return(OSText *view);
+bool_t ostext_capture_return(const OSText *view);
 
 __END_C

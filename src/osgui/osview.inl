@@ -22,4 +22,6 @@ bool_t osview_accept_focus(const OSView *view);
 
 void osview_focus(OSView *view, const bool_t focus);
 
+bool_t osview_capture_tab(const OSView *view);
+
 __END_C

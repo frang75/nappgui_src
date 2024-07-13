@@ -942,7 +942,7 @@ void ostext_focus(OSText *view, const bool_t focus)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t ostext_capture_return(OSText *view)
+bool_t ostext_capture_return(const OSText *view)
 {
     cassert_no_null(view);
     return (bool_t)gtk_text_view_get_editable(GTK_TEXT_VIEW(view->tview));

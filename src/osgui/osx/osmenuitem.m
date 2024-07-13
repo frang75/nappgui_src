@@ -355,7 +355,7 @@ static NSUInteger i_kmod(const uint32_t modifiers)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifiers)
+void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers)
 {
     unichar c;
     NSString *str = nil;

@@ -5,14 +5,15 @@
 ### Added
 
 * macOS support for `edit_select()`. [Commit](https://github.com/frang75/nappgui_src/commit/d54bdc23f73800817975a840d3d927f00b720452).
-* macOs support for `edit_copy()`, `edit_paste()` and `edit_cut()`. [Commit](https://github.com/frang75/nappgui_src/commit/63e667c951ff4850b25de073643c9bdda7069e5e).
+* macOS support for `edit_copy()`, `edit_paste()` and `edit_cut()`. [Commit](https://github.com/frang75/nappgui_src/commit/63e667c951ff4850b25de073643c9bdda7069e5e).
 * New demo on text selection and clipboard. [Doc](https://nappgui.com/en/howto/guihello.html#h5). [Commit](https://github.com/frang75/nappgui_src/commit/96f6fc272850376103050f283171d60da1f0c00b).
 * macOS support for `textview_select()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * macOS support for `textview_copy()`, `textview_paste()` and `textview_cut()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * macOS support for `textview_OnFilter()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
 * `unicode_move()`. [Doc](https://nappgui.com/en/sewer/unicode.html#f15). [Commit](https://github.com/frang75/nappgui_src/commit/f6f7ca5a2adbab9119c4c3b168747738ad40a96d).
-* Button shortcuts. [Doc](https://nappgui.com/en/gui/button.html#h2).
-* `textview_wrap`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/97).
+* Button shortcuts. [Doc](https://nappgui.com/en/gui/button.html#h2). [Commit](https://github.com/frang75/nappgui_src/commit/199ffb74dd61105ae6ee541d6c71d21d1fe1d328).
+* `textview_wrap()`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/97). [Commit](https://github.com/frang75/nappgui_src/commit/25ea6095a5143249de454379cf222f06610bb258).
+* `view_allow_tab()`. [Doc](https://nappgui.com/en/gui/view.html#f24).
 
 ### Fixed
 

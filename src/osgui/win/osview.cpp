@@ -47,6 +47,7 @@ struct _osview_t
     DCtx *ctx;
     uint32_t flags;
     bool_t focused;
+    bool_t allow_tab;
     HBITMAP dbuffer;
     LONG dbuffer_width;
     LONG dbuffer_height;
@@ -320,6 +321,7 @@ OSView *osview_create(const uint32_t flags)
     view->control.type = ekGUI_TYPE_CUSTOMVIEW;
     view->flags = flags;
     view->focused = FALSE;
+    view->allow_tab = FALSE;
 
     // Extra data is defined in 'i_registry_view_class::cbWndExtra'
     // 0 means GDI/GDI+ based drawing
@@ -524,6 +526,16 @@ void osview_OnScroll(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value)
+{
+    cassert_no_null(view);
+    cassert(key == ekKEY_TAB);
+    cassert(value == 0 || value == 1);
+    view->allow_tab = (bool_t)value;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 {
     cassert_no_null(view);
@@ -697,4 +709,14 @@ void osview_focus(OSView *view, const bool_t focus)
 
     if (view->flags & ekVIEW_BORDER)
         RedrawWindow(view->control.hwnd, NULL, NULL, RDW_FRAME | RDW_INVALIDATE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osview_capture_tab(const OSView *view)
+{
+    cassert_no_null(view);
+    if (view->listeners.OnKeyDown == NULL)
+        return FALSE;
+    return view->allow_tab;
 }

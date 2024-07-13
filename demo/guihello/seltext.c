@@ -98,10 +98,7 @@ static void i_OnWrap(SelData *data, Event *e)
 {
     const EvButton *p = event_params(e, EvButton);
     cassert_no_null(data);
-    if (p->state == ekGUI_ON)
-        textview_wrap(data->text, TRUE);
-    else
-        textview_wrap(data->text, FALSE);
+    textview_wrap(data->text, p->state == ekGUI_ON ? TRUE : FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

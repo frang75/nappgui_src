@@ -239,6 +239,7 @@ GuiCtx *osguictx(void)
         NULL, /* osview_OnTouchStartPinch, */
         NULL, /* osview_OnTouchPinching, */
         NULL, /* osview_OnTouchEndPinch, */
+        osview_allow_key,
         osview_scroll,
         osview_scroll_get,
         osview_scroller_size,

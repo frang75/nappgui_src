@@ -50,6 +50,8 @@ _osgui_api void osview_OnAcceptFocus(OSView *view, Listener *listener);
 
 _osgui_api void osview_OnScroll(OSView *view, Listener *listener);
 
+_osgui_api void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value);
+
 _osgui_api void osview_scroll(OSView *view, const real32_t x, const real32_t y);
 
 _osgui_api void osview_scroll_get(const OSView *view, real32_t *x, real32_t *y);

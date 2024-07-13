@@ -189,13 +189,27 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSWindow *wi
     switch (key)
     {
     case GDK_KEY_Tab:
-        ostabstop_next(&window->tabstop, TRUE);
-        return TRUE;
+        if (ostabstop_capture_tab(&window->tabstop) == FALSE)
+        {
+            ostabstop_next(&window->tabstop, TRUE);
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
 
     /* https://mail.gnome.org/archives/gtk-list/1999-August/msg00127.html */
     case GDK_KEY_ISO_Left_Tab:
-        ostabstop_prev(&window->tabstop, TRUE);
-        return TRUE;
+        if (ostabstop_capture_tab(&window->tabstop) == FALSE)
+        {
+            ostabstop_prev(&window->tabstop, TRUE);
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
 
     case GDK_KEY_Escape:
         if (window->flags & ekWINDOW_ESC)

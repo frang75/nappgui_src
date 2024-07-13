@@ -28,7 +28,7 @@ _osgui_api void osmenuitem_text(OSMenuItem *item, const char_t *text);
 
 _osgui_api void osmenuitem_image(OSMenuItem *item, const Image *image);
 
-_osgui_api void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifiers);
+_osgui_api void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers);
 
 _osgui_api void osmenuitem_state(OSMenuItem *item, const gui_state_t state);
 

@@ -47,6 +47,7 @@ struct _osview_t
     real32_t clip_height;
     ViewListeners listeners;
     GtkCssProvider *border_color;
+    bool_t allow_tab;
     Listener *OnFocus;
     Listener *OnResignFocus;
     Listener *OnAcceptFocus;
@@ -292,7 +293,7 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSView *view
     unref(widget);
 
     /* TAB Alt-TAB Navigation */
-    if (event->keyval == GDK_KEY_Tab || event->keyval == GDK_KEY_ISO_Left_Tab)
+    if (view->allow_tab == FALSE && (event->keyval == GDK_KEY_Tab || event->keyval == GDK_KEY_ISO_Left_Tab))
         return FALSE;
 
     return (gboolean)_oslistener_key_down((OSControl *)view, event, &view->listeners);
@@ -372,6 +373,7 @@ OSView *osview_create(const uint32_t flags)
     view->darea = area;
     view->listeners.button = ENUM_MAX(gui_mouse_t);
     view->listeners.is_enabled = TRUE;
+    view->allow_tab = FALSE;
     _oscontrol_init(&view->control, ekGUI_TYPE_CUSTOMVIEW, top, area, TRUE);
 
     if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
@@ -570,6 +572,16 @@ void osview_OnScroll(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value)
+{
+    cassert_no_null(view);
+    cassert(key == ekKEY_TAB);
+    cassert(value == 0 || value == 1);
+    view->allow_tab = (bool_t)value;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 {
     cassert_no_null(view);
@@ -735,27 +747,6 @@ void _osview_release_capture(OSView *view)
 
 /*---------------------------------------------------------------------------*/
 
-void osview_focus(OSView *view, const bool_t focus)
-{
-    cassert_no_null(view);
-    if (view->OnFocus != NULL)
-    {
-        bool_t params = focus;
-        listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
-    }
-
-    if (view->border_color != NULL)
-    {
-        cassert(GTK_IS_FRAME(view->control.widget));
-        if (focus == TRUE)
-            _oscontrol_widget_add_provider(view->control.widget, view->border_color);
-        else
-            _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 GtkWidget *_osview_focus_widget(OSView *view)
 {
     cassert_no_null(view);
@@ -801,4 +792,35 @@ bool_t osview_accept_focus(const OSView *view)
     if (view->OnAcceptFocus != NULL)
         listener_event(view->OnAcceptFocus, ekGUI_EVENT_FOCUS_ACCEPT, view, NULL, &accept, OSView, void, bool_t);
     return accept;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osview_focus(OSView *view, const bool_t focus)
+{
+    cassert_no_null(view);
+    if (view->OnFocus != NULL)
+    {
+        bool_t params = focus;
+        listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
+    }
+
+    if (view->border_color != NULL)
+    {
+        cassert(GTK_IS_FRAME(view->control.widget));
+        if (focus == TRUE)
+            _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+        else
+            _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osview_capture_tab(const OSView *view)
+{
+    cassert_no_null(view);
+    if (view->listeners.OnKeyDown == NULL)
+        return FALSE;
+    return view->allow_tab;
 }

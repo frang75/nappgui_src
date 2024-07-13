@@ -418,7 +418,7 @@ static BYTE i_fvirt(const uint32_t modifiers)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenuitem_key(OSMenuItem *item, const uint32_t key, const uint32_t modifiers)
+void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers)
 {
     cassert_no_null(item);
     cassert(item->state != UINT8_MAX);
