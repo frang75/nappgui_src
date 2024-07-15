@@ -63,6 +63,29 @@
 
 /*---------------------------------------------------------------------------*/
 
+/* From Mountain Lion to HighSierra render focus issue */
+#if (defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_7) || (!defined MAC_OS_X_VERSION_10_7) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
+#else
+- (void)drawRect:(NSRect)rect
+{
+    [super drawRect:rect];
+    if ([[self window] firstResponder] == self)
+    {
+        NSSetFocusRingStyle(NSFocusRingOnly);
+        if (button_get_type(self->flags) == ekBUTTON_FLAT || button_get_type(self->flags) == ekBUTTON_FLATGLE)
+        {
+            rect.origin.x += 2;
+            rect.origin.y += 2;
+            rect.size.width -= 4;
+            rect.size.height -= 4;
+        }
+        NSRectFill(rect);
+    }
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 static gui_state_t i_get_state(const OSXButton *button)
 {
 #if defined(MAC_OS_X_VERSION_10_13) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_13
@@ -567,10 +590,10 @@ static NSRect i_pushbutton_cell_frame(NSRect rect, const gui_size_t size)
     }
     else if (button_get_type(self->flags) == ekBUTTON_FLAT || button_get_type(self->flags) == ekBUTTON_FLATGLE)
     {
-        cellFrame.origin.x -= 2.f;
-        cellFrame.origin.y -= 2.f;
-        cellFrame.size.width += 4.f;
-        cellFrame.size.height += 4.f;
+        cellFrame.origin.x -= 1.f;
+        cellFrame.origin.y -= 1.f;
+        cellFrame.size.width += 2.f;
+        cellFrame.size.height += 2.f;
     }
 
     [super drawWithFrame:cellFrame inView:controlView];
@@ -772,6 +795,12 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
 #define RADIO_BUTTON NSRadioButton
 #endif
 
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+#define KEY_MODIFIER_OPTION NSEventModifierFlagCommand
+#else
+#define KEY_MODIFIER_OPTION NSCommandKeyMask
+#endif
+
 static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint32_t flags)
 {
     switch (button_get_type(flags))
@@ -852,7 +881,7 @@ OSButton *osbutton_create(const uint32_t flags)
         _oscontrol_set_align(button, &button->attrs, ekCENTER);
         _oscontrol_set_font(button, &button->attrs, button->attrs.font);
         cell->size = osgui_size_font(font_size(button->attrs.font));
-        [cell setStringValue:@""];
+        _oscontrol_set_text(button, &button->attrs, "");
         _oscontrol_size_from_font(cell, button->attrs.font);
     }
     else
@@ -920,7 +949,7 @@ void osbutton_text(OSButton *button, const char_t *text)
         unichar c = (unichar)unicode_tolower(cp);
         lbutton->keyEquivalent = [[NSString alloc] initWithCharacters:&c length:1];
         [lbutton setKeyEquivalent:lbutton->keyEquivalent];
-        [lbutton setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
+        [lbutton setKeyEquivalentModifierMask:KEY_MODIFIER_OPTION];
     }
 }
 
@@ -1101,7 +1130,12 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_RADIO:
     {
         OSXButtonCell *cell = [lbutton cell];
-        static const real32_t i_CHECK_TEXT_SEP = 5.f;
+#if (defined MAC_OS_X_VERSION_10_7 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_7) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
+        static const real32_t i_CHECK_TEXT_SEP = 6.f;
+#else
+        /* Inexplicable crash in HighSierra and lowers */
+        static const real32_t i_CHECK_TEXT_SEP = 8.f;
+#endif
         _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
         switch (cell->size)
         {
@@ -1225,7 +1259,7 @@ void osbutton_set_default(OSButton *button, const bool_t is_default)
         if (lbutton->keyEquivalent != nil)
         {
             [lbutton setKeyEquivalent:lbutton->keyEquivalent];
-            [lbutton setKeyEquivalentModifierMask:NSEventModifierFlagCommand];
+            [lbutton setKeyEquivalentModifierMask:KEY_MODIFIER_OPTION];
         }
         else
         {

@@ -316,8 +316,10 @@ void osscrolls_set(OSScrolls *scroll, const uint32_t x, const uint32_t y, const 
 
     if (px != UINT32_MAX)
     {
-        if (px > scroll->content_width - scroll->view_width)
-            px = scroll->content_width - scroll->view_width;
+        uint32_t max = scroll->content_width - scroll->view_width;
+        max += osscrolls_bar_width(scroll, TRUE);
+        if (px > max)
+            px = max;
     }
 
     if (py != UINT32_MAX)

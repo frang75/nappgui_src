@@ -132,6 +132,15 @@ void scrollview_content_size(ScrollView *view, const uint32_t content_width, con
 
     cassert_no_null(view);
 
+    /* First content dimension */
+    view_content_size(view->view, s2df((real32_t)content_width, (real32_t)content_height), s2df((real32_t)line_width, (real32_t)line_height));
+
+    /* Second content dimension taken into account scrollbars size and control size */
+    view_scroll_size(view->view, &bar_width, &bar_height);
+    view->scrollbar_width = (uint32_t)bar_width;
+    view->scrollbar_height = (uint32_t)bar_height;
+    theight += view->scrollbar_height;
+
     if (twidth < view->control_width)
         twidth = view->control_width;
 
@@ -141,11 +150,8 @@ void scrollview_content_size(ScrollView *view, const uint32_t content_width, con
     view->content_width = twidth;
     view->content_height = theight;
 
-    view_content_size(view->view, s2df((real32_t)content_width, (real32_t)content_height), s2df((real32_t)line_width, (real32_t)line_height));
-
-    view_scroll_size(view->view, &bar_width, &bar_height);
-    view->scrollbar_width = (uint32_t)bar_width;
-    view->scrollbar_height = (uint32_t)bar_height;
+    if (twidth != content_width || theight != content_height)
+        view_content_size(view->view, s2df((real32_t)twidth, (real32_t)theight), s2df((real32_t)line_width, (real32_t)line_height));
 }
 
 /*---------------------------------------------------------------------------*/

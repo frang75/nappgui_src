@@ -122,7 +122,7 @@
     }
 
     /* Draw focus ring in older mac OSX */
-#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
 #else
     if (self->flags & ekVIEW_BORDER)
     {
@@ -807,7 +807,7 @@ void osview_focus(OSView *view, const bool_t focus)
 
     lview->focused = (BOOL)focus;
 
-#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
 #else
     if (lview->flags & ekVIEW_BORDER)
         [lview setKeyboardFocusRingNeedsDisplayInRect:[lview bounds]];

@@ -1016,6 +1016,23 @@ void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
     {
         BOOL ok = [windowp makeFirstResponder:view];
         cassert_unref(ok == YES, ok);
+
+#if (defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_6) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
+#else
+        /* Clean rest of previous focus ring */
+        if (windowp->current_focus != nil)
+        {
+            if (_osbutton_is(windowp->current_focus) || _osedit_is(windowp->current_focus) || _ostext_is(windowp->current_focus))
+            {
+                NSView *s = [windowp->current_focus superview];
+                NSView *ss = [s superview];
+                [s setNeedsDisplay:YES];
+                if (ss != nil)
+                    [ss setNeedsDisplay:YES];
+            }
+        }
+#endif
+
         windowp->current_focus = view;
     }
 }

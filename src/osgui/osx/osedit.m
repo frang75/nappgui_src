@@ -78,6 +78,7 @@
     NSRange select;
     CGFloat wpadding;
     OSTextAttr attrs;
+    bool_t focused;
     Listener *OnFilter;
     Listener *OnChange;
     Listener *OnFocus;
@@ -114,6 +115,23 @@
 {
     return [self->field resignFirstResponder];
 }
+
+/*---------------------------------------------------------------------------*/
+
+#if (defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_6) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
+#else
+
+- (void)drawRect:(NSRect)rect
+{
+    /* Draw focus ring in older mac OSX */
+    if (self->focused == TRUE)
+    {
+        NSSetFocusRingStyle(NSFocusRingOnly);
+        NSRectFill(rect);
+    }
+}
+
+#endif
 
 @end
 
@@ -765,7 +783,7 @@ void osedit_frame(OSEdit *edit, const real32_t x, const real32_t y, const real32
     OSXEdit *ledit = (OSXEdit *)edit;
     cassert_no_null(ledit);
     _oscontrol_set_frame((NSView *)ledit, x, y, width, height);
-    _oscontrol_set_frame((NSView *)ledit->field, 0, 0, width, height);
+    _oscontrol_set_frame((NSView *)ledit->field, 1, 1, width - 2, height - 2);
     [ledit setNeedsDisplay:YES];
 }
 
@@ -804,6 +822,7 @@ void osedit_focus(OSEdit *edit, const bool_t focus)
         listener_event(ledit->OnFocus, ekGUI_EVENT_FOCUS, edit, &params, NULL, OSEdit, bool_t, void);
     }
 
+    ledit->focused = focus;
     if (focus == TRUE)
     {
         if ([ledit->field isEnabled] == YES)
@@ -825,6 +844,11 @@ void osedit_focus(OSEdit *edit, const bool_t focus)
     {
         ledit->editor = nil;
     }
+
+#if (defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_6) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
+#else
+    [ledit setNeedsDisplay:YES];
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
