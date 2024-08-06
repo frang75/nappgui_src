@@ -79,6 +79,7 @@ struct _tdata_t
     uint32_t resize_mouse_x;
     uint32_t resize_col_width;
     uint32_t freeze_col_id;
+    uint32_t fill_width;
     ctrl_msel_t multisel_mode;
     gui_cursor_t cursor;
     bool_t head_visible;
@@ -347,10 +348,7 @@ static void i_OnDraw(TableView *view, Event *e)
         uint32_t focus_width = UINT32_MAX;
         uint32_t focus_height = UINT32_MAX;
         ctrl_state_t focus_state = ENUM_MAX(ctrl_state_t);
-        uint32_t fill_width = scrollview_content_width(data->sview);
         uint32_t i, j;
-
-        fill_width -= i_DOCUMENT_RIGHT_MARGIN;
 
         if (data->head_visible == TRUE)
             head_height = data->head_height;
@@ -407,7 +405,7 @@ static void i_OnDraw(TableView *view, Event *e)
 
             /* Row background color fill */
             if (draw_row == TRUE)
-                drawctrl_fill(p->ctx, 0, (int32_t)y, fill_width, data->row_height, state);
+                drawctrl_fill(p->ctx, 0, (int32_t)y, data->fill_width, data->row_height, state);
 
             /* Draw the columns */
             for (j = stcol; j < edcol; ++j)
@@ -426,7 +424,7 @@ static void i_OnDraw(TableView *view, Event *e)
             {
                 focus_x = freeze_width > 0 ? (int32_t)stx : 0;
                 focus_y = (int32_t)y;
-                focus_width = fill_width - focus_x;
+                focus_width = data->fill_width - focus_x;
                 focus_height = data->row_height;
                 focus_state = state;
             }
@@ -775,6 +773,7 @@ static void i_document_size(TableView *view, TData *data)
             twidth += col->width;
         arrst_end()
 
+        data->fill_width = twidth;
         twidth += i_DOCUMENT_RIGHT_MARGIN;
         data->recompute_width = FALSE;
         update = TRUE;

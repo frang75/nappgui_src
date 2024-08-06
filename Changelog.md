@@ -20,7 +20,7 @@
 * GTK scrollbars position. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
 * GTK flatbutton padding. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
 * GTK render listbox checks in Xubuntu. [Commit](https://github.com/frang75/nappgui_src/commit/3c6247159f311195b2871b1fa10492c986b4f42d).
-* macOS HighSierra and lowers focus ring drawing issue.
+* macOS HighSierra and lowers focus ring drawing issue. [Commit](https://github.com/frang75/nappgui_src/commit/a163cb2555101b831414b6deb781a1d1c49ccd42).
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 

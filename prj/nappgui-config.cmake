@@ -39,6 +39,16 @@ read_definition(CMAKE_OSX_DEPLOYMENT_TARGET)
 read_definition(NAPPGUI_SHARED)
 read_definition(NAPPGUI_VERSION)
 
+# Link with Windows
+if (WIN32)
+    set(NAPPGUI_LIBRARIES "${NAPPGUI_LIBRARIES};ws2_32;wininet;gdiplus;shlwapi;comctl32;uxtheme")
+    if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
+        set(NAPPGUI_LIBRARIES "${NAPPGUI_LIBRARIES};${NAPPGUI_ROOT_PATH}/prj/depend/web/win/x86/WebView2LoaderStatic.lib;version")
+    elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
+        set(NAPPGUI_LIBRARIES "${NAPPGUI_LIBRARIES};${NAPPGUI_ROOT_PATH}/prj/depend/web/win/x64/WebView2LoaderStatic.lib;version")
+    endif()
+endif()
+
 # Link with GTK3
 if (CMAKE_TOOLKIT)
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
