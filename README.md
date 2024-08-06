@@ -80,6 +80,9 @@ cmake --build build -j 4
 ```
 ![Running demo project in Linux](https://nappgui.com/img/start/run_demo_linux.png)
 
+## Language Bindings
+- [RingNAppGUI](https://github.com/ring-lang/ring/tree/master/extensions/ringnappgui)
+
 ## More info
 - [NAppGUI Quick Start](https://nappgui.com/en/start/quick.html)
 - [NAppGUI Hello World](https://nappgui.com/en/start/hello.html)
