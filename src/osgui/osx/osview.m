@@ -612,7 +612,7 @@ void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value)
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    cassert(key == ekKEY_TAB);
+    cassert_unref(key == ekKEY_TAB, key);
     cassert(value == 0 || value == 1);
     lview->allow_tab = (BOOL)value;
 }

@@ -90,7 +90,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
 
         if (timeout_ms == 0)
         {
-            ok_connect = connect(skID, (struct sockaddr *)&server, sizeof(server));
+            ok_connect = connect(skID, cast(&server, struct sockaddr), sizeof(server));
             if (ok_connect == SOCKET_ERROR && error != NULL)
                 *error = i_socket_error();
         }
@@ -101,7 +101,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
             ok_connect = ioctlsocket(skID, FIONBIO, &block);
             if (ok_connect != SOCKET_ERROR)
             {
-                if (connect(skID, (struct sockaddr *)&server, sizeof(server)) == SOCKET_ERROR)
+                if (connect(skID, cast(&server, struct sockaddr), sizeof(server)) == SOCKET_ERROR)
                 {
                     if (WSAGetLastError() == WSAEWOULDBLOCK)
                     {
@@ -128,7 +128,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
                                 /* connection failed */
                                 int err = 0;
                                 int errlen = sizeof(err);
-                                getsockopt(skID, SOL_SOCKET, SO_ERROR, (char *)&err, &errlen);
+                                getsockopt(skID, SOL_SOCKET, SO_ERROR, cast(&err, char), &errlen);
                                 WSASetLastError(err);
                                 ok_connect = SOCKET_ERROR;
                                 if (error != NULL)
@@ -171,7 +171,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
     {
         ptr_assign(error, ekSOK);
         _osbs_socket_alloc();
-        return (Socket *)(intptr_t)skID;
+        return cast((intptr_t)skID, Socket);
     }
     else
     {
@@ -207,11 +207,11 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
     {
         int reuseaddr = 1;
         int sok = SOCKET_ERROR;
-        sok = setsockopt(skID, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuseaddr, sizeof(reuseaddr));
+        sok = setsockopt(skID, SOL_SOCKET, SO_REUSEADDR, cast_const(&reuseaddr, char), sizeof(reuseaddr));
         cassert_unref(sok == 0, sok);
     }
 
-    ok = bind(skID, (struct sockaddr *)&server, sizeof(server));
+    ok = bind(skID, cast(&server, struct sockaddr), sizeof(server));
     if (ok == SOCKET_ERROR)
     {
         closesocket(skID);
@@ -235,7 +235,7 @@ Socket *bsocket_server(const uint16_t port, const uint32_t max_connect, serror_t
 
     /* All Ok! */
     _osbs_socket_alloc();
-    return (Socket *)(intptr_t)skID;
+    return cast((intptr_t)skID, Socket);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -297,7 +297,7 @@ Socket *bsocket_accept(Socket *lsocket, const uint32_t timeout_ms, serror_t *err
     /* All Ok! */
     _osbs_socket_alloc();
     ptr_assign(error, ekSOK);
-    return (Socket *)(intptr_t)cliID;
+    return cast((intptr_t)cliID, Socket);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -322,7 +322,7 @@ void bsocket_local_ip(Socket *lsocket, uint32_t *ip, uint16_t *port)
     socklen_t addr_size = sizeof(laddress);
     cassert_no_null(lsocket);
     cassert(ip != NULL || port != NULL);
-    if (getsockname((SOCKET)(intptr_t)lsocket, (struct sockaddr *)&laddress, &addr_size) != -1)
+    if (getsockname((SOCKET)(intptr_t)lsocket, cast(&laddress, struct sockaddr), &addr_size) != -1)
     {
         ptr_assign(ip, ntohl(laddress.sin_addr.s_addr));
         ptr_assign(port, ntohs(laddress.sin_port));
@@ -342,7 +342,7 @@ void bsocket_remote_ip(Socket *lsocket, uint32_t *ip, uint16_t *port)
     socklen_t addr_size = sizeof(laddress);
     cassert_no_null(lsocket);
     cassert(ip != NULL || port != NULL);
-    if (getpeername((SOCKET)(intptr_t)lsocket, (struct sockaddr *)&laddress, &addr_size) != -1)
+    if (getpeername((SOCKET)(intptr_t)lsocket, cast(&laddress, struct sockaddr), &addr_size) != -1)
     {
         ptr_assign(ip, ntohl(laddress.sin_addr.s_addr));
         ptr_assign(port, ntohs(laddress.sin_port));
@@ -361,7 +361,7 @@ void bsocket_read_timeout(Socket *socket, const uint32_t timeout_ms)
     int sok = SOCKET_ERROR;
     DWORD timeout = (DWORD)timeout_ms;
     cassert_no_null(socket);
-    sok = setsockopt((SOCKET)(intptr_t)socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout));
+    sok = setsockopt((SOCKET)(intptr_t)socket, SOL_SOCKET, SO_RCVTIMEO, cast_const(&timeout, char), sizeof(timeout));
     cassert_unref(sok == 0, sok);
 }
 
@@ -372,7 +372,7 @@ void bsocket_write_timeout(Socket *socket, const uint32_t timeout_ms)
     int sok = SOCKET_ERROR;
     DWORD timeout = (DWORD)timeout_ms;
     cassert_no_null(socket);
-    sok = setsockopt((SOCKET)(intptr_t)socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout));
+    sok = setsockopt((SOCKET)(intptr_t)socket, SOL_SOCKET, SO_SNDTIMEO, cast_const(&timeout, char), sizeof(timeout));
     cassert_unref(sok == 0, sok);
 }
 
@@ -417,7 +417,7 @@ bool_t bsocket_read(Socket *lsocket, byte_t *data, const uint32_t size, uint32_t
     {
         int num_rbytes = 0;
         cassert((int)size > lrsize);
-        num_rbytes = recv((SOCKET)(intptr_t)lsocket, (char *)data, (int)(size - lrsize), 0);
+        num_rbytes = recv((SOCKET)(intptr_t)lsocket, cast(data, char), (int)(size - lrsize), 0);
         if (num_rbytes > 0)
         {
             lrsize += num_rbytes;
@@ -469,7 +469,7 @@ bool_t bsocket_write(Socket *lsocket, const byte_t *data, const uint32_t size, u
     {
         SSIZE_T num_wbytes = 0;
         cassert((SSIZE_T)size > lwsize);
-        num_wbytes = send((SOCKET)(intptr_t)lsocket, (const char *)data, (int)(size - lwsize), 0);
+        num_wbytes = send((SOCKET)(intptr_t)lsocket, cast_const(data, char), (int)(size - lwsize), 0);
         if (num_wbytes > 0)
         {
             lwsize += num_wbytes;
@@ -537,13 +537,13 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
     cassert_no_null(url);
 
 #include <sewer/nowarn.hxx>
-    host = gethostbyname((const char *)url);
+    host = gethostbyname(cast_const(url, char));
 #include <sewer/warn.hxx>
 
     if (host != NULL)
     {
         /* Cast the h_addr_list to in_addr, since h_addr_list also has the ip address in long format only. */
-        struct in_addr **addr_list = (struct in_addr **)host->h_addr_list;
+        struct in_addr **addr_list = dcast(host->h_addr_list, struct in_addr);
         if (addr_list[0] != NULL)
         {
             /* Only for debug (see ip in text) */
@@ -568,7 +568,7 @@ uint32_t bsocket_url_ip(const char_t *url, serror_t *error)
 
 const char_t *bsocket_host_name(char_t *buffer, const uint32_t size)
 {
-    if (gethostname((char *)buffer, (int)size) == 0)
+    if (gethostname(cast(buffer, char), (int)size) == 0)
         return buffer;
     else
         return NULL;
@@ -583,7 +583,7 @@ const char_t *bsocket_host_name_ip(const uint32_t ip, char_t *buffer, const uint
     sa.sin_addr.s_addr = htonl(ip);
 
 #include <sewer/nowarn.hxx>
-    if (getnameinfo((struct sockaddr *)&sa, sizeof(sa), buffer, size, NULL, 0, 0) == 0)
+    if (getnameinfo(cast(&sa, struct sockaddr), sizeof(sa), buffer, size, NULL, 0, 0) == 0)
         return buffer;
 #include <sewer/warn.hxx>
 

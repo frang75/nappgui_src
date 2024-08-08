@@ -154,22 +154,3 @@ void btime_to_date(const uint64_t micro, Date *date)
     FileTimeToSystemTime(&ft, &st);
     i_systime_to_date(&st, date);
 }
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void btime_active_wait(const uint32_t milliseconds);
-void btime_active_wait(const uint32_t milliseconds)
-{
-   __int64 current = i_microseconds_from_epoch();
-   current /= 1000;
-
-   for (;;)
-   {
-       __int64 now = i_microseconds_from_epoch();
-       now /= 1000;
-       if (now - current > milliseconds)
-           return;
-   }
-}
-*/

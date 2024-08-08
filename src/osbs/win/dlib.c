@@ -43,14 +43,14 @@ DLib *dlib_open(const char_t *path, const char_t *libname)
 
     blib_strcat(pathname, sizeof(pathname), libname);
 
-    num_bytes = unicode_convers(pathname, (char_t *)pathnamew, ekUTF8, ekUTF16, sizeof(pathnamew));
+    num_bytes = unicode_convers(pathname, cast(pathnamew, char_t), ekUTF8, ekUTF16, sizeof(pathnamew));
     if (num_bytes < sizeof(pathnamew))
     {
         HMODULE lib = LoadLibrary(pathnamew);
         if (lib != NULL)
         {
             _osbs_dlib_alloc();
-            return (DLib *)lib;
+            return cast(lib, DLib);
         }
         else
         {

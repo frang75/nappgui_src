@@ -29,7 +29,7 @@ Mutex *bmutex_create(void)
     HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
     cassert_no_null(mutex);
     _osbs_mutex_alloc();
-    return (Mutex *)mutex;
+    return cast(mutex, Mutex);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -69,7 +69,7 @@ uint32_t bfile_dir_work(char_t *pathname, const uint32_t size)
 
 bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 {
-    int res = mkdir((const char *)pathname, (mode_t)(S_IRUSR | S_IWUSR | S_IXUSR));
+    int res = mkdir(cast_const(pathname, char), (mode_t)(S_IRUSR | S_IWUSR | S_IXUSR));
     if (res == 0)
     {
         ptr_assign(error, ekFOK);
@@ -111,14 +111,14 @@ bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 
 Dir *bfile_dir_open(const char_t *pathname, ferror_t *error)
 {
-    DIR *dir = opendir((const char *)pathname);
+    DIR *dir = opendir(cast_const(pathname, char));
     if (dir != NULL)
     {
-        uint32_t pathsize = (uint32_t)strlen((const char *)pathname) + 2;
-        Dir *ldir = (Dir *)bmem_malloc(pathsize + sizeof32(uint32_t) + sizeof32(DIR *));
+        uint32_t pathsize = (uint32_t)strlen(cast_const(pathname, char)) + 2;
+        Dir *ldir = cast(bmem_malloc(pathsize + sizeof32(uint32_t) + sizeof32(DIR *)), Dir);
         ldir->dir = dir;
         ldir->pathsize = pathsize;
-        strcpy(i_PATHNAME(ldir), (const char *)pathname);
+        strcpy(i_PATHNAME(ldir), cast_const(pathname, char));
         strcat(i_PATHNAME(ldir), "/");
         _osbs_directory_alloc();
         ptr_assign(error, ekFOK);
@@ -167,7 +167,7 @@ void bfile_dir_close(Dir **dir)
 
     } while (res == -1);
 
-    bmem_free((byte_t *)*dir);
+    bmem_free(cast(*dir, byte_t));
     _osbs_directory_dealloc();
     *dir = NULL;
 }
@@ -244,7 +244,7 @@ bool_t bfile_dir_get(Dir *dir, char_t *name, const uint32_t size, file_type_t *f
     {
         if (name != NULL)
         {
-            uint32_t nb = unicode_convers((const char_t *)dirent->d_name, name, ekUTF8, ekUTF8, size);
+            uint32_t nb = unicode_convers(cast_const(dirent->d_name, char_t), name, ekUTF8, ekUTF8, size);
             if (nb == size)
             {
                 ptr_assign(error, ekFBIGNAME);
@@ -309,7 +309,7 @@ bool_t bfile_dir_get(Dir *dir, char_t *name, const uint32_t size, file_type_t *f
 
 bool_t bfile_dir_delete(const char_t *pathname, ferror_t *error)
 {
-    int result = rmdir((const char *)pathname);
+    int result = rmdir(cast_const(pathname, char));
     if (result == 0)
     {
         ptr_assign(error, ekFOK);
@@ -352,7 +352,7 @@ static File *i_after_open_file(int file_id, ferror_t *error)
     {
         _osbs_file_alloc();
         ptr_assign(error, ekFOK);
-        return (File *)(intptr_t)file_id;
+        return cast((intptr_t)file_id, File);
     }
     else
     {
@@ -393,7 +393,7 @@ static File *i_after_open_file(int file_id, ferror_t *error)
 
 File *bfile_create(const char_t *filepath, ferror_t *error)
 {
-    int file_id = creat((const char *)filepath, (mode_t)(0777) /*(S_IRUSR | S_IWUSR | S_IXUSR)*/);
+    int file_id = creat(cast_const(filepath, char), (mode_t)(0777) /*(S_IRUSR | S_IWUSR | S_IXUSR)*/);
     return i_after_open_file(file_id, error);
 }
 
@@ -401,7 +401,7 @@ File *bfile_create(const char_t *filepath, ferror_t *error)
 
 File *bfile_open(const char_t *filepath, const file_mode_t mode, ferror_t *error)
 {
-    int file_id = open((const char *)filepath, i_file_mode(mode), 0);
+    int file_id = open(cast_const(filepath, char), i_file_mode(mode), 0);
     File *file = i_after_open_file(file_id, error);
     if (file != NULL && mode == ekAPPEND)
         lseek(file_id, 0, SEEK_END);
@@ -497,7 +497,7 @@ bool_t bfile_lstat(const char_t *filepath, file_type_t *file_type, uint64_t *fil
     int ret;
     struct stat info;
     uint32_t i = 0;
-    while ((ret = lstat((const char *)filepath, &info)) != 0)
+    while ((ret = lstat(cast_const(filepath, char), &info)) != 0)
     {
         i++;
         if (i == i_NUM_RETRYS)
@@ -552,7 +552,7 @@ bool_t bfile_write(File *file, const byte_t *data, const uint32_t size, uint32_t
     int fd = (int)(intptr_t)file;
     ssize_t lwsize = 0;
     cassert_no_null(file);
-    lwsize = write(fd, (const void *)data, (size_t)size);
+    lwsize = write(fd, cast_const(data, void), (size_t)size);
     if (lwsize >= 0)
     {
         ptr_assign(wsize, (uint32_t)lwsize);
@@ -622,7 +622,7 @@ uint64_t bfile_pos(const File *file)
 
 bool_t bfile_delete(const char_t *filepath, ferror_t *error)
 {
-    int res = unlink((const char *)filepath);
+    int res = unlink(cast_const(filepath, char));
     if (res == 0)
     {
         ptr_assign(error, ekFOK);

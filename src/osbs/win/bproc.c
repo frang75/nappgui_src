@@ -42,7 +42,7 @@ struct _process_t
 
 static Proc *i_create(HANDLE *pipes, PROCESS_INFORMATION *info)
 {
-    Proc *proc = (Proc *)bmem_malloc(sizeof(Proc));
+    Proc *proc = cast(bmem_malloc(sizeof(Proc)), Proc);
     _osbs_proc_alloc();
     bmem_copy_n(proc->pipes, pipes, 6, HANDLE);
     proc->info = *info;
@@ -126,7 +126,7 @@ static bool_t i_exec(const char_t *command, HANDLE *pipes, PROCESS_INFORMATION *
     stinfo.hStdOutput = pipes[STDOUT_WRITE_CHILD];
     stinfo.hStdError = pipes[STDERR_WRITE_CHILD];
     stinfo.dwFlags |= STARTF_USESTDHANDLES;
-    size = unicode_convers(command, (char_t *)(commandw + 7), ekUTF8, ekUTF16, (1024 - 7) * sizeof(WCHAR));
+    size = unicode_convers(command, cast((commandw + 7), char_t), ekUTF8, ekUTF16, (1024 - 7) * sizeof(WCHAR));
     if (size < (1024 - 7) * sizeof(WCHAR))
     {
         BOOL ok = CreateProcess(NULL, commandw, NULL, NULL, TRUE, 0, NULL, NULL, &stinfo, info);
@@ -185,7 +185,7 @@ void bproc_close(Proc **proc)
     CloseHandle((*proc)->info.hProcess);
     CloseHandle((*proc)->info.hThread);
     _osbs_proc_dealloc();
-    bmem_free((byte_t *)*proc);
+    bmem_free(*dcast(proc, byte_t));
     *proc = NULL;
 }
 

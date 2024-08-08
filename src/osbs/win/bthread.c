@@ -29,7 +29,7 @@ Thread *bthread_create_imp(FPtr_thread_main thmain, void *data)
     HANDLE thread = CreateThread(NULL, 0, cast_func_ptr(thmain, LPTHREAD_START_ROUTINE), (LPVOID)data, 0, NULL);
     cassert_no_null(thread);
     _osbs_thread_alloc();
-    return (Thread *)thread;
+    return cast(thread, Thread);
 }
 
 /*---------------------------------------------------------------------------*/

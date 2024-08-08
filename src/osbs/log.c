@@ -95,9 +95,9 @@ uint32_t log_printf(const char_t *format, ...)
         File *file = bfile_open(i_LOG_FILEPATH, ekAPPEND, NULL);
         if (file != NULL)
         {
-            bfile_write(file, (const byte_t *)time_buffer, time_size, NULL, NULL);
-            bfile_write(file, (const byte_t *)msg_buffer, msg_size, NULL, NULL);
-            bfile_write(file, (const byte_t *)"\r\n", 2, NULL, NULL);
+            bfile_write(file, cast_const(time_buffer, byte_t), time_size, NULL, NULL);
+            bfile_write(file, cast_const(msg_buffer, byte_t), msg_size, NULL, NULL);
+            bfile_write(file, cast_const("\r\n", byte_t), 2, NULL, NULL);
             bfile_close(&file);
         }
     }

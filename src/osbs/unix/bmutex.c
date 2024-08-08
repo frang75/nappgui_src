@@ -25,25 +25,23 @@
 
 Mutex *bmutex_create(void)
 {
-    pthread_mutex_t *mutex;
-    int ret;
-    mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
-    ret = pthread_mutex_init(mutex, NULL);
+    pthread_mutex_t *mutex = cast(malloc(sizeof(pthread_mutex_t)), pthread_mutex_t);
+    int ret = pthread_mutex_init(mutex, NULL);
     cassert_unref(ret == 0, ret);
     _osbs_mutex_alloc();
-    return (Mutex *)mutex;
+    return cast(mutex, Mutex);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void bmutex_close(Mutex **mutex)
 {
-    void *mem;
+    void *mem = NULL;
     int ret;
     cassert_no_null(mutex);
     cassert_no_null(*mutex);
-    mem = *(void **)mutex;
-    ret = pthread_mutex_destroy((pthread_mutex_t *)(*mutex));
+    mem = *dcast(mutex, void);
+    ret = pthread_mutex_destroy(cast(*mutex, pthread_mutex_t));
     cassert_unref(ret == 0, ret);
     free(mem);
     _osbs_mutex_dealloc();
@@ -54,9 +52,9 @@ void bmutex_close(Mutex **mutex)
 
 void bmutex_lock(Mutex *mutex)
 {
-    int ret;
+    int ret = 0;
     cassert_no_null(mutex);
-    ret = pthread_mutex_lock((pthread_mutex_t *)mutex);
+    ret = pthread_mutex_lock(cast(mutex, pthread_mutex_t));
     cassert_unref(ret == 0, ret);
 }
 
@@ -64,9 +62,9 @@ void bmutex_lock(Mutex *mutex)
 
 void bmutex_unlock(Mutex *mutex)
 {
-    int ret;
+    int ret = 0;
     cassert_no_null(mutex);
-    ret = pthread_mutex_unlock((pthread_mutex_t *)mutex);
+    ret = pthread_mutex_unlock(cast(mutex, pthread_mutex_t));
     cassert_unref(ret == 0, ret);
 }
 

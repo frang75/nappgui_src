@@ -58,7 +58,7 @@ DLib *dlib_open(const char_t *path, const char_t *libname)
     if (lib != NULL)
     {
         _osbs_dlib_alloc();
-        return (DLib *)lib;
+        return cast(lib, DLib);
     }
     else
     {
@@ -73,7 +73,7 @@ void dlib_close(DLib **dlib)
     int ok = 0;
     cassert_no_null(dlib);
     cassert_no_null(*dlib);
-    ok = dlclose((void *)*dlib);
+    ok = dlclose(*dcast(dlib, void));
     *dlib = NULL;
     _osbs_dlib_dealloc();
     cassert_unref(ok == 0, ok);
@@ -87,8 +87,8 @@ FPtr_libproc dlib_proc_imp(DLib *dlib, const char_t *procname)
     FPtr_libproc *proc = NULL;
     cassert_no_null(dlib);
     cassert_no_null(procname);
-    func = dlsym((void *)dlib, procname);
-    proc = (FPtr_libproc *)(&func);
+    func = dlsym(cast(dlib, void), procname);
+    proc = cast(&func, FPtr_libproc);
     return *proc;
 }
 
@@ -98,5 +98,5 @@ void *dlib_var_imp(DLib *dlib, const char_t *varname)
 {
     cassert_no_null(dlib);
     cassert_no_null(varname);
-    return (void *)dlsym((void *)dlib, varname);
+    return cast(dlsym(cast(dlib, void), varname), void);
 }

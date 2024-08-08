@@ -48,7 +48,7 @@ struct _process_t
 
 static Proc *i_create(int *pipes, pid_t pid)
 {
-    Proc *proc = (Proc *)bmem_malloc(sizeof(Proc));
+    Proc *proc = cast(bmem_malloc(sizeof(Proc)), Proc);
     _osbs_proc_alloc();
     bmem_copy_n(proc->pipes, pipes, 6, int);
     proc->pid = pid;
@@ -196,7 +196,7 @@ void bproc_close(Proc **proc)
     i_close_pipes((*proc)->pipes);
     waitpid((*proc)->pid, NULL, WNOHANG);
     _osbs_proc_dealloc();
-    bmem_free((byte_t *)*proc);
+    bmem_free(cast(*proc, byte_t));
     *proc = NULL;
 }
 
@@ -215,7 +215,7 @@ bool_t bproc_cancel(Proc *proc)
 
 uint32_t bproc_wait(Proc *proc)
 {
-    int status;
+    int status = 0;
     cassert_no_null(proc);
     if (waitpid(proc->pid, &status, 0) != -1)
     {
@@ -231,8 +231,8 @@ uint32_t bproc_wait(Proc *proc)
 
 bool_t bproc_finish(Proc *proc, uint32_t *code)
 {
-    int ret, status;
-    int err;
+    int ret = 0, status = 0;
+    int err = 0;
     cassert_no_null(proc);
     ret = waitpid(proc->pid, &status, WNOHANG);
     if (ret == proc->pid)
@@ -281,7 +281,7 @@ bool_t bproc_read(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsize
 {
     ssize_t lrsize;
     cassert_no_null(proc);
-    lrsize = read(proc->pipes[STDOUT_READ_PARENT], (char *)data, (unsigned)size);
+    lrsize = read(proc->pipes[STDOUT_READ_PARENT], cast(data, char), (unsigned)size);
     if (lrsize > 0)
     {
         ptr_assign(rsize, (uint32_t)lrsize);
@@ -308,7 +308,7 @@ bool_t bproc_eread(Proc *proc, byte_t *data, const uint32_t size, uint32_t *rsiz
 {
     ssize_t lrsize;
     cassert_no_null(proc);
-    lrsize = read(proc->pipes[STDERR_READ_PARENT], (char *)data, (unsigned)size);
+    lrsize = read(proc->pipes[STDERR_READ_PARENT], cast(data, char), (unsigned)size);
     if (lrsize > 0)
     {
         ptr_assign(rsize, (uint32_t)lrsize);
@@ -335,7 +335,7 @@ bool_t bproc_write(Proc *proc, const byte_t *data, const uint32_t size, uint32_t
 {
     ssize_t lwsize;
     cassert_no_null(proc);
-    lwsize = write(proc->pipes[STDIN_WRITE_PARENT], (const char *)data, (unsigned)size);
+    lwsize = write(proc->pipes[STDIN_WRITE_PARENT], cast_const(data, char), (unsigned)size);
     if (lwsize >= 0)
     {
         ptr_assign(wsize, (uint32_t)lwsize);

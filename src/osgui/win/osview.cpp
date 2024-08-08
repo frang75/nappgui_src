@@ -529,7 +529,7 @@ void osview_OnScroll(OSView *view, Listener *listener)
 void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value)
 {
     cassert_no_null(view);
-    cassert(key == ekKEY_TAB);
+    cassert_unref(key == ekKEY_TAB, key);
     cassert(value == 0 || value == 1);
     view->allow_tab = (bool_t)value;
 }
