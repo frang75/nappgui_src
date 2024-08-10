@@ -81,7 +81,7 @@ static const char_t *i_setpttype(void)
 template <typename type>
 SetPt<type> *SetPt<type>::create(int(func_compare)(const type *, const type *))
 {
-    return (SetPt<type> *)rbtree_create((FPtr_compare)func_compare, (uint16_t)sizeof(type *), 0, i_setpttype<type>());
+    return cast(rbtree_create((FPtr_compare)func_compare, (uint16_t)sizeof(type *), 0, i_setpttype<type>()), SetPt<type>);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -89,7 +89,7 @@ SetPt<type> *SetPt<type>::create(int(func_compare)(const type *, const type *))
 template <typename type>
 void SetPt<type>::destroy(SetPt<type> **set, void (*func_destroy)(type **))
 {
-    rbtree_destroy_ptr((RBTree **)set, (FPtr_destroy)func_destroy, NULL, i_setpttype<type>());
+    rbtree_destroy_ptr(dcast(set, RBTree), (FPtr_destroy)func_destroy, NULL, i_setpttype<type>());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -97,7 +97,7 @@ void SetPt<type>::destroy(SetPt<type> **set, void (*func_destroy)(type **))
 template <typename type>
 uint32_t SetPt<type>::size(const SetPt<type> *set)
 {
-    return rbtree_size((const RBTree *)set);
+    return rbtree_size(cast_const(tree, RBTree));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -105,7 +105,7 @@ uint32_t SetPt<type>::size(const SetPt<type> *set)
 template <typename type>
 type *SetPt<type>::get(SetPt<type> *set, const type *key)
 {
-    return (type *)rbtree_get((RBTree *)set, (const void *)key, FALSE);
+    return cast(rbtree_get(cast_const(tree, RBTree), cast_const(key, void), FALSE), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -113,7 +113,7 @@ type *SetPt<type>::get(SetPt<type> *set, const type *key)
 template <typename type>
 const type *SetPt<type>::get(const SetPt<type> *set, const type *key)
 {
-    return (const type *)rbtree_get((RBTree *)set, (const void *)key, FALSE);
+    return cast_const(rbtree_get(cast_const(tree, RBTree), cast_const(key, void), FALSE), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -121,7 +121,7 @@ const type *SetPt<type>::get(const SetPt<type> *set, const type *key)
 template <typename type>
 bool_t SetPt<type>::ddelete(SetPt<type> *set, const type *key, void (*func_destroy)(type **))
 {
-    return rbtree_delete_ptr((RBTree *)set, (const void *)key, (FPtr_destroy)func_destroy, NULL);
+    return rbtree_delete_ptr(cast(tree, RBTree), cast_const(key, void), (FPtr_destroy)func_destroy, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -129,7 +129,7 @@ bool_t SetPt<type>::ddelete(SetPt<type> *set, const type *key, void (*func_destr
 template <typename type>
 type *SetPt<type>::first(SetPt<type> *set)
 {
-    return (type *)rbtree_first_ptr((RBTree *)set);
+    return cast(rbtree_first_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,7 +137,7 @@ type *SetPt<type>::first(SetPt<type> *set)
 template <typename type>
 const type *SetPt<type>::first(const SetPt<type> *set)
 {
-    return (const type *)rbtree_first_ptr((RBTree *)set);
+    return cast_const(rbtree_first_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -145,7 +145,7 @@ const type *SetPt<type>::first(const SetPt<type> *set)
 template <typename type>
 type *SetPt<type>::last(SetPt<type> *set)
 {
-    return (type *)rbtree_last_ptr((RBTree *)set);
+    return cast(rbtree_last_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -153,7 +153,7 @@ type *SetPt<type>::last(SetPt<type> *set)
 template <typename type>
 const type *SetPt<type>::last(const SetPt<type> *set)
 {
-    return (const type *)rbtree_last_ptr((RBTree *)set);
+    return cast_const(rbtree_last_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -161,7 +161,7 @@ const type *SetPt<type>::last(const SetPt<type> *set)
 template <typename type>
 type *SetPt<type>::next(SetPt<type> *set)
 {
-    return (type *)rbtree_next_ptr((RBTree *)set);
+    return cast(rbtree_next_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -169,7 +169,7 @@ type *SetPt<type>::next(SetPt<type> *set)
 template <typename type>
 const type *SetPt<type>::next(const SetPt<type> *set)
 {
-    return (const type *)rbtree_next_ptr((RBTree *)set);
+    return cast_const(rbtree_next_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -177,7 +177,7 @@ const type *SetPt<type>::next(const SetPt<type> *set)
 template <typename type>
 type *SetPt<type>::prev(SetPt<type> *set)
 {
-    return (type *)rbtree_prev_ptr((RBTree *)set);
+    return cast(rbtree_prev_ptr(cast(tree, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -185,7 +185,7 @@ type *SetPt<type>::prev(SetPt<type> *set)
 template <typename type>
 const type *SetPt<type>::prev(const SetPt<type> *set)
 {
-    return (const type *)rbtree_prev_ptr((RBTree *)set);
+    return cast_const(rbtree_prev_ptr(cast(tree, RBTree)), type);
 }
 
 #endif

@@ -17,14 +17,14 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define i_SIZE(buffer) *((uint32_t *)buffer)
-#define i_DATA(buffer) ((byte_t *)((byte_t *)buffer + sizeof(uint32_t)))
+#define i_SIZE(buffer) *cast(buffer, uint32_t)
+#define i_DATA(buffer) cast(buffer, byte_t) + sizeof(uint32_t)
 
 /*---------------------------------------------------------------------------*/
 
 Buffer *buffer_create(const uint32_t size)
 {
-    Buffer *buffer = (Buffer *)heap_malloc(size + sizeof32(uint32_t), "Buffer");
+    Buffer *buffer = cast(heap_malloc(size + sizeof32(uint32_t), "Buffer"), Buffer);
     i_SIZE(buffer) = size;
     return buffer;
 }
@@ -44,7 +44,7 @@ void buffer_destroy(Buffer **buffer)
 {
     cassert_no_null(buffer);
     cassert_no_null(*buffer);
-    heap_free((byte_t **)buffer, i_SIZE(*buffer) + sizeof32(uint32_t), "Buffer");
+    heap_free(dcast(buffer, byte_t), i_SIZE(*buffer) + sizeof32(uint32_t), "Buffer");
 }
 
 /*---------------------------------------------------------------------------*/

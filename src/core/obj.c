@@ -28,18 +28,18 @@ void obj_init(Object *object)
 
 byte_t *obj_new_imp(const uint32_t size, const char_t *type)
 {
-    Object *object = (Object *)heap_malloc(size, type);
+    Object *object = cast(heap_malloc(size, type), Object);
     object->count = 0;
-    return (byte_t *)object;
+    return cast(object, byte_t);
 }
 
 /*---------------------------------------------------------------------------*/
 
 byte_t *obj_new0_imp(const uint32_t size, const char_t *type)
 {
-    Object *object = (Object *)heap_calloc(size, type);
+    Object *object = cast(heap_calloc(size, type), Object);
     object->count = 0;
-    return (byte_t *)object;
+    return cast(object, byte_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -47,8 +47,8 @@ byte_t *obj_new0_imp(const uint32_t size, const char_t *type)
 void *obj_retain_imp(const void *object)
 {
     cassert_no_null(object);
-    ((Object *)object)->count += 1;
-    return (void *)object;
+    cast(object, Object)->count += 1;
+    return cast(object, void);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -56,8 +56,8 @@ void *obj_retain_imp(const void *object)
 void *obj_retain_optional_imp(const void *object)
 {
     if (object != NULL)
-        ((Object *)object)->count += 1;
-    return (void *)object;
+        cast(object, Object)->count += 1;
+    return cast(object, void);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -74,8 +74,8 @@ void obj_release_imp(void **object)
 {
     cassert_no_null(object);
     cassert_no_null(*object);
-    cassert(((Object *)(*object))->count > 0);
-    ((Object *)(*object))->count -= 1;
+    cassert((*dcast(object, Object))->count > 0);
+    (*dcast(object, Object))->count -= 1;
     *object = NULL;
 }
 
@@ -86,8 +86,8 @@ void obj_release_optional_imp(void **object)
     cassert_no_null(object);
     if (*object != NULL)
     {
-        cassert(((Object *)(*object))->count > 0);
-        ((Object *)(*object))->count -= 1;
+        cassert((*dcast(object, Object))->count > 0);
+        (*dcast(object, Object))->count -= 1;
         *object = NULL;
     }
 }
@@ -96,11 +96,9 @@ void obj_release_optional_imp(void **object)
 
 void obj_delete_imp(byte_t **object, const uint32_t size, const char_t *type)
 {
-    Object *obj = NULL;
     cassert_no_null(object);
-    obj = (Object *)(*object);
-    cassert_no_null(obj);
-    cassert(obj->count == 0);
+    cassert_no_null(*object);
+    cassert((*dcast(object, Object))->count == 0);
     heap_free(object, size, type);
 }
 

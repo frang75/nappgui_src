@@ -24,17 +24,17 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define i_SIZE(str) *((uint32_t *)str)
-#define i_DATA(str) ((char_t *)((char_t *)str + sizeof(uint32_t)))
+#define i_SIZE(str) *cast(str, uint32_t)
+#define i_DATA(str) cast(cast(str, char_t) + sizeof(uint32_t), char_t)
 
 /*---------------------------------------------------------------------------*/
 
 static String *i_create_string(const uint32_t length, const char_t *data)
 {
-    String *str = (String *)heap_malloc(length + sizeof32(uint32_t), "String");
+    String *str = cast(heap_malloc(length + sizeof32(uint32_t), "String"), String);
     i_SIZE(str) = length;
     if (data != NULL)
-        bmem_copy((byte_t *)i_DATA(str), (const byte_t *)data, length);
+        bmem_copy(cast(i_DATA(str), byte_t), cast_const(data, byte_t), length);
     return str;
 }
 
@@ -44,7 +44,7 @@ void str_destroy(String **str)
 {
     cassert_no_null(str);
     cassert_no_null(*str);
-    heap_free((byte_t **)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
+    heap_free(dcast(str, byte_t), i_SIZE(*str) + sizeof32(uint32_t), "String");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -53,7 +53,7 @@ void str_destopt(String **str)
 {
     cassert_no_null(str);
     if (*str != NULL)
-        heap_free((byte_t **)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
+        heap_free(dcast(str, byte_t), i_SIZE(*str) + sizeof32(uint32_t), "String");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -85,7 +85,7 @@ String *str_cn(const char_t *str, const uint32_t n)
 {
     String *lstr = i_create_string(n + 1, NULL);
     if (n > 0)
-        bmem_copy((byte_t *)i_DATA(lstr), (const byte_t *)str, n);
+        bmem_copy(cast(i_DATA(lstr), byte_t), cast_const(str, byte_t), n);
     i_DATA(lstr)[n] = '\0';
     return lstr;
 }
@@ -180,7 +180,7 @@ String *str_printf(const char_t *format, ...)
     }
     else
     {
-        data_alloc = (char_t *)heap_malloc(length, "StringPrintf");
+        data_alloc = cast(heap_malloc(length, "StringPrintf"), char_t);
         data = data_alloc;
     }
 
@@ -197,7 +197,7 @@ String *str_printf(const char_t *format, ...)
     str = i_create_string(length, data);
 
     if (data_alloc != NULL)
-        heap_free((byte_t **)&data_alloc, length, "StringPrintf");
+        heap_free(dcast(&data_alloc, byte_t), length, "StringPrintf");
 
     return str;
 }
@@ -229,7 +229,7 @@ String *str_path(const platform_t platform, const char_t *format, ...)
     }
     else
     {
-        data_alloc = (char_t *)heap_malloc(length, "StringPath");
+        data_alloc = cast(heap_malloc(length, "StringPath"), char_t);
         data = data_alloc;
     }
 
@@ -246,7 +246,7 @@ String *str_path(const platform_t platform, const char_t *format, ...)
     str = i_create_string(length, data);
 
     if (data_alloc != NULL)
-        heap_free((byte_t **)&data_alloc, length, "StringPath");
+        heap_free(dcast(&data_alloc, byte_t), length, "StringPath");
 
     if (platform == ekWINDOWS)
         str_subs(str, '/', '\\');
@@ -283,7 +283,7 @@ String *str_cpath(const char_t *format, ...)
     }
     else
     {
-        data_alloc = (char_t *)heap_malloc(length, "StringPath");
+        data_alloc = cast(heap_malloc(length, "StringPath"), char_t);
         data = data_alloc;
     }
 
@@ -300,7 +300,7 @@ String *str_cpath(const char_t *format, ...)
     str = i_create_string(length, data);
 
     if (data_alloc != NULL)
-        heap_free((byte_t **)&data_alloc, length, "StringPath");
+        heap_free(dcast(&data_alloc, byte_t), length, "StringPath");
 
     if (osbs_platform() == ekWINDOWS)
         str_subs(str, '/', '\\');
@@ -457,12 +457,12 @@ String *str_repl(const char_t *str, ...)
     va_start(params, str);
     for (;;)
     {
-        const char_t *replace = (const char_t *)va_arg(params, char *);
+        const char_t *replace = cast_const(va_arg(params, char *), char_t);
         const char_t *with = NULL;
         if (replace == NULL)
             break;
 
-        with = (const char_t *)va_arg(params, char *);
+        with = cast_const(va_arg(params, char *), char_t);
         if (with != NULL)
             i_replace(&rstr, replace, with);
     }
@@ -483,7 +483,7 @@ String *str_fill(const uint32_t n, const char_t c)
 {
     String *str = i_create_string(n + 1, NULL);
     if (n > 0)
-        bmem_set1((byte_t *)i_DATA(str), n, (byte_t)c);
+        bmem_set1(cast(i_DATA(str), byte_t), n, (byte_t)c);
     i_DATA(str)[n] = '\0';
     return str;
 }
@@ -498,7 +498,7 @@ String *str_read(Stream *stream)
     if (length > 0)
     {
         lstr = i_create_string(length, NULL);
-        stm_read(stream, (byte_t *)i_DATA(lstr), length);
+        stm_read(stream, cast(i_DATA(lstr), byte_t), length);
         cassert(i_DATA(lstr)[length - 1] == '\0');
     }
     else
@@ -515,7 +515,7 @@ void str_write(Stream *stream, const String *str)
 {
     cassert_no_null(str);
     stm_write_u32(stream, i_SIZE(str));
-    stm_write(stream, (const byte_t *)i_DATA(str), i_SIZE(str));
+    stm_write(stream, cast_const(i_DATA(str), byte_t), i_SIZE(str));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -523,7 +523,7 @@ void str_write(Stream *stream, const String *str)
 void str_writef(Stream *stream, const String *str)
 {
     cassert_no_null(str);
-    stm_write(stream, (const byte_t *)i_DATA(str), i_SIZE(str) - 1);
+    stm_write(stream, cast_const(i_DATA(str), byte_t), i_SIZE(str) - 1);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -557,8 +557,8 @@ void str_cat(String **dest, const char_t *src)
         else
         {
             uint32_t s = i_SIZE(*dest);
-            *dest = (String *)heap_realloc(*(byte_t **)dest, s + (uint32_t)sizeof(uint32_t), s + len + (uint32_t)sizeof(uint32_t), "String");
-            bmem_copy((byte_t *)i_DATA(*dest) + s - 1, (const byte_t *)src, len);
+            *dest = cast(heap_realloc(*dcast(dest, byte_t), s + (uint32_t)sizeof(uint32_t), s + len + (uint32_t)sizeof(uint32_t), "String"), String);
+            bmem_copy(cast(i_DATA(*dest), byte_t) + s - 1, cast_const(src, byte_t), len);
             i_DATA(*dest)[s + len - 1] = '\0';
             i_SIZE(*dest) = s + len;
         }
@@ -582,7 +582,7 @@ void str_upd(String **str, const char_t *new_str)
         return;
 
     if (*str != NULL)
-        heap_free((byte_t **)str, i_SIZE(*str) + sizeof32(uint32_t), "String");
+        heap_free(dcast(str, byte_t), i_SIZE(*str) + sizeof32(uint32_t), "String");
 
     if (new_str != NULL)
     {

@@ -83,7 +83,7 @@ static const char_t *i_settype(void)
 template <typename type>
 SetSt<type> *SetSt<type>::create(int(func_compare)(const type *, const type *))
 {
-    return (SetSt<type> *)rbtree_create((FPtr_compare)func_compare, (uint16_t)sizeof(type), 0, i_settype<type>());
+    return cast(rbtree_create((FPtr_compare)func_compare, (uint16_t)sizeof(type), 0, i_settype<type>()), SetSt<type>);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -91,7 +91,7 @@ SetSt<type> *SetSt<type>::create(int(func_compare)(const type *, const type *))
 template <typename type>
 void SetSt<type>::destroy(SetSt<type> **set, void (*func_remove)(type *))
 {
-    rbtree_destroy((RBTree **)set, (FPtr_remove)func_remove, NULL, i_settype<type>());
+    rbtree_destroy(dcast(set, RBTree), (FPtr_remove)func_remove, NULL, i_settype<type>());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -99,7 +99,7 @@ void SetSt<type>::destroy(SetSt<type> **set, void (*func_remove)(type *))
 template <typename type>
 uint32_t SetSt<type>::size(const SetSt<type> *set)
 {
-    return rbtree_size((const RBTree *)set);
+    return rbtree_size(cast_const(set, RBTree));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -107,7 +107,7 @@ uint32_t SetSt<type>::size(const SetSt<type> *set)
 template <typename type>
 type *SetSt<type>::get(SetSt<type> *set, const type *key)
 {
-    return (type *)rbtree_get((RBTree *)set, (const void *)key, FALSE);
+    return cast(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -115,7 +115,7 @@ type *SetSt<type>::get(SetSt<type> *set, const type *key)
 template <typename type>
 const type *SetSt<type>::get(const SetSt<type> *set, const type *key)
 {
-    return (const type *)rbtree_get((RBTree *)set, (const void *)key, FALSE);
+    return cast_const(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -123,7 +123,7 @@ const type *SetSt<type>::get(const SetSt<type> *set, const type *key)
 template <typename type>
 bool_t SetSt<type>::ddelete(SetSt<type> *set, const type *key, void (*func_remove)(type *))
 {
-    return rbtree_delete((RBTree *)set, (const void *)key, (FPtr_remove)func_remove, NULL);
+    return rbtree_delete(cast(set, RBTree), cast_const(key, void), (FPtr_remove)func_remove, NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -131,7 +131,7 @@ bool_t SetSt<type>::ddelete(SetSt<type> *set, const type *key, void (*func_remov
 template <typename type>
 type *SetSt<type>::first(SetSt<type> *set)
 {
-    return (type *)rbtree_first((RBTree *)set);
+    return cast(rbtree_first(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -139,7 +139,7 @@ type *SetSt<type>::first(SetSt<type> *set)
 template <typename type>
 const type *SetSt<type>::first(const SetSt<type> *set)
 {
-    return (const type *)rbtree_first((RBTree *)set);
+    return cast_const(rbtree_first(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -147,7 +147,7 @@ const type *SetSt<type>::first(const SetSt<type> *set)
 template <typename type>
 type *SetSt<type>::last(SetSt<type> *set)
 {
-    return (type *)rbtree_last((RBTree *)set);
+    return cast(rbtree_last(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -155,7 +155,7 @@ type *SetSt<type>::last(SetSt<type> *set)
 template <typename type>
 const type *SetSt<type>::last(const SetSt<type> *set)
 {
-    return (const type *)rbtree_last((RBTree *)set);
+    return cast_const(rbtree_last(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -163,7 +163,7 @@ const type *SetSt<type>::last(const SetSt<type> *set)
 template <typename type>
 type *SetSt<type>::next(SetSt<type> *set)
 {
-    return (type *)rbtree_next((RBTree *)set);
+    return cast(rbtree_next(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -171,7 +171,7 @@ type *SetSt<type>::next(SetSt<type> *set)
 template <typename type>
 const type *SetSt<type>::next(const SetSt<type> *set)
 {
-    return (const type *)rbtree_next((RBTree *)set);
+    return cast_const(rbtree_next(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -179,7 +179,7 @@ const type *SetSt<type>::next(const SetSt<type> *set)
 template <typename type>
 type *SetSt<type>::prev(SetSt<type> *set)
 {
-    return (type *)rbtree_prev((RBTree *)set);
+    return cast(rbtree_prev(cast(set, RBTree)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -187,7 +187,7 @@ type *SetSt<type>::prev(SetSt<type> *set)
 template <typename type>
 const type *SetSt<type>::prev(const SetSt<type> *set)
 {
-    return (const type *)rbtree_prev((RBTree *)set);
+    return cast_const(rbtree_prev(cast(set, RBTree)), type);
 }
 
 #endif

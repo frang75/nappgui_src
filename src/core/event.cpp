@@ -68,7 +68,7 @@ static void i_cpp_func_event_handler(void *obj, Event *event)
 
 Listener *IListener::listen(IListener *object, void (IListener::*handler)(Event *))
 {
-    return i_create_listener((void *)object, PARAM(func_release, NULL), i_cpp_func_event_handler, handler);
+    return i_create_listener(cast(object, void), PARAM(func_release, NULL), i_cpp_func_event_handler, handler);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -224,85 +224,3 @@ void *event_result_imp(Event *event, const char_t *type)
 #endif
     return event->result;
 }
-
-/*---------------------------------------------------------------------------*/
-
-//void listener_init_imp(Listener *listener, void *object, FPtr_retain func_retain, FPtr_release func_release, FPtr_event_handler func_event_handler);
-//void listener_init_imp(Listener *listener, void *object, FPtr_retain func_retain, FPtr_release func_release, FPtr_event_handler func_event_handler)
-//{
-//    cassert_no_nullf(func_event_handler);
-//
-//    if (object != NULL)
-//    {
-//        cassert_no_nullf(func_retain);
-//        cassert_no_nullf(func_release);
-//        object = func_retain(object);
-//    }
-//
-//    i_init_listener(listener, object, func_retain, func_release, func_event_handler);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void listener_init_empty(Listener *listener);
-//void listener_init_empty(Listener *listener)
-//{
-//    i_init_listener(listener, NULL, NULL, NULL, NULL);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void listener_remove(Listener *listener);
-//void listener_remove(Listener *listener)
-//{
-//    cassert_no_null(listener);
-//    cassert_no_null(listener->object);
-//    cassert_no_nullf(listener->func_release);
-//
-//    if (__TRUE_EXPECTED(listener->func_release != NULL))
-//    {
-//        cassert_no_nullf(listener->func_retain);
-//        listener->func_release(&listener->object);
-//    }
-//    else
-//    {
-//        cassert(listener->func_retain == NULL);
-//    }
-//
-//    i_init_listener(listener, NULL, NULL, NULL, NULL);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void listener_destroy(Listener *listener);
-//void listener_destroy(Listener *listener)
-//{
-//    cassert_no_null(listener);
-//    if (listener->object != NULL)
-//    {
-//        if (__TRUE_EXPECTED(listener->func_release != NULL))
-//        {
-//            cassert_no_nullf(listener->func_retain);
-//            listener->func_release(&listener->object);
-//        }
-//        else
-//        {
-//            cassert(listener->func_retain == NULL);
-//        }
-//    }
-//
-//    i_init_listener(listener, NULL, NULL, NULL, NULL);
-//}
-
-/*---------------------------------------------------------------------------*/
-
-//void listener_event(Listener *listener, Event *event);
-//void listener_event(Listener *listener, Event *event)
-//{
-//    cassert_no_null(listener);
-//    cassert_no_nullf(listener->func_event_handler);
-//    event->event_handler = listener->event_handler;
-//    listener->func_event_handler(listener->object, event);
-//}
-
-/*---------------------------------------------------------------------------*/

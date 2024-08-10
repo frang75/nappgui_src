@@ -69,7 +69,7 @@ bool_t hfile_dir_create(const char_t *pathname, ferror_t *error)
             if (pathname[i] == '\\' || pathname[i] == '/')
             {
                 sep[dirs] = pathname[i];
-                ((char_t *)pathname)[i] = '\0';
+                cast(pathname, char_t)[i] = '\0';
                 dirs += 1;
                 if (hfile_dir(pathname) == TRUE)
                     break;
@@ -84,7 +84,7 @@ bool_t hfile_dir_create(const char_t *pathname, ferror_t *error)
             {
                 cassert(dirs > 0);
                 dirs -= 1;
-                ((char_t *)pathname)[i] = sep[dirs];
+                cast(pathname, char_t)[i] = sep[dirs];
                 if (err == ekFOK)
                     bfile_dir_create(pathname, &err);
             }
@@ -123,7 +123,6 @@ static void i_OnDeleteFile(void *empty, Event *e)
 
 bool_t hfile_dir_destroy(const char_t *pathname, ferror_t *error)
 {
-
     bool_t ok = hfile_dir_loop(pathname, listener(NULL, i_OnDeleteFile, void), TRUE, TRUE, error);
     if (ok == TRUE)
         ok = bfile_dir_delete(pathname, error);
@@ -237,8 +236,8 @@ static bool_t i_except(const char_t *name, const char_t **except, const uint32_t
 
 bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
 {
-    ArrSt(DirEntry) *dir1, *dir2;
-    const DirEntry *files1, *files2;
+    ArrSt(DirEntry) *dir1 = NULL, *dir2 = NULL;
+    const DirEntry *files1 = NULL, *files2 = NULL;
     uint32_t n1, n2, i1 = 0, i2 = 0;
     bool_t ok = TRUE;
     if (!hfile_dir(src))

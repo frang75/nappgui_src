@@ -176,7 +176,7 @@ static void i_init_const_buffer(i_Buffer *buffer, const byte_t *data, const uint
     cassert(size > 0);
     buffer->dynamic_alloc = FALSE;
     buffer->size = size;
-    buffer->data = (byte_t *)data;
+    buffer->data = cast(data, byte_t);
     buffer->roffset = 0;
     buffer->woffset = 0;
 }
@@ -701,7 +701,7 @@ String *stm_str(const Stream *stm)
 {
     uint32_t s = stm_buffer_size(stm);
     const byte_t *b = stm_buffer(stm);
-    return str_cn((const char_t *)b, s);
+    return str_cn(cast_const(b, char_t), s);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -714,7 +714,7 @@ const byte_t *stm_buffer(const Stream *stm)
     if (stm->buffer1.woffset > stm->buffer1.roffset)
         return stm->buffer1.data + stm->buffer1.roffset;
     else
-        return (const byte_t *)"";
+        return cast_const("", byte_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -982,13 +982,13 @@ static void i_write_utf16(Stream *stm, const char_t *str)
         bytes = unicode_to_char(codepoint, utf16, ekUTF16);
         if (bytes == 2)
         {
-            i_write(stm, (const byte_t *)utf16, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+            i_write(stm, cast_const(utf16, byte_t), 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         }
         else
         {
             cassert(bytes == 4);
-            i_write(stm, (const byte_t *)utf16, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
-            i_write(stm, (const byte_t *)utf16 + 2, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+            i_write(stm, cast_const(utf16, byte_t), 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+            i_write(stm, cast_const(utf16, byte_t) + 2, 2, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         }
 
         str = unicode_next(str, ekUTF8);
@@ -1004,7 +1004,7 @@ static void i_write_utf32(Stream *stm, const char_t *str)
     cassert_no_null(stm);
     while (IS_WRITE_OK(stm->state) && codepoint != 0)
     {
-        i_write(stm, (const byte_t *)&codepoint, 4, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
+        i_write(stm, cast_const(&codepoint, byte_t), 4, BIT_TEST(stm->state, WRITE_ENDIAN_BIT));
         str = unicode_next(str, ekUTF8);
         codepoint = unicode_to_u32(str, ekUTF8);
     }
@@ -1074,11 +1074,11 @@ uint32_t stm_printf(Stream *stm, const char_t *format, ...)
         /* Temporal buffer */
         if (length < stm->textline.size)
         {
-            data = (char_t *)stm->textline.data;
+            data = cast(stm->textline.data, char_t);
         }
         else
         {
-            data_alloc = (char_t *)heap_malloc(length, "StreamPrintf");
+            data_alloc = cast(heap_malloc(length, "StreamPrintf"), char_t);
             data = data_alloc;
         }
 
@@ -1102,7 +1102,7 @@ uint32_t stm_printf(Stream *stm, const char_t *format, ...)
             i_write_utf32(stm, data);
 
         if (data_alloc != NULL)
-            heap_free((byte_t **)&data_alloc, length, "StreamPrintf");
+            heap_free(dcast(&data_alloc, byte_t), length, "StreamPrintf");
 
         return length - 1;
     }
@@ -1128,7 +1128,7 @@ uint32_t stm_writef(Stream *stm, const char_t *str)
         if (size > 0)
         {
             if (BIT_TEST(stm->state, WRITE_UTF8_BIT) == TRUE)
-                i_write(stm, (const byte_t *)str, size, FALSE);
+                i_write(stm, cast_const(str, byte_t), size, FALSE);
             else if (BIT_TEST(stm->state, WRITE_UTF16_BIT) == TRUE)
                 i_write_utf16(stm, str);
             else
@@ -1168,77 +1168,77 @@ static void i_write_binary(Stream *stm, const byte_t *value, const uint32_t size
 
 void stm_write_bool(Stream *stm, const bool_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i8(Stream *stm, const int8_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i16(Stream *stm, const int16_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i32(Stream *stm, const int32_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_i64(Stream *stm, const int64_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u8(Stream *stm, const uint8_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u16(Stream *stm, const uint16_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u32(Stream *stm, const uint32_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_u64(Stream *stm, const uint64_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_r32(Stream *stm, const real32_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void stm_write_r64(Stream *stm, const real64_t value)
 {
-    i_write_binary(stm, (const byte_t *)&value, sizeof(value));
+    i_write_binary(stm, cast_const(&value, byte_t), sizeof(value));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1302,7 +1302,6 @@ static void i_read_from_socket(Stream *stm, byte_t *data, const uint32_t size)
     cassert_no_null(stm);
     cassert(stm->type == i_ekSOCKET);
     cassert(stm->input == NULL);
-
     if (bsocket_read(stm->channel.sock.socket, data, size, &nreaded, &stm->channel.sock.sock_err) == TRUE)
     {
         if (nreaded == 0)
@@ -1318,7 +1317,7 @@ static void i_read_from_socket(Stream *stm, byte_t *data, const uint32_t size)
 
 static void i_stdin_fill_cache(Stream *stm, const uint32_t size)
 {
-    i_Buffer *input;
+    i_Buffer *input = NULL;
     uint32_t nreaded;
     uint32_t rsize = size;
     cassert_no_null(stm);
@@ -1570,13 +1569,13 @@ static uint32_t i_read_utf8(Stream *stm)
 static uint32_t i_read_utf16(Stream *stm)
 {
     uint16_t value0 = 0;
-    i_read(stm, (byte_t *)&value0, 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&value0, byte_t), 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
 
     /* Subrogate pairs */
     if (value0 >= 0xD800 && value0 <= 0xDBFF)
     {
         uint16_t value1 = 0;
-        i_read(stm, (byte_t *)&value1, 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
+        i_read(stm, cast(&value1, byte_t), 2, BIT_TEST(stm->state, READ_ENDIAN_BIT));
         cassert(value1 >= 0xDC00 && value1 <= 0xDFFF);
         return ((uint32_t)value0 << 10) + (uint32_t)value1 - 0x35FDC00;
     }
@@ -1607,7 +1606,7 @@ static void i_char_to_cache(Stream *stm, const uint32_t code)
         }
     }
 
-    line->roffset += unicode_to_char(code, (char_t *)(line->data + line->roffset), ekUTF8);
+    line->roffset += unicode_to_char(code, cast(line->data + line->roffset, char_t), ekUTF8);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1624,7 +1623,7 @@ uint32_t stm_read_char(Stream *stm)
     else if (BIT_TEST(stm->state, READ_UTF16_BIT) == TRUE)
         code = i_read_utf16(stm);
     else
-        i_read(stm, (byte_t *)&code, 4, BIT_TEST(stm->state, READ_ENDIAN_BIT));
+        i_read(stm, cast(&code, byte_t), 4, BIT_TEST(stm->state, READ_ENDIAN_BIT));
 
     if (unicode_valid(code) == TRUE)
     {
@@ -1651,7 +1650,7 @@ uint32_t stm_read_char(Stream *stm)
 
 const char_t *stm_read_chars(Stream *stm, const uint32_t n)
 {
-    i_Buffer *line;
+    i_Buffer *line = NULL;
     uint32_t i;
     cassert_no_null(stm);
     if (!IS_READ_OK(stm->state))
@@ -1666,7 +1665,7 @@ const char_t *stm_read_chars(Stream *stm, const uint32_t n)
     }
 
     i_char_to_cache(stm, 0);
-    return (const char_t *)line->data;
+    return cast_const(line->data, char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1704,7 +1703,7 @@ const char_t *stm_read_line(Stream *stm)
             return NULL;
     }
 
-    return (const char_t *)line->data;
+    return cast_const(line->data, char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1740,7 +1739,7 @@ const char_t *stm_read_trim(Stream *stm)
     }
 
     i_char_to_cache(stm, 0);
-    return (const char_t *)line->data;
+    return cast_const(line->data, char);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1845,7 +1844,6 @@ int16_t stm_read_i16_tok(Stream *stm)
     int64_t v = i_read_i64(stm);
     if (v >= INT16_MIN && v <= INT16_MAX)
         return (int16_t)v;
-
     stm_corrupt(stm);
     return 0;
 }
@@ -1857,7 +1855,6 @@ int32_t stm_read_i32_tok(Stream *stm)
     int64_t v = i_read_i64(stm);
     if (v >= INT32_MIN && v <= INT32_MAX)
         return (int32_t)v;
-
     stm_corrupt(stm);
     return 0;
 }
@@ -1876,7 +1873,6 @@ uint8_t stm_read_u8_tok(Stream *stm)
     uint64_t v = i_read_u64(stm);
     if (v <= UINT8_MAX)
         return (uint8_t)v;
-
     stm_corrupt(stm);
     return 0;
 }
@@ -1888,7 +1884,6 @@ uint16_t stm_read_u16_tok(Stream *stm)
     uint64_t v = i_read_u64(stm);
     if (v <= UINT16_MAX)
         return (uint16_t)v;
-
     stm_corrupt(stm);
     return 0;
 }
@@ -1900,7 +1895,6 @@ uint32_t stm_read_u32_tok(Stream *stm)
     uint64_t v = i_read_u64(stm);
     if (v <= UINT32_MAX)
         return (uint32_t)v;
-
     stm_corrupt(stm);
     return 0;
 }
@@ -1931,7 +1925,7 @@ real64_t stm_read_r64_tok(Stream *stm)
 bool_t stm_read_bool(Stream *stm)
 {
     bool_t v = FALSE;
-    i_read(stm, (byte_t *)&v, sizeof(bool_t), FALSE);
+    i_read(stm, cast(&v, byte_t), sizeof(bool_t), FALSE);
     if (v != 0 && v != 1)
     {
         log_printf("Error reading boolean.");
@@ -1946,7 +1940,7 @@ bool_t stm_read_bool(Stream *stm)
 int8_t stm_read_i8(Stream *stm)
 {
     int8_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(int8_t), FALSE);
+    i_read(stm, cast(&v, byte_t), sizeof(int8_t), FALSE);
     return v;
 }
 
@@ -1955,7 +1949,7 @@ int8_t stm_read_i8(Stream *stm)
 int16_t stm_read_i16(Stream *stm)
 {
     int16_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(int16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(int16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -1964,7 +1958,7 @@ int16_t stm_read_i16(Stream *stm)
 int32_t stm_read_i32(Stream *stm)
 {
     int32_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(int32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(int32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -1973,7 +1967,7 @@ int32_t stm_read_i32(Stream *stm)
 int64_t stm_read_i64(Stream *stm)
 {
     int64_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(int64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(int64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -1982,7 +1976,7 @@ int64_t stm_read_i64(Stream *stm)
 uint8_t stm_read_u8(Stream *stm)
 {
     uint8_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(uint8_t), FALSE);
+    i_read(stm, cast(&v, byte_t), sizeof(uint8_t), FALSE);
     return v;
 }
 
@@ -1991,7 +1985,7 @@ uint8_t stm_read_u8(Stream *stm)
 uint16_t stm_read_u16(Stream *stm)
 {
     uint16_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(uint16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(uint16_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2000,7 +1994,7 @@ uint16_t stm_read_u16(Stream *stm)
 uint32_t stm_read_u32(Stream *stm)
 {
     uint32_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(uint32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(uint32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2009,7 +2003,7 @@ uint32_t stm_read_u32(Stream *stm)
 uint64_t stm_read_u64(Stream *stm)
 {
     uint64_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(uint64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(uint64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2018,7 +2012,7 @@ uint64_t stm_read_u64(Stream *stm)
 real32_t stm_read_r32(Stream *stm)
 {
     real32_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(real32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(real32_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 
@@ -2027,7 +2021,7 @@ real32_t stm_read_r32(Stream *stm)
 real64_t stm_read_r64(Stream *stm)
 {
     real64_t v = 0;
-    i_read(stm, (byte_t *)&v, sizeof(real64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
+    i_read(stm, cast(&v, byte_t), sizeof(real64_t), BIT_TEST(stm->state, READ_ENDIAN_BIT));
     return v;
 }
 

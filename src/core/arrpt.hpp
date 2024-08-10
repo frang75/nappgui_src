@@ -107,7 +107,7 @@ ArrPt<type> *ArrPt<type>::create(void)
 {
     char_t dtype[64];
     bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
-    return (ArrPt<type> *)array_create(sizeof(type *), dtype);
+    return cast(array_create(sizeof(type *), dtype), ArrPt<type>);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -117,7 +117,7 @@ ArrPt<type> *ArrPt<type>::copy(const ArrPt<type> *array, type *(*func_copy)(cons
 {
     char_t dtype[64];
     bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
-    return (ArrPt<type> *)array_copy_ptr((Array *)array, (FPtr_copy)func_copy, dtype);
+    return cast(array_copy_ptr(cast(array, Array), (FPtr_copy)func_copy, dtype), ArrPt<type>);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -127,7 +127,7 @@ ArrPt<type> *ArrPt<type>::read(Stream *stm, type *(*func_read)(Stream *))
 {
     char_t dtype[64];
     bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
-    return (ArrPt<type> *)array_read_ptr(stm, (FPtr_read)func_read, dtype);
+    return cast(array_read_ptr(stm, (FPtr_read)func_read, dtype), ArrPt<type>);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,7 +137,7 @@ void ArrPt<type>::destroy(ArrPt<type> **array, void (*func_destroy)(type **))
 {
     char_t dtype[64];
     bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
-    array_destroy_ptr((Array **)array, (FPtr_destroy)func_destroy, dtype);
+    array_destroy_ptr(dcast(array, Array), (FPtr_destroy)func_destroy, dtype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -147,7 +147,7 @@ void ArrPt<type>::destopt(ArrPt<type> **array, void (*func_destroy)(type **))
 {
     char_t dtype[64];
     bstd_sprintf(dtype, sizeof(dtype), "ArrPt<%s>", typeid(type).name());
-    array_destopt_ptr((Array **)array, (FPtr_destroy)func_destroy, dtype);
+    array_destopt_ptr(dcast(array, Array), (FPtr_destroy)func_destroy, dtype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -155,7 +155,7 @@ void ArrPt<type>::destopt(ArrPt<type> **array, void (*func_destroy)(type **))
 template <typename type>
 void ArrPt<type>::clear(ArrPt<type> *array, void (*func_destroy)(type **))
 {
-    array_clear_ptr((Array *)array, (FPtr_destroy)func_destroy);
+    array_clear_ptr(cast(array, Array), (FPtr_destroy)func_destroy);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -163,7 +163,7 @@ void ArrPt<type>::clear(ArrPt<type> *array, void (*func_destroy)(type **))
 template <typename type>
 void ArrPt<type>::write(Stream *stm, const ArrPt<type> *array, void (*func_write)(Stream *, const type *))
 {
-    array_write_ptr(stm, (const Array *)array, (FPtr_write)func_write);
+    array_write_ptr(stm, cast_const(array, Array), (FPtr_write)func_write);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -171,7 +171,7 @@ void ArrPt<type>::write(Stream *stm, const ArrPt<type> *array, void (*func_write
 template <typename type>
 uint32_t ArrPt<type>::size(const ArrPt<type> *array)
 {
-    return array_size((Array *)array);
+    return array_size(cast_const(array, Array));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -179,7 +179,7 @@ uint32_t ArrPt<type>::size(const ArrPt<type> *array)
 template <typename type>
 type *ArrPt<type>::get(ArrPt<type> *array, const uint32_t pos)
 {
-    return *(type **)array_get((Array *)array, pos);
+    return *dcast(array_get(cast_const(array, Array), pos), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -187,7 +187,7 @@ type *ArrPt<type>::get(ArrPt<type> *array, const uint32_t pos)
 template <typename type>
 const type *ArrPt<type>::get(const ArrPt<type> *array, const uint32_t pos)
 {
-    return *(const type **)array_get((const Array *)array, pos);
+    return *dcast(array_get(cast_const(array, Array), pos), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -195,7 +195,7 @@ const type *ArrPt<type>::get(const ArrPt<type> *array, const uint32_t pos)
 template <typename type>
 type *ArrPt<type>::first(ArrPt<type> *array)
 {
-    return *(type **)array_get((Array *)array, 0);
+    return *dcast(array_get(cast_const(array, Array), 0), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -203,7 +203,7 @@ type *ArrPt<type>::first(ArrPt<type> *array)
 template <typename type>
 const type *ArrPt<type>::first(const ArrPt<type> *array)
 {
-    return *(const type **)array_get((const Array *)array, 0);
+    return *dcast(array_get(cast_const(array, Array), 0), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -211,7 +211,7 @@ const type *ArrPt<type>::first(const ArrPt<type> *array)
 template <typename type>
 type *ArrPt<type>::last(ArrPt<type> *array)
 {
-    return *(type **)array_get_last((Array *)array);
+    return *dcast(array_get_last(cast_const(array, Array)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -219,7 +219,7 @@ type *ArrPt<type>::last(ArrPt<type> *array)
 template <typename type>
 const type *ArrPt<type>::last(const ArrPt<type> *array)
 {
-    return *(const type **)array_get_last((const Array *)array);
+    return *dcast(array_get_last(cast_const(array, Array)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -227,7 +227,7 @@ const type *ArrPt<type>::last(const ArrPt<type> *array)
 template <typename type>
 type **ArrPt<type>::all(ArrPt<type> *array)
 {
-    return (type **)array_all((Array *)array);
+    return dcast(array_all(cast_const(array, Array)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -235,7 +235,7 @@ type **ArrPt<type>::all(ArrPt<type> *array)
 template <typename type>
 const type **ArrPt<type>::all(const ArrPt<type> *array)
 {
-    return (const type **)array_all((Array *)array);
+    return dcast_const(array_all(cast_const(array, Array)), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -243,7 +243,7 @@ const type **ArrPt<type>::all(const ArrPt<type> *array)
 template <typename type>
 void ArrPt<type>::grow(ArrPt<type> *array, const uint32_t n)
 {
-    array_insert((Array *)array, UINT32_MAX, n);
+    array_insert(cast(array, Array), UINT32_MAX, n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -251,7 +251,7 @@ void ArrPt<type>::grow(ArrPt<type> *array, const uint32_t n)
 template <typename type>
 void ArrPt<type>::append(ArrPt<type> *array, const type *value)
 {
-    *(type **)array_insert((Array *)array, UINT32_MAX, 1) = (type *)value;
+    *dcast(array_insert(cast(array, Array), UINT32_MAX, 1), type) = cast(value, type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -259,7 +259,7 @@ void ArrPt<type>::append(ArrPt<type> *array, const type *value)
 template <typename type>
 void ArrPt<type>::prepend(ArrPt<type> *array, const type *value)
 {
-    *(type **)array_insert((Array *)array, 0, 1) = value;
+    *dcast(array_insert(cast(array, Array), 0, 1), type) = value;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -267,7 +267,7 @@ void ArrPt<type>::prepend(ArrPt<type> *array, const type *value)
 template <typename type>
 void ArrPt<type>::insert(ArrPt<type> *array, const uint32_t pos, const type *value)
 {
-    *(type **)array_insert((Array *)array, pos, 1) = value;
+    *dcast(array_insert(cast(array, Array), pos, 1), type) = value;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -275,7 +275,7 @@ void ArrPt<type>::insert(ArrPt<type> *array, const uint32_t pos, const type *val
 template <typename type>
 void ArrPt<type>::join(ArrPt<type> *dest, const ArrPt<type> *src, type *(*func_copy)(const type))
 {
-    array_join_ptr((Array *)dest, (const Array *)src, (FPtr_copy)func_copy);
+    array_join_ptr(cast(dest, Array), cast_const(src, Array), (FPtr_copy)func_copy);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -283,7 +283,7 @@ void ArrPt<type>::join(ArrPt<type> *dest, const ArrPt<type> *src, type *(*func_c
 template <typename type>
 void ArrPt<type>::ddelete(ArrPt<type> *array, const uint32_t pos, void (*func_destroy)(type **))
 {
-    array_delete_ptr((Array *)array, pos, 1, (FPtr_destroy)func_destroy);
+    array_delete_ptr(cast(array, Array), pos, 1, (FPtr_destroy)func_destroy);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -291,7 +291,7 @@ void ArrPt<type>::ddelete(ArrPt<type> *array, const uint32_t pos, void (*func_de
 template <typename type>
 void ArrPt<type>::pop(ArrPt<type> *array, void (*func_destroy)(type **))
 {
-    array_pop_ptr((Array *)array, (FPtr_destroy)func_destroy);
+    array_pop_ptr(cast(array, Array), (FPtr_destroy)func_destroy);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -299,7 +299,7 @@ void ArrPt<type>::pop(ArrPt<type> *array, void (*func_destroy)(type **))
 template <typename type>
 void ArrPt<type>::sort(ArrPt<type> *array, int (*func_compare)(const type *, const type *))
 {
-    array_sort_ptr((Array *)array, (FPtr_compare)func_compare);
+    array_sort_ptr(cast(array, Array), (FPtr_compare)func_compare);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -307,7 +307,7 @@ void ArrPt<type>::sort(ArrPt<type> *array, int (*func_compare)(const type *, con
 template <typename type>
 uint32_t ArrPt<type>::find(ArrPt<type> *array, const type *elem)
 {
-    return array_find_ptr((const Array *)array, (const void *)elem);
+    return array_find_ptr(cast_const(array, Array), cast_const(elem, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -315,7 +315,7 @@ uint32_t ArrPt<type>::find(ArrPt<type> *array, const type *elem)
 template <typename type, typename dtype>
 void ArrP2<type, dtype>::sort_ex(ArrPt<type> *array, int (*func_compare)(const type *, const type *, const dtype *), const dtype *data)
 {
-    array_sort_ptr_ex((Array *)array, (FPtr_compare_ex)func_compare, (void *)data);
+    array_sort_ptr_ex(cast(array, Array), (FPtr_compare_ex)func_compare, cast(data, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -323,7 +323,7 @@ void ArrP2<type, dtype>::sort_ex(ArrPt<type> *array, int (*func_compare)(const t
 template <typename type, typename dtype>
 type *ArrP2<type, dtype>::search(ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
 {
-    return (type *)array_search_ptr((Array *)array, (FPtr_compare)func_compare, (const void *)key, pos);
+    return cast(array_search_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -331,7 +331,7 @@ type *ArrP2<type, dtype>::search(ArrPt<type> *array, int (*func_compare)(const t
 template <typename type, typename dtype>
 const type *ArrP2<type, dtype>::search(const ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
 {
-    return (const type *)array_search_ptr((const Array *)array, (FPtr_compare)func_compare, (const void *)key, pos);
+    return cast_const(array_search_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -339,7 +339,7 @@ const type *ArrP2<type, dtype>::search(const ArrPt<type> *array, int (*func_comp
 template <typename type, typename dtype>
 type *ArrP2<type, dtype>::bsearch(ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
 {
-    return (type *)array_bsearch_ptr((Array *)array, (FPtr_compare)func_compare, (const void *)key, pos);
+    return cast(array_bsearch_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -347,7 +347,7 @@ type *ArrP2<type, dtype>::bsearch(ArrPt<type> *array, int (*func_compare)(const 
 template <typename type, typename dtype>
 const type *ArrP2<type, dtype>::bsearch(const ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
 {
-    return (const type *)array_bsearch_ptr((const Array *)array, (FPtr_compare)func_compare, (const void *)key, pos);
+    return cast_const(array_bsearch_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
 
 #endif

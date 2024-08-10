@@ -49,10 +49,10 @@ __END_C
     ( \
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype), \
         dbind_imp( \
-            (const char_t *)#type, \
+            cast_const(#type, char_t), \
             (uint16_t)sizeof(type), \
-            (const char_t *)#mname, \
-            (const char_t *)#mtype, \
+            cast_const(#mname, char_t), \
+            cast_const(#mtype, char_t), \
             (uint16_t)STRUCT_MEMBER_OFFSET(type, mname), \
             (uint16_t)STRUCT_MEMBER_SIZE(type, mname)))
 
@@ -60,45 +60,45 @@ __END_C
     ( \
         (void)(((type)value) == value), \
         dbind_enum_imp( \
-            (const char_t *)#type, \
-            (const char_t *)#value, \
+            cast_const(#type, char_t), \
+            cast_const(#value, char_t), \
             (enum_t)value, \
             alias))
 
 #define dbind_create(type) \
-    (type *)dbind_create_imp((const char_t *)#type)
+    cast(dbind_create_imp(cast_const(#type, char_t)), type)
 
 #define dbind_init(data, type) \
-    ((void)(data == (type *)data), \
-     dbind_init_imp((byte_t *)data, (const char_t *)#type))
+    ((void)(data == cast(data, type)), \
+     dbind_init_imp(cast(data, byte_t), cast_const(#type, char_t)))
 
 #define dbind_remove(data, type) \
-    ((void)(data == (type *)data), \
-     dbind_remove_imp((byte_t *)data, (const char_t *)#type))
+    ((void)(data == cast(data, type)), \
+     dbind_remove_imp(cast(data, byte_t), cast_const(#type, char_t)))
 
 #define dbind_destroy(data, type) \
-    ((void)(data == (type **)data), \
-     dbind_destroy_imp((byte_t **)data, (const char_t *)#type))
+    ((void)(data == dcast(data, type)), \
+     dbind_destroy_imp(dcast(data, byte_t), cast_const(#type, char_t)))
 
 #define dbind_destopt(data, type) \
-    ((void)(data == (type **)data), \
-     dbind_destopt_imp((byte_t **)data, (const char_t *)#type))
+    ((void)(data == dcast(data, type)), \
+     dbind_destopt_imp(dcast(data, byte_t), cast_const(#type, char_t)))
 
 #define dbind_read(stm, type) \
-    (type *)dbind_read_imp(stm, (const char_t *)#type)
+    cast(dbind_read_imp(stm, cast_const(#type, char_t)), type)
 
 #define dbind_write(stm, data, type) \
-    ((void)((const type *)data == data), \
-     dbind_write_imp(stm, (const void *)data, (const char_t *)#type))
+    ((void)(cast_const(data, type) == data), \
+     dbind_write_imp(stm, cast_const(data, void), cast_const(#type, char_t)))
 
 #define dbind_default(type, mtype, mname, value) \
     { \
         const mtype ___value = value; \
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype); \
         dbind_default_imp( \
-            (const char_t *)#type, \
-            (const char_t *)#mname, \
-            (void *)&___value); \
+            cast_const(#type, char_t), \
+            cast_const(#mname, char_t), \
+            cast(&___value, void)); \
     }
 
 #define dbind_range(type, mtype, mname, min, max) \
@@ -107,10 +107,10 @@ __END_C
         mtype ___max = max; \
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype); \
         dbind_range_imp( \
-            (const char_t *)#type, \
-            (const char_t *)#mname, \
-            (void *)&___min, \
-            (void *)&___max); \
+            cast_const(#type, char_t), \
+            cast_const(#mname, char_t), \
+            cast(&___min, void), \
+            cast(&___max, void)); \
     }
 
 #define dbind_precision(type, mtype, mname, prec) \
@@ -118,9 +118,9 @@ __END_C
         mtype ___prec = prec; \
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype); \
         dbind_precision_imp( \
-            (const char_t *)#type, \
-            (const char_t *)#mname, \
-            (void *)&___prec); \
+            cast_const(#type, char_t), \
+            cast_const(#mname, char_t), \
+            cast(&___prec, void)); \
     }
 
 #define dbind_increment(type, mtype, mname, incr) \
@@ -128,15 +128,15 @@ __END_C
         mtype ___incr = incr; \
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype); \
         dbind_increment_imp( \
-            (const char_t *)#type, \
-            (const char_t *)#mname, \
-            (void *)&___incr); \
+            cast_const(#type, char_t), \
+            cast_const(#mname, char_t), \
+            cast(&___incr, void)); \
     }
 
 #define dbind_suffix(type, mtype, mname, suffix) \
     ( \
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype), \
         dbind_suffix_imp( \
-            (const char_t *)#type, \
-            (const char_t *)#mname, \
+            cast_const(#type, char_t), \
+            cast_const(#mname, char_t), \
             suffix))

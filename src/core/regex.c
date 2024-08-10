@@ -38,14 +38,14 @@ regex_destroy(&regex);
 
 RegEx *regex_create(const char_t *pattern)
 {
-    return (RegEx *)_nfa_regex(pattern, FALSE);
+    return cast(_nfa_regex(pattern, FALSE), RegEx);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void regex_destroy(RegEx **regex)
 {
-    _nfa_destroy((NFA **)regex);
+    _nfa_destroy(dcast(regex, NFA));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -53,16 +53,16 @@ void regex_destroy(RegEx **regex)
 bool_t regex_match(const RegEx *regex, const char_t *str)
 {
     uint32_t codepoint;
-    _nfa_start((NFA *)regex);
+    _nfa_start(cast(regex, NFA));
     codepoint = unicode_to_u32(str, ekUTF8);
     while (codepoint != 0)
     {
-        if (_nfa_next((NFA *)regex, codepoint) == FALSE)
+        if (_nfa_next(cast(regex, NFA), codepoint) == FALSE)
             return FALSE;
 
         str = unicode_next(str, ekUTF8);
         codepoint = unicode_to_u32(str, ekUTF8);
     }
 
-    return _nfa_accept((NFA *)regex);
+    return _nfa_accept(cast(regex, NFA));
 }

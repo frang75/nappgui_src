@@ -156,6 +156,7 @@
 #define cast(ptr, type) ((type*)(ptr))
 #define dcast(dptr, type) ((type**)(dptr))
 #define cast_const(ptr, type) ((const type*)(ptr))
+#define dcast_const(dptr, type) ((const type**)(dptr))
 
 /*! <Struct Access> */
 #if defined (__clang__)

@@ -204,7 +204,7 @@ static Buffer *i_load_pack(ArrSt(i_Resource) *resources, const char_t *name, con
             uint32_t locale_size = stm_read_u32(stream);
             if (locale_code == UINT32_MAX)
             {
-                const char_t *locale_name = (const char_t *)stm_buffer(stream);
+                const char_t *locale_name = cast_const(stm_buffer(stream), char_t);
                 if (str_equ_c(locale, locale_name) == TRUE)
                     locale_code = i;
             }
@@ -249,7 +249,7 @@ void respack_add_msg(ResPack *pack, const char_t *msg)
     cassert_no_null(pack);
     cassert(pack->type == i_ekTYPE_EMBEDDED);
     resource = arrst_new(pack->resources, i_Resource);
-    i_init_resource(resource, 0, (const byte_t *)msg, UINT32_MAX, &object);
+    i_init_resource(resource, 0, cast_const(msg, byte_t), UINT32_MAX, &object);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -268,10 +268,10 @@ void respack_add_cdata(ResPack *pack, const uint32_t type, const byte_t *data, c
 
 static ___INLINE const char_t *i_magic(const ResId id)
 {
-    const char_t *magic = str_str((const char_t *)id, "::");
+    const char_t *magic = str_str(cast_const(id, char_t), "::");
     if (magic == NULL)
         return NULL;
-    if (str_equ_cn((const char_t *)id, "N23R3C75", (uint32_t)(magic - (const char_t *)id)) == FALSE)
+    if (str_equ_cn(cast_const(id, char_t), "N23R3C75", (uint32_t)(magic - cast_const(id, char_t))) == FALSE)
         return NULL;
     if (str_str(magic + 2, "::") == NULL)
         return NULL;
@@ -300,7 +300,7 @@ const char_t *respack_text(const ResPack *pack, const ResId id)
     resource = arrst_get(pack->resources, i_index(id, pack->name), i_Resource);
     cassert_no_null(resource);
     cassert(resource->type == 0);
-    return (const char_t *)resource->data;
+    return cast_const(resource->data, char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -371,7 +371,7 @@ const char_t *respack_atext(const ArrPt(ResPack) *packs, const ResId id, bool_t 
     if (resource != NULL)
     {
         cassert(resource->type == 0);
-        return (const char_t *)resource->data;
+        return cast_const(resource->data, char_t);
     }
     else
     {

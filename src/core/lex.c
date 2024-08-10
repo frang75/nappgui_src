@@ -76,7 +76,7 @@ LexScn *_lexscn_create(void)
 {
     LexScn *lex = heap_new0(LexScn);
     lex->lexsize = 256;
-    lex->lexeme = (char_t *)heap_malloc(lex->lexsize, "LexLexeme");
+    lex->lexeme = cast(heap_malloc(lex->lexsize, "LexLexeme"), char_t);
     return lex;
 }
 
@@ -86,7 +86,7 @@ void _lexscn_destroy(LexScn **lex)
 {
     cassert_no_null(lex);
     cassert_no_null(*lex);
-    heap_free((byte_t **)&(*lex)->lexeme, (*lex)->lexsize, "LexLexeme");
+    heap_free(dcast(&(*lex)->lexeme, byte_t), (*lex)->lexsize, "LexLexeme");
     heap_delete(lex, LexScn);
 }
 
@@ -149,7 +149,7 @@ static void i_store_char(LexScn *lex, Stream *stm, const uint32_t code)
     cassert_no_null(lex);
     size = unicode_to_char(code, data, ekUTF8);
     cassert(size >= 1 && size <= 4);
-    _stm_restore(stm, (const byte_t *)data, size);
+    _stm_restore(stm, cast_const(data, byte_t), size);
     _stm_restore_col(stm, lex->pcol);
     _stm_restore_row(stm, lex->prow);
 }
@@ -166,7 +166,7 @@ static void i_add_lexeme(LexScn *lex, const uint32_t code)
 
     if (lex->lexi + 4 > lex->lexsize)
     {
-        lex->lexeme = (char_t *)heap_realloc((byte_t *)lex->lexeme, lex->lexsize, lex->lexsize * 2, "LexLexeme");
+        lex->lexeme = cast(heap_realloc(cast(lex->lexeme, byte_t), lex->lexsize, lex->lexsize * 2, "LexLexeme"), char_t);
         lex->lexsize *= 2;
     }
 
@@ -262,7 +262,6 @@ static gui_state_t i_START(const uint32_t code, ltoken_t *token)
     case '@':
         *token = ekTAT;
         return stEND;
-
     case '/':
         return stSLASH;
     case '.':

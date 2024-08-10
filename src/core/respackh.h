@@ -33,13 +33,11 @@ _core_api const byte_t *respack_afile(const ArrPt(ResPack) *packs, const ResId i
 __END_C
 
 #define respack_object(pack, id, func_create, func_destroy, type) \
-    ((void) \
-         FUNC_CHECK_CREATE_FROM_DATA(func_create, type), \
+    ((void)FUNC_CHECK_CREATE_FROM_DATA(func_create, type), \
      FUNC_CHECK_DESTROY(func_destroy, type), \
-     (type *)respack_object_imp(pack, id, (FPtr_create_from_data)func_create, (FPtr_destroy)func_destroy))
+     cast(respack_object_imp(pack, id, (FPtr_create_from_data)func_create, (FPtr_destroy)func_destroy), type))
 
 #define respack_aobj(packs, id, func_create, func_destroy, is_resid, type) \
-    ((void) \
-         FUNC_CHECK_CREATE_FROM_DATA(func_create, type), \
+    ((void)FUNC_CHECK_CREATE_FROM_DATA(func_create, type), \
      FUNC_CHECK_DESTROY(func_destroy, type), \
-     (type *)respack_aobj_imp(packs, id, (FPtr_create_from_data)func_create, (FPtr_destroy)func_destroy, is_resid))
+     cast(respack_aobj_imp(packs, id, (FPtr_create_from_data)func_create, (FPtr_destroy)func_destroy, is_resid), type))

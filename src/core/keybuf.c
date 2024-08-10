@@ -184,7 +184,7 @@ void keybuf_OnDown(KeyBuf *buffer, const vkey_t key)
 void keybuf_clear(KeyBuf *buffer)
 {
     cassert_no_null(buffer);
-    bmem_set1((byte_t *)buffer->pressed, sizeof(buffer->pressed), 0);
+    bmem_set1(cast(buffer->pressed, byte_t), sizeof(buffer->pressed), 0);
 }
 
 /*---------------------------------------------------------------------------*/

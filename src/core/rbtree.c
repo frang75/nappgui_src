@@ -33,10 +33,6 @@ struct i_node_t
     i_Node *rnode;
 };
 
-#define i_NODE_DATA(node) \
-    ((void)((i_Node *)node == node), \
-     ((byte_t *)node + sizeof(i_Node)))
-
 struct i_iterator_t
 {
     uint16_t path_size;
@@ -54,11 +50,15 @@ struct _rbtree_t
     i_Iterator it;
 };
 
+#define i_NODE_DATA(node) \
+    ((void)(cast(node, i_Node) == node), \
+     (cast(node, byte_t) + sizeof(i_Node)))
+
 /*---------------------------------------------------------------------------*/
 
 static i_Node *i_create_node(const uint16_t esize, const uint16_t ksize)
 {
-    i_Node *node = (i_Node *)heap_malloc(sizeof32(i_Node) + esize + ksize, "RBNode");
+    i_Node *node = cast(heap_malloc(sizeof32(i_Node) + esize + ksize, "RBNode"), i_Node);
     node->type = i_RED_NODE;
     node->lnode = NULL;
     node->rnode = NULL;
@@ -69,7 +69,7 @@ static i_Node *i_create_node(const uint16_t esize, const uint16_t ksize)
 
 static ___INLINE void i_dealloc_node(i_Node **node, const uint16_t esize, const uint16_t ksize)
 {
-    heap_free((byte_t **)node, sizeof32(i_Node) + esize + ksize, "RBNode");
+    heap_free(dcast(node, byte_t), sizeof32(i_Node) + esize + ksize, "RBNode");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -86,7 +86,7 @@ static ___INLINE void i_destroy_node_data(
 
     if (func_destroy_key != NULL)
     {
-        void **key = (void **)i_NODE_DATA(node);
+        void **key = dcast(i_NODE_DATA(node), void);
         cassert(ksize == sizeofptr);
         func_destroy_key(key);
     }
@@ -99,7 +99,7 @@ static ___INLINE void i_destroy_node_data(
     }
     else if (func_destroy != NULL)
     {
-        void **data = (void **)(i_NODE_DATA(node) + ksize);
+        void **data = dcast(i_NODE_DATA(node) + ksize, void);
 #if defined(__ASSERTS__)
         cassert(esize == sizeofptr);
 #endif
@@ -141,14 +141,14 @@ static void i_destroy_rbtree(RBTree **tree, FPtr_remove func_remove, FPtr_destro
         i_destroy_node(&(*tree)->root, (*tree)->esize, (*tree)->ksize, func_remove, func_destroy, func_destroy_key);
 
     heap_delete_n(&(*tree)->it.path, (*tree)->it.path_alloc, i_NodePt);
-    heap_free((byte_t **)tree, sizeof(RBTree), type);
+    heap_free(dcast(tree, byte_t), sizeof(RBTree), type);
 }
 
 /*---------------------------------------------------------------------------*/
 
 RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize, const char_t *type)
 {
-    RBTree *tree = (RBTree *)heap_malloc(sizeof(RBTree), type);
+    RBTree *tree = cast(heap_malloc(sizeof(RBTree), type), RBTree);
     tree->func_compare = func_compare;
     tree->elems = 0;
     tree->esize = esize;
@@ -216,7 +216,7 @@ uint32_t rbtree_size(const RBTree *tree)
 #if defined(__ASSERTS__)
 static ___INLINE i_Node *i_current_node(const i_Iterator *it)
 {
-    i_Node *node;
+    i_Node *node = NULL;
     cassert_no_null(it);
     cassert(it->path_size < it->path_alloc);
     node = it->path[it->path_size - 1];
@@ -252,11 +252,11 @@ static int i_node_by_key(i_Node *root, const void *key, const bool_t isptr, FPtr
     for (;;)
     {
         const i_Node *cnode = it->path[it->path_size - 1];
-        const byte_t *cdata;
+        const byte_t *cdata = NULL;
         int compare;
         cassert_no_null(cnode);
         cdata = i_NODE_DATA(cnode);
-        compare = func_compare(isptr == TRUE ? *((byte_t **)cdata) : cdata, key);
+        compare = func_compare(isptr == TRUE ? *dcast(cdata, byte_t) : cdata, key);
         if (__TRUE_EXPECTED(compare > 0))
         {
             if (__TRUE_EXPECTED(cnode->lnode != NULL))
@@ -293,18 +293,18 @@ byte_t *rbtree_get(const RBTree *tree, const void *key, const bool_t isptr)
     cassert_no_null(tree);
     if (__TRUE_EXPECTED(tree->root != NULL))
     {
-        int result = i_node_by_key(tree->root, key, isptr, tree->func_compare, &((RBTree *)tree)->it);
+        int result = i_node_by_key(tree->root, key, isptr, tree->func_compare, &cast(tree, RBTree)->it);
         if (result == 0)
         {
             byte_t *elem;
             cassert(tree->it.path_size > 0);
             cassert(tree->it.path_size <= tree->it.path_alloc);
             elem = i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize;
-            return isptr ? *((byte_t **)elem) : elem;
+            return isptr ? *dcast(elem, byte_t) : elem;
         }
     }
 
-    ((RBTree *)tree)->it.path_size = 0;
+    cast(tree, RBTree)->it.path_size = 0;
     return NULL;
 }
 
@@ -386,7 +386,7 @@ static bool_t i_inorder_next(i_Iterator *it)
     {
         while (it->path_size > 1)
         {
-            i_Node *parent;
+            i_Node *parent = NULL;
             it->path_size -= 1;
             parent = it->path[it->path_size - 1];
             cassert_no_null(parent);
@@ -429,7 +429,7 @@ static bool_t i_inorder_prev(i_Iterator *it)
     {
         while (it->path_size > 1)
         {
-            i_Node *parent;
+            i_Node *parent = NULL;
             it->path_size -= 1;
             parent = it->path[it->path_size - 1];
             cassert_no_null(parent);
@@ -450,7 +450,7 @@ static bool_t i_inorder_prev(i_Iterator *it)
 
 static ___INLINE void i_rotate_left(i_Node *node, i_Node *parent, i_Node **root)
 {
-    i_Node *rnode;
+    i_Node *rnode = NULL;
     cassert_no_null(node);
     rnode = node->rnode;
     cassert_no_null(rnode);
@@ -481,7 +481,7 @@ static ___INLINE void i_rotate_left(i_Node *node, i_Node *parent, i_Node **root)
 
 static ___INLINE void i_rotate_right(i_Node *node, i_Node *parent, i_Node **root)
 {
-    i_Node *lnode;
+    i_Node *lnode = NULL;
     cassert_no_null(node);
     lnode = node->lnode;
     cassert_no_null(lnode);
@@ -548,7 +548,7 @@ static void i_restructure_after_insert(i_Iterator *it, i_Node **root)
                     }
                     else
                     {
-                        i_Node *grand2;
+                        i_Node *grand2 = NULL;
 
                         if (cnode == parent->rnode)
                         {
@@ -580,7 +580,7 @@ static void i_restructure_after_insert(i_Iterator *it, i_Node **root)
                     }
                     else
                     {
-                        i_Node *grand2;
+                        i_Node *grand2 = NULL;
 
                         if (cnode == parent->lnode)
                         {
@@ -638,8 +638,8 @@ static i_Node *i_insert_node(
 
         if (result != 0)
         {
-            i_Node *new_node;
-            i_Node *parent;
+            i_Node *new_node = NULL;
+            i_Node *parent = NULL;
             new_node = i_create_node(esize, ksize);
             parent = it->path[it->path_size - 1];
             cassert_no_null(parent);
@@ -687,13 +687,13 @@ byte_t *rbtree_insert(RBTree *tree, const void *key, FPtr_copy func_key_copy)
         tree->elems += 1;
         if (func_key_copy != NULL)
         {
-            void **dkey = (void **)i_NODE_DATA(new_node);
+            void **dkey = dcast(i_NODE_DATA(new_node), void);
             cassert(tree->ksize == sizeofptr);
             *dkey = func_key_copy(key);
         }
         else if (tree->ksize > 0)
         {
-            bmem_copy(i_NODE_DATA(new_node), (const byte_t *)key, tree->ksize);
+            bmem_copy(i_NODE_DATA(new_node), cast_const(key, byte_t), tree->ksize);
         }
 
         return i_NODE_DATA(new_node) + tree->ksize;
@@ -714,7 +714,7 @@ bool_t rbtree_insert_ptr(RBTree *tree, void *ptr)
     {
         tree->elems += 1;
         cassert(tree->ksize == 0);
-        *((byte_t **)(i_NODE_DATA(new_node) + tree->ksize)) = (byte_t *)ptr;
+        *dcast(i_NODE_DATA(new_node) + tree->ksize, byte_t) = cast(ptr, byte_t);
         return TRUE;
     }
     else
@@ -918,8 +918,8 @@ static bool_t i_delete_element(
             /*! <Deleted_node isn't the root> */
             if (__TRUE_EXPECTED(it->path_size > 1))
             {
-                i_Node *parent;
-                i_Node *child;
+                i_Node *parent = NULL;
+                i_Node *child = NULL;
 
                 parent = it->path[it->path_size - 2];
                 cassert_no_null(parent);
@@ -1094,7 +1094,7 @@ byte_t *rbtree_first_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_first(tree->root, &tree->it) == TRUE)
-        return *(byte_t **)(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize);
+        return *dcast(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize, byte_t);
     else
         return NULL;
 }
@@ -1105,7 +1105,7 @@ byte_t *rbtree_last_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_last(tree->root, &tree->it) == TRUE)
-        return *(byte_t **)(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize);
+        return *dcast(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize, byte_t);
     else
         return NULL;
 }
@@ -1116,7 +1116,7 @@ byte_t *rbtree_next_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_inorder_next(&tree->it) == TRUE)
-        return *(byte_t **)(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize);
+        return *dcast(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize, byte_t);
     else
         return NULL;
 }
@@ -1127,7 +1127,7 @@ byte_t *rbtree_prev_ptr(RBTree *tree)
 {
     cassert_no_null(tree);
     if (i_inorder_prev(&tree->it) == TRUE)
-        return *(byte_t **)(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize);
+        return *dcast(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]) + tree->ksize, byte_t);
     else
         return NULL;
 }
@@ -1140,7 +1140,7 @@ const char_t *rbtree_get_key(const RBTree *tree)
     cassert_no_null(tree);
     if (tree->it.path_size > 0)
     {
-        const String *str = *(String **)i_NODE_DATA(tree->it.path[tree->it.path_size - 1]);
+        const String *str = *dcast_const(i_NODE_DATA(tree->it.path[tree->it.path_size - 1]), String);
         return i_tochar(str);
     }
     else

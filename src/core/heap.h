@@ -58,25 +58,25 @@ __END_C
     heap_aligned_calloc_imp(size, align, name, FALSE)
 
 #define heap_new(type) \
-    (type *)heap_malloc_imp((uint32_t)sizeof(type), (const char_t *)#type, TRUE)
+    cast(heap_malloc_imp((uint32_t)sizeof(type), cast_const(#type, char_t), TRUE), type)
 
 #define heap_new0(type) \
-    (type *)heap_calloc_imp((uint32_t)sizeof(type), (const char_t *)#type, TRUE)
+    cast(heap_calloc_imp((uint32_t)sizeof(type), cast_const(#type, char_t), TRUE), type)
 
 #define heap_new_n(n, type) \
-    (type *)heap_malloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR, FALSE)
+    cast(heap_malloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), cast_const(#type HEAPARR, char_t), FALSE), type)
 
 #define heap_new_n0(n, type) \
-    (type *)heap_calloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR, FALSE)
+    cast(heap_calloc_imp((uint32_t)sizeof(type) * (uint32_t)(n), cast_const(#type HEAPARR, char_t), FALSE), type)
 
 #define heap_realloc_n(mem, size, new_size, type) \
-    ((void)((type *)mem == mem), \
-     (type *)heap_realloc((byte_t *)mem, size * (uint32_t)sizeof(type), new_size * (uint32_t)sizeof(type), (const char_t *)#type HEAPARR))
+    ((void)(cast(mem, type) == mem), \
+     cast(heap_realloc(cast(mem, byte_t), size * (uint32_t)sizeof(type), new_size * (uint32_t)sizeof(type), cast_const(#type HEAPARR, char_t)), type))
 
 #define heap_delete(obj, type) \
-    ((void)((obj) == (type **)(obj)), \
-     heap_free((byte_t **)(obj), (uint32_t)sizeof(type), (const char_t *)#type))
+    ((void)((obj) == dcast(obj, type)), \
+     heap_free(dcast(obj, byte_t), (uint32_t)sizeof(type), cast_const(#type, char_t)))
 
 #define heap_delete_n(objs, n, type) \
-    ((void)((objs) == (type **)(objs)), \
-     heap_free((byte_t **)(objs), (uint32_t)sizeof(type) * (uint32_t)(n), (const char_t *)#type HEAPARR))
+    ((void)((objs) == dcast(objs, type)), \
+     heap_free(dcast(objs, byte_t), (uint32_t)sizeof(type) * (uint32_t)(n), cast_const(#type HEAPARR, char_t)))
