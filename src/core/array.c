@@ -755,7 +755,7 @@ byte_t *array_search_ptr(const Array *array, FPtr_compare func_compare, const vo
     uint32_t i;
     cassert_no_null(array);
     cassert_no_nullf(func_compare);
-    data = dcast(array->data, void);
+    data = dcast_const(array->data, void);
     for (i = 0; i < array->elems; ++i, ++data)
     {
         if (func_compare(*data, key) == 0)

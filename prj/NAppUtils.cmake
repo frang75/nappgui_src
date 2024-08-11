@@ -8,4 +8,3 @@ function(nap_build_opt optName opt)
         message(STATUS "* ${optName}: ${opt}")
     endif()
 endfunction()
-
