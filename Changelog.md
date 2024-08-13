@@ -22,6 +22,14 @@
 * GTK render listbox checks in Xubuntu. [Commit](https://github.com/frang75/nappgui_src/commit/3c6247159f311195b2871b1fa10492c986b4f42d).
 * macOS HighSierra and lowers focus ring drawing issue. [Commit](https://github.com/frang75/nappgui_src/commit/a163cb2555101b831414b6deb781a1d1c49ccd42).
 
+### Improved
+
+* NAppGUI build documentation. [Doc](https://nappgui.com/en/guide/build.html).
+
+### Build system
+
+* CMake install use `NAppGUIOptions.txt` for build info.
+
 ## v1.4.2 - Jun 30, 2024 (r5177)
 
 ### Added

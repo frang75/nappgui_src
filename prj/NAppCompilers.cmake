@@ -159,8 +159,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     # Print BaseSDK/Deployment messages
     nap_macos_sdk_name("${CMAKE_BASE_OSX_SDK}" baseSDKName)
     nap_macos_sdk_name("${CMAKE_OSX_DEPLOYMENT_TARGET}" deploySDKName)
-    nap_build_opt("Base OSX" "${CMAKE_BASE_OSX_SDK}-${baseSDKName}")
-    nap_build_opt("Deployment target OSX" "${CMAKE_OSX_DEPLOYMENT_TARGET}-${deploySDKName}")
+    nap_build_opt("BASE_OSX" "${CMAKE_BASE_OSX_SDK}")
+    nap_build_opt("BASE_OSX_NAME" "${baseSDKName}")
+    nap_build_opt("DEPLOYMENT_TARGET_OSX" "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+    nap_build_opt("DEPLOYMENT_TARGET_OSX_NAME" "${deploySDKName}")
 
     # Invalid deployment target
     if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER CMAKE_BASE_OSX_SDK)
@@ -200,7 +202,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     endif()
 
     if(CMAKE_GENERATOR STREQUAL "Xcode")
-        nap_build_opt("Xcode version" "${XCODE_VERSION}")
+        nap_build_opt("XCODE_VERSION" "${XCODE_VERSION}")
     endif()
 
     # Libraries
@@ -220,9 +222,9 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     unset(LSB_RELEASE CACHE)
 
     if (LSB_RELEASE_ID_SHORT AND LSB_RELEASE_VERSION_SHORT)
-        nap_build_opt("Linux Platform" "${LSB_RELEASE_ID_SHORT} ${LSB_RELEASE_VERSION_SHORT}")
+        nap_build_opt("LINUX_PLATFORM" "${LSB_RELEASE_ID_SHORT} ${LSB_RELEASE_VERSION_SHORT}")
     else()
-        nap_build_opt("Linux Platform" "Unknown (lsb_release fail)")
+        nap_build_opt("LINUX_PLATFORM" "Unknown")
     endif()
 
     # Host architecture
@@ -300,10 +302,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set_property(CACHE CMAKE_TOOLKIT PROPERTY STRINGS "GTK3;None")
 
     if (${CMAKE_TOOLKIT} STREQUAL "None")
-        nap_build_opt("Toolkit" "None (command line projects only).")
+        nap_build_opt("TOOLKIT" "None")
 
     elseif (${CMAKE_TOOLKIT} STREQUAL "GTK3")
-        nap_build_opt("Toolkit" "GTK+3")
+        nap_build_opt("TOOLKIT" "GTK3")
         set(CMAKE_COMPILER_TOOLSET ${CMAKE_COMPILER_TOOLSET}_gtk3)
 
     else()

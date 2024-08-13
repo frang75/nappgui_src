@@ -669,41 +669,6 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
-function(nap_webview_support _ret)
-    # Web support disabled by user
-    if (NOT NAPPGUI_WEB)
-        set(${_ret} "NO" PARENT_SCOPE)
-        return()
-    endif()
-
-    if (WIN32)
-        if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-            # Visual Studio 2013 and lower doesn't support the WebView2 compilation
-            if (${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS "19.0.0")
-                set(${_ret} "NO" PARENT_SCOPE)
-                return()
-            endif()
-
-        else()
-            # At the moment, WebView is disabled for MinGW
-            set(${_ret} "NO" PARENT_SCOPE)
-            return()
-        endif()
-
-    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-        # Only available from 10.10 Yosemite
-        if (NOT CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER 10.9.9999)
-            set(${_ret} "NO" PARENT_SCOPE)
-            return()
-        endif()
-
-    endif()
-
-    set(${_ret} "YES" PARENT_SCOPE)
-endfunction()
-
-#------------------------------------------------------------------------------
-
 function(nap_link_with_libraries targetName firstLevelDepends)
 
     set(${targetName}_LINKDEPENDS "" CACHE INTERNAL "")
@@ -798,7 +763,6 @@ function(nap_link_with_libraries targetName firstLevelDepends)
     endif()
 
     # Target should link with WebView
-    nap_webview_support(WEB_SUPPORT)
     if (WEB_SUPPORT)
         if (WIN32)
             if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
@@ -998,7 +962,6 @@ function(nap_target targetName targetType dependList nrcMode)
 
     # WebView support
     if (${targetName} STREQUAL "osgui")
-        nap_webview_support(WEB_SUPPORT)
         if (WEB_SUPPORT)
             if (WIN32)
                 target_include_directories("osgui" PUBLIC $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/prj/depend/web/win>)
