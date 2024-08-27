@@ -62,6 +62,7 @@ sudo apt-get install cmake
 sudo apt-get install libgtk-3-dev
 sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev
 sudo apt-get install libcurl4-openssl-dev
+sudo apt-get install libwebkit2gtk-4.1-dev
 ```
 ### Open the Terminal
 ```

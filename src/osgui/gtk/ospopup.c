@@ -333,6 +333,7 @@ void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const rea
     cassert_no_null(popup);
     _oscontrol_set_frame((OSControl *)popup, x, y, width, height);
     gtk_widget_set_size_request(popup->popup, (gint)width, (gint)height);
+    gtk_widget_set_size_request(popup->button, (gint)width, (gint)height);
 }
 
 /*---------------------------------------------------------------------------*/

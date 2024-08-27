@@ -14,6 +14,9 @@
 * Button shortcuts. [Doc](https://nappgui.com/en/gui/button.html#h2). [Commit](https://github.com/frang75/nappgui_src/commit/199ffb74dd61105ae6ee541d6c71d21d1fe1d328).
 * `textview_wrap()`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/97). [Commit](https://github.com/frang75/nappgui_src/commit/25ea6095a5143249de454379cf222f06610bb258).
 * `view_allow_tab()`. [Doc](https://nappgui.com/en/gui/view.html#f24). [Commit](https://github.com/frang75/nappgui_src/commit/811c72ebe9d198e87398c7060628580f81cb8573).
+* `textview_apply_all()`, `textview_apply_sel()`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/147). [Commit]().
+* `textview_show_select()`. [Commit]().
+* New TextEditor demo. [Doc](https://nappgui.com/en/howto/guihello.html#h6). [Commit]().
 
 ### Fixed
 
@@ -28,7 +31,7 @@
 
 ### Build system
 
-* CMake install use `NAppGUIOptions.txt` for build info.
+* CMake install use `NAppGUIOptions.txt` for build info. [Commit](https://github.com/frang75/nappgui_src/commit/dcbdbcd38926450a7ffd259604e591190e77b377).
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 

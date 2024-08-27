@@ -127,6 +127,13 @@ static void i_set_wrap_mode(HWND hwnd, const bool_t wrap)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_set_show_sel(HWND hwnd, const bool_t show)
+{
+    SendMessage(hwnd, EM_HIDESELECTION, (WPARAM)!show, (LPARAM)0);
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSText *ostext_create(const uint32_t flags)
 {
     OSText *view = NULL;
@@ -139,6 +146,7 @@ OSText *ostext_create(const uint32_t flags)
     i_set_rich_text(view->control.hwnd, TRUE);
     i_set_editable(view->control.hwnd, FALSE);
     i_set_wrap_mode(view->control.hwnd, TRUE);
+    i_set_show_sel(view->control.hwnd, FALSE);
     view->launch_event = TRUE;
     view->focused = FALSE;
     view->dyLineSpacing = 20;
@@ -195,15 +203,50 @@ static uint32_t i_text_num_chars(HWND hwnd)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_apply_format(OSText *view, WPARAM char_sel)
+{
+    LRESULT res = 0;
+    CHARFORMAT2 format;
+    PARAFORMAT2 pformat;
+    cassert_no_null(view);
+    format.cbSize = sizeof(CHARFORMAT2);
+    format.dwMask = CFM_FACE | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | CFM_SUBSCRIPT | CFM_SIZE | CFM_COLOR | CFM_BACKCOLOR;
+    format.dwEffects = view->dwEffects;
+    format.yHeight = view->yHeight;
+
+    if (view->crTextColor == 0)
+        format.dwEffects |= CFE_AUTOCOLOR;
+    else
+        format.crTextColor = view->crTextColor;
+
+    if (view->crBackColor == 0)
+        format.dwEffects |= CFE_AUTOBACKCOLOR;
+    else
+        format.crBackColor = view->crBackColor;
+
+    wcscpy_s(format.szFaceName, sizeof(format.szFaceName) / sizeof(WCHAR), view->szFaceName);
+    res = SendMessage(view->control.hwnd, EM_SETCHARFORMAT, char_sel, (LPARAM)&format);
+    cassert_unref(res != 0, res);
+
+    pformat.cbSize = sizeof(PARAFORMAT2);
+    pformat.dwMask = PFM_ALIGNMENT | PFM_LINESPACING | PFM_SPACEAFTER | PFM_SPACEBEFORE;
+    pformat.wAlignment = view->wAlignment;
+    pformat.bLineSpacingRule = 5;
+    pformat.dyLineSpacing = view->dyLineSpacing;
+    pformat.dySpaceBefore = view->dySpaceBefore;
+    pformat.dySpaceAfter = view->dySpaceAfter;
+    res = SendMessage(view->control.hwnd, EM_SETPARAFORMAT, 0, (LPARAM)&pformat);
+    cassert_unref(res != 0, res);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_add_text(OSText *view, CHARRANGE *cr, const char_t *text)
 {
     uint32_t num_bytes = 0;
     WCHAR *wtext_alloc = NULL;
     WCHAR wtext_static[WCHAR_BUFFER_SIZE];
     WCHAR *wtext;
-    CHARFORMAT2 format;
-    PARAFORMAT2 pformat;
-    LRESULT res = 0;
 
     view->launch_event = FALSE;
     num_bytes = unicode_convers_nbytes(text, ekUTF8, kWINDOWS_UNICODE);
@@ -223,42 +266,34 @@ static void i_add_text(OSText *view, CHARRANGE *cr, const char_t *text)
     }
 
     SendMessage(view->control.hwnd, EM_EXSETSEL, 0, (LPARAM)cr);
-
-    format.cbSize = sizeof(CHARFORMAT2);
-    format.dwMask = CFM_FACE | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | CFM_SUBSCRIPT | CFM_SIZE | CFM_COLOR | CFM_BACKCOLOR;
-    format.dwEffects = view->dwEffects;
-    format.yHeight = view->yHeight;
-
-    if (view->crTextColor == 0)
-        format.dwEffects |= CFE_AUTOCOLOR;
-    else
-        format.crTextColor = view->crTextColor;
-
-    if (view->crBackColor == 0)
-        format.dwEffects |= CFE_AUTOBACKCOLOR;
-    else
-        format.crBackColor = view->crBackColor;
-
-    wcscpy_s(format.szFaceName, sizeof(format.szFaceName) / sizeof(WCHAR), view->szFaceName);
-    res = SendMessage(view->control.hwnd, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&format);
-    cassert_unref(res != 0, res);
-
-    pformat.cbSize = sizeof(PARAFORMAT2);
-    pformat.dwMask = PFM_ALIGNMENT | PFM_LINESPACING | PFM_SPACEAFTER | PFM_SPACEBEFORE;
-    pformat.wAlignment = view->wAlignment;
-    pformat.bLineSpacingRule = 5;
-    pformat.dyLineSpacing = view->dyLineSpacing;
-    pformat.dySpaceBefore = view->dySpaceBefore;
-    pformat.dySpaceAfter = view->dySpaceAfter;
-    res = SendMessage(view->control.hwnd, EM_SETPARAFORMAT, 0, (LPARAM)&pformat);
-    cassert_unref(res != 0, res);
-
+    i_apply_format(view, SCF_SELECTION);
     SendMessage(view->control.hwnd, EM_REPLACESEL, 0, (LPARAM)wtext);
 
     if (wtext_alloc != NULL)
         heap_free((byte_t **)&wtext_alloc, num_bytes, "OSTextAddText");
 
     view->launch_event = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_all(OSText *view)
+{
+    WPARAM st = 0;
+    LPARAM ed = 0;
+    cassert_no_null(view);
+    SendMessage(view->control.hwnd, EM_GETSEL, (WPARAM)&st, (LPARAM)&ed);
+    SendMessage(view->control.hwnd, EM_SETSEL, 0, -1);
+    i_apply_format(view, SCF_ALL);
+    SendMessage(view->control.hwnd, EM_SETSEL, st, ed);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_sel(OSText *view)
+{
+    cassert_no_null(view);
+    i_apply_format(view, SCF_SELECTION);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -404,6 +439,14 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         view->dySpaceBefore = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *((real32_t *)value) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
+    case ekGUI_TEXT_APPLY_ALL:
+        i_apply_all(view);
+        break;
+
+    case ekGUI_TEXT_APPLY_SEL:
+        i_apply_sel(view);
+        break;
+
     case ekGUI_TEXT_SELECT:
     {
         int32_t *range = (int32_t *)value;
@@ -420,6 +463,13 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
             view->launch_event = prev;
         }
 
+        break;
+    }
+
+    case ekGUI_TEXT_SHOW_SELECT:
+    {
+        bool_t *show = (bool_t *)value;
+        i_set_show_sel(view->control.hwnd, *show);
         break;
     }
 

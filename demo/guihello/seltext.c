@@ -1,6 +1,6 @@
 /* Text selection and clipboard demo */
 
-#include "form.h"
+#include "seltext.h"
 #include "res_guihello.h"
 #include <gui/guiall.h>
 

@@ -65,6 +65,7 @@ TextView *textview_create(void)
     real32_t lspacing = 1;
     real32_t bfpspace = 0;
     real32_t afpspace = 0;
+    uint32_t non_used = 0;
     cassert_no_null(context);
     ositem = context->func_create[ekGUI_TYPE_TEXTVIEW](ekTEXT_FLAG);
     view->size = s2df(256, 144);
@@ -76,6 +77,7 @@ TextView *textview_create(void)
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_LSPACING, (void *)&lspacing);
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_BFPARSPACE, (void *)&bfpspace);
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_AFPARSPACE, (void *)&afpspace);
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_APPLY_ALL, (void *)&non_used);
     _component_init(&view->component, context, PARAM(type, ekGUI_TYPE_TEXTVIEW), &ositem);
     context->func_text_OnFocus(view->component.ositem, obj_listener(view, i_OnFocus, TextView));
     font_destroy(&font);
@@ -321,6 +323,28 @@ void textview_afspace(TextView *view, const real32_t space)
 
 /*---------------------------------------------------------------------------*/
 
+void textview_apply_all(TextView *view)
+{
+    uint32_t nonused = 0;
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_text_set_prop);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_APPLY_ALL, (void *)&nonused);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void textview_apply_sel(TextView *view)
+{
+    uint32_t nonused = 0;
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_text_set_prop);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_APPLY_SEL, (void *)&nonused);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void textview_scroll_visible(TextView *view, const bool_t horizontal, const bool_t vertical)
 {
     cassert_no_null(view);
@@ -350,6 +374,16 @@ void textview_select(TextView *view, const int32_t start, const int32_t end)
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
     view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SELECT, (void *)range);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void textview_show_select(TextView *view, const bool_t show)
+{
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_text_set_prop);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SHOW_SELECT, (void *)&show);
 }
 
 /*---------------------------------------------------------------------------*/

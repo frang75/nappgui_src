@@ -55,7 +55,7 @@
     real32_t pafter;
     real32_t pbefore;
     NSScrollView *scroll;
-    NSMutableDictionary *dict;
+    NSMutableDictionary *attribs;
     NSRange select;
     uint32_t num_chars;
     BOOL focused;
@@ -63,6 +63,7 @@
     BOOL is_editable;
     BOOL is_opaque;
     BOOL is_wrap_mode;
+    BOOL show_select;
     Listener *OnFilter;
     Listener *OnFocus;
 }
@@ -313,12 +314,14 @@ OSText *ostext_create(const uint32_t flags)
     view->focused = NO;
     view->focus_draw = NO;
     view->is_wrap_mode = YES;
+    view->show_select = NO;
+
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     view->scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 #else
     view->scroll = [[OSXScrollView alloc] initWithFrame:NSZeroRect];
 #endif
-    view->dict = [[NSMutableDictionary alloc] init];
+    view->attribs = [[NSMutableDictionary alloc] init];
     view->ffamily[0] = '\0';
     view->fsize = REAL32_MAX;
     view->fstyle = UINT32_MAX;
@@ -350,7 +353,7 @@ OSText *ostext_create(const uint32_t flags)
 
     {
         NSColor *color = oscolor_NSColor(1); /* ekSYS_LABEL */
-        [view->dict setValue:color forKey:NSForegroundColorAttributeName];
+        [view->attribs setValue:color forKey:NSForegroundColorAttributeName];
     }
 
     /* OSText allways have border */
@@ -372,7 +375,7 @@ void ostext_destroy(OSText **view)
     cassert_no_null(lview);
     delegate = [lview delegate];
     cassert_no_null(delegate);
-    [lview->dict release];
+    [lview->attribs release];
     listener_destroy(&lview->OnFocus);
     listener_destroy(&lview->OnFilter);
     [lview setDelegate:nil];
@@ -407,7 +410,7 @@ static NSAttributedString *i_attr_str(OSXTextView *lview, const char_t *text)
     NSAttributedString *astr = nil;
     cassert_no_null(lview);
     str = [NSString stringWithUTF8String:(const char *)text];
-    astr = [[NSAttributedString alloc] initWithString:str attributes:lview->dict];
+    astr = [[NSAttributedString alloc] initWithString:str attributes:lview->attribs];
     return astr;
 }
 
@@ -509,9 +512,9 @@ static void i_change_font(OSXTextView *lview)
     {
         NSNumber *under = (lview->fstyle & ekFUNDERLINE) ? [NSNumber numberWithInt:NSUnderlineStyleSingle] : [NSNumber numberWithInt:NSUnderlineStyleNone];
         NSNumber *strike = (lview->fstyle & ekFSTRIKEOUT) ? [NSNumber numberWithInt:NSUnderlineStyleSingle] : [NSNumber numberWithInt:NSUnderlineStyleNone];
-        [lview->dict setValue:font forKey:NSFontAttributeName];
-        [lview->dict setValue:under forKey:NSUnderlineStyleAttributeName];
-        [lview->dict setValue:strike forKey:NSStrikethroughStyleAttributeName];
+        [lview->attribs setValue:font forKey:NSFontAttributeName];
+        [lview->attribs setValue:under forKey:NSUnderlineStyleAttributeName];
+        [lview->attribs setValue:strike forKey:NSStrikethroughStyleAttributeName];
     }
 }
 
@@ -540,8 +543,45 @@ static void i_change_paragraph(OSXTextView *lview)
         [par setLineSpacing:(CGFloat)lview->pspacing];
         [par setParagraphSpacing:(CGFloat)lview->pafter];
         [par setParagraphSpacingBefore:(CGFloat)lview->pbefore];
-        [lview->dict setValue:par forKey:NSParagraphStyleAttributeName];
+        [lview->attribs setValue:par forKey:NSParagraphStyleAttributeName];
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_all(OSXTextView *lview)
+{
+    NSTextStorage *storage = nil;
+    cassert_no_null(lview);
+    storage = [lview textStorage];
+    if ([storage length] == 0)
+    {
+        NSAttributedString *astr = i_attr_str(lview, "FFF");
+        [storage setAttributedString:astr];
+        [astr release];
+        astr = i_attr_str(lview, "");
+        [storage setAttributedString:astr];
+        [astr release];
+    }
+    else
+    {
+        NSRange all = NSMakeRange(0, [storage length]);
+        [storage setAttributes:@{} range:all];
+        [storage setAttributes:lview->attribs range:all];
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_sel(OSXTextView *lview)
+{
+    NSTextStorage *storage = nil;
+    NSRange sel;
+    cassert_no_null(lview);
+    storage = [lview textStorage];
+    sel = [lview selectedRange];
+    [storage setAttributes:@{} range:sel];
+    [storage setAttributes:lview->attribs range:sel];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -585,23 +625,23 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
     case ekGUI_TEXT_COLOR:
     {
         NSColor *color = nil;
-        if (*(color_t *)value == kCOLOR_TRANSPARENT)
+        if (*(color_t *)value == kCOLOR_DEFAULT)
             color = oscolor_NSColor(1); /* ekSYS_LABEL */
         else
             color = oscolor_NSColor(*(color_t *)value);
-        [lview->dict setValue:color forKey:NSForegroundColorAttributeName];
+        [lview->attribs setValue:color forKey:NSForegroundColorAttributeName];
         break;
     }
 
     case ekGUI_TEXT_BGCOLOR:
     {
         NSColor *color = oscolor_NSColor(*(color_t *)value);
-        [lview->dict setValue:color forKey:NSBackgroundColorAttributeName];
+        [lview->attribs setValue:color forKey:NSBackgroundColorAttributeName];
         break;
     }
 
     case ekGUI_TEXT_PGCOLOR:
-        if (*(color_t *)value != kCOLOR_TRANSPARENT)
+        if (*(color_t *)value != kCOLOR_DEFAULT)
         {
             NSColor *color = oscolor_NSColor(*(color_t *)value);
             [lview setBackgroundColor:color];
@@ -688,6 +728,13 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         break;
     }
 
+    case ekGUI_TEXT_SHOW_SELECT:
+    {
+        bool_t show_sel = *((bool_t *)value);
+        lview->show_select = (BOOL)show_sel;
+        break;
+    }
+
     case ekGUI_TEXT_SCROLL:
         [lview scrollRangeToVisible:[lview selectedRange]];
         break;
@@ -702,6 +749,14 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         }
         break;
     }
+
+    case ekGUI_TEXT_APPLY_ALL:
+        i_apply_all(lview);
+        break;
+
+    case ekGUI_TEXT_APPLY_SEL:
+        i_apply_sel(lview);
+        break;
 
         cassert_default();
     }
@@ -851,7 +906,8 @@ void ostext_focus(OSText *view, const bool_t focus)
     else
     {
         lview->select = [lview selectedRange];
-        [lview setSelectedRange:NSMakeRange(0, 0)];
+        if (lview->show_select == NO)
+            [lview setSelectedRange:NSMakeRange(0, 0)];
     }
 
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
