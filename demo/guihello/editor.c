@@ -1,4 +1,4 @@
-/* Text selection and clipboard demo */
+/* Text editor demo */
 
 #include "editor.h"
 #include "res_guihello.h"
@@ -91,7 +91,7 @@ static PopUp *i_font_popup(EditData *data)
     uint32_t arial = UINT32_MAX;
     cassert_no_null(data);
     data->fonts = font_installed_families();
-    
+
     arrpt_foreach_const(font, data->fonts, String)
         popup_add_elem(popup, tc(font), NULL);
         if (str_equ(font, fname) == TRUE)
@@ -99,7 +99,7 @@ static PopUp *i_font_popup(EditData *data)
         if (str_equ_nocase(tc(font), "Arial") == TRUE)
             arial = font_i;
     arrpt_end()
-    
+
     if (sel != UINT32_MAX)
         popup_selected(popup, sel);
     else if (arial != UINT32_MAX)
