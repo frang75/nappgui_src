@@ -47,6 +47,8 @@ struct _ospanel_t
     GtkWidget *scroll;
     GtkAdjustment *hadjust;
     GtkAdjustment *vadjust;
+    real32_t width;
+    real32_t height;
     ArrSt(Area) *areas;
 };
 
@@ -300,7 +302,12 @@ void ospanel_enabled(OSPanel *panel, const bool_t enabled)
 
 void ospanel_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)panel, width, height);
+    cassert_no_null(panel);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    /* Ubuntu 16 and lower, the main panel gtk_widget_get_allocation() can be wrong */
+    *width = panel->width;
+    *height = panel->height;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -314,7 +321,10 @@ void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 
 void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
+    cassert_no_null(panel);
     _oscontrol_set_frame((OSControl *)panel, x, y, width, height);
+    panel->width = width;
+    panel->height = height;
 }
 
 /*---------------------------------------------------------------------------*/

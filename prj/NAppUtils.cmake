@@ -29,6 +29,41 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
+function(nap_find_webview_linux _found _headers _libs)
+
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(WEBKITGTK QUIET webkit2gtk-4.1)
+    if (WEBKITGTK_FOUND)
+        set(${_found} "YES" PARENT_SCOPE)
+        set(${_headers} "${WEBKITGTK_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(${_libs} "${WEBKITGTK_LIBRARIES}" PARENT_SCOPE)
+        return()
+    endif()
+
+    pkg_check_modules(WEBKITGTK QUIET webkit2gtk-4.0)
+    if (WEBKITGTK_FOUND)
+        set(${_found} "YES" PARENT_SCOPE)
+        set(${_headers} "${WEBKITGTK_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(${_libs} "${WEBKITGTK_LIBRARIES}" PARENT_SCOPE)
+        return()
+    endif()
+
+    pkg_check_modules(WEBKITGTK QUIET webkit2gtk-3.0)
+    if (WEBKITGTK_FOUND)
+        set(${_found} "YES" PARENT_SCOPE)
+        set(${_headers} "${WEBKITGTK_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(${_libs} "${WEBKITGTK_LIBRARIES}" PARENT_SCOPE)
+        return()
+    endif()
+
+    set(${_found} "NO" PARENT_SCOPE)
+    set(${_headers} "NOT-FOUND" PARENT_SCOPE)
+    set(${_libs} "NOT-FOUND" PARENT_SCOPE)
+
+endfunction()
+
+#------------------------------------------------------------------------------
+
 function(nap_check_webview_support)
     # Web support disabled by user
     if (NOT NAPPGUI_WEB)
@@ -53,6 +88,13 @@ function(nap_check_webview_support)
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         # Only available from 10.10 Yosemite
         if (NOT CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER 10.9.9999)
+            set(WEB_SUPPORT "NO" CACHE INTERNAL "")
+            return()
+        endif()
+
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        nap_find_webview_linux(WEBVIEW_FOUND WEBVIEW_HEADERS WEBVIEW_LIBS)
+        if (NOT WEBVIEW_FOUND)
             set(WEB_SUPPORT "NO" CACHE INTERNAL "")
             return()
         endif()

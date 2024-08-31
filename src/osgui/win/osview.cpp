@@ -187,7 +187,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             EndPaint(hwnd, &ps);
         }
-        // The window is rendered with other technology
+        // The window is rendered with other technology (e.g. OpenGL)
         else
         {
             oslistener_draw((OSControl *)view, NULL, (real32_t)view->dbuffer_width, (real32_t)view->dbuffer_height, 0, 0, (real32_t)view->dbuffer_width, (real32_t)view->dbuffer_height, &view->listeners);

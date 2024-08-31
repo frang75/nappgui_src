@@ -1,5 +1,7 @@
 /* casino library import/export */
 
+/* clang-format off */
+
 #if defined(NAPPGUI_SHARED)
     #if defined(NAPPGUI_BUILD_CASINO_LIB)
         #define NAPPGUI_CASINO_EXPORT_DLL
@@ -25,3 +27,5 @@
 #else
     #error Unknown compiler
 #endif
+
+/* clang-format on */

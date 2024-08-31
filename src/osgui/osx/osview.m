@@ -91,28 +91,29 @@
 
         if ((self->flags & ekVIEW_OPENGL) == 0)
         {
-            NSGraphicsContext *nscontext;
-
-            if (self->ctx == NULL)
+            NSGraphicsContext *nscontext = [NSGraphicsContext currentContext];
+            if (nscontext != nil)
             {
-                self->ctx = dctx_create();
-                dctx_set_flipped(self->ctx, (bool_t)[self isFlipped]);
-                dctx_data(self->ctx, &self->osdraw, NULL, OSDraw);
-            }
+                if (self->ctx == NULL)
+                {
+                    self->ctx = dctx_create();
+                    dctx_set_flipped(self->ctx, (bool_t)[self isFlipped]);
+                    dctx_data(self->ctx, &self->osdraw, NULL, OSDraw);
+                }
 
-            params.ctx = self->ctx;
-            nscontext = [NSGraphicsContext currentContext];
-            dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, params.x, params.y, 0, TRUE);
-            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
-            dctx_unset_gcontext(self->ctx);
-
-            if (self->OnOverlay != NULL)
-            {
-                params.x = 0;
-                params.y = 0;
-                dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, TRUE);
-                listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, (OSView *)self, &params, NULL, OSView, EvDraw, void);
+                params.ctx = self->ctx;
+                dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, params.x, params.y, 0, TRUE);
+                listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
                 dctx_unset_gcontext(self->ctx);
+
+                if (self->OnOverlay != NULL)
+                {
+                    params.x = 0;
+                    params.y = 0;
+                    dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, TRUE);
+                    listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, (OSView *)self, &params, NULL, OSView, EvDraw, void);
+                    dctx_unset_gcontext(self->ctx);
+                }
             }
         }
         else

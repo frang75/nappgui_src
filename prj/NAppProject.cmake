@@ -33,10 +33,6 @@ function(nap_project_desktop_app appName appPath)
 
         # CMakeLists.txt
         file(APPEND "${appFullPath}/CMakeLists.txt" "nap_desktop_app(${appName} \"\" NRC_NONE)\n")
-
-        if (NAPPGUI_IS_PACKAGE)
-            file(APPEND "${appFullPath}/CMakeLists.txt" "target_link_libraries(${appName} \${NAPPGUI_LIBRARIES})\n")
-        endif()
     endif()
 
     add_subdirectory("${appPath}")
@@ -59,10 +55,6 @@ function(nap_project_command_app appName appPath)
 
         # CMakeLists.txt
         file(APPEND "${appFullPath}/CMakeLists.txt" "nap_command_app(${appName} \"\" NRC_NONE)\n")
-
-        if (NAPPGUI_IS_PACKAGE)
-            file(APPEND "${appFullPath}/CMakeLists.txt" "target_link_libraries(${appName} \${NAPPGUI_LIBRARIES})\n")
-        endif()
     endif()
 
     add_subdirectory("${appPath}")

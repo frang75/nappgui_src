@@ -51,6 +51,11 @@
 #if (__GNUC__ >= 5)
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma GCC diagnostic ignored "-Wvariadic-macros"
+
+#ifndef __cplusplus
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
+#endif
+
 #endif
 
 #if (__GNUC__ >= 9)

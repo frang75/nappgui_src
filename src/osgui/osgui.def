@@ -10,6 +10,8 @@
 
 /* OSGui library import/export */
 
+/* clang-format off */
+
 #if defined(NAPPGUI_SHARED)
     #if defined(NAPPGUI_BUILD_OSGUI_LIB)
         #define NAPPGUI_OSGUI_EXPORT_DLL
@@ -35,3 +37,5 @@
 #else
     #error Unknown compiler
 #endif
+
+/* clang-format on */

@@ -127,9 +127,11 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
 void dctx_unset_gcontext(DCtx *ctx)
 {
     cassert_no_null(ctx);
-    cassert(ctx->context != NULL);
-    CGContextRestoreGState(ctx->context);
-    ctx->context = NULL;
+    if (ctx->context != NULL)
+    {
+        CGContextRestoreGState(ctx->context);
+        ctx->context = NULL;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -311,12 +311,12 @@ static void i_precompute_checks(void)
     cairo_translate(cairo, -(gdouble)mx, -(gdouble)my);
 
     /*
-    * Button states (5)
-    * Normal
-    * Prelight - Hot or mouse over
-    * Backdrop - Background primary window
-    * Insensitive - Disabled
-    */
+     * Button states (5)
+     * Normal
+     * Prelight - Hot or mouse over
+     * Backdrop - Background primary window
+     * Insensitive - Disabled
+     */
     /* Draw checkboxes */
     for (i = 0; i < 10; ++i)
     {
@@ -989,21 +989,42 @@ static void i_parse_gtk_theme(void)
 
 /*---------------------------------------------------------------------------*/
 
-static GLogWriterOutput i_null_writter(GLogLevelFlags log_level, const GLogField *fields, gsize n_fields, gpointer user_data)
+#if GLIB_CHECK_VERSION(2, 50, 0)
+
+static GLogWriterOutput i_null_writter(GLogLevelFlags log_level, const GLogField *fields, gsize n_fields,
+                                       gpointer user_data)
 {
     unref(log_level);
     unref(fields);
     unref(n_fields);
     unref(user_data);
-    return G_LOG_WRITER_UNHANDLED;
+    return G_LOG_WRITER_HANDLED;
 }
+
+#else
+
+/*---------------------------------------------------------------------------*/
+
+static void i_null_writter(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data)
+{
+    unref(log_domain);
+    unref(log_level);
+    unref(message);
+    unref(user_data);
+}
+
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 void osglobals_init(void)
 {
     /* Disable unavoidable GLib/Gtk warnings when processing CSS */
+#if GLIB_CHECK_VERSION(2, 50, 0)
     g_log_set_writer_func(i_null_writter, NULL, NULL);
+#else
+    g_log_set_default_handler(i_null_writter, NULL);
+#endif
     i_parse_gtk_theme();
     i_impostor_window();
 }

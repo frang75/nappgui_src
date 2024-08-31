@@ -10,6 +10,8 @@
 
 /* Sewer library import/export */
 
+/* clang-format off */
+
 #if defined(NAPPGUI_SHARED)
     #if defined(NAPPGUI_BUILD_SEWER_LIB)
         #define NAPPGUI_SEWER_EXPORT_DLL
@@ -35,3 +37,5 @@
 #else
     #error Unknown compiler
 #endif
+
+/* clang-format off */

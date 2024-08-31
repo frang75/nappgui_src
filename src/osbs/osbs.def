@@ -10,6 +10,8 @@
 
 /* Osbs library import/export (Operating System Basic Services) */
 
+/* clang-format off */
+
 #if defined(NAPPGUI_SHARED)
     #if defined(NAPPGUI_BUILD_OSBS_LIB)
         #define NAPPGUI_OSBS_EXPORT_DLL
@@ -35,3 +37,5 @@
 #else
     #error Unknown compiler
 #endif
+
+/* clang-format on */

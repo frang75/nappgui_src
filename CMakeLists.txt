@@ -32,22 +32,21 @@ set(INSTALL_PERM "OWNER_READ;OWNER_WRITE;OWNER_EXECUTE;GROUP_READ;GROUP_EXECUTE;
 # Welcome
 string(TIMESTAMP CURRENT_YEAR %Y)
 include(${NAPPGUI_ROOT_PATH}/prj/NAppVersion.cmake)
+include(${NAPPGUI_ROOT_PATH}/prj/NAppCompilers.cmake)
 include(${NAPPGUI_ROOT_PATH}/prj/NAppUtils.cmake)
 message (STATUS "---------------------------------------------")
 message (STATUS "NAppGUI Cross-Platform SDK")
 message (STATUS "2015-${CURRENT_YEAR} Francisco Garcia Collado")
 message (STATUS "MIT License")
 message (STATUS "---------------------------------------------")
-nap_check_webview_support()
 nap_build_opt_init()
+nap_config_compiler()
+nap_check_webview_support()
 
 nap_build_opt("VERSION" "${NAPPGUI_MAJOR}.${NAPPGUI_MINOR}.${NAPPGUI_PATCH}.${NAPPGUI_BUILD}")
 nap_build_opt("GENERATOR" "${CMAKE_GENERATOR}")
 nap_build_opt("BUILD_SHARED" "${NAPPGUI_SHARED}")
 
-# Config compiler
-include(${NAPPGUI_ROOT_PATH}/prj/NAppCompilers.cmake)
-nap_config_compiler()
 nap_build_opt("COMPILER" "${CMAKE_CXX_COMPILER_ID}")
 nap_build_opt("COMPILER_VERSION" "${CMAKE_CXX_COMPILER_VERSION}")
 nap_build_opt("WEB_SUPPORT" "${WEB_SUPPORT}")
