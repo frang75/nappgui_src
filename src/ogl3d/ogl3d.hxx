@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: ogl3d.hxx
+ * https://nappgui.com/en/ogl3d/ogl3d.html
  *
  */
 

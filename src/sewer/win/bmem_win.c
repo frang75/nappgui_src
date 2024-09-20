@@ -24,15 +24,17 @@
 #include <windows.h>
 
 #if defined(__MEMORY_AUDITOR__)
-#define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 
 /* <crtdbg.h> is a Microsoft Visual C++ specific header */
 #if defined(_MSC_VER) && _MSC_VER > 1400
+#if !defined(NAPPGUI_NO_CRTDBG)
 #define _WITH_CRTDBG 1
 #include <crtdbg.h>
 #endif
 #endif
+#endif
+
 #include "nowarn.hxx"
 
 #if defined(__MEMORY_SUBSYTEM_CHECKING__)

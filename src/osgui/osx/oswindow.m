@@ -62,7 +62,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
 @interface OSXWindowDelegate : NSObject <NSWindowDelegate>
 #else
 @interface OSXWindowDelegate : NSObject
@@ -155,7 +155,7 @@
          * doesn't render non-OpenGL content in the window asynchronously from
          * OpenGL content, which could cause flickering.  (non-OpenGL content
          * includes the title bar and drawing done by the app with other APIs)
-        */
+         */
         [window disableScreenUpdatesUntilFlush];
 
         listener_event(self->OnResize, ekGUI_EVENT_WND_SIZING, (OSWindow *)window, &params, &result, OSWindow, EvSize, EvSize);
@@ -448,7 +448,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     [window setDelegate:delegate];
     [window setAcceptsMouseMovedEvents:YES];
     [window setIsVisible:NO];
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
     [window setMovable:YES];
 #endif
     [window setWorksWhenModal:YES];
@@ -578,7 +578,7 @@ void oswindow_movable(OSWindow *window, const bool_t is_movable)
 {
     cassert_no_null(window);
     cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
     [(OSXWindow *)window setMovable:(BOOL)is_movable];
 #endif
     [(OSXWindow *)window setMovableByWindowBackground:(BOOL)is_movable];

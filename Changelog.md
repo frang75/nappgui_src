@@ -17,7 +17,7 @@
 * `textview_apply_all()`, `textview_apply_sel()`. [Doc](https://nappgui.com/en/gui/textview.html#h4). [Issue](https://github.com/frang75/nappgui_src/issues/147). [Commit](https://github.com/frang75/nappgui_src/commit/f6c2ee06145f6f8c830c1e3870a1ecb6ff517b36).
 * `textview_show_select()`. [Commit](https://github.com/frang75/nappgui_src/commit/f6c2ee06145f6f8c830c1e3870a1ecb6ff517b36).
 * New TextEditor demo. [Doc](https://nappgui.com/en/howto/guihello.html#h6). [Commit](https://github.com/frang75/nappgui_src/commit/f6c2ee06145f6f8c830c1e3870a1ecb6ff517b36).
-* Support for OpenGL 3D graphics. [Issue](https://github.com/frang75/nappgui_src/issues/84). [Commit]().
+* Support for OpenGL 3D graphics. [Issue](https://github.com/frang75/nappgui_src/issues/84). [Commit](https://github.com/frang75/nappgui_src/commit/241be10f0258ff2ecaf2087a3a033876aa4b58cd).
     * New library `OGL3D`.
     * OpenGL context `<ogl3d/ogl3d.h>`.
     * [Documentation](https://nappgui.com/en/ogl3d/ogl3d.html).
@@ -38,8 +38,9 @@
 
 * CMake install use `NAppGUIOptions.txt` for build info. [Commit](https://github.com/frang75/nappgui_src/commit/dcbdbcd38926450a7ffd259604e591190e77b377).
 * MinGW desktop apps don't require a local `Application.manifest`. They reference the same file in `/prj/templates`. [Commit](https://github.com/frang75/nappgui_src/commit/ff6a60fab7333bb721c55e5000268107758813f4).
-* New function `nap_link_inet(targetName)`.
-* New function `nap_link_opengl(targetName)`.
+* New function `nap_link_inet(targetName)`. [Commit](https://github.com/frang75/nappgui_src/commit/241be10f0258ff2ecaf2087a3a033876aa4b58cd).
+* New function `nap_link_opengl(targetName)`. [Commit](https://github.com/frang75/nappgui_src/commit/241be10f0258ff2ecaf2087a3a033876aa4b58cd).
+* New CMake option `-DNAPPGUI_NO_CRTDBG=YES` to disable the CRT debugger in Windows. [Issue](https://github.com/frang75/nappgui_src/issues/152). [Commit]().
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 

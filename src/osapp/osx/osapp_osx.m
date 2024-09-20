@@ -23,7 +23,7 @@
 #error This file is only for OSX
 #endif
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
 @interface OSXAppDelegate : NSObject <NSApplicationDelegate>
 #else
 @interface OSXAppDelegate : NSObject

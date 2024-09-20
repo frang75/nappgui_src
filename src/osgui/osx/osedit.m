@@ -426,7 +426,7 @@ OSEdit *osedit_create(const uint32_t flags)
     [edit->field setAlignment:_oscontrol_text_alignment(ekLEFT)];
     _oscontrol_set_align(edit->field, &edit->attrs, ekLEFT);
     _oscontrol_set_font(edit->field, &edit->attrs, edit->attrs.font);
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
     [[edit->field cell] setUsesSingleLineMode:((flags & 1) == 1) ? NO : YES];
 #endif
     return (OSEdit *)edit;
@@ -557,7 +557,7 @@ void osedit_passmode(OSEdit *edit, const bool_t passmode)
         _oscontrol_set_align(field, &ledit->attrs, ledit->attrs.align);
         _oscontrol_set_text(field, &ledit->attrs, (const char_t *)[text UTF8String]);
         _oscontrol_detach_from_parent(ledit->field, ledit);
-#if MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
         [[field cell] setUsesSingleLineMode:((ledit->flags & 1) == 1) ? NO : YES];
 #endif
         [ledit->field release];
