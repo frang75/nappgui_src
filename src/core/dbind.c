@@ -1456,7 +1456,8 @@ static void i_remove_object(byte_t *data, const StBind *stbind, const uint16_t s
             break;
 
         case ekDTYPE_OBJECT_PTR:
-            i_destroy_object(dcast(data + member->offset, byte_t), member->attr.object.stbind, member->size);
+            cassert(member->size == sizeofptr);
+            i_destroy_object(dcast(data + member->offset, byte_t), member->attr.object.stbind, member->attr.object.stbind->size);
             break;
 
         case ekDTYPE_OBJECT_OPAQUE:

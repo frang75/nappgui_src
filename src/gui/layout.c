@@ -585,6 +585,13 @@ void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, cons
     {
         i_set_component(layout, GuiComponentPtr(panel), col, row, ekJUSTIFY, ekJUSTIFY);
         cassert(cell->tabstop == TRUE);
+
+        if (layout->panel != NULL)
+        {
+            Window *parent_window = _panel_get_window(layout->panel);
+            _component_set_parent_window(GuiComponentPtr(panel), parent_window);
+            layout_update(layout);
+        }
     }
     else
     {

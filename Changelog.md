@@ -29,6 +29,8 @@
 * GTK flatbutton padding. [Commit](https://github.com/frang75/nappgui_src/commit/5c41f9697ea7e6664b8b9db6cf16c32229ea8c36).
 * GTK render listbox checks in Xubuntu. [Commit](https://github.com/frang75/nappgui_src/commit/3c6247159f311195b2871b1fa10492c986b4f42d).
 * macOS HighSierra and lowers focus ring drawing issue. [Commit](https://github.com/frang75/nappgui_src/commit/a163cb2555101b831414b6deb781a1d1c49ccd42).
+* Issue in `dbind_destroy()`. [Commit]().
+* Issue in `layout_panel_replace()`. [Commit]().
 
 ### Improved
 
@@ -40,7 +42,7 @@
 * MinGW desktop apps don't require a local `Application.manifest`. They reference the same file in `/prj/templates`. [Commit](https://github.com/frang75/nappgui_src/commit/ff6a60fab7333bb721c55e5000268107758813f4).
 * New function `nap_link_inet(targetName)`. [Commit](https://github.com/frang75/nappgui_src/commit/241be10f0258ff2ecaf2087a3a033876aa4b58cd).
 * New function `nap_link_opengl(targetName)`. [Commit](https://github.com/frang75/nappgui_src/commit/241be10f0258ff2ecaf2087a3a033876aa4b58cd).
-* New CMake option `-DNAPPGUI_NO_CRTDBG=YES` to disable the CRT debugger in Windows. [Issue](https://github.com/frang75/nappgui_src/issues/152). [Commit]().
+* New CMake option `-DNAPPGUI_NO_CRTDBG=YES` to disable the CRT debugger in Windows. [Issue](https://github.com/frang75/nappgui_src/issues/152). [Commit](https://github.com/frang75/nappgui_src/commit/b65fc3194b22b77bab00ba079e25de96a4d3accc).
 
 ## v1.4.2 - Jun 30, 2024 (r5177)
 
