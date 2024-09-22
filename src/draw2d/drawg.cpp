@@ -63,6 +63,31 @@ void draw_seg2dd(DCtx *ctx, const Seg2Dd *seg)
 /*---------------------------------------------------------------------------*/
 
 template <typename real>
+static void i_r2d(DCtx *ctx, const drawop_t op, const R2D<real> *rect)
+{
+    cassert_no_null(rect);
+    draw_rect(ctx, op, (real32_t)rect->pos.x, (real32_t)rect->pos.y, (real32_t)rect->size.width, (real32_t)rect->size.height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_r2df(DCtx *ctx, const drawop_t op, const R2Df *rect)
+{
+    cassert_no_null(rect);
+    draw_rect(ctx, op, rect->pos.x, rect->pos.y, rect->size.width, rect->size.height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_r2dd(DCtx *ctx, const drawop_t op, const R2Dd *rect)
+{
+    cassert_no_null(rect);
+    draw_rect(ctx, op, (real32_t)rect->pos.x, (real32_t)rect->pos.y, (real32_t)rect->size.width, (real32_t)rect->size.height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template <typename real>
 static void i_seg2d(DCtx *ctx, const Seg2D<real> *seg)
 {
     cassert_no_null(seg);
@@ -260,6 +285,12 @@ void (*Draw<real32_t>::seg2d)(DCtx *, const Seg2D<real32_t> *) = i_seg2d<real32_
 
 template <>
 void (*Draw<real64_t>::seg2d)(DCtx *, const Seg2D<real64_t> *) = i_seg2d<real64_t>;
+
+template <>
+void (*Draw<real32_t>::r2d)(DCtx *, const drawop_t, const R2D<real32_t> *) = i_r2d<real32_t>;
+
+template <>
+void (*Draw<real64_t>::r2d)(DCtx *, const drawop_t, const R2D<real64_t> *) = i_r2d<real64_t>;
 
 template <>
 void (*Draw<real32_t>::cir2d)(DCtx *, const drawop_t, const Cir2D<real32_t> *) = i_cir2d<real32_t>;

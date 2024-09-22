@@ -23,6 +23,10 @@ _draw2d_api void draw_seg2df(DCtx *ctx, const Seg2Df *seg);
 
 _draw2d_api void draw_seg2dd(DCtx *ctx, const Seg2Dd *seg);
 
+_draw2d_api void draw_r2df(DCtx *ctx, const drawop_t op, const R2Df *rect);
+
+_draw2d_api void draw_r2dd(DCtx *ctx, const drawop_t op, const R2Dd *rect);
+
 _draw2d_api void draw_cir2df(DCtx *ctx, const drawop_t op, const Cir2Df *cir);
 
 _draw2d_api void draw_cir2dd(DCtx *ctx, const drawop_t op, const Cir2Dd *cir);

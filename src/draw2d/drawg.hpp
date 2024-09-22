@@ -14,6 +14,7 @@
 #define __DRAWG_HPP__
 
 #include "draw2d.hxx"
+#include <geom2d/r2d.hpp>
 #include <geom2d/cir2d.hpp>
 #include <geom2d/obb2d.hpp>
 #include <geom2d/pol2d.hpp>
@@ -24,6 +25,8 @@ struct Draw
     _draw2d_api static void (*v2d)(DCtx *ctx, const drawop_t op, const V2D<real> *v2d, const real radius);
 
     _draw2d_api static void (*seg2d)(DCtx *ctx, const Seg2D<real> *seg);
+
+    _draw2d_api static void (*r2d)(DCtx *ctx, const drawop_t op, const R2D<real> *r);
 
     _draw2d_api static void (*cir2d)(DCtx *ctx, const drawop_t op, const Cir2D<real> *cir);
 
