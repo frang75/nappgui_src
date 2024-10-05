@@ -17,7 +17,7 @@
 #include "oscontrol_gtk.inl"
 #include <draw2d/color.h>
 #include <core/event.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 

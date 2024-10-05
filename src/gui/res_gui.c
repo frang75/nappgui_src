@@ -12,7 +12,7 @@
 
 #include "res_gui.h"
 #include <core/respackh.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/

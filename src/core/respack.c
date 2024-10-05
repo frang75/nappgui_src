@@ -18,7 +18,7 @@
 #include "heap.h"
 #include "hfile.h"
 #include "stream.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/bfile.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

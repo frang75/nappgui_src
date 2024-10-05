@@ -18,7 +18,7 @@
 #include <draw2d/image.h>
 #include <core/arrpt.h>
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/log.h>
 #include <sewer/blib.h>
 #include <sewer/bmem.h>

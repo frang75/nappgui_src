@@ -13,7 +13,7 @@
 #include "event.h"
 #include "event.inl"
 #include "heap.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <sewer/cassert.h>
 
 struct _event_t

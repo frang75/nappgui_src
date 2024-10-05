@@ -12,7 +12,7 @@
 
 #include "msgparser.inl"
 #include <core/arrpt.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 

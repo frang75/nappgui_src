@@ -24,7 +24,7 @@
 #include "oswindow_win.inl"
 #include <core/event.h>
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>

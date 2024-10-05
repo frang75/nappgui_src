@@ -12,7 +12,7 @@
 
 #include "keybuf.h"
 #include "heap.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/log.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

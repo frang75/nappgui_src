@@ -4,13 +4,13 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: strings.c
+ * File: string_utils.c
  *
  */
 
 /* UTF8 strings */
 
-#include "strings.h"
+#include "string_utils.h"
 #include "arrpt.h"
 #include "heap.h"
 #include "stream.h"

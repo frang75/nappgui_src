@@ -18,7 +18,7 @@
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/osbs.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>

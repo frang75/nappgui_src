@@ -12,7 +12,7 @@
 
 #include "tfilter.inl"
 #include "date.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 

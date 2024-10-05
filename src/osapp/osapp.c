@@ -26,7 +26,7 @@
 #include <core/heap.h>
 #include <core/hfile.h>
 #include <core/objh.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/bfile.h>
 #include <osbs/bthread.h>
 #include <osbs/log.h>

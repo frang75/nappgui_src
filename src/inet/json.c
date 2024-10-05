@@ -17,7 +17,7 @@
 #include <core/dbindh.h>
 #include <core/heap.h>
 #include <core/stream.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/log.h>
 #include <sewer/bmath.h>
 #include <sewer/bmem.h>

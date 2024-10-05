@@ -21,7 +21,7 @@
 #include <core/heap.h>
 #include <core/hfile.h>
 #include <core/stream.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/bfile.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
@@ -836,7 +836,7 @@ void resgen_write_c_file(const ResourcePack *pack, const char_t *dest_path, cons
         i_stm_header(stream);
         stm_printf(stream, "#include \"%s.h\"\n", dest_file);
         stm_writef(stream, "#include <core/respackh.h>\n");
-        stm_writef(stream, "#include <core/strings.h>\n");
+        stm_writef(stream, "#include <core/string_utils.h>\n");
         stm_writef(stream, "#include <sewer/cassert.h>\n\n");
         stm_writef(stream, "/*---------------------------------------------------------------------------*/\n\n");
 

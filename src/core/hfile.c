@@ -17,7 +17,7 @@
 #include "date.h"
 #include "event.h"
 #include "stream.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/bfile.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>

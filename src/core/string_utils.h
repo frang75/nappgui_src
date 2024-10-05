@@ -4,7 +4,7 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: strings.h
+ * File: string_utils.h
  *
  */
 

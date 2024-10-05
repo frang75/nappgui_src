@@ -12,7 +12,7 @@
 
 #include "heap.h"
 #include "stream.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <sewer/blib.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

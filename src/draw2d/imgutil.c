@@ -15,7 +15,7 @@
 #include "palette.h"
 #include "pixbuf.h"
 #include <core/buffer.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <core/stream.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

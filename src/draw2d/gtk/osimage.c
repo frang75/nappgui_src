@@ -18,7 +18,7 @@
 #include "draw2d_gtk.ixx"
 #include <core/buffer.h>
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <core/stream.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

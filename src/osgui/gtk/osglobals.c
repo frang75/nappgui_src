@@ -17,7 +17,7 @@
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <core/stream.h>
 #include <osbs/log.h>
 #include <sewer/cassert.h>

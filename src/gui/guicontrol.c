@@ -13,7 +13,7 @@
 #include "guicontrol.h"
 #include "component.inl"
 #include "view.inl"
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 
 /*---------------------------------------------------------------------------*/

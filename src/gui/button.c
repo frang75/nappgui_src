@@ -24,7 +24,7 @@
 #include <geom2d/v2d.h>
 #include <core/event.h>
 #include <core/objh.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 

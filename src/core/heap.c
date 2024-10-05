@@ -12,7 +12,7 @@
 
 #include "heap.h"
 #include "heap.inl"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/osbs.h>
 #include <osbs/bmutex.h>
 #include <osbs/bthread.h>

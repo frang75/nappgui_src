@@ -14,7 +14,7 @@
 #include "stream.inl"
 #include "lex.inl"
 #include "heap.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/osbs.h>
 #include <osbs/bfile.h>
 #include <osbs/bsocket.h>
