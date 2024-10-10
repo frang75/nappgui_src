@@ -36,7 +36,7 @@
 #include <core/hfileh.h>
 #include <core/respack.h>
 #include <core/respackh.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/bproc.h>
 #include <osbs/bfile.h>
 #include <osbs/log.h>

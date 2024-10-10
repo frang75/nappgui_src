@@ -26,7 +26,7 @@
 #include <core/arrpt.h>
 #include <core/dbindh.h>
 #include <core/event.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/bmath.h>
 #include <sewer/bmem.h>
 #include <sewer/bstd.h>

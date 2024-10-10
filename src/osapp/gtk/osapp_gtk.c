@@ -15,7 +15,7 @@
 #include "osapp_gtk.inl"
 #include <osgui/osgui.h>
 #include <core/event.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/bfile.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

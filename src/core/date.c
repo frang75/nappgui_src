@@ -11,7 +11,7 @@
 /* Dates */
 
 #include "date.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/btime.h>
 #include <sewer/blib.h>
 #include <sewer/cassert.h>

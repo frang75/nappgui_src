@@ -14,7 +14,7 @@
 #include "nrclib.h"
 #include <core/arrpt.h>
 #include <core/core.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/log.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>

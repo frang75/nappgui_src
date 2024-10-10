@@ -14,7 +14,7 @@
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <core/stream.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <curl/curl.h>

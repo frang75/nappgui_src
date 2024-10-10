@@ -14,7 +14,7 @@
 #include "oscomwin.inl"
 #include "oscontrol_osx.inl"
 #include <core/event.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)

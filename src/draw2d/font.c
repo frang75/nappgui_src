@@ -14,7 +14,7 @@
 #include "font.inl"
 #include "draw2d.inl"
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 

@@ -17,7 +17,7 @@
 #include "osimg.inl"
 #include <core/heap.h>
 #include <core/event.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

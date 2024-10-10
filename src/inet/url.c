@@ -12,7 +12,7 @@
 
 #include "url.h"
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 

@@ -12,7 +12,7 @@
 
 #include "color.h"
 #include "draw2d.inl"
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/bmath.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>

@@ -14,7 +14,7 @@
 #include "stream.inl"
 #include "heap.h"
 #include "stream.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>

@@ -28,7 +28,7 @@
 #include <core/arrpt.h>
 #include <core/event.h>
 #include <core/heap.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/types.h>

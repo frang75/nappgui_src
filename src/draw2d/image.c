@@ -24,7 +24,7 @@
 #include <core/hfile.h>
 #include <core/respackh.h>
 #include <core/stream.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

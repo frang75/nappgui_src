@@ -16,7 +16,7 @@
 #include <core/date.h>
 #include <core/hfile.h>
 #include <core/stream.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <osbs/log.h>
 #include <sewer/cassert.h>
 

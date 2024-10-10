@@ -20,7 +20,7 @@
 #include "draw2d.inl"
 #include "draw.inl"
 #include <core/arrpt.h>
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)

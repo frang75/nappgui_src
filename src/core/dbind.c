@@ -19,7 +19,7 @@
 #include "buffer.h"
 #include "heap.h"
 #include "stream.h"
-#include "strings.h"
+#include "string_utils.h"
 #include <osbs/log.h>
 #include <sewer/bmath.h>
 #include <sewer/bmem.h>

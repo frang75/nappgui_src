@@ -16,7 +16,7 @@
 #include "draw.h"
 #include "color.h"
 #include "font.h"
-#include <core/strings.h>
+#include <core/string_utils.h>
 #include <geom2d/t2d.h>
 #include <sewer/cassert.h>
 
