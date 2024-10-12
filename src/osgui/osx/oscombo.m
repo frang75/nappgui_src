@@ -327,7 +327,7 @@ void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *wid
     cassert_no_null(combo);
     cassert_no_null(width);
     cassert_no_null(height);
-    _oscontrol_text_bounds(((OSXCombo *)combo)->attrs.font, "OO", -1.f, width, height);
+    font_extents(((OSXCombo *)combo)->attrs.font, "OO", -1.f, width, height);
     *width = refwidth;
     *height = 27.f;
 }

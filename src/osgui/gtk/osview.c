@@ -44,7 +44,7 @@ struct _osview_t
     real32_t clip_width;
     real32_t clip_height;
     ViewListeners listeners;
-    GtkCssProvider *border_color;
+    GtkCssProvider *css_bdcolor;
     bool_t allow_tab;
     Listener *OnFocus;
     Listener *OnResignFocus;
@@ -354,13 +354,16 @@ OSView *osview_create(const uint32_t flags)
     if (flags & ekVIEW_BORDER)
     {
         GtkWidget *frame = gtk_frame_new(NULL);
-        String *css = osglobals_frame_focus_css();
         cassert(gtk_widget_get_has_window(frame) == FALSE);
         gtk_container_add(GTK_CONTAINER(frame), top);
         gtk_widget_show(top);
-        view->border_color = gtk_css_provider_new();
-        gtk_css_provider_load_from_data(view->border_color, tc(css), -1, NULL);
-        str_destroy(&css);
+
+        {
+            String *css = osglobals_frame_focus_css();
+            view->css_bdcolor = _oscontrol_css_provider(tc(css));
+            str_destroy(&css);
+        }
+
         top = frame;
     }
 
@@ -399,20 +402,13 @@ void osview_destroy(OSView **view)
     listener_destroy(&(*view)->OnAcceptFocus);
     listener_destroy(&(*view)->OnOverlay);
 
-    if ((*view)->border_color != NULL)
-    {
-        cassert(GTK_IS_FRAME((*view)->control.widget));
-        _oscontrol_widget_remove_provider((*view)->control.widget, (*view)->border_color);
-        g_object_unref((*view)->border_color);
-        (*view)->border_color = NULL;
-    }
-
     if ((*view)->ctx != NULL)
         dctx_destroy(&(*view)->ctx);
 
     if ((*view)->scroll != NULL)
         osscrolls_destroy(&(*view)->scroll);
 
+    _oscontrol_destroy_css_provider(&(*view)->css_bdcolor);
     _oscontrol_destroy(*(OSControl **)view);
     heap_delete(view, OSView);
 }
@@ -790,13 +786,13 @@ void osview_focus(OSView *view, const bool_t focus)
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
     }
 
-    if (view->border_color != NULL)
+    if (view->css_bdcolor != NULL)
     {
         cassert(GTK_IS_FRAME(view->control.widget));
         if (focus == TRUE)
-            _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+            _oscontrol_add_css_provider(view->control.widget, view->css_bdcolor);
         else
-            _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
+            _oscontrol_remove_css_provider(view->control.widget, view->css_bdcolor);
     }
 }
 

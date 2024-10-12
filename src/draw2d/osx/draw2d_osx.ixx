@@ -38,6 +38,7 @@ struct _dctx_t
     CGAffineTransform transform;
     CGGradientRef gradient;
     CGAffineTransform gradient_matrix;
+    Font *font;
     color_t skcolor;
     color_t fillcolor;
     color_t text_color;

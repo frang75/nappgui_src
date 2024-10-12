@@ -774,11 +774,13 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
     {
         Gdiplus::RectF layout;
         Gdiplus::RectF out;
+        real32_t xscale = font_xscale(ctx->font);
         layout.X = 0;
         layout.Y = 0;
-        layout.Width = (Gdiplus::REAL)(ctx->text_width > 0 ? ctx->text_width : 1e8);
+        layout.Width = (Gdiplus::REAL)(ctx->text_width > 0 ? ctx->text_width / xscale : 1e8);
         layout.Height = 1e8;
         ctx->graphics->MeasureString(wtext, -1, ctx->ffont, layout, &out);
+        out.Width *= xscale;
 
         if (ctx->text_width > 0 && ctx->text_ellipsis != ekELLIPMLINE)
         {
@@ -863,18 +865,6 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             break;
             cassert_default();
         }
-        // switch (ctx->text_intalign) {
-        // case ekLEFT:
-        // case ekJUSTIFY:
-        //     break;
-        // case ekRIGHT:
-        //     origin.X += out.Width;
-        //     break;
-        // case ekCENTER:
-        //     origin.X += out.Width / 2;
-        //     break;
-        // cassert_default();
-        // }
     }
 
     return Gdiplus::RectF(origin, size);
@@ -890,10 +880,13 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     WCHAR *wtext_alloc = NULL;
     Gdiplus::StringFormat format;
     Gdiplus::RectF rect;
+    Gdiplus::Matrix matrix;
+    real32_t xscale = 1.f;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     i_set_gdiplus_mode(ctx);
     num_chars = 1 + unicode_nchars(text, ekUTF8);
+
     if (num_chars < 1024)
     {
         wtext = wtext_static;
@@ -911,6 +904,15 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
 
     rect = i_text_origin(ctx, wtext, x, y);
     format.SetAlignment(i_align(ctx->text_intalign));
+    xscale = font_xscale(ctx->font);
+
+    if (bmath_absf(xscale - 1) > 0.01f)
+    {
+        ctx->graphics->GetTransform(&matrix);
+        ctx->graphics->TranslateTransform(rect.X, rect.Y);
+        ctx->graphics->ScaleTransform((Gdiplus::REAL)xscale, 1);
+        ctx->graphics->TranslateTransform(-rect.X, -rect.Y);
+    }
 
     if (ctx->text_width < 0)
     {
@@ -918,6 +920,7 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     }
     else
     {
+        Gdiplus::RectF erect = rect;
         switch (ctx->text_ellipsis)
         {
         case ekELLIPNONE:
@@ -936,7 +939,13 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
             cassert_default();
         }
 
-        ctx->graphics->DrawString(wtext, -1, ctx->ffont, rect, &format, ctx->tbrush);
+        erect.Width /= xscale;
+        ctx->graphics->DrawString(wtext, -1, ctx->ffont, erect, &format, ctx->tbrush);
+    }
+
+    if (bmath_absf(xscale - 1) > 0.01f)
+    {
+        ctx->graphics->SetTransform(&matrix);
     }
 
     if (wtext_alloc != NULL)
@@ -964,6 +973,8 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     WCHAR *wtext_alloc = NULL;
     Gdiplus::StringFormat format;
     Gdiplus::RectF rect;
+    Gdiplus::Matrix matrix;
+    real32_t xscale = 1.f;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     i_set_gdiplus_mode(ctx);
@@ -987,13 +998,28 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     format.SetAlignment(i_align(ctx->text_intalign));
     format.SetLineAlignment(i_align(ctx->text_valign));
 
+    xscale = font_xscale(ctx->font);
+    if (bmath_absf(xscale - 1) > 0.01f)
+    {
+        ctx->graphics->GetTransform(&matrix);
+        ctx->graphics->TranslateTransform(rect.X, rect.Y);
+        ctx->graphics->ScaleTransform((Gdiplus::REAL)xscale, 1);
+        ctx->graphics->TranslateTransform(-rect.X, -rect.Y);
+    }
+
     // Text just solid filled --> Use DrawString
     if (op == ekFILL && ctx->current_brush == ctx->sbrush)
     {
         if (ctx->text_width < 0)
+        {
             ctx->graphics->DrawString(wtext, -1, ctx->ffont, Gdiplus::PointF(rect.X, rect.Y), &format, ctx->sbrush);
+        }
         else
-            ctx->graphics->DrawString(wtext, -1, ctx->ffont, rect, &format, ctx->sbrush);
+        {
+            Gdiplus::RectF erect = rect;
+            erect.Width /= xscale;
+            ctx->graphics->DrawString(wtext, -1, ctx->ffont, erect, &format, ctx->sbrush);
+        }
     }
     // Fancy Text --> Use Path
     else
@@ -1002,6 +1028,11 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
         Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
         path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, Gdiplus::PointF(rect.X, rect.Y), &format);
         i_draw_path(ctx, &path, op);
+    }
+
+    if (bmath_absf(xscale - 1) > 0.01f)
+    {
+        ctx->graphics->SetTransform(&matrix);
     }
 
     if (wtext_alloc != NULL)
@@ -1094,10 +1125,16 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
 
 void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
+    /*
+     * GDI+ render text slightly different than GDI, event using the same font.
+     * For this reason, we can't use font_extents() in Windows (based on GDI 'GetTextExtentPoint32').
+     * We must use 'MeasureString' that is the correct way to do it in GDI+.
+     */
     uint32_t num_chars = 0;
     WCHAR *wtext = NULL;
     WCHAR wtext_static[1024];
     WCHAR *wtext_alloc = NULL;
+    real32_t xscale = 1.f;
     Gdiplus::RectF layout;
     Gdiplus::RectF out;
     cassert_no_null(ctx);
@@ -1119,12 +1156,13 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
+    xscale = font_xscale(ctx->font);
     layout.X = 0;
     layout.Y = 0;
-    layout.Width = (Gdiplus::REAL)(refwidth > 0 ? refwidth : 1e8);
+    layout.Width = (Gdiplus::REAL)(refwidth > 0 ? refwidth / xscale : 1e8);
     layout.Height = 1e8;
     ctx->graphics->MeasureString(wtext, -1, ctx->ffont, layout, &out);
-    *width = bmath_ceilf((real32_t)out.Width);
+    *width = bmath_ceilf((real32_t)out.Width * xscale);
     *height = bmath_ceilf((real32_t)out.Height);
 
     if (wtext_alloc != NULL)

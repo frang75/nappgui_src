@@ -22,7 +22,15 @@
     * OpenGL context `<ogl3d/ogl3d.h>`.
     * [Documentation](https://nappgui.com/en/ogl3d/ogl3d.html).
     * [Demo](https://nappgui.com/en/howto/glhello.html).
-* `draw_r2df()`, `draw_r2dd()`, `Draw::r2d()`. [Commit]().
+* `draw_r2df()`, `draw_r2dd()`, `Draw::r2d()`. [Commit](https://github.com/frang75/nappgui_src/commit/51d4022b5d7535f325b253a29e653b9b88b5ced7).
+* `draw2d_preferred_monospace()`. [Commit]().
+* `listbox_font()`. [Commit]().
+* `ekFCELL` in font style to indicate the font size means cell height. [Commit]().
+* Support for font stretch. [Doc](https://nappgui.com/en/draw2d/font.html#h6). [Commit]().
+    * `font_with_width()`.
+    * `font_with_xscale()`.
+    * `font_width()`.
+    * `font_xscale()`.
 
 ### Fixed
 
@@ -32,6 +40,9 @@
 * macOS HighSierra and lowers focus ring drawing issue. [Commit](https://github.com/frang75/nappgui_src/commit/a163cb2555101b831414b6deb781a1d1c49ccd42).
 * Issue in `dbind_destroy()`. [Commit](https://github.com/frang75/nappgui_src/commit/f8e16ad9d7712339400ca55b1a3ab4a426f1da2a).
 * Issue in `layout_panel_replace()`. [Commit](https://github.com/frang75/nappgui_src/commit/f8e16ad9d7712339400ca55b1a3ab4a426f1da2a).
+* GTK buttons always show shortcut underscore. [Commit]().
+* macOS pushbuttons images were not shown. [Commit]().
+* `gui_alt_color()` avoid to register twice the same color. [Commit]().
 
 ### Improved
 

@@ -20,10 +20,6 @@ void osgui_finish_imp(void);
 
 Font *osgui_create_default_font(void);
 
-void osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height);
-
-void osgui_text_bounds(StringSizeData *data, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
-
 gui_size_t osgui_size_font(const real32_t font_size);
 
 vkey_t osgui_vkey_from_text(const char_t *text);

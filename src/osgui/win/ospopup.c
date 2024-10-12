@@ -196,7 +196,7 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
     cassert_no_null(popup);
     cassert_no_null(width);
     cassert_no_null(height);
-    _oscontrol_text_bounds((const OSControl *)popup, text, popup->font, -1.f, width, height);
+    font_extents(popup->font, text, -1.f, width, height);
 
     *width += 40.f;
     *height = 24.f;

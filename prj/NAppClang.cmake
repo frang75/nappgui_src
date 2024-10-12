@@ -6,7 +6,7 @@
 macro(nap_clang_flags arch)
 
     # Warnings
-    set(FLAGS "-Wall -Wextra -pedantic -fPIE -Wno-long-long -Wno-overlength-strings -Wno-newline-eof -Wno-undefined-var-template")
+    set(FLAGS "-Wall -Wextra -pedantic -fPIE -Wimplicit-function-declaration -Wno-long-long -Wno-overlength-strings -Wno-newline-eof -Wno-undefined-var-template")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 

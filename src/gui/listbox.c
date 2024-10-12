@@ -791,6 +791,21 @@ void listbox_set_elem(ListBox *listbox, const uint32_t index, const char_t *text
 
 /*---------------------------------------------------------------------------*/
 
+void listbox_font(ListBox *listbox, const Font *font)
+{
+    LData *data = view_get_data(ViewPtr(listbox), LData);
+    cassert_no_null(data);
+    if (font_equals(data->font, font) == FALSE)
+    {
+        font_destroy(&data->font);
+        data->font = font_copy(font);
+        i_document_size(data);
+        view_update(ViewPtr(listbox));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void listbox_clear(ListBox *listbox)
 {
     LData *data = view_get_data(ViewPtr(listbox), LData);

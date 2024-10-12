@@ -21,7 +21,6 @@ typedef struct _osframe_t OSFrame;
 typedef struct _ostabstop_t OSTabStop;
 typedef struct _osscrolls_t OSScrolls;
 typedef struct _osscroll_t OSScroll;
-typedef struct _strsize_data_t StringSizeData;
 
 struct _oshotkey_t
 {

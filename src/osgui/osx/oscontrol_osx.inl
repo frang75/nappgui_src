@@ -26,8 +26,6 @@ NSControlSize _oscontrol_control_size(const gui_size_t size);
 
 void _oscontrol_cell_set_image(NSCell *cell, const Image *image);
 
-void _oscontrol_text_bounds(const Font *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
-
 void _oscontrol_tooltip_set(NSView *view, const char_t *text);
 
 NSColor *_oscontrol_color(const color_t color);

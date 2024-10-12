@@ -10,12 +10,14 @@
 
 /* Operating System globals */
 
+#include "osgui.inl"
 #include "osgui_osx.inl"
 #include "osglobals.h"
 #include "osglobals.inl"
 #include "oscolor.inl"
 #include "oscontrol_osx.inl"
 #include <draw2d/color.h>
+#include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/arrpt.h>
 #include <core/event.h>
@@ -59,6 +61,7 @@ static CGFloat i_HOTBGBACKDROP_COLOR[4];
 static color_t i_GRID_COLOR;
 static color_t i_FOCUS_COLOR;
 static bool_t i_DARK_MODE = FALSE;
+
 static ArrPt(Listener) *i_ONIDLES = NULL;
 DeclPt(Listener);
 

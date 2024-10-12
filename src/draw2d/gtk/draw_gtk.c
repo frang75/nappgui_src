@@ -579,29 +579,41 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
 {
     double nx = (double)x;
     double ny = (double)y;
-
+    real32_t xscale = 1.f;
     cassert_no_null(ctx);
 
     if (ctx->layout == NULL)
     {
         const PangoFontDescription *fdesc = NULL;
+        cairo_matrix_t matrix;
         cassert(ctx->font != NULL);
         fdesc = (PangoFontDescription *)font_native(ctx->font);
+        /*
+        * Caution! If cairo context has rotations/scales in its transform matrix
+        * they will inherited in PangoContext matrix, warping the text.
+        * All text transforms are managed by cairo matrix.
+        * PangoLayout MUST avoid rotations/scales in its PangoContext matrix.
+        * Important: Never use 'pango_cairo_update_layout()'
+        * Additionally, PangoLayout does not correctly handle text scaling.
+        */
+        cairo_get_matrix(ctx->cairo, &matrix);
+        cairo_set_matrix(ctx->cairo, &ctx->origin);
         ctx->layout = pango_cairo_create_layout(ctx->cairo);
+        cairo_set_matrix(ctx->cairo, &matrix);
         pango_layout_set_font_description(ctx->layout, fdesc);
     }
 
+    xscale = font_xscale(ctx->font);
     pango_layout_set_text(ctx->layout, (const char *)text, -1);
     pango_layout_set_alignment(ctx->layout, ctx->text_intalign);
-    pango_layout_set_width(ctx->layout, ctx->text_width < 0 ? -1 : (int)(ctx->text_width * PANGO_SCALE));
-    /* pango_layout_set_wrap(ctx->layout, ctx->text_width < 0 ? PANGO_WRAP_CHAR); */
+    pango_layout_set_width(ctx->layout, ctx->text_width < 0 ? -1 : (int)((ctx->text_width / xscale) * PANGO_SCALE));
     pango_layout_set_ellipsize(ctx->layout, ctx->ellipsis);
 
     if (ctx->text_halign != ekLEFT || ctx->text_valign != ekTOP)
     {
         int w, h;
         pango_layout_get_pixel_size(ctx->layout, &w, &h);
-
+        w = (int)((real32_t)w * xscale);
         switch (ctx->text_halign)
         {
         case ekLEFT:
@@ -631,6 +643,8 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         }
     }
 
+    cairo_save(ctx->cairo);
+
     if (ctx->cartesian_system == TRUE)
     {
         cairo_matrix_t matrix;
@@ -640,11 +654,13 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         matrix.yy = 1;
         matrix.x0 = 0;
         matrix.y0 = 0;
-        cairo_save(ctx->cairo);
         cairo_transform(ctx->cairo, &matrix);
     }
 
     cairo_move_to(ctx->cairo, nx, ny);
+    cairo_translate(ctx->cairo, nx, ny);
+    cairo_scale(ctx->cairo, xscale, 1);
+    cairo_translate(ctx->cairo, -nx, -ny);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -657,8 +673,7 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     i_begin_text(ctx, text, x, y);
     i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
     pango_cairo_show_layout(ctx->cairo, ctx->layout);
-    if (ctx->cartesian_system == TRUE)
-        cairo_restore(ctx->cairo);
+    cairo_restore(ctx->cairo);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -693,8 +708,7 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
         i_draw(ctx, op);
     }
 
-    if (ctx->cartesian_system == TRUE)
-        cairo_restore(ctx->cairo);
+    cairo_restore(ctx->cairo);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -774,22 +788,13 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
 
 void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    int w, h;
+    /*
+     * In Linux/GTK drawing context uses the same method (PangoLayout associated
+     * with Cairo context) to measure and render the text than 'font_extents()'.
+     * Just bypass the call.
+     */
     cassert_no_null(ctx);
-    if (ctx->layout == NULL)
-    {
-        const PangoFontDescription *fdesc = NULL;
-        cassert(ctx->font != NULL);
-        fdesc = (PangoFontDescription *)font_native(ctx->font);
-        ctx->layout = pango_cairo_create_layout(ctx->cairo);
-        pango_layout_set_font_description(ctx->layout, fdesc);
-    }
-
-    pango_layout_set_text(ctx->layout, (const char *)text, -1);
-    pango_layout_set_width(ctx->layout, refwidth < 0 ? -1 : (int)(refwidth * PANGO_SCALE));
-    pango_layout_get_pixel_size(ctx->layout, &w, &h);
-    ptr_assign(width, (real32_t)w);
-    ptr_assign(height, (real32_t)h);
+    font_extents(ctx->font, text, refwidth, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -818,6 +823,7 @@ void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const rea
     i_begin_text(ctx, text, x, y);
     i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
     pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    cairo_restore(ctx->cairo);
 }
 
 /*---------------------------------------------------------------------------*/

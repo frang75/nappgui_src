@@ -24,6 +24,10 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
 
 const char_t *draw2d_monospace_family(const char_t **desired_fonts, const uint32_t n);
 
+const char_t *draw2d_get_preferred_monospace(void);
+
+const char_t *draw2d_str_avg_char_width(uint32_t *len);
+
 __END_C
 
 #define draw2d_extents(data, func_word_extents, newlines, str, refwidth, width, height, type) \

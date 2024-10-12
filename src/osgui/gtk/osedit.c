@@ -23,6 +23,7 @@
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
+#include <sewer/bmath.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
@@ -35,16 +36,18 @@
 struct _osedit_t
 {
     OSControl control;
-    uint32_t fstyle;
-    uint32_t fsize;
     uint32_t fsize_render;
     bool_t launch_event;
     bool_t in_validate;
+    uint32_t vpadding;
+    uint32_t hpadding;
     GtkWidget *tview;
     edit_flag_t flags;
-    GtkCssProvider *color;
-    GtkCssProvider *bgcolor;
-    GtkCssProvider *font;
+    Font *font;
+    GtkCssProvider *css_padding;
+    GtkCssProvider *css_font;
+    GtkCssProvider *css_color;
+    GtkCssProvider *css_bgcolor;
     color_t ccolor;
     int32_t select_start;
     int32_t select_end;
@@ -104,12 +107,39 @@ static gboolean i_select(OSEdit *edit)
 
 static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSEdit *edit)
 {
-    /* It seems gtk_widget_get_preferred_size don't compute font changes
-     * until draw is made */
-    unref(widget);
-    unref(cr);
-    edit->fsize_render = edit->fsize;
-    return FALSE;
+    real32_t fsize = 0;
+    real32_t fscale = 1;
+    cassert_no_null(edit);
+    fsize = font_size(edit->font);
+    fscale = font_xscale(edit->font);
+    edit->fsize_render = (uint32_t)fsize;
+
+    /*
+     * GtkEntry is not prepared to edit strings with scaled fonts,
+     * causing precision errors when clicking on a character and limiting
+     * the width of the PangoLayout. For this reason, scaled fonts are only
+     * shown when the control does not have keyboard focus.
+     */
+    if (bmath_absf(fscale - 1) >= .01f && gtk_widget_has_focus(widget) == FALSE)
+    {
+        int w = gtk_widget_get_allocated_width(widget);
+        int h = gtk_widget_get_allocated_height(widget);
+        GtkStyleContext *ctx = osglobals_entry_context();
+        PangoLayout *layout = gtk_entry_get_layout(GTK_ENTRY(widget));
+        gtk_render_background(ctx, cr, 0, 0, w, h);
+        gtk_render_frame(ctx, cr, 0, 0, w, h);
+        cairo_save(cr);
+        cairo_translate(cr, edit->hpadding / 2, edit->vpadding / 2);
+        cairo_scale(cr, fscale, 1);
+        pango_cairo_show_layout(cr, layout);
+        cairo_restore(cr);
+        return TRUE;
+    }
+    else
+    {
+        /* We call to standard draw pipeline */
+        return FALSE;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -121,18 +151,18 @@ static gboolean i_DrawBackground(GtkWidget *widget, cairo_t *cr, OSEdit *edit)
     int h = gtk_widget_get_allocated_height(widget);
     cassert_no_null(edit);
 
-    if (edit->bgcolor != NULL)
-        gtk_style_context_add_provider(ctx, GTK_STYLE_PROVIDER(edit->bgcolor), GTK_STYLE_PROVIDER_PRIORITY_USER);
+    if (edit->css_bgcolor != NULL)
+        gtk_style_context_add_provider(ctx, GTK_STYLE_PROVIDER(edit->css_bgcolor), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     gtk_style_context_save(ctx);
     gtk_style_context_set_state(ctx, gtk_widget_get_state_flags(widget));
     gtk_render_background(ctx, cr, 0, 0, w, h);
     gtk_render_frame(ctx, cr, 0, 0, w, h);
     gtk_style_context_restore(ctx);
-    edit->fsize_render = edit->fsize;
+    edit->fsize_render = (uint32_t)font_size(edit->font);
 
-    if (edit->bgcolor != NULL)
-        gtk_style_context_remove_provider(ctx, GTK_STYLE_PROVIDER(edit->bgcolor));
+    if (edit->css_bgcolor != NULL)
+        gtk_style_context_remove_provider(ctx, GTK_STYLE_PROVIDER(edit->css_bgcolor));
 
     return FALSE;
 }
@@ -280,6 +310,8 @@ OSEdit *osedit_create(const uint32_t flags)
     Font *font = osgui_create_default_font();
     GtkWidget *widget = NULL;
     edit->flags = flags;
+    edit->vpadding = kENTRY_VPADDING;
+    edit->hpadding = kENTRY_HPADDING;
     edit->select_start = INT32_MAX;
     edit->select_end = INT32_MAX;
 
@@ -287,10 +319,11 @@ OSEdit *osedit_create(const uint32_t flags)
     {
     case ekEDIT_SINGLE:
     {
-        const char_t *entry = osglobals_css_entry();
+        const char_t *cssobj = osglobals_css_entry();
         widget = gtk_entry_new();
         gtk_entry_set_width_chars(GTK_ENTRY(widget), 0);
-        _oscontrol_widget_font(widget, entry, font, &edit->font);
+        _oscontrol_update_css_padding(widget, cssobj, edit->vpadding, edit->hpadding, &edit->css_padding);
+        _oscontrol_update_css_font(widget, cssobj, font, &edit->font, &edit->css_font);
         g_signal_connect(G_OBJECT(widget), "draw", G_CALLBACK(i_OnDraw), (gpointer)edit);
         g_signal_connect_after(G_OBJECT(widget), "insert-text", G_CALLBACK(i_OnInsert), (gpointer)edit);
         g_signal_connect_after(G_OBJECT(widget), "delete-text", G_CALLBACK(i_OnDelete), (gpointer)edit);
@@ -301,16 +334,14 @@ OSEdit *osedit_create(const uint32_t flags)
 
     case ekEDIT_MULTI:
     {
-        const char_t *textv = osglobals_css_textview();
+        const char_t *cssobj = osglobals_css_textview();
         GtkTextBuffer *buffer = NULL;
-        GtkBorder padding;
-        String *css1 = NULL;
-        String *css2 = NULL;
         edit->tview = gtk_text_view_new();
         buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(edit->tview));
         g_signal_connect_after(G_OBJECT(buffer), "insert-text", G_CALLBACK(i_OnBufferInsert), (gpointer)edit);
         g_signal_connect_after(G_OBJECT(buffer), "delete-range", G_CALLBACK(i_OnBufferDelete), (gpointer)edit);
-        _oscontrol_widget_font(edit->tview, textv, font, &edit->font);
+        _oscontrol_update_css_padding(edit->tview, cssobj, edit->vpadding, edit->hpadding, &edit->css_padding);
+        _oscontrol_update_css_font(edit->tview, cssobj, font, &edit->font, &edit->css_font);
         gtk_text_view_set_accepts_tab(GTK_TEXT_VIEW(edit->tview), FALSE);
         widget = gtk_scrolled_window_new(NULL, NULL);
         gtk_container_add(GTK_CONTAINER(widget), edit->tview);
@@ -318,29 +349,35 @@ OSEdit *osedit_create(const uint32_t flags)
         g_signal_connect(G_OBJECT(edit->tview), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)edit);
         gtk_widget_show(edit->tview);
         gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(edit->tview), GTK_WRAP_WORD_CHAR);
-        osglobals_register_entry(&padding);
-        css1 = str_printf("%s {background-image:none;background-color:transparent;}", textv);
-        css2 = str_printf("%s text {background-image:none;background-color:transparent;}", textv);
-        _oscontrol_widget_set_css(edit->tview, tc(css1));
-        _oscontrol_widget_set_css(edit->tview, tc(css2));
-        gtk_text_view_set_left_margin(GTK_TEXT_VIEW(edit->tview), padding.left);
-        gtk_text_view_set_right_margin(GTK_TEXT_VIEW(edit->tview), padding.right);
 
+        /*
+        CSS padding works OK. Check in older GTK3 versions
+        gtk_text_view_set_left_margin(GTK_TEXT_VIEW(edit->tview), kENTRY_HPADDING / 2);
+        gtk_text_view_set_right_margin(GTK_TEXT_VIEW(edit->tview), kENTRY_HPADDING / 2);
 #if GTK_CHECK_VERSION(3, 18, 0)
-        gtk_text_view_set_top_margin(GTK_TEXT_VIEW(edit->tview), padding.top);
-        gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(edit->tview), padding.bottom);
+        gtk_text_view_set_top_margin(GTK_TEXT_VIEW(edit->tview), kENTRY_VPADDING / 2);
+        gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(edit->tview), kENTRY_VPADDING / 2);
 #endif
+        */
 
-        str_destroy(&css1);
-        str_destroy(&css2);
+        {
+            String *css = str_printf("%s {background-image:none;background-color:transparent;}", cssobj);
+            _oscontrol_fixed_css_provider(edit->tview, tc(css));
+            str_destroy(&css);
+        }
+
+        {
+            String *css = str_printf("%s text {background-image:none;background-color:transparent;}", cssobj);
+            _oscontrol_fixed_css_provider(edit->tview, tc(css));
+            str_destroy(&css);
+        }
         break;
     }
 
         cassert_default();
     }
 
-    edit->fsize = (uint32_t)font_size(font);
-    edit->fsize_render = edit->fsize;
+    edit->fsize_render = (uint32_t)font_size(edit->font);
     edit->ccolor = kCOLOR_TRANSPARENT;
     edit->launch_event = TRUE;
     edit->in_validate = FALSE;
@@ -368,21 +405,14 @@ void osedit_destroy(OSEdit **edit)
         g_object_unref((*edit)->tview); */
     }
 
-    if ((*edit)->bgcolor != NULL)
-    {
-        if ((*edit)->tview != NULL)
-            g_object_unref((*edit)->bgcolor);
-        (*edit)->bgcolor = NULL;
-    }
-
-    /*
-    (*edit)->color Not g_object_unref
-    (*edit)->font  Not g_object_unref
-    */
-
     listener_destroy(&(*edit)->OnFilter);
     listener_destroy(&(*edit)->OnChange);
     listener_destroy(&(*edit)->OnFocus);
+    font_destroy(&(*edit)->font);
+    _oscontrol_destroy_css_provider(&(*edit)->css_padding);
+    _oscontrol_destroy_css_provider(&(*edit)->css_font);
+    _oscontrol_destroy_css_provider(&(*edit)->css_color);
+    _oscontrol_destroy_css_provider(&(*edit)->css_bgcolor);
     _oscontrol_destroy(*(OSControl **)edit);
     heap_delete(edit, OSEdit);
 }
@@ -421,19 +451,19 @@ void osedit_text(OSEdit *edit, const char_t *text)
     if (edit->tview != NULL)
     {
         GtkTextBuffer *tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(edit->tview));
+        uint32_t fstyle = font_style(edit->font);
         String *markup = NULL;
         cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
 
 #if GTK_CHECK_VERSION(3, 22, 0)
-
-        if (edit->fstyle & ekFSTRIKEOUT)
+        if (fstyle & ekFSTRIKEOUT)
         {
-            if (edit->fstyle & ekFUNDERLINE)
+            if (fstyle & ekFUNDERLINE)
                 markup = str_printf("<u><s>%s</s></u>", text);
             else
                 markup = str_printf("<s>%s</s>", text);
         }
-        else if (edit->fstyle & ekFUNDERLINE)
+        else if (fstyle & ekFUNDERLINE)
         {
             markup = str_printf("<u>%s</u>", text);
         }
@@ -477,26 +507,33 @@ void osedit_tooltip(OSEdit *edit, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_font(OSEdit *edit, const Font *font)
+static void i_cssobjs(OSEdit *edit, const char_t **cssobj, GtkWidget **widget)
 {
     cassert_no_null(edit);
-    edit->fstyle = font_style(font);
-    cassert(!(edit->fstyle & ekFPOINTS));
-    edit->fsize = (uint32_t)font_size(font);
     if (edit->tview != NULL)
     {
-        const char_t *textv = osglobals_css_textview();
         cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
-        _oscontrol_widget_remove_provider(edit->tview, edit->font);
-        _oscontrol_widget_font(edit->tview, textv, font, &edit->font);
+        if (cssobj != NULL)
+            *cssobj = osglobals_css_textview();
+        *widget = edit->tview;
     }
     else
     {
-        const char_t *entry = osglobals_css_entry();
         cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
-        _oscontrol_widget_remove_provider(edit->control.widget, edit->font);
-        _oscontrol_widget_font(edit->control.widget, entry, font, &edit->font);
+        if (cssobj != NULL)
+            *cssobj = osglobals_css_entry();
+        *widget = edit->control.widget;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osedit_font(OSEdit *edit, const Font *font)
+{
+    const char_t *cssobj = NULL;
+    GtkWidget *widget = NULL;
+    i_cssobjs(edit, &cssobj, &widget);
+    _oscontrol_update_css_font(widget, cssobj, font, &edit->font, &edit->css_font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -592,31 +629,10 @@ void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
 
 static void i_set_color(OSEdit *edit, const color_t color)
 {
+    const char_t *cssobj = NULL;
     GtkWidget *widget = NULL;
-    const char_t *type = NULL;
-    cassert_no_null(edit);
-
-    if (edit->tview != NULL)
-    {
-        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
-        widget = edit->tview;
-        type = osglobals_css_textview_text();
-    }
-    else
-    {
-        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
-        widget = edit->control.widget;
-        type = osglobals_css_entry();
-    }
-
-    if (edit->color != NULL)
-    {
-        _oscontrol_widget_remove_provider(widget, edit->color);
-        edit->color = NULL;
-    }
-
-    if (color != kCOLOR_TRANSPARENT)
-        _oscontrol_widget_color(widget, type, color, &edit->color);
+    i_cssobjs(edit, &cssobj, &widget);
+    _oscontrol_update_css_color(widget, cssobj, color, &edit->css_color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -631,62 +647,22 @@ void osedit_color(OSEdit *edit, const color_t color)
 
 void osedit_bgcolor(OSEdit *edit, const color_t color)
 {
-    cassert_no_null(edit);
-    if (edit->tview != NULL)
-    {
-        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
-        if (edit->bgcolor != NULL)
-        {
-            g_object_unref(edit->bgcolor);
-            edit->bgcolor = NULL;
-        }
-
-        if (color != kCOLOR_TRANSPARENT)
-        {
-            char_t rgb[64];
-            String *css = NULL;
-            _oscontrol_to_css_rgb(color, rgb, sizeof(rgb));
-            css = str_printf("%s {background:%s;} %s:selected {background-color:@selected_bg_color;}", osglobals_css_entry(), rgb, osglobals_css_entry());
-            edit->bgcolor = gtk_css_provider_new();
-            gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(edit->bgcolor), (gchar *)tc(css), -1, NULL);
-            str_destroy(&css);
-        }
-    }
-    else
-    {
-        cassert(edit_get_type(edit->flags) == ekEDIT_SINGLE);
-        if (edit->bgcolor != NULL)
-        {
-            _oscontrol_widget_remove_provider(edit->control.widget, edit->bgcolor);
-            edit->bgcolor = NULL;
-        }
-
-        if (color != kCOLOR_TRANSPARENT)
-        {
-            char_t rgb[64];
-            String *css = NULL;
-            _oscontrol_to_css_rgb(color, rgb, sizeof(rgb));
-            css = str_printf("%s {background:%s;} %s:selected {background-color:@selected_bg_color;}", osglobals_css_entry(), rgb, osglobals_css_entry());
-            _oscontrol_widget_set_provider(edit->control.widget, tc(css), &edit->bgcolor);
-            str_destroy(&css);
-        }
-    }
+    const char_t *cssobj = NULL;
+    GtkWidget *widget = NULL;
+    cssobj = osglobals_css_entry();
+    i_cssobjs(edit, NULL, &widget);
+    _oscontrol_update_css_bgcolor(widget, cssobj, color, &edit->css_bgcolor);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_vpadding(OSEdit *edit, const real32_t padding)
 {
-    const char_t *entry = osglobals_css_entry();
-    uint32_t mpad = (uint32_t)((padding / 2) + .5f);
-    char_t css[256];
-    cassert_no_null(edit);
-#if GTK_CHECK_VERSION(3, 22, 0)
-    bstd_sprintf(css, sizeof(css), "%s {padding-top:%dpx;padding-bottom:%dpx;min-height:0px}", entry, mpad, mpad);
-#else
-    bstd_sprintf(css, sizeof(css), "%s {padding-top:%dpx;padding-bottom:%dpx}", entry, mpad, mpad);
-#endif
-    _oscontrol_widget_set_css(edit->control.widget, css);
+    const char_t *cssobj = NULL;
+    GtkWidget *widget = NULL;
+    edit->vpadding = padding >= 0 ? (uint32_t)padding : kENTRY_VPADDING;
+    i_cssobjs(edit, &cssobj, &widget);
+    _oscontrol_update_css_padding(widget, cssobj, edit->vpadding, edit->hpadding, &edit->css_padding);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -710,7 +686,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     }
 
     *width = refwidth;
-    *height = (real32_t)s.height + edit->fsize - edit->fsize_render;
+    *height = (real32_t)s.height + font_size(edit->font) - edit->fsize_render;
 }
 
 /*---------------------------------------------------------------------------*/

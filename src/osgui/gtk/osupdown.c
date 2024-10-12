@@ -39,7 +39,6 @@ struct _osupdown_t
 {
     OSControl control;
     udstate_t state;
-    GtkBorder padding;
     Listener *OnClick;
 };
 
@@ -79,7 +78,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
     gtk_style_context_set_state(ctx, upstate);
     gtk_render_frame(ctx, cr, 0, 0, w, (h / 2) + 1);
     gtk_style_context_set_state(ctx, downstate);
-    gtk_render_frame(ctx, cr, 0, (h / 2), w, (h / 2));
+    gtk_render_frame(ctx, cr, 0, (h / 2) + 1, w, (h / 2));
     gtk_style_context_restore(ctx);
     gtk_render_arrow(ctx, cr, 0, ax, ay, aw);
     gtk_render_arrow(ctx, cr, G_PI, ax, (h / 2) + ay, aw);
@@ -183,7 +182,6 @@ OSUpDown *osupdown_create(const uint32_t flags)
     g_signal_connect(widget, "button-press-event", G_CALLBACK(i_OnPress), (gpointer)updown);
     g_signal_connect(widget, "button-release-event", G_CALLBACK(i_OnPress), (gpointer)updown);
     g_signal_connect(widget, "draw", G_CALLBACK(i_OnDraw), (gpointer)updown);
-    osglobals_register_entry(&updown->padding);
     return updown;
 }
 
@@ -249,6 +247,9 @@ void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
     uint32_t eheight = osglobals_entry_height();
     cassert_no_null(width);
     cassert_no_null(height);
+    if (eheight % 2 == 1)
+        eheight += 1;
+
     *height = (real32_t)eheight;
     if (eheight > 32)
         *width = 32;

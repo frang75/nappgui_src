@@ -12,8 +12,10 @@
 
 #include "osglobals.h"
 #include "osglobals_gtk.inl"
+#include "osgui.inl"
 #include "oscontrol_gtk.inl"
 #include <draw2d/color.h>
+#include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>
@@ -61,12 +63,23 @@ static color_t kHOTTX_COLOR = 0;
 static color_t kTEXTBACKDROP_COLOR = 0;
 static color_t kSELTXBACKDROP_COLOR = 0;
 static color_t kHOTTXBACKDROP_COLOR = 0;
+static String *kCSS_LABEL = NULL;
 static String *kCSS_ENTRY = NULL;
 static String *kCSS_BUTTON = NULL;
+static String *kCSS_RADIO = NULL;
+static String *kCSS_CHECK = NULL;
 static String *kCSS_COMBOBOX = NULL;
 static String *kCSS_FRAME = NULL;
 static String *kCSS_TEXTVIEW = NULL;
 static String *kCSS_TEXTVIEWTEXT = NULL;
+const uint32_t kBUTTON_VPADDING = 8;
+const uint32_t kBUTTON_HPADDING = 16;
+const uint32_t kPOPUP_VPADDING = 8;
+const uint32_t kPOPUP_HPADDING = 16;
+const uint32_t kENTRY_VPADDING = 8;
+const uint32_t kENTRY_HPADDING = 8;
+const uint32_t kBUTTON_IMAGE_SEP = 4;
+const uint32_t kCHECKBOX_IMAGE_SEP = 8;
 
 /*---------------------------------------------------------------------------*/
 
@@ -385,14 +398,15 @@ static gboolean i_OnWindowDamage(GtkWidget *widget, GdkEventExpose *event, gpoin
     i_IMPOSTOR_MAPPED = TRUE;
 
     {
+        Font *font = osgui_create_default_font();
         real32_t width, height;
         cassert(kENTRY_HEIGHT == 0);
         cassert(kPROGRESS_HEIGHT == 0);
-        _oscontrol_widget_size(kENTRY, &width, &height);
-        kENTRY_HEIGHT = (uint32_t)height;
-        _oscontrol_widget_size(kPROGRESSBAR, &width, &height);
+        font_extents(font, "OO", -1, &width, &height);
+        kENTRY_HEIGHT = (uint32_t)height + kENTRY_VPADDING;
         kPROGRESS_HEIGHT = (uint32_t)height;
         unref(width);
+        font_destroy(&font);
     }
 
     i_precompute_colors();
@@ -887,18 +901,34 @@ static void i_parse_gtk_theme(void)
             str_copy_cn(csect, sizeof(csect), section, nsection);
             csect[nsection] = '\0';
 
+            if (kCSS_LABEL == NULL)
+            {
+                if (i_section(csect, "label", &sect_n) == TRUE)
+                    kCSS_LABEL = str_cn(csect, sect_n);
+            }
+
             if (kCSS_ENTRY == NULL)
             {
                 if (i_section(csect, "entry", &sect_n) == TRUE)
-                {
                     kCSS_ENTRY = str_cn(csect, sect_n);
-                }
             }
 
             if (kCSS_BUTTON == NULL)
             {
                 if (i_section(csect, "button", &sect_n) == TRUE)
                     kCSS_BUTTON = str_cn(csect, sect_n);
+            }
+
+            if (kCSS_RADIO == NULL)
+            {
+                if (i_section(csect, "radiobutton", &sect_n) == TRUE)
+                    kCSS_RADIO = str_cn(csect, sect_n);
+            }
+
+            if (kCSS_CHECK == NULL)
+            {
+                if (i_section(csect, "checkbutton", &sect_n) == TRUE)
+                    kCSS_CHECK = str_cn(csect, sect_n);
             }
 
             if (kCSS_COMBOBOX == NULL)
@@ -929,7 +959,7 @@ static void i_parse_gtk_theme(void)
                     kCSS_TEXTVIEWTEXT = str_cn(csect, sect_n);
             }
 
-            if (kCSS_ENTRY == NULL || kCSS_BUTTON == NULL || kCSS_COMBOBOX == NULL || kCSS_FRAME == NULL || kCSS_TEXTVIEW == NULL || kCSS_TEXTVIEWTEXT == NULL)
+            if (kCSS_LABEL == NULL || kCSS_ENTRY == NULL || kCSS_BUTTON == NULL || kCSS_RADIO == NULL || kCSS_CHECK == NULL || kCSS_COMBOBOX == NULL || kCSS_FRAME == NULL || kCSS_TEXTVIEW == NULL || kCSS_TEXTVIEWTEXT == NULL)
                 i_jump_next_section(&pcss);
             else
                 break;
@@ -970,11 +1000,20 @@ static void i_parse_gtk_theme(void)
     if (kCSS_TEXTVIEWTEXT == NULL && kCSS_TEXTVIEW != NULL)
         kCSS_TEXTVIEWTEXT = str_copy(kCSS_TEXTVIEW);
 
+    if (kCSS_LABEL == NULL)
+        log_printf("No kCSS_LABEL found in css theme");
+
     if (kCSS_ENTRY == NULL)
         log_printf("No kCSS_ENTRY found in css theme");
 
     if (kCSS_BUTTON == NULL)
         log_printf("No kCSS_BUTTON found in css theme");
+
+    if (kCSS_RADIO == NULL)
+        log_printf("No kCSS_RADIO found in css theme");
+
+    if (kCSS_CHECK == NULL)
+        log_printf("No kCSS_CHECK found in css theme");
 
     if (kCSS_COMBOBOX == NULL)
         log_printf("No kCSS_COMBOBOX found in css theme");
@@ -988,6 +1027,8 @@ static void i_parse_gtk_theme(void)
 }
 
 /*---------------------------------------------------------------------------*/
+
+#if !defined(__ASSERTS__)
 
 #if GLIB_CHECK_VERSION(2, 50, 0)
 
@@ -1014,17 +1055,21 @@ static void i_null_writter(const gchar *log_domain, GLogLevelFlags log_level, co
 }
 
 #endif
+#endif
 
 /*---------------------------------------------------------------------------*/
 
 void osglobals_init(void)
 {
+#if !defined(__ASSERTS__)
     /* Disable unavoidable GLib/Gtk warnings when processing CSS */
 #if GLIB_CHECK_VERSION(2, 50, 0)
     g_log_set_writer_func(i_null_writter, NULL, NULL);
 #else
     g_log_set_default_handler(i_null_writter, NULL);
 #endif
+#endif
+
     i_parse_gtk_theme();
     i_impostor_window();
 }
@@ -1054,42 +1099,15 @@ void osglobals_finish(void)
     if (kCHECKSBITMAP != NULL)
         g_object_unref(kCHECKSBITMAP);
 
+    str_destopt(&kCSS_LABEL);
     str_destopt(&kCSS_ENTRY);
     str_destopt(&kCSS_BUTTON);
+    str_destopt(&kCSS_RADIO);
+    str_destopt(&kCSS_CHECK);
     str_destopt(&kCSS_COMBOBOX);
     str_destopt(&kCSS_FRAME);
     str_destopt(&kCSS_TEXTVIEW);
     str_destopt(&kCSS_TEXTVIEWTEXT);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static ___INLINE GtkWidget *i_entry(void)
-{
-    cassert(kENTRY != NULL);
-    return kENTRY;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void osglobals_register_entry(GtkBorder *padding)
-{
-    if (padding != NULL)
-    {
-        GtkWidget *entry = i_entry();
-        GtkStyleContext *c = gtk_widget_get_style_context(entry);
-        gtk_style_context_get_padding(c, GTK_STATE_FLAG_NORMAL, padding);
-
-        if (padding->top == 0 || padding->bottom == 0)
-        {
-            GtkRequisition s;
-            uint32_t fsize;
-            gtk_widget_get_preferred_size(entry, &s, NULL);
-            fsize = _oscontrol_widget_font_size(entry);
-            padding->top = (s.height - fsize - 2) / 2;
-            padding->bottom = padding->top;
-        }
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1125,6 +1143,14 @@ GtkStyleContext *osglobals_table_context(void)
 
 /*---------------------------------------------------------------------------*/
 
+const char_t *osglobals_css_label(void)
+{
+    cassert(str_empty(kCSS_LABEL) == FALSE);
+    return tc(kCSS_LABEL);
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *osglobals_css_entry(void)
 {
     cassert(str_empty(kCSS_ENTRY) == FALSE);
@@ -1137,6 +1163,22 @@ const char_t *osglobals_css_button(void)
 {
     cassert(str_empty(kCSS_BUTTON) == FALSE);
     return tc(kCSS_BUTTON);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *osglobals_css_radio(void)
+{
+    cassert(str_empty(kCSS_RADIO) == FALSE);
+    return tc(kCSS_RADIO);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *osglobals_css_check(void)
+{
+    cassert(str_empty(kCSS_CHECK) == FALSE);
+    return tc(kCSS_CHECK);
 }
 
 /*---------------------------------------------------------------------------*/

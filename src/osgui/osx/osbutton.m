@@ -999,11 +999,14 @@ void osbutton_image(OSButton *button, const Image *image)
         ptr_destopt(image_destroy, &cell->image, Image);
         if (image != NULL)
         {
+            cell->image = image_copy(image);
             [cell setImagePosition:NSImageLeft];
+            _oscontrol_cell_set_image(cell, image);
         }
         else
         {
             [cell setImagePosition:NSNoImage];
+            _oscontrol_cell_set_image(cell, NULL);
         }
     }
     else if (button_get_type(cell->flags) == ekBUTTON_FLAT || button_get_type(cell->flags) == ekBUTTON_FLATGLE)
@@ -1066,9 +1069,15 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 void osbutton_vpadding(OSButton *button, const real32_t padding)
 {
-    cassert_no_null(button);
-    cassert(padding >= 0);
-    ((OSXButton *)button)->vpadding = (uint32_t)padding;
+    OSXButton *lbutton = cast(button, OSXButton);
+    cassert_no_null(lbutton);
+    if (button_get_type(lbutton->flags) == ekBUTTON_PUSH)
+    {
+        if (padding >= 0)
+            lbutton->vpadding = (uint32_t)padding;
+        else
+            lbutton->vpadding = UINT32_MAX;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1084,12 +1093,15 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     {
     case ekBUTTON_PUSH:
     {
+        char_t tbuff[256];
         real32_t margin_width, margin_height;
         OSXButtonCell *cell = [lbutton cell];
+        real32_t xscale = font_xscale(lbutton->attrs.font);
         uint32_t imgwidth = 0;
-        _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
-        _oscontrol_text_bounds(lbutton->attrs.font, "OO", -1.f, &margin_width, &margin_height);
-        *width += margin_width;
+        osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
+        font_extents(lbutton->attrs.font, tbuff, -1.f, width, height);
+        font_extents(lbutton->attrs.font, xscale >= 1 ? "OO" : "OOOO", -1.f, &margin_width, &margin_height);
+        *width += margin_width + 2;
         cell->text_width = *width;
 
         if (cell->image != NULL)
@@ -1099,17 +1111,17 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         {
         case ekGUI_SIZE_REGULAR:
             if (imgwidth > 0)
-                *width += (real32_t)imgwidth + 4.f;
+                *width += (real32_t)imgwidth;
             *height = 22.f;
             break;
         case ekGUI_SIZE_SMALL:
             if (imgwidth > 0)
-                *width += (real32_t)imgwidth + 4.f;
+                *width += (real32_t)imgwidth;
             *height = 20.f;
             break;
         case ekGUI_SIZE_MINI:
             if (imgwidth > 0)
-                *width += (real32_t)imgwidth + 2.f;
+                *width += (real32_t)imgwidth;
             else
                 *width += 2.f;
             *height = 16.f;
@@ -1136,7 +1148,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         /* Inexplicable crash in HighSierra and lowers */
         static const real32_t i_CHECK_TEXT_SEP = 8.f;
 #endif
-        _oscontrol_text_bounds(lbutton->attrs.font, text, -1.f, width, height);
+        font_extents(lbutton->attrs.font, text, -1.f, width, height);
         switch (cell->size)
         {
         case ekGUI_SIZE_REGULAR:

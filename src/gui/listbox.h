@@ -31,6 +31,8 @@ _gui_api void listbox_add_elem(ListBox *listbox, const char_t *text, const Image
 
 _gui_api void listbox_set_elem(ListBox *listbox, const uint32_t index, const char_t *text, const Image *image);
 
+_gui_api void listbox_font(ListBox *listbox, const Font *font);
+
 _gui_api void listbox_clear(ListBox *listbox);
 
 _gui_api void listbox_color(ListBox *listbox, const uint32_t index, const color_t color);

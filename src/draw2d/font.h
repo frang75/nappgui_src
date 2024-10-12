@@ -23,6 +23,10 @@ _draw2d_api Font *font_monospace(const real32_t size, const uint32_t style);
 
 _draw2d_api Font *font_with_style(const Font *font, const uint32_t style);
 
+_draw2d_api Font *font_with_width(const Font *font, const real32_t width);
+
+_draw2d_api Font *font_with_xscale(const Font *font, const real32_t scale);
+
 _draw2d_api Font *font_copy(const Font *font);
 
 _draw2d_api void font_destroy(Font **font);
@@ -40,6 +44,10 @@ _draw2d_api const char_t *font_family(const Font *font);
 _draw2d_api real32_t font_size(const Font *font);
 
 _draw2d_api real32_t font_height(const Font *font);
+
+_draw2d_api real32_t font_width(const Font *font);
+
+_draw2d_api real32_t font_xscale(const Font *font);
 
 _draw2d_api real32_t font_ascent(const Font *font);
 

@@ -256,7 +256,7 @@ void oslabel_bgcolor(OSLabel *label, const color_t color)
 void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     cassert_no_null(label);
-    _oscontrol_text_bounds((OSControl *)label, text, label->font, refwidth, width, height);
+    font_extents(label->font, text, refwidth, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

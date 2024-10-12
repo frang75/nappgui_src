@@ -42,6 +42,13 @@ void dctx_destroy(DCtx **ctx)
     cassert_no_null(ctx);
     cassert_no_null(*ctx);
 
+    if ((*ctx)->layout != NULL)
+    {
+        g_object_unref((*ctx)->layout);
+        (*ctx)->layout = NULL;
+    }
+
+    /* Image-based context */
     if ((*ctx)->surface != NULL)
     {
         cairo_surface_destroy((*ctx)->surface);
@@ -57,9 +64,6 @@ void dctx_destroy(DCtx **ctx)
 
     if ((*ctx)->font != NULL)
         font_destroy(&(*ctx)->font);
-
-    if ((*ctx)->layout != NULL)
-        g_object_unref((*ctx)->layout);
 
     heap_delete(ctx, DCtx);
 }

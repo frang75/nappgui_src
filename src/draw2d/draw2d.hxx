@@ -49,7 +49,8 @@ typedef enum _fstyle_t
     ekFSUPSCRIPT = 32,
 
     ekFPIXELS = 0,
-    ekFPOINTS = 64
+    ekFPOINTS = 64,
+    ekFCELL = 128
 } fstyle_t;
 
 typedef enum _linecap_t

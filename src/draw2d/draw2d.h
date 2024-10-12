@@ -19,4 +19,6 @@ _draw2d_api void draw2d_start(void);
 
 _draw2d_api void draw2d_finish(void);
 
+_draw2d_api void draw2d_preferred_monospace(const char_t *family);
+
 __END_C

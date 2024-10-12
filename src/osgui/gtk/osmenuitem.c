@@ -195,7 +195,7 @@ OSMenuItem *osmenuitem_create(const uint32_t flags)
         item->label = gtk_accel_label_new("");
         item->key = ENUM_MAX(vkey_t);
         item->launch_event = TRUE;
-        _oscontrol_widget_set_css(item->box, "box {padding-top:1px;padding-bottom:1px;}");
+        /*_oscontrol_widget_set_css(item->box, "box {padding-top:1px;padding-bottom:1px;}");*/
         gtk_label_set_use_underline(GTK_LABEL(item->label), TRUE);
         gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), item->widget);
 #if GTK_CHECK_VERSION(3, 16, 0)

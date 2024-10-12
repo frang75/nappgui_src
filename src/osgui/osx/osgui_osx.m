@@ -188,21 +188,6 @@ void osgui_finish_imp(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height)
-{
-    NSString *str = nil;
-    NSSize word_size;
-    cassert_no_null(data);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    str = [NSString stringWithUTF8String:word];
-    word_size = [str sizeWithAttributes:data->dict];
-    *width = (real32_t)word_size.width;
-    *height = (real32_t)word_size.height;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
     cassert_no_null(menu);

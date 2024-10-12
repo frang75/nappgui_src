@@ -40,7 +40,9 @@ struct _ospopup_t
     GtkWidget *button;
     GtkCellRenderer *imgcell;
     GtkCellRenderer *txtcell;
-    GtkCssProvider *font;
+    Font *font;
+    GtkCssProvider *css_padding;
+    GtkCssProvider *css_font;
     bool_t launch_event;
     Listener *OnSelect;
     ArrPt(String) *texts;
@@ -108,7 +110,7 @@ OSPopUp *ospopup_create(const uint32_t flags)
     OSPopUp *popup = heap_new0(OSPopUp);
     GtkWidget *widget = gtk_combo_box_new();
     Font *font = osgui_create_default_font();
-    const char_t *csscombo = osglobals_css_combobox();
+    const char_t *cssobj = osglobals_css_combobox();
     cassert_unref(flags == ekPOPUP_FLAG, flags);
 
 #if GTK_CHECK_VERSION(3, 16, 0)
@@ -148,7 +150,8 @@ OSPopUp *ospopup_create(const uint32_t flags)
     gtk_widget_show(popup->popup);
 
     _oscontrol_init(&popup->control, ekGUI_TYPE_POPUP, widget, popup->button, TRUE);
-    _oscontrol_widget_font(popup->popup, csscombo, font, &popup->font);
+    _oscontrol_update_css_font(popup->popup, cssobj, font, &popup->font, &popup->css_font);
+    _oscontrol_update_css_padding(popup->button, osglobals_css_button(), kPOPUP_VPADDING, kPOPUP_HPADDING, &popup->css_padding);
     popup->fsize = (uint32_t)(font_size(font) + 2.5f);
     font_destroy(&font);
     popup->launch_event = TRUE;
@@ -175,6 +178,9 @@ void ospopup_destroy(OSPopUp **popup)
     listener_destroy(&(*popup)->OnSelect);
     arrpt_destroy(&(*popup)->texts, str_destroy, String);
     arrpt_destroy(&(*popup)->images, i_img_dest, Image);
+    font_destroy(&(*popup)->font);
+    _oscontrol_destroy_css_provider(&(*popup)->css_padding);
+    _oscontrol_destroy_css_provider(&(*popup)->css_font);
     _oscontrol_destroy(*(OSControl **)popup);
     heap_delete(popup, OSPopUp);
 }
@@ -225,11 +231,10 @@ void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 
 void ospopup_font(OSPopUp *popup, const Font *font)
 {
-    const char_t *csscombo = osglobals_css_combobox();
+    const char_t *cssobj = osglobals_css_combobox();
     cassert_no_null(popup);
     cassert(GTK_IS_EVENT_BOX(popup->control.widget));
-    _oscontrol_widget_remove_provider(popup->popup, popup->font);
-    _oscontrol_widget_font(popup->popup, csscombo, font, &popup->font);
+    _oscontrol_update_css_font(popup->popup, cssobj, font, &popup->font, &popup->css_font);
     popup->fsize = (uint32_t)(font_size(font) + 2.5f);
 }
 

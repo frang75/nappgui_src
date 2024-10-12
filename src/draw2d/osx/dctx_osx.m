@@ -34,23 +34,22 @@ static void i_init_text_attr(DCtx *ctx)
 {
     id objects[5];
     id keys[5];
-
     cassert(ctx->text_parag == NULL);
     cassert(ctx->text_dict == NULL);
+    cassert(ctx->font == NULL);
+    ctx->font = font_system(font_regular_size(), 0);
     ctx->text_parag = [[[NSParagraphStyle defaultParagraphStyle] mutableCopy] retain];
     [ctx->text_parag setLineBreakMode:NSLineBreakByWordWrapping];
-
     objects[0] = kUNDERLINE_NONE;
     objects[1] = kUNDERLINE_NONE;
     objects[2] = ctx->text_parag;
     objects[3] = [NSColor blackColor];
-    objects[4] = [NSFont systemFontOfSize:[NSFont systemFontSize]];
+    objects[4] = (NSFont *)font_native(ctx->font);
     keys[0] = NSUnderlineStyleAttributeName;
     keys[1] = NSStrikethroughStyleAttributeName;
     keys[2] = NSParagraphStyleAttributeName;
     keys[3] = NSForegroundColorAttributeName;
     keys[4] = NSFontAttributeName;
-
     ctx->text_dict = [[NSMutableDictionary alloc] initWithObjects:objects forKeys:keys count:5];
 }
 
@@ -83,6 +82,7 @@ void dctx_destroy(DCtx **ctx)
 
     [(*ctx)->text_dict release];
     [(*ctx)->text_parag release];
+    font_destroy(&(*ctx)->font);
 
     if ((*ctx)->data != NULL)
     {

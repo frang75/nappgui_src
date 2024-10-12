@@ -155,7 +155,6 @@ OSLabel *oslabel_create(const uint32_t flags)
     label->text = str_c("");
     label->color = kCOLOR_DEFAULT;
     label->bgcolor = kCOLOR_DEFAULT;
-    /*draw_font(label->ctx, kFONT_DEFAULT);*/
     draw_text_align(label->ctx, ekLEFT, ekTOP);
     draw_text_width(label->ctx, -1);
     draw_text_halign(label->ctx, ekLEFT);

@@ -552,8 +552,13 @@ gui_state_t osbutton_get_state(const OSButton *button)
 void osbutton_vpadding(OSButton *button, const real32_t padding)
 {
     cassert_no_null(button);
-    cassert(padding >= 0);
-    button->vpadding = (uint32_t)padding;
+    if (button_get_type(button->flags) == ekBUTTON_PUSH)
+    {
+        if (padding >= 0)
+            button->vpadding = (uint32_t)padding;
+        else
+            button->vpadding = UINT32_MAX;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -571,15 +576,17 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     {
         real32_t woff, hoff;
         real32_t fheight;
-        _oscontrol_text_bounds((const OSControl *)button, text, button->font, -1.f, width, &fheight);
+        font_extents(button->font, text, -1.f, width, &fheight);
 
+        /* Image is higher than text */
         if (refheight > fheight)
             *height = refheight;
         else
             *height = fheight;
 
-        _oscontrol_text_bounds((const OSControl *)button, "O", button->font, -1.f, &woff, &hoff);
+        font_extents(button->font, "O", -1.f, &woff, &hoff);
 
+        /* Image width */
         if (refwidth > 0.f)
         {
             *width += refwidth;
@@ -611,7 +618,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
-        _oscontrol_text_bounds((const OSControl *)button, text, button->font, -1.f, width, height);
+        font_extents(button->font, text, -1.f, width, height);
         *width += (real32_t)GetSystemMetrics(SM_CXMENUCHECK);
         *width += (real32_t)GetSystemMetrics(SM_CXEDGE);
         *height = (real32_t)GetSystemMetrics(SM_CYMENUCHECK);

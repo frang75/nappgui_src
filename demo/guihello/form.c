@@ -229,7 +229,7 @@ static Layout *i_numbers(FormData *data, color_t colorbg)
 
 static Layout *i_edits(FormData *data)
 {
-    color_t colorbg = gui_alt_color(color_bgr(0xFFFFe4), color_bgr(0x101010));
+    color_t colorbg = gui_alt_color(color_rgb(255, 255, 192), color_rgb(112, 112, 48));
     Layout *layout1 = layout_create(2, 6);
     Layout *layout2 = i_numbers(data, colorbg);
     Label *label1 = label_create();

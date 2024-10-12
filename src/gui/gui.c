@@ -275,13 +275,21 @@ bool_t gui_dark_mode(void)
 
 color_t gui_alt_color(const color_t light_color, const color_t dark_color)
 {
-    uint32_t n = arrst_size(i_ALTCOLORS, ColorAlt);
-    ColorAlt *alt = arrst_new(i_ALTCOLORS, ColorAlt);
-    alt->light = light_color;
-    alt->dark = dark_color;
-    cassert(kFIRST_COLOR_ALT + n <= 0xFFFF);
-    color_indexed((uint16_t)(kFIRST_COLOR_ALT + n), i_DARK_MODE ? alt->dark : alt->light);
-    return (color_t)(kFIRST_COLOR_ALT + n);
+    /* Avoid to register twice the same color */
+    arrst_foreach_const(alt, i_ALTCOLORS, ColorAlt)
+        if (alt->light == light_color && alt->dark == dark_color)
+            return (color_t)(kFIRST_COLOR_ALT + alt_i);
+    arrst_end()
+
+    {
+        uint32_t n = arrst_size(i_ALTCOLORS, ColorAlt);
+        ColorAlt *alt = arrst_new(i_ALTCOLORS, ColorAlt);
+        alt->light = light_color;
+        alt->dark = dark_color;
+        cassert(kFIRST_COLOR_ALT + n <= 0xFFFF);
+        color_indexed((uint16_t)(kFIRST_COLOR_ALT + n), i_DARK_MODE ? alt->dark : alt->light);
+        return (color_t)(kFIRST_COLOR_ALT + n);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

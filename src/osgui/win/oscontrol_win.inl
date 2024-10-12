@@ -30,8 +30,6 @@ void _oscontrol_set_font(OSControl *control, const Font *font);
 
 void _oscontrol_update_font(OSControl *control, Font **current_font, const Font *font);
 
-void _oscontrol_text_bounds(const OSControl *control, const char_t *text, const Font *font, const real32_t refwidth, real32_t *width, real32_t *height);
-
 void _oscontrol_set_visible(OSControl *control, const bool_t visible);
 
 void _oscontrol_set_enabled(OSControl *control, const bool_t enabled);

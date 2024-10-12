@@ -163,23 +163,10 @@ NSControlSize _oscontrol_control_size(const gui_size_t size)
 void _oscontrol_cell_set_image(NSCell *cell, const Image *image)
 {
     cassert_no_null(cell);
-    [cell setImage:(NSImage *)image_native(image)];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_text_bounds(const Font *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
-{
-    uint32_t style;
-    StringSizeData data;
-    NSNumber *undertype = nil;
-    NSNumber *strikeout = nil;
-    style = font_style(font);
-    undertype = (style & ekFUNDERLINE) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
-    strikeout = (style & ekFSTRIKEOUT) ? kUNDERLINE_STYLE_SINGLE : kUNDERLINE_STYLE_NONE;
-    data.dict = [[NSDictionary alloc] initWithObjectsAndKeys:(NSFont *)font_native(font), NSFontAttributeName, undertype, NSUnderlineStyleAttributeName, strikeout, NSStrikethroughStyleAttributeName, nil];
-    osgui_text_bounds(&data, text, refwidth, width, height);
-    [data.dict release];
+    if (image != NULL)
+        [cell setImage:(NSImage *)image_native(image)];
+    else
+        [cell setImage:nil];
 }
 
 /*---------------------------------------------------------------------------*/

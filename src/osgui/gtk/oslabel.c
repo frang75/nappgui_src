@@ -15,6 +15,7 @@
 #include "osgui.inl"
 #include "oslistener.inl"
 #include "osgui_gtk.inl"
+#include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include <draw2d/color.h>
@@ -22,6 +23,7 @@
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 
 #if !defined(__GTK3__)
@@ -34,11 +36,20 @@ struct _oslabel_t
     GtkWidget *label;
     String *text;
     Font *font;
-    color_t _color;
-    GtkCssProvider *bgcolor;
+    uint32_t flags;
+    color_t tcolor;
+    color_t bgcolor;
+    align_t align;
+    PangoEllipsizeMode ellipsis;
+    bool_t layout_updated;
+    PangoLayout *layout;
     gint enter_signal;
     gint exit_signal;
     gint click_signal;
+    real32_t control_width;
+    real32_t control_height;
+    real32_t text_width;
+    real32_t text_height;
     Listener *OnClick;
     Listener *OnMouseEnter;
     Listener *OnMouseExit;
@@ -100,36 +111,14 @@ static gboolean i_OnClick(GtkWidget *widget, GdkEventButton *event, OSLabel *lab
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_font_px(const real32_t fsize, const uint32_t fstyle)
-{
-    if ((fstyle & ekFPOINTS) == ekFPOINTS)
-    {
-        PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap *)fontmap);
-        return (uint32_t)(fsize / (dpi / 72.f));
-    }
-    else
-    {
-        return (uint32_t)fsize;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_set_text(OSLabel *label)
 {
-    PangoFontDescription *fdesc = (PangoFontDescription *)font_native(label->font);
-    const char *family = pango_font_description_get_family(fdesc);
-    real32_t fsize = font_size(label->font);
-    uint32_t fstyle = font_style(label->font);
-    real32_t fpoints = i_font_px(fsize, fstyle);
-    String *format = str_printf("<span font_desc=\"%s %.2fpx\"", family, fpoints);
+    uint32_t fstyle = 0;
+    String *format = NULL;
+    cassert_no_null(label);
+    fstyle = font_style(label->font);
 
-    if (fstyle & ekFITALIC)
-        str_cat(&format, " style=\"italic\"");
-
-    if (fstyle & ekFBOLD)
-        str_cat(&format, " weight=\"bold\"");
+    format = str_printf("<span ");
 
     if (fstyle & ekFUNDERLINE)
         str_cat(&format, " underline=\"single\"");
@@ -137,10 +126,9 @@ static void i_set_text(OSLabel *label)
     if (fstyle & ekFSTRIKEOUT)
         str_cat(&format, " strikethrough=\"true\"");
 
-    if (label->_color != 0)
     {
         char_t html[16];
-        color_to_html(label->_color, html, sizeof(html));
+        color_to_html(label->tcolor != kCOLOR_DEFAULT ? label->tcolor : ekSYSCOLOR_LABEL, html, sizeof(html));
         str_cat(&format, " foreground=\"");
         str_cat(&format, html);
         str_cat(&format, "\"");
@@ -150,38 +138,67 @@ static void i_set_text(OSLabel *label)
     str_cat(&format, tc(label->text));
     str_cat(&format, "</span>");
 
-    gtk_label_set_markup(GTK_LABEL(label->label), tc(format));
+    pango_layout_set_markup(label->layout, tc(format), -1);
     str_destroy(&format);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_bg_color(OSLabel *label, const color_t color)
+static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSLabel *label)
 {
+    real32_t xscale = 1;
     cassert_no_null(label);
+    cassert_unref(widget == label->label, widget);
 
-#if GTK_CHECK_VERSION(3, 22, 0)
-    if (label->bgcolor != NULL)
+    xscale = font_xscale(label->font);
+
+    if (label->layout == NULL)
+        label->layout = pango_cairo_create_layout(cr);
+
+    if (label->layout_updated == FALSE)
     {
-        _oscontrol_widget_remove_provider(label->label, label->bgcolor);
-        label->bgcolor = NULL;
+        const PangoFontDescription *fdesc = cast(font_native(label->font), PangoFontDescription);
+        pango_layout_set_font_description(label->layout, fdesc);
+        pango_layout_set_width(label->layout, (int)((label->control_width / xscale) * PANGO_SCALE));
+        pango_layout_set_height(label->layout, -1);
+        pango_layout_set_ellipsize(label->layout, label->ellipsis);
+        i_set_text(label);
+        label->layout_updated = TRUE;
     }
 
-    if (color != kCOLOR_TRANSPARENT)
-        _oscontrol_widget_bg_color(label->label, "label", color, &label->bgcolor);
-
-#else
+    if (label->bgcolor != kCOLOR_DEFAULT)
     {
-        GdkRGBA gdkcolor;
-        _oscontrol_to_gdkrgba(color, &gdkcolor);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        gtk_widget_override_background_color(label->control.widget, GTK_STATE_FLAG_NORMAL, &gdkcolor);
-        gtk_widget_override_background_color(label->label, GTK_STATE_FLAG_NORMAL, &gdkcolor);
-#pragma GCC diagnostic pop
+        real32_t r, g, b, a;
+        color_get_rgbaf(label->bgcolor, &r, &g, &b, &a);
+        cairo_set_source_rgba(cr, (double)r, (double)g, (double)b, (double)a);
+        cairo_rectangle(cr, 0, 0, (double)label->control_width, (double)label->control_height);
+        cairo_fill(cr);
     }
 
-#endif
+    cairo_save(cr);
+
+    if (label->control_width > label->text_width)
+    {
+        switch (label->align)
+        {
+        case ekLEFT:
+        case ekJUSTIFY:
+            break;
+        case ekCENTER:
+            cairo_translate(cr, (double)((label->control_width - label->text_width) / 2), 0);
+            break;
+        case ekRIGHT:
+            cairo_translate(cr, (double)(label->control_width - label->text_width), 0);
+            break;
+        }
+    }
+
+    cairo_scale(cr, xscale, 1);
+    pango_cairo_show_layout(cr, label->layout);
+    cairo_restore(cr);
+
+    /* Stop other handlers from being invoked for the event */
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -191,16 +208,18 @@ OSLabel *oslabel_create(const uint32_t flags)
     OSLabel *label = heap_new0(OSLabel);
     GtkWidget *widget = gtk_event_box_new();
     _oscontrol_init(&label->control, ekGUI_TYPE_LABEL, widget, widget, TRUE);
-    label->label = gtk_label_new(NULL);
+    label->label = gtk_drawing_area_new();
     label->text = str_c("");
     label->font = osgui_create_default_font();
-    label->_color = kCOLOR_DEFAULT;
-    gtk_label_set_use_markup(GTK_LABEL(label->label), TRUE);
+    label->flags = flags;
+    label->tcolor = kCOLOR_DEFAULT;
+    label->bgcolor = kCOLOR_DEFAULT;
+    label->align = ekLEFT;
+    label->ellipsis = PANGO_ELLIPSIZE_NONE;
+    label->layout_updated = FALSE;
+    g_signal_connect(G_OBJECT(label->label), "draw", G_CALLBACK(i_OnDraw), label);
     gtk_widget_show(label->label);
     gtk_container_add(GTK_CONTAINER(widget), label->label);
-    gtk_label_set_line_wrap(GTK_LABEL(label->label), label_get_type(flags) == ekLABEL_MULTI ? TRUE : FALSE);
-    i_set_text(label);
-    i_set_bg_color(label, kCOLOR_TRANSPARENT);
     return label;
 }
 
@@ -210,19 +229,18 @@ void oslabel_destroy(OSLabel **label)
 {
     cassert_no_null(label);
     cassert_no_null(*label);
-
-    if ((*label)->bgcolor != NULL)
-    {
-        /* Not g_object_unref
-        g_object_unref((*label)->bgcolor); */
-        (*label)->bgcolor = NULL;
-    }
-
     listener_destroy(&(*label)->OnClick);
     listener_destroy(&(*label)->OnMouseEnter);
     listener_destroy(&(*label)->OnMouseExit);
     font_destroy(&(*label)->font);
     str_destroy(&(*label)->text);
+
+    if ((*label)->layout != NULL)
+    {
+        g_object_unref((*label)->layout);
+        (*label)->layout = NULL;
+    }
+
     _oscontrol_destroy(*(OSControl **)label);
     heap_delete(label, OSLabel);
 }
@@ -260,7 +278,8 @@ void oslabel_text(OSLabel *label, const char_t *text)
 {
     cassert_no_null(label);
     str_upd(&label->text, text);
-    i_set_text(label);
+    label->layout_updated = FALSE;
+    gtk_widget_queue_draw(label->label);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -268,53 +287,23 @@ void oslabel_text(OSLabel *label, const char_t *text)
 void oslabel_font(OSLabel *label, const Font *font)
 {
     cassert_no_null(label);
-    if (font != label->font)
+    if (font_equals(font, label->font) == FALSE)
     {
         font_destroy(&label->font);
         label->font = font_copy(font);
-        i_set_text(label);
+        label->layout_updated = FALSE;
+        gtk_widget_queue_draw(label->label);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static ___INLINE GtkJustification i_align(const align_t align, gfloat *xalign)
-{
-    switch (align)
-    {
-    case ekLEFT:
-        *xalign = 0;
-        return GTK_JUSTIFY_LEFT;
-    case ekJUSTIFY:
-        *xalign = 0;
-        return GTK_JUSTIFY_FILL;
-    case ekCENTER:
-        *xalign = .5f;
-        return GTK_JUSTIFY_CENTER;
-    case ekRIGHT:
-        *xalign = .99f;
-        return GTK_JUSTIFY_RIGHT;
-        cassert_default();
-    }
-
-    return GTK_JUSTIFY_LEFT;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_align(OSLabel *label, const align_t align)
 {
-    gfloat xalign = 0;
     cassert_no_null(label);
-    gtk_label_set_justify(GTK_LABEL(label->label), i_align(align, &xalign));
-
-#if GTK_CHECK_VERSION(3, 16, 0)
-    gtk_label_set_xalign(GTK_LABEL(label->label), xalign);
-
-#else
-    gtk_misc_set_alignment(GTK_MISC(label->label), xalign, 0);
-
-#endif
+    label->align = align;
+    label->layout_updated = TRUE;
+    gtk_widget_queue_draw(label->label);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -342,9 +331,10 @@ static PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
 
 void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis)
 {
-    PangoEllipsizeMode e = i_ellipsis(ellipsis);
     cassert_no_null(label);
-    gtk_label_set_ellipsize(GTK_LABEL(label->label), e);
+    label->ellipsis = i_ellipsis(ellipsis);
+    label->layout_updated = FALSE;
+    gtk_widget_queue_draw(label->label);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -352,10 +342,10 @@ void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis)
 void oslabel_color(OSLabel *label, const color_t color)
 {
     cassert_no_null(label);
-    if (label->_color != color)
+    if (label->tcolor != color)
     {
-        label->_color = color;
-        i_set_text(label);
+        label->tcolor = color;
+        gtk_widget_queue_draw(label->label);
     }
 }
 
@@ -363,40 +353,25 @@ void oslabel_color(OSLabel *label, const color_t color)
 
 void oslabel_bgcolor(OSLabel *label, const color_t color)
 {
-    i_set_bg_color(label, color);
+    cassert_no_null(label);
+    if (label->bgcolor != color)
+    {
+        label->bgcolor = color;
+        gtk_widget_queue_draw(label->label);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    PangoLayout *layout;
-    int w, h;
-    String *curstr = NULL;
     cassert_no_null(label);
     cassert_no_null(width);
     cassert_no_null(height);
-
-    if (str_equ(label->text, text) == FALSE)
-    {
-        curstr = str_copy(label->text);
-        str_upd(&((OSLabel *)label)->text, text);
-        i_set_text((OSLabel *)label);
-    }
-
-    layout = gtk_label_get_layout(GTK_LABEL(label->label));
-    pango_layout_set_width(layout, refwidth > 0.f ? (int)(refwidth * (real32_t)PANGO_SCALE) : -1);
-    pango_layout_get_pixel_size(layout, &w, &h);
-
-    if (curstr != NULL)
-    {
-        str_upd(&((OSLabel *)label)->text, tc(curstr));
-        i_set_text((OSLabel *)label);
-        str_destroy(&curstr);
-    }
-
-    *width = (real32_t)w;
-    *height = (real32_t)h;
+    font_extents(label->font, text, refwidth, width, height);
+    cast(label, OSLabel)->text_width = *width;
+    cast(label, OSLabel)->text_height = *height;
+    cast(label, OSLabel)->layout_updated = FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -431,7 +406,11 @@ void oslabel_enabled(OSLabel *label, const bool_t enabled)
 
 void oslabel_size(const OSLabel *label, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)label, width, height);
+    cassert_no_null(label);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    *width = label->control_width;
+    *height = label->control_height;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -445,12 +424,11 @@ void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)label, x, y, width, height);
-
-#if GTK_CHECK_VERSION(3, 10, 0)
-    /* Internal label doesn't need resize */
-#else
     cassert_no_null(label);
+    _oscontrol_set_frame((OSControl *)label, x, y, width, height);
     gtk_widget_set_size_request(label->label, (gint)width, (gint)height);
-#endif
+    label->control_width = width;
+    label->control_height = height;
+    label->layout_updated = FALSE;
+    gtk_widget_queue_draw(label->label);
 }

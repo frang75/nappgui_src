@@ -45,7 +45,8 @@ struct _oswindow_t
     OSPanel *main_panel;
     gint signal_delete;
     gint signal_config;
-    gint signal_key;
+    gint signal_keypre;
+    gint signal_keyrel;
     gint signal_state;
     Listener *OnMoved;
     Listener *OnResize;
@@ -263,6 +264,21 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSWindow *wi
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnKeyRelease(GtkWidget *widget, GdkEventKey *event, OSWindow *window)
+{
+    guint key = 0;
+    cassert_no_null(event);
+    unref(widget);
+    unref(window);
+    key = event->keyval;
+    if (key == GDK_KEY_Alt_L || key == GDK_KEY_Alt_R)
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static ___INLINE GtkWidget *i_gtk_window(const uint32_t flags)
 {
     GtkWidget *window = NULL;
@@ -283,9 +299,8 @@ static ___INLINE GtkWidget *i_gtk_window(const uint32_t flags)
 
 static gboolean i_OnWindowState(GtkWindow *widget, GdkEventWindowState *event, OSWindow *window)
 {
-    unref(widget);
     cassert_no_null(event);
-    cassert_no_null(window);
+    cassert_no_null(widget);
     if (event->new_window_state & GDK_WINDOW_STATE_FOCUSED)
         ostabstop_restore(&window->tabstop);
     return FALSE;
@@ -331,7 +346,8 @@ OSWindow *oswindow_create(const uint32_t flags)
 
     window->signal_delete = g_signal_connect(G_OBJECT(widget), "delete-event", G_CALLBACK(i_OnClose), (gpointer)window);
     window->signal_config = g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(i_OnConfigure), (gpointer)window);
-    window->signal_key = g_signal_connect(G_OBJECT(widget), "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)window);
+    window->signal_keypre = g_signal_connect(G_OBJECT(widget), "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)window);
+    window->signal_keyrel = g_signal_connect(G_OBJECT(widget), "key-release-event", G_CALLBACK(i_OnKeyRelease), (gpointer)window);
     window->signal_state = g_signal_connect(G_OBJECT(widget), "window-state-event", G_CALLBACK(i_OnWindowState), (gpointer)window);
 
     if (i_APP_ICON != NULL)
@@ -383,7 +399,8 @@ void oswindow_destroy(OSWindow **window)
     gtk_widget_hide((*window)->control.widget);
     g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_delete);
     g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_config);
-    g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_key);
+    g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_keypre);
+    g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_keyrel);
     g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_state);
 
     if ((*window)->destroy_main_view == TRUE && (*window)->main_panel != NULL)

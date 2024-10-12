@@ -18,8 +18,6 @@ void osglobals_init(void);
 
 void osglobals_finish(void);
 
-void osglobals_register_entry(GtkBorder *padding);
-
 bool_t osglobals_impostor_mapped(void);
 
 GtkStyleContext *osglobals_entry_context(void);
@@ -28,9 +26,15 @@ GtkStyleContext *osglobals_button_context(void);
 
 GtkStyleContext *osglobals_table_context(void);
 
+const char_t *osglobals_css_label(void);
+
 const char_t *osglobals_css_entry(void);
 
 const char_t *osglobals_css_button(void);
+
+const char_t *osglobals_css_radio(void);
+
+const char_t *osglobals_css_check(void);
 
 const char_t *osglobals_css_combobox(void);
 
@@ -67,5 +71,21 @@ GdkPixbuf *osglobals_checks_bitmap(void);
 String *osglobals_frame_focus_css(void);
 
 void osglobals_restore_focus(GtkWidget *window, GtkWidget *widget);
+
+extern const uint32_t kBUTTON_VPADDING;
+
+extern const uint32_t kBUTTON_HPADDING;
+
+extern const uint32_t kPOPUP_VPADDING;
+
+extern const uint32_t kPOPUP_HPADDING;
+
+extern const uint32_t kENTRY_VPADDING;
+
+extern const uint32_t kENTRY_HPADDING;
+
+extern const uint32_t kBUTTON_IMAGE_SEP;
+
+extern const uint32_t kCHECKBOX_IMAGE_SEP;
 
 __END_C

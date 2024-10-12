@@ -33,9 +33,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static PangoContext *kPANGO_CONTEXT = NULL;
-PangoLayout *kPANGO_LAYOUT = NULL;
-real32_t kPANGO_FROM_PIXELS = 0.f;
 static GdkCursor *kNS_RESIZE_CURSOR = NULL;
 static GdkCursor *kEW_RESIZE_CURSOR = NULL;
 static GdkCursor *kDEFAULT_CURSOR = NULL;
@@ -185,9 +182,6 @@ void osgui_finish_imp(void)
 {
     osglobals_finish();
 
-    g_object_unref((gpointer)kPANGO_LAYOUT);
-    g_object_unref((gpointer)kPANGO_CONTEXT);
-
     if (kNS_RESIZE_CURSOR != NULL)
     {
         g_object_unref(kNS_RESIZE_CURSOR);
@@ -200,20 +194,6 @@ void osgui_finish_imp(void)
 
     if (kREGISTER_ICONS != NULL)
         arrpt_destroy(&kREGISTER_ICONS, NULL, Image);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height)
-{
-    int w, h;
-    cassert_no_null(data);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    pango_layout_set_text(data->layout, (const char *)word, -1);
-    pango_layout_get_pixel_size(data->layout, &w, &h);
-    *width = (real32_t)w;
-    *height = (real32_t)h;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -258,6 +238,11 @@ const char_t *_osgui_register_icon(const Image *image)
         kREGISTER_ICONS = arrpt_create(Image);
 
     bstd_sprintf(ICON_NAME, 32, "%p", (void *)image);
+    /*
+     * Avoid to register the same image twice
+     * gtk_icon_theme does not provide functions to 'remove' icon once added.
+     * All registered icons are persisten for all application life-cycle.
+     */
     if (arrpt_find(kREGISTER_ICONS, image, Image) == UINT32_MAX)
     {
         uint32_t width = image_width(image);
@@ -265,6 +250,7 @@ const char_t *_osgui_register_icon(const Image *image)
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         gtk_icon_theme_add_builtin_icon(ICON_NAME, (gint)width, (GdkPixbuf *)image_native(image));
 #pragma GCC diagnostic pop
+        arrpt_append(kREGISTER_ICONS, image, Image);
     }
 
     return ICON_NAME;
@@ -390,6 +376,92 @@ uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint3
 
 /*---------------------------------------------------------------------------*/
 
+void _osgui_underline_markup(const char_t *text, const uint32_t pos, char_t *buff, const uint32_t size)
+{
+    uint32_t i = 0, offset = 0;
+    while (*text != 0 && offset < size)
+    {
+        uint32_t nbytes = 0;
+        uint32_t cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+
+        /* This is the character to be underlined */
+        if (i == pos)
+        {
+            const char_t *span = "<span underline=\"single\">";
+            uint32_t len = str_len_c(span);
+            if (size - offset > len)
+            {
+                str_copy_c(buff + offset, size - offset, span);
+                offset += len;
+            }
+
+            /* Jump the underscore */
+            text += nbytes;
+            cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+        }
+
+        /* Copy the character to buffer */
+        if (size - offset > nbytes)
+        {
+            unicode_to_char(cp, buff + offset, ekUTF8);
+            offset += nbytes;
+        }
+
+        /* Close the underlined markup */
+        if (i == pos)
+        {
+            const char_t *span = "</span>";
+            uint32_t len = str_len_c(span);
+            if (size - offset > len)
+            {
+                str_copy_c(buff + offset, size - offset, span);
+                offset += len;
+            }
+        }
+
+        /* Next char */
+        i += 1;
+        text += nbytes;
+    }
+
+    buff[offset] = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osgui_underline_plain(const char_t *text, const uint32_t pos, char_t *buff, const uint32_t size)
+{
+    uint32_t i = 0, offset = 0;
+    while (*text != 0 && offset < size)
+    {
+        uint32_t nbytes = 0;
+        uint32_t cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+
+        /* This is the character to be underlined */
+        if (i == pos)
+        {
+            /* Jump the underscore */
+            text += nbytes;
+            cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+        }
+
+        /* Copy the character to buffer */
+        if (size - offset > nbytes)
+        {
+            unicode_to_char(cp, buff + offset, ekUTF8);
+            offset += nbytes;
+        }
+
+        /* Next char */
+        i += 1;
+        text += nbytes;
+    }
+
+    buff[offset] = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 vkey_t _osgui_vkey(guint kval)
 {
     vkey_t key = ENUM_MAX(vkey_t);
@@ -483,11 +555,6 @@ bool_t osgui_is_pre_initialized_imp(void)
 
 void osgui_pre_initialize_imp(void)
 {
-    PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-    real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap *)fontmap);
-    kPANGO_CONTEXT = pango_font_map_create_context(fontmap);
-    kPANGO_LAYOUT = pango_layout_new(kPANGO_CONTEXT);
-    kPANGO_FROM_PIXELS = 1.f / (dpi / 72.f) * (real32_t)PANGO_SCALE;
     kREGISTER_ICONS = NULL;
 
     /* Set the default font */

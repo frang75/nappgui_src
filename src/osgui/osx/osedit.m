@@ -75,6 +75,7 @@
     uint32_t flags;
     uint32_t vpadding;
     real32_t rpadding;
+    color_t bgcolor;
     NSRange select;
     CGFloat wpadding;
     OSTextAttr attrs;
@@ -362,7 +363,7 @@ static void i_update_vpadding(OSXEdit *edit)
     uint32_t defpadding = 0;
 
     cassert_no_null(edit);
-    _oscontrol_text_bounds(edit->attrs.font, "OO", -1.f, &width, &height);
+    font_extents(edit->attrs.font, "OO", -1.f, &width, &height);
 
     defpadding = (uint32_t)((.3f * height) + .5f);
     if (defpadding % 2 == 1)
@@ -406,6 +407,7 @@ OSEdit *osedit_create(const uint32_t flags)
     [field setCell:[[OSXTextFieldCell alloc] init]];
     edit->editor = nil;
     edit->flags = flags;
+    edit->bgcolor = kCOLOR_DEFAULT;
     edit->vpadding = UINT32_MAX;
     edit->select = NSMakeRange(0, 0);
     edit->OnFilter = NULL;
@@ -653,12 +655,26 @@ void osedit_color(OSEdit *edit, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_set_bgcolor(OSXEdit *edit)
+{
+    NSColor *nscolor = nil;
+    cassert_no_null(edit);
+    if (edit->bgcolor != kCOLOR_DEFAULT)
+        nscolor = oscolor_NSColor(edit->bgcolor);
+    [edit->field setBackgroundColor:nscolor];
+    if (edit->editor != nil)
+        [edit->editor setBackgroundColor:nscolor];
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osedit_bgcolor(OSEdit *edit, const color_t color)
 {
     NSColor *nscolor = color != 0 ? oscolor_NSColor(color) : [NSColor textBackgroundColor];
     OSXEdit *ledit = (OSXEdit *)edit;
     cassert_no_null(ledit);
-    [ledit->field setBackgroundColor:nscolor];
+    ledit->bgcolor = color;
+    i_set_bgcolor(ledit);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -684,7 +700,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
 
     if (lines == 1)
     {
-        _oscontrol_text_bounds(ledit->attrs.font, "OO", -1.f, width, height);
+        font_extents(ledit->attrs.font, "OO", -1.f, width, height);
     }
     else
     {
@@ -695,7 +711,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
         for (i = 0; i < lines - 1; ++i)
             str_cat_c(text, 256, "O\n");
         str_cat_c(text, 256, "O");
-        _oscontrol_text_bounds(ledit->attrs.font, text, -1.f, width, height);
+        font_extents(ledit->attrs.font, text, -1.f, width, height);
     }
 
     *width = refwidth;
@@ -829,6 +845,7 @@ void osedit_focus(OSEdit *edit, const bool_t focus)
         {
             NSWindow *window = [ledit->field window];
             ledit->editor = [window fieldEditor:YES forObject:ledit->field];
+            i_set_bgcolor(ledit);
 
             if (BIT_TEST(ledit->flags, ekEDIT_AUTOSEL) == TRUE)
             {

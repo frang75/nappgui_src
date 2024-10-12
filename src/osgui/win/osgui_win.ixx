@@ -73,11 +73,6 @@ struct _oscontrol_t
     int32_t y;
 };
 
-struct _strsize_data_t
-{
-    HDC hdc;
-};
-
 struct _osdraw_t
 {
     HTHEME button_theme;

@@ -219,23 +219,6 @@ void _oscontrol_update_font(OSControl *control, Font **current_font, const Font 
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_text_bounds(const OSControl *control, const char_t *text, const Font *font, const real32_t refwidth, real32_t *width, real32_t *height)
-{
-    StringSizeData data;
-    HFONT current_font = NULL;
-    int ret = 0;
-    cassert_no_null(control);
-    data.hdc = GetDC(control->hwnd);
-    current_font = (HFONT)SelectObject(data.hdc, (HFONT)font_native(font));
-    cassert_no_null(current_font);
-    osgui_text_bounds(&data, text, refwidth, width, height);
-    SelectObject(data.hdc, current_font);
-    ret = ReleaseDC(NULL, data.hdc);
-    cassert_unref(ret == 1, ret);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _oscontrol_set_visible(OSControl *control, const bool_t visible)
 {
     cassert_no_null(control);

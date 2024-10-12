@@ -899,23 +899,3 @@ void osgui_pre_initialize_imp(void)
 {
     cassert(FALSE);
 }
-
-/*---------------------------------------------------------------------------*/
-
-void osgui_word_size(StringSizeData *data, const char_t *word, real32_t *width, real32_t *height)
-{
-    SIZE word_size;
-    uint32_t num_chars = 0, num_bytes = 0;
-    WCHAR wword[256];
-    BOOL ret = 0;
-    cassert_no_null(data);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    num_chars = unicode_nchars(word, ekUTF8);
-    num_bytes = unicode_convers(word, (char_t *)wword, ekUTF8, ekUTF16, sizeof(wword));
-    cassert_unref(num_bytes < sizeof(wword), num_bytes);
-    ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
-    cassert_unref(ret != 0, ret);
-    *width = (real32_t)word_size.cx;
-    *height = (real32_t)word_size.cy;
-}

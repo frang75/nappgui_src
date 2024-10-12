@@ -51,11 +51,11 @@ struct _ostext_t
     GtkWidget *tview;
     GtkTextBuffer *buffer;
     gchar *text_cache;
-    GtkCssProvider *fontcss;
-    GtkCssProvider *colorcss;
-    GtkCssProvider *bgcolorcss;
-    GtkCssProvider *pgcolorcss;
-    GtkCssProvider *border_color;
+    GtkCssProvider *css_font;
+    GtkCssProvider *css_color;
+    GtkCssProvider *css_bgcolor;
+    GtkCssProvider *css_pgcolor;
+    GtkCssProvider *css_bdcolor;
     OSControl *capture;
     Listener *OnFilter;
     Listener *OnFocus;
@@ -221,15 +221,18 @@ OSText *ostext_create(const uint32_t flags)
     /* Creating the frame (border) view */
     {
         GtkWidget *frame = gtk_frame_new(NULL);
-        String *css = osglobals_frame_focus_css();
         cassert(gtk_widget_get_has_window(frame) == FALSE);
         gtk_container_add(GTK_CONTAINER(frame), top);
         gtk_widget_show(top);
-        view->border_color = gtk_css_provider_new();
-        gtk_css_provider_load_from_data(view->border_color, tc(css), -1, NULL);
+
+        {
+            String *css = osglobals_frame_focus_css();
+            view->css_bdcolor = _oscontrol_css_provider(tc(css));
+            str_destroy(&css);
+        }
+
         g_object_set_data(G_OBJECT(scrolled), "OSControl", &view->control);
         gtk_widget_set_state_flags(frame, GTK_STATE_FLAG_FOCUSED, FALSE);
-        str_destroy(&css);
         top = frame;
     }
 
@@ -267,20 +270,17 @@ void ostext_destroy(OSText **view)
     listener_destroy(&(*view)->OnFocus);
     gtk_container_remove(GTK_CONTAINER(i_scrolled_window(*view)), (*view)->tview);
 
-    if ((*view)->border_color != NULL)
-    {
-        cassert(GTK_IS_FRAME((*view)->control.widget));
-        _oscontrol_widget_remove_provider((*view)->control.widget, (*view)->border_color);
-        g_object_unref((*view)->border_color);
-        (*view)->border_color = NULL;
-    }
-
     if ((*view)->text_cache != NULL)
     {
         g_free((*view)->text_cache);
         (*view)->text_cache = NULL;
     }
 
+    _oscontrol_destroy_css_provider(&(*view)->css_font);
+    _oscontrol_destroy_css_provider(&(*view)->css_color);
+    _oscontrol_destroy_css_provider(&(*view)->css_bgcolor);
+    _oscontrol_destroy_css_provider(&(*view)->css_pgcolor);
+    _oscontrol_destroy_css_provider(&(*view)->css_bdcolor);
     _oscontrol_destroy(*(OSControl **)view);
     heap_delete(view, OSText);
 }
@@ -462,33 +462,10 @@ static GtkTextTag *i_tag_attribs(OSText *view)
 
 static void i_global_attribs(OSText *view)
 {
-    const char_t *csstype = osglobals_css_textview();
-
-    if (view->fontcss != NULL)
-    {
-        _oscontrol_widget_remove_provider(view->tview, view->fontcss);
-        view->fontcss = NULL;
-    }
-
-    if (view->colorcss != NULL)
-    {
-        _oscontrol_widget_remove_provider(view->tview, view->colorcss);
-        view->colorcss = NULL;
-    }
-
-    if (view->bgcolorcss != NULL)
-    {
-        _oscontrol_widget_remove_provider(view->tview, view->bgcolorcss);
-        view->bgcolorcss = NULL;
-    }
-
-    _oscontrol_widget_font_desc(view->tview, csstype, view->ffamily, view->fsize, view->fstyle, &view->fontcss);
-
-    if (view->color != kCOLOR_DEFAULT)
-        _oscontrol_widget_color(view->tview, csstype, view->color, &view->colorcss);
-
-    if (view->bgcolor != kCOLOR_DEFAULT)
-        _oscontrol_widget_bg_color(view->tview, csstype, view->bgcolor, &view->bgcolorcss);
+    const char_t *cssobj = osglobals_css_textview();
+    _oscontrol_update_css_font_desc(view->tview, cssobj, view->ffamily, view->fsize, view->fstyle, &view->css_font);
+    _oscontrol_update_css_color(view->tview, cssobj, view->color, &view->css_color);
+    _oscontrol_update_css_bgcolor(view->tview, cssobj, view->bgcolor, &view->css_bgcolor);
 
     {
         GtkJustification justif = _oscontrol_justification(view->align);
@@ -749,15 +726,11 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         break;
 
     case ekGUI_TEXT_PGCOLOR:
-        if (view->pgcolorcss != NULL)
-        {
-            _oscontrol_widget_remove_provider(view->tview, view->pgcolorcss);
-            view->pgcolorcss = NULL;
-        }
-
-        if (*(color_t *)value != kCOLOR_DEFAULT)
-            _oscontrol_widget_bg_color(view->tview, "textview", *(color_t *)value, &view->pgcolorcss);
+    {
+        const char_t *cssobj = osglobals_css_textview();
+        _oscontrol_update_css_bgcolor(view->tview, cssobj, *(color_t *)value, &view->css_pgcolor);
         break;
+    }
 
     case ekGUI_TEXT_PARALIGN:
         if (view->align != *((align_t *)value))
@@ -994,13 +967,13 @@ void ostext_focus(OSText *view, const bool_t focus)
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSText, bool_t, void);
     }
 
-    if (view->border_color != NULL)
+    if (view->css_bdcolor != NULL)
     {
         cassert(GTK_IS_FRAME(view->control.widget));
         if (focus == TRUE)
-            _oscontrol_widget_add_provider(view->control.widget, view->border_color);
+            _oscontrol_add_css_provider(view->control.widget, view->css_bdcolor);
         else
-            _oscontrol_widget_remove_provider(view->control.widget, view->border_color);
+            _oscontrol_remove_css_provider(view->control.widget, view->css_bdcolor);
     }
 
     if (focus == TRUE)

@@ -690,7 +690,10 @@ static void i_col_y_offset(Column *col, const uint32_t row_height)
     case ekCTYPE_TEXT:
     {
         uint32_t height = i_font_height(col->font);
-        col->yoffset = (row_height - height) / 2;
+        if (row_height > height)
+            col->yoffset = (row_height - height) / 2;
+        else
+            col->yoffset = 0;
         break;
     }
 

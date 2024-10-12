@@ -812,12 +812,16 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
 
 void draw_font(DCtx *ctx, const Font *font)
 {
-    uint32_t fstyle;
     cassert_no_null(ctx);
-    fstyle = font_style(font);
-    [ctx->text_dict setObject:(fstyle & ekFUNDERLINE) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSUnderlineStyleAttributeName];
-    [ctx->text_dict setObject:(fstyle & ekFSTRIKEOUT) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSStrikethroughStyleAttributeName];
-    [ctx->text_dict setObject:(NSFont *)font_native(font) forKey:NSFontAttributeName];
+    if (font_equals(ctx->font, font) == FALSE)
+    {
+        uint32_t fstyle = font_style(font);
+        font_destroy(&ctx->font);
+        ctx->font = font_copy(font);
+        [ctx->text_dict setObject:(fstyle & ekFUNDERLINE) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSUnderlineStyleAttributeName];
+        [ctx->text_dict setObject:(fstyle & ekFSTRIKEOUT) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSStrikethroughStyleAttributeName];
+        [ctx->text_dict setObject:(NSFont *)font_native(ctx->font) forKey:NSFontAttributeName];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1127,38 +1131,15 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_with_newline(const char_t *text)
-{
-    cassert_no_null(text);
-    while (*text != 0)
-    {
-        if (*text == '\n')
-            return TRUE;
-        text += 1;
-    }
-
-    return FALSE;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    MeasureStr data;
+    /*
+     * In macOS drawing context uses the same method (CGContextRef with NSFont)
+     * to measure and render the text than 'font_extents()'.
+     * Just bypass the call.
+     */
     cassert_no_null(ctx);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    data.dict = ctx->text_dict;
-    if (refwidth > 0 || i_with_newline(text) == TRUE)
-    {
-        draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
-    }
-    else
-    {
-        draw_word_extents(&data, text, width, height);
-        *width = bmath_ceilf(*width);
-        *height = bmath_ceilf(*height);
-    }
+    font_extents(ctx->font, text, refwidth, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -17,13 +17,13 @@ Panel *vpadding(void)
     Button *button2 = button_push();
     Button *button3 = button_push();
     Panel *panel = panel_create();
+    color_t bg = gui_alt_color(color_rgb(192, 255, 255), color_rgb(48, 112, 112));
     edit_text(edit1, "Edit with default padding");
-	/* edit_font(edit1, font); */
     edit_text(edit2, "Edit with zero padding");
     edit_text(edit3, "Edit with high padding");
-    edit_bgcolor(edit1, color_rgb(120, 255, 255));
-    edit_bgcolor(edit2, color_rgb(120, 255, 255));
-    edit_bgcolor(edit3, color_rgb(120, 255, 255));
+    edit_bgcolor(edit1, bg);
+    edit_bgcolor(edit2, bg);
+    edit_bgcolor(edit3, bg);
     button_text(button1, "Button with default padding");
     button_text(button2, "Button with zero padding");
     button_text(button3, "Button with high padding");
