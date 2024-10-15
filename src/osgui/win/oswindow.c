@@ -1279,9 +1279,9 @@ static bool_t i_message(MSG *msg, HACCEL accelerator_table)
         }
         else
         {
-            if (i_IsDialogMessage(i_CURRENT_ACTIVE_WINDOW, msg) != 0)
-                return TRUE;
-            else
+            //if (i_IsDialogMessage(i_CURRENT_ACTIVE_WINDOW, msg) != 0)
+            //    return TRUE;
+            //else
                 return FALSE;
         }
     }
