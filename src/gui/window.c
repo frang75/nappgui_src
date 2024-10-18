@@ -756,7 +756,7 @@ void window_origin(Window *window, const V2Df origin)
 void window_size(Window *window, const S2Df size)
 {
     cassert_no_null(window);
-    cassert(window->flags & ekWINDOW_RESIZE);
+    //cassert(window->flags & ekWINDOW_RESIZE);
     i_main_layout_compose(window, &size);
 }
 

@@ -177,6 +177,8 @@ OSCombo *oscombo_create(const uint32_t flags)
     combo->def_edit_proc = (WNDPROC)SetWindowLongPtr(combo->edit_hwnd, GWLP_WNDPROC, (LONG_PTR)i_EditWndProc);
     SetWindowLongPtr(combo->combo_hwnd, GWLP_USERDATA, (LONG_PTR)combo);
     SetWindowLongPtr(combo->edit_hwnd, GWLP_USERDATA, (LONG_PTR)combo);
+    SetWindowLongPtr(combo->combo_hwnd, DWLP_USER, (LONG_PTR)(1234567));
+    SetWindowLongPtr(combo->edit_hwnd, DWLP_USER, (LONG_PTR)(1234567));
     combo->image_list = _osimglist_create(16);
     combo->color = UINT32_MAX;
     combo->bgcolor = UINT32_MAX;

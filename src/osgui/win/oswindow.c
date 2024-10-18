@@ -1151,13 +1151,17 @@ void _oswindow_OnIdle(Listener *listener)
 static OSWindow *i_get_window(HWND hwnd)
 {
     OSWindow *window = NULL;
+    LONG_PTR magic_value = 0;
     while (window == NULL && hwnd != NULL)
     {
-        window = (OSWindow *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-        if (window != NULL)
-        {
-            if (window->control.type != ekGUI_TYPE_WINDOW)
-                window = NULL;
+        magic_value = (LONG_PTR)GetWindowLongPtr(hwnd, DWLP_USER);
+        if (magic_value == 1234567) {
+            window = (OSWindow *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            if (window != NULL)
+            {
+                if (window->control.type != ekGUI_TYPE_WINDOW)
+                    window = NULL;
+            }
         }
 
         if (window == NULL)

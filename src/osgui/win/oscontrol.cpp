@@ -78,6 +78,7 @@ static void i_init(OSControl *control, const DWORD dwExStyle, const DWORD dwStyl
 
     {
         void *data = (void *)SetWindowLongPtr(control->hwnd, GWLP_USERDATA, (LONG_PTR)control);
+        SetWindowLongPtr(control->hwnd, DWLP_USER, (LONG_PTR)(1234567));
         cassert_unref(data == NULL, data);
     }
 }

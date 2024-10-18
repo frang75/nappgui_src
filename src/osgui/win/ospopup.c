@@ -100,6 +100,7 @@ OSPopUp *ospopup_create(const uint32_t flags)
     popup->combo_hwnd = (HWND)SendMessage(popup->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
     popup->def_combo_proc = (WNDPROC)SetWindowLongPtr(popup->combo_hwnd, GWLP_WNDPROC, (LONG_PTR)i_ComboWndProc);
     SetWindowLongPtr(popup->combo_hwnd, GWLP_USERDATA, (LONG_PTR)popup);
+    SetWindowLongPtr(popup->combo_hwnd, DWLP_USER, (LONG_PTR)(1234567));
     popup->image_list = _osimglist_create(16);
     popup->list_num_elems = 5;
     _oscontrol_set_font((OSControl *)popup, popup->font);
