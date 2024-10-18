@@ -482,7 +482,7 @@ void window_show(Window *window)
 void window_hide(Window *window)
 {
     cassert_no_null(window);
-    cassert(window->visible == TRUE);
+    //cassert(window->visible == TRUE);
     if (window->visible == TRUE)
     {
         cassert_no_null(window->context);
