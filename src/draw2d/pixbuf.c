@@ -214,7 +214,7 @@ static void i_set24(byte_t *data, const uint32_t x, const uint32_t y, const uint
 
 static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t value)
 {
-    uint32_t *ovalue = ((uint32_t *)data) + ((y * width) + x);
+    uint32_t *ovalue = cast(data, uint32_t) + ((y * width) + x);
     *ovalue = value;
 }
 
@@ -223,7 +223,7 @@ static void i_set32(byte_t *data, const uint32_t x, const uint32_t y, const uint
 Pixbuf *pixbuf_create(const uint32_t width, const uint32_t height, const pixformat_t format)
 {
     uint32_t n = sizeof32(Pixbuf) + i_bufsize(width, height, format);
-    Pixbuf *pixbuf = (Pixbuf *)heap_malloc(n, "Pixbuf");
+    Pixbuf *pixbuf = cast(heap_malloc(n, "Pixbuf"), Pixbuf);
     pixbuf->width = width;
     pixbuf->height = height;
     pixbuf->format = format;
@@ -280,13 +280,10 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             switch (oformat)
             {
             case ekRGB24:
-                return imgutil_rgba_to_rgb(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
-
+                return _imgutil_rgba_to_rgb(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
             case ekGRAY8:
-                return imgutil_rgba_to_gray(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
-
+                return _imgutil_rgba_to_gray(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
             case ekINDEX1:
-
             case ekINDEX2:
             case ekINDEX4:
             case ekINDEX8:
@@ -300,11 +297,9 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             switch (oformat)
             {
             case ekRGBA32:
-                return imgutil_rgb_to_rgba(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
-
+                return _imgutil_rgb_to_rgba(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
             case ekGRAY8:
-                return imgutil_rgb_to_gray(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
-
+                return _imgutil_rgb_to_gray(i_DATA(pixbuf), pixbuf->width, pixbuf->height);
             case ekINDEX1:
             case ekINDEX2:
             case ekINDEX4:
@@ -342,7 +337,7 @@ void pixbuf_destroy(Pixbuf **pixbuf)
     cassert_no_null(pixbuf);
     cassert_no_null(*pixbuf);
     n = sizeof32(Pixbuf) + i_bufsize((*pixbuf)->width, (*pixbuf)->height, (*pixbuf)->format);
-    heap_free((byte_t **)pixbuf, n, "Pixbuf");
+    heap_free(dcast(pixbuf, byte_t), n, "Pixbuf");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -409,23 +404,17 @@ uint32_t pixbuf_format_bpp(const pixformat_t format)
     {
     case ekINDEX1:
         return 1;
-
     case ekINDEX2:
         return 2;
-
     case ekINDEX4:
         return 4;
-
     case ekINDEX8:
     case ekGRAY8:
         return 8;
-
     case ekRGB24:
         return 24;
-
     case ekRGBA32:
         return 32;
-
     case ekFIMAGE:
         cassert_default();
     }

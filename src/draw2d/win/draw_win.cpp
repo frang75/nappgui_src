@@ -38,7 +38,7 @@ LONG kTWIPS_PER_PIXEL = 0;
 
 /*---------------------------------------------------------------------------*/
 
-void draw_alloc_globals(void)
+void _draw_alloc_globals(void)
 {
     i_kGRAY4_PALETTE = NULL;
     i_kGRAY8_PALETTE = NULL;
@@ -56,7 +56,7 @@ void draw_alloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_dealloc_globals(void)
+void _draw_dealloc_globals(void)
 {
     cassert(i_kGRAY4_PALETTE == NULL);
 
@@ -64,12 +64,12 @@ void draw_dealloc_globals(void)
     //     heap_free((byte_t**)&i_kGRAY4_PALETTE, sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
 
     if (i_kGRAY8_PALETTE != NULL)
-        heap_free((byte_t **)&i_kGRAY8_PALETTE, sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
+        heap_free(dcast(&i_kGRAY8_PALETTE, byte_t), sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
 }
 
 /*---------------------------------------------------------------------------*/
 
-void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+void _draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
 {
     SIZE word_size;
     uint32_t num_chars = 0, num_bytes = 0;
@@ -79,7 +79,7 @@ void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, re
     cassert_no_null(width);
     cassert_no_null(height);
     num_chars = unicode_nchars(word, ekUTF8);
-    num_bytes = unicode_convers(word, (char_t *)wword, ekUTF8, ekUTF16, sizeof(wword));
+    num_bytes = unicode_convers(word, cast(wword, char_t), ekUTF8, ekUTF16, sizeof(wword));
     cassert_unref(num_bytes < sizeof(wword), num_bytes);
     ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
     cassert_unref(ret != 0, ret);
@@ -94,23 +94,20 @@ static ___INLINE void i_set_gdiplus_mode(DCtx *ctx)
     cassert_no_null(ctx);
     if (ctx->gdi_mode == TRUE)
     {
-        //
-        // Perhaps here we have to create a new Gdiplus::Graphics and init
-        //
+        /* Perhaps here we have to create a new Gdiplus::Graphics and init */
         ctx->gdi_mode = FALSE;
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
 {
-    Gdiplus::Bitmap *bitmap;
-
+    Gdiplus::Bitmap *bitmap = NULL;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     cassert_unref(raster == FALSE, raster);
-    bitmap = (Gdiplus::Bitmap *)osimage_native(image);
+    bitmap = cast(osimage_native(image), Gdiplus::Bitmap);
     i_set_gdiplus_mode(ctx);
 
     if (frame_index != UINT32_MAX)
@@ -176,7 +173,7 @@ Gdiplus::ColorPalette *_dctx_8bpp_grayscale_palette(void)
     if (i_kGRAY8_PALETTE == NULL)
     {
         uint32_t i = 0;
-        i_kGRAY8_PALETTE = (Gdiplus::ColorPalette *)heap_malloc(sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
+        i_kGRAY8_PALETTE = cast(heap_malloc(sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette"), Gdiplus::ColorPalette);
         i_kGRAY8_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
         i_kGRAY8_PALETTE->Count = 256;
         for (i = 0; i < 256; ++i)
@@ -367,13 +364,13 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
     cassert_no_null(ctx);
     if (pattern != NULL)
     {
-        Gdiplus::Status status = ctx->pen->SetDashPattern((Gdiplus::REAL *)pattern, (INT)n);
+        Gdiplus::Status status = ctx->pen->SetDashPattern(cast(pattern, Gdiplus::REAL), (INT)n);
         ctx->pen->SetDashStyle(Gdiplus::DashStyleCustom);
         cassert_unref(status == Gdiplus::Ok, status);
 
         if (ctx->fpen != NULL)
         {
-            ctx->fpen->SetDashPattern((Gdiplus::REAL *)pattern, (INT)n);
+            ctx->fpen->SetDashPattern(cast(pattern, Gdiplus::REAL), (INT)n);
             ctx->fpen->SetDashStyle(Gdiplus::DashStyleCustom);
         }
     }
@@ -498,7 +495,7 @@ void draw_polygon(DCtx *ctx, const drawop_t op, const V2Df *points, const uint32
     cassert_no_null(ctx->graphics);
     cassert_no_null(points);
     cassert(sizeof(V2Df) == sizeof(Gdiplus::PointF));
-    path.AddLines((const Gdiplus::PointF *)points, (INT)n);
+    path.AddLines(cast(points, const Gdiplus::PointF), (INT)n);
     path.CloseFigure();
     i_draw_path(ctx, &path, op);
 }
@@ -511,7 +508,6 @@ void draw_fill_color(DCtx *ctx, const color_t color)
     if (ctx->fill_color != color)
     {
         Gdiplus::Color c = i_color(color);
-
         ctx->sbrush->SetColor(c);
 
         if (ctx->gdi_sbrush != NULL)
@@ -678,15 +674,11 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
     if (*ffont != NULL)
         delete *ffont;
 
-    // Careful creating GDI+ fonts from HFONT
-    // Pure GDI fonts don't allow fonts with fsize < 1
+    /*
+     * Careful creating GDI+ fonts from HFONT
+     * Pure GDI fonts don't allow fonts with fsize < 1
+     */
     *ffont = new Gdiplus::Font(*ffamily, *fsize, *fstyle, (style & ekFPOINTS) == ekFPOINTS ? Gdiplus::UnitPoint : Gdiplus::UnitPixel);
-
-    //{
-    //    HDC fhdc = GetDC(NULL);
-    //    *ffont = new Gdiplus::Font(fhdc, (HFONT)font_native(font));
-    //    ReleaseDC(NULL, fhdc);
-    //}
 
     // if (style & ekFCELL)
     //     *fintleading = (Gdiplus::REAL)font_internal_leading(font);
@@ -893,12 +885,12 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     }
     else
     {
-        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText");
+        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText"), WCHAR);
         wtext = wtext_alloc;
     }
 
     {
-        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -949,7 +941,7 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     }
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawText");
+        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSDrawText");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -985,12 +977,12 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     }
     else
     {
-        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText");
+        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText"), WCHAR);
         wtext = wtext_alloc;
     }
 
     {
-        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -1036,7 +1028,7 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     }
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawText");
+        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSDrawText");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1147,12 +1139,12 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     }
     else
     {
-        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSDrawExtents");
+        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSDrawExtents"), WCHAR);
         wtext = wtext_alloc;
     }
 
     {
-        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -1166,7 +1158,7 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     *height = bmath_ceilf((real32_t)out.Height);
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSDrawExtents");
+        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSDrawExtents");
 }
 
 /*---------------------------------------------------------------------------*/

@@ -22,7 +22,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_init(DCtx *ctx)
+void _dctx_init(DCtx *ctx)
 {
     Font *font = font_system(font_regular_size(), 0);
     draw_matrixf(ctx, kT2D_IDENTf);
@@ -49,7 +49,7 @@ void dctx_init(DCtx *ctx)
 
 void draw_matrixf(DCtx *ctx, const T2Df *t2d)
 {
-    dctx_transform(ctx, t2d, FALSE);
+    _dctx_transform(ctx, t2d, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -63,7 +63,7 @@ void draw_matrixd(DCtx *ctx, const T2Dd *t2d)
     t2df.j.y = (real32_t)t2d->j.y;
     t2df.p.x = (real32_t)t2d->p.x;
     t2df.p.y = (real32_t)t2d->p.y;
-    dctx_transform(ctx, &t2df, FALSE);
+    _dctx_transform(ctx, &t2df, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -80,7 +80,7 @@ void draw_matrix_cartesianf(DCtx *ctx, const T2Df *t2d)
     ct2d.p.x = 0;
     ct2d.p.y = (real32_t)h;
     t2d_multf(&ct2d, &ct2d, t2d);
-    dctx_transform(ctx, &ct2d, TRUE);
+    _dctx_transform(ctx, &ct2d, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -104,7 +104,7 @@ void draw_matrix_cartesiand(DCtx *ctx, const T2Dd *t2d)
     ct2d.p.x = 0;
     ct2d.p.y = (real32_t)h;
     t2d_multf(&ct2d, &ct2d, &t2df);
-    dctx_transform(ctx, &ct2d, TRUE);
+    _dctx_transform(ctx, &ct2d, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

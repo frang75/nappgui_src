@@ -26,7 +26,7 @@ struct _palette_t
 Palette *palette_create(const uint32_t size)
 {
     uint32_t n = sizeof32(Palette) + size * sizeof32(color_t);
-    Palette *palette = (Palette *)heap_malloc(n, "Palette");
+    Palette *palette = cast(heap_malloc(n, "Palette"), Palette);
     palette->flags = 0;
     palette->size = (uint16_t)size;
     return palette;
@@ -212,7 +212,7 @@ void palette_destroy(Palette **palette)
     cassert_no_null(palette);
     cassert_no_null(*palette);
     n = sizeof32(Palette) + (*palette)->size * sizeof32(color_t);
-    heap_free((byte_t **)palette, n, "Palette");
+    heap_free(dcast(palette, byte_t), n, "Palette");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,7 +228,7 @@ uint32_t palette_size(const Palette *palette)
 color_t *palette_colors(Palette *palette)
 {
     cassert_no_null(palette);
-    return (color_t *)(((byte_t *)palette) + sizeof(Palette));
+    return cast(cast(palette, byte_t) + sizeof(Palette), color_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -236,5 +236,5 @@ color_t *palette_colors(Palette *palette)
 const color_t *palette_ccolors(const Palette *palette)
 {
     cassert_no_null(palette);
-    return (color_t *)(((byte_t *)palette) + sizeof(Palette));
+    return cast_const(cast(palette, byte_t) + sizeof(Palette), color_t);
 }

@@ -17,6 +17,6 @@
 
 __EXTERN_C
 
-const GdkPixbuf *osimage_pixbuf(const OSImage *image, const uint32_t frame_index);
+const GdkPixbuf *_osimage_pixbuf(const OSImage *image, const uint32_t frame_index);
 
 __END_C

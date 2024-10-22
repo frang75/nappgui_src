@@ -31,7 +31,7 @@ NSNumber *kUNDERLINE_SINGLE = nil;
 
 /*---------------------------------------------------------------------------*/
 
-void draw_alloc_globals(void)
+void _draw_alloc_globals(void)
 {
     kUNDERLINE_NONE = [[NSNumber alloc] initWithInt:NSUnderlineStyleNone];
     kUNDERLINE_SINGLE = [[NSNumber alloc] initWithInt:NSUnderlineStyleSingle];
@@ -39,7 +39,7 @@ void draw_alloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_dealloc_globals(void)
+void _draw_dealloc_globals(void)
 {
     [kUNDERLINE_NONE release];
     [kUNDERLINE_SINGLE release];
@@ -47,7 +47,7 @@ void draw_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+void _draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
 {
     NSString *str = nil;
     NSSize word_size;
@@ -96,7 +96,7 @@ static void i_set_real2d_mode(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
 {
     cassert_no_null(ctx);
     cassert_no_null(image);
@@ -112,8 +112,8 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
     if (frame_index != UINT32_MAX)
     {
         NSBitmapImageRep *image_rep = nil;
-        cassert([[(NSImage *)image representations] count] == 1);
-        image_rep = (NSBitmapImageRep *)[[(NSImage *)image representations] objectAtIndex:0];
+        cassert([[cast(image, NSImage) representations] count] == 1);
+        image_rep = cast([[cast(image, NSImage) representations] objectAtIndex:0], NSBitmapImageRep);
         cassert_no_null(image_rep);
         [image_rep setProperty:NSImageCurrentFrame withValue:[NSNumber numberWithUnsignedInt:frame_index]];
     }
@@ -122,7 +122,7 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
         NSRect rect;
         /*BOOL isFlipped = ctx->nsview != nil ? [ctx->nsview isFlipped] : YES;*/
         rect.origin = NSMakePoint((CGFloat)x, (CGFloat)y);
-        rect.size = [(NSImage *)image size];
+        rect.size = [cast(image, NSImage) size];
         switch (ctx->image_halign)
         {
         case ekLEFT:
@@ -156,12 +156,12 @@ void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, co
 #else
             NSCompositingOperation op = NSCompositeSourceOver;
 #endif
-            [(NSImage *)image drawInRect:rect
-                                fromRect:NSZeroRect
-                               operation:op
-                                fraction:1.0f
-                          respectFlipped:ctx->is_flipped
-                                   hints:nil];
+            [cast(image, NSImage) drawInRect:rect
+                                    fromRect:NSZeroRect
+                                   operation:op
+                                    fraction:1.0f
+                              respectFlipped:ctx->is_flipped
+                                       hints:nil];
 #else
 #error Usar NSImage IsFlipped = TRUE y despues restaurar isFlipped = false;
 #endif
@@ -820,7 +820,7 @@ void draw_font(DCtx *ctx, const Font *font)
         ctx->font = font_copy(font);
         [ctx->text_dict setObject:(fstyle & ekFUNDERLINE) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSUnderlineStyleAttributeName];
         [ctx->text_dict setObject:(fstyle & ekFSTRIKEOUT) ? kUNDERLINE_SINGLE : kUNDERLINE_NONE forKey:NSStrikethroughStyleAttributeName];
-        [ctx->text_dict setObject:(NSFont *)font_native(ctx->font) forKey:NSFontAttributeName];
+        [ctx->text_dict setObject:cast(font_native(ctx->font), NSFont) forKey:NSFontAttributeName];
     }
 }
 
@@ -862,13 +862,13 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
 
     rect->origin.x = (CGFloat)x;
     rect->origin.y = (CGFloat)y;
-    str = [NSString stringWithUTF8String:(const char *)text];
+    str = [NSString stringWithUTF8String:cast_const(text, char)];
 
     if (single_line == TRUE)
     {
         MeasureStr data;
         data.dict = ctx->text_dict;
-        draw_word_extents(&data, text, &width, &height);
+        _draw_word_extents(&data, text, &width, &height);
 
         if (ctx->text_width > 0)
             width = ctx->text_width;
@@ -1174,7 +1174,7 @@ void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const rea
 void draw_image_raster(DCtx *ctx, const Image *image, const real32_t x, const real32_t y)
 {
     const OSImage *osimage = osimage_from_image(image);
-    draw_imgimp(ctx, osimage, UINT32_MAX, x, y, TRUE);
+    _draw_imgimp(ctx, osimage, UINT32_MAX, x, y, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

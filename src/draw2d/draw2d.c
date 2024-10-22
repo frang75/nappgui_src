@@ -70,7 +70,7 @@ void draw2d_start(void)
         core_start();
         osimage_alloc_globals();
         osfont_alloc_globals();
-        draw_alloc_globals();
+        _draw_alloc_globals();
         blib_atexit(i_draw2d_atexit);
 
         i_FONT_FAMILIES = arrpt_create(String);
@@ -108,7 +108,7 @@ void draw2d_finish(void)
         str_destopt(&i_MONOSPACE_FONT_FAMILY);
         osfont_dealloc_globals();
         osimage_dealloc_globals();
-        draw_dealloc_globals();
+        _draw_dealloc_globals();
         core_finish();
     }
 
@@ -125,7 +125,7 @@ void draw2d_preferred_monospace(const char_t *family)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t draw2d_register_font(const char_t *font_family)
+uint32_t _draw2d_register_font(const char_t *font_family)
 {
     /* Check if font name is a system font */
     font_family_t fsystem = osfont_system(font_family);
@@ -156,7 +156,7 @@ uint32_t draw2d_register_font(const char_t *font_family)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *draw2d_font_family(const uint32_t family)
+const char_t *_draw2d_font_family(const uint32_t family)
 {
     const String *font_family = arrpt_get(i_FONT_FAMILIES, family, String);
     return tc(font_family);
@@ -189,7 +189,7 @@ color_t color_indexed(const uint16_t index, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-color_t draw2d_get_indexed_color(const uint16_t index)
+color_t _draw2d_get_indexed_color(const uint16_t index)
 {
     if (index == 0)
         return kCOLOR_DEFAULT;
@@ -312,7 +312,7 @@ static void i_new_line(void *data, FPtr_word_extents func_word_extents, real32_t
 
 /*---------------------------------------------------------------------------*/
 
-void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const bool_t newlines, const char_t *str, const real32_t refwidth, real32_t *width, real32_t *height)
+void _draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const bool_t newlines, const char_t *str, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     uint32_t num_lines = 0;
     real32_t ref_width = refwidth > 0 ? refwidth : 1e8f;
@@ -408,7 +408,7 @@ void draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const b
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *draw2d_monospace_family(const char_t **desired_fonts, const uint32_t n)
+const char_t *_draw2d_monospace_family(const char_t **desired_fonts, const uint32_t n)
 {
     if (i_MONOSPACE_FONT_FAMILY == NULL)
     {
@@ -439,7 +439,7 @@ const char_t *draw2d_monospace_family(const char_t **desired_fonts, const uint32
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *draw2d_get_preferred_monospace(void)
+const char_t *_draw2d_get_preferred_monospace(void)
 {
     if (i_USER_MONOSPACE_FONT_FAMILY != NULL)
         return tc(i_USER_MONOSPACE_FONT_FAMILY);
@@ -449,7 +449,7 @@ const char_t *draw2d_get_preferred_monospace(void)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *draw2d_str_avg_char_width(uint32_t *len)
+const char_t *_draw2d_str_avg_char_width(uint32_t *len)
 {
     cassert_no_null(len);
     *len = i_AVG_CHAR_WIDTH_LEN;

@@ -68,7 +68,6 @@ void osfont_dealloc_globals(void)
 {
     if (kUSER_FONTS != NULL)
         arrst_destroy(&kUSER_FONTS, i_remove_font, UserFont);
-
     str_destopt(&i_SYSTEM_FONT_FAMILY);
 }
 
@@ -132,7 +131,7 @@ static const char_t *i_system_font_family(void)
 static const char_t *i_monospace_font_family(void)
 {
     const char_t *desired_fonts[] = {"Consolas", "Courier New"};
-    return draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
+    return _draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -267,7 +266,7 @@ void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xsca
     {
         uint32_t len = 0;
         real32_t w = 0, h = 0;
-        const char_t *str = draw2d_str_avg_char_width(&len);
+        const char_t *str = _draw2d_str_avg_char_width(&len);
         osfont_extents(font, str, xscale, -1, &w, &h);
         *avg_width = w / len;
     }
@@ -299,7 +298,7 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscal
     unref(xscale);
     data.hdc = GetDC(NULL);
     cfont = SelectObject(data.hdc, (HFONT)font);
-    draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+    _draw2d_extents(&data, _draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
     SelectObject(data.hdc, cfont);
     ret = ReleaseDC(NULL, data.hdc);
     cassert_unref(ret == 1, ret);

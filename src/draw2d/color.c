@@ -177,7 +177,7 @@ static ___INLINE color_t i_effective(color_t c)
     if (i_alpha(c) == 0)
     {
         cassert(c <= 0xFFFF);
-        return draw2d_get_indexed_color((uint16_t)c);
+        return _draw2d_get_indexed_color((uint16_t)c);
     }
     else
     {

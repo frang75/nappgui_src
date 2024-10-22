@@ -51,7 +51,7 @@ void guictx_release(GuiCtx **context)
     cassert_no_null(context);
     cassert_no_null(*context);
     cassert((*context)->retain_count > 0);
-    ((GuiCtx *)(*context))->retain_count -= 1;
+    (*context)->retain_count -= 1;
     *context = NULL;
 }
 

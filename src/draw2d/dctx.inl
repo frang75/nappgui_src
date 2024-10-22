@@ -14,8 +14,8 @@
 
 __EXTERN_C
 
-void dctx_init(DCtx *ctx);
+void _dctx_init(DCtx *ctx);
 
-void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian);
+void _dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian);
 
 __END_C

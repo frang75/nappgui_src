@@ -33,10 +33,11 @@
 /*---------------------------------------------------------------------------*/
 
 #define HALF_PI 1.57079632679
+#define TWO_PI 6.28318530718
 
 /*---------------------------------------------------------------------------*/
 
-void draw_alloc_globals(void)
+void _draw_alloc_globals(void)
 {
     /* This for 'gtk_settings_get_default' works
     Used in osfont::i_default_font()
@@ -45,13 +46,13 @@ void draw_alloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_dealloc_globals(void)
+void _draw_dealloc_globals(void)
 {
 }
 
 /*---------------------------------------------------------------------------*/
 
-void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
+void _draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
 {
     unref(data);
     unref(word);
@@ -84,11 +85,11 @@ static void i_set_real2d_mode(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
+void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster)
 {
     gdouble nx = (gdouble)x;
     gdouble ny = (gdouble)y;
-    const GdkPixbuf *pixbuf = osimage_pixbuf(image, frame_index);
+    const GdkPixbuf *pixbuf = _osimage_pixbuf(image, frame_index);
 
     cassert_no_null(ctx);
     if (raster != ctx->raster_mode)
@@ -185,12 +186,10 @@ static ___INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_p
     case ekFILL_SOLID:
         i_color(cairo, fill_color, source_color);
         break;
-
     case ekFILL_LINEAR:
         cairo_set_source(cairo, lpattern);
         *source_color = 0;
         break;
-
         cassert_default();
     }
 }
@@ -432,7 +431,7 @@ void draw_circle(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t 
     cassert_no_null(ctx);
     if (ctx->raster_mode == TRUE)
         i_set_real2d_mode(ctx);
-    cairo_arc(ctx->cairo, (double)x, (double)y, (double)radius, 0, 6.28318530718);
+    cairo_arc(ctx->cairo, (double)x, (double)y, (double)radius, 0, TWO_PI);
     i_draw(ctx, op);
 }
 
@@ -447,7 +446,7 @@ void draw_ellipse(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t
         i_set_real2d_mode(ctx);
     cairo_save(ctx->cairo);
     cairo_scale(ctx->cairo, 1, dy);
-    cairo_arc(ctx->cairo, (double)x, ny, (double)radx, 0, 6.28318530718);
+    cairo_arc(ctx->cairo, (double)x, ny, (double)radx, 0, TWO_PI);
     cairo_restore(ctx->cairo);
     i_draw(ctx, op);
 }
@@ -559,7 +558,7 @@ void draw_font(DCtx *ctx, const Font *font)
 
         if (ctx->layout != NULL)
         {
-            const PangoFontDescription *fdesc = (PangoFontDescription *)font_native(ctx->font);
+            const PangoFontDescription *fdesc = cast(font_native(ctx->font), PangoFontDescription);
             pango_layout_set_font_description(ctx->layout, fdesc);
         }
     }
@@ -587,15 +586,15 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         const PangoFontDescription *fdesc = NULL;
         cairo_matrix_t matrix;
         cassert(ctx->font != NULL);
-        fdesc = (PangoFontDescription *)font_native(ctx->font);
+        fdesc = cast(font_native(ctx->font), PangoFontDescription);
         /*
-        * Caution! If cairo context has rotations/scales in its transform matrix
-        * they will inherited in PangoContext matrix, warping the text.
-        * All text transforms are managed by cairo matrix.
-        * PangoLayout MUST avoid rotations/scales in its PangoContext matrix.
-        * Important: Never use 'pango_cairo_update_layout()'
-        * Additionally, PangoLayout does not correctly handle text scaling.
-        */
+         * Caution! If cairo context has rotations/scales in its transform matrix
+         * they will inherited in PangoContext matrix, warping the text.
+         * All text transforms are managed by cairo matrix.
+         * PangoLayout MUST avoid rotations/scales in its PangoContext matrix.
+         * Important: Never use 'pango_cairo_update_layout()'
+         * Additionally, PangoLayout does not correctly handle text scaling.
+         */
         cairo_get_matrix(ctx->cairo, &matrix);
         cairo_set_matrix(ctx->cairo, &ctx->origin);
         ctx->layout = pango_cairo_create_layout(ctx->cairo);

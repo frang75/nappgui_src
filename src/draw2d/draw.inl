@@ -14,12 +14,12 @@
 
 __EXTERN_C
 
-void draw_alloc_globals(void);
+void _draw_alloc_globals(void);
 
-void draw_dealloc_globals(void);
+void _draw_dealloc_globals(void);
 
-void draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height);
+void _draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height);
 
-void draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster);
+void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, const real32_t x, const real32_t y, const bool_t raster);
 
 __END_C

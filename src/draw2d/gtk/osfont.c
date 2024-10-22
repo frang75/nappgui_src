@@ -63,7 +63,7 @@ void osfont_dealloc_globals(void)
 static const char_t *i_monospace_font_family(void)
 {
     const char_t *desired_fonts[] = {"Ubuntu Mono", "DejaVu Sans Mono", "Courier New"};
-    return draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
+    return _draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -159,7 +159,7 @@ void osfont_destroy(OSFont **font)
 {
     cassert_no_null(font);
     cassert_no_null(*font);
-    pango_font_description_free(*cast(font, PangoFontDescription *));
+    pango_font_description_free(*dcast(font, PangoFontDescription));
     heap_auditor_delete("PangoFontDescription");
     *font = NULL;
 }
@@ -242,7 +242,7 @@ void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xsca
     {
         real32_t width, height;
         uint32_t len;
-        const char_t *str = draw2d_str_avg_char_width(&len);
+        const char_t *str = _draw2d_str_avg_char_width(&len);
         osfont_extents(font, str, xscale, -1, &width, &height);
 
         if (leading != NULL)

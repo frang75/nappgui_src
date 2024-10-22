@@ -70,7 +70,7 @@ static ___INLINE void i_osfont(Font *font)
     cassert_no_null(font);
     if (font->osfont == NULL)
     {
-        const char_t *fname = draw2d_font_family(font->family);
+        const char_t *fname = _draw2d_font_family(font->family);
         font->osfont = osfont_create(fname, font->size, -1, -1, font->style);
     }
 }
@@ -112,7 +112,7 @@ void font_destroy(Font **font)
 
 Font *font_create(const char_t *family, const real32_t size, const uint32_t style)
 {
-    uint32_t ffamily = draw2d_register_font(family);
+    uint32_t ffamily = _draw2d_register_font(family);
     return i_create_font(ffamily, size, style);
 }
 
@@ -158,7 +158,7 @@ Font *font_with_width(const Font *font, const real32_t width)
     font_scaled = i_create_font(font_nscaled->family, font_nscaled->size, font_nscaled->style);
     font_scaled->xscale = width / font_nscaled->avg_width;
     cassert(font_scaled->osfont == NULL);
-    fname = draw2d_font_family(font_scaled->family);
+    fname = _draw2d_font_family(font_scaled->family);
     font_scaled->osfont = osfont_create(fname, font_scaled->size, width, font_scaled->xscale, font_scaled->style);
 
     if (font_nscaled != font)
@@ -189,7 +189,7 @@ Font *font_with_xscale(const Font *font, const real32_t scale)
     font_scaled->xscale = scale;
     width = font_nscaled->avg_width * scale;
     cassert(font_scaled->osfont == NULL);
-    fname = draw2d_font_family(font_scaled->family);
+    fname = _draw2d_font_family(font_scaled->family);
     font_scaled->osfont = osfont_create(fname, font_scaled->size, width, font_scaled->xscale, font_scaled->style);
 
     if (font_nscaled != font)

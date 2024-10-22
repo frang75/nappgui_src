@@ -68,7 +68,7 @@ void image_destroy(Image **image)
         (*image)->num_instances = 0;
 
         if ((*image)->frame_length != NULL)
-            heap_free((byte_t **)&(*image)->frame_length, (*image)->num_frames * sizeof32(real32_t), "ImageFrames");
+            heap_free(dcast(&(*image)->frame_length, byte_t), (*image)->num_frames * sizeof32(real32_t), "ImageFrames");
 
         if ((*image)->data != NULL)
         {
@@ -139,7 +139,7 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
 
         if (cpalette == NULL)
         {
-            defpal = imgutil_def_palette(format);
+            defpal = _imgutil_def_palette(format);
             cpalette = palette_ccolors(defpal);
         }
         else
@@ -150,11 +150,11 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
         }
 
         if (alpha_palette == TRUE)
-            rgb_pixels = imgutil_indexed_to_rgba(width, height, data, 0, bpp, cpalette);
+            rgb_pixels = _imgutil_indexed_to_rgba(width, height, data, 0, bpp, cpalette);
         else if (gray_palette == TRUE)
-            rgb_pixels = imgutil_indexed_to_gray(width, height, data, 0, bpp, cpalette);
+            rgb_pixels = _imgutil_indexed_to_gray(width, height, data, 0, bpp, cpalette);
         else
-            rgb_pixels = imgutil_indexed_to_rgb(width, height, data, 0, bpp, cpalette);
+            rgb_pixels = _imgutil_indexed_to_rgb(width, height, data, 0, bpp, cpalette);
 
         ptr_destopt(palette_destroy, &defpal, Palette);
         break;
@@ -406,8 +406,8 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
     }
     else
     {
-        ((Image *)image)->num_instances += 1;
-        return (Image *)image;
+        cast(image, Image)->num_instances += 1;
+        return cast(image, Image);
     }
 }
 
@@ -420,7 +420,7 @@ Image *image_read(Stream *stm)
         const byte_t *data = stm_buffer(stm);
         uint64_t st = stm_bytes_readed(stm);
 
-        if (imgutil_parse(stm, NULL) == TRUE)
+        if (_imgutil_parse(stm, NULL) == TRUE)
         {
             uint64_t ed = stm_bytes_readed(stm);
             return image_from_data(data, (uint32_t)(ed - st));
@@ -434,7 +434,7 @@ Image *image_read(Stream *stm)
     {
         Image *image = NULL;
         Stream *stm_out = stm_memory(4096);
-        if (imgutil_parse(stm, stm_out) == TRUE)
+        if (_imgutil_parse(stm, stm_out) == TRUE)
         {
             const byte_t *data = stm_buffer(stm_out);
             uint32_t size = stm_buffer_size(stm_out);
@@ -516,39 +516,6 @@ Pixbuf *image_pixels(const Image *image, const pixformat_t format)
     }
 
     return pixels;
-    /*     if (pixels != NULL)
-        {
-           pixformat_t rformat = pixbuf_format(*pixels);
-
-           if (format == ekOPTIMAL)
-           {
-               if (rformat == ekRGB24 || rformat == ekRGBA32)
-               {
-                   Pixbuf *npixels = NULL;
-                   cassert(palette == NULL || *palette == NULL);
-                   npixels = imgutil_to_indexed(pixbuf_width(*pixels), pixbuf_height(*pixels), pixbuf_data(*pixels), rformat == ekRGB24 ? 3 : 4, palette);
-                   if (npixels != NULL)
-                   {
-                       pixbuf_destroy(pixels);
-                       *pixels = npixels;
-                   }
-               }
-           }
-           else if (format == ekFIMAGE)
-           {
-               // Keep the image original format
-           }
-           else if (format != rformat)
-           {
-               Pixbuf *npixels = pixbuf_convert(*pixels, palette != NULL ? *palette : NULL, format);
-               if (npixels != NULL)
-               {
-                   pixbuf_destroy(pixels);
-                   *pixels = npixels;
-               }
-           }
-        }
-     */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -558,7 +525,7 @@ bool_t image_codec(const Image *image, const codec_t codec)
     cassert_no_null(image);
     if (osimage_available_codec(image->osimage, codec) == TRUE)
     {
-        ((Image *)image)->codec = codec;
+        cast(image, Image)->codec = codec;
         return TRUE;
     }
 
@@ -585,7 +552,7 @@ static void i_frames(Image *image)
     if (image->num_frames > 1)
     {
         uint32_t i = 0;
-        image->frame_length = (real32_t *)heap_malloc(image->num_frames * sizeof32(real32_t), "ImageFrames");
+        image->frame_length = cast(heap_malloc(image->num_frames * sizeof32(real32_t), "ImageFrames"), real32_t);
         for (i = 0; i < image->num_frames; ++i)
             osimage_frame(image->osimage, i, image->frame_length + i);
     }
@@ -597,7 +564,7 @@ uint32_t image_num_frames(const Image *image)
 {
     cassert_no_null(image);
     if (image->num_frames == 0)
-        i_frames((Image *)image);
+        i_frames(cast(image, Image));
     return image->num_frames;
 }
 
@@ -607,7 +574,7 @@ real32_t image_frame_length(const Image *image, const uint32_t findex)
 {
     cassert_no_null(image);
     if (image->num_frames == 0)
-        i_frames((Image *)image);
+        i_frames(cast(image, Image));
     cassert(findex < image->num_frames);
     return image->frame_length[findex];
 }
@@ -662,7 +629,7 @@ Image *dctx_image(DCtx **ctx)
 void draw_image(DCtx *ctx, const Image *image, const real32_t x, const real32_t y)
 {
     cassert_no_null(image);
-    draw_imgimp(ctx, image->osimage, UINT32_MAX, x, y, FALSE);
+    _draw_imgimp(ctx, image->osimage, UINT32_MAX, x, y, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -670,5 +637,5 @@ void draw_image(DCtx *ctx, const Image *image, const real32_t x, const real32_t 
 void draw_image_frame(DCtx *ctx, const Image *image, const uint32_t frame, const real32_t x, const real32_t y)
 {
     cassert_no_null(image);
-    draw_imgimp(ctx, image->osimage, frame, x, y, FALSE);
+    _draw_imgimp(ctx, image->osimage, frame, x, y, FALSE);
 }

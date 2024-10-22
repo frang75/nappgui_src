@@ -111,10 +111,10 @@ void dctx_destroy(DCtx **ctx)
 
 void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
 {
-    void **context = (void **)gcontext;
+    void **context = dcast(gcontext, void);
     cassert_no_null(ctx);
     cassert(ctx->graphics == NULL);
-    ctx->graphics = (Gdiplus::Graphics *)context[0];
+    ctx->graphics = cast(context[0], Gdiplus::Graphics);
     ctx->hdc = (HDC)context[1];
     ctx->background_color = background;
     ctx->width = width;
@@ -123,7 +123,7 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     ctx->offset_y = (Gdiplus::REAL)offset_y;
     ctx->gdi_mode = FALSE;
     if (reset == TRUE)
-        dctx_init(ctx);
+        _dctx_init(ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -290,13 +290,13 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     ctx->gradient_matrix = new Gdiplus::Matrix;
     ctx->bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, pf);
     ctx->graphics = new Gdiplus::Graphics(ctx->bitmap);
-    dctx_init(ctx);
+    _dctx_init(ctx);
     return ctx;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
+void _dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
 {
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);

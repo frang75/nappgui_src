@@ -116,7 +116,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, PixelFormat8bppIndexed);
         bitmap->LockBits(NULL, Gdiplus::ImageLockModeWrite, PixelFormat8bppIndexed, &bdata);
         stride = bdata.Stride - width;
-        dest_data = (byte_t *)bdata.Scan0;
+        dest_data = cast(bdata.Scan0, byte_t);
         for (j = 0; j < height; ++j)
         {
             for (i = 0; i < width; ++i)
@@ -164,7 +164,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         {
             for (i = 0; i < width; ++i)
             {
-                *(uint32_t *)dest_data = ARGB(pixel_data[0], pixel_data[1], pixel_data[2], pixel_data[3]);
+                *cast(dest_data, uint32_t) = ARGB(pixel_data[0], pixel_data[1], pixel_data[2], pixel_data[3]);
                 dest_data += 4;
                 pixel_data += 4;
             }
@@ -198,7 +198,7 @@ OSImage *osimage_create_from_data(const byte_t *data, const uint32_t size_in_byt
     Gdiplus::Bitmap *bitmap = NULL;
     cassert_no_null(data);
     cassert(size_in_bytes > 0);
-    stream = i_kSHCreateMemStream((const BYTE *)data, (UINT)size_in_bytes);
+    stream = i_kSHCreateMemStream(cast_const(data, BYTE), (UINT)size_in_bytes);
     bitmap = Gdiplus::Bitmap::FromStream(stream, TRUE);
     stream->Release();
 
@@ -219,12 +219,12 @@ OSImage *osimage_create_from_type(const char_t *file_type)
 
     if (strcmp(file_type, ".") == 0)
     {
-        num_bytes = unicode_convers("\fdsfg", (char_t *)wextension, ekUTF8, ekUTF16, sizeof(wextension));
+        num_bytes = unicode_convers("\fdsfg", cast(wextension, char_t), ekUTF8, ekUTF16, sizeof(wextension));
         dwFileAttributes = FILE_ATTRIBUTE_DIRECTORY;
     }
     else
     {
-        num_bytes = unicode_convers(file_type, (char_t *)wextension, ekUTF8, ekUTF16, sizeof(wextension));
+        num_bytes = unicode_convers(file_type, cast(wextension, char_t), ekUTF8, ekUTF16, sizeof(wextension));
         dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
     }
 
@@ -391,7 +391,7 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
 
         for (i = 0; i < pal->Count; ++i)
         {
-            _ARGB *argb = (_ARGB *)(pal->Entries + i);
+            _ARGB *argb = cast(pal->Entries + i, _ARGB);
             color[i] = color_rgba(argb->r, argb->g, argb->b, argb->a);
         }
 
@@ -414,13 +414,13 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
         switch (*format)
         {
         case ekGRAY8:
-            *pixels = imgutil_indexed_to_gray((uint32_t)data.Width, (uint32_t)data.Height, (const byte_t *)data.Scan0, (uint32_t)data.Stride, ibpp, color);
+            *pixels = _imgutil_indexed_to_gray((uint32_t)data.Width, (uint32_t)data.Height, cast_const(data.Scan0, byte_t), (uint32_t)data.Stride, ibpp, color);
             break;
         case ekRGB24:
-            *pixels = imgutil_indexed_to_rgb((uint32_t)data.Width, (uint32_t)data.Height, (const byte_t *)data.Scan0, (uint32_t)data.Stride, ibpp, color);
+            *pixels = _imgutil_indexed_to_rgb((uint32_t)data.Width, (uint32_t)data.Height, cast_const(data.Scan0, byte_t), (uint32_t)data.Stride, ibpp, color);
             break;
         case ekRGBA32:
-            *pixels = imgutil_indexed_to_rgba((uint32_t)data.Width, (uint32_t)data.Height, (const byte_t *)data.Scan0, (uint32_t)data.Stride, ibpp, color);
+            *pixels = _imgutil_indexed_to_rgba((uint32_t)data.Width, (uint32_t)data.Height, cast_const(data.Scan0, byte_t), (uint32_t)data.Stride, ibpp, color);
             break;
 
         case ekINDEX1:
@@ -435,7 +435,7 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
         palette_destroy(&palette);
     }
 
-    heap_free((byte_t **)&pal, (uint32_t)psize, "ImageImpPalette");
+    heap_free(dcast(&pal, byte_t), (uint32_t)psize, "ImageImpPalette");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -449,7 +449,7 @@ static bool_t i_rgb_is_gray(Gdiplus::Bitmap *bitmap, const uint32_t bpp)
     UINT i, j;
 
     bitmap->LockBits(NULL, Gdiplus::ImageLockModeRead, pf, &data);
-    src = (const byte_t *)data.Scan0;
+    src = cast_const(data.Scan0, byte_t);
 
     for (j = 0; j < data.Height && gray == TRUE; ++j)
     {
@@ -484,7 +484,7 @@ static bool_t i_rgba_has_alpha(Gdiplus::Bitmap *bitmap)
 
     cassert(pf == PixelFormat32bppARGB);
     bitmap->LockBits(NULL, Gdiplus::ImageLockModeRead, pf, &data);
-    src = (const byte_t *)data.Scan0;
+    src = cast_const(data.Scan0, byte_t);
 
     for (j = 0; j < data.Height && alpha == FALSE; ++j)
     {
@@ -521,7 +521,7 @@ static Pixbuf *i_rgb24_pixels(Gdiplus::Bitmap *bitmap, const pixformat_t format)
     cassert(format == ekGRAY8 || format == ekRGB24);
     bitmap->LockBits(NULL, Gdiplus::ImageLockModeRead, pf, &data);
     pixels = pixbuf_create((uint32_t)data.Width, (uint32_t)data.Height, format);
-    src = (const byte_t *)data.Scan0;
+    src = cast_const(data.Scan0, byte_t);
     dest = pixbuf_data(pixels);
 
     if (format == ekRGB24)
@@ -575,7 +575,7 @@ static Pixbuf *i_rgba32_pixels(Gdiplus::Bitmap *bitmap, const pixformat_t format
 
     bitmap->LockBits(NULL, Gdiplus::ImageLockModeRead, pf, &data);
     pixels = pixbuf_create((uint32_t)data.Width, (uint32_t)data.Height, format);
-    src = (const byte_t *)data.Scan0;
+    src = cast_const(data.Scan0, byte_t);
     dest = pixbuf_data(pixels);
 
     if (format == ekRGBA32)
@@ -584,7 +584,7 @@ static Pixbuf *i_rgba32_pixels(Gdiplus::Bitmap *bitmap, const pixformat_t format
         {
             for (i = 0; i < data.Width; ++i)
             {
-                *((uint32_t *)dest) = ABGR(src[2], src[1], src[0], src[3]);
+                *cast(dest, uint32_t) = ABGR(src[2], src[1], src[0], src[3]);
                 src += 4;
                 dest += 4;
             }
@@ -721,7 +721,7 @@ static bool_t i_get_encoder(const codec_t codec, CLSID *clsid)
         Gdiplus::GetImageEncodersSize(&num, &size);
         if (size != 0)
         {
-            Gdiplus::ImageCodecInfo *pImageCodecInfo = (Gdiplus::ImageCodecInfo *)heap_malloc((uint32_t)size, "ImageImpEncoder");
+            Gdiplus::ImageCodecInfo *pImageCodecInfo = cast(heap_malloc((uint32_t)size, "ImageImpEncoder"), Gdiplus::ImageCodecInfo);
             Gdiplus::GetImageEncoders(num, size, pImageCodecInfo);
             for (UINT i = 0; i < num; ++i)
             {
@@ -733,7 +733,7 @@ static bool_t i_get_encoder(const codec_t codec, CLSID *clsid)
                 }
             }
 
-            heap_free((byte_t **)&pImageCodecInfo, (uint32_t)size, "ImageImpEncoder");
+            heap_free(dcast(&pImageCodecInfo, byte_t), (uint32_t)size, "ImageImpEncoder");
         }
     }
 

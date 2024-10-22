@@ -88,7 +88,7 @@ static const char_t *i_monospace_font_family(void)
     if (i_MONOSPACE_FONT_FAMILY == NULL)
     {
         const char_t *desired_fonts[] = {"SF Mono", "Menlo", "Monaco", "Andale Mono", "Courier New"};
-        const char_t *monofont = draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
+        const char_t *monofont = _draw2d_monospace_family(desired_fonts, sizeof(desired_fonts) / sizeof(const char_t *));
         i_MONOSPACE_FONT_FAMILY = str_c(monofont);
     }
 
@@ -170,7 +170,7 @@ static NSFont *i_nsfont(const char_t *family, const real32_t size, const uint32_
     {
         /* From Catalina, we have a system predefined monospace font */
 #if defined(MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
-        if (draw2d_get_preferred_monospace() == NULL)
+        if (_draw2d_get_preferred_monospace() == NULL)
         {
             if (style & ekFBOLD)
                 nsfont = [NSFont monospacedSystemFontOfSize:(CGFloat)size weight:NSFontWeightBold];
@@ -239,7 +239,7 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t 
         [nsfont retain];
     }
 
-    return (OSFont *)nsfont;
+    return cast(nsfont, OSFont);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -311,7 +311,7 @@ void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xsca
     {
         real32_t width, height;
         uint32_t len;
-        const char_t *str = draw2d_str_avg_char_width(&len);
+        const char_t *str = _draw2d_str_avg_char_width(&len);
         osfont_extents(font, str, xscale, -1, &width, &height);
 
         if (leading != NULL)
@@ -342,7 +342,7 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscal
     objects[0] = cast(font, NSFont);
     keys[0] = NSFontAttributeName;
     data.dict = [NSDictionary dictionaryWithObjects:objects forKeys:keys count:count];
-    draw2d_extents(&data, draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
+    _draw2d_extents(&data, _draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
 }
 
 /*---------------------------------------------------------------------------*/

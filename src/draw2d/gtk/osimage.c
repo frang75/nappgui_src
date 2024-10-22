@@ -248,7 +248,7 @@ static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint3
 
 static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
 {
-    stm_write((Stream *)stream, (const byte_t *)data, (uint32_t)size);
+    stm_write(cast(stream, Stream), cast_const(data, byte_t), (uint32_t)size);
     unref(error);
     return TRUE;
 }
@@ -312,7 +312,7 @@ OSImage *osimage_create_from_data(const byte_t *data, const uint32_t size)
     }
     else
     {
-        uint32_t num_frames = imgutil_num_frames(data, size);
+        uint32_t num_frames = _imgutil_num_frames(data, size);
         if (num_frames == 1)
             image = i_single_osimage_from_data(data, size);
         else
@@ -358,10 +358,8 @@ OSImage *osimage_from_context(DCtx **ctx)
 {
     gint w, h;
     GdkPixbuf *pixbuf = NULL;
-
     cassert_no_null(ctx);
     cassert_no_null(*ctx);
-
     w = cairo_image_surface_get_width((*ctx)->surface);
     h = cairo_image_surface_get_height((*ctx)->surface);
     pixbuf = gdk_pixbuf_get_from_surface((*ctx)->surface, 0, 0, w, h);
@@ -388,7 +386,6 @@ OSImage *osimage_from_context(DCtx **ctx)
     }
 
     dctx_destroy(ctx);
-
     return i_osimage(pixbuf);
 }
 
@@ -815,12 +812,12 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
 
 const void *osimage_native(const OSImage *image)
 {
-    return (const void *)osimage_pixbuf(image, 0);
+    return cast_const(_osimage_pixbuf(image, 0), void);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const GdkPixbuf *osimage_pixbuf(const OSImage *image, const uint32_t frame_index)
+const GdkPixbuf *_osimage_pixbuf(const OSImage *image, const uint32_t frame_index)
 {
     cassert_no_null(image);
     if (image->pixbuf != NULL)

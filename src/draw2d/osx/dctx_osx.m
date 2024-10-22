@@ -113,13 +113,13 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     unref(background);
     ctx->width = width;
     ctx->height = height;
-    ctx->context = i_CGContext((NSGraphicsContext *)gcontext);
+    ctx->context = i_CGContext(cast(gcontext, NSGraphicsContext));
     CGContextSaveGState(ctx->context);
     CGContextTranslateCTM(ctx->context, -(CGFloat)offset_x, -(CGFloat)offset_y);
     ctx->origin = CGContextGetCTM(ctx->context);
     ctx->raster_mode = FALSE;
     if (reset == TRUE)
-        dctx_init(ctx);
+        _dctx_init(ctx);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -310,13 +310,13 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     ctx->gradient_matrix = CGAffineTransformIdentity;
     CGContextConcatCTM(ctx->context, ctx->origin);
     i_init_text_attr(ctx);
-    dctx_init(ctx);
+    _dctx_init(ctx);
     return ctx;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
+void _dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
 {
     CGAffineTransform transform;
     cassert_no_null(ctx);
