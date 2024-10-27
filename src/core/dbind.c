@@ -1854,7 +1854,7 @@ static bool_t i_read_value(Stream *stm, DBind *dbind, dtype_t type, const char_t
 
     case ekDTYPE_OBJECT_PTR:
         cassert_msg(i_find_stbind(subtype, NULL) != NULL, "DBind unknown struct type");
-        cassert(*(void **)data == NULL);
+        cassert(*dcast(data, void) == NULL);
         *dcast(data, void) = dbind_create_imp(subtype);
         return i_read_object(stm, subtype, *dcast(data, void));
 

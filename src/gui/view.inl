@@ -14,9 +14,9 @@
 
 __EXTERN_C
 
-void view_add_transition(View *view, Listener *listener);
+void _view_add_transition(View *view, Listener *listener);
 
-void view_delete_transition(View *view);
+void _view_delete_transition(View *view);
 
 View *_view_create(const uint32_t flags);
 
@@ -34,11 +34,11 @@ Cell *_view_cell(View *view);
 
 void *_view_get_native_imp(View *view);
 
-void view_OnEmpty(View *view, FPtr_gctx_call func_empty);
+void _view_OnEmpty(View *view, FPtr_gctx_call func_empty);
 
-void view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32);
+void _view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32);
 
-void view_OnImage(View *view, FPtr_set_image func_image);
+void _view_OnImage(View *view, FPtr_set_image func_image);
 
 void _view_empty(View *view);
 

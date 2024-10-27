@@ -174,9 +174,9 @@ static void i_OnClick(Button *button, Event *event)
     {
         cassert(params->text == NULL);
         if (button_get_type(button->flags) == ekBUTTON_FLATGLE && params->state == ekGUI_ON && button->talt != NULL)
-            ((EvButton *)params)->text = tc(button->talt);
+            params->text = tc(button->talt);
         else
-            ((EvButton *)params)->text = tc(button->text);
+            params->text = tc(button->text);
 
         listener_pass_event(sender->OnClick, event, sender, Button);
     }
@@ -395,8 +395,8 @@ real32_t button_get_height(const Button *button)
 {
     real32_t width, height;
     cassert_no_null(button);
-    _button_dimension((Button *)button, 0, &width, &height);
-    _button_dimension((Button *)button, 1, &width, &height);
+    _button_dimension(cast(button, Button), 0, &width, &height);
+    _button_dimension(cast(button, Button), 1, &width, &height);
     return height;
 }
 

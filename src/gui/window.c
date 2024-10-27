@@ -103,7 +103,7 @@ set to NULL (Desktop HWND) when is detached from this window. */
     listener_destroy(&(*window)->OnMoved);
     listener_destroy(&(*window)->OnResize);
     listener_destroy(&(*window)->OnClose);
-    guictx_release((GuiCtx **)(&(*window)->context));
+    guictx_release(dcast(&(*window)->context, GuiCtx));
     obj_delete(window, Window);
 }
 
@@ -595,7 +595,7 @@ gui_focus_t window_previous_tabstop(Window *window)
 
 gui_focus_t window_focus(Window *window, GuiControl *control)
 {
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     cassert_no_null(component);
     cassert_no_null(component->context);
     return (gui_focus_t)component->context->func_window_set_focus(window->ositem, component->ositem);
@@ -617,7 +617,7 @@ GuiControl *window_get_focus(Window *window)
         component = _panel_find_component(main_panel, ositem);
     }
 
-    return (GuiControl *)component;
+    return cast(component, GuiControl);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -633,7 +633,7 @@ void window_focus_info(const Window *window, FocusInfo *info)
     if (next != NULL)
     {
         Panel *panel = i_main_panel(window);
-        info->next = (GuiControl *)_panel_find_component(panel, next);
+        info->next = cast(_panel_find_component(panel, next), GuiControl);
         cassert_no_null(info->next);
     }
     else
@@ -815,7 +815,7 @@ static bool_t i_in_active_layout(const Window *window, const GuiComponent *compo
 R2Df window_control_frame(const Window *window, const GuiControl *control)
 {
     R2Df r2d;
-    GuiComponent *component = (GuiComponent *)control;
+    GuiComponent *component = cast(control, GuiComponent);
     Cell *cell = NULL;
     cassert_no_null(window);
     cassert_no_null(component);
@@ -831,7 +831,7 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
         Panel *panel = _layout_panel(layout);
         if (panel != NULL)
         {
-            GuiComponent *panel_component = (GuiComponent *)panel;
+            GuiComponent *panel_component = cast(panel, GuiComponent);
             _component_get_origin(panel_component, &panel_pos);
             r2d.pos.x += panel_pos.x;
             r2d.pos.y += panel_pos.y;
@@ -866,7 +866,7 @@ void window_defbutton(Window *window, Button *button)
     if (button != NULL)
     {
         cassert(_button_is_pushbutton(button) == TRUE);
-        window->context->func_window_set_default_pushbutton(window->ositem, ((GuiComponent *)button)->ositem);
+        window->context->func_window_set_default_pushbutton(window->ositem, cast(button, GuiComponent)->ositem);
     }
     else
     {

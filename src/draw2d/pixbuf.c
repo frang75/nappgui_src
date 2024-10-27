@@ -64,7 +64,7 @@ static const FPtr_set i_SET[] = {
 
 /*---------------------------------------------------------------------------*/
 
-#define i_DATA(pixbuf) ((byte_t *)(pixbuf) + sizeof(Pixbuf))
+#define i_DATA(pixbuf) (cast(pixbuf, byte_t) + sizeof(Pixbuf))
 
 /*---------------------------------------------------------------------------*/
 

@@ -195,7 +195,7 @@ static ___INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
 {
 #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 14))
-    GInputStream *stream = g_memory_input_stream_new_from_data((const void *)data, (gssize)size, NULL);
+    GInputStream *stream = g_memory_input_stream_new_from_data(cast_const(data, void), (gssize)size, NULL);
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_stream(stream, NULL, NULL);
     gboolean ok = g_input_stream_close(stream, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
@@ -221,7 +221,7 @@ static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
 static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint32_t size)
 {
 #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 28))
-    GInputStream *stream = g_memory_input_stream_new_from_data((const void *)data, (gssize)size, NULL);
+    GInputStream *stream = g_memory_input_stream_new_from_data(cast_const(data, void), (gssize)size, NULL);
     GdkPixbufAnimation *animation = gdk_pixbuf_animation_new_from_stream(stream, NULL, NULL);
     gboolean ok = g_input_stream_close(stream, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
@@ -665,7 +665,7 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
     {
         pixformat_t lformat = ENUM_MAX(pixformat_t);
         const GdkPixbuf *pixbuf = i_image_pixbuf(image);
-        const byte_t *buffer = (const byte_t *)gdk_pixbuf_get_pixels(pixbuf);
+        const byte_t *buffer = cast_const(gdk_pixbuf_get_pixels(pixbuf), byte_t);
         uint32_t w = gdk_pixbuf_get_width(pixbuf);
         uint32_t h = gdk_pixbuf_get_height(pixbuf);
         uint32_t bits_per_pixel = gdk_pixbuf_get_n_channels(pixbuf) * 8;

@@ -31,6 +31,6 @@ const char_t *_draw2d_str_avg_char_width(uint32_t *len);
 __END_C
 
 #define _draw2d_extents(data, func_word_extents, newlines, str, refwidth, width, height, type) \
-    ((void)((type *)(data) == (data)), \
+    ((void)(cast(data, type) == (data)), \
      FUNC_CHECK_WORD_EXTENTS(func_word_extents, type), \
-     _draw2d_extents_imp((void *)data, (FPtr_word_extents)func_word_extents, newlines, str, refwidth, width, height))
+     _draw2d_extents_imp(cast(data, void), (FPtr_word_extents)func_word_extents, newlines, str, refwidth, width, height))

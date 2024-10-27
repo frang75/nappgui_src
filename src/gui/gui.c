@@ -122,7 +122,7 @@ static void i_remove_transition(Transition *transition)
 static void i_remove_curicon(CurIcon *cursor)
 {
     cassert_no_null(cursor);
-    i_FUNC_DESTROY_CURSOR((void **)&cursor->cursor);
+    i_FUNC_DESTROY_CURSOR(dcast(&cursor->cursor, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -458,7 +458,7 @@ bool_t evbind_modify_imp(Event *e, const char_t *type, const uint16_t size, cons
 {
     const EvBind *p = event_params(e, EvBind);
     if (p->obj_notify != NULL)
-        return gbind_modify_data(p->obj_notify, type, size, mname, mtype, moffset, msize, p);
+        return _gbind_modify_data(p->obj_notify, type, size, mname, mtype, moffset, msize, p);
 
     return FALSE;
 }

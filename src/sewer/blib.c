@@ -245,7 +245,7 @@ void blib_qsort(byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_
 void blib_qsort_ex(const byte_t *array, const uint32_t nelems, const uint32_t size, FPtr_compare_ex func_compare, const byte_t *data)
 {
     cassert_no_nullf(func_compare);
-    _qsort_ex(cast_const(array, void), nelems, size, func_compare, (const void *)data);
+    _qsort_ex(cast_const(array, void), nelems, size, func_compare, cast_const(data, void));
 }
 
 /*---------------------------------------------------------------------------*/

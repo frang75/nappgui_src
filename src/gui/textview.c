@@ -69,15 +69,15 @@ TextView *textview_create(void)
     cassert_no_null(context);
     ositem = context->func_create[ekGUI_TYPE_TEXTVIEW](ekTEXT_FLAG);
     view->size = s2df(256, 144);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_FAMILY, (const void *)family);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_UNITS, (const void *)&units);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_SIZE, (const void *)&size);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_STYLE, (const void *)&fstyle);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_PARALIGN, (void *)&palign);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_LSPACING, (void *)&lspacing);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_BFPARSPACE, (void *)&bfpspace);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_AFPARSPACE, (void *)&afpspace);
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_APPLY_ALL, (void *)&non_used);
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_FAMILY, cast_const(family, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_UNITS, cast_const(&units, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_SIZE, cast_const(&size, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_STYLE, cast_const(&fstyle, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_PARALIGN, cast(&palign, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_LSPACING, cast(&lspacing, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_BFPARSPACE, cast(&bfpspace, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_AFPARSPACE, cast(&afpspace, void));
+    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_APPLY_ALL, cast(&non_used, void));
     _component_init(&view->component, context, PARAM(type, ekGUI_TYPE_TEXTVIEW), &ositem);
     context->func_text_OnFocus(view->component.ositem, obj_listener(view, i_OnFocus, TextView));
     font_destroy(&font);
@@ -218,7 +218,7 @@ void textview_units(TextView *view, const uint32_t units)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_UNITS, (const void *)&units);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_UNITS, cast_const(&units, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,7 +228,7 @@ void textview_family(TextView *view, const char_t *family)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_FAMILY, (const void *)family);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_FAMILY, cast_const(family, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -238,7 +238,7 @@ void textview_fsize(TextView *view, const real32_t size)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SIZE, (const void *)&size);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SIZE, cast_const(&size, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -248,7 +248,7 @@ void textview_fstyle(TextView *view, const uint32_t fstyle)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_STYLE, (const void *)&fstyle);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_STYLE, cast_const(&fstyle, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -258,7 +258,7 @@ void textview_color(TextView *view, const color_t color)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_COLOR, (void *)&color);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_COLOR, cast(&color, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -268,7 +268,7 @@ void textview_bgcolor(TextView *view, const color_t color)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_BGCOLOR, (void *)&color);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_BGCOLOR, cast(&color, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -278,7 +278,7 @@ void textview_pgcolor(TextView *view, const color_t color)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_PGCOLOR, (void *)&color);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_PGCOLOR, cast(&color, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -288,7 +288,7 @@ void textview_halign(TextView *view, const align_t align)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_PARALIGN, (void *)&align);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_PARALIGN, cast(&align, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -298,7 +298,7 @@ void textview_lspacing(TextView *view, const real32_t scale)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_LSPACING, (void *)&scale);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_LSPACING, cast(&scale, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -308,7 +308,7 @@ void textview_bfspace(TextView *view, const real32_t space)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_BFPARSPACE, (void *)&space);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_BFPARSPACE, cast(&space, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -318,7 +318,7 @@ void textview_afspace(TextView *view, const real32_t space)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_AFPARSPACE, (void *)&space);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_AFPARSPACE, cast(&space, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -329,7 +329,7 @@ void textview_apply_all(TextView *view)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_APPLY_ALL, (void *)&nonused);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_APPLY_ALL, cast(&nonused, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -340,7 +340,7 @@ void textview_apply_sel(TextView *view)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_APPLY_SEL, (void *)&nonused);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_APPLY_SEL, cast(&nonused, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -373,7 +373,7 @@ void textview_select(TextView *view, const int32_t start, const int32_t end)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SELECT, (void *)range);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SELECT, cast(range, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -383,7 +383,7 @@ void textview_show_select(TextView *view, const bool_t show)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SHOW_SELECT, (void *)&show);
+    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SHOW_SELECT, cast(&show, void));
 }
 
 /*---------------------------------------------------------------------------*/

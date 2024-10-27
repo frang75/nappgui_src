@@ -89,7 +89,7 @@
 #define arrpt_sort_ex(array, func_compare, data, type, dtype) \
     ((void)((data) == (dtype *)(data)), \
      FUNC_CHECK_COMPARE_EX(func_compare, type, dtype), \
-     arrpt_##type##_sort_ex(array, (FPtr_compare_ex)func_compare, (void *)data))
+     arrpt_##type##_sort_ex(array, (FPtr_compare_ex)func_compare, cast(data, void)))
 
 #define arrpt_find(array, elem, type) \
     arrpt_##type##_find(array, elem)
@@ -97,22 +97,22 @@
 #define arrpt_search(array, func_compare, key, pos, type, ktype) \
     ((void)((key) == (ktype *)(key)), \
      FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
-     arrpt_##type##_search(array, (FPtr_compare)func_compare, (const void *)key, pos))
+     arrpt_##type##_search(array, (FPtr_compare)func_compare, cast_const(key, void), pos))
 
 #define arrpt_search_const(array, func_compare, key, pos, type, ktype) \
     ((void)((key) == (ktype *)(key)), \
      FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
-     arrpt_##type##_search_const(array, (FPtr_compare)func_compare, (const void *)key, pos))
+     arrpt_##type##_search_const(array, (FPtr_compare)func_compare, cast_const(key, void), pos))
 
 #define arrpt_bsearch(array, func_compare, key, pos, type, ktype) \
     ((void)((key) == (ktype *)(key)), \
      FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
-     arrpt_##type##_bsearch(array, (FPtr_compare)func_compare, (const void *)key, pos))
+     arrpt_##type##_bsearch(array, (FPtr_compare)func_compare, cast_const(key, void), pos))
 
 #define arrpt_bsearch_const(array, func_compare, key, pos, type, ktype) \
     ((void)((key) == (ktype *)(key)), \
      FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
-     arrpt_##type##_bsearch_const(array, (FPtr_compare)func_compare, (const void *)key, pos))
+     arrpt_##type##_bsearch_const(array, (FPtr_compare)func_compare, cast_const(key, void), pos))
 
 #define arrpt_foreach(elem, array, type) \
     { \

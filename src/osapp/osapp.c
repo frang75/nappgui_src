@@ -141,9 +141,9 @@ static void i_OnExecutionEnd(void)
 
 static void i_terminate(void)
 {
-    i_App *app = osapp_listener(i_App);
+    i_App *app = _osapp_listener(i_App);
     if (app->initialized == TRUE)
-        osapp_terminate(&app->osapp, FALSE, i_destroy_app, i_OnExecutionEnd, i_App);
+        _osapp_terminate(&app->osapp, FALSE, i_destroy_app, i_OnExecutionEnd, i_App);
     else
         app->terminated = TRUE;
 }
@@ -159,11 +159,11 @@ static uint32_t i_dispatch_task(i_Task *task)
     cassert_no_null(task);
     cassert(task->state == i_ekSTATE_WAITING);
     task->state = i_ekSTATE_RUNNING;
-    data = osapp_begin_thread(task->osapp);
+    data = _osapp_begin_thread(task->osapp);
     cassert_no_nullf(task->func_main);
     rvalue = task->func_main(task->data);
     task->state = i_ekSTATE_FINISH;
-    osapp_end_thread(task->osapp, data);
+    _osapp_end_thread(task->osapp, data);
     return rvalue;
 }
 
@@ -262,7 +262,7 @@ static void i_OnFinishLaunching(i_App *app)
     }
 
     app->initialized = TRUE;
-    osapp_cancel_user_attention(app->osapp);
+    _osapp_cancel_user_attention(app->osapp);
 
     /* An application can terminate in app->func_create() */
     if (app->terminated == TRUE)
@@ -273,7 +273,7 @@ static void i_OnFinishLaunching(i_App *app)
 
 static void i_OnNotification(void *sender, Event *e)
 {
-    i_App *app = osapp_listener(i_App);
+    i_App *app = _osapp_listener(i_App);
     uint32_t type = event_type(e);
 
     switch (type)
@@ -281,7 +281,7 @@ static void i_OnNotification(void *sender, Event *e)
     case ekGUI_NOTIF_LANGUAGE:
     {
         const char_t *params = event_params(e, char_t);
-        osapp_set_lang(app->osapp, params);
+        _osapp_set_lang(app->osapp, params);
         osgui_redraw_menubar();
         break;
     }
@@ -297,7 +297,7 @@ static void i_OnNotification(void *sender, Event *e)
     case ekGUI_NOTIF_MENU_DESTROY:
     {
         const Menu *menu = event_params(e, Menu);
-        OSMenu *osmenu = (OSMenu *)menu_imp(menu);
+        OSMenu *osmenu = cast(menu_imp(menu), OSMenu);
         osgui_unset_menubar(osmenu, NULL);
         break;
     }
@@ -333,7 +333,7 @@ void osmain_imp(
     char_t pathname[256];
 
     /* Init platform-dependent autorelease pool (MacOSX) */
-    pool = osapp_init_pool();
+    pool = _osapp_init_pool();
     osgui_start();
     gui_start();
 
@@ -342,7 +342,7 @@ void osmain_imp(
 
     bfile_dir_exec(pathname, sizeof(pathname));
     app = obj_new0(i_App);
-    app->osapp = osapp_init(argc, argv, instance, app, TRUE, i_OnFinishLaunching, i_OnTimerSignal, i_App);
+    app->osapp = _osapp_init(argc, argv, instance, app, TRUE, i_OnFinishLaunching, i_OnTimerSignal, i_App);
     app->state = i_ekSTATE_WAITING;
     app->lframe = lframe;
     app->clock = clock_create(.02);
@@ -360,11 +360,11 @@ void osmain_imp(
     guictx_set_current(app->native_gui);
     gui_OnNotification(listener(NULL, i_OnNotification, void));
 
-    osapp_OnThemeChanged(app->osapp, listener(NULL, i_OnTheme, void));
-    osapp_set_lang(app->osapp, "en");
-    osapp_request_user_attention(app->osapp);
-    osapp_release_pool(pool);
-    osapp_run(app->osapp);
+    _osapp_OnThemeChanged(app->osapp, listener(NULL, i_OnTheme, void));
+    _osapp_set_lang(app->osapp, "en");
+    _osapp_request_user_attention(app->osapp);
+    _osapp_release_pool(pool);
+    _osapp_run(app->osapp);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -378,23 +378,23 @@ void osapp_finish(void)
 
 uint32_t osapp_argc(void)
 {
-    i_App *app = osapp_listener(i_App);
-    return osapp_argc_imp(app->osapp);
+    i_App *app = _osapp_listener(i_App);
+    return _osapp_argc_imp(app->osapp);
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t osapp_argv(const uint32_t index, char_t *argv, const uint32_t size)
 {
-    i_App *app = osapp_listener(i_App);
-    return osapp_argv_imp(app->osapp, index, argv, size);
+    i_App *app = _osapp_listener(i_App);
+    return _osapp_argv_imp(app->osapp, index, argv, size);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osapp_task_imp(void *data, const real32_t updtime, FPtr_task_main func_task_main, FPtr_task_update func_task_update, FPtr_task_end func_task_end)
 {
-    i_App *app = osapp_listener(i_App);
+    i_App *app = _osapp_listener(i_App);
     i_Task *task = heap_new0(i_Task);
     cassert_no_null(app);
     task->osapp = app->osapp;
@@ -418,5 +418,5 @@ void osapp_menubar(Menu *menu, Window *window)
     cassert_no_null(menu);
     oswindow = window_imp(window);
     osmenu = menu_imp(menu);
-    osgui_set_menubar((OSMenu *)osmenu, cast(oswindow, OSWindow));
+    osgui_set_menubar(cast(osmenu, OSMenu), cast(oswindow, OSWindow));
 }

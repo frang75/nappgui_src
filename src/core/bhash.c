@@ -87,12 +87,12 @@ uint32_t bhash_from_block(const byte_t *data, const uint32_t size)
 
 uint32_t bhash_append_uint32(const uint32_t hash, const uint32_t value)
 {
-    return i_incremental_hash((const byte_t *)&value, sizeof(uint32_t), hash);
+    return i_incremental_hash(cast_const(&value, byte_t), sizeof(uint32_t), hash);
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t bhash_append_real32(const uint32_t hash, const real32_t value)
 {
-    return i_incremental_hash((const byte_t *)&value, sizeof(real32_t), hash);
+    return i_incremental_hash(cast_const(&value, byte_t), sizeof(real32_t), hash);
 }

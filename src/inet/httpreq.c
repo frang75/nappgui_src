@@ -239,7 +239,7 @@ static bool_t i_response(Http *http)
 
 uint32_t http_response_status(const Http *http)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
         return http->rcode;
     else
         return UINT32_MAX;
@@ -249,7 +249,7 @@ uint32_t http_response_status(const Http *http)
 
 const char_t *http_response_protocol(const Http *http)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
         return tc(http->rprotocol);
     else
         return "";
@@ -259,7 +259,7 @@ const char_t *http_response_protocol(const Http *http)
 
 const char_t *http_response_message(const Http *http)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
         return tc(http->rmsg);
     else
         return "";
@@ -269,7 +269,7 @@ const char_t *http_response_message(const Http *http)
 
 uint32_t http_response_size(const Http *http)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
         return arrst_size(http->headers, Field);
     else
         return 0;
@@ -279,7 +279,7 @@ uint32_t http_response_size(const Http *http)
 
 const char_t *http_response_name(const Http *http, const uint32_t index)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
     {
         const Field *field = arrst_get(http->headers, index, Field);
         return tc(field->name);
@@ -294,7 +294,7 @@ const char_t *http_response_name(const Http *http, const uint32_t index)
 
 const char_t *http_response_value(const Http *http, const uint32_t index)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
     {
         const Field *field = arrst_get(http->headers, index, Field);
         return tc(field->value);
@@ -309,7 +309,7 @@ const char_t *http_response_value(const Http *http, const uint32_t index)
 
 const char_t *http_response_header(const Http *http, const char_t *name)
 {
-    if (i_response((Http *)http) == TRUE)
+    if (i_response(cast(http, Http)) == TRUE)
     {
         const char_t *value = i_field(http->headers, name);
         if (value != NULL)

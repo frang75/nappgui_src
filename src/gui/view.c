@@ -560,7 +560,7 @@ void *_view_get_native_imp(View *view)
 
 /*---------------------------------------------------------------------------*/
 
-void view_OnEmpty(View *view, FPtr_gctx_call func_empty)
+void _view_OnEmpty(View *view, FPtr_gctx_call func_empty)
 {
     cassert_no_null(view);
     view->func_empty = func_empty;
@@ -568,7 +568,7 @@ void view_OnEmpty(View *view, FPtr_gctx_call func_empty)
 
 /*---------------------------------------------------------------------------*/
 
-void view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32)
+void _view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32)
 {
     cassert_no_null(view);
     view->func_uint32 = func_uint32;
@@ -576,7 +576,7 @@ void view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32)
 
 /*---------------------------------------------------------------------------*/
 
-void view_OnImage(View *view, FPtr_set_image func_image)
+void _view_OnImage(View *view, FPtr_set_image func_image)
 {
     cassert_no_null(view);
     view->func_image = func_image;
@@ -707,7 +707,7 @@ void *view_native(View *view)
 
 /*---------------------------------------------------------------------------*/
 
-void view_add_transition(View *view, Listener *listener)
+void _view_add_transition(View *view, Listener *listener)
 {
     cassert_no_null(view);
     _gui_add_transition(view, listener, View);
@@ -715,7 +715,7 @@ void view_add_transition(View *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void view_delete_transition(View *view)
+void _view_delete_transition(View *view)
 {
     _gui_delete_transition(view, View);
 }

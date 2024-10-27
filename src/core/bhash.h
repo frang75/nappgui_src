@@ -23,8 +23,8 @@ _core_api uint32_t bhash_append_real32(const uint32_t hash, const real32_t value
 __END_C
 
 #define bhash_from_object(data, type) \
-    ((void)((type *)(data) == (data)), \
-     bhash_from_block((const byte_t *)(data), sizeof(type)))
+    ((void)(cast(data, type) == (data)), \
+     bhash_from_block(cast_const(data, byte_t), sizeof(type)))
 
 #define bhash_append_enum(hash, value, type) \
     ((void)((enum type)value == value), \

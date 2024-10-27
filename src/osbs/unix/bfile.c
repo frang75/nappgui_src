@@ -524,7 +524,7 @@ bool_t bfile_read(File *file, byte_t *data, const uint32_t size, uint32_t *rsize
 {
     ssize_t lrsize;
     cassert_no_null(file);
-    lrsize = read((int)(intptr_t)file, (void *)data, (size_t)size);
+    lrsize = read((int)(intptr_t)file, cast(data, void), (size_t)size);
     if (lrsize > 0)
     {
         ptr_assign(rsize, (uint32_t)lrsize);

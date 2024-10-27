@@ -43,9 +43,9 @@ __END_C
 
 #define panel_data(panel, data, func_destroy_data, type) \
     ( \
-        (void)((type **)data == data), \
+        (void)(dcast(data, type) == data), \
         FUNC_CHECK_DESTROY(func_destroy_data, type), \
-        panel_data_imp(panel, (void **)data, (FPtr_destroy)func_destroy_data))
+        panel_data_imp(panel, dcast(data, void), (FPtr_destroy)func_destroy_data))
 
 #define panel_get_data(panel, type) \
-    (type *)panel_get_data_imp(panel)
+    cast(panel_get_data_imp(panel), type)

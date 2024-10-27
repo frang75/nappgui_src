@@ -34,7 +34,7 @@
             FUNC_CHECK_APP_CREATE(func_create, type), \
             FUNC_CHECK_DESTROY(func_destroy, type), \
             osmain_imp( \
-                0, NULL, (void *)hInstance, 0., \
+                0, NULL, cast(hInstance, void), 0., \
                 (FPtr_app_create)func_create, \
                 (FPtr_app_update)NULL, \
                 (FPtr_destroy)func_destroy, \
@@ -52,7 +52,7 @@
             FUNC_CHECK_APP_UPDATE(func_update, type), \
             FUNC_CHECK_DESTROY(func_destroy, type), \
             osmain_imp( \
-                0, NULL, (void *)hInstance, lframe, \
+                0, NULL, cast(hInstance, void), lframe, \
                 (FPtr_app_create)func_create, \
                 (FPtr_app_update)func_update, \
                 (FPtr_destroy)func_destroy, \

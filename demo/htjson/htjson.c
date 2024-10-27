@@ -28,7 +28,7 @@ DeclSt(Product);
 
 static Stream *i_stm_from_json(const char_t *json_data)
 {
-    return stm_from_block((const byte_t *)json_data, str_len_c(json_data));
+    return stm_from_block(cast_const(json_data, byte_t), str_len_c(json_data));
 }
 
 /*---------------------------------------------------------------------------*/

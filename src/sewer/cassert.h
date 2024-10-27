@@ -44,7 +44,7 @@ __END_C
     cassert_fatal_imp((bool_t)(cond), #msg, __FILE__, __LINE__)
 
 #define cassert_no_null(ptr) \
-    cassert_no_null_imp((void *)ptr, #ptr, __FILE__, __LINE__)
+    cassert_no_null_imp(cast(ptr, void), #ptr, __FILE__, __LINE__)
 
 #define cassert_no_nullf(fptr) \
     if (fptr == NULL) \

@@ -337,7 +337,7 @@ GuiControl *layout_control(Layout *layout, const uint32_t col, const uint32_t ro
     Cell *cell = i_get_cell(layout, col, row);
     cassert_no_null(cell);
     if (cell->type == i_ekCOMPONENT)
-        return (GuiControl *)cell->content.component;
+        return cast(cell->content.component, GuiControl);
     else
         return NULL;
 }
@@ -408,7 +408,7 @@ void layout_label(Layout *layout, Label *label, const uint32_t col, const uint32
     align_t align = ekLEFT;
     /* if (_label_is_multiline(label) == TRUE)
        align = ekJUSTIFY; */
-    cell = i_set_component(layout, GuiComponentPtr(label), col, row, align, ekCENTER);
+    cell = i_set_component(layout, cast(label, GuiComponent), col, row, align, ekCENTER);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
@@ -423,7 +423,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
     uint32_t flags = _button_flags(button);
     if (button_get_type(flags) != ekBUTTON_PUSH /* && button_type(flags) != ekBUTTON_HEADER*/)
         align = ekLEFT;
-    cell = i_set_component(layout, GuiComponentPtr(button), col, row, align, ekCENTER);
+    cell = i_set_component(layout, cast(button, GuiComponent), col, row, align, ekCENTER);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -432,7 +432,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
 
 void layout_popup(Layout *layout, PopUp *popup, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(popup), col, row, ekJUSTIFY, ekCENTER);
+    Cell *cell = i_set_component(layout, cast(popup, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -445,7 +445,7 @@ void layout_edit(Layout *layout, Edit *edit, const uint32_t col, const uint32_t 
     align_t valign = ekCENTER;
     if (_edit_is_multiline(edit) == TRUE)
         valign = ekJUSTIFY;
-    cell = i_set_component(layout, GuiComponentPtr(edit), col, row, ekJUSTIFY, valign);
+    cell = i_set_component(layout, cast(edit, GuiComponent), col, row, ekJUSTIFY, valign);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -454,7 +454,7 @@ void layout_edit(Layout *layout, Edit *edit, const uint32_t col, const uint32_t 
 
 void layout_combo(Layout *layout, Combo *combo, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(combo), col, row, ekJUSTIFY, ekCENTER);
+    Cell *cell = i_set_component(layout, cast(combo, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -463,7 +463,7 @@ void layout_combo(Layout *layout, Combo *combo, const uint32_t col, const uint32
 
 void layout_listbox(Layout *layout, ListBox *list, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(list), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(list, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -472,7 +472,7 @@ void layout_listbox(Layout *layout, ListBox *list, const uint32_t col, const uin
 
 void layout_updown(Layout *layout, UpDown *updown, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(updown), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(updown, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
@@ -491,7 +491,7 @@ void layout_slider(Layout *layout, Slider *slider, const uint32_t col, const uin
         valign = ekJUSTIFY;
     }
 
-    cell = i_set_component(layout, GuiComponentPtr(slider), col, row, halig, valign);
+    cell = i_set_component(layout, cast(slider, GuiComponent), col, row, halig, valign);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -500,7 +500,7 @@ void layout_slider(Layout *layout, Slider *slider, const uint32_t col, const uin
 
 void layout_progress(Layout *layout, Progress *progress, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(progress), col, row, ekJUSTIFY, ekCENTER);
+    Cell *cell = i_set_component(layout, cast(progress, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
@@ -510,7 +510,7 @@ void layout_progress(Layout *layout, Progress *progress, const uint32_t col, con
 
 void layout_view(Layout *layout, View *view, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(view), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
@@ -520,7 +520,7 @@ void layout_view(Layout *layout, View *view, const uint32_t col, const uint32_t 
 
 void layout_textview(Layout *layout, TextView *view, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(view), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
@@ -532,7 +532,7 @@ void layout_webview(Layout *layout, WebView *view, const uint32_t col, const uin
 {
     Cell *cell = NULL;
     cassert_no_null(view);
-    cell = i_set_component(layout, (GuiComponent *)view, col, row, ekJUSTIFY, ekJUSTIFY);
+    cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
@@ -541,7 +541,7 @@ void layout_webview(Layout *layout, WebView *view, const uint32_t col, const uin
 
 void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(view), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
@@ -551,7 +551,7 @@ void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const
 
 void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(view), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }
@@ -560,7 +560,7 @@ void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const
 
 void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(view), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
     cell->tabstop = TRUE;
@@ -570,7 +570,7 @@ void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const
 
 void layout_panel(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row)
 {
-    Cell *cell = i_set_component(layout, GuiComponentPtr(panel), col, row, ekJUSTIFY, ekJUSTIFY);
+    Cell *cell = i_set_component(layout, cast(panel, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
 }
@@ -583,13 +583,13 @@ void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, cons
     cassert_no_null(cell);
     if (cell->type == i_ekEMPTY)
     {
-        i_set_component(layout, GuiComponentPtr(panel), col, row, ekJUSTIFY, ekJUSTIFY);
+        i_set_component(layout, cast(panel, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
         cassert(cell->tabstop == TRUE);
 
         if (layout->panel != NULL)
         {
             Window *parent_window = _panel_get_window(layout->panel);
-            _component_set_parent_window(GuiComponentPtr(panel), parent_window);
+            _component_set_parent_window(cast(panel, GuiComponent), parent_window);
             layout_update(layout);
         }
     }
@@ -597,7 +597,7 @@ void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, cons
     {
         cassert(cell->type == i_ekCOMPONENT);
         cassert(cell->content.component->type == ekGUI_TYPE_PANEL);
-        i_change_component(layout, GuiComponentPtr(panel), col, row);
+        i_change_component(layout, cast(panel, GuiComponent), col, row);
         layout_update(layout);
     }
 }
@@ -1298,20 +1298,20 @@ static void i_layout_dbind(Layout *layout, const StBind *stbind, void *obj)
             case i_ekCOMPONENT:
                 if (cell->content.component->type == ekGUI_TYPE_PANEL)
                 {
-                    Panel *panel = (Panel *)cell->content.component;
+                    Panel *panel = cast(cell->content.component, Panel);
                     ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
                     arrpt_foreach(panel_layout, panel_layouts, Layout)
-                        gbind_upd_layout(panel_layout, stbind, cell->dbind, obj);
+                        _gbind_upd_layout(panel_layout, stbind, cell->dbind, obj);
                     arrpt_end()
                 }
                 else
                 {
-                    gbind_upd_component(cell, stbind, cell->dbind, obj);
+                    _gbind_upd_component(cell, stbind, cell->dbind, obj);
                 }
                 break;
 
             case i_ekLAYOUT:
-                gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
+                _gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
                 break;
 
             case i_ekEMPTY:
@@ -1324,7 +1324,7 @@ static void i_layout_dbind(Layout *layout, const StBind *stbind, void *obj)
         }
         else if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_PANEL)
         {
-            Panel *panel = (Panel *)cell->content.component;
+            Panel *panel = cast(cell->content.component, Panel);
             ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
             arrpt_foreach(panel_layout, panel_layouts, Layout)
                 if (panel_layout->stbind == NULL)
@@ -1414,7 +1414,7 @@ Layout *_layout_search_component(const Layout *layout, const GuiComponent *compo
                 {
                     if (cell->content.component->type == ekGUI_TYPE_PANEL)
                     {
-                        Panel *panel = (Panel *)cell->content.component;
+                        Panel *panel = cast(cell->content.component, Panel);
                         find_layout = _panel_active_layout(panel);
                         if (find_layout != NULL)
                             break;
@@ -1919,8 +1919,8 @@ void _layout_locate(Layout *layout)
 
     if (layout->panel != NULL)
     {
-        ospanel = (GuiComponentPtr(layout->panel))->ositem;
-        func_area = (GuiComponentPtr(layout->panel))->context->func_panel_area;
+        ospanel = cast(layout->panel, GuiComponent)->ositem;
+        func_area = cast(layout->panel, GuiComponent)->context->func_panel_area;
         func_area(ospanel, NULL, 0, 0, 0, 0, 0, 0);
     }
 
@@ -1929,7 +1929,7 @@ void _layout_locate(Layout *layout)
     i_layout_enabled(layout, TRUE);
 
     if (layout->panel != NULL)
-        (GuiComponentPtr(layout->panel))->context->func_panel_set_need_display(ospanel);
+        cast(layout->panel, GuiComponent)->context->func_panel_set_need_display(ospanel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2004,10 +2004,10 @@ static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *db
             switch (cell->type)
             {
             case i_ekCOMPONENT:
-                gbind_upd_component(cell, stbind, cell->dbind, obj);
+                _gbind_upd_component(cell, stbind, cell->dbind, obj);
                 break;
             case i_ekLAYOUT:
-                gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
+                _gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
                 break;
             case i_ekEMPTY:
                 cassert_default();
@@ -2024,7 +2024,7 @@ static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *db
         }
         else if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_PANEL)
         {
-            Panel *panel = (Panel *)cell->content.component;
+            Panel *panel = cast(cell->content.component, Panel);
             ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
             arrpt_foreach(panel_layout, panel_layouts, Layout)
                 const StBind *lstbind = panel_layout->stbind;
@@ -2083,7 +2083,7 @@ GuiControl *cell_control(Cell *cell)
 {
     cassert_no_null(cell);
     if (cell->type == i_ekCOMPONENT)
-        return (GuiControl *)cell->content.component;
+        return cast(cell->content.component, GuiControl);
     else
         return NULL;
 }
@@ -2304,7 +2304,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
         {
         case ekGUI_TYPE_POPUP:
         {
-            PopUp *popup = (PopUp *)cell->content.component;
+            PopUp *popup = cast(cell->content.component, PopUp);
             if (dtype == ekDTYPE_ENUM && _popup_size(popup) == 0)
             {
                 uint32_t i, n = dbind_enum_count(dbind);
@@ -2322,10 +2322,10 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
 
         case ekGUI_TYPE_CUSTOMVIEW:
         {
-            View *view = (View *)cell->content.component;
+            View *view = cast(cell->content.component, View);
             if (str_equ_c(_view_subtype(view), "ListBox") == TRUE)
             {
-                ListBox *listbox = (ListBox *)cell->content.component;
+                ListBox *listbox = cast(cell->content.component, ListBox);
                 if (dtype == ekDTYPE_ENUM && _listbox_count(listbox) == 0)
                 {
                     uint32_t i, n = dbind_enum_count(dbind);
@@ -2343,7 +2343,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
         case ekGUI_TYPE_EDITBOX:
             if (dbind_is_number_type(dbind) == TRUE)
             {
-                Edit *edit = (Edit *)cell->content.component;
+                Edit *edit = cast(cell->content.component, Edit);
                 edit_autoselect(edit, TRUE);
             }
             break;
@@ -2423,8 +2423,8 @@ void _cell_set_radio(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
-            _button_radio_state((Button *)cell->content.component, (cell == on_cell) ? ekGUI_ON : ekGUI_OFF);
+        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio(cast_const(cell->content.component, Button)))
+            _button_radio_state(cast(cell->content.component, Button), (cell == on_cell) ? ekGUI_ON : ekGUI_OFF);
     arrpt_end()
 }
 
@@ -2436,9 +2436,9 @@ void _cell_set_radio_index(Cell *on_cell, const uint32_t index)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
+        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio(cast_const(cell->content.component, Button)))
         {
-            _button_radio_state((Button *)cell->content.component, (i == index) ? ekGUI_ON : ekGUI_OFF);
+            _button_radio_state(cast(cell->content.component, Button), (i == index) ? ekGUI_ON : ekGUI_OFF);
             i += 1;
         }
     arrpt_end()
@@ -2452,7 +2452,7 @@ uint32_t _cell_radio_index(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
+        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio(cast_const(cell->content.component, Button)))
         {
             if (cell == on_cell)
                 return i;
@@ -2470,10 +2470,10 @@ Button *_cell_radio_listener(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
+        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio(cast_const(cell->content.component, Button)))
         {
-            if (_button_radio_listener((const Button *)cell->content.component) != NULL)
-                return (Button *)cell->content.component;
+            if (_button_radio_listener(cast_const(cell->content.component, Button)) != NULL)
+                return cast(cell->content.component, Button);
         }
     arrpt_end()
     return NULL;
@@ -2486,7 +2486,7 @@ Cell *_cell_radio_dbind_cell(Cell *on_cell)
     cassert_no_null(on_cell);
     cassert_no_null(on_cell->parent);
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
-        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio((const Button *)cell->content.component))
+        if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio(cast_const(cell->content.component, Button)))
         {
             if (cell->dbind != NULL)
                 return cell;
@@ -2551,9 +2551,8 @@ void _cell_upd_bool(Cell *cell, const bool_t value)
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-
         if (obj != NULL)
-            gbind_upd_bool(layout, cell->dbind, obj, layout_notif, value);
+            _gbind_upd_bool(layout, cell->dbind, obj, layout_notif, value);
     }
 }
 
@@ -2567,9 +2566,8 @@ void _cell_upd_uint32(Cell *cell, const uint32_t value)
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-
         if (obj != NULL)
-            gbind_upd_uint32(layout, cell->dbind, obj, layout_notif, value);
+            _gbind_upd_uint32(layout, cell->dbind, obj, layout_notif, value);
     }
 }
 
@@ -2583,9 +2581,8 @@ void _cell_upd_norm_real32(Cell *cell, const real32_t value)
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-
         if (layout->objbind != NULL)
-            gbind_upd_norm_real32(layout, cell->dbind, obj, layout_notif, value);
+            _gbind_upd_norm_real32(layout, cell->dbind, obj, layout_notif, value);
     }
 }
 
@@ -2599,9 +2596,8 @@ void _cell_upd_string(Cell *cell, const char_t *str)
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-
         if (layout->objbind != NULL)
-            gbind_upd_string(layout, cell->dbind, obj, layout_notif, str);
+            _gbind_upd_string(layout, cell->dbind, obj, layout_notif, str);
     }
 }
 
@@ -2614,9 +2610,8 @@ void _cell_upd_image(Cell *cell, const Image *image)
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-
         if (layout->objbind != NULL)
-            gbind_upd_image(layout, cell->dbind, layout->objbind, image);
+            _gbind_upd_image(layout, cell->dbind, layout->objbind, image);
     }
 }
 
@@ -2630,9 +2625,8 @@ void _cell_upd_increment(Cell *cell, const bool_t pos)
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-
         if (layout->objbind != NULL)
-            gbind_upd_increment(layout, cell->dbind, obj, layout_notif, pos);
+            _gbind_upd_increment(layout, cell->dbind, obj, layout_notif, pos);
     }
 }
 

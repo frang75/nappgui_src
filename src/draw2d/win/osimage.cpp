@@ -137,7 +137,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, PixelFormat24bppRGB);
         bitmap->LockBits(NULL, Gdiplus::ImageLockModeWrite, PixelFormat24bppRGB, &bdata);
         stride = bdata.Stride - (width * 3);
-        dest_data = (byte_t *)bdata.Scan0;
+        dest_data = cast(bdata.Scan0, byte_t);
         for (j = 0; j < height; ++j)
         {
             for (i = 0; i < width; ++i)
@@ -159,7 +159,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, PixelFormat32bppARGB);
         bitmap->LockBits(NULL, Gdiplus::ImageLockModeWrite, PixelFormat32bppARGB, &bdata);
         stride = bdata.Stride - (width * 4);
-        dest_data = (byte_t *)bdata.Scan0;
+        dest_data = cast(bdata.Scan0, byte_t);
         for (j = 0; j < height; ++j)
         {
             for (i = 0; i < width; ++i)
@@ -789,7 +789,7 @@ void osimage_write(const OSImage *image, const codec_t codec, Stream *stm)
     {
         ULONG readed;
         HRESULT res;
-        res = stream->Read((void *)data, (ULONG)size, &readed);
+        res = stream->Read(cast(data, void), (ULONG)size, &readed);
         cassert_unref(res == S_OK, res);
         cassert(readed == (ULONG)size);
     }

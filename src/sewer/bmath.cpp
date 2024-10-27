@@ -1037,7 +1037,7 @@ static REnv *i_GLOBAL_RENV = NULL;
 void _bmath_finish(void)
 {
     if (i_GLOBAL_RENV != NULL)
-        bmem_free((byte_t *)i_GLOBAL_RENV);
+        bmem_free(cast(i_GLOBAL_RENV, byte_t));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1189,7 +1189,7 @@ REnv *bmath_rand_env(const uint32_t seed)
 void bmath_rand_destroy(REnv **env)
 {
     cassert_no_null(env);
-    bmem_free((byte_t *)*env);
+    bmem_free(*dcast(env, byte_t));
     *env = NULL;
 }
 

@@ -370,7 +370,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
 
     if (data != NULL)
     {
-        NSData *nsdata = [NSData dataWithBytes:(const void *)data length:(NSUInteger)size];
+        NSData *nsdata = [NSData dataWithBytes:cast_const(data, void) length:(NSUInteger)size];
         [http->request setHTTPBody:nsdata];
     }
     else

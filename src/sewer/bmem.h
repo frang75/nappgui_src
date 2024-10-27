@@ -68,37 +68,37 @@ __END_C
 #define bmem_set_u32(dest, n, value) \
     { \
         uint32_t ___value = (value); \
-        bmem_set4((byte_t *)(dest), (uint32_t)(sizeof32(uint32_t) * (n)), (const byte_t *)&___value); \
+        bmem_set4(cast(dest, byte_t), (uint32_t)(sizeof32(uint32_t) * (n)), cast_const(&___value, byte_t)); \
     }
 
 #define bmem_set_r32(dest, n, value) \
     { \
         real32_t ___value = (value); \
-        bmem_set4((byte_t *)(dest), (uint32_t)(sizeof32(real32_t) * (n)), (const byte_t *)&___value); \
+        bmem_set4(cast(dest, byte_t), (uint32_t)(sizeof32(real32_t) * (n)), cast_const(&___value, byte_t)); \
     }
 
 #define bmem_zero(dest, type) \
-    ((void)((dest) == (type *)(dest)), \
-     bmem_set_zero((byte_t *)(dest), sizeof32(type)))
+    ((void)(cast(dest, type) == (dest)), \
+     bmem_set_zero(cast(dest, byte_t), sizeof32(type)))
 
 #define bmem_zero_n(dest, n, type) \
-    ((void)((dest) == (type *)(dest)), \
-     bmem_set_zero((byte_t *)(dest), n * sizeof32(type)))
+    ((void)(cast(dest, type) == (dest)), \
+     bmem_set_zero(cast(dest, byte_t), n * sizeof32(type)))
 
 #define bmem_copy_n(dest, src, n, type) \
-    ((void)((dest) == (type *)(dest)), \
-     (void)((src) == (const type *)(src)), \
-     bmem_copy((byte_t *)(dest), (const byte_t *)(src), (uint32_t)sizeof32(type) * (uint32_t)(n)))
+    ((void)(cast(dest, type) == (dest)), \
+     (void)(cast_const(src, type) == (src)), \
+     bmem_copy(cast(dest, byte_t), cast_const(src, byte_t), (uint32_t)sizeof32(type) * (uint32_t)(n)))
 
 #define bmem_rev_elems(elems, n, type) \
-    ((void)((elems) == (type *)(elems)), \
-     bmem_rev_elems_imp((byte_t *)(elems), (n), (uint32_t)sizeof32(type)))
+    ((void)(cast(elems, type) == (elems)), \
+     bmem_rev_elems_imp(cast(elems, byte_t), (n), (uint32_t)sizeof32(type)))
 
 #define bmem_swap_type(obj1, obj2, type) \
-    ((void)((obj1) == (type *)(obj1)), \
-     (void)((obj2) == (type *)(obj2)), \
-     bmem_swap((byte_t *)(obj1), (byte_t *)(obj2), (uint32_t)sizeof32(type)))
+    ((void)(cast(obj1, type) == (obj1)), \
+     (void)(cast(obj2, type) == (obj2)), \
+     bmem_swap(cast(obj1, byte_t), cast(obj2, byte_t), (uint32_t)sizeof32(type)))
 
 #define bmem_shuffle_n(arr, size, type) \
-    ((void)(arr == (type *)arr), \
-     bmem_shuffle((byte_t *)arr, size, sizeof32(type)))
+    ((void)(cast(arr, type) == arr), \
+     bmem_shuffle(cast(arr, byte_t), size, sizeof32(type)))

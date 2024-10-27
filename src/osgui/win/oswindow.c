@@ -1316,7 +1316,7 @@ uint32_t _oswindow_message_loop(OSWindow *window)
                     i_activate(window);
             }
 
-            if (i_message((void *)&msg, accel) == FALSE)
+            if (i_message(cast(&msg, void), accel) == FALSE)
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);

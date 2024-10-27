@@ -237,7 +237,7 @@ const char_t *_osgui_register_icon(const Image *image)
     if (kREGISTER_ICONS == NULL)
         kREGISTER_ICONS = arrpt_create(Image);
 
-    bstd_sprintf(ICON_NAME, 32, "%p", (void *)image);
+    bstd_sprintf(ICON_NAME, 32, "%p", cast(image, void));
     /*
      * Avoid to register the same image twice
      * gtk_icon_theme does not provide functions to 'remove' icon once added.

@@ -86,7 +86,7 @@ void webview_navigate(WebView *view, const char_t *url)
     cassert_no_null(view);
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_web_command);
-    view->component.context->func_web_command(view->component.ositem, (enum_t)ekGUI_WEB_NAVIGATE, (const void *)url, NULL);
+    view->component.context->func_web_command(view->component.ositem, (enum_t)ekGUI_WEB_NAVIGATE, cast_const(url, void), NULL);
 }
 
 /*---------------------------------------------------------------------------*/

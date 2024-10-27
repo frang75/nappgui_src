@@ -28,7 +28,7 @@ static SATPoly<real> *i_create(const uint32_t num_vertices, const uint32_t num_a
     // Only one memory allocation
     uint32_t msize = (uint32_t)(sizeof(SATPoly<real>) + num_vertices * sizeof(V2D<real>) + num_axis * sizeof(V2D<real>) + 2 * num_axis * sizeof(real));
     SATPoly<real> *poly = (SATPoly<real> *)heap_malloc(msize, "SATPoly");
-    byte_t *mem = ((byte_t *)poly) + sizeof(SATPoly<real>);
+    byte_t *mem = cast(poly, byte_t) + sizeof(SATPoly<real>);
     poly->num_vertices = num_vertices;
     poly->num_axis = num_axis;
     poly->vertex = (V2D<real> *)(mem);

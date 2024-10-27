@@ -26,16 +26,16 @@ _inet_api void json_destopt_imp(void **data, const char_t *type);
 __END_C
 
 #define json_read(stm, opts, type) \
-    (type *)json_read_imp(stm, opts, (const char_t *)#type)
+    cast(json_read_imp(stm, opts, cast_const(#type, char_t)), type)
 
 #define json_write(stm, data, opts, type) \
-    ((void)((const type *)data == data), \
-     json_write_imp(stm, (const void *)data, opts, (const char_t *)#type))
+    ((void)(cast_const(data, type) == data), \
+     json_write_imp(stm, cast_const(data, void), opts, cast_const(#type, char_t)))
 
 #define json_destroy(data, type) \
-    ((void)((type **)data == data), \
-     json_destroy_imp((void **)data, (const char_t *)#type))
+    ((void)(dcast(data, type) == data), \
+     json_destroy_imp(dcast(data, void), cast_const(#type, char_t)))
 
 #define json_destopt(data, type) \
-    ((void)((type **)data == data), \
-     json_destopt_imp((void **)data, (const char_t *)#type))
+    ((void)(dcast(data, type) == data), \
+     json_destopt_imp(dcast(data, void), cast_const(#type, char_t)))

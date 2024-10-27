@@ -106,7 +106,7 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         cassert(planes[2] == NULL);
         cassert(planes[3] == NULL);
         cassert(planes[4] == NULL);
-        memcpy((void *)planes[0], (const void *)pixel_data, (size_t)(((NSUInteger)bits_per_pixel >> 3) * width * height));
+        memcpy(cast(planes[0], void), cast_const(pixel_data, void), (size_t)(((NSUInteger)bits_per_pixel >> 3) * width * height));
     }
 
     [irep release];

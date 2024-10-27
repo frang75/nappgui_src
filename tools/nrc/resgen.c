@@ -944,7 +944,7 @@ static void i_object_write(Stream *stream, const i_Object *object, const i_resou
     case i_ekRESOURCE_TYPE_MESSAGE:
     {
         uint32_t size = str_len(object->string);
-        const byte_t *data = (byte_t *)tc(object->string);
+        const byte_t *data = cast_const(tc(object->string), byte_t);
         const byte_t end = 0;
         stm_write_u32(stream, size);
         stm_write(stream, data, size);

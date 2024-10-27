@@ -212,7 +212,7 @@ Stream *oshttp_response(OSHttp *http)
 
             if (HttpQueryInfo(http->hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, (LPVOID)data, &size, NULL) == TRUE)
             {
-                Stream *stm_src = stm_from_block((const byte_t *)data, (uint32_t)size);
+                Stream *stm_src = stm_from_block(cast_const(data, byte_t), (uint32_t)size);
                 Stream *stm_dest = stm_memory(size + 10);
 
                 stm_set_read_utf(stm_src, ekUTF16);
@@ -260,7 +260,7 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
         {
             if (InternetReadFile(http->hRequest, szBuffer, sizeof(szBuffer), &dwByteRead) == TRUE)
             {
-                stm_write(body, (const byte_t *)szBuffer, (uint32_t)dwByteRead);
+                stm_write(body, cast_const(szBuffer, byte_t), (uint32_t)dwByteRead);
             }
             else
             {

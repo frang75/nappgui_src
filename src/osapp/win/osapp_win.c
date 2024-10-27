@@ -48,7 +48,7 @@ OSApp i_APP = {0};
 
 /*---------------------------------------------------------------------------*/
 
-OSApp *osapp_init_imp(
+OSApp *_osapp_init_imp(
     uint32_t argc,
     char_t **argv,
     void *instance,
@@ -79,21 +79,21 @@ OSApp *osapp_init_imp(
 
 /*---------------------------------------------------------------------------*/
 
-void *osapp_init_pool(void)
+void *_osapp_init_pool(void)
 {
     return NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_release_pool(void *pool)
+void _osapp_release_pool(void *pool)
 {
     cassert_unref(pool == NULL, pool);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void *osapp_listener_imp(void)
+void *_osapp_listener_imp(void)
 {
     return i_APP.listener;
 }
@@ -126,7 +126,7 @@ static void i_terminate(OSApp *app)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_terminate_imp(OSApp **app, const bool_t abnormal_termination, FPtr_destroy func_destroy, FPtr_app_void func_OnExecutionEnd)
+void _osapp_terminate_imp(OSApp **app, const bool_t abnormal_termination, FPtr_destroy func_destroy, FPtr_app_void func_OnExecutionEnd)
 {
     cassert_no_null(app);
     cassert_no_null(*app);
@@ -151,7 +151,7 @@ void osapp_terminate_imp(OSApp **app, const bool_t abnormal_termination, FPtr_de
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argc_imp(OSApp *app)
+uint32_t _osapp_argc_imp(OSApp *app)
 {
     cassert_no_null(app);
     cassert(app == &i_APP);
@@ -160,7 +160,7 @@ uint32_t osapp_argc_imp(OSApp *app)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
+uint32_t _osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
 {
     cassert_no_null(app);
     cassert(app == &i_APP);
@@ -185,7 +185,7 @@ static VOID CALLBACK i_OnTimer(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwT
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_run(OSApp *app)
+void _osapp_run(OSApp *app)
 {
     cassert_no_null(app);
     cassert_no_null(app->listener);
@@ -209,21 +209,21 @@ void osapp_run(OSApp *app)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_request_user_attention(OSApp *app)
+void _osapp_request_user_attention(OSApp *app)
 {
     unref(app);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_cancel_user_attention(OSApp *app)
+void _osapp_cancel_user_attention(OSApp *app)
 {
     unref(app);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void *osapp_begin_thread(OSApp *app)
+void *_osapp_begin_thread(OSApp *app)
 {
     unref(app);
     return NULL;
@@ -231,7 +231,7 @@ void *osapp_begin_thread(OSApp *app)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_end_thread(OSApp *app, void *data)
+void _osapp_end_thread(OSApp *app, void *data)
 {
     unref(app);
     unref(data);
@@ -250,7 +250,7 @@ void osapp_open_url(const char_t *url)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_set_lang(OSApp *app, const char_t *lang)
+void _osapp_set_lang(OSApp *app, const char_t *lang)
 {
     unref(app);
     unref(lang);
@@ -258,7 +258,7 @@ void osapp_set_lang(OSApp *app, const char_t *lang)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_OnThemeChanged(OSApp *app, Listener *listener)
+void _osapp_OnThemeChanged(OSApp *app, Listener *listener)
 {
     unref(app);
     listener_destroy(&listener);

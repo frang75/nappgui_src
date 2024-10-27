@@ -196,7 +196,7 @@ void _component_destroy(GuiComponent **component)
     cassert((*component)->type < GUI_CONTEXT_NUM_COMPONENTS);
     cassert_no_nullf(i_FUNC_DESTROY[(*component)->type]);
     context = (*component)->context;
-    i_FUNC_DESTROY[(*component)->type]((void **)component);
+    i_FUNC_DESTROY[(*component)->type](dcast(component, void));
     guictx_release(&context);
 }
 
@@ -210,7 +210,7 @@ void _component_attach_to_panel(GuiComponent *panel_component, GuiComponent *chi
     cassert_no_null(child_component->context);
     cassert_no_nullf(child_component->context->func_attach_to_panel[child_component->type]);
     cassert(child_component->panel == NULL);
-    child_component->panel = (Panel *)panel_component;
+    child_component->panel = cast(panel_component, Panel);
     child_component->context->func_attach_to_panel[child_component->type](child_component->ositem, panel_component->ositem);
 }
 
@@ -223,7 +223,7 @@ void _component_detach_from_panel(GuiComponent *panel_component, GuiComponent *c
     cassert_no_null(child_component);
     cassert_no_null(child_component->context);
     cassert_no_nullf(child_component->context->func_detach_from_panel[child_component->type]);
-    cassert(child_component->panel == (Panel *)panel_component);
+    cassert(child_component->panel == cast(panel_component, Panel));
     child_component->panel = NULL;
     child_component->context->func_detach_from_panel[child_component->type](child_component->ositem, panel_component->ositem);
 }
@@ -301,7 +301,7 @@ void _component_taborder(GuiComponent *component, Window *window)
     switch (component->type)
     {
     case ekGUI_TYPE_PANEL:
-        _panel_taborder((Panel *)component, window);
+        _panel_taborder(cast(component, Panel), window);
         break;
 
     case ekGUI_TYPE_SPLITVIEW:
@@ -425,7 +425,7 @@ void _component_locale(GuiComponent *component)
 {
     cassert_no_null(component);
     if (i_FUNC_LOCALE[component->type] != NULL)
-        i_FUNC_LOCALE[component->type]((void *)component);
+        i_FUNC_LOCALE[component->type](cast(component, void));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -476,7 +476,7 @@ const char_t *_component_type(const GuiComponent *component)
     case ekGUI_TYPE_PROGRESS:
         return "Progress";
     case ekGUI_TYPE_CUSTOMVIEW:
-        return _view_subtype((View *)component);
+        return _view_subtype(cast(component, View));
     case ekGUI_TYPE_TEXTVIEW:
         return "TextView";
     case ekGUI_TYPE_WEBVIEW:

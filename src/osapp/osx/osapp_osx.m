@@ -236,7 +236,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSApp *osapp_init_imp(
+OSApp *_osapp_init_imp(
     uint32_t argc,
     char_t **argv,
     void *instance,
@@ -270,30 +270,30 @@ OSApp *osapp_init_imp(
 
 /*---------------------------------------------------------------------------*/
 
-void *osapp_init_pool(void)
+void *_osapp_init_pool(void)
 {
-    return (void *)[[NSAutoreleasePool alloc] init];
+    return cast([[NSAutoreleasePool alloc] init], void);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_release_pool(void *pool)
+void _osapp_release_pool(void *pool)
 {
-    [(NSAutoreleasePool *)pool drain];
+    [cast(pool, NSAutoreleasePool) drain];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void *osapp_listener_imp(void)
+void *_osapp_listener_imp(void)
 {
     cassert_no_null(NSApp);
     cassert_no_null([NSApp delegate]);
-    return ((OSXAppDelegate *)[NSApp delegate])->listener;
+    return cast([NSApp delegate], OSXAppDelegate)->listener;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_terminate_imp(
+void _osapp_terminate_imp(
     OSApp **app,
     const bool_t abnormal_termination,
     FPtr_destroy func_destroy,
@@ -302,7 +302,7 @@ void osapp_terminate_imp(
     OSXAppDelegate *delegate;
     cassert_no_null(app);
     cassert_no_null(*app);
-    cassert((NSApplication *)(*app) == NSApp);
+    cassert(*dcast(app, NSApplication) == NSApp);
     delegate = [NSApp delegate];
     cassert_no_null(delegate);
     cassert(delegate->func_destroy == NULL);
@@ -316,58 +316,58 @@ void osapp_terminate_imp(
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argc_imp(OSApp *app)
+uint32_t _osapp_argc_imp(OSApp *app)
 {
     OSXAppDelegate *delegate = NULL;
     cassert_no_null(app);
-    cassert((NSApplication *)app == NSApp);
-    delegate = [(NSApplication *)app delegate];
+    cassert(cast(app, NSApplication) == NSApp);
+    delegate = [cast(app, NSApplication) delegate];
     return delegate->argc;
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
+uint32_t _osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const uint32_t max_size)
 {
     OSXAppDelegate *delegate = NULL;
     cassert_no_null(app);
-    cassert((NSApplication *)app == NSApp);
-    delegate = [(NSApplication *)app delegate];
+    cassert(cast(app, NSApplication) == NSApp);
+    delegate = [cast(app, NSApplication) delegate];
     cassert(index < delegate->argc);
     return unicode_convers(cast_const(delegate->argv[index], char_t), argv, ekUTF8, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_run(OSApp *app)
+void _osapp_run(OSApp *app)
 {
     cassert_no_null(app);
-    cassert((NSApplication *)app == NSApp);
-    [(NSApplication *)app run];
+    cassert(cast(app, NSApplication) == NSApp);
+    [cast(app, NSApplication) run];
     cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_request_user_attention(OSApp *app)
+void _osapp_request_user_attention(OSApp *app)
 {
     cassert_no_null(app);
-    cassert((NSApplication *)app == NSApp);
-    [(NSApplication *)app requestUserAttention:NSCriticalRequest];
+    cassert(cast(app, NSApplication) == NSApp);
+    [cast(app, NSApplication) requestUserAttention:NSCriticalRequest];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_cancel_user_attention(OSApp *app)
+void _osapp_cancel_user_attention(OSApp *app)
 {
     cassert_no_null(app);
-    cassert((NSApplication *)app == NSApp);
-    [(NSApplication *)app cancelUserAttentionRequest:NSCriticalRequest];
+    cassert(cast(app, NSApplication) == NSApp);
+    [cast(app, NSApplication) cancelUserAttentionRequest:NSCriticalRequest];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void *osapp_begin_thread(OSApp *app)
+void *_osapp_begin_thread(OSApp *app)
 {
     /* A secondary thread shouldn't call Cocoa */
     /* But is possible that create NSImage objects whithout any AutoreleasePool */
@@ -376,14 +376,14 @@ void *osapp_begin_thread(OSApp *app)
     /* This snipplet avoid memory leaks */
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     unref(app);
-    return (void *)pool;
+    return cast(pool, void);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_end_thread(OSApp *app, void *data)
+void _osapp_end_thread(OSApp *app, void *data)
 {
-    NSAutoreleasePool *pool = (NSAutoreleasePool *)data;
+    NSAutoreleasePool *pool = cast(data, NSAutoreleasePool);
     unref(app);
     [pool drain];
 }
@@ -399,12 +399,12 @@ void osapp_open_url(const char_t *url)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_set_lang(OSApp *app, const char_t *lang)
+void _osapp_set_lang(OSApp *app, const char_t *lang)
 {
     NSAutoreleasePool *pool = nil;
     NSString *str = nil;
     cassert_no_null(app);
-    cassert((NSApplication *)app == NSApp);
+    cassert(cast(app, NSApplication) == NSApp);
     pool = [[NSAutoreleasePool alloc] init];
     str = [[NSString alloc] initWithUTF8String:(const char *)lang];
     [[NSUserDefaults standardUserDefaults] setObject:[NSArray arrayWithObject:str] forKey:@"AppleLanguages"];
@@ -414,8 +414,8 @@ void osapp_set_lang(OSApp *app, const char_t *lang)
 
 /*---------------------------------------------------------------------------*/
 
-void osapp_OnThemeChanged(OSApp *app, Listener *listener)
+void _osapp_OnThemeChanged(OSApp *app, Listener *listener)
 {
-    OSXAppDelegate *delegate = [(NSApplication *)app delegate];
+    OSXAppDelegate *delegate = [cast(app, NSApplication) delegate];
     listener_update(&delegate->OnThemeChanged, listener);
 }

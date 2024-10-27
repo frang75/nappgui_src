@@ -91,7 +91,7 @@ static void i_OnFilter(Edit *edit, Event *e)
 
     /* Native edit doesn't known exactly the inserted or deleted text size */
     if (p->len == INT32_MAX)
-        ((EvText *)p)->len = i_text_diff(tc(edit->text), p->text);
+        cast(p, EvText)->len = i_text_diff(tc(edit->text), p->text);
 
     if (cell != NULL)
         res->apply = _cell_filter_str(cell, p->text, res->text, sizeof(res->text));
@@ -434,8 +434,8 @@ real32_t edit_get_height(const Edit *edit)
 {
     real32_t width, height;
     cassert_no_null(edit);
-    _edit_dimension((Edit *)edit, 0, &width, &height);
-    _edit_dimension((Edit *)edit, 1, &width, &height);
+    _edit_dimension(cast(edit, Edit), 0, &width, &height);
+    _edit_dimension(cast(edit, Edit), 1, &width, &height);
     return height;
 }
 

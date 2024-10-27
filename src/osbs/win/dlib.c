@@ -100,7 +100,7 @@ void *dlib_var_imp(DLib *dlib, const char_t *varname)
 #if defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-    return (void *)GetProcAddress((HMODULE)dlib, varname);
+    return cast(GetProcAddress((HMODULE)dlib, varname), void);
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif

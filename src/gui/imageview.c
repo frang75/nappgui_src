@@ -158,7 +158,7 @@ ImageView *imageview_create(void)
     view_size(view, size);
     view_OnDraw(view, listener(view, i_OnDraw, View));
     view_OnAcceptFocus(view, listener(view, i_OnAcceptFocus, View));
-    view_OnImage(view, (FPtr_set_image)imageview_image);
+    _view_OnImage(view, (FPtr_set_image)imageview_image);
     return (ImageView *)view;
 }
 
@@ -166,14 +166,14 @@ ImageView *imageview_create(void)
 
 void imageview_size(ImageView *view, S2Df size)
 {
-    view_size((View *)view, size);
+    view_size(cast(view, View), size);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void imageview_scale(ImageView *view, const gui_scale_t scale)
 {
-    VImgData *data = view_get_data((View *)view, VImgData);
+    VImgData *data = view_get_data(cast(view, View), VImgData);
     cassert_no_null(data);
     data->scale = scale;
 }
@@ -202,16 +202,16 @@ static void i_OnAnimation(View *view, Event *event)
 
 void imageview_image(ImageView *view, const Image *image)
 {
-    VImgData *data = view_get_data((View *)view, VImgData);
+    VImgData *data = view_get_data(cast(view, View), VImgData);
     const Image *limage = _gui_respack_image((const ResId)image, NULL);
     cassert_no_null(data);
     if (data->image != limage)
     {
-        Cell *cell = _component_cell((GuiComponent *)view);
+        Cell *cell = _component_cell(cast(view, GuiComponent));
         ptr_destopt(image_destroy, &data->image, Image);
         data->image = ptr_copyopt(image_copy, limage, Image);
         data->frame = UINT32_MAX;
-        view_delete_transition((View *)view);
+        _view_delete_transition(cast(view, View));
 
         if (limage != NULL)
         {
@@ -220,7 +220,7 @@ void imageview_image(ImageView *view, const Image *image)
             {
                 data->frame = 0;
                 data->ftime = -1.;
-                view_add_transition((View *)view, obj_listener((View *)view, i_OnAnimation, View));
+                _view_add_transition(cast(view, View), obj_listener(cast(view, View), i_OnAnimation, View));
             }
 
             if (data->scale == ekGUI_SCALE_AUTO)
@@ -228,11 +228,11 @@ void imageview_image(ImageView *view, const Image *image)
                 S2Df size;
                 size.width = (real32_t)image_width(data->image);
                 size.height = (real32_t)image_height(data->image);
-                view_size((View *)view, size);
+                view_size(cast(view, View), size);
             }
         }
 
-        view_update((View *)view);
+        view_update(cast(view, View));
         if (cell != NULL)
             _cell_upd_image(cell, limage);
     }
@@ -262,18 +262,18 @@ static void i_OnExit(View *view, Event *e)
 
 void imageview_OnClick(ImageView *view, Listener *listener)
 {
-    view_OnClick((View *)view, listener);
+    view_OnClick(cast(view, View), listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void imageview_OnOverDraw(ImageView *view, Listener *listener)
 {
-    VImgData *data = view_get_data((View *)view, VImgData);
+    VImgData *data = view_get_data(cast(view, View), VImgData);
     cassert_no_null(data);
     listener_update(&data->OnOverDraw, listener);
-    view_OnEnter((View *)view, listener((View *)view, i_OnEnter, View));
-    view_OnExit((View *)view, listener((View *)view, i_OnExit, View));
+    view_OnEnter(cast(view, View), listener(cast(view, View), i_OnEnter, View));
+    view_OnExit(cast(view, View), listener(cast(view, View), i_OnExit, View));
 }
 
 /*---------------------------------------------------------------------------*/

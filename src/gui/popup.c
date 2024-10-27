@@ -86,7 +86,7 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
     {
         const PElem *elem = arrst_get(popup->elems, params->index, PElem);
         cassert(params->text == NULL);
-        ((EvButton *)params)->text = tc(elem->text);
+        cast(params, EvButton)->text = tc(elem->text);
         listener_pass_event(popup->OnChange, event, popup, PopUp);
     }
 }

@@ -296,28 +296,28 @@ void splitview_size(SplitView *split, const S2Df size)
 
 void splitview_view(SplitView *split, View *view, const bool_t tabstop)
 {
-    i_add_child(split, (GuiComponent *)view, tabstop);
+    i_add_child(split, cast(view, GuiComponent), tabstop);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void splitview_text(SplitView *split, TextView *view, const bool_t tabstop)
 {
-    i_add_child(split, (GuiComponent *)view, tabstop);
+    i_add_child(split, cast(view, GuiComponent), tabstop);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void splitview_split(SplitView *split, SplitView *child)
 {
-    i_add_child(split, (GuiComponent *)child, TRUE);
+    i_add_child(split, cast(child, GuiComponent), TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void splitview_panel(SplitView *split, Panel *panel)
 {
-    i_add_child(split, (GuiComponent *)panel, TRUE);
+    i_add_child(split, cast(panel, GuiComponent), TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -479,7 +479,7 @@ static void i_accum_panels(const SplitView *split, uint32_t *num_panels, Panel *
     {
         if (split->child1->type == ekGUI_TYPE_PANEL)
         {
-            panels[*num_panels] = (Panel *)split->child1;
+            panels[*num_panels] = cast(split->child1, Panel);
             *num_panels += 1;
             cassert(*num_panels < GUI_COMPONENT_MAX_PANELS);
         }
@@ -493,7 +493,7 @@ static void i_accum_panels(const SplitView *split, uint32_t *num_panels, Panel *
     {
         if (split->child2->type == ekGUI_TYPE_PANEL)
         {
-            panels[*num_panels] = (Panel *)split->child2;
+            panels[*num_panels] = cast(split->child2, Panel);
             *num_panels += 1;
             cassert(*num_panels < GUI_COMPONENT_MAX_PANELS);
         }

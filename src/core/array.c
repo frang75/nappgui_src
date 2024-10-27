@@ -293,7 +293,7 @@ void array_clear_ptr(Array *array, FPtr_destroy func_destroy)
 {
     cassert_no_null(array);
     if (func_destroy != NULL)
-        i_destroy_elems((void **)array->data, array->elems, func_destroy);
+        i_destroy_elems(dcast(array->data, void), array->elems, func_destroy);
     i_clear(array);
 }
 
@@ -533,7 +533,7 @@ void array_join_ptr(Array *dest, const Array *src, FPtr_copy func_copy)
             uint32_t i = 0;
             for (i = 0; i < src->elems; ++i, bdest += dest->esize, bsrc += src->esize)
             {
-                void *elem = func_copy(*(const void **)bsrc);
+                void *elem = func_copy(*dcast_const(bsrc, void));
                 *dcast(bdest, void) = elem;
             }
         }
@@ -597,7 +597,7 @@ void array_delete_ptr(Array *array, const uint32_t pos, const uint32_t n, FPtr_d
         uint32_t i;
         for (i = 0; i < n; ++i)
         {
-            void **ldata = (void **)data;
+            void **ldata = dcast(data, void);
             cassert_no_null(ldata);
             if (*ldata != NULL)
                 func_destroy(ldata);
@@ -655,7 +655,7 @@ void array_sort(Array *array, FPtr_compare func_compare)
 void array_sort_ex(Array *array, FPtr_compare_ex func_compare, void *data)
 {
     cassert_no_null(array);
-    blib_qsort_ex(array->data, array->elems, array->esize, func_compare, (const byte_t *)data);
+    blib_qsort_ex(array->data, array->elems, array->esize, func_compare, cast_const(data, byte_t));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -713,7 +713,7 @@ uint32_t array_find_ptr(const Array *array, const void *elem)
     cassert_no_null(array);
     cassert(array->esize == sizeofptr);
     cassert_no_null(elem);
-    data = (const void **)array->data;
+    data = dcast_const(array->data, void);
     for (i = 0; i < array->elems; ++i, ++data)
     {
         if (*data == elem)

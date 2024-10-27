@@ -66,9 +66,9 @@ __END_C
 
 #define dctx_data(ctx, data, func_destroy_data, type) \
     ( \
-        (void)((type *)data == data), \
+        (void)(cast(data, type) == data), \
         FUNC_CHECK_DESTROY(func_destroy_data, type), \
-        dctx_data_imp(ctx, (void *)data, (FPtr_destroy)func_destroy_data))
+        dctx_data_imp(ctx, cast(data, void), (FPtr_destroy)func_destroy_data))
 
 #define dctx_get_data(ctx, type) \
-    (type *)dctx_get_data_imp(ctx)
+    cast(dctx_get_data_imp(ctx), type)

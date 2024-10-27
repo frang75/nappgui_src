@@ -318,7 +318,7 @@ static bool_t i_row_is_selected(const ArrSt(uint32_t) *selected, const uint32_t 
 static void i_OnDraw(TableView *view, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     uint32_t freeze_width = UINT32_MAX;
     uint32_t nc = 0, nr = 0;
     cassert_no_null(data);
@@ -597,7 +597,7 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
 
 static void i_OnOverlay(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
 
     if (data->head_visible == TRUE)
@@ -615,7 +615,7 @@ static void i_OnOverlay(TableView *view, Event *e)
 
         {
             V2Df pos;
-            view_viewport((View *)view, &pos, NULL);
+            view_viewport(cast(view, View), &pos, NULL);
             stx = (uint32_t)pos.x;
         }
 
@@ -792,7 +792,7 @@ static void i_document_size(TableView *view, TData *data)
         real32_t scroll_height = 0;
 
         theight = data->num_rows * data->row_height + i_BOTTOM_PADDING;
-        view_scroll_size((View *)view, NULL, &scroll_height);
+        view_scroll_size(cast(view, View), NULL, &scroll_height);
         theight += (uint32_t)scroll_height;
 
         if (data->head_visible == TRUE)
@@ -872,7 +872,7 @@ static void i_scroll_to_row(TData *data, const uint32_t row, const align_t align
 
 static void i_OnSize(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const EvSize *p = event_params(e, EvSize);
     cassert_no_null(data);
     scrollview_control_size(data->sview, (uint32_t)p->width, (uint32_t)p->height);
@@ -895,7 +895,7 @@ static ___INLINE void i_set_cursor(TableView *view, TData *data, const gui_curso
     if (data->cursor != cursor)
     {
         if (data->window == NULL)
-            data->window = _component_window((GuiComponent *)view);
+            data->window = _component_window(cast(view, GuiComponent));
         window_cursor(data->window, cursor, NULL, 0, 0);
         data->cursor = cursor;
     }
@@ -939,7 +939,7 @@ static void i_mouse_in_header(TData *data, const Column *cols, const uint32_t st
 
 static void i_OnMove(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const EvMouse *p = event_params(e, EvMouse);
     uint32_t mouse_x = (uint32_t)p->x;
     uint32_t mouse_y = (uint32_t)p->y;
@@ -983,7 +983,7 @@ static void i_OnMove(TableView *view, Event *e)
 
             {
                 V2Df pos;
-                view_viewport((View *)view, &pos, NULL);
+                view_viewport(cast(view, View), &pos, NULL);
                 stx = (uint32_t)pos.x;
             }
 
@@ -1011,14 +1011,14 @@ static void i_OnMove(TableView *view, Event *e)
         }
     }
 
-    view_update((View *)view);
+    view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnDrag(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert(data->mouse_down == TRUE);
 
     if (data->mouse_sep != UINT32_MAX)
@@ -1037,7 +1037,7 @@ static void i_OnDrag(TableView *view, Event *e)
 
         data->recompute_width = TRUE;
         i_document_size(view, data);
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1045,14 +1045,14 @@ static void i_OnDrag(TableView *view, Event *e)
 
 static void i_OnExit(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     data->mouse_row = UINT32_MAX;
     data->mouse_head = UINT32_MAX;
     data->mouse_sep = UINT32_MAX;
     if (data->mouse_down == FALSE)
         i_set_cursor(view, data, ekGUI_CURSOR_ARROW);
-    view_update((View *)view);
+    view_update(cast(view, View));
     unref(e);
 }
 
@@ -1060,12 +1060,12 @@ static void i_OnExit(TableView *view, Event *e)
 
 static void i_OnFocus(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const bool_t *p = event_params(e, bool_t);
     data->focused = *p;
     if (data->focused == TRUE && data->focus_row == UINT32_MAX && data->num_rows > 0)
         data->focus_row = 0;
-    view_update((View *)view);
+    view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1156,7 +1156,7 @@ static bool_t i_select(TableView *view, TData *data, const uint32_t row, const u
 
 static void i_OnDown(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const EvMouse *p = event_params(e, EvMouse);
     uint32_t n = data->num_rows;
 
@@ -1174,7 +1174,7 @@ static void i_OnDown(TableView *view, Event *e)
         {
             if (data->head_clickable == TRUE)
             {
-                view_update((View *)view);
+                view_update(cast(view, View));
 
                 if (data->OnHeaderClick != NULL)
                 {
@@ -1222,7 +1222,7 @@ static void i_OnDown(TableView *view, Event *e)
             }
 
             if (changed == TRUE)
-                view_update((View *)view);
+                view_update(cast(view, View));
         }
     }
 }
@@ -1231,13 +1231,13 @@ static void i_OnDown(TableView *view, Event *e)
 
 static void i_OnUp(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     data->mouse_down = FALSE;
     data->resize_mouse_x = UINT32_MAX;
     data->resize_col_width = UINT32_MAX;
     i_set_cursor(view, data, ekGUI_CURSOR_ARROW);
-    view_update((View *)view);
+    view_update(cast(view, View));
     unref(e);
 }
 
@@ -1329,7 +1329,7 @@ static void i_right_scroll(TData *data)
 
 static void i_OnKeyDown(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const EvKey *p = event_params(e, EvKey);
     uint32_t n = data->num_rows;
 
@@ -1526,7 +1526,7 @@ static void i_OnKeyDown(TableView *view, Event *e)
 
 static void i_OnKeyUp(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const EvKey *p = event_params(e, EvKey);
     ctrl_msel_t msel = drawctrl_multisel(NULL, p->key);
     /* Released a key that activate multiselect (p.e. Ctrl) */
@@ -1538,7 +1538,7 @@ static void i_OnKeyUp(TableView *view, Event *e)
 
 static void i_OnScroll(TableView *view, Event *e)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     const EvScroll *p = event_params(e, EvScroll);
     if (p->orient == ekGUI_HORIZONTAL)
     {
@@ -1555,32 +1555,32 @@ TableView *tableview_create(void)
 {
     View *view = _view_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE);
     TData *data = i_create_data(view);
-    view_OnDraw(view, listener((TableView *)view, i_OnDraw, TableView));
-    view_OnOverlay(view, listener((TableView *)view, i_OnOverlay, TableView));
-    view_OnSize(view, listener((TableView *)view, i_OnSize, TableView));
-    view_OnMove(view, listener((TableView *)view, i_OnMove, TableView));
-    view_OnDrag(view, listener((TableView *)view, i_OnDrag, TableView));
-    view_OnExit(view, listener((TableView *)view, i_OnExit, TableView));
-    view_OnFocus(view, listener((TableView *)view, i_OnFocus, TableView));
-    view_OnDown(view, listener((TableView *)view, i_OnDown, TableView));
-    view_OnUp(view, listener((TableView *)view, i_OnUp, TableView));
-    view_OnKeyDown(view, listener((TableView *)view, i_OnKeyDown, TableView));
-    view_OnKeyUp(view, listener((TableView *)view, i_OnKeyUp, TableView));
-    view_OnScroll(view, listener((TableView *)view, i_OnScroll, TableView));
+    view_OnDraw(view, listener(cast(view, TableView), i_OnDraw, TableView));
+    view_OnOverlay(view, listener(cast(view, TableView), i_OnOverlay, TableView));
+    view_OnSize(view, listener(cast(view, TableView), i_OnSize, TableView));
+    view_OnMove(view, listener(cast(view, TableView), i_OnMove, TableView));
+    view_OnDrag(view, listener(cast(view, TableView), i_OnDrag, TableView));
+    view_OnExit(view, listener(cast(view, TableView), i_OnExit, TableView));
+    view_OnFocus(view, listener(cast(view, TableView), i_OnFocus, TableView));
+    view_OnDown(view, listener(cast(view, TableView), i_OnDown, TableView));
+    view_OnUp(view, listener(cast(view, TableView), i_OnUp, TableView));
+    view_OnKeyDown(view, listener(cast(view, TableView), i_OnKeyDown, TableView));
+    view_OnKeyUp(view, listener(cast(view, TableView), i_OnKeyUp, TableView));
+    view_OnScroll(view, listener(cast(view, TableView), i_OnScroll, TableView));
     _view_set_subtype(view, "TableView");
     view_size(view, s2df(256, 128));
     i_head_height(data);
     i_row_height(data);
-    i_document_size((TableView *)view, data);
+    i_document_size(cast(view, TableView), data);
     view_data(view, &data, i_destroy_data, TData);
-    return (TableView *)view;
+    return cast(view, TableView);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void tableview_OnData(TableView *view, Listener *listener)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     listener_update(&data->OnData, listener);
 }
@@ -1589,7 +1589,7 @@ void tableview_OnData(TableView *view, Listener *listener)
 
 void tableview_OnSelect(TableView *view, Listener *listener)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     listener_update(&data->OnSelect, listener);
 }
@@ -1598,7 +1598,7 @@ void tableview_OnSelect(TableView *view, Listener *listener)
 
 void tableview_OnRowClick(TableView *view, Listener *listener)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     listener_update(&data->OnRowClick, listener);
 }
@@ -1607,7 +1607,7 @@ void tableview_OnRowClick(TableView *view, Listener *listener)
 
 void tableview_OnHeaderClick(TableView *view, Listener *listener)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     listener_update(&data->OnHeaderClick, listener);
 }
@@ -1616,14 +1616,14 @@ void tableview_OnHeaderClick(TableView *view, Listener *listener)
 
 void tableview_font(TableView *view, const Font *font)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     bool_t updated = FALSE;
     cassert_no_null(data);
     _gui_update_font(&data->font, NULL, font);
     if (_gui_update_font(&data->head_font, NULL, font) == TRUE)
     {
         i_head_height(data);
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 
     arrst_foreach(col, data->columns, Column)
@@ -1636,7 +1636,7 @@ void tableview_font(TableView *view, const Font *font)
         data->recompute_height = TRUE;
         i_row_height(data);
         i_document_size(view, data);
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1644,7 +1644,7 @@ void tableview_font(TableView *view, const Font *font)
 
 void tableview_size(TableView *view, S2Df size)
 {
-    view_size((View *)view, size);
+    view_size(cast(view, View), size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1661,7 +1661,7 @@ static ArrPt(String) *i_default_col_text(const uint32_t col_i)
 
 uint32_t tableview_new_column_text(TableView *view)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     uint32_t col_i = 0;
     Column *column = NULL;
     cassert_no_null(data);
@@ -1679,7 +1679,7 @@ uint32_t tableview_new_column_text(TableView *view)
     i_row_height(data);
     data->recompute_width = TRUE;
     i_document_size(view, data);
-    view_update((View *)view);
+    view_update(cast(view, View));
     return col_i;
 }
 
@@ -1687,7 +1687,7 @@ uint32_t tableview_new_column_text(TableView *view)
 
 void tableview_column_width(TableView *view, const uint32_t column_id, const real32_t width)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     Column *column = NULL;
     cassert_no_null(data);
     column = arrst_get(data->columns, column_id, Column);
@@ -1702,7 +1702,7 @@ void tableview_column_width(TableView *view, const uint32_t column_id, const rea
 
         data->recompute_width = TRUE;
         i_document_size(view, data);
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1710,7 +1710,7 @@ void tableview_column_width(TableView *view, const uint32_t column_id, const rea
 
 void tableview_column_limits(TableView *view, const uint32_t column_id, const real32_t min, const real32_t max)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     Column *column = NULL;
     cassert_no_null(data);
     column = arrst_get(data->columns, column_id, Column);
@@ -1725,14 +1725,14 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
             column->width = column->min_width;
             data->recompute_width = TRUE;
             i_document_size(view, data);
-            view_update((View *)view);
+            view_update(cast(view, View));
         }
         else if (column->width > column->max_width)
         {
             column->width = column->max_width;
             data->recompute_width = TRUE;
             i_document_size(view, data);
-            view_update((View *)view);
+            view_update(cast(view, View));
         }
     }
 }
@@ -1741,7 +1741,7 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
 
 void tableview_column_resizable(TableView *view, const uint32_t column_id, const bool_t resizable)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     Column *column = NULL;
     cassert_no_null(data);
     column = arrst_get(data->columns, column_id, Column);
@@ -1755,13 +1755,13 @@ void tableview_column_resizable(TableView *view, const uint32_t column_id, const
 
 void tableview_column_freeze(TableView *view, const uint32_t last_column_id)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     if (data->freeze_col_id != last_column_id)
     {
         cassert(last_column_id == UINT32_MAX || last_column_id < arrst_size(data->columns, Column));
         data->freeze_col_id = last_column_id;
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1769,7 +1769,7 @@ void tableview_column_freeze(TableView *view, const uint32_t last_column_id)
 
 void tableview_header_title(TableView *view, const uint32_t column_id, const char_t *text)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     Column *column = NULL;
     const char_t *ltext = NULL;
     cassert_no_null(data);
@@ -1778,21 +1778,21 @@ void tableview_header_title(TableView *view, const uint32_t column_id, const cha
     arrpt_destroy(&column->head_text, str_destroy, String);
     column->head_text = str_splits(ltext, "\n", TRUE, FALSE);
     i_head_height(data);
-    view_update((View *)view);
+    view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void tableview_header_align(TableView *view, const uint32_t column_id, const align_t align)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     Column *column = NULL;
     cassert_no_null(data);
     column = arrst_get(data->columns, column_id, Column);
     if (column->align != align)
     {
         column->align = align;
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1800,14 +1800,14 @@ void tableview_header_align(TableView *view, const uint32_t column_id, const ali
 
 void tableview_header_indicator(TableView *view, const uint32_t column_id, const uint32_t indicator)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     Column *column = NULL;
     cassert_no_null(data);
     column = arrst_get(data->columns, column_id, Column);
     if (column->indicator != indicator)
     {
         column->indicator = indicator;
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1815,11 +1815,11 @@ void tableview_header_indicator(TableView *view, const uint32_t column_id, const
 
 void tableview_header_visible(TableView *view, const bool_t visible)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     if (data->head_visible != visible)
     {
         data->head_visible = visible;
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1827,7 +1827,7 @@ void tableview_header_visible(TableView *view, const bool_t visible)
 
 void tableview_header_clickable(TableView *view, const bool_t clickable)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     if (data->head_clickable != clickable)
     {
         data->head_clickable = clickable;
@@ -1838,7 +1838,7 @@ void tableview_header_clickable(TableView *view, const bool_t clickable)
 
 void tableview_header_resizable(TableView *view, const bool_t resizable)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     if (data->head_resizable != resizable)
     {
         data->head_resizable = resizable;
@@ -1849,7 +1849,7 @@ void tableview_header_resizable(TableView *view, const bool_t resizable)
 
 void tableview_header_height(TableView *view, const real32_t height)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     data->head_height_forced = (uint32_t)height;
     i_head_height(data);
 }
@@ -1858,7 +1858,7 @@ void tableview_header_height(TableView *view, const real32_t height)
 
 void tableview_row_height(TableView *view, const real32_t height)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     data->row_height_forced = (uint32_t)height;
     i_row_height(data);
 }
@@ -1867,7 +1867,7 @@ void tableview_row_height(TableView *view, const real32_t height)
 
 void tableview_hkey_scroll(TableView *view, const bool_t force_column, const real32_t scroll)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     if (force_column == TRUE)
         data->hkey_scroll = UINT32_MAX;
     else
@@ -1878,7 +1878,7 @@ void tableview_hkey_scroll(TableView *view, const bool_t force_column, const rea
 
 void tableview_multisel(TableView *view, const bool_t multisel, const bool_t preserve)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     data->multisel = multisel;
     data->preserve = preserve;
     if (multisel == FALSE)
@@ -1889,7 +1889,7 @@ void tableview_multisel(TableView *view, const bool_t multisel, const bool_t pre
         arrst_clear(data->selected, NULL, uint32_t);
         if (sel != UINT32_MAX)
             arrst_append(data->selected, sel, uint32_t);
-        view_update((View *)view);
+        view_update(cast(view, View));
     }
 }
 
@@ -1897,7 +1897,7 @@ void tableview_multisel(TableView *view, const bool_t multisel, const bool_t pre
 
 void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     bool_t update = FALSE;
 
     if (data->hlines != hlines)
@@ -1916,7 +1916,7 @@ void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines)
     }
 
     if (update == TRUE)
-        view_update((View *)view);
+        view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1965,19 +1965,19 @@ static void i_num_rows(TableView *view, TData *data)
 
 void tableview_update(TableView *view)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
     i_num_rows(view, data);
     data->recompute_height = TRUE;
     i_document_size(view, data);
-    view_update((View *)view);
+    view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void tableview_select(TableView *view, const uint32_t *rows, const uint32_t n)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     bool_t updated = FALSE;
 
     cassert_no_null(data);
@@ -2013,14 +2013,14 @@ void tableview_select(TableView *view, const uint32_t *rows, const uint32_t n)
     }
 
     if (updated == TRUE)
-        view_update((View *)view);
+        view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void tableview_deselect(TableView *view, const uint32_t *rows, const uint32_t n)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     bool_t updated = FALSE;
 
     cassert_no_null(data);
@@ -2052,14 +2052,14 @@ void tableview_deselect(TableView *view, const uint32_t *rows, const uint32_t n)
     }
 
     if (updated == TRUE)
-        view_update((View *)view);
+        view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void tableview_deselect_all(TableView *view)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     bool_t updated = FALSE;
     cassert_no_null(data);
 
@@ -2070,14 +2070,14 @@ void tableview_deselect_all(TableView *view)
     }
 
     if (updated == TRUE)
-        view_update((View *)view);
+        view_update(cast(view, View));
 }
 
 /*---------------------------------------------------------------------------*/
 
 const ArrSt(uint32_t) *tableview_selected(const TableView *view)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     return data->selected;
 }
 
@@ -2085,7 +2085,7 @@ const ArrSt(uint32_t) *tableview_selected(const TableView *view)
 
 void tableview_focus_row(TableView *view, const uint32_t row, const align_t align)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
 
     if (row < data->num_rows && row != data->focus_row)
@@ -2108,7 +2108,7 @@ void tableview_focus_row(TableView *view, const uint32_t row, const align_t alig
 
 uint32_t tableview_get_focus_row(const TableView *view)
 {
-    TData *data = view_get_data((View *)view, TData);
+    TData *data = view_get_data(cast(view, View), TData);
     return data->focus_row;
 }
 
@@ -2116,5 +2116,5 @@ uint32_t tableview_get_focus_row(const TableView *view)
 
 void tableview_scroll_visible(TableView *view, const bool_t horizontal, const bool_t vertical)
 {
-    view_scroll_visible((View *)view, horizontal, vertical);
+    view_scroll_visible(cast(view, View), horizontal, vertical);
 }

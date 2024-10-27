@@ -53,4 +53,4 @@ _gui_api uint32_t guicontrol_get_tag(const GuiControl *control);
 
 __END_C
 
-#define guicontrol(control) ((GuiControl *)control)
+#define guicontrol(control) cast(control, GuiControl)

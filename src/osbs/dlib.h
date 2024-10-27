@@ -29,4 +29,4 @@ __END_C
     cast_func(dlib_proc_imp(dlib, procname), type)
 
 #define dlib_var(dlib, varname, type) \
-    (const type *)dlib_var_imp(dlib, varname)
+    cast_const(dlib_var_imp(dlib, varname), type)
