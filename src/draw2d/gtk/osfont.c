@@ -276,7 +276,7 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscal
     }
 
     pango_layout_set_font_description(i_LAYOUT, cast(font, PangoFontDescription));
-    pango_layout_set_text(i_LAYOUT, (const char *)text, -1);
+    pango_layout_set_text(i_LAYOUT, cast_const(text, char), -1);
     pango_layout_set_width(i_LAYOUT, refwidth < 0 ? -1 : (int)((refwidth / xscale) * PANGO_SCALE));
     pango_layout_get_pixel_size(i_LAYOUT, &w, &h);
     ptr_assign(width, (real32_t)w * xscale);

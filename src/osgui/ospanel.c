@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_detach_and_destroy(OSPanel **child, OSPanel *panel)
+void _ospanel_detach_and_destroy(OSPanel **child, OSPanel *panel)
 {
     cassert_no_null(child);
     ospanel_detach(*child, panel);

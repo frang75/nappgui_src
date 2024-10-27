@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void osslider_detach_and_destroy(OSSlider **slider, OSPanel *panel);
+void _osslider_detach_and_destroy(OSSlider **slider, OSPanel *panel);
 
 __END_C

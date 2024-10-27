@@ -20,15 +20,15 @@ extern NSMutableParagraphStyle *kLEFT_PARAGRAPH_STYLE;
 extern NSMutableParagraphStyle *kCENTER_PARAGRAPH_STYLE;
 extern NSMutableParagraphStyle *kRIGHT_PARAGRAPH_STYLE;
 
-vkey_t osgui_vkey(unsigned short keycode);
+vkey_t _osgui_vkey(unsigned short keycode);
 
-void osgui_modifier_flags(
+void _osgui_modifier_flags(
     NSUInteger flags,
     bool_t *rshift, bool_t *rctrl, bool_t *rcommand, bool_t *ralt,
     bool_t *lshift, bool_t *lctrl, bool_t *lcommand, bool_t *lalt);
 
-uint32_t osgui_modifiers(NSUInteger flags);
+uint32_t _osgui_modifiers(NSUInteger flags);
 
-uint32_t osgui_key_equivalent_text(const char_t *text, char_t *buff, const uint32_t size);
+uint32_t _osgui_key_equivalent_text(const char_t *text, char_t *buff, const uint32_t size);
 
 __END_C

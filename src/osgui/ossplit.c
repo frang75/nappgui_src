@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel)
+void _ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel)
 {
     cassert_no_null(view);
     ossplit_detach(*view, panel);

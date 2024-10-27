@@ -76,7 +76,7 @@ static color_t i_from_NSColor(NSColor *c)
 
 /*---------------------------------------------------------------------------*/
 
-void oscolor_init(void)
+void _oscolor_init(void)
 {
     cassert(i_COLOR_VIEW == nil);
     i_COLOR_VIEW = [[OSXViewRGBA alloc] initWithFrame:NSMakeRect(0, 0, 1, 1)];
@@ -84,35 +84,35 @@ void oscolor_init(void)
 
 /*---------------------------------------------------------------------------*/
 
-void oscolor_finish(void)
+void _oscolor_finish(void)
 {
     [i_COLOR_VIEW release];
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t oscolor_from_NSColor(NSColor *color)
+color_t _oscolor_from_NSColor(NSColor *color)
 {
     return i_from_NSColor(color);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscolor_NSColor_rgba(NSColor *color, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
+void _oscolor_NSColor_rgba(NSColor *color, CGFloat *r, CGFloat *g, CGFloat *b, CGFloat *a)
 {
     i_NSColor_rgba(color, r, g, b, a);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscolor_NSColor_rgba_v(NSColor *color, CGFloat *rgba)
+void _oscolor_NSColor_rgba_v(NSColor *color, CGFloat *rgba)
 {
     i_NSColor_rgba(color, rgba, rgba + 1, rgba + 2, rgba + 3);
 }
 
 /*---------------------------------------------------------------------------*/
 
-NSColor *oscolor_NSColor(color_t color)
+NSColor *_oscolor_NSColor(color_t color)
 {
     real32_t r, g, b, a;
     color_get_rgbaf(color, &r, &g, &b, &a);

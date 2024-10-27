@@ -27,6 +27,8 @@
 
 #include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
+/*---------------------------------------------------------------------------*/
+
 static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32_t size)
 {
     NSMutableArray<UTType *> *array = [NSMutableArray array];
@@ -45,6 +47,8 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
 
     [panel setAllowedContentTypes:array];
 }
+
+/*---------------------------------------------------------------------------*/
 
 #else
 
@@ -99,7 +103,7 @@ static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, cons
     if (ftypes != NULL)
     {
         cassert(size > 0);
-        if (size == 1 && strcmp((const char *)ftypes[0], "..DIR..") == 0)
+        if (size == 1 && strcmp(cast_const(ftypes[0], char), "..DIR..") == 0)
             dirsel = YES;
     }
 
@@ -136,7 +140,7 @@ static const char_t *i_open_file_selected(NSOpenPanel *open_panel)
     cassert([urls count] == 1);
     url = [urls objectAtIndex:0];
     cassert_no_null(url);
-    return (const char_t *)[[url path] UTF8String];
+    return cast_const([[url path] UTF8String], char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -147,7 +151,7 @@ static const char_t *i_save_file_selected(NSSavePanel *save_panel)
     cassert_no_null(save_panel);
     url = [save_panel URL];
     cassert_no_null(url);
-    return (const char_t *)[[url path] UTF8String];
+    return cast_const([[url path] UTF8String], char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -295,27 +299,27 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     }
 
     /*
-//    ret = [NSApp runModalForWindow:panel];
+    //    ret = [NSApp runModalForWindow:panel];
 
-//#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-//
-//
-////        NSModalResponse ret = [panel runModalForWindow:nil];
-////        if (ret == NSModalResponseOK)
-////            return i_save_file_selected(save_panel);
-////        else
-////            return NULL;
-//    }
-//    #else
-//    {
-//        NSUInteger ret = (NSUInteger)[save_panel runModal];
-//        if (ret == NSFileHandlingPanelOKButton)
-//            return i_save_file_selected(save_panel);
-//        else
-//            return NULL;
-//    }
-//    #endif
- */
+    //#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+    //
+    //
+    ////        NSModalResponse ret = [panel runModalForWindow:nil];
+    ////        if (ret == NSModalResponseOK)
+    ////            return i_save_file_selected(save_panel);
+    ////        else
+    ////            return NULL;
+    //    }
+    //    #else
+    //    {
+    //        NSUInteger ret = (NSUInteger)[save_panel runModal];
+    //        if (ret == NSFileHandlingPanelOKButton)
+    //            return i_save_file_selected(save_panel);
+    //        else
+    //            return NULL;
+    //    }
+    //    #endif
+     */
     unref(parent);
     unref(title);
     unref(x);

@@ -122,7 +122,7 @@
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down((OSControl *)self->scroll) == TRUE)
+    if (_oswindow_mouse_down(cast(self->scroll, OSControl)) == TRUE)
         [super mouseDown:theEvent];
 }
 
@@ -175,7 +175,7 @@ static char_t *i_get_seltext(OSXTextView *lview, NSRange range, uint32_t *size)
 
 static void i_replace_seltext(OSXTextView *lview, NSRange range, const char_t *text)
 {
-    NSString *str = [NSString stringWithUTF8String:(const char *)text];
+    NSString *str = [NSString stringWithUTF8String:cast_const(text, char)];
     [[lview textStorage] replaceCharactersInRange:range withString:str];
 }
 
@@ -229,14 +229,14 @@ static void i_replace_seltext(OSXTextView *lview, NSRange range, const char_t *t
             [lview setSelectedRange:range];
 
             edit_text = i_get_seltext(lview, range, &tsize);
-            params.text = (const char_t *)edit_text;
+            params.text = cast_const(edit_text, char_t);
             params.cpos = (uint32_t)range.location;
             params.len = (int32_t)inschars;
             result.apply = FALSE;
             result.text[0] = '\0';
             result.cpos = UINT32_MAX;
             listener_event(lview->OnFilter, ekGUI_EVENT_TXTFILTER, cast(lview, OSText), &params, &result, OSText, EvText, EvTextFilter);
-            heap_free((byte_t **)&edit_text, tsize, "OSTextSelText");
+            heap_free(dcast(&edit_text, byte_t), tsize, "OSTextSelText");
 
             lview->num_chars = num_chars;
 
@@ -307,7 +307,6 @@ static void i_set_wrap_mode(OSXTextView *view, const BOOL wrap)
 OSText *ostext_create(const uint32_t flags)
 {
     OSXTextView *view = [[OSXTextView alloc] initWithFrame:NSZeroRect];
-    unref(flags);
     heap_auditor_add("OSXTextView");
     view->is_editable = NO;
     view->is_opaque = YES;
@@ -315,12 +314,14 @@ OSText *ostext_create(const uint32_t flags)
     view->focus_draw = NO;
     view->is_wrap_mode = YES;
     view->show_select = NO;
+    unref(flags);
 
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
     view->scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
 #else
     view->scroll = [[OSXScrollView alloc] initWithFrame:NSZeroRect];
 #endif
+
     view->attribs = [[NSMutableDictionary alloc] init];
     view->ffamily[0] = '\0';
     view->fsize = REAL32_MAX;
@@ -352,7 +353,7 @@ OSText *ostext_create(const uint32_t flags)
     }
 
     {
-        NSColor *color = oscolor_NSColor(1); /* ekSYS_LABEL */
+        NSColor *color = _oscolor_NSColor(1); /* ekSYS_LABEL */
         [view->attribs setValue:color forKey:NSForegroundColorAttributeName];
     }
 
@@ -361,7 +362,7 @@ OSText *ostext_create(const uint32_t flags)
         [view->scroll setFocusRingType:NSFocusRingTypeExterior];
     }
 
-    return (OSText *)view->scroll;
+    return cast(view->scroll, OSText);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -371,7 +372,7 @@ void ostext_destroy(OSText **view)
     OSXTextView *lview = nil;
     OSXTextViewDelegate *delegate = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)*view documentView];
+    lview = [*dcast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     delegate = [lview delegate];
     cassert_no_null(delegate);
@@ -381,15 +382,16 @@ void ostext_destroy(OSText **view)
     [lview setDelegate:nil];
     [delegate release];
     [lview release];
-    [(*(NSScrollView **)view) release];
+    [*dcast(view, NSScrollView) release];
+    *view = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_OnFilter(OSText *view, Listener *listener)
 {
-    OSXTextView *lview = [(NSScrollView *)view documentView];
-    cassert_no_null(view);
+    OSXTextView *lview = [cast(view, NSScrollView) documentView];
+    cassert_no_null(lview);
     listener_update(&lview->OnFilter, listener);
 }
 
@@ -397,8 +399,8 @@ void ostext_OnFilter(OSText *view, Listener *listener)
 
 void ostext_OnFocus(OSText *view, Listener *listener)
 {
-    OSXTextView *lview = [(NSScrollView *)view documentView];
-    cassert_no_null(view);
+    OSXTextView *lview = [cast(view, NSScrollView) documentView];
+    cassert_no_null(lview);
     listener_update(&lview->OnFocus, listener);
 }
 
@@ -409,7 +411,7 @@ static NSAttributedString *i_attr_str(OSXTextView *lview, const char_t *text)
     NSString *str = nil;
     NSAttributedString *astr = nil;
     cassert_no_null(lview);
-    str = [NSString stringWithUTF8String:(const char *)text];
+    str = [NSString stringWithUTF8String:cast_const(text, char)];
     astr = [[NSAttributedString alloc] initWithString:str attributes:lview->attribs];
     return astr;
 }
@@ -422,7 +424,7 @@ void ostext_insert_text(OSText *view, const char_t *text)
     NSAttributedString *astr = nil;
     cassert_no_null(view);
     cassert_no_null(text);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     astr = i_attr_str(lview, text);
 
@@ -448,7 +450,7 @@ void ostext_set_text(OSText *view, const char_t *text)
     OSXTextView *lview = nil;
     NSAttributedString *astr = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     astr = i_attr_str(lview, text);
 
@@ -494,7 +496,7 @@ static NSFont *i_font_create(const char_t *family, const real32_t size, const ui
 
     {
         Font *font = font_create(family, size, style);
-        nsfont = (NSFont *)font_native(font);
+        nsfont = cast(font_native(font), NSFont);
         font_destroy(&font);
     }
 
@@ -590,15 +592,15 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
 {
     OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
 
     switch (param)
     {
     case ekGUI_TEXT_FAMILY:
-        if (str_equ_c(lview->ffamily, (const char_t *)value) == FALSE)
+        if (str_equ_c(lview->ffamily, cast_const(value, char_t)) == FALSE)
         {
-            str_copy_c(lview->ffamily, sizeof(lview->ffamily), (const char_t *)value);
+            str_copy_c(lview->ffamily, sizeof(lview->ffamily), cast_const(value, char_t));
             i_change_font(lview);
         }
         break;
@@ -607,17 +609,17 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         break;
 
     case ekGUI_TEXT_SIZE:
-        if (lview->fsize != *((real32_t *)value))
+        if (lview->fsize != *cast(value, real32_t))
         {
-            lview->fsize = *((real32_t *)value);
+            lview->fsize = *cast(value, real32_t);
             i_change_font(lview);
         }
         break;
 
     case ekGUI_TEXT_STYLE:
-        if (lview->fstyle != *((uint32_t *)value))
+        if (lview->fstyle != *cast(value, uint32_t))
         {
-            lview->fstyle = *((uint32_t *)value);
+            lview->fstyle = *cast(value, uint32_t);
             i_change_font(lview);
         }
         break;
@@ -625,25 +627,25 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
     case ekGUI_TEXT_COLOR:
     {
         NSColor *color = nil;
-        if (*(color_t *)value == kCOLOR_DEFAULT)
-            color = oscolor_NSColor(1); /* ekSYS_LABEL */
+        if (*cast(value, color_t) == kCOLOR_DEFAULT)
+            color = _oscolor_NSColor(1); /* ekSYS_LABEL */
         else
-            color = oscolor_NSColor(*(color_t *)value);
+            color = _oscolor_NSColor(*cast(value, color_t));
         [lview->attribs setValue:color forKey:NSForegroundColorAttributeName];
         break;
     }
 
     case ekGUI_TEXT_BGCOLOR:
     {
-        NSColor *color = oscolor_NSColor(*(color_t *)value);
+        NSColor *color = _oscolor_NSColor(*cast(value, color_t));
         [lview->attribs setValue:color forKey:NSBackgroundColorAttributeName];
         break;
     }
 
     case ekGUI_TEXT_PGCOLOR:
-        if (*(color_t *)value != kCOLOR_DEFAULT)
+        if (*cast(value, color_t) != kCOLOR_DEFAULT)
         {
-            NSColor *color = oscolor_NSColor(*(color_t *)value);
+            NSColor *color = _oscolor_NSColor(*cast(value, color_t));
             [lview setBackgroundColor:color];
             [lview setDrawsBackground:YES];
         }
@@ -654,33 +656,33 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         break;
 
     case ekGUI_TEXT_PARALIGN:
-        if (lview->palign != *((align_t *)value))
+        if (lview->palign != *cast(value, align_t))
         {
-            lview->palign = *((align_t *)value);
+            lview->palign = *cast(value, align_t);
             i_change_paragraph(lview);
         }
         break;
 
     case ekGUI_TEXT_LSPACING:
-        if (lview->pspacing != *((real32_t *)value))
+        if (lview->pspacing != *cast(value, real32_t))
         {
-            lview->pspacing = *((real32_t *)value);
+            lview->pspacing = *cast(value, real32_t);
             i_change_paragraph(lview);
         }
         break;
 
     case ekGUI_TEXT_AFPARSPACE:
-        if (lview->pafter != *((real32_t *)value))
+        if (lview->pafter != *cast(value, real32_t))
         {
-            lview->pafter = *((real32_t *)value);
+            lview->pafter = *cast(value, real32_t);
             i_change_paragraph(lview);
         }
         break;
 
     case ekGUI_TEXT_BFPARSPACE:
-        if (lview->pbefore != *((real32_t *)value))
+        if (lview->pbefore != *cast(value, real32_t))
         {
-            lview->pbefore = *((real32_t *)value);
+            lview->pbefore = *cast(value, real32_t);
             i_change_paragraph(lview);
         }
         break;
@@ -730,7 +732,7 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
 
     case ekGUI_TEXT_SHOW_SELECT:
     {
-        bool_t show_sel = *((bool_t *)value);
+        bool_t show_sel = *cast(value, bool_t);
         lview->show_select = (BOOL)show_sel;
         break;
     }
@@ -766,9 +768,9 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
 
 void ostext_editable(OSText *view, const bool_t is_editable)
 {
-    OSXTextView *lview;
+    OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     lview->is_editable = (BOOL)is_editable;
     [lview setEditable:lview->is_editable];
@@ -778,18 +780,18 @@ void ostext_editable(OSText *view, const bool_t is_editable)
 
 const char_t *ostext_get_text(const OSText *view)
 {
-    OSXTextView *lview;
+    OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
-    return (const char_t *)[[[lview textStorage] string] UTF8String];
+    return cast_const([[[lview textStorage] string] UTF8String], char_t);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_scroller_visible(OSText *view, const bool_t horizontal, const bool_t vertical)
 {
-    NSScrollView *sview = (NSScrollView *)view;
+    NSScrollView *sview = cast(view, NSScrollView);
     cassert_no_null(sview);
     [sview setHasHorizontalScroller:(BOOL)horizontal];
     [sview setHasVerticalScroller:(BOOL)vertical];
@@ -799,9 +801,9 @@ void ostext_scroller_visible(OSText *view, const bool_t horizontal, const bool_t
 
 void ostext_set_need_display(OSText *view)
 {
-    OSXTextView *lview;
+    OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     [lview setNeedsDisplay:YES];
 }
@@ -810,9 +812,9 @@ void ostext_set_need_display(OSText *view)
 
 void ostext_clipboard(OSText *view, const clipboard_t clipboard)
 {
-    OSXTextView *lview;
+    OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
 
     switch (clipboard)
@@ -833,21 +835,21 @@ void ostext_clipboard(OSText *view, const clipboard_t clipboard)
 
 void ostext_attach(OSText *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView *)view);
+    _ospanel_attach_control(panel, cast(view, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_detach(OSText *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView *)view);
+    _ospanel_detach_control(panel, cast(view, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_visible(OSText *view, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)view, visible);
+    _oscontrol_set_visible(cast(view, NSView), visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -862,33 +864,33 @@ void ostext_enabled(OSText *view, const bool_t enabled)
 
 void ostext_size(const OSText *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)view, width, height);
+    _oscontrol_get_size(cast(view, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_origin(const OSText *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)view, x, y);
+    _oscontrol_get_origin(cast(view, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    OSXTextView *lview;
-    lview = [(NSScrollView *)view documentView];
-    _oscontrol_set_frame((NSView *)view, x, y, width, height);
+    OSXTextView *lview = nil;
+    lview = [cast(view, NSScrollView) documentView];
+    _oscontrol_set_frame(cast(view, NSView), x, y, width, height);
     i_set_wrap_mode(lview, lview->is_wrap_mode);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_focus(OSText *view, const bool_t focus)
+void _ostext_focus(OSText *view, const bool_t focus)
 {
-    OSXTextView *lview;
+    OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     lview->focused = (BOOL)focus;
     lview->focus_draw = YES;
@@ -918,11 +920,11 @@ void ostext_focus(OSText *view, const bool_t focus)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t ostext_capture_return(const OSText *view)
+bool_t _ostext_capture_return(const OSText *view)
 {
-    OSXTextView *lview;
+    OSXTextView *lview = nil;
     cassert_no_null(view);
-    lview = [(NSScrollView *)view documentView];
+    lview = [cast(view, NSScrollView) documentView];
     cassert_no_null(lview);
     return lview->is_editable;
 }
@@ -932,6 +934,6 @@ bool_t ostext_capture_return(const OSText *view)
 BOOL _ostext_is(NSView *view)
 {
     if ([view isKindOfClass:[NSScrollView class]])
-        return [[(NSScrollView *)view documentView] isKindOfClass:[OSXTextView class]];
+        return [[cast(view, NSScrollView) documentView] isKindOfClass:[OSXTextView class]];
     return FALSE;
 }

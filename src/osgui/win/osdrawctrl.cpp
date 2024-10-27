@@ -46,7 +46,7 @@ static LONG kCHECKBOX_HEIGHT = 0;
 
 Font *osdrawctrl_font(const DCtx *ctx)
 {
-    HTHEME theme = osstyleXP_OpenTheme(GetDesktopWindow(), L"Explorer::ListView");
+    HTHEME theme = _osstyleXP_OpenTheme(GetDesktopWindow(), L"Explorer::ListView");
     Font *font = NULL;
 
     unref(ctx);
@@ -60,7 +60,7 @@ Font *osdrawctrl_font(const DCtx *ctx)
             font = font_system(font_regular_size(), 0);
         }
 
-        osstyleXP_CloseTheme(theme);
+        _osstyleXP_CloseTheme(theme);
     }
 
     if (font == NULL)
@@ -225,7 +225,7 @@ void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32
     rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_header_theme(ctx), HP_HEADERITEM, istate, (HDC)dctx_native(ctx), &rect);
+    _osstyleXP_DrawThemeBackground2(i_header_theme(ctx), HP_HEADERITEM, istate, (HDC)dctx_native(ctx), &rect);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -252,7 +252,7 @@ void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uin
         rect.right = rect.left + (LONG)width;
         rect.bottom = rect.top + sz.cy;
         unref(height);
-        osstyleXP_DrawThemeBackground2(theme, HP_HEADERSORTARROW, istate, (HDC)dctx_native(ctx), &rect);
+        _osstyleXP_DrawThemeBackground2(theme, HP_HEADERSORTARROW, istate, (HDC)dctx_native(ctx), &rect);
     }
 }
 
@@ -272,7 +272,7 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     rect.bottom = rect.top + (LONG)height;
     if (osbs_windows() > ekWIN_XP3)
     {
-        osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, hdc, &rect);
+        _osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, hdc, &rect);
     }
     else
     {
@@ -339,7 +339,7 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
     rect.right = text_width > 0 ? rect.left + (LONG)text_width : 10000;
     rect.top = (LONG)y + (LONG)offset_y;
     rect.bottom = rect.top + 10000;
-    num_bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, ekUTF16, sizeof(wtext));
+    num_bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, sizeof(wtext));
     unref(num_bytes);
 
     switch (dctx_text_intalign(ctx))
@@ -361,7 +361,7 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
         if (osbs_windows() > ekWIN_XP3)
         {
             int istate = i_list_state(state);
-            osstyleXP_DrawThemeText2(i_list_theme(ctx), hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
+            _osstyleXP_DrawThemeText2(i_list_theme(ctx), hdc, LVP_LISTITEM, istate, wtext, -1, format, &rect);
         }
         else
         {
@@ -391,7 +391,7 @@ void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int3
     unref(state);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
-    hbitmap = osimg_hbitmap_cache(image, (COLORREF)dctx_background_color(ctx), &width, &height);
+    hbitmap = _osimg_hbitmap_cache(image, (COLORREF)dctx_background_color(ctx), &width, &height);
     memhdc = CreateCompatibleDC(hdc);
     SelectObject(memhdc, hbitmap);
     BitBlt(hdc, (int)x + (int)offset_x, (int)y + (int)offset_y, width, height, memhdc, 0, 0, SRCCOPY);
@@ -406,7 +406,6 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
     HDC hdc = (HDC)dctx_native(ctx);
-
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
 
@@ -440,7 +439,7 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
     rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
+    _osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -485,19 +484,19 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
     rect.top = (LONG)y + (LONG)offset_y;
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
-    osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
+    _osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image)
+void _osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image)
 {
     BOOL use_style = FALSE;
 
     cassert_no_null(rect);
     cassert(FALSE);
 
-    use_style = osstyleXP_OpenThemeData(hwnd, L"HEADER");
+    use_style = _osstyleXP_OpenThemeData(hwnd, L"HEADER");
 
     if (use_style == TRUE)
     {
@@ -520,16 +519,15 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
         }
 
         flags |= DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS;
-
-        osstyleXP_DrawThemeBackground(hwnd, hdc, HP_HEADERITEM, state, FALSE, rect, NULL);
-        cassert(osstyleXP_HasThemeFont(hdc, HP_HEADERITEM, state, TMT_FONT) == FALSE);
+        _osstyleXP_DrawThemeBackground(hwnd, hdc, HP_HEADERITEM, state, FALSE, rect, NULL);
+        cassert(_osstyleXP_HasThemeFont(hdc, HP_HEADERITEM, state, TMT_FONT) == FALSE);
         SelectObject(hdc, font);
         rect2 = *rect;
         InflateRect(&rect2, -16, 0);
-        osstyleXP_DrawThemeText(hdc, HP_HEADERITEM, state, text, UINT32_MAX, flags, &rect2);
+        _osstyleXP_DrawThemeText(hdc, HP_HEADERITEM, state, text, UINT32_MAX, flags, &rect2);
         rect2 = *rect;
         rect2.bottom = rect2.top + 10;
-        osstyleXP_DrawThemeText(hdc, HP_HEADERSORTARROW, HSAS_SORTEDUP, L"W", UINT32_MAX, flags, rect);
+        _osstyleXP_DrawThemeText(hdc, HP_HEADERSORTARROW, HSAS_SORTEDUP, L"W", UINT32_MAX, flags, rect);
 
         // LOGFONT lf;
         // SelectObject(hdc, tv->font);
@@ -556,7 +554,7 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
         //         state |= DFCS_HOT;
         // }
 
-        // osstyleXP_DrawNonThemedButtonBackground(hwnd, hdc, FALSE, state, &rect, &border);
+        // _osstyleXP_DrawNonThemedButtonBackground(hwnd, hdc, FALSE, state, &rect, &border);
     }
 
     if (image != NULL)
@@ -570,5 +568,5 @@ void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, 
     }
 
     if (use_style == TRUE)
-        osstyleXP_CloseThemeData();
+        _osstyleXP_CloseThemeData();
 }

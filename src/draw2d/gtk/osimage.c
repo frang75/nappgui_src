@@ -182,7 +182,7 @@ static ___INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 {
     if (size >= 6)
     {
-        const char_t *str = (const char_t *)data;
+        const char_t *str = cast_const(data, char_t);
         if (str_equ_cn(str, "GIF87a", 6) == TRUE || str_equ_cn(str, "GIF89a", 6) == TRUE)
             return TRUE;
     }

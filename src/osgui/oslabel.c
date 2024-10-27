@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void oslabel_detach_and_destroy(OSLabel **label, OSPanel *panel)
+void _oslabel_detach_and_destroy(OSLabel **label, OSPanel *panel)
 {
     cassert_no_null(label);
     oslabel_detach(*label, panel);

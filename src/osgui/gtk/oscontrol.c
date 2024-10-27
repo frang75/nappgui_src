@@ -47,11 +47,10 @@ static void i_OnFocus(GtkWidget *widget, OSControl *control)
 static gboolean i_OnFocusOut(GtkWidget *widget, GdkEvent *e, OSControl *control)
 {
     cassert_no_null(control);
-    if (control->type == ekGUI_TYPE_WINDOW)
-        _oswindow_unset_focus((OSWindow *)control);
-
     unref(widget);
     unref(e);
+    if (control->type == ekGUI_TYPE_WINDOW)
+        _oswindow_unset_focus(cast(control, OSWindow));
     return FALSE;
 }
 
@@ -86,7 +85,7 @@ void _oscontrol_init(OSControl *control, const gui_type_t type, GtkWidget *widge
 
 static void i_count(GtkWidget *widget, gpointer data)
 {
-    uint32_t *n = (uint32_t *)data;
+    uint32_t *n = cast(data, uint32_t);
     unref(widget);
     *n += 1;
 }
@@ -324,7 +323,7 @@ GtkWidget *_oscontrol_get_child(GtkContainer *container, const uint32_t index)
 GtkCssProvider *_oscontrol_css_provider(const char_t *css)
 {
     GtkCssProvider *p = gtk_css_provider_new();
-    gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(p), (gchar *)css, -1, NULL);
+    gtk_css_provider_load_from_data(GTK_CSS_PROVIDER(p), cast_const(css, gchar), -1, NULL);
     return p;
 }
 
@@ -395,7 +394,7 @@ static real32_t i_font_pt(const real32_t fsize, const uint32_t fstyle)
     else
     {
         PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap *)fontmap);
+        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution(cast(fontmap, PangoCairoFontMap));
         return fsize / (dpi / 72.f);
     }
 }
@@ -513,7 +512,7 @@ void _oscontrol_update_css_font(GtkWidget *widget, const char_t *cssobj, const F
         *cfont = font_copy(font);
 
         {
-            PangoFontDescription *fdesc = (PangoFontDescription *)font_native(*cfont);
+            PangoFontDescription *fdesc = cast(font_native(*cfont), PangoFontDescription);
             const char *ffamily = pango_font_description_get_family(fdesc);
             real32_t fsize = font_size(*cfont);
             uint32_t fstyle = font_style(*cfont);
@@ -571,10 +570,10 @@ void _oscontrol_update_css_padding(GtkWidget *widget, const char_t *cssobj, cons
 
 uint32_t _oscontrol_widget_font_size(GtkWidget *widget)
 {
-    PangoFontDescription *fdesc;
+    PangoFontDescription *fdesc = NULL;
     GtkStyleContext *ctx = gtk_widget_get_style_context(widget);
     PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-    real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap *)fontmap);
+    real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution(cast(fontmap, PangoCairoFontMap));
     real32_t fsize = 0;
     gtk_style_context_get(ctx, GTK_STATE_FLAG_NORMAL, "font", &fdesc, NULL);
     fsize = (real32_t)pango_font_description_get_size(fdesc);
@@ -594,7 +593,6 @@ bool_t _oscontrol_widget_mouse_over(GtkWidget *widget, GdkEvent *event)
         gint event_x = (gint)x;
         gint event_y = (gint)y;
         i_widget_allocation(widget, &alloc);
-
         if (event_x >= alloc.x && event_x <= alloc.x + alloc.width && event_y >= alloc.y && event_y <= alloc.y + alloc.height)
         {
             return TRUE;
@@ -615,7 +613,6 @@ bool_t _oscontrol_widget_mouse_over_right(GtkWidget *widget, GdkEvent *event, gi
         gint event_x = (gint)x;
         gint event_y = (gint)y;
         i_widget_allocation(widget, &alloc);
-
         if (event_x >= alloc.x + alloc.width - right_px && event_x <= alloc.x + alloc.width && event_y >= alloc.y && event_y <= alloc.y + alloc.height)
         {
             return TRUE;
@@ -680,7 +677,7 @@ GtkJustification _oscontrol_justification(const align_t align)
 
 /*---------------------------------------------------------------------------*/
 
-gui_type_t oscontrol_type(const OSControl *control)
+gui_type_t _oscontrol_type(const OSControl *control)
 {
     cassert_no_null(control);
     return control->type;
@@ -688,20 +685,20 @@ gui_type_t oscontrol_type(const OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-OSControl *oscontrol_parent(const OSControl *control)
+OSControl *_oscontrol_parent(const OSControl *control)
 {
     GtkWidget *parentWidget = NULL;
     OSControl *parent = NULL;
     cassert_no_null(control);
     parentWidget = gtk_widget_get_parent(control->widget);
     /*const gchar *ptype = G_OBJECT_TYPE_NAME(parentWidget);*/
-    parent = (OSControl *)g_object_get_data(G_OBJECT(parentWidget), "OSControl");
+    parent = cast(g_object_get_data(G_OBJECT(parentWidget), "OSControl"), OSControl);
     return parent;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscontrol_frame(const OSControl *control, OSFrame *rect)
+void _oscontrol_frame(const OSControl *control, OSFrame *rect)
 {
     real32_t x, y, w, h;
     cassert_no_null(rect);
@@ -715,15 +712,15 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
 
 /*---------------------------------------------------------------------------*/
 
-void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
+void _oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
 {
-    OSWidget *widget = oscontrol_focus_widget(control);
+    OSWidget *widget = _oscontrol_focus_widget(control);
     gtk_widget_set_can_focus(cast(widget, GtkWidget), can_focus);
 }
 
 /*---------------------------------------------------------------------------*/
 
-OSWidget *oscontrol_focus_widget(const OSControl *control)
+OSWidget *_oscontrol_focus_widget(const OSControl *control)
 {
     cassert_no_null(control);
     switch (control->type)
@@ -773,16 +770,16 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscontrol_widget_visible(const OSWidget *widget)
+bool_t _oscontrol_widget_visible(const OSWidget *widget)
 {
     cassert_no_null(widget);
-    return (bool_t)gtk_widget_get_visible((GtkWidget *)widget);
+    return (bool_t)gtk_widget_get_visible(cast(widget, GtkWidget));
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscontrol_widget_enable(const OSWidget *widget)
+bool_t _oscontrol_widget_enable(const OSWidget *widget)
 {
     cassert_no_null(widget);
-    return (bool_t)gtk_widget_is_sensitive((GtkWidget *)widget);
+    return (bool_t)gtk_widget_is_sensitive(cast(widget, GtkWidget));
 }

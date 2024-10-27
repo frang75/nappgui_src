@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void osslider_detach_and_destroy(OSSlider **slider, OSPanel *panel)
+void _osslider_detach_and_destroy(OSSlider **slider, OSPanel *panel)
 {
     cassert_no_null(slider);
     osslider_detach(*slider, panel);

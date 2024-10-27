@@ -14,14 +14,14 @@
 
 __EXTERN_C
 
-void osview_detach_and_destroy(OSView **view, OSPanel *panel);
+void _osview_detach_and_destroy(OSView **view, OSPanel *panel);
 
-bool_t osview_resign_focus(const OSView *view);
+bool_t _osview_resign_focus(const OSView *view);
 
-bool_t osview_accept_focus(const OSView *view);
+bool_t _osview_accept_focus(const OSView *view);
 
-void osview_focus(OSView *view, const bool_t focus);
+void _osview_focus(OSView *view, const bool_t focus);
 
-bool_t osview_capture_tab(const OSView *view);
+bool_t _osview_capture_tab(const OSView *view);
 
 __END_C

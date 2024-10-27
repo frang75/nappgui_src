@@ -121,7 +121,7 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         hcursor = LoadCursor(NULL, IDC_SIZENS);
         break;
     case ekGUI_CURSOR_USER:
-        hcursor = osimg_hcursor(image, (uint32_t)hot_x, (uint32_t)hot_y);
+        hcursor = _osimg_hcursor(image, (uint32_t)hot_x, (uint32_t)hot_y);
         break;
         cassert_default();
     }
@@ -151,13 +151,11 @@ void osglobals_value(const uint32_t index, void *value)
     switch (index)
     {
     case 0:
-        (*(uint32_t *)value) = GetSystemMetrics(SM_CXVSCROLL);
+        *cast(value, uint32_t) = GetSystemMetrics(SM_CXVSCROLL);
         break;
-
     case 1:
-        (*(uint32_t *)value) = GetSystemMetrics(SM_CXHSCROLL);
+        *cast(value, uint32_t) = GetSystemMetrics(SM_CXHSCROLL);
         break;
-
         cassert_default();
     }
 }

@@ -547,7 +547,7 @@ String *hfile_string(const char_t *pathname, ferror_t *error)
             String *str = str_reserve((uint32_t)file_size);
             if (i_read_entire_file(pathname, (byte_t *)tc(str), (uint32_t)file_size, error) == TRUE)
             {
-                ((char_t *)tc(str))[(uint32_t)file_size] = '\0';
+                tcc(str)[(uint32_t)file_size] = '\0';
                 return str;
             }
             else

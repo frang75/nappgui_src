@@ -46,7 +46,7 @@ struct _osupdown_t
 
 static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
 {
-    GtkStyleContext *ctx = osglobals_button_context();
+    GtkStyleContext *ctx = _osglobals_button_context();
     int w = gtk_widget_get_allocated_width(widget);
     int h = gtk_widget_get_allocated_height(widget);
     GtkStateFlags upstate = gtk_widget_get_state_flags(widget);
@@ -192,7 +192,7 @@ void osupdown_destroy(OSUpDown **updown)
     cassert_no_null(updown);
     cassert_no_null(*updown);
     listener_destroy(&(*updown)->OnClick);
-    _oscontrol_destroy(*(OSControl **)updown);
+    _oscontrol_destroy(*dcast(updown, OSControl));
     heap_delete(updown, OSUpDown);
 }
 
@@ -209,42 +209,42 @@ void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
     cassert_no_null(updown);
-    gtk_widget_set_tooltip_text(updown->control.widget, (const gchar *)text);
+    gtk_widget_set_tooltip_text(updown->control.widget, cast_const(text, gchar));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_attach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)updown);
+    _ospanel_attach_control(panel, cast(updown, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_detach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)updown);
+    _ospanel_detach_control(panel, cast(updown, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_visible(OSUpDown *updown, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)updown, visible);
+    _oscontrol_set_visible(cast(updown, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_enabled(OSUpDown *updown, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)updown, enabled);
+    _oscontrol_set_enabled(cast(updown, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
 {
-    uint32_t eheight = osglobals_entry_height();
+    uint32_t eheight = _osglobals_entry_height();
     cassert_no_null(width);
     cassert_no_null(height);
     if (eheight % 2 == 1)
@@ -262,12 +262,12 @@ void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
 
 void osupdown_origin(const OSUpDown *updown, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)updown, x, y);
+    _oscontrol_get_origin(cast_const(updown, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_frame(OSUpDown *updown, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)updown, x, y, width, height);
+    _oscontrol_set_frame(cast(updown, OSControl), x, y, width, height);
 }

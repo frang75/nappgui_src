@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void osupdown_detach_and_destroy(OSUpDown **updown, OSPanel *panel)
+void _osupdown_detach_and_destroy(OSUpDown **updown, OSPanel *panel)
 {
     cassert_no_null(updown);
     osupdown_detach(*updown, panel);

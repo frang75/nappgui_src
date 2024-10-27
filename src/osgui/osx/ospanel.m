@@ -109,12 +109,12 @@ OSPanel *ospanel_create(const uint32_t flags)
         [scroll setAutohidesScrollers:YES];
         [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
         panel->scroll = scroll;
-        return (OSPanel *)scroll;
+        return cast(scroll, OSPanel);
     }
     else
     {
         panel->scroll = nil;
-        return (OSPanel *)panel;
+        return cast(panel, OSPanel);
     }
 }
 
@@ -133,13 +133,14 @@ static void i_remove_area(Area *area)
 static OSXPanel *i_get_panel(const OSPanel *panel)
 {
     cassert_no_null(panel);
-    if ([(NSView *)panel isKindOfClass:[OSXPanel class]])
+    if ([cast(panel, NSView) isKindOfClass:[OSXPanel class]])
     {
-        return (OSXPanel *)panel;
+        return cast(panel, OSXPanel);
     }
     else
     {
-        NSScrollView *scroll = (NSScrollView *)panel;
+        NSScrollView *scroll = cast(panel, NSScrollView);
+        cassert([[scroll documentView] isKindOfClass:[OSXPanel class]]);
         return [scroll documentView];
     }
 }
@@ -148,9 +149,8 @@ static OSXPanel *i_get_panel(const OSPanel *panel)
 
 void ospanel_destroy(OSPanel **panel)
 {
-    OSXPanel *lpanel;
+    OSXPanel *lpanel = nil;
     NSScrollView *scroll = nil;
-
     cassert_no_null(panel);
     lpanel = i_get_panel(*panel);
     cassert_no_null(lpanel);
@@ -179,18 +179,18 @@ BOOL _ospanel_is(NSView *view)
 
 void _ospanel_destroy(OSPanel **panel)
 {
-    OSXPanel *panelp;
+    OSXPanel *lpanel = nil;
     NSArray *subviews;
     NSUInteger i, num_elems;
     cassert_no_null(panel);
-    panelp = i_get_panel(*panel);
-    cassert_no_null(panelp);
-    subviews = [panelp subviews];
+    lpanel = i_get_panel(*panel);
+    cassert_no_null(lpanel);
+    subviews = [lpanel subviews];
     num_elems = [subviews count];
     for (i = 0; i < num_elems; ++i)
     {
         NSView *child = [subviews objectAtIndex:0];
-        oscontrol_detach_and_destroy(dcast(&child, OSControl), *panel);
+        _oscontrol_detach_and_destroy(dcast(&child, OSControl), *panel);
         cassert([subviews count] == num_elems - i - 1);
     }
 
@@ -260,9 +260,9 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
 void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
-    if ([(NSView *)panel isKindOfClass:[NSScrollView class]])
+    if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
     {
-        NSScrollView *scroll = (NSScrollView *)panel;
+        NSScrollView *scroll = cast(panel, NSScrollView);
 
         if (width)
         {
@@ -295,10 +295,10 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 static void i_OnUpdateSize(OSPanel *panel)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    if ([(NSView *)panel isKindOfClass:[NSScrollView class]])
+    if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
     {
         CGFloat diff = 0;
-        NSScroller *scroller = [(NSScrollView *)panel verticalScroller];
+        NSScroller *scroller = [cast(panel, NSScrollView) verticalScroller];
         if (scroller != nil && [scroller isHidden] == NO)
             diff = [scroller frame].size.width;
 
@@ -316,8 +316,8 @@ static void i_OnUpdateSize(OSPanel *panel)
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    cassert([(NSView *)panel isKindOfClass:[NSScrollView class]]);
-    cassert(lpanel == [(NSScrollView *)panel documentView]);
+    cassert([cast(panel, NSView) isKindOfClass:[NSScrollView class]]);
+    cassert(lpanel == [cast(panel, NSScrollView) documentView]);
     unref(line_width);
     unref(line_height);
     lpanel->content_size.width = (CGFloat)width;
@@ -337,21 +337,21 @@ void ospanel_display(OSPanel *panel)
 
 void ospanel_attach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _oscontrol_attach_to_parent((NSView *)panel, (NSView *)parent_panel);
+    _oscontrol_attach_to_parent(cast(panel, NSView), cast(parent_panel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _oscontrol_detach_from_parent((NSView *)panel, (NSView *)parent_panel);
+    _oscontrol_detach_from_parent(cast(panel, NSView), cast(parent_panel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_visible(OSPanel *panel, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)panel, visible);
+    _oscontrol_set_visible(cast(panel, NSView), visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -366,21 +366,21 @@ void ospanel_enabled(OSPanel *panel, const bool_t enabled)
 
 void ospanel_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)panel, width, height);
+    _oscontrol_get_size(cast(panel, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)panel, x, y);
+    _oscontrol_get_origin(cast(panel, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView *)panel, x, y, width, height);
+    _oscontrol_set_frame(cast(panel, NSView), x, y, width, height);
     i_OnUpdateSize(panel);
 }
 
@@ -389,7 +389,7 @@ void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const rea
 void _ospanel_attach_control(OSPanel *panel, NSView *control)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    _oscontrol_attach_to_parent(control, (NSView *)lpanel);
+    _oscontrol_attach_to_parent(control, cast(lpanel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -397,12 +397,12 @@ void _ospanel_attach_control(OSPanel *panel, NSView *control)
 void _ospanel_detach_control(OSPanel *panel, NSView *control)
 {
     OSXPanel *lpanel = i_get_panel(panel);
-    _oscontrol_detach_from_parent(control, (NSView *)lpanel);
+    _oscontrol_detach_from_parent(control, cast(lpanel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t ospanel_with_scroll(const OSPanel *panel)
+bool_t _ospanel_with_scroll(const OSPanel *panel)
 {
     OSXPanel *lpanel = i_get_panel(panel);
     return (bool_t)(lpanel->scroll != nil);
@@ -410,7 +410,7 @@ bool_t ospanel_with_scroll(const OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
+void _ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 {
     NSPoint origin;
     OSXPanel *lpanel = i_get_panel(panel);
@@ -428,7 +428,7 @@ void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
+void _ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
 {
     NSRect frame;
     OSXPanel *lpanel = i_get_panel(panel);

@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void osweb_detach_and_destroy(OSWeb **view, OSPanel *panel);
+void _osweb_detach_and_destroy(OSWeb **view, OSPanel *panel);
 
 __END_C

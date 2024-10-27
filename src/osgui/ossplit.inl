@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel);
+void _ossplit_detach_and_destroy(OSSplit **view, OSPanel *panel);
 
 __END_C

@@ -12,4 +12,4 @@
 
 #include "osgui_osx.ixx"
 
-gui_scroll_t osscroll_wheel_event(const NSEvent *event);
+gui_scroll_t _osscroll_wheel_event(const NSEvent *event);

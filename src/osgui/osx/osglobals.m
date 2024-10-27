@@ -88,53 +88,53 @@ static void i_theme_colors(void)
 {
     CGFloat r, g, b, a;
 
-    oscolor_NSColor_rgba([NSColor windowBackgroundColor], &r, &g, &b, &a);
+    _oscolor_NSColor_rgba([NSColor windowBackgroundColor], &r, &g, &b, &a);
     i_DARK_MODE = (.21 * r + .72 * g + .07 * b) < .5 ? TRUE : FALSE;
 
     /* Text color (normal, selected, mouse over) */
-    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXT_COLOR);
-    oscolor_NSColor_rgba_v([NSColor selectedMenuItemTextColor], i_SELTX_COLOR);
-    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTX_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXT_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor selectedMenuItemTextColor], i_SELTX_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTX_COLOR);
 
     /* Text color in not active windows (normal, selected, mouse over) */
-    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXTBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlTextColor], i_TEXTBACKDROP_COLOR);
 
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-    oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextColor], i_SELTXBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextColor], i_SELTXBACKDROP_COLOR);
 #else
-    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_SELTXBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlTextColor], i_SELTXBACKDROP_COLOR);
 #endif
 
-    oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTXBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlTextColor], i_HOTTXBACKDROP_COLOR);
 
     /* Text background color (normal, selected, mouse over */
-    oscolor_NSColor_rgba_v([NSColor controlBackgroundColor], i_BACK_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlBackgroundColor], i_BACK_COLOR);
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-    oscolor_NSColor_rgba_v([NSColor selectedContentBackgroundColor], i_SELBG_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor selectedContentBackgroundColor], i_SELBG_COLOR);
 #else
-    oscolor_NSColor_rgba_v([NSColor selectedMenuItemColor], i_SELBG_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor selectedMenuItemColor], i_SELBG_COLOR);
 #endif
 
-    oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBG_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBG_COLOR);
 
     /* Text background color in not active windows (normal, selected, mouse over) */
-    oscolor_NSColor_rgba_v([NSColor controlColor], i_BACKBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlColor], i_BACKBACKDROP_COLOR);
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-    oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextBackgroundColor], i_SELBGBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor unemphasizedSelectedTextBackgroundColor], i_SELBGBACKDROP_COLOR);
 #else
-    oscolor_NSColor_rgba_v([NSColor controlColor], i_SELBGBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlColor], i_SELBGBACKDROP_COLOR);
 #endif
-    oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBGBACKDROP_COLOR);
+    _oscolor_NSColor_rgba_v([NSColor controlColor], i_HOTBGBACKDROP_COLOR);
 
     /* Color for grids */
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-    i_GRID_COLOR = oscolor_from_NSColor([NSColor separatorColor]);
+    i_GRID_COLOR = _oscolor_from_NSColor([NSColor separatorColor]);
 #else
-    i_GRID_COLOR = oscolor_from_NSColor([NSColor gridColor]);
+    i_GRID_COLOR = _oscolor_from_NSColor([NSColor gridColor]);
 #endif
 
     /* Focus ring color */
-    i_FOCUS_COLOR = oscolor_from_NSColor([NSColor keyboardFocusIndicatorColor]);
+    i_FOCUS_COLOR = _oscolor_from_NSColor([NSColor keyboardFocusIndicatorColor]);
 
     unref(a);
 }
@@ -185,7 +185,7 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
         NSInteger i = 0, j = 0;
         cassert([irep bitsPerPixel] == 32);
         [irep getBitmapDataPlanes:pixplanes];
-        buffer = (uint32_t *)pixplanes[0];
+        buffer = cast(pixplanes[0], uint32_t);
 
         for (j = 0; j < h; ++j)
         {
@@ -283,22 +283,22 @@ color_t osglobals_color(const syscolor_t *color)
 
     case ekSYSCOLOR_LABEL:
 #if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-        return oscolor_from_NSColor([NSColor labelColor]);
+        return _oscolor_from_NSColor([NSColor labelColor]);
 #else
-        return oscolor_from_NSColor([NSColor controlTextColor]);
+        return _oscolor_from_NSColor([NSColor controlTextColor]);
 #endif
 
     case ekSYSCOLOR_VIEW:
-        return oscolor_from_NSColor([NSColor controlBackgroundColor]);
+        return _oscolor_from_NSColor([NSColor controlBackgroundColor]);
 
     case ekSYSCOLOR_LINE:
         return i_GRID_COLOR;
 
     case ekSYSCOLOR_LINK:
 #if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-        return oscolor_from_NSColor([NSColor linkColor]);
+        return _oscolor_from_NSColor([NSColor linkColor]);
 #else
-        return oscolor_from_NSColor([NSColor colorWithCalibratedRed:0 green:(CGFloat).410 blue:(CGFloat).853 alpha:1]);
+        return _oscolor_from_NSColor([NSColor colorWithCalibratedRed:0 green:(CGFloat).410 blue:(CGFloat).853 alpha:1]);
 #endif
 
     case ekSYSCOLOR_BORDER:
@@ -386,7 +386,7 @@ void osglobals_cursor_destroy(Cursor **cursor)
 {
     cassert_no_null(cursor);
     cassert_no_null(*cursor);
-    [(NSCursor *)*cursor release];
+    [*dcast(cursor, NSCursor) release];
     heap_auditor_delete("NSCursor");
     *cursor = NULL;
 }
@@ -399,13 +399,11 @@ void osglobals_value(const uint32_t index, void *value)
     switch (index)
     {
     case 0:
-        (*(uint32_t *)value) = 0;
+        *cast(value, uint32_t) = 0;
         break;
-
     case 1:
-        (*(uint32_t *)value) = 0;
+        *cast(value, uint32_t) = 0;
         break;
-
         cassert_default();
     }
 }
@@ -440,9 +438,9 @@ void osglobals_OnIdle(void *nonused, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void osglobals_init(void)
+void _osglobals_init(void)
 {
-    oscolor_init();
+    _oscolor_init();
     i_theme_colors();
 }
 
@@ -482,9 +480,9 @@ static void i_destroy_header(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osglobals_finish(void)
+void _osglobals_finish(void)
 {
-    oscolor_finish();
+    _oscolor_finish();
     i_destroy_checkbox();
     i_destroy_header();
     arrpt_destopt(&i_ONIDLES, listener_destroy, Listener);
@@ -492,7 +490,7 @@ void osglobals_finish(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osglobals_check_width(void)
+uint32_t _osglobals_check_width(void)
 {
     if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
@@ -501,7 +499,7 @@ uint32_t osglobals_check_width(void)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osglobals_check_height(void)
+uint32_t _osglobals_check_height(void)
 {
     if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
@@ -510,16 +508,7 @@ uint32_t osglobals_check_height(void)
 
 /*---------------------------------------------------------------------------*/
 
-NSSize osglobals_check_size(void)
-{
-    if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
-        i_init_checkbox();
-    return i_CHECKBOX_RECT.size;
-}
-
-/*---------------------------------------------------------------------------*/
-
-NSRect osglobals_check_rect(void)
+NSRect _osglobals_check_rect(void)
 {
     if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
@@ -545,7 +534,7 @@ static void i_init_header(void)
 
 /*---------------------------------------------------------------------------*/
 
-NSRect osglobals_header_rect(void)
+NSRect _osglobals_header_rect(void)
 {
     if (i_HEADER_NORMAL_IMAGE == nil)
         i_init_header();
@@ -554,7 +543,7 @@ NSRect osglobals_header_rect(void)
 
 /*---------------------------------------------------------------------------*/
 
-NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state)
+NSImage *_osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state)
 {
     if (i_UNCHECKBOX_NORMAL_IMAGE == nil)
         i_init_checkbox();
@@ -605,7 +594,7 @@ NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state
 
 /*---------------------------------------------------------------------------*/
 
-NSImage *osglobals_header_image(const bool_t pressed)
+NSImage *_osglobals_header_image(const bool_t pressed)
 {
     if (i_HEADER_NORMAL_IMAGE == nil)
         i_init_header();
@@ -618,91 +607,91 @@ NSImage *osglobals_header_image(const bool_t pressed)
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_text_color(void)
+const CGFloat *_osglobals_text_color(void)
 {
     return i_TEXT_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_seltx_color(void)
+const CGFloat *_osglobals_seltx_color(void)
 {
     return i_SELTX_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_hottx_color(void)
+const CGFloat *_osglobals_hottx_color(void)
 {
     return i_HOTTX_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_textbackdrop_color(void)
+const CGFloat *_osglobals_textbackdrop_color(void)
 {
     return i_TEXTBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_seltxbackdrop_color(void)
+const CGFloat *_osglobals_seltxbackdrop_color(void)
 {
     return i_SELTXBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_hottxbackdrop_color(void)
+const CGFloat *_osglobals_hottxbackdrop_color(void)
 {
     return i_HOTTXBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_back_color(void)
+const CGFloat *_osglobals_back_color(void)
 {
     return i_BACK_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_hotbg_color(void)
+const CGFloat *_osglobals_hotbg_color(void)
 {
     return i_HOTBG_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_selbg_color(void)
+const CGFloat *_osglobals_selbg_color(void)
 {
     return i_SELBG_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_backbackdrop_color(void)
+const CGFloat *_osglobals_backbackdrop_color(void)
 {
     return i_BACKBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_hotbgbackdrop_color(void)
+const CGFloat *_osglobals_hotbgbackdrop_color(void)
 {
     return i_HOTBGBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-const CGFloat *osglobals_selbgbackdrop_color(void)
+const CGFloat *_osglobals_selbgbackdrop_color(void)
 {
     return i_SELBGBACKDROP_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/
 
-color_t osglobals_focus_color(void)
+color_t _osglobals_focus_color(void)
 {
     return i_FOCUS_COLOR;
 }

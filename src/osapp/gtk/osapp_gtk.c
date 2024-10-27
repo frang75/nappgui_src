@@ -174,7 +174,7 @@ uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const ui
     cassert_no_null(app);
     cassert(app == &i_APP);
     cassert(index < app->argc);
-    return unicode_convers((const char_t *)app->argv[index], argv, ekUTF8, ekUTF8, max_size);
+    return unicode_convers(cast_const(app->argv[index], char_t), argv, ekUTF8, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/

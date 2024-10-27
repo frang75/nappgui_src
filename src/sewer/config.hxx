@@ -152,12 +152,6 @@
 /*! <Pointer sizeof> */
 #define sizeofptr   sizeof(void*)
 
-/*! <Pointer casting> */
-#define cast(ptr, type) ((type*)(ptr))
-#define dcast(dptr, type) ((type**)(dptr))
-#define cast_const(ptr, type) ((const type*)(ptr))
-#define dcast_const(dptr, type) ((const type**)(dptr))
-
 /*! <Struct Access> */
 #if defined (__clang__)
     /* Avoid Warn Using extended field designator is an extension */
@@ -182,24 +176,30 @@
 #define BIT_TOGGLE(data, nbit) ((data) ^= (1u << (nbit)))
 #define BIT_TEST(data, nbit) (bool_t)(((data) >> (nbit)) & 1u)
 
+/*! <Pointer casting> */
+#define cast(ptr, type) ((type*)(ptr))
+#define dcast(dptr, type) ((type**)(dptr))
+#define cast_const(ptr, type) ((const type*)(ptr))
+#define dcast_const(dptr, type) ((const type**)(dptr))
+
 /*! <Function pointer cast> */
 #ifdef  __cplusplus
     #if defined (__WINDOWS__) && defined(__clang__)
-        #define cast_func_ptr(fptr, type) ((type)(__int64)fptr)
+        #define cast_func(fptr, type) ((type)(__int64)fptr)
     #elif defined (__WINDOWS__)
-        #define cast_func_ptr(fptr, type) ((type)(void*)fptr)
-        /* #define cast_func_ptr(fptr, type) ((type)(fptr)) // VS2008 */
+        #define cast_func(fptr, type) ((type)(void*)fptr)
+        /* #define cast_func(fptr, type) ((type)(fptr)) // VS2008 */
     #else
-        #define cast_func_ptr(fptr, type) ((type)(fptr))
+        #define cast_func(fptr, type) ((type)(fptr))
     #endif
 
 #else /* C Compiler */
     #if defined (_MSC_VER) && _MSC_VER >= 1935 /* Visual Studio 2022 version 17.5.0 */
-        #define cast_func_ptr(fptr, type) ((type)(void*)fptr)
+        #define cast_func(fptr, type) ((type)(void*)fptr)
     #elif defined(__WINDOWS__) && !defined(_MSC_VER)
-        #define cast_func_ptr(fptr, type) ((type)(__int64)fptr)
+        #define cast_func(fptr, type) ((type)(__int64)fptr)
     #else
-        #define cast_func_ptr(fptr, type) ((type)fptr)
+        #define cast_func(fptr, type) ((type)fptr)
     #endif
 
 #endif

@@ -35,8 +35,6 @@
 #include <math.h>
 #include <sewer/warn.hxx>
 
-static const unicode_t i_SYSTEM_FORMAT = ekUTF16;
-
 typedef struct i_children_t i_Children;
 
 struct i_children_t
@@ -48,9 +46,13 @@ struct i_children_t
 
 /*---------------------------------------------------------------------------*/
 
+static const unicode_t i_SYSTEM_FORMAT = ekUTF16;
+
+/*---------------------------------------------------------------------------*/
+
 static void i_init(OSControl *control, const DWORD dwExStyle, const DWORD dwStyle, const LPCWSTR lpClassName, int nWidth, int nHeight, WNDPROC wndProc, HWND parent_window)
 {
-    HINSTANCE instance;
+    HINSTANCE instance = NULL;
     cassert_no_null(control);
     instance = _osgui_instance();
     cassert_no_null(instance);
@@ -77,7 +79,7 @@ static void i_init(OSControl *control, const DWORD dwExStyle, const DWORD dwStyl
         control->def_wnd_proc = NULL;
 
     {
-        void *data = (void *)SetWindowLongPtr(control->hwnd, GWLP_USERDATA, (LONG_PTR)control);
+        void *data = cast(SetWindowLongPtr(control->hwnd, GWLP_USERDATA, (LONG_PTR)control), void);
         cassert_unref(data == NULL, data);
     }
 }
@@ -126,7 +128,7 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
     }
     else
     {
-        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSControlGetTextBuf");
+        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSControlGetTextBuf"), WCHAR);
         wtext = wtext_alloc;
     }
 
@@ -137,16 +139,16 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
         cassert_unref(num_chars == num_chars_copied + 1, num_chars_copied);
     }
 
-    *tsize = unicode_convers_nbytes((const char_t *)wtext, kWINDOWS_UNICODE, ekUTF8);
-    control_text = (char_t *)heap_malloc(*tsize, "OSControlGetText");
+    *tsize = unicode_convers_nbytes(cast_const(wtext, char_t), kWINDOWS_UNICODE, ekUTF8);
+    control_text = cast(heap_malloc(*tsize, "OSControlGetText"), char_t);
 
     {
-        uint32_t bytes = unicode_convers((const char_t *)wtext, control_text, kWINDOWS_UNICODE, ekUTF8, *tsize);
+        uint32_t bytes = unicode_convers(cast_const(wtext, char_t), control_text, kWINDOWS_UNICODE, ekUTF8, *tsize);
         cassert_unref(bytes == *tsize, bytes);
     }
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSControlGetTextBuf");
+        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSControlGetTextBuf");
 
     return control_text;
 }
@@ -167,12 +169,12 @@ void _oscontrol_set_text(OSControl *control, const char_t *text)
     }
     else
     {
-        wtext_alloc = (WCHAR *)heap_malloc(num_chars * sizeof(WCHAR), "OSControlSetText");
+        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSControlSetText"), WCHAR);
         wtext = wtext_alloc;
     }
 
     {
-        uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_chars * sizeof(WCHAR));
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_chars * sizeof(WCHAR));
         cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
     }
 
@@ -182,7 +184,7 @@ void _oscontrol_set_text(OSControl *control, const char_t *text)
     }
 
     if (wtext_alloc != NULL)
-        heap_free((byte_t **)&wtext_alloc, num_chars * sizeof(WCHAR), "OSControlSetText");
+        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSControlSetText");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -278,9 +280,9 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
     int scroll_x = 0, scroll_y = 0;
     cassert_no_null(control);
 
-    parent = (OSControl *)GetWindowLongPtr(GetParent(control->hwnd), GWLP_USERDATA);
+    parent = cast(GetWindowLongPtr(GetParent(control->hwnd), GWLP_USERDATA), OSControl);
     if (parent != NULL && parent->type == ekGUI_TYPE_PANEL)
-        _ospanel_scroll_pos((OSPanel *)parent, &scroll_x, &scroll_y);
+        _ospanel_scroll_pos(cast(parent, OSPanel), &scroll_x, &scroll_y);
 
     ret = SetWindowPos(control->hwnd, NULL, (int)x - scroll_x, (int)y - scroll_y, (int)width, (int)height, SWP_NOZORDER);
     cassert_unref(ret != 0, ret);
@@ -323,7 +325,7 @@ void _oscontrol_detach_from_parent(OSControl *control, OSControl *parent_control
 
 static BOOL CALLBACK i_children_count(HWND child_hwnd, LPARAM lParam)
 {
-    i_Children *children_str = (i_Children *)lParam;
+    i_Children *children_str = cast(lParam, i_Children);
     if (children_str->num_children < children_str->children_size)
         children_str->children[children_str->num_children] = child_hwnd;
     children_str->num_children += 1;
@@ -450,7 +452,7 @@ void _oscontrol_destroy_brush(HBRUSH *brush)
 
 /*---------------------------------------------------------------------------*/
 
-gui_type_t oscontrol_type(const OSControl *control)
+gui_type_t _oscontrol_type(const OSControl *control)
 {
     cassert_no_null(control);
     return control->type;
@@ -458,19 +460,19 @@ gui_type_t oscontrol_type(const OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-OSControl *oscontrol_parent(const OSControl *control)
+OSControl *_oscontrol_parent(const OSControl *control)
 {
     HWND parentHWND = NULL;
     OSControl *parent = NULL;
     cassert_no_null(control);
     parentHWND = GetParent(control->hwnd);
-    parent = (OSControl *)GetWindowLongPtr(parentHWND, GWLP_USERDATA);
+    parent = cast(GetWindowLongPtr(parentHWND, GWLP_USERDATA), OSControl);
     return parent;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscontrol_frame(const OSControl *control, OSFrame *rect)
+void _oscontrol_frame(const OSControl *control, OSFrame *rect)
 {
     real32_t width, height;
     cassert_no_null(control);
@@ -484,7 +486,7 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
 
 /*---------------------------------------------------------------------------*/
 
-void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
+void _oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
 {
     cassert_no_null(control);
     if (control->type == ekGUI_TYPE_BUTTON)
@@ -493,7 +495,7 @@ void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
 
 /*---------------------------------------------------------------------------*/
 
-OSWidget *oscontrol_focus_widget(const OSControl *control)
+OSWidget *_oscontrol_focus_widget(const OSControl *control)
 {
     cassert_no_null(control);
     switch (control->type)
@@ -508,16 +510,16 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_TEXTVIEW:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_CUSTOMVIEW:
-        return (OSWidget *)control->hwnd;
+        return cast(control->hwnd, OSWidget);
 
     case ekGUI_TYPE_POPUP:
-        return (OSWidget *)_ospopup_focus_widget((OSPopUp *)control);
+        return cast(_ospopup_focus_widget(cast(control, OSPopUp)), OSWidget);
 
     case ekGUI_TYPE_COMBOBOX:
-        return (OSWidget *)_oscombo_focus_widget((OSCombo *)control);
+        return cast(_oscombo_focus_widget(cast(control, OSCombo)), OSWidget);
 
     case ekGUI_TYPE_WEBVIEW:
-        return (OSWidget *)_osweb_focus_widget((OSWeb *)control);
+        return cast(_osweb_focus_widget(cast(control, OSWeb)), OSWidget);
 
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
@@ -535,7 +537,7 @@ OSWidget *oscontrol_focus_widget(const OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscontrol_widget_visible(const OSWidget *widget)
+bool_t _oscontrol_widget_visible(const OSWidget *widget)
 {
     cassert_no_null(widget);
     return (bool_t)IsWindowVisible((HWND)widget);
@@ -543,7 +545,7 @@ bool_t oscontrol_widget_visible(const OSWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscontrol_widget_enable(const OSWidget *widget)
+bool_t _oscontrol_widget_enable(const OSWidget *widget)
 {
     cassert_no_null(widget);
     return (bool_t)IsWindowEnabled((HWND)widget);

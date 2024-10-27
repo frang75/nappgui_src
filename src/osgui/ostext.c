@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_detach_and_destroy(OSText **view, OSPanel *panel)
+void _ostext_detach_and_destroy(OSText **view, OSPanel *panel)
 {
     cassert_no_null(view);
     ostext_detach(*view, panel);

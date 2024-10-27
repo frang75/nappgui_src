@@ -67,26 +67,26 @@ static OSStyleXP i_STYLEXP;
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_init(void)
+void _osstyleXP_init(void)
 {
     bmem_zero(&i_STYLEXP, OSStyleXP);
     i_STYLEXP.themeDll = LoadLibrary(L"UxTheme.dll");
-    i_STYLEXP.IsAppThemed = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "IsAppThemed"), PFNISAPPTHEMED);
-    i_STYLEXP.IsThemeActive = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "IsThemeActive"), PFNISTHEMEACTIVE);
-    i_STYLEXP.OpenThemeData = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "OpenThemeData"), PFNOPENTHEMEDATA);
-    i_STYLEXP.CloseThemeData = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "CloseThemeData"), PFNCLOSETHEMEDATA);
-    i_STYLEXP.GetThemeBackgroundContentRect = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "GetThemeBackgroundContentRect"), PFNGETTHEMEBACKGROUNDCONTENTRECT);
-    i_STYLEXP.DrawThemeBackground = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeBackground"), PFNDRAWTHEMEBACKGROUND);
-    i_STYLEXP.IsThemeBackgroundPartiallyTransparent = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "IsThemeBackgroundPartiallyTransparent"), PFNISTHEMEBACKGROUNDPARTIALLYTRANSPARENT);
-    i_STYLEXP.DrawThemeParentBackgroundEx = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeParentBackgroundEx"), PFNDRAWTHEMEPARENTBACKGROUNDEX);
-    i_STYLEXP.DrawThemeEdge = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeEdge"), PFNDRAWTHEMEEDGE);
-    i_STYLEXP.GetThemeFont = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "GetThemeFont"), PFNGETTHEMEFONT);
-    i_STYLEXP.DrawThemeText = cast_func_ptr(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeText"), PFNDRAWTHEMETEXT);
+    i_STYLEXP.IsAppThemed = cast_func(GetProcAddress(i_STYLEXP.themeDll, "IsAppThemed"), PFNISAPPTHEMED);
+    i_STYLEXP.IsThemeActive = cast_func(GetProcAddress(i_STYLEXP.themeDll, "IsThemeActive"), PFNISTHEMEACTIVE);
+    i_STYLEXP.OpenThemeData = cast_func(GetProcAddress(i_STYLEXP.themeDll, "OpenThemeData"), PFNOPENTHEMEDATA);
+    i_STYLEXP.CloseThemeData = cast_func(GetProcAddress(i_STYLEXP.themeDll, "CloseThemeData"), PFNCLOSETHEMEDATA);
+    i_STYLEXP.GetThemeBackgroundContentRect = cast_func(GetProcAddress(i_STYLEXP.themeDll, "GetThemeBackgroundContentRect"), PFNGETTHEMEBACKGROUNDCONTENTRECT);
+    i_STYLEXP.DrawThemeBackground = cast_func(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeBackground"), PFNDRAWTHEMEBACKGROUND);
+    i_STYLEXP.IsThemeBackgroundPartiallyTransparent = cast_func(GetProcAddress(i_STYLEXP.themeDll, "IsThemeBackgroundPartiallyTransparent"), PFNISTHEMEBACKGROUNDPARTIALLYTRANSPARENT);
+    i_STYLEXP.DrawThemeParentBackgroundEx = cast_func(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeParentBackgroundEx"), PFNDRAWTHEMEPARENTBACKGROUNDEX);
+    i_STYLEXP.DrawThemeEdge = cast_func(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeEdge"), PFNDRAWTHEMEEDGE);
+    i_STYLEXP.GetThemeFont = cast_func(GetProcAddress(i_STYLEXP.themeDll, "GetThemeFont"), PFNGETTHEMEFONT);
+    i_STYLEXP.DrawThemeText = cast_func(GetProcAddress(i_STYLEXP.themeDll, "DrawThemeText"), PFNDRAWTHEMETEXT);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_remove(void)
+void _osstyleXP_finish(void)
 {
     cassert(i_STYLEXP.themeDll != NULL);
     FreeLibrary(i_STYLEXP.themeDll);
@@ -109,7 +109,7 @@ static BOOL i_IsThemeActive(void)
 
 /*---------------------------------------------------------------------------*/
 
-HTHEME osstyleXP_OpenTheme(HWND hwnd, LPCWSTR pszClassList)
+HTHEME _osstyleXP_OpenTheme(HWND hwnd, LPCWSTR pszClassList)
 {
     HTHEME theme = NULL;
     if (i_IsAppThemed() == TRUE && i_IsThemeActive() == TRUE)
@@ -119,16 +119,16 @@ HTHEME osstyleXP_OpenTheme(HWND hwnd, LPCWSTR pszClassList)
 
 /*---------------------------------------------------------------------------*/
 
-BOOL osstyleXP_OpenThemeData(HWND hwnd, LPCWSTR pszClassList)
+BOOL _osstyleXP_OpenThemeData(HWND hwnd, LPCWSTR pszClassList)
 {
     cassert(i_STYLEXP.theme == NULL);
-    i_STYLEXP.theme = osstyleXP_OpenTheme(hwnd, pszClassList);
+    i_STYLEXP.theme = _osstyleXP_OpenTheme(hwnd, pszClassList);
     return (i_STYLEXP.theme != NULL) ? TRUE : FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_CloseTheme(HTHEME theme)
+void _osstyleXP_CloseTheme(HTHEME theme)
 {
     HRESULT res = 0;
     cassert_no_null(theme);
@@ -138,15 +138,15 @@ void osstyleXP_CloseTheme(HTHEME theme)
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_CloseThemeData(void)
+void _osstyleXP_CloseThemeData(void)
 {
-    osstyleXP_CloseTheme(i_STYLEXP.theme);
+    _osstyleXP_CloseTheme(i_STYLEXP.theme);
     i_STYLEXP.theme = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, const RECT *pBoundingRect, RECT *pContentRect)
+void _osstyleXP_GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, const RECT *pBoundingRect, RECT *pContentRect)
 {
     HRESULT res = i_STYLEXP.GetThemeBackgroundContentRect(hTheme, hdc, iPartId, iStateId, pBoundingRect, pContentRect);
     cassert_unref(res == S_OK, res);
@@ -154,7 +154,7 @@ void osstyleXP_GetThemeBackgroundContentRect(HTHEME hTheme, HDC hdc, int iPartId
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_DrawThemeBackground2(HTHEME theme, int iPartId, int iStateId, HDC hdc, const RECT *rc)
+void _osstyleXP_DrawThemeBackground2(HTHEME theme, int iPartId, int iStateId, HDC hdc, const RECT *rc)
 {
     HRESULT res = i_STYLEXP.DrawThemeBackground(theme, hdc, iPartId, iStateId, rc, NULL);
     cassert_unref(res == S_OK, res);
@@ -162,7 +162,7 @@ void osstyleXP_DrawThemeBackground2(HTHEME theme, int iPartId, int iStateId, HDC
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_DrawThemeBackground(HWND hwnd, HDC hdc, int iPartId, int iStateId, const BOOL draw_parent_bg, const RECT *rc, RECT *border)
+void _osstyleXP_DrawThemeBackground(HWND hwnd, HDC hdc, int iPartId, int iStateId, const BOOL draw_parent_bg, const RECT *rc, RECT *border)
 {
     HRESULT res = 0;
     cassert_no_null(i_STYLEXP.theme);
@@ -171,7 +171,7 @@ void osstyleXP_DrawThemeBackground(HWND hwnd, HDC hdc, int iPartId, int iStateId
         if (i_STYLEXP.DrawThemeParentBackgroundEx != NULL)
         {
             if (i_STYLEXP.IsThemeBackgroundPartiallyTransparent(i_STYLEXP.theme, iPartId, iStateId) == TRUE)
-                i_STYLEXP.DrawThemeParentBackgroundEx(hwnd, hdc, DTPB_WINDOWDC | DTPB_USECTLCOLORSTATIC, (RECT *)rc);
+                i_STYLEXP.DrawThemeParentBackgroundEx(hwnd, hdc, DTPB_WINDOWDC | DTPB_USECTLCOLORSTATIC, cast(rc, RECT));
         }
     }
 
@@ -187,7 +187,7 @@ void osstyleXP_DrawThemeBackground(HWND hwnd, HDC hdc, int iPartId, int iStateId
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_DrawNonThemedButtonBackground(HWND hwnd, HDC hdc, BOOL has_focus, UINT state, const RECT *rc, RECT *border)
+void _osstyleXP_DrawNonThemedButtonBackground(HWND hwnd, HDC hdc, BOOL has_focus, UINT state, const RECT *rc, RECT *border)
 {
     RECT rcback;
     HBRUSH brush = NULL;
@@ -213,7 +213,7 @@ void osstyleXP_DrawNonThemedButtonBackground(HWND hwnd, HDC hdc, BOOL has_focus,
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_DrawThemeEdge(HDC hdc, int iPartId, int iStateId, const RECT *rc)
+void _osstyleXP_DrawThemeEdge(HDC hdc, int iPartId, int iStateId, const RECT *rc)
 {
     HRESULT res = 0;
     cassert_no_null(i_STYLEXP.theme);
@@ -223,7 +223,7 @@ void osstyleXP_DrawThemeEdge(HDC hdc, int iPartId, int iStateId, const RECT *rc)
 
 /*---------------------------------------------------------------------------*/
 
-BOOL osstyleXP_HasThemeFont(HDC hdc, int iPartId, int iStateId, int iPropId)
+BOOL _osstyleXP_HasThemeFont(HDC hdc, int iPartId, int iStateId, int iPropId)
 {
     LOGFONTW font;
     HRESULT res = 0;
@@ -234,7 +234,7 @@ BOOL osstyleXP_HasThemeFont(HDC hdc, int iPartId, int iStateId, int iPropId)
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_DrawThemeText2(HTHEME theme, HDC hdc, int iPartId, int iStateId, const WCHAR *text, int num_chars, DWORD flags, const RECT *rc)
+void _osstyleXP_DrawThemeText2(HTHEME theme, HDC hdc, int iPartId, int iStateId, const WCHAR *text, int num_chars, DWORD flags, const RECT *rc)
 {
     HRESULT res = 0;
     cassert_no_null(theme);
@@ -244,7 +244,7 @@ void osstyleXP_DrawThemeText2(HTHEME theme, HDC hdc, int iPartId, int iStateId, 
 
 /*---------------------------------------------------------------------------*/
 
-void osstyleXP_DrawThemeText(HDC hdc, int iPartId, int iStateId, const WCHAR *text, uint32_t num_chars, DWORD flags, const RECT *rc)
+void _osstyleXP_DrawThemeText(HDC hdc, int iPartId, int iStateId, const WCHAR *text, uint32_t num_chars, DWORD flags, const RECT *rc)
 {
     HRESULT res = 0;
     cassert_no_null(i_STYLEXP.theme);

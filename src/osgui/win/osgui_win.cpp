@@ -207,7 +207,7 @@ static void i_registry_custom_window_class(void)
     wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 
-// Avoid warning C4306: 'type cast' : conversion from 'int' to 'HBRUSH' of greater size
+/* Avoid warning C4306: 'type cast' : conversion from 'int' to 'HBRUSH' of greater size */
 #if defined(__x64__)
     wc.hbrBackground = (HBRUSH)(uint64_t)(COLOR_BTNFACE);
 #else
@@ -277,57 +277,57 @@ static void i_registry_web_class(void)
 
 /*---------------------------------------------------------------------------*/
 
-// https://www.codeproject.com/Articles/13723/Themed-RichTextBox-A-RichTextBox-with-XP-styled-bo
+/* https://www.codeproject.com/Articles/13723/Themed-RichTextBox-A-RichTextBox-with-XP-styled-bo */
 LRESULT _osgui_nccalcsize(HWND hwnd, WPARAM wParam, LPARAM lParam, bool_t expand, INT ypadding, RECT *border)
 {
     LRESULT res = 0;
     RECT *window_rect = NULL;
     RECT content_rect;
     HDC hdc = GetWindowDC(hwnd);
-    HTHEME theme = osstyleXP_OpenTheme(hwnd, L"EDIT");
+    HTHEME theme = _osstyleXP_OpenTheme(hwnd, L"EDIT");
 
     cassert_no_null(border);
     cassert(ypadding >= 0);
 
-    // LParam points to a NCCALCSIZE_PARAMS struct
+    /* LParam points to a NCCALCSIZE_PARAMS struct */
     if (wParam == TRUE)
     {
-        NCCALCSIZE_PARAMS *cp = (NCCALCSIZE_PARAMS *)lParam;
+        NCCALCSIZE_PARAMS *cp = cast(lParam, NCCALCSIZE_PARAMS);
         window_rect = &cp->rgrc[0];
     }
-    // LParam points to a RECT struct
+    /* LParam points to a RECT struct */
     else
     {
         window_rect = (RECT *)lParam;
     }
 
-    osstyleXP_GetThemeBackgroundContentRect(theme, hdc, EP_EDITTEXT, ETS_NORMAL, window_rect, &content_rect);
+    _osstyleXP_GetThemeBackgroundContentRect(theme, hdc, EP_EDITTEXT, ETS_NORMAL, window_rect, &content_rect);
 
-    // shrink the client area the make more space for containing text.
+    /* Shrink the client area the make more space for containing text */
     if (expand == TRUE)
         InflateRect(&content_rect, -1, -1 - ypadding);
 
-    // remember the space of the borders
+    /* Remember the space of the borders */
     border->left = content_rect.left - window_rect->left;
     border->top = content_rect.top - window_rect->top;
     border->right = window_rect->right - content_rect.right;
     border->bottom = window_rect->bottom - content_rect.bottom;
 
-    // LParam points to a NCCALCSIZE_PARAMS struct
+    /* LParam points to a NCCALCSIZE_PARAMS struct */
     if (wParam == TRUE)
     {
-        NCCALCSIZE_PARAMS *cp = (NCCALCSIZE_PARAMS *)lParam;
+        NCCALCSIZE_PARAMS *cp = cast(lParam, NCCALCSIZE_PARAMS);
         cp->rgrc[0] = content_rect;
         res = WVR_REDRAW;
     }
-    // LParam points to a RECT struct
+    /* LParam points to a RECT struct */
     else
     {
-        *(RECT *)lParam = content_rect;
+        *cast(lParam, RECT) = content_rect;
         res = 0;
     }
 
-    osstyleXP_CloseTheme(theme);
+    _osstyleXP_CloseTheme(theme);
     ReleaseDC(hwnd, hdc);
     return res;
 }
@@ -360,20 +360,20 @@ LRESULT _osgui_ncpaint(HWND hwnd, const bool_t focused, const RECT *border, HBRU
     {
         if (focused == TRUE)
         {
-            theme = osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
+            theme = _osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
             partId = _CP_BORDER;
             stateId = _CBB_FOCUSED;
         }
         else
         {
-            theme = osstyleXP_OpenTheme(hwnd, L"EDIT");
+            theme = _osstyleXP_OpenTheme(hwnd, L"EDIT");
             partId = EP_EDITTEXT;
             stateId = ETS_NORMAL;
         }
     }
     else
     {
-        theme = osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
+        theme = _osstyleXP_OpenTheme(hwnd, L"COMBOBOX");
         partId = _CP_BORDER;
         stateId = _CBB_DISABLED;
     }
@@ -391,7 +391,7 @@ LRESULT _osgui_ncpaint(HWND hwnd, const bool_t focused, const RECT *border, HBRU
     client_rect.bottom -= border->bottom;
     ExcludeClipRect(hdc, client_rect.left, client_rect.top, client_rect.right, client_rect.bottom);
 
-    osstyleXP_DrawThemeBackground2(theme, partId, stateId, hdc, &window_rect);
+    _osstyleXP_DrawThemeBackground2(theme, partId, stateId, hdc, &window_rect);
 
     /* For extra non-client area in edits, for vertical padding "simulation" */
     if (padding_bgcolor != NULL)
@@ -404,7 +404,7 @@ LRESULT _osgui_ncpaint(HWND hwnd, const bool_t focused, const RECT *border, HBRU
         FillRect(hdc, &bgrect, padding_bgcolor);
     }
 
-    osstyleXP_CloseTheme(theme);
+    _osstyleXP_CloseTheme(theme);
     ReleaseDC(hwnd, hdc);
     return 0;
 }
@@ -463,7 +463,7 @@ uint32_t _osgui_modifiers(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_start_imp(void)
+void _osgui_start_imp(void)
 {
     /* Application instance */
     cassert(i_INSTANCE == NULL);
@@ -498,12 +498,12 @@ void osgui_start_imp(void)
 #endif
 
     /* XP Styles */
-    osstyleXP_init();
+    _osstyleXP_init();
 
     /* Support for frame without shadows (dwmapi.dll not available in XP) */
     i_DWMAPIDLL = LoadLibrary(L"dwmapi.dll");
     if (i_DWMAPIDLL != NULL)
-        i_DwmGetWindowAttribute = cast_func_ptr(GetProcAddress(i_DWMAPIDLL, "DwmGetWindowAttribute"), DWMGETWINDOWATTRIBUTE);
+        i_DwmGetWindowAttribute = cast_func(GetProcAddress(i_DWMAPIDLL, "DwmGetWindowAttribute"), DWMGETWINDOWATTRIBUTE);
 
     /* GDI Plus */
     /* OJO!!! guiplus de inicia en OSDRAW */
@@ -529,7 +529,7 @@ void osgui_start_imp(void)
     to the new parent.
     */
     i_DEFAULT_OSPANEL = _ospanel_create_default();
-    kDEFAULT_PARENT_WINDOW = ((OSControl *)i_DEFAULT_OSPANEL)->hwnd;
+    kDEFAULT_PARENT_WINDOW = cast(i_DEFAULT_OSPANEL, OSControl)->hwnd;
 
     /* Cursors */
     kNORMAL_ARROW_CURSOR = LoadCursor(NULL, IDC_ARROW);
@@ -572,7 +572,7 @@ void osgui_start_imp(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_finish_imp(void)
+void _osgui_finish_imp(void)
 {
     /* Accelerators */
     if (i_ACCEL_TABLE != NULL)
@@ -625,7 +625,7 @@ void osgui_finish_imp(void)
         FreeLibrary(i_DWMAPIDLL);
 
     /* XP Styles */
-    osstyleXP_remove();
+    _osstyleXP_finish();
 
     /* CoUInitialize COM library */
 #if defined(NAPPGUI_WEB_SUPPORT)
@@ -661,7 +661,7 @@ BOOL _osgui_hit_test(HWND hwnd)
     if (hwnd == NULL)
         return FALSE;
 
-    // If mouse captured by someone other than us, indicate no hit...
+    /* If mouse captured by someone other than us, indicate no hit... */
     {
         HWND capture_hwnd = GetCapture();
         if ((capture_hwnd != NULL) && (capture_hwnd != hwnd))
@@ -673,7 +673,7 @@ BOOL _osgui_hit_test(HWND hwnd)
         HWND mouse_hwnd = NULL;
         GetCursorPos(&pt);
 
-        // Quit if mouse not over us...
+        /* Quit if mouse not over us... */
         {
             RECT rect;
             GetWindowRect(hwnd, &rect);
@@ -681,7 +681,7 @@ BOOL _osgui_hit_test(HWND hwnd)
                 return FALSE;
         }
 
-        // Get the top-level window that is under the mouse cursor...
+        /* Get the top-level window that is under the mouse cursor... */
         mouse_hwnd = WindowFromPoint(pt);
 
         if (!IsWindowEnabled(mouse_hwnd))
@@ -690,10 +690,10 @@ BOOL _osgui_hit_test(HWND hwnd)
         if (mouse_hwnd == hwnd)
             return TRUE;
 
-        // Convert (x,y) from screen to parent window's client coordinates...
+        /* Convert (x,y) from screen to parent window's client coordinates... */
         ScreenToClient(mouse_hwnd, &pt);
 
-        // Verify child window (if any) is under the mouse cursor is us...
+        /* Verify child window (if any) is under the mouse cursor is us... */
         return (ChildWindowFromPointEx(mouse_hwnd, pt, CWP_ALL) == hwnd);
     }
 }
@@ -837,7 +837,7 @@ HWND _osgui_hwnd_accelerator(WORD cmd)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_select_text(const int32_t st, const int32_t ed, int32_t *platform_st, int32_t *platform_ed)
+void _osgui_select_text(const int32_t st, const int32_t ed, int32_t *platform_st, int32_t *platform_ed)
 {
     cassert_no_null(platform_st);
     cassert_no_null(platform_ed);
@@ -855,7 +855,7 @@ void osgui_select_text(const int32_t st, const int32_t ed, int32_t *platform_st,
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_attach_menubar(OSWindow *window, OSMenu *menu)
+void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
     HMENU hmenu = _osmenu_menubar(menu, window);
     _oswindow_set_menubar(window, hmenu);
@@ -863,7 +863,7 @@ void osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_detach_menubar(OSWindow *window, OSMenu *menu)
+void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
     HMENU hmenu = _osmenu_menubar_unlink(menu, window);
     _oswindow_unset_menubar(window, hmenu);
@@ -871,7 +871,7 @@ void osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu)
+void _osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu)
 {
     HMENU prev_hmenu = _osmenu_menubar_unlink(previous_menu, window);
     HMENU new_hmenu = _osmenu_menubar(new_menu, window);
@@ -880,14 +880,14 @@ void osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_m
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_message_loop_imp(void)
+void _osgui_message_loop_imp(void)
 {
     _oswindow_message_loop(NULL);
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osgui_is_pre_initialized_imp(void)
+bool_t _osgui_is_pre_initialized_imp(void)
 {
     cassert(FALSE);
     return FALSE;
@@ -895,7 +895,7 @@ bool_t osgui_is_pre_initialized_imp(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_pre_initialize_imp(void)
+void _osgui_pre_initialize_imp(void)
 {
     cassert(FALSE);
 }

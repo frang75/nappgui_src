@@ -603,7 +603,7 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
     }
 
     xscale = font_xscale(ctx->font);
-    pango_layout_set_text(ctx->layout, (const char *)text, -1);
+    pango_layout_set_text(ctx->layout, cast_const(text, char), -1);
     pango_layout_set_alignment(ctx->layout, ctx->text_intalign);
     pango_layout_set_width(ctx->layout, ctx->text_width < 0 ? -1 : (int)((ctx->text_width / xscale) * PANGO_SCALE));
     pango_layout_set_ellipsize(ctx->layout, ctx->ellipsis);

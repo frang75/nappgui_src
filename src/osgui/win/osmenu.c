@@ -220,7 +220,7 @@ void _osmenu_recompute(OSMenu *menu)
     i_add_all_items(menu);
     if (menu->window != NULL)
     {
-        HWND hwnd = ((OSControl *)menu->window)->hwnd;
+        HWND hwnd = cast(menu->window, OSControl)->hwnd;
         BOOL ok = DrawMenuBar(hwnd);
         cassert_unref(ok != 0, ok);
     }

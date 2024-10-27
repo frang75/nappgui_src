@@ -11,9 +11,6 @@
 /* OSImage-HIMAGELIST binding */
 
 #include "osgui_win.ixx"
-#include <sewer/nowarn.hxx>
-#include <Commctrl.h>
-#include <sewer/warn.hxx>
 
 #define HIMAGELIST_CREATED 1
 #define HIMAGELIST_DELETED 2

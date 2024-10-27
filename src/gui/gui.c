@@ -615,7 +615,7 @@ const char_t *_gui_respack_text(const ResId id, ResId *store_id)
         return "";
     }
 
-    return (const char_t *)id;
+    return cast_const(id, char_t);
 }
 
 /*---------------------------------------------------------------------------*/

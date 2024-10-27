@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void osview_detach_and_destroy(OSView **view, OSPanel *panel)
+void _osview_detach_and_destroy(OSView **view, OSPanel *panel)
 {
     cassert_no_null(view);
     osview_detach(*view, panel);

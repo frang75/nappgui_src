@@ -13,7 +13,6 @@
 #include "oscomwin.h"
 #include "osgui.inl"
 #include "osgui_gtk.inl"
-#include "oscomwin_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include <draw2d/color.h>
 #include <core/event.h>
@@ -61,7 +60,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
     dialog = gtk_file_chooser_dialog_new(
         /*"Open File"*/ NULL,
-        parent ? GTK_WINDOW(((OSControl *)parent)->widget) : NULL, action,
+        parent ? GTK_WINDOW(cast(parent, OSControl)->widget) : NULL, action,
         "_Cancel", GTK_RESPONSE_CANCEL,
         open ? "_Open" : "_Save", GTK_RESPONSE_ACCEPT,
         NULL);
@@ -95,7 +94,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     }
 
     gtk_widget_destroy(dialog);
-    return (const char_t *)kFILENAME;
+    return cast_const(kFILENAME, char_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -174,7 +173,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     data.y = (gint)y;
     data.halign = halign;
     data.valign = valign;
-    data.parent = parent ? ((OSControl *)parent)->widget : NULL;
+    data.parent = parent ? cast(parent, OSControl)->widget : NULL;
     g_signal_connect(dialog, "realize", G_CALLBACK(i_OnRealize), &data);
 
     /* gtk_widget_show(dialog); */

@@ -47,7 +47,7 @@ static void i_init_updown(OSUpDown *updown, Listener **OnClick_listener)
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSUpDown *updown = (OSUpDown *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSUpDown *updown = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSUpDown);
     cassert_no_null(updown);
 
     switch (uMsg)
@@ -107,9 +107,9 @@ OSUpDown *osupdown_create(const uint32_t flags)
     updown = heap_new(OSUpDown);
     updown->control.type = ekGUI_TYPE_UPDOWN;
     dwStyle = WS_CHILD | WS_CLIPSIBLINGS | UDS_ARROWKEYS;
-    _oscontrol_init((OSControl *)updown, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, UPDOWN_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init(cast(updown, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, UPDOWN_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     i_init_updown(updown, &OnClick_listener);
-    _oscontrol_set_frame((OSControl *)updown, 0, 0, 20, 20);
+    _oscontrol_set_frame(cast(updown, OSControl), 0, 0, 20, 20);
     return updown;
 }
 
@@ -136,56 +136,56 @@ void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 
 void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
-    _oscontrol_set_tooltip((OSControl *)updown, text);
+    _oscontrol_set_tooltip(cast(updown, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_attach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)updown);
+    _ospanel_attach_control(panel, cast(updown, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_detach(OSUpDown *updown, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)updown);
+    _ospanel_detach_control(panel, cast(updown, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_visible(OSUpDown *updown, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)updown, visible);
+    _oscontrol_set_visible(cast(updown, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_enabled(OSUpDown *updown, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)updown, enabled);
+    _oscontrol_set_enabled(cast(updown, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)updown, width, height);
+    _oscontrol_get_size(cast_const(updown, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_origin(const OSUpDown *updown, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)updown, x, y);
+    _oscontrol_get_origin(cast_const(updown, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_frame(OSUpDown *updown, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)updown, x, y, width, height);
+    _oscontrol_set_frame(cast(updown, OSControl), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -198,7 +198,7 @@ void _osupdown_OnNotification(OSUpDown *updown, const NMHDR *nmhdr, LPARAM lPara
     {
         if (IsWindowEnabled(updown->control.hwnd) && updown->OnClick_listener != NULL)
         {
-            NMUPDOWN *lpnmud = (NMUPDOWN *)lParam;
+            NMUPDOWN *lpnmud = cast(lParam, NMUPDOWN);
             EvButton params;
             params.text = "";
             params.state = ekGUI_ON;

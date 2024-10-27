@@ -43,7 +43,7 @@ uint32_t osdrawctrl_row_padding(const DCtx *ctx)
 uint32_t osdrawctrl_check_width(const DCtx *ctx)
 {
     unref(ctx);
-    return osglobals_check_width();
+    return _osglobals_check_width();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -51,7 +51,7 @@ uint32_t osdrawctrl_check_width(const DCtx *ctx)
 uint32_t osdrawctrl_check_height(const DCtx *ctx)
 {
     unref(ctx);
-    return osglobals_check_height();
+    return _osglobals_check_height();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -70,8 +70,8 @@ ctrl_msel_t osdrawctrl_multisel(const DCtx *ctx, const vkey_t key)
 
 void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const enum_t nonused)
 {
-    GtkStyleContext *c = osglobals_entry_context();
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    GtkStyleContext *c = _osglobals_entry_context();
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     gtk_style_context_save(c);
     gtk_style_context_set_state(c, GTK_STATE_FLAG_NORMAL);
     gtk_render_background(c, cairo, (gdouble)x, (gdouble)y, (gdouble)width, (gdouble)height);
@@ -84,9 +84,9 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
     static const uint32_t backoffset = 10;
-    GtkStyleContext *c = osglobals_button_context();
-    color_t border = osglobals_border_color();
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    GtkStyleContext *c = _osglobals_button_context();
+    color_t border = _osglobals_border_color();
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     GtkStateFlags flags = 0;
     real32_t r, g, b, a;
 
@@ -147,7 +147,7 @@ void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32
 void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const indicator_t indicator)
 {
     static const gdouble ind_size = 8;
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
 
     unref(height);
     cairo_save(cairo);
@@ -155,12 +155,12 @@ void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uin
 
     if (indicator & ekINDDOWN_ARROW)
     {
-        GtkStyleContext *c = osglobals_table_context();
+        GtkStyleContext *c = _osglobals_table_context();
         gtk_render_arrow(c, cairo, 3.14159, (gdouble)(x + width / 2. - ind_size / 2.), y, ind_size);
     }
     else if (indicator & ekINDUP_ARROW)
     {
-        GtkStyleContext *c = osglobals_table_context();
+        GtkStyleContext *c = _osglobals_table_context();
         gtk_render_arrow(c, cairo, 0, (gdouble)(x + width / 2. - ind_size / 2.), y, ind_size);
     }
 
@@ -171,8 +171,8 @@ void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uin
 
 void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    GtkStyleContext *c = osglobals_table_context();
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    GtkStyleContext *c = _osglobals_table_context();
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     GtkStateFlags flags = 0;
 
     switch (state)
@@ -218,8 +218,8 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
 
 void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    color_t color = osglobals_text_color();
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    color_t color = _osglobals_text_color();
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     real32_t pattern[2] = {2.f, 1.f};
     real32_t r, g, b, a;
     unref(state);
@@ -253,33 +253,26 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
         switch (state)
         {
         case ekCTRL_STATE_NORMAL:
-            color = osglobals_text_color();
+            color = _osglobals_text_color();
             break;
-
         case ekCTRL_STATE_BKNORMAL:
-            color = osglobals_textbackdrop_color();
+            color = _osglobals_textbackdrop_color();
             break;
-
         case ekCTRL_STATE_HOT:
-            color = osglobals_hottext_color();
+            color = _osglobals_hottext_color();
             break;
-
         case ekCTRL_STATE_BKHOT:
-            color = osglobals_hottextbackdrop_color();
+            color = _osglobals_hottextbackdrop_color();
             break;
-
         case ekCTRL_STATE_PRESSED:
-            color = osglobals_seltext_color();
+            color = _osglobals_seltext_color();
             break;
-
         case ekCTRL_STATE_BKPRESSED:
-            color = osglobals_seltextbackdrop_color();
+            color = _osglobals_seltextbackdrop_color();
             break;
-
         case ekCTRL_STATE_DISABLED:
-            color = osglobals_text_color();
+            color = _osglobals_text_color();
             break;
-
             cassert_default();
         }
     }
@@ -302,7 +295,7 @@ void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int3
 
 static void i_draw_check(cairo_t *cairo, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state, const uint32_t start)
 {
-    GdkPixbuf *bitmap = osglobals_checks_bitmap();
+    GdkPixbuf *bitmap = _osglobals_checks_bitmap();
     uint32_t offset = start;
 
     switch (state)
@@ -332,8 +325,8 @@ static void i_draw_check(cairo_t *cairo, const int32_t x, const int32_t y, const
         cassert_default();
     }
 
-    cassert(width == osglobals_check_width());
-    cassert(height == osglobals_check_height());
+    cassert(width == _osglobals_check_width());
+    cassert(height == _osglobals_check_height());
     gdk_cairo_set_source_pixbuf(cairo, bitmap, (gdouble)x - (gdouble)(offset * width), (gdouble)y);
     cairo_rectangle(cairo, (double)x, (double)y, (double)width, (double)height);
     cairo_fill(cairo);
@@ -343,7 +336,7 @@ static void i_draw_check(cairo_t *cairo, const int32_t x, const int32_t y, const
 
 void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     i_draw_check(cairo, x, y, width, height, state, 5);
 }
 
@@ -351,6 +344,6 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
 
 void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    cairo_t *cairo = (cairo_t *)dctx_native(ctx);
+    cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     i_draw_check(cairo, x, y, width, height, state, 0);
 }

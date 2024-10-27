@@ -827,8 +827,8 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
     property_item = (Gdiplus::PropertyItem *)heap_malloc(property_size, "ImgImpPropItem");
     bitmap->GetPropertyItem(PropertyTagFrameDelay, property_size, property_item);
     cassert(property_item->type == PropertyTagTypeLong);
-    *frame_length = 0.01f * (real32_t)(((long *)property_item->value)[frame_index]);
-    heap_free((byte_t **)&property_item, property_size, "ImgImpPropItem");
+    *frame_length = 0.01f * (real32_t)(cast(property_item->value, long)[frame_index]);
+    heap_free(dcast(&property_item, byte_t), property_size, "ImgImpPropItem");
 }
 
 /*---------------------------------------------------------------------------*/

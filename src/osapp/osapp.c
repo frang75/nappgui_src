@@ -289,7 +289,7 @@ static void i_OnNotification(void *sender, Event *e)
     case ekGUI_NOTIF_WIN_DESTROY:
     {
         const Window *window = event_params(e, Window);
-        OSWindow *oswindow = (OSWindow *)window_imp(window);
+        OSWindow *oswindow = cast(window_imp(window), OSWindow);
         osgui_unset_menubar(NULL, oswindow);
         break;
     }
@@ -418,5 +418,5 @@ void osapp_menubar(Menu *menu, Window *window)
     cassert_no_null(menu);
     oswindow = window_imp(window);
     osmenu = menu_imp(menu);
-    osgui_set_menubar((OSMenu *)osmenu, (OSWindow *)oswindow);
+    osgui_set_menubar((OSMenu *)osmenu, cast(oswindow, OSWindow));
 }

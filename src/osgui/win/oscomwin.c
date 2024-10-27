@@ -52,7 +52,7 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
 
     if (ftypes != NULL)
     {
-        if (size == 1 && strcmp((const char *)ftypes[0], "..DIR..") == 0)
+        if (size == 1 && strcmp(cast_const(ftypes[0], char), "..DIR..") == 0)
         {
             *dirselect = TRUE;
         }
@@ -63,7 +63,7 @@ static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCH
             {
                 TCHAR type[32];
                 uint32_t tsize;
-                tsize = unicode_convers(ftypes[i], (char_t *)type, ekUTF8, ekUTF16, sizeof(type));
+                tsize = unicode_convers(ftypes[i], cast(type, char_t), ekUTF8, ekUTF16, sizeof(type));
                 cassert(tsize < sizeof(type));
                 tsize += 4; /* "*." */
                 if (lbufsize > tsize * 2)
@@ -115,7 +115,7 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
     WCHAR ext[32];
     WCHAR *file_ext = NULL;
     uint32_t ext_size;
-    ext_size = unicode_convers(extension, (char_t *)ext, ekUTF8, ekUTF16, sizeof(ext));
+    ext_size = unicode_convers(extension, cast(ext, char_t), ekUTF8, ekUTF16, sizeof(ext));
     cassert_unref(ext_size < sizeof(ext), ext_size);
     _wcslwr_s(ext, 32);
 
@@ -182,7 +182,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             {
                 uint32_t bytes;
                 SHGetPathFromIDList(item, dir);
-                bytes = unicode_convers((const char_t *)dir, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
+                bytes = unicode_convers(cast_const(dir, char_t), i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
                 cassert_unref(bytes < MAX_PATH, bytes);
                 return i_FILENAME;
             }
@@ -230,7 +230,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
             if (open == FALSE && size == 1)
                 i_force_extension(file, MAX_PATH, ftypes[0]);
 
-            bytes = unicode_convers((const char_t *)file, i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
+            bytes = unicode_convers(cast_const(file, char_t), i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
             cassert_unref(bytes < MAX_PATH, bytes);
             return i_FILENAME;
         }
@@ -247,8 +247,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 {
     if (msg == WM_INITDIALOG)
     {
-        CHOOSECOLOR *col = (CHOOSECOLOR *)lParam;
-        CData *cdata = (CData *)col->lCustData;
+        CHOOSECOLOR *col = cast(lParam, CHOOSECOLOR);
+        CData *cdata = cast(col->lCustData, CData);
         RECT rect;
         BOOL ret = GetWindowRect(hwnd, &rect);
         int screen_width = GetSystemMetrics(SM_CXSCREEN);
@@ -313,7 +313,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     col.hwndOwner = NULL;
 
     if (parent != NULL)
-        col.hwndOwner = ((OSControl *)parent)->hwnd;
+        col.hwndOwner = cast(parent, OSControl)->hwnd;
 
     col.hInstance = NULL;
     col.rgbResult = _oscontrol_colorref(current);
@@ -332,7 +332,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     cdata.valign = valign;
 
     if (title != NULL)
-        unicode_convers(title, (char_t *)cdata.title, ekUTF8, ekUTF16, sizeof(cdata.title));
+        unicode_convers(title, cast(cdata.title, char_t), ekUTF8, ekUTF16, sizeof(cdata.title));
     else
         cdata.title[0] = 0;
 

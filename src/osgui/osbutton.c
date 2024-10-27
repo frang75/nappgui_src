@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osbutton_text_allowed(const uint32_t flags)
+bool_t _osbutton_text_allowed(const uint32_t flags)
 {
     switch (button_get_type(flags))
     {
@@ -36,7 +36,7 @@ bool_t osbutton_text_allowed(const uint32_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osbutton_image_allowed(const uint32_t flags)
+bool_t _osbutton_image_allowed(const uint32_t flags)
 {
     switch (button_get_type(flags))
     {
@@ -55,7 +55,7 @@ bool_t osbutton_image_allowed(const uint32_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_detach_and_destroy(OSButton **button, OSPanel *panel)
+void _osbutton_detach_and_destroy(OSButton **button, OSPanel *panel)
 {
     cassert_no_null(button);
     osbutton_detach(*button, panel);

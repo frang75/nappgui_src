@@ -117,21 +117,21 @@ static OSScroll *i_scroll_create(GtkOrientation orient, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-OSScroll *osscroll_horizontal(OSControl *control)
+OSScroll *_osscroll_horizontal(OSControl *control)
 {
     return i_scroll_create(GTK_ORIENTATION_HORIZONTAL, control);
 }
 
 /*---------------------------------------------------------------------------*/
 
-OSScroll *osscroll_vertical(OSControl *control)
+OSScroll *_osscroll_vertical(OSControl *control)
 {
     return i_scroll_create(GTK_ORIENTATION_VERTICAL, control);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_destroy(OSScroll **scroll, OSControl *control)
+void _osscroll_destroy(OSScroll **scroll, OSControl *control)
 {
     GtkWidget *parent = NULL;
     cassert_no_null(scroll);
@@ -144,7 +144,7 @@ void osscroll_destroy(OSScroll **scroll, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_pos(const OSScroll *scroll)
+uint32_t _osscroll_pos(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
     return scroll->pos;
@@ -152,7 +152,7 @@ uint32_t osscroll_pos(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_trackpos(const OSScroll *scroll)
+uint32_t _osscroll_trackpos(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
     return (uint32_t)gtk_adjustment_get_value(scroll->adjust);
@@ -160,25 +160,25 @@ uint32_t osscroll_trackpos(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_bar_width(const OSScroll *scroll)
+uint32_t _osscroll_bar_width(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
     cassert_unref(scroll->orient == GTK_ORIENTATION_VERTICAL, scroll);
-    return osglobals_scrollbar_height();
+    return _osglobals_scrollbar_height();
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_bar_height(const OSScroll *scroll)
+uint32_t _osscroll_bar_height(const OSScroll *scroll)
 {
     cassert_no_null(scroll);
     cassert_unref(scroll->orient == GTK_ORIENTATION_HORIZONTAL, scroll);
-    return osglobals_scrollbar_height();
+    return _osglobals_scrollbar_height();
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
+void _osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
 {
     guint nref = 0;
     cassert_no_null(scroll);
@@ -192,7 +192,7 @@ void osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_visible(OSScroll *scroll, const bool_t visible)
+void _osscroll_visible(OSScroll *scroll, const bool_t visible)
 {
     cassert_no_null(scroll);
     scroll->visible = visible;
@@ -201,18 +201,18 @@ void osscroll_visible(OSScroll *scroll, const bool_t visible)
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, const uint32_t page)
+void _osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, const uint32_t page)
 {
     cassert_no_null(scroll);
     gtk_adjustment_set_lower(scroll->adjust, 0);
     gtk_adjustment_set_upper(scroll->adjust, (gdouble)max);
     gtk_adjustment_set_page_size(scroll->adjust, (gdouble)page);
-    osscroll_set_pos(scroll, pos);
+    _osscroll_set_pos(scroll, pos);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
+void _osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
 {
     GtkWidget *parent = i_parent(scroll);
     gint nx = (gint)x;
@@ -225,7 +225,7 @@ void osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const 
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y)
+void _osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y)
 {
     unref(control);
     unref(incr_x);
@@ -235,7 +235,7 @@ void osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int
 
 /*---------------------------------------------------------------------------*/
 
-gui_scroll_t osscroll_wheel_event(const GdkEventScroll *event)
+gui_scroll_t _osscroll_wheel_event(const GdkEventScroll *event)
 {
     cassert_no_null(event);
     switch (event->direction)

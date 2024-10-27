@@ -43,7 +43,7 @@ OSProgress *osprogress_create(const uint32_t flags)
     progress = heap_new(OSProgress);
     progress->control.type = ekGUI_TYPE_PROGRESS;
     progress->last_position = 0.f;
-    _oscontrol_init((OSControl *)progress, PARAM(dwExStyle, 0), dwStyle, PROGRESS_CLASS, 0, 0, NULL, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init(cast(progress, OSControl), PARAM(dwExStyle, 0), dwStyle, PROGRESS_CLASS, 0, 0, NULL, kDEFAULT_PARENT_WINDOW);
     SendMessage(progress->control.hwnd, PBM_SETRANGE, (WPARAM)0, (LPARAM)MAKELONG(0, i_MAX_RANGE));
     return progress;
 }
@@ -123,47 +123,47 @@ real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 
 void osprogress_attach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)progress);
+    _ospanel_attach_control(panel, cast(progress, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_detach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)progress);
+    _ospanel_detach_control(panel, cast(progress, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_visible(OSProgress *progress, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)progress, visible);
+    _oscontrol_set_visible(cast(progress, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_enabled(OSProgress *progress, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)progress, enabled);
+    _oscontrol_set_enabled(cast(progress, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_size(const OSProgress *progress, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)progress, width, height);
+    _oscontrol_get_size(cast_const(progress, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_origin(const OSProgress *progress, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)progress, x, y);
+    _oscontrol_get_origin(cast_const(progress, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_frame(OSProgress *progress, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)progress, x, y, width, height);
+    _oscontrol_set_frame(cast(progress, OSControl), x, y, width, height);
 }

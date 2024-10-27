@@ -456,7 +456,7 @@ void gbind_upd_component(Cell *cell, const StBind *stbind, const DBind *dbind, v
         {
         case ekDTYPE_BOOL:
             cassert_unref(msize == sizeof(bool_t), msize);
-            i_set_bool(component, *((bool_t *)mdata));
+            i_set_bool(component, *cast(mdata, bool_t));
             break;
 
         case ekDTYPE_ENUM:
@@ -1207,7 +1207,7 @@ void gbind_upd_increment(Layout *layout, const DBind *dbind, void *obj, Layout *
     {
     case ekDTYPE_BOOL:
     {
-        bool_t v = !*((bool_t *)mdata);
+        bool_t v = !*cast(mdata, bool_t);
         updated = i_upd_value((byte_t *)&v, obj, objtype, sizeof(bool_t), offset, layout_notif);
         break;
     }

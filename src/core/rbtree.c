@@ -1134,7 +1134,8 @@ byte_t *rbtree_prev_ptr(RBTree *tree)
 
 /*---------------------------------------------------------------------------*/
 
-#define i_tochar(str) ((const char_t *)(str) + sizeof(uint32_t))
+#define i_tochar(str) (cast_const(str, char_t) + sizeof(uint32_t))
+
 const char_t *rbtree_get_key(const RBTree *tree)
 {
     cassert_no_null(tree);

@@ -150,7 +150,7 @@ static void i_OnClick(OSXButton *button)
             if (state == ekGUI_MIXED)
             {
                 state = ekGUI_ON;
-                osbutton_state((OSButton *)button, state);
+                osbutton_state(cast(button, OSButton), state);
             }
         }
 
@@ -160,7 +160,7 @@ static void i_OnClick(OSXButton *button)
             params.index = 0;
             params.state = state;
             params.text = NULL;
-            listener_event(button->OnClick, ekGUI_EVENT_BUTTON, (OSButton *)button, &params, NULL, OSButton, EvButton, void);
+            listener_event(button->OnClick, ekGUI_EVENT_BUTTON, cast(button, OSButton), &params, NULL, OSButton, EvButton, void);
         }
     }
 }
@@ -491,7 +491,7 @@ static void i_OnClick(OSXButton *button)
             NSImage *nsimage = [self image];
             if (nsimage != nil)
             {
-                NSBitmapImageRep *image_rep = (NSBitmapImageRep *)[[(NSImage *)nsimage representations] objectAtIndex:0];
+                NSBitmapImageRep *image_rep = cast([[cast(nsimage, NSImage) representations] objectAtIndex:0], NSBitmapImageRep);
                 NSInteger width = [image_rep pixelsWide];
                 frame.origin.x -= (CGFloat)(width - 4);
                 frame.size.width += (CGFloat)(width - 4);
@@ -514,7 +514,7 @@ static void i_OnClick(OSXButton *button)
             NSInteger width, height;
             NSInteger offset_x = 0, offset_y = 0;
             NSRect rframe = [controlView frame];
-            image_rep = (NSBitmapImageRep *)[[(NSImage *)nsimage representations] objectAtIndex:0];
+            image_rep = cast([[nsimage representations] objectAtIndex:0], NSBitmapImageRep);
             cassert_no_null(image_rep);
             width = [image_rep pixelsWide];
             height = [image_rep pixelsHigh];
@@ -736,7 +736,7 @@ static void i_set_button_action(OSXButton *button, NSUInteger radio_index)
 }
 
 /*---------------------------------------------------------------------------*/
-typedef void (^IBActionBlock)(id sender);
+
 static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
 {
     cassert_no_null(button);
@@ -757,10 +757,10 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
         count = [children count];
         for (i = 0; i < count; ++i)
         {
-            NSView *child = (NSView *)[children objectAtIndex:i];
+            NSView *child = cast([children objectAtIndex:i], NSView);
             if ([child isKindOfClass:[OSXButton class]])
             {
-                OSXButton *child_button = (OSXButton *)child;
+                OSXButton *child_button = cast(child, OSXButton);
                 if (button_get_type(child_button->flags) == ekBUTTON_RADIO)
                 {
                     i_set_button_action(child_button, radio_index);
@@ -875,12 +875,12 @@ OSButton *osbutton_create(const uint32_t flags)
     button->keyEquivalent = nil;
     i_set_button_type(button, cell, flags);
 
-    if (osbutton_text_allowed(flags) == TRUE)
+    if (_osbutton_text_allowed(flags) == TRUE)
     {
         _oscontrol_init_textattr(&button->attrs);
         _oscontrol_set_align(button, &button->attrs, ekCENTER);
         _oscontrol_set_font(button, &button->attrs, button->attrs.font);
-        cell->size = osgui_size_font(font_size(button->attrs.font));
+        cell->size = _osgui_size_font(font_size(button->attrs.font));
         _oscontrol_set_text(button, &button->attrs, "");
         _oscontrol_size_from_font(cell, button->attrs.font);
     }
@@ -890,7 +890,7 @@ OSButton *osbutton_create(const uint32_t flags)
         cell->size = ENUM_MAX(gui_size_t);
     }
 
-    return (OSButton *)button;
+    return cast(button, OSButton);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -900,7 +900,7 @@ void osbutton_destroy(OSButton **button)
     OSXButton *buttonp = nil;
     OSXButtonCell *cell = nil;
     cassert_no_null(button);
-    buttonp = (OSXButton *)*button;
+    buttonp = *dcast(button, OSXButton);
     cassert_no_null(buttonp);
     listener_destroy(&buttonp->OnClick);
     _oscontrol_remove_textattr(&buttonp->attrs);
@@ -922,18 +922,18 @@ void osbutton_destroy(OSButton **button)
 void osbutton_OnClick(OSButton *button, Listener *listener)
 {
     cassert_no_null(button);
-    listener_update(&((OSXButton *)button)->OnClick, listener);
+    listener_update(&cast(button, OSXButton)->OnClick, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_text(OSButton *button, const char_t *text)
 {
-    OSXButton *lbutton = (OSXButton *)button;
+    OSXButton *lbutton = cast(button, OSXButton);
     char_t tbuff[256];
     cassert_no_null(lbutton);
-    cassert(osbutton_text_allowed(lbutton->flags) == TRUE);
-    lbutton->attrs.mark = osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
+    cassert(_osbutton_text_allowed(lbutton->flags) == TRUE);
+    lbutton->attrs.mark = _osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
     _oscontrol_set_text(lbutton, &lbutton->attrs, tbuff);
 
     if (lbutton->keyEquivalent != nil)
@@ -958,29 +958,29 @@ void osbutton_text(OSButton *button, const char_t *text)
 void osbutton_tooltip(OSButton *button, const char_t *text)
 {
     cassert_no_null(button);
-    _oscontrol_tooltip_set((OSXButton *)button, text);
+    _oscontrol_tooltip_set(cast(button, OSXButton), text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_font(OSButton *button, const Font *font)
 {
-    OSXButton *lbutton = (OSXButton *)button;
+    OSXButton *lbutton = cast(button, OSXButton);
     OSXButtonCell *cell = [lbutton cell];
     cassert_no_null(lbutton);
-    cassert(osbutton_text_allowed(lbutton->flags) == TRUE);
+    cassert(_osbutton_text_allowed(lbutton->flags) == TRUE);
     _oscontrol_set_font(lbutton, &lbutton->attrs, font);
     _oscontrol_size_from_font([lbutton cell], lbutton -> attrs.font);
-    cell->size = osgui_size_font(font_size(lbutton->attrs.font));
+    cell->size = _osgui_size_font(font_size(lbutton->attrs.font));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_align(OSButton *button, const align_t align)
 {
-    OSXButton *lbutton = (OSXButton *)button;
+    OSXButton *lbutton = cast(button, OSXButton);
     cassert_no_null(lbutton);
-    cassert(osbutton_text_allowed(lbutton->flags) == TRUE);
+    cassert(_osbutton_text_allowed(lbutton->flags) == TRUE);
     _oscontrol_set_align(lbutton, &lbutton->attrs, align);
 }
 
@@ -990,9 +990,9 @@ void osbutton_image(OSButton *button, const Image *image)
 {
     OSXButton *lbutton = nil;
     OSXButtonCell *cell = nil;
-    lbutton = (OSXButton *)button;
+    lbutton = cast(button, OSXButton);
     cassert_no_null(lbutton);
-    cassert(osbutton_image_allowed(lbutton->flags) == TRUE);
+    cassert(_osbutton_image_allowed(lbutton->flags) == TRUE);
     cell = [lbutton cell];
     if (button_get_type(cell->flags) == ekBUTTON_PUSH)
     {
@@ -1055,14 +1055,14 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         cassert_default();
     }
 #endif
-    [(OSXButton *)button setState:nsstate];
+    [cast(button, OSXButton) setState:nsstate];
 }
 
 /*---------------------------------------------------------------------------*/
 
 gui_state_t osbutton_get_state(const OSButton *button)
 {
-    return i_get_state((const OSXButton *)button);
+    return i_get_state(cast_const(button, OSXButton));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1084,7 +1084,7 @@ void osbutton_vpadding(OSButton *button, const real32_t padding)
 
 void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t refwidth, const real32_t refheight, real32_t *width, real32_t *height)
 {
-    OSXButton *lbutton = (OSXButton *)button;
+    OSXButton *lbutton = cast(button, OSXButton);
     cassert_no_null(lbutton);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -1098,7 +1098,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         OSXButtonCell *cell = [lbutton cell];
         real32_t xscale = font_xscale(lbutton->attrs.font);
         uint32_t imgwidth = 0;
-        osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
+        _osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
         font_extents(lbutton->attrs.font, tbuff, -1.f, width, height);
         font_extents(lbutton->attrs.font, xscale >= 1 ? "OO" : "OOOO", -1.f, &margin_width, &margin_height);
         *width += margin_width + 2;
@@ -1152,15 +1152,15 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         switch (cell->size)
         {
         case ekGUI_SIZE_REGULAR:
-            *width += (real32_t)osglobals_check_width() + i_CHECK_TEXT_SEP;
+            *width += (real32_t)_osglobals_check_width() + i_CHECK_TEXT_SEP;
             *height = 18.f;
             break;
         case ekGUI_SIZE_SMALL:
-            *width += (real32_t)osglobals_check_width() + i_CHECK_TEXT_SEP;
+            *width += (real32_t)_osglobals_check_width() + i_CHECK_TEXT_SEP;
             *height = 16.f;
             break;
         case ekGUI_SIZE_MINI:
-            *width += (real32_t)osglobals_check_width() + i_CHECK_TEXT_SEP;
+            *width += (real32_t)_osglobals_check_width() + i_CHECK_TEXT_SEP;
             *height = 12.f;
             break;
         }
@@ -1185,51 +1185,51 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
 void osbutton_attach(OSButton *button, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView *)button);
-    i_recompute_button_action((OSXButton *)button, (NSView *)panel);
+    _ospanel_attach_control(panel, cast(button, NSView));
+    i_recompute_button_action(cast(button, OSXButton), cast(panel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_detach(OSButton *button, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView *)button);
-    i_recompute_button_action((OSXButton *)button, (NSView *)panel);
+    _ospanel_detach_control(panel, cast(button, NSView));
+    i_recompute_button_action(cast(button, OSXButton), cast(panel, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_visible(OSButton *button, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)button, visible);
+    _oscontrol_set_visible(cast(button, NSView), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_enabled(OSButton *button, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)button, enabled);
+    _oscontrol_set_enabled(cast(button, NSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_size(const OSButton *button, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)button, width, height);
+    _oscontrol_get_size(cast(button, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_origin(const OSButton *button, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)button, x, y);
+    _oscontrol_get_origin(cast(button, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView *)button, x, y, width, height);
+    _oscontrol_set_frame(cast(button, NSView), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1245,7 +1245,7 @@ BOOL _osbutton_OnIntro(NSResponder *resp)
 {
     if (resp != nil && [resp isKindOfClass:[OSXButton class]])
     {
-        OSXButton *button = (OSXButton *)resp;
+        OSXButton *button = cast(resp, OSXButton);
         if (button_get_type(button->flags) == ekBUTTON_PUSH)
         {
             i_OnClick(button);
@@ -1258,9 +1258,9 @@ BOOL _osbutton_OnIntro(NSResponder *resp)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_set_default(OSButton *button, const bool_t is_default)
+void _osbutton_set_default(OSButton *button, const bool_t is_default)
 {
-    OSXButton *lbutton = (OSXButton *)button;
+    OSXButton *lbutton = cast(button, OSXButton);
     cassert_no_null(lbutton);
     if (is_default == TRUE)
     {

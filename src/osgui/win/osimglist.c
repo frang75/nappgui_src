@@ -19,6 +19,10 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+#include <sewer/nowarn.hxx>
+#include <Commctrl.h>
+#include <sewer/warn.hxx>
+
 struct _osimglist_t
 {
     HIMAGELIST hlist;
@@ -91,7 +95,7 @@ int _osimglist_add(OSImgList *imglist, const Image *image, uint8_t *result)
         imglist->img_width = image_width(scaled_image);
         cassert(imglist->img_width != UINT32_MAX);
         imglist->hlist = ImageList_Create((int)imglist->img_width, (int)imglist->img_height, ILC_COLOR32 /*| ILC_MASK*/, 0, 4);
-        transparent = osimg_hbitmap_transparent(imglist->img_width, imglist->img_height);
+        transparent = _osimg_hbitmap_transparent(imglist->img_width, imglist->img_height);
         img_index = ImageList_Add(imglist->hlist, transparent, NULL);
         cassert_unref(img_index == 0, img_index);
         ok = DeleteObject(transparent);
@@ -110,7 +114,7 @@ int _osimglist_add(OSImgList *imglist, const Image *image, uint8_t *result)
         BOOL ok = FALSE;
         img_copy = image_copy(image);
         arrpt_append(imglist->images, img_copy, Image);
-        bitmap = osimg_hbitmap(scaled_image, 0);
+        bitmap = _osimg_hbitmap(scaled_image, 0);
         index = ImageList_Add(imglist->hlist, bitmap, NULL);
         cassert(index > 0);
         cassert((uint32_t)index == arrpt_size(imglist->images, Image));
@@ -141,7 +145,7 @@ void _osimglist_replace(OSImgList *imglist, const int index, const Image *image)
     cassert(imglist->img_width != UINT32_MAX);
     cassert(imglist->img_height != UINT32_MAX);
     scaled_image = image_scale(image, imglist->img_width, imglist->img_height);
-    bitmap = osimg_hbitmap(image, 0);
+    bitmap = _osimg_hbitmap(image, 0);
     ok = ImageList_Replace(imglist->hlist, index, bitmap, NULL);
     cassert(ok != 0);
     ok = DeleteObject(bitmap);

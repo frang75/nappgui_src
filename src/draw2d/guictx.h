@@ -1400,7 +1400,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
         guictx_append_globals_manager_imp( \
             context, \
             (FPtr_gctx_get_enum)func_globals_device, \
-            cast_func_ptr(func_globals_color, FPtr_gctx_get_enum), \
+            cast_func(func_globals_color, FPtr_gctx_get_enum), \
             (FPtr_gctx_get2_real32)func_globals_resolution, \
             (FPtr_gctx_get2_real32)func_globals_mouse_position, \
             (FPtr_gctx_cursor)func_globals_cursor, \

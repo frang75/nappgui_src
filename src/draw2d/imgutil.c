@@ -84,7 +84,7 @@ static bool_t i_parse_png(Stream *stm_in, Stream *stm_out)
         if (stm_out)
             stm_write_u32(stm_out, crc);
 
-        if (str_equ_cn((const char_t *)type, "IEND", 4) == TRUE)
+        if (str_equ_cn(cast_const(type, char_t), "IEND", 4) == TRUE)
             break;
     }
 
@@ -515,7 +515,7 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
         if (stm_out)
             stm_write(stm_out, header, 8);
 
-        if (str_equ_cn((const char_t *)rhead, (const char_t *)(header + 1), 7) == TRUE)
+        if (str_equ_cn(cast_const(rhead, char_t), cast_const(header + 1, char_t), 7) == TRUE)
             return ekPNG;
 
         return ENUM_MAX(codec_t);
@@ -547,10 +547,10 @@ static codec_t i_header(Stream *stm_in, Stream *stm_out)
             stm_write(stm_out, rhead, 5);
         }
 
-        if (str_equ_cn((const char_t *)rhead, header1 + 1, 5) == TRUE)
+        if (str_equ_cn(cast_const(rhead, char_t), header1 + 1, 5) == TRUE)
             return ekGIF;
 
-        if (str_equ_cn((const char_t *)rhead, header2 + 1, 5) == TRUE)
+        if (str_equ_cn(cast_const(rhead, char_t), header2 + 1, 5) == TRUE)
             return ekGIF;
 
         return ENUM_MAX(codec_t);
@@ -939,7 +939,7 @@ Pixbuf *_imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, co
     cassert_no_null(palette);
 
     buffer = pixbuf_create(width, height, ekRGBA32);
-    data = (uint32_t *)pixbuf_data(buffer);
+    data = cast(pixbuf_data(buffer), uint32_t);
 
     if (stride == 0)
     {

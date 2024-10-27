@@ -97,7 +97,7 @@ static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
 {
     OSFrame rect;
     RECT rc;
-    oscontrol_frame(control, &rect);
+    _oscontrol_frame(control, &rect);
     rc.left = rect.left;
     rc.right = rect.right;
     rc.top = rect.top;
@@ -184,11 +184,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         }
         else
         {
-            gui_scroll_t event = osscroll_event(wParam);
+            gui_scroll_t event = _osscroll_event(wParam);
             if (event != ENUM_MAX(gui_scroll_t))
             {
                 gui_orient_t orient = uMsg == WM_HSCROLL ? ekGUI_HORIZONTAL : ekGUI_VERTICAL;
-                osscrolls_event(panel->scroll, orient, event, TRUE);
+                _osscrolls_event(panel->scroll, orient, event, TRUE);
             }
         }
         break;
@@ -309,7 +309,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             gui_scroll_t event = ekGUI_SCROLL_STEP_LEFT;
             if (GET_WHEEL_DELTA_WPARAM(wParam) < 0)
                 event = ekGUI_SCROLL_STEP_RIGHT;
-            osscrolls_event(panel->scroll, ekGUI_VERTICAL, event, TRUE);
+            _osscrolls_event(panel->scroll, ekGUI_VERTICAL, event, TRUE);
         }
         break;
     }
@@ -324,8 +324,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             if (panel->scroll != NULL)
             {
-                uint32_t x = osscrolls_x_pos(panel->scroll);
-                uint32_t y = osscrolls_y_pos(panel->scroll);
+                uint32_t x = _osscrolls_x_pos(panel->scroll);
+                uint32_t y = _osscrolls_y_pos(panel->scroll);
                 SetWindowOrgEx((HDC)wParam, (int)x, (int)y, NULL);
             }
 
@@ -377,7 +377,7 @@ OSPanel *ospanel_create(const uint32_t flags)
     _oscontrol_init(cast(panel, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kVIEW_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
 
     if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
-        panel->scroll = osscrolls_create(cast(panel, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
+        panel->scroll = _osscrolls_create(cast(panel, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
 
     panel->flags = flags;
     panel->children = arrpt_create(OSControl);
@@ -409,7 +409,7 @@ void ospanel_destroy(OSPanel **panel)
         arrst_destroy(&(*panel)->areas, i_remove_area, Area);
 
     if ((*panel)->scroll != NULL)
-        osscrolls_destroy(&(*panel)->scroll);
+        _osscrolls_destroy(&(*panel)->scroll);
 
     cassert(_oscontrol_num_children(cast(*panel, OSControl)) == 0);
 
@@ -471,10 +471,10 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 {
     cassert_no_null(panel);
     if (width != NULL)
-        *width = (real32_t)osscrolls_bar_width(panel->scroll, FALSE);
+        *width = (real32_t)_osscrolls_bar_width(panel->scroll, FALSE);
 
     if (height != NULL)
-        *height = (real32_t)osscrolls_bar_height(panel->scroll, FALSE);
+        *height = (real32_t)_osscrolls_bar_height(panel->scroll, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -482,7 +482,7 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
     cassert_no_null(panel);
-    osscrolls_content_size(panel->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
+    _osscrolls_content_size(panel->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -550,7 +550,7 @@ void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const rea
     cassert_no_null(panel);
     _oscontrol_set_frame(cast(panel, OSControl), x, y, width, height);
     if (panel->scroll != NULL)
-        osscrolls_control_size(panel->scroll, (uint32_t)width, (uint32_t)height);
+        _osscrolls_control_size(panel->scroll, (uint32_t)width, (uint32_t)height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -576,7 +576,7 @@ static BOOL CALLBACK i_destroy_child(HWND hwnd, LPARAM lParam)
 {
     OSControl *control = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSControl);
     if (control != NULL)
-        oscontrol_detach_and_destroy(&control, cast(lParam, OSPanel));
+        _oscontrol_detach_and_destroy(&control, cast(lParam, OSPanel));
     return TRUE;
 }
 
@@ -715,14 +715,6 @@ COLORREF _ospanel_background_color(OSPanel *panel, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t ospanel_with_scroll(const OSPanel *panel)
-{
-    cassert_no_null(panel);
-    return (bool_t)(panel->scroll != NULL);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y)
 {
     cassert_no_null(panel);
@@ -730,8 +722,8 @@ void _ospanel_scroll_pos(OSPanel *panel, int *scroll_x, int *scroll_y)
     cassert_no_null(scroll_y);
     if (panel->scroll != NULL)
     {
-        *scroll_x = (int)osscrolls_x_pos(panel->scroll);
-        *scroll_y = (int)osscrolls_y_pos(panel->scroll);
+        *scroll_x = (int)_osscrolls_x_pos(panel->scroll);
+        *scroll_y = (int)_osscrolls_y_pos(panel->scroll);
     }
     else
     {
@@ -750,23 +742,31 @@ ArrPt(OSControl) *_ospanel_children(OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
+bool_t _ospanel_with_scroll(const OSPanel *panel)
 {
-    uint32_t x, y, w, h;
     cassert_no_null(panel);
-    cassert_no_null(rect);
-    osscrolls_visible_area(panel->scroll, &x, &y, &w, &h, NULL, NULL);
-    rect->left = (int32_t)x;
-    rect->top = (int32_t)y;
-    rect->right = (int32_t)(x + w);
-    rect->bottom = (int32_t)(y + h);
+    return (bool_t)(panel->scroll != NULL);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
+void _ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 {
     cassert_no_null(panel);
     if (panel->scroll != NULL)
-        osscrolls_set(panel->scroll, (uint32_t)x, (uint32_t)y, TRUE);
+        _osscrolls_set(panel->scroll, (uint32_t)x, (uint32_t)y, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
+{
+    uint32_t x, y, w, h;
+    cassert_no_null(panel);
+    cassert_no_null(rect);
+    _osscrolls_visible_area(panel->scroll, &x, &y, &w, &h, NULL, NULL);
+    rect->left = (int32_t)x;
+    rect->top = (int32_t)y;
+    rect->right = (int32_t)(x + w);
+    rect->bottom = (int32_t)(y + h);
 }

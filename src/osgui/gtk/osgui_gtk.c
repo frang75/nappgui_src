@@ -40,7 +40,7 @@ static ArrPt(Image) *kREGISTER_ICONS = NULL;
 
 /*---------------------------------------------------------------------------*/
 
-const guint kVIRTUAL_KEY[] =
+static const guint kVIRTUAL_KEY[] =
     {
         UINT32_MAX, /*ekKEY_UNASSIGNED      = 0*/
         GDK_KEY_A,  /*ekKEY_A               = 1*/
@@ -168,19 +168,19 @@ const guint kVIRTUAL_KEY[] =
 
 };
 
-uint32_t kNUM_VKEYS = sizeof(kVIRTUAL_KEY) / sizeof(guint);
+static uint32_t kNUM_VKEYS = sizeof(kVIRTUAL_KEY) / sizeof(guint);
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_start_imp(void)
+void _osgui_start_imp(void)
 {
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_finish_imp(void)
+void _osgui_finish_imp(void)
 {
-    osglobals_finish();
+    _osglobals_finish();
 
     if (kNS_RESIZE_CURSOR != NULL)
     {
@@ -198,7 +198,7 @@ void osgui_finish_imp(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_attach_menubar(OSWindow *window, OSMenu *menu)
+void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
     _osmenu_menubar(menu, window);
     _oswindow_set_menubar(window, menu);
@@ -206,7 +206,7 @@ void osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_detach_menubar(OSWindow *window, OSMenu *menu)
+void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
     _osmenu_menubar_unlink(menu, window);
     _oswindow_unset_menubar(window, menu);
@@ -214,7 +214,7 @@ void osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu)
+void _osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu)
 {
     unref(window);
     unref(previous_menu);
@@ -224,7 +224,7 @@ void osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_m
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_message_loop_imp(void)
+void _osgui_message_loop_imp(void)
 {
     cassert(FALSE);
 }
@@ -248,7 +248,7 @@ const char_t *_osgui_register_icon(const Image *image)
         uint32_t width = image_width(image);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        gtk_icon_theme_add_builtin_icon(ICON_NAME, (gint)width, (GdkPixbuf *)image_native(image));
+        gtk_icon_theme_add_builtin_icon(ICON_NAME, (gint)width, cast(image_native(image), GdkPixbuf));
 #pragma GCC diagnostic pop
         arrpt_append(kREGISTER_ICONS, image, Image);
     }
@@ -546,14 +546,14 @@ uint32_t _osgui_modifiers(const guint state)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osgui_is_pre_initialized_imp(void)
+bool_t _osgui_is_pre_initialized_imp(void)
 {
-    return osglobals_impostor_mapped();
+    return _osglobals_impostor_mapped();
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_pre_initialize_imp(void)
+void _osgui_pre_initialize_imp(void)
 {
     kREGISTER_ICONS = NULL;
 
@@ -570,5 +570,5 @@ void osgui_pre_initialize_imp(void)
         pango_font_description_free(fdesc);
     }
 
-    osglobals_init();
+    _osglobals_init();
 }

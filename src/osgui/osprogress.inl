@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void osprogress_detach_and_destroy(OSProgress **progress, OSPanel *panel);
+void _osprogress_detach_and_destroy(OSProgress **progress, OSPanel *panel);
 
 __END_C

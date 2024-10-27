@@ -67,7 +67,7 @@ static bool_t i_is_mouse_sensible(const OSLabel *label)
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSLabel *label = (OSLabel *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSLabel *label = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSLabel);
     cassert_no_null(label);
 
     switch (uMsg)
@@ -93,7 +93,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         label->mouse_inside = FALSE;
         if (label->OnMouseExit != NULL)
             listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
-
         return 0;
 
     case WM_MOUSEMOVE:
@@ -141,13 +140,13 @@ OSLabel *oslabel_create(const uint32_t flags)
     dwStyle = i_style(ekLEFT, ekELLIPNONE);
     label = heap_new0(OSLabel);
     label->control.type = ekGUI_TYPE_LABEL;
-    label->font = osgui_create_default_font();
+    label->font = _osgui_create_default_font();
     label->mouse_inside = FALSE;
     label->align = ekLEFT;
     label->ellipsis = ekELLIPNONE;
     label->color = 0;
-    _oscontrol_init((OSControl *)label, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    _oscontrol_set_font((OSControl *)label, label->font);
+    _oscontrol_init(cast(label, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_set_font(cast(label, OSControl), label->font);
     return label;
 }
 
@@ -198,7 +197,7 @@ void oslabel_OnExit(OSLabel *label, Listener *listener)
 void oslabel_text(OSLabel *label, const char_t *text)
 {
     cassert_no_null(label);
-    _oscontrol_set_text((OSControl *)label, text);
+    _oscontrol_set_text(cast(label, OSControl), text);
     InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
 
@@ -207,7 +206,7 @@ void oslabel_text(OSLabel *label, const char_t *text)
 void oslabel_font(OSLabel *label, const Font *font)
 {
     cassert_no_null(label);
-    _oscontrol_update_font((OSControl *)label, &label->font, font);
+    _oscontrol_update_font(cast(label, OSControl), &label->font, font);
     InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
 
@@ -263,42 +262,42 @@ void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t ref
 
 void oslabel_attach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)label);
+    _ospanel_attach_control(panel, cast(label, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_detach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)label);
+    _ospanel_detach_control(panel, cast(label, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_visible(OSLabel *label, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)label, visible);
+    _oscontrol_set_visible(cast(label, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_enabled(OSLabel *label, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)label, enabled);
+    _oscontrol_set_enabled(cast(label, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_size(const OSLabel *label, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)label, width, height);
+    _oscontrol_get_size(cast_const(label, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)label, x, y);
+    _oscontrol_get_origin(cast_const(label, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -306,7 +305,7 @@ void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(label);
-    _oscontrol_set_frame((OSControl *)label, x, y, width, height);
+    _oscontrol_set_frame(cast(label, OSControl), x, y, width, height);
     InvalidateRect(label->control.hwnd, NULL, FALSE);
 }
 

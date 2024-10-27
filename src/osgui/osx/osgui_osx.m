@@ -158,7 +158,7 @@ static const unsigned short i_kVIRTUAL_KEY[] =
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_start_imp(void)
+void _osgui_start_imp(void)
 {
     kUNDERLINE_STYLE_NONE = [[NSNumber alloc] initWithInt:NSUnderlineStyleNone];
     kUNDERLINE_STYLE_SINGLE = [[NSNumber alloc] initWithInt:NSUnderlineStyleSingle];
@@ -169,12 +169,12 @@ void osgui_start_imp(void)
     kRIGHT_PARAGRAPH_STYLE = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
     [kRIGHT_PARAGRAPH_STYLE setAlignment:_oscontrol_text_alignment(ekRIGHT)];
     kEMPTY_MENUBAR = [[NSMenu alloc] initWithTitle:@""];
-    osglobals_init();
+    _osglobals_init();
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_finish_imp(void)
+void _osgui_finish_imp(void)
 {
     [kLEFT_PARAGRAPH_STYLE release];
     [kCENTER_PARAGRAPH_STYLE release];
@@ -182,50 +182,50 @@ void osgui_finish_imp(void)
     [kUNDERLINE_STYLE_SINGLE release];
     [kUNDERLINE_STYLE_NONE release];
     [kEMPTY_MENUBAR release];
-    osglobals_finish();
+    _osglobals_finish();
     _oscomwin_destroy_globals();
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_attach_menubar(OSWindow *window, OSMenu *menu)
+void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
     cassert_no_null(menu);
     unref(window);
-    [NSApp setMainMenu:(NSMenu *)menu];
+    [NSApp setMainMenu:cast(menu, NSMenu)];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_detach_menubar(OSWindow *window, OSMenu *menu)
+void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
     cassert_no_null(menu);
-    cassert([NSApp mainMenu] == (NSMenu *)menu);
+    cassert([NSApp mainMenu] == cast(menu, NSMenu));
     unref(window);
     [NSApp setMainMenu:kEMPTY_MENUBAR];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu)
+void _osgui_change_menubar(OSWindow *window, OSMenu *previous_menu, OSMenu *new_menu)
 {
     cassert_no_null(previous_menu);
     cassert_no_null(new_menu);
-    cassert([NSApp mainMenu] == (NSMenu *)previous_menu);
+    cassert([NSApp mainMenu] == cast(previous_menu, NSMenu));
     unref(window);
-    [NSApp setMainMenu:(NSMenu *)new_menu];
+    [NSApp setMainMenu:cast(new_menu, NSMenu)];
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_message_loop_imp(void)
+void _osgui_message_loop_imp(void)
 {
     cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osgui_is_pre_initialized_imp(void)
+bool_t _osgui_is_pre_initialized_imp(void)
 {
     cassert(FALSE);
     return FALSE;
@@ -233,14 +233,14 @@ bool_t osgui_is_pre_initialized_imp(void)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_pre_initialize_imp(void)
+void _osgui_pre_initialize_imp(void)
 {
     cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-vkey_t osgui_vkey(unsigned short keycode)
+vkey_t _osgui_vkey(unsigned short keycode)
 {
     vkey_t vkey = ENUM_MAX(vkey_t);
     uint32_t i, n = sizeof(i_kVIRTUAL_KEY) / sizeof(unsigned short);
@@ -280,7 +280,7 @@ static ___INLINE bool_t i_modif(NSUInteger flags, uint32_t v1, uint32_t v2)
 
 /*---------------------------------------------------------------------------*/
 
-void osgui_modifier_flags(
+void _osgui_modifier_flags(
     NSUInteger flags,
     bool_t *rshift, bool_t *rctrl, bool_t *rcommand, bool_t *ralt,
     bool_t *lshift, bool_t *lctrl, bool_t *lcommand, bool_t *lalt)
@@ -297,12 +297,12 @@ void osgui_modifier_flags(
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osgui_modifiers(NSUInteger flags)
+uint32_t _osgui_modifiers(NSUInteger flags)
 {
     uint32_t modifiers = ekMKEY_NONE;
     bool_t rshift, rctrl, rcommand, ralt;
     bool_t lshift, lctrl, lcommand, lalt;
-    osgui_modifier_flags(flags, &rshift, &rctrl, &rcommand, &ralt, &lshift, &lctrl, &lcommand, &lalt);
+    _osgui_modifier_flags(flags, &rshift, &rctrl, &rcommand, &ralt, &lshift, &lctrl, &lcommand, &lalt);
     if (rshift || lshift)
         modifiers |= ekMKEY_SHIFT;
     if (rctrl || lctrl)
@@ -316,7 +316,7 @@ uint32_t osgui_modifiers(NSUInteger flags)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osgui_key_equivalent_text(const char_t *text, char_t *buff, const uint32_t size)
+uint32_t _osgui_key_equivalent_text(const char_t *text, char_t *buff, const uint32_t size)
 {
     uint32_t i = 0;
     uint32_t key_equivalent = UINT32_MAX;

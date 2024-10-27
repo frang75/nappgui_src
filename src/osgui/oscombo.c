@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_detach_and_destroy(OSCombo **combo, OSPanel *panel)
+void _oscombo_detach_and_destroy(OSCombo **combo, OSPanel *panel)
 {
     cassert_no_null(combo);
     oscombo_detach(*combo, panel);

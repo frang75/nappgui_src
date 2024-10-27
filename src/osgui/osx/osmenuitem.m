@@ -188,14 +188,16 @@ static gui_state_t i_state(const NSInteger state)
 
 - (IBAction)menuItemPressed:(id)sender
 {
+    OSXMenuItem *mitem = cast(sender, OSXMenuItem);
+    cassert_no_null(mitem);
     cassert([sender isKindOfClass:[OSXMenuItem class]] == YES);
-    if (((OSXMenuItem *)sender)->OnClick != NULL)
+    if (mitem->OnClick != NULL)
     {
         EvMenu params;
         params.index = UINT32_MAX;
-        params.state = i_state([(OSXMenuItem *)sender state]);
+        params.state = i_state([mitem state]);
         params.text = NULL;
-        listener_event(((OSXMenuItem *)sender)->OnClick, ekGUI_EVENT_MENU, (OSMenuItem *)sender, &params, NULL, OSMenuItem, EvMenu, void);
+        listener_event(mitem->OnClick, ekGUI_EVENT_MENU, cast(sender, OSMenuItem), &params, NULL, OSMenuItem, EvMenu, void);
     }
 }
 
@@ -216,11 +218,11 @@ OSMenuItem *osmenuitem_create(const uint32_t flag)
         [item setTarget:item];
         [item setEnabled:YES];
         [item setHidden:NO];
-        return (OSMenuItem *)item;
+        return cast(item, OSMenuItem);
     }
 
     case ekMENU_SEPARATOR:
-        return (OSMenuItem *)[NSMenuItem separatorItem];
+        return cast([NSMenuItem separatorItem], OSMenuItem);
 
         cassert_default();
     }
@@ -239,7 +241,7 @@ static BOOL i_check_item(NSObject *item)
     }
     else if ([item class] == [NSMenuItem class])
     {
-        return [(NSMenuItem *)item isSeparatorItem];
+        return [cast(item, NSMenuItem) isSeparatorItem];
     }
     else
     {
@@ -253,15 +255,17 @@ static BOOL i_check_item(NSObject *item)
 
 void osmenuitem_destroy(OSMenuItem **item)
 {
+    OSXMenuItem *litem = nil;
     cassert_no_null(item);
-    cassert_no_null(*item);
-    cassert(i_check_item((NSObject *)*item) == YES);
+    litem = *dcast(item, OSXMenuItem);
+    cassert_no_null(litem);
+    cassert(i_check_item(cast(litem, NSObject)) == YES);
 
-    if ([(NSObject *)*item isKindOfClass:[OSXMenuItem class]] == YES)
+    if ([cast(litem, NSObject) isKindOfClass:[OSXMenuItem class]] == YES)
     {
-        cassert([(NSMenuItem *)*item menu] == nil);
-        listener_destroy(&((OSXMenuItem *)*item)->OnClick);
-        [(NSMenuItem *)*item release];
+        cassert([litem menu] == nil);
+        listener_destroy(&litem->OnClick);
+        [litem release];
     }
 
     *item = NULL;
@@ -273,8 +277,8 @@ void osmenuitem_OnClick(OSMenuItem *item, Listener *listener)
 {
     cassert_no_null(item);
     cassert_no_null(listener);
-    cassert(i_check_item((NSObject *)item) == YES);
-    listener_update(&((OSXMenuItem *)item)->OnClick, listener);
+    cassert(i_check_item(cast(item, NSObject)) == YES);
+    listener_update(&cast(item, OSXMenuItem)->OnClick, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -282,8 +286,8 @@ void osmenuitem_OnClick(OSMenuItem *item, Listener *listener)
 void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
 {
     cassert_no_null(item);
-    cassert(i_check_item((NSObject *)item) == YES);
-    [(OSXMenuItem *)item setEnabled:(BOOL)enabled];
+    cassert(i_check_item(cast(item, NSObject)) == YES);
+    [cast(item, OSXMenuItem) setEnabled:(BOOL)enabled];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -291,8 +295,8 @@ void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
 void osmenuitem_visible(OSMenuItem *item, const bool_t visible)
 {
     cassert_no_null(item);
-    cassert(i_check_item((NSObject *)item) == YES);
-    [(OSXMenuItem *)item setHidden:(BOOL)!visible];
+    cassert(i_check_item(cast(item, NSObject)) == YES);
+    [cast(item, OSXMenuItem) setHidden:(BOOL)!visible];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -301,9 +305,10 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
 {
     NSString *str = nil;
     NSMenu *subMenu = nil;
-    cassert_no_null(item);
+    OSXMenuItem *litem = cast(item, OSXMenuItem);
+    cassert_no_null(litem);
     cassert_no_null(text);
-    cassert([((NSObject *)item) isKindOfClass:[OSXMenuItem class]] == YES);
+    cassert([(cast(item, NSObject)) isKindOfClass:[OSXMenuItem class]] == YES);
 
     /* In Mac OS X El Capitan, the "Enter Full Screen" menu item appears by itself */
     /* https://github.com/electron/electron/issues/3038 */
@@ -313,19 +318,21 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
         char_t u200C[] = {(char_t)226, (char_t)128, (char_t)140, 0};
         str_copy_c(nstr, sizeof(nstr), text);
         str_cat_c(nstr, sizeof(nstr), u200C);
-        str = [[NSString alloc] initWithUTF8String:(const char *)nstr];
+        str = [[NSString alloc] initWithUTF8String:cast_const(nstr, char)];
     }
     else
     {
-        str = [[NSString alloc] initWithUTF8String:(const char *)text];
+        str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
     }
 
-    [(OSXMenuItem *)item setTitle:str];
+    [litem setTitle:str];
+
     /* The text printed in the menu do not take from NSMenuItem, but [NSMenuItem subMenu]
        lists.apple.com/archives/cocoa-dev/2008/Nov/msg00217.html */
-    subMenu = [(OSXMenuItem *)item submenu];
+    subMenu = [litem submenu];
     if (subMenu != nil)
         [subMenu setTitle:str];
+
     [str release];
 }
 
@@ -334,7 +341,7 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
 void osmenuitem_image(OSMenuItem *item, const Image *image)
 {
     cassert_no_null(item);
-    [(OSXMenuItem *)item setImage:(NSImage *)image_native(image)];
+    [cast(item, OSXMenuItem) setImage:cast(image_native(image), NSImage)];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -359,12 +366,13 @@ void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers
 {
     unichar c;
     NSString *str = nil;
-    cassert_no_null(item);
-    cassert([((NSObject *)item) isKindOfClass:[OSXMenuItem class]] == YES);
+    OSXMenuItem *litem = cast(item, OSXMenuItem);
+    cassert_no_null(litem);
+    cassert([(cast(item, NSObject)) isKindOfClass:[OSXMenuItem class]] == YES);
     c = i_VIRTUAL_KEY[key];
     str = [NSString stringWithCharacters:&c length:1];
-    [(OSXMenuItem *)item setKeyEquivalent:str];
-    [(OSXMenuItem *)item setKeyEquivalentModifierMask:i_kmod(modifiers)];
+    [litem setKeyEquivalent:str];
+    [litem setKeyEquivalentModifierMask:i_kmod(modifiers)];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -406,39 +414,39 @@ void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
 {
     NSInteger _state;
     cassert_no_null(item);
-    cassert([(NSObject *)item isKindOfClass:[OSXMenuItem class]] == YES);
+    cassert([cast(item, NSObject) isKindOfClass:[OSXMenuItem class]] == YES);
     _state = i_menuitem_state(state);
-    [(OSXMenuItem *)item setState:_state];
+    [cast(item, OSXMenuItem) setState:_state];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osmenuitem_submenu(OSMenuItem *item, OSMenu *menu)
 {
-    OSXMenuItem *itemp = nil;
+    OSXMenuItem *litem = cast(item, OSXMenuItem);
+    NSMenu *lmenu = cast(menu, NSMenu);
     NSUInteger retain_count = 0;
-    cassert_no_null(item);
-    cassert_no_null(menu);
-    itemp = (OSXMenuItem *)item;
-    cassert([itemp isKindOfClass:[OSXMenuItem class]] == YES);
-    cassert([(NSObject *)menu isKindOfClass:[NSMenu class]] == YES);
-    cassert([itemp submenu] == nil);
-    retain_count = [(NSMenu *)menu retainCount];
-    [itemp setSubmenu:(NSMenu *)menu];
-    [(NSMenu *)menu setTitle:[itemp title]];
-    cassert_unref([(NSMenu *)menu retainCount] == retain_count + 1, retain_count);
+    cassert_no_null(litem);
+    cassert_no_null(lmenu);
+    cassert([cast(item, NSObject) isKindOfClass:[OSXMenuItem class]] == YES);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[NSMenu class]] == YES);
+    cassert([litem submenu] == nil);
+    retain_count = [lmenu retainCount];
+    [litem setSubmenu:lmenu];
+    [lmenu setTitle:[litem title]];
+    cassert_unref([lmenu retainCount] == retain_count + 1, retain_count);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osmenuitem_unset_submenu(OSMenuItem *item, OSMenu *menu)
 {
-    OSXMenuItem *itemp = nil;
-    cassert_no_null(item);
-    cassert_no_null(menu);
-    itemp = (OSXMenuItem *)item;
-    cassert([itemp isKindOfClass:[OSXMenuItem class]] == YES);
-    cassert([(NSObject *)menu isKindOfClass:[NSMenu class]] == YES);
-    cassert([(OSXMenuItem *)item submenu] == (NSMenu *)menu);
-    [itemp setSubmenu:nil];
+    OSXMenuItem *litem = cast(item, OSXMenuItem);
+    NSMenu *lmenu = cast(menu, NSMenu);
+    cassert_no_null(litem);
+    cassert_no_null(lmenu);
+    cassert([cast(item, NSObject) isKindOfClass:[OSXMenuItem class]] == YES);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[NSMenu class]] == YES);
+    cassert([cast(item, OSXMenuItem) submenu] == lmenu);
+    [litem setSubmenu:nil];
 }

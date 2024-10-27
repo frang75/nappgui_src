@@ -54,7 +54,7 @@ struct _osedit_t
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSEdit *edit = (OSEdit *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSEdit *edit = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSEdit);
     LRESULT res;
     cassert_no_null(edit);
 
@@ -152,14 +152,14 @@ OSEdit *osedit_create(const uint32_t flags)
     DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | _oscontrol_halign(ekLEFT) | i_flags(flags);
     edit->control.type = ekGUI_TYPE_EDITBOX;
     edit->flags = flags;
-    _oscontrol_init((OSControl *)edit, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY /*| WS_EX_CLIENTEDGE*/), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    edit->font = osgui_create_default_font();
+    _oscontrol_init(cast(edit, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY /*| WS_EX_CLIENTEDGE*/), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    edit->font = _osgui_create_default_font();
     edit->launch_event = TRUE;
     edit->focused = FALSE;
     edit->vpadding = UINT32_MAX;
     edit->timer = 0;
     i_update_vpadding(edit);
-    _oscontrol_set_font((OSControl *)edit, edit->font);
+    _oscontrol_set_font(cast(edit, OSControl), edit->font);
     return edit;
 }
 
@@ -208,7 +208,7 @@ void osedit_text(OSEdit *edit, const char_t *text)
 {
     cassert_no_null(edit);
     edit->launch_event = FALSE;
-    _oscontrol_set_text((OSControl *)edit, text);
+    _oscontrol_set_text(cast(edit, OSControl), text);
     edit->launch_event = TRUE;
 }
 
@@ -217,7 +217,7 @@ void osedit_text(OSEdit *edit, const char_t *text)
 void osedit_font(OSEdit *edit, const Font *font)
 {
     cassert_no_null(edit);
-    _oscontrol_update_font((OSControl *)edit, &edit->font, font);
+    _oscontrol_update_font(cast(edit, OSControl), &edit->font, font);
     i_update_vpadding(edit);
 }
 
@@ -225,7 +225,7 @@ void osedit_font(OSEdit *edit, const Font *font)
 
 void osedit_tooltip(OSEdit *edit, const char_t *text)
 {
-    _oscontrol_set_tooltip((OSControl *)edit, text);
+    _oscontrol_set_tooltip(cast(edit, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -285,7 +285,7 @@ void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
 {
     int32_t platform_st, platform_ed;
     cassert_no_null(edit);
-    osgui_select_text(start, end, &platform_st, &platform_ed);
+    _osgui_select_text(start, end, &platform_st, &platform_ed);
     SendMessage(edit->control.hwnd, EM_SETSEL, (WPARAM)platform_st, (LPARAM)platform_ed);
 }
 
@@ -368,49 +368,49 @@ void osedit_clipboard(OSEdit *edit, const clipboard_t clipboard)
 
 void osedit_attach(OSEdit *edit, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)edit);
+    _ospanel_attach_control(panel, cast(edit, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_detach(OSEdit *edit, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)edit);
+    _ospanel_detach_control(panel, cast(edit, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_visible(OSEdit *edit, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)edit, visible);
+    _oscontrol_set_visible(cast(edit, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_enabled(OSEdit *edit, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)edit, enabled);
+    _oscontrol_set_enabled(cast(edit, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_size(const OSEdit *edit, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)edit, width, height);
+    _oscontrol_get_size(cast_const(edit, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_origin(const OSEdit *edit, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)edit, x, y);
+    _oscontrol_get_origin(cast_const(edit, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osedit_frame(OSEdit *edit, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)edit, x, y, width, height);
+    _oscontrol_set_frame(cast(edit, OSControl), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -442,15 +442,15 @@ void _osedit_command(OSEdit *edit, WPARAM wParam)
             uint32_t tsize;
             EvText params;
             EvTextFilter result;
-            edit_text = _oscontrol_get_text((const OSControl *)edit, &tsize);
-            params.text = (const char_t *)edit_text;
+            edit_text = _oscontrol_get_text(cast_const(edit, OSControl), &tsize);
+            params.text = cast_const(edit_text, char_t);
             params.cpos = i_get_cursor_pos(edit->control.hwnd);
             params.len = INT32_MAX;
             result.apply = FALSE;
             result.text[0] = '\0';
             result.cpos = UINT32_MAX;
             listener_event(edit->OnFilter, ekGUI_EVENT_TXTFILTER, edit, &params, &result, OSEdit, EvText, EvTextFilter);
-            heap_free((byte_t **)&edit_text, tsize, "OSControlGetText");
+            heap_free(dcast(&edit_text, byte_t), tsize, "OSControlGetText");
 
             if (result.apply == TRUE)
             {
@@ -492,7 +492,7 @@ HBRUSH _osedit_background_color(const OSEdit *edit, COLORREF *color)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osedit_resign_focus(const OSEdit *edit)
+bool_t _osedit_resign_focus(const OSEdit *edit)
 {
     bool_t lost_focus = TRUE;
     cassert_no_null(edit);
@@ -501,12 +501,12 @@ bool_t osedit_resign_focus(const OSEdit *edit)
         char_t *edit_text = NULL;
         uint32_t tsize = 0;
         EvText params;
-        edit_text = _oscontrol_get_text((const OSControl *)edit, &tsize);
-        params.text = (const char_t *)edit_text;
+        edit_text = _oscontrol_get_text(cast_const(edit, OSControl), &tsize);
+        params.text = cast_const(edit_text, char_t);
         params.cpos = UINT32_MAX;
         params.len = INT32_MAX;
         listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, &lost_focus, OSEdit, EvText, bool_t);
-        heap_free((byte_t **)&edit_text, tsize, "OSControlGetText");
+        heap_free(dcast(&edit_text, byte_t), tsize, "OSControlGetText");
     }
 
     return lost_focus;
@@ -514,12 +514,10 @@ bool_t osedit_resign_focus(const OSEdit *edit)
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_focus(OSEdit *edit, const bool_t focus)
+void _osedit_focus(OSEdit *edit, const bool_t focus)
 {
     cassert_no_null(edit);
-
     edit->focused = focus;
-
     if (edit->OnFocus != NULL)
     {
         bool_t params = focus;

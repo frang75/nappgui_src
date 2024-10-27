@@ -51,7 +51,7 @@ static HWND i_create_tooltip(HWND control_hwnd, const char_t *text)
     ti.hwnd = parent_hwnd;
     ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
     ti.uId = (UINT_PTR)control_hwnd;
-    unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, sizeof(wtext));
+    unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, sizeof(wtext));
     ti.lpszText = wtext;
     SendMessage(tooltip_hwnd, TTM_ADDTOOL, 0, (LPARAM)&ti);
     return tooltip_hwnd;
@@ -69,7 +69,7 @@ static void i_update_tooltip(HWND control_hwnd, HWND tooltip_hwnd, const char_t 
     ti.hwnd = parent_hwnd;
     ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
     ti.uId = (UINT_PTR)control_hwnd;
-    unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, sizeof(wtext));
+    unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, sizeof(wtext));
     ti.lpszText = wtext;
     SendMessage(tooltip_hwnd, TTM_UPDATETIPTEXT, 0, (LPARAM)&ti);
 }

@@ -88,7 +88,6 @@ static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSLabel *la
     cassert_no_null(label);
     if (label->OnMouseExit != NULL)
         listener_event(label->OnMouseExit, ekGUI_EVENT_EXIT, label, NULL, NULL, OSLabel, void, void);
-
     return TRUE;
 }
 
@@ -117,7 +116,6 @@ static void i_set_text(OSLabel *label)
     String *format = NULL;
     cassert_no_null(label);
     fstyle = font_style(label->font);
-
     format = str_printf("<span ");
 
     if (fstyle & ekFUNDERLINE)
@@ -162,6 +160,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSLabel *label)
         pango_layout_set_width(label->layout, (int)((label->control_width / xscale) * PANGO_SCALE));
         pango_layout_set_height(label->layout, -1);
         pango_layout_set_ellipsize(label->layout, label->ellipsis);
+        font_extents(label->font, tc(label->text), label->control_width / xscale, &label->text_width, &label->text_height);
         i_set_text(label);
         label->layout_updated = TRUE;
     }
@@ -210,7 +209,7 @@ OSLabel *oslabel_create(const uint32_t flags)
     _oscontrol_init(&label->control, ekGUI_TYPE_LABEL, widget, widget, TRUE);
     label->label = gtk_drawing_area_new();
     label->text = str_c("");
-    label->font = osgui_create_default_font();
+    label->font = _osgui_create_default_font();
     label->flags = flags;
     label->tcolor = kCOLOR_DEFAULT;
     label->bgcolor = kCOLOR_DEFAULT;
@@ -241,7 +240,7 @@ void oslabel_destroy(OSLabel **label)
         (*label)->layout = NULL;
     }
 
-    _oscontrol_destroy(*(OSControl **)label);
+    _oscontrol_destroy(*dcast(label, OSControl));
     heap_delete(label, OSLabel);
 }
 
@@ -369,37 +368,34 @@ void oslabel_bounds(const OSLabel *label, const char_t *text, const real32_t ref
     cassert_no_null(width);
     cassert_no_null(height);
     font_extents(label->font, text, refwidth, width, height);
-    cast(label, OSLabel)->text_width = *width;
-    cast(label, OSLabel)->text_height = *height;
-    cast(label, OSLabel)->layout_updated = FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_attach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)label);
+    _ospanel_attach_control(panel, cast(label, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_detach(OSLabel *label, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)label);
+    _ospanel_detach_control(panel, cast(label, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_visible(OSLabel *label, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)label, visible);
+    _oscontrol_set_visible(cast(label, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oslabel_enabled(OSLabel *label, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)label, enabled);
+    _oscontrol_set_enabled(cast(label, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -417,7 +413,7 @@ void oslabel_size(const OSLabel *label, real32_t *width, real32_t *height)
 
 void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)label, x, y);
+    _oscontrol_get_origin(cast_const(label, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -425,7 +421,7 @@ void oslabel_origin(const OSLabel *label, real32_t *x, real32_t *y)
 void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(label);
-    _oscontrol_set_frame((OSControl *)label, x, y, width, height);
+    _oscontrol_set_frame(cast(label, OSControl), x, y, width, height);
     gtk_widget_set_size_request(label->label, (gint)width, (gint)height);
     label->control_width = width;
     label->control_height = height;

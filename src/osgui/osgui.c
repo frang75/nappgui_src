@@ -74,7 +74,7 @@ void osgui_start(void)
     if (i_NUM_USERS == 0)
     {
         draw2d_start();
-        osgui_start_imp();
+        _osgui_start_imp();
         blib_atexit(i_osgui_atexit);
     }
 
@@ -91,7 +91,7 @@ void osgui_finish(void)
         if (i_DEFAULT_FONT != NULL)
             font_destroy(&i_DEFAULT_FONT);
 
-        osgui_finish_imp();
+        _osgui_finish_imp();
         draw2d_finish();
     }
 
@@ -109,16 +109,16 @@ void osgui_set_menubar(OSMenu *menu, OSWindow *window)
     {
         if (i_MAIN_MENU != NULL && menu != NULL)
         {
-            osgui_change_menubar(i_MAIN_WINDOW, i_MAIN_MENU, menu);
+            _osgui_change_menubar(i_MAIN_WINDOW, i_MAIN_MENU, menu);
         }
         else if (i_MAIN_MENU != NULL && menu == NULL)
         {
-            osgui_detach_menubar(i_MAIN_WINDOW, i_MAIN_MENU);
+            _osgui_detach_menubar(i_MAIN_WINDOW, i_MAIN_MENU);
         }
         else
         {
             cassert(i_MAIN_MENU == NULL && menu != NULL);
-            osgui_attach_menubar(i_MAIN_WINDOW, menu);
+            _osgui_attach_menubar(i_MAIN_WINDOW, menu);
         }
 
         i_MAIN_MENU = menu;
@@ -132,7 +132,7 @@ void osgui_unset_menubar(OSMenu *menu, OSWindow *window)
     if ((menu != NULL && i_MAIN_MENU == menu) || (window != NULL && i_MAIN_WINDOW == window))
     {
         cassert_no_null(i_MAIN_WINDOW);
-        osgui_detach_menubar(i_MAIN_WINDOW, i_MAIN_MENU);
+        _osgui_detach_menubar(i_MAIN_WINDOW, i_MAIN_MENU);
         i_MAIN_MENU = NULL;
         i_MAIN_WINDOW = NULL;
     }
@@ -144,7 +144,7 @@ void osgui_redraw_menubar(void)
 {
 #if defined(__WINDOWS__)
     if (i_MAIN_MENU != NULL && i_MAIN_WINDOW != NULL)
-        osgui_change_menubar(i_MAIN_WINDOW, i_MAIN_MENU, i_MAIN_MENU);
+        _osgui_change_menubar(i_MAIN_WINDOW, i_MAIN_MENU, i_MAIN_MENU);
 #endif
 }
 
@@ -152,40 +152,40 @@ void osgui_redraw_menubar(void)
 
 void osgui_message_loop(void)
 {
-    osgui_message_loop_imp();
+    _osgui_message_loop_imp();
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t osgui_is_initialized(void)
 {
-    return osgui_is_pre_initialized_imp();
+    return _osgui_is_pre_initialized_imp();
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osgui_initialize(void)
 {
-    osgui_pre_initialize_imp();
+    _osgui_pre_initialize_imp();
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osgui_terminate(void)
 {
-    oswindow_set_app_terminate();
+    _oswindow_set_app_terminate();
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osgui_set_app(void *app, void *icon)
 {
-    oswindow_set_app(app, icon);
+    _oswindow_set_app(app, icon);
 }
 
 /*---------------------------------------------------------------------------*/
 
-Font *osgui_create_default_font(void)
+Font *_osgui_create_default_font(void)
 {
     if (i_DEFAULT_FONT == NULL)
         i_DEFAULT_FONT = font_system(font_regular_size(), 0);
@@ -194,7 +194,7 @@ Font *osgui_create_default_font(void)
 
 /*---------------------------------------------------------------------------*/
 
-gui_size_t osgui_size_font(const real32_t font_size)
+gui_size_t _osgui_size_font(const real32_t font_size)
 {
     if (font_size > font_regular_size() - 0.1f)
         return ekGUI_SIZE_REGULAR;
@@ -205,7 +205,7 @@ gui_size_t osgui_size_font(const real32_t font_size)
 
 /*---------------------------------------------------------------------------*/
 
-vkey_t osgui_vkey_from_text(const char_t *text)
+vkey_t _osgui_vkey_from_text(const char_t *text)
 {
     uint32_t vcp = 0;
     uint32_t nb = 0;

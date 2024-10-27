@@ -39,7 +39,7 @@ static HWND i_create_scroll(DWORD type, HWND hwnd, int width, int height)
 
 /*---------------------------------------------------------------------------*/
 
-OSScroll *osscroll_horizontal(OSControl *control)
+OSScroll *_osscroll_horizontal(OSControl *control)
 {
     OSScroll *scroll = heap_new(OSScroll);
     DWORD dwStyle = 0;
@@ -63,7 +63,7 @@ OSScroll *osscroll_horizontal(OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-OSScroll *osscroll_vertical(OSControl *control)
+OSScroll *_osscroll_vertical(OSControl *control)
 {
     OSScroll *scroll = heap_new(OSScroll);
     DWORD dwStyle = 0;
@@ -87,7 +87,7 @@ OSScroll *osscroll_vertical(OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_destroy(OSScroll **scroll, OSControl *control)
+void _osscroll_destroy(OSScroll **scroll, OSControl *control)
 {
     cassert_no_null(scroll);
     cassert_no_null(*scroll);
@@ -108,14 +108,14 @@ void osscroll_destroy(OSScroll **scroll, OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_pos(const OSScroll *scroll)
+uint32_t _osscroll_pos(const OSScroll *scroll)
 {
     return (uint32_t)GetScrollPos(scroll->hwnd, scroll->type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_trackpos(const OSScroll *scroll)
+uint32_t _osscroll_trackpos(const OSScroll *scroll)
 {
     SCROLLINFO si;
     BOOL ok;
@@ -129,7 +129,7 @@ uint32_t osscroll_trackpos(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_bar_width(const OSScroll *scroll)
+uint32_t _osscroll_bar_width(const OSScroll *scroll)
 {
     unref(scroll);
     return (uint32_t)GetSystemMetrics(SM_CXVSCROLL);
@@ -137,7 +137,7 @@ uint32_t osscroll_bar_width(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t osscroll_bar_height(const OSScroll *scroll)
+uint32_t _osscroll_bar_height(const OSScroll *scroll)
 {
     unref(scroll);
     return (uint32_t)GetSystemMetrics(SM_CXHSCROLL);
@@ -145,7 +145,7 @@ uint32_t osscroll_bar_height(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
+void _osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
 {
     cassert_no_null(scroll);
     SetScrollPos(scroll->hwnd, scroll->type, (int)pos, TRUE);
@@ -153,7 +153,7 @@ void osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_visible(OSScroll *scroll, const bool_t visible)
+void _osscroll_visible(OSScroll *scroll, const bool_t visible)
 {
     BOOL ret;
     cassert_no_null(scroll);
@@ -163,7 +163,7 @@ void osscroll_visible(OSScroll *scroll, const bool_t visible)
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, const uint32_t page)
+void _osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, const uint32_t page)
 {
     SCROLLINFO si;
     cassert_no_null(scroll);
@@ -178,7 +178,7 @@ void osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, c
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
+void _osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
 {
     cassert_no_null(scroll);
     if (scroll->type == SB_CTL)
@@ -191,7 +191,7 @@ void osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const 
 
 /*---------------------------------------------------------------------------*/
 
-void osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y)
+void _osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y)
 {
     cassert_no_null(control);
     ScrollWindowEx(control->hwnd, (int)incr_x, (int)incr_y, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
@@ -199,7 +199,7 @@ void osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int
 
 /*---------------------------------------------------------------------------*/
 
-gui_scroll_t osscroll_event(WPARAM wParam)
+gui_scroll_t _osscroll_event(WPARAM wParam)
 {
     WORD lw = LOWORD(wParam);
     switch (lw)

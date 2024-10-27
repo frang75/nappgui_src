@@ -84,7 +84,7 @@ FPtr_libproc dlib_proc_imp(DLib *dlib, const char_t *procname)
     cassert_no_null(dlib);
     cassert_no_null(procname);
     func = GetProcAddress((HMODULE)dlib, procname);
-    return cast_func_ptr(func, FPtr_libproc);
+    return cast_func(func, FPtr_libproc);
 }
 
 /*---------------------------------------------------------------------------*/

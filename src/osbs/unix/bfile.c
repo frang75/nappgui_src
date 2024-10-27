@@ -105,7 +105,7 @@ bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 
 /*---------------------------------------------------------------------------*/
 
-#define i_PATHNAME(dir) (char *)((char_t *)(dir) + sizeof(DIR *) + sizeof(uint32_t))
+#define i_PATHNAME(dir) (char *)(cast(dir, char_t) + sizeof(DIR *) + sizeof(uint32_t))
 
 /*---------------------------------------------------------------------------*/
 

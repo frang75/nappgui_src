@@ -192,7 +192,7 @@ static bool_t i_close(OSWindow *window, const gui_close_t close_origin)
 
     /* Checks if the current control allows the window to be closed */
     if (close_origin == ekGUI_CLOSE_INTRO)
-        closed = ostabstop_can_close_window(&window->tabstop);
+        closed = _ostabstop_can_close_window(&window->tabstop);
 
     /* Notify the user and check if allows the window to be closed */
     if (closed == TRUE && window->OnClose != NULL)
@@ -226,7 +226,7 @@ static void i_menu_command(HWND hwnd, HMENU popup_hmenu, WORD command_id)
     if (ok == TRUE)
     {
         cassert(info.wID == command_id);
-        _osmenuitem_click((OSMenuItem *)info.dwItemData, info.wID, info.fType, info.fState);
+        _osmenuitem_click(cast(info.dwItemData, OSMenuItem), info.wID, info.fType, info.fState);
     }
 }
 
@@ -258,14 +258,14 @@ static void i_activate(OSWindow *window)
     cassert_no_null(window);
     /* Force the tabstop because 'WM_ACTIVATE' is not send if hwnd is the current active */
     SetActiveWindow(window->control.hwnd);
-    ostabstop_restore(&window->tabstop);
+    _ostabstop_restore(&window->tabstop);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    OSWindow *window = (OSWindow *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSWindow *window = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSWindow);
     cassert_no_null(window);
 
     switch (msg)
@@ -274,7 +274,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         if (LOWORD(wParam) == WA_ACTIVE || LOWORD(wParam) == WA_CLICKACTIVE)
         {
             i_CURRENT_ACTIVE_WINDOW = hwnd;
-            ostabstop_restore(&window->tabstop);
+            _ostabstop_restore(&window->tabstop);
         }
         else
         {
@@ -295,10 +295,10 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         if (lParam != 0)
         {
             /* Press enter when a button has de focus */
-            OSControl *control = (OSControl *)GetWindowLongPtr((HWND)lParam, GWLP_USERDATA);
+            OSControl *control = cast(GetWindowLongPtr((HWND)lParam, GWLP_USERDATA), OSControl);
             cassert_no_null(control);
             cassert(control->type == ekGUI_TYPE_BUTTON);
-            _osbutton_command((OSButton *)control, wParam, TRUE);
+            _osbutton_command(cast(control, OSButton), wParam, TRUE);
             return 0;
         }
 
@@ -333,16 +333,16 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
             if (ahwnd != NULL)
             {
                 /* Accelerator from button */
-                OSControl *control = (OSControl *)GetWindowLongPtr(ahwnd, GWLP_USERDATA);
+                OSControl *control = cast(GetWindowLongPtr(ahwnd, GWLP_USERDATA), OSControl);
                 DWORD nwParam = MAKELONG(cmd, BN_CLICKED);
                 /* Simulates the click hightlight */
                 SendMessage(control->hwnd, BM_SETSTATE, 1, 0);
                 SendMessage(control->hwnd, WM_PAINT, 0, 0);
                 bthread_sleep(100);
-                _osbutton_toggle((OSButton *)control);
+                _osbutton_toggle(cast(control, OSButton));
                 SendMessage(control->hwnd, BM_SETSTATE, 0, 0);
                 SendMessage(control->hwnd, WM_PAINT, 0, 0);
-                _osbutton_command((OSButton *)control, nwParam, TRUE);
+                _osbutton_command(cast(control, OSButton), nwParam, TRUE);
             }
             else
             {
@@ -365,11 +365,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
             if (window->in_internal_resize == FALSE)
             {
                 window->in_internal_resize = TRUE;
-                ShowWindow(((OSControl *)window->main_panel)->hwnd, SW_HIDE);
+                ShowWindow(cast(window->main_panel, OSControl)->hwnd, SW_HIDE);
             }
         }
 
-        i_resizing(window, wParam, (RECT *)lParam);
+        i_resizing(window, wParam, cast(lParam, RECT));
         return TRUE;
 
     case WM_ENTERSIZEMOVE:
@@ -378,7 +378,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
     case WM_EXITSIZEMOVE:
         if (window->in_internal_resize == TRUE)
-            ShowWindow(((OSControl *)window->main_panel)->hwnd, SW_SHOW);
+            ShowWindow(cast(window->main_panel, OSControl)->hwnd, SW_SHOW);
         window->in_user_resizing = FALSE;
         window->in_internal_resize = FALSE;
         break;
@@ -441,23 +441,23 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
     case WM_MEASUREITEM:
     {
-        MEASUREITEMSTRUCT *mi = (MEASUREITEMSTRUCT *)lParam;
+        MEASUREITEMSTRUCT *mi = cast(lParam, MEASUREITEMSTRUCT);
         /* Sent by menu */
         cassert((UINT)wParam == 0);
         cassert_no_null(mi);
         cassert(mi->CtlType == ODT_MENU);
-        _osmenuitem_image_size((OSMenuItem *)mi->itemData, mi->itemID, &mi->itemWidth, &mi->itemHeight);
+        _osmenuitem_image_size(cast(mi->itemData, OSMenuItem), mi->itemID, &mi->itemWidth, &mi->itemHeight);
         return TRUE;
     }
 
     case WM_DRAWITEM:
     {
-        DRAWITEMSTRUCT *di = (DRAWITEMSTRUCT *)lParam;
+        DRAWITEMSTRUCT *di = cast(lParam, DRAWITEMSTRUCT);
         /* Sent by menu */
         cassert((UINT)wParam == 0);
         cassert_no_null(di);
         cassert(di->CtlType == ODT_MENU);
-        _osmenuitem_draw_image((OSMenuItem *)di->itemData, di->itemID, di->itemState, di->hDC, &di->rcItem);
+        _osmenuitem_draw_image(cast(di->itemData, OSMenuItem), di->itemID, di->itemState, di->hDC, &di->rcItem);
         return TRUE;
     }
 
@@ -516,13 +516,13 @@ OSWindow *oswindow_create(const uint32_t flags)
     OSWindow *window = heap_new0(OSWindow);
     window->control.type = ekGUI_TYPE_WINDOW;
     i_window_style(flags, &window->dwStyle, &window->dwExStyle);
-    _oscontrol_init_hidden((OSControl *)window, window->dwExStyle, window->dwStyle | WS_POPUP, kWINDOW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
+    _oscontrol_init_hidden(cast(window, OSControl), window->dwExStyle, window->dwStyle | WS_POPUP, kWINDOW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
     window->launch_resize_event = TRUE;
     window->destroy_main_view = TRUE;
     window->flags = flags;
     window->state = ekNORMAL;
     window->role = ENUM_MAX(gui_role_t);
-    ostabstop_init(&window->tabstop, window);
+    _ostabstop_init(&window->tabstop, window);
 
     {
         HICON icon = LoadIcon(_osgui_instance(), L"APPLICATION_ICON");
@@ -570,11 +570,11 @@ void oswindow_destroy(OSWindow **window)
     listener_destroy(&(*window)->OnMoved);
     listener_destroy(&(*window)->OnResize);
     listener_destroy(&(*window)->OnClose);
-    oswindow_hotkey_destroy(&(*window)->hotkeys);
-    ostabstop_remove(&(*window)->tabstop);
+    _oswindow_hotkey_destroy(&(*window)->hotkeys);
+    _ostabstop_remove(&(*window)->tabstop);
 
     if ((*window)->state != i_ekSTATE_MANAGED)
-        _oscontrol_destroy((OSControl *)(*window));
+        _oscontrol_destroy(&(*window)->control);
 
     heap_delete(window, OSWindow);
 }
@@ -612,7 +612,7 @@ void oswindow_title(OSWindow *window, const char_t *text)
 {
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
-    _oscontrol_set_text((OSControl *)window, text);
+    _oscontrol_set_text(cast(window, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -671,7 +671,7 @@ void oswindow_enable_mouse_events(OSWindow *window, const bool_t enabled)
 void oswindow_hotkey(OSWindow *window, const vkey_t key, const uint32_t modifiers, Listener *listener)
 {
     cassert_no_null(window);
-    oswindow_hotkey_set(&window->hotkeys, key, modifiers, listener);
+    _oswindow_hotkey_set(&window->hotkeys, key, modifiers, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -680,11 +680,11 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
 {
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
-    ostabstop_list_add(&window->tabstop, control);
+    _ostabstop_list_add(&window->tabstop, control);
     if (control == NULL)
     {
         /* The window main panel has changed. We ensure that default button is still valid */
-        window->tabstop.defbutton = oswindow_apply_default_button(window, window->tabstop.defbutton);
+        window->tabstop.defbutton = _oswindow_apply_default_button(window, window->tabstop.defbutton);
 
         /* Force to show the focus rectangle in all controls */
         /* https://stackoverflow.com/questions/46489537/focus-rectangle-not-showing-even-if-control-has-focus */
@@ -706,9 +706,9 @@ gui_focus_t oswindow_tabstop(OSWindow *window, const bool_t next)
 {
     cassert_no_null(window);
     if (next == TRUE)
-        return ostabstop_next(&window->tabstop, FALSE);
+        return _ostabstop_next(&window->tabstop, FALSE);
     else
-        return ostabstop_prev(&window->tabstop, FALSE);
+        return _ostabstop_prev(&window->tabstop, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -718,7 +718,7 @@ gui_focus_t oswindow_focus(OSWindow *window, OSControl *control)
     cassert_no_null(window);
     cassert_no_null(control);
     cassert(window->state != i_ekSTATE_MANAGED);
-    return ostabstop_move(&window->tabstop, control);
+    return _ostabstop_move(&window->tabstop, control);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -734,7 +734,7 @@ OSControl *oswindow_get_focus(const OSWindow *window)
 gui_tab_t oswindow_info_focus(const OSWindow *window, void **next_ctrl)
 {
     cassert_no_null(window);
-    return ostabstop_info_focus(&window->tabstop, next_ctrl);
+    return _ostabstop_info_focus(&window->tabstop, next_ctrl);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -744,7 +744,7 @@ void oswindow_attach_panel(OSWindow *window, OSPanel *panel)
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
     cassert(window->main_panel == NULL);
-    _oscontrol_attach_to_parent((OSControl *)panel, (OSControl *)window);
+    _oscontrol_attach_to_parent(cast(panel, OSControl), cast(window, OSControl));
     window->main_panel = panel;
 }
 
@@ -755,7 +755,7 @@ void oswindow_detach_panel(OSWindow *window, OSPanel *panel)
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
     cassert(window->main_panel == panel);
-    _oscontrol_detach_from_parent((OSControl *)panel, (OSControl *)window);
+    _oscontrol_detach_from_parent(cast(panel, OSControl), cast(window, OSControl));
     window->main_panel = NULL;
 }
 
@@ -812,7 +812,7 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
         }
 
         window->launch_resize_event = FALSE;
-        _oscontrol_set_visible((OSControl *)window, TRUE);
+        _oscontrol_set_visible(cast(window, OSControl), TRUE);
         window->launch_resize_event = TRUE;
 
         i_activate(window);
@@ -828,7 +828,7 @@ void oswindow_hide(OSWindow *window, OSWindow *parent_window)
     unref(parent_window);
     window->role = ENUM_MAX(gui_role_t);
     window->launch_resize_event = FALSE;
-    _oscontrol_set_visible((OSControl *)window, FALSE);
+    _oscontrol_set_visible(cast(window, OSControl), FALSE);
     window->launch_resize_event = TRUE;
 }
 
@@ -844,12 +844,12 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
     if (parent_window != NULL)
     {
         SetWindowLongPtr(window->control.hwnd, GWLP_HWNDPARENT, (LONG_PTR)parent_window->control.hwnd);
-        _oscontrol_set_enabled((OSControl *)parent_window, FALSE);
+        _oscontrol_set_enabled(cast(parent_window, OSControl), FALSE);
     }
 
     window->role = ekGUI_ROLE_MODAL;
     window->launch_resize_event = FALSE;
-    _oscontrol_set_visible((OSControl *)window, TRUE);
+    _oscontrol_set_visible(cast(window, OSControl), TRUE);
     window->launch_resize_event = TRUE;
     i_activate(window);
 
@@ -858,7 +858,7 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
 
     if (parent_window != NULL)
     {
-        _oscontrol_set_enabled((OSControl *)parent_window, TRUE);
+        _oscontrol_set_enabled(cast(parent_window, OSControl), TRUE);
 
         if (!(window->flags & ekWINDOW_MODAL_NOHIDE))
         {
@@ -968,7 +968,7 @@ void oswindow_size(OSWindow *window, const real32_t content_width, const real32_
 void oswindow_set_default_pushbutton(OSWindow *window, OSButton *button)
 {
     cassert_no_null(window);
-    window->tabstop.defbutton = oswindow_apply_default_button(window, button);
+    window->tabstop.defbutton = _oswindow_apply_default_button(window, button);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -987,7 +987,7 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
     if (property == ekGUI_PROP_RESIZE)
     {
         cassert_no_null(value);
-        window->resize_strategy = *((uint32_t *)value);
+        window->resize_strategy = *cast(value, uint32_t);
     }
     else if (property == ekGUI_PROP_CHILDREN)
     {
@@ -997,7 +997,7 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
+void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 {
     unref(window);
     cassert_no_null(widget);
@@ -1019,7 +1019,7 @@ static void i_get_controls(OSPanel *panel, ArrPt(OSControl) *controls)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
+void _oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     cassert_no_null(window);
     cassert(arrpt_size(controls, OSControl) == 0);
@@ -1028,7 +1028,7 @@ void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 
 /*---------------------------------------------------------------------------*/
 
-const ArrPt(OSControl) *oswindow_get_all_controls(const OSWindow *window)
+const ArrPt(OSControl) *_oswindow_get_all_controls(const OSWindow *window)
 {
     cassert_no_null(window);
     return window->tabstop.controls;
@@ -1036,7 +1036,7 @@ const ArrPt(OSControl) *oswindow_get_all_controls(const OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_set_app(void *app, void *icon)
+void _oswindow_set_app(void *app, void *icon)
 {
     cassert(FALSE);
     unref(app);
@@ -1045,7 +1045,7 @@ void oswindow_set_app(void *app, void *icon)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_set_app_terminate(void)
+void _oswindow_set_app_terminate(void)
 {
     cassert(FALSE);
 }
@@ -1142,7 +1142,6 @@ void _oswindow_OnIdle(Listener *listener)
 {
     if (i_IDLES == NULL)
         i_IDLES = arrpt_create(Listener);
-
     arrpt_append(i_IDLES, listener, Listener);
 }
 
@@ -1153,7 +1152,7 @@ static OSWindow *i_get_window(HWND hwnd)
     OSWindow *window = NULL;
     while (window == NULL && hwnd != NULL)
     {
-        window = (OSWindow *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        window = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSWindow);
         if (window != NULL)
         {
             if (window->control.type != ekGUI_TYPE_WINDOW)
@@ -1183,15 +1182,15 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
             {
                 if (window->control.hwnd == hDlg)
                 {
-                    if (ostabstop_capture_tab(&window->tabstop) == FALSE)
+                    if (_ostabstop_capture_tab(&window->tabstop) == FALSE)
                     {
                         SHORT lshif_state = GetAsyncKeyState(VK_LSHIFT);
                         SHORT rshif_state = GetAsyncKeyState(VK_RSHIFT);
                         BOOL previous = ((0x8000 & lshif_state) != 0) || ((0x8000 & rshif_state) != 0);
                         if (previous == TRUE)
-                            ostabstop_prev(&window->tabstop, TRUE);
+                            _ostabstop_prev(&window->tabstop, TRUE);
                         else
-                            ostabstop_next(&window->tabstop, TRUE);
+                            _ostabstop_next(&window->tabstop, TRUE);
                         return TRUE;
                     }
                     else
@@ -1202,7 +1201,7 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
             }
             else if (lpMsg->wParam == VK_RETURN)
             {
-                if (ostabstop_capture_return(&window->tabstop) == FALSE)
+                if (_ostabstop_capture_return(&window->tabstop) == FALSE)
                 {
                     bool_t def = i_press_defbutton(window);
 
@@ -1234,7 +1233,7 @@ static BOOL i_IsDialogMessage(HWND hDlg, LPMSG lpMsg)
             {
                 vkey_t key = _osgui_vkey((WORD)lpMsg->wParam);
                 uint32_t modifiers = _osgui_modifiers();
-                if (oswindow_hotkey_process(window, window->hotkeys, key, modifiers) == TRUE)
+                if (_oswindow_hotkey_process(window, window->hotkeys, key, modifiers) == TRUE)
                     return TRUE;
             }
         }
@@ -1355,7 +1354,7 @@ static ___INLINE OSWindow *i_root(HWND hwnd)
     cassert_no_null(hwnd);
     root_hwnd = GetAncestor(hwnd, GA_ROOT);
     cassert_no_null(root_hwnd);
-    return (OSWindow *)GetWindowLongPtr(root_hwnd, GWLP_USERDATA);
+    return cast(GetWindowLongPtr(root_hwnd, GWLP_USERDATA), OSWindow);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1375,7 +1374,7 @@ bool_t _oswindow_mouse_down(OSControl *control)
     cassert_no_null(control);
     window = i_root(control->hwnd);
     cassert_no_null(window);
-    return ostabstop_mouse_down(&window->tabstop, control);
+    return _ostabstop_mouse_down(&window->tabstop, control);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1386,5 +1385,5 @@ void _oswindow_release_transient_focus(OSControl *control)
     cassert_no_null(control);
     window = i_root(control->hwnd);
     cassert_no_null(window);
-    ostabstop_release_transient(&window->tabstop, control);
+    _ostabstop_release_transient(&window->tabstop, control);
 }

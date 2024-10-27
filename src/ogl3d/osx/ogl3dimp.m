@@ -185,7 +185,7 @@ OGLCtx *_ogl3dimp_context(const OGLProps *props, void *view, oglerr_t *err)
 
     {
         OGLCtx *ctx = cast(bmem_malloc(sizeof(OGLCtx)), OGLCtx);
-        ctx->view = (NSView *)view;
+        ctx->view = cast(view, NSView);
         ctx->nsgl = nsgl;
         ctx->glew = glew;
         i_set_opengl(ctx->view);

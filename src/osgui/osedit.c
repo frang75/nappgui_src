@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void osedit_detach_and_destroy(OSEdit **edit, OSPanel *panel)
+void _osedit_detach_and_destroy(OSEdit **edit, OSPanel *panel)
 {
     cassert_no_null(edit);
     osedit_detach(*edit, panel);

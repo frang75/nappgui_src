@@ -39,7 +39,7 @@ Thread *bthread_create_imp(uint32_t(func_thread_main)(void *), void *data)
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 #endif
-    int ret = pthread_create(thread, NULL, cast_func_ptr(func_thread_main, void *(*)(void *)), data);
+    int ret = pthread_create(thread, NULL, cast_func(func_thread_main, void *(*)(void *)), data);
 #if defined(__GNUC__)
 #if (__GNUC__ > 5)
 #pragma GCC diagnostic warning "-Wcast-function-type"

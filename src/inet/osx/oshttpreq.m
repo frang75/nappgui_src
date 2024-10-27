@@ -82,7 +82,7 @@ struct _oshttp_t
         {
             bmutex_lock(self->http->mutex);
             if (self->http->protocol != NULL)
-                self->http->protocol = str_c((const char_t *)[str UTF8String]);
+                self->http->protocol = str_c(cast_const([str UTF8String], char_t));
             bmutex_unlock(self->http->mutex);
         }
     }

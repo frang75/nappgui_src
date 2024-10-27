@@ -265,7 +265,7 @@ void osmenuitem_visible(OSMenuItem *item, const bool_t visible)
 void osmenuitem_text(OSMenuItem *item, const char_t *text)
 {
     cassert_no_null(item);
-    gtk_label_set_text(GTK_LABEL(item->label), (const gchar *)text);
+    gtk_label_set_text(GTK_LABEL(item->label), cast_const(text, gchar));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -328,26 +328,29 @@ void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
     switch (state)
     {
     case ekGUI_OFF:
-        /*if (item->check != NULL)
+        /*
+        if (item->check != NULL)
         {
             gtk_container_remove(GTK_CONTAINER(item->box), item->check);
             item->check = NULL;
-        }*/
+        }
+        */
         break;
 
     case ekGUI_ON:
     case ekGUI_MIXED:
-        /*        if (item->check == NULL && kIMAGE)
-       {
-           const char_t *icon_name = _osgui_register_icon(kIMAGE);
+        /*
+        if (item->check == NULL && kIMAGE)
+        {
+            const char_t *icon_name = _osgui_register_icon(kIMAGE);
 
-           item->check = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
-           gtk_box_pack_end(GTK_BOX(item->box), item->check, FALSE, TRUE, 20);
-           gtk_widget_queue_draw(item->widget);
+            item->check = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
+            gtk_box_pack_end(GTK_BOX(item->box), item->check, FALSE, TRUE, 20);
+            gtk_widget_queue_draw(item->widget);
 
-           gtk_container_add(GTK_CONTAINER(item->box), item->check);
-       }
- */
+            gtk_container_add(GTK_CONTAINER(item->box), item->check);
+        }
+        */
         break;
         cassert_default();
     }
@@ -391,50 +394,52 @@ GtkWidget *_osmenuitem_bar_widget(OSMenuItem *item)
 {
     cassert_no_null(item);
     /* GtkCheckMenuItem shows an ugly checkbox in menubar items.
-       This hack converts a GtkCheckMenuItem into a simple GtkMenuItem */
-    /*    if (str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkCheckMenuItem") == TRUE)
-   {
-       GtkWidget *widget = gtk_menu_item_new();
-       g_signal_connect(G_OBJECT(widget), "activate", G_CALLBACK(i_OnClick), (gpointer)item);
-       gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), widget);
-       if (item->accel != NULL)
-       {
-           if (item->key != ENUM_MAX2(vkey_t))
-           {
-               gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
-               cassert_unref(ok == TRUE, ok);
-               gtk_widget_add_accelerator(widget, "activate", item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers), GTK_ACCEL_VISIBLE);
-           }
-       }
+       This hack converts a GtkCheckMenuItem into a simple GtkMenuItem
+    */
+    /*
+    if (str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkCheckMenuItem") == TRUE)
+    {
+        GtkWidget *widget = gtk_menu_item_new();
+        g_signal_connect(G_OBJECT(widget), "activate", G_CALLBACK(i_OnClick), (gpointer)item);
+        gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), widget);
+        if (item->accel != NULL)
+        {
+            if (item->key != ENUM_MAX2(vkey_t))
+            {
+                gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
+                cassert_unref(ok == TRUE, ok);
+                gtk_widget_add_accelerator(widget, "activate", item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers), GTK_ACCEL_VISIBLE);
+            }
+        }
 
-       g_object_ref(item->box);
-       gtk_container_remove(GTK_CONTAINER(item->widget), item->box);
-       gtk_container_add(GTK_CONTAINER(widget), item->box);
-       g_object_unref(item->box);
+        g_object_ref(item->box);
+        gtk_container_remove(GTK_CONTAINER(item->widget), item->box);
+        gtk_container_add(GTK_CONTAINER(widget), item->box);
+        g_object_unref(item->box);
 
-       if (item->sub_menu != NULL)
-       {
-           GtkWidget *mwidget = _osmenu_widget(item->sub_menu);
-           g_object_ref(mwidget);
-           gtk_menu_item_set_submenu(GTK_MENU_ITEM(item->widget), NULL);
-           gtk_menu_item_set_submenu(GTK_MENU_ITEM(widget), mwidget);
-           g_object_unref(mwidget);
-       }
+        if (item->sub_menu != NULL)
+        {
+            GtkWidget *mwidget = _osmenu_widget(item->sub_menu);
+            g_object_ref(mwidget);
+            gtk_menu_item_set_submenu(GTK_MENU_ITEM(item->widget), NULL);
+            gtk_menu_item_set_submenu(GTK_MENU_ITEM(widget), mwidget);
+            g_object_unref(mwidget);
+        }
 
-       #if defined (__ASSERTS__)
-       item->is_alive = TRUE;
-       g_signal_connect(item->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)item);
-       #endif
-       g_object_unref(item->widget);
-       cassert(item->is_alive == FALSE);
+        #if defined (__ASSERTS__)
+        item->is_alive = TRUE;
+        g_signal_connect(item->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)item);
+        #endif
+        g_object_unref(item->widget);
+        cassert(item->is_alive == FALSE);
 
-       item->widget = widget;
-   }
-   else
-   {
-       cassert(str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkMenuItem") == TRUE);
-   }
- */
+        item->widget = widget;
+    }
+    else
+    {
+        cassert(str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkMenuItem") == TRUE);
+    }
+    */
     return item->widget;
 }
 

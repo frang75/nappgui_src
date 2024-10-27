@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void osupdown_detach_and_destroy(OSUpDown **updown, OSPanel *panel);
+void _osupdown_detach_and_destroy(OSUpDown **updown, OSPanel *panel);
 
 __END_C

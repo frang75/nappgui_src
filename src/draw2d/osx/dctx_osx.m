@@ -44,7 +44,7 @@ static void i_init_text_attr(DCtx *ctx)
     objects[1] = kUNDERLINE_NONE;
     objects[2] = ctx->text_parag;
     objects[3] = [NSColor blackColor];
-    objects[4] = (NSFont *)font_native(ctx->font);
+    objects[4] = cast(font_native(ctx->font), NSFont);
     keys[0] = NSUnderlineStyleAttributeName;
     keys[1] = NSStrikethroughStyleAttributeName;
     keys[2] = NSParagraphStyleAttributeName;

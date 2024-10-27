@@ -45,7 +45,7 @@ uint32_t osdrawctrl_row_padding(const DCtx *ctx)
 uint32_t osdrawctrl_check_width(const DCtx *ctx)
 {
     unref(ctx);
-    return osglobals_check_width();
+    return _osglobals_check_width();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -53,7 +53,7 @@ uint32_t osdrawctrl_check_width(const DCtx *ctx)
 uint32_t osdrawctrl_check_height(const DCtx *ctx)
 {
     unref(ctx);
-    return osglobals_check_height();
+    return _osglobals_check_height();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -80,7 +80,7 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
     rect.origin.y = (CGFloat)y;
     rect.size.width = (CGFloat)width;
     rect.size.height = (CGFloat)height;
-    oscolor_NSColor_rgba([NSColor controlBackgroundColor], &r, &g, &b, &a);
+    _oscolor_NSColor_rgba([NSColor controlBackgroundColor], &r, &g, &b, &a);
     CGContextSetRGBFillColor(cgctx, r, g, b, a);
     CGContextFillRect(cgctx, rect);
     unref(nonused);
@@ -115,9 +115,9 @@ static void i_draw_image(DCtx *ctx, NSImage *image, NSRect fromRect, NSRect toRe
 
 void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t width, const uint32_t height, const ctrl_state_t state)
 {
-    NSRect fromRect = osglobals_header_rect();
+    NSRect fromRect = _osglobals_header_rect();
     NSRect toRect = NSMakeRect((CGFloat)x, (CGFloat)y, (CGFloat)width, (CGFloat)height);
-    NSImage *image = osglobals_header_image((bool_t)(state == ekCTRL_STATE_PRESSED));
+    NSImage *image = _osglobals_header_image((bool_t)(state == ekCTRL_STATE_PRESSED));
     i_draw_image(ctx, image, fromRect, toRect);
 }
 
@@ -148,31 +148,31 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     switch (state)
     {
     case ekCTRL_STATE_NORMAL:
-        color = osglobals_back_color();
+        color = _osglobals_back_color();
         break;
 
     case ekCTRL_STATE_HOT:
-        color = osglobals_hotbg_color();
+        color = _osglobals_hotbg_color();
         break;
 
     case ekCTRL_STATE_PRESSED:
-        color = osglobals_selbg_color();
+        color = _osglobals_selbg_color();
         break;
 
     case ekCTRL_STATE_BKNORMAL:
-        color = osglobals_backbackdrop_color();
+        color = _osglobals_backbackdrop_color();
         break;
 
     case ekCTRL_STATE_BKHOT:
-        color = osglobals_hotbgbackdrop_color();
+        color = _osglobals_hotbgbackdrop_color();
         break;
 
     case ekCTRL_STATE_BKPRESSED:
-        color = osglobals_selbgbackdrop_color();
+        color = _osglobals_selbgbackdrop_color();
         break;
 
     case ekCTRL_STATE_DISABLED:
-        color = osglobals_backbackdrop_color();
+        color = _osglobals_backbackdrop_color();
         break;
 
         cassert_default();
@@ -195,38 +195,35 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
 
     if (ncolor == kCOLOR_DEFAULT)
     {
-        const CGFloat *color = nil;
-
-        color = osglobals_text_color();
-
+        const CGFloat *color = _osglobals_text_color();
         switch (state)
         {
         case ekCTRL_STATE_NORMAL:
-            color = osglobals_text_color();
+            color = _osglobals_text_color();
             break;
 
         case ekCTRL_STATE_HOT:
-            color = osglobals_hottx_color();
+            color = _osglobals_hottx_color();
             break;
 
         case ekCTRL_STATE_PRESSED:
-            color = osglobals_seltx_color();
+            color = _osglobals_seltx_color();
             break;
 
         case ekCTRL_STATE_BKNORMAL:
-            color = osglobals_textbackdrop_color();
+            color = _osglobals_textbackdrop_color();
             break;
 
         case ekCTRL_STATE_BKHOT:
-            color = osglobals_hottxbackdrop_color();
+            color = _osglobals_hottxbackdrop_color();
             break;
 
         case ekCTRL_STATE_BKPRESSED:
-            color = osglobals_seltxbackdrop_color();
+            color = _osglobals_seltxbackdrop_color();
             break;
 
         case ekCTRL_STATE_DISABLED:
-            color = osglobals_textbackdrop_color();
+            color = _osglobals_textbackdrop_color();
             break;
 
             cassert_default();
@@ -249,7 +246,7 @@ void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
     real32_t cpattern[16];
     uint32_t patsize = 0;
     color_t lcolor = dctx_line_color(ctx);
-    color_t fcolor = osglobals_focus_color();
+    color_t fcolor = _osglobals_focus_color();
     cassert_no_null(ctx);
     dctx_line_dash(ctx, cpattern, &patsize);
     draw_line_dash(ctx, pattern, 2);
@@ -279,8 +276,8 @@ void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int3
 
 static void i_draw_checkbox(DCtx *ctx, const real32_t x, const real32_t y, const bool_t pressed, const ctrl_state_t state)
 {
-    NSImage *image = osglobals_checkbox_image(pressed, state);
-    NSRect fromRect = osglobals_check_rect();
+    NSImage *image = _osglobals_checkbox_image(pressed, state);
+    NSRect fromRect = _osglobals_check_rect();
     NSRect toRect = NSMakeRect((CGFloat)x, (CGFloat)y, fromRect.size.width, fromRect.size.height);
     i_draw_image(ctx, image, fromRect, toRect);
 }

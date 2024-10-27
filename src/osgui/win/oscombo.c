@@ -80,7 +80,7 @@ static HBRUSH i_background_color(const OSCombo *combo, COLORREF *color)
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSCombo *combo = (OSCombo *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSCombo *combo = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSCombo);
     cassert_no_null(combo);
 
     switch (uMsg)
@@ -128,7 +128,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSCombo *combo = (OSCombo *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSCombo *combo = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSCombo);
     cassert_no_null(combo);
 
     switch (uMsg)
@@ -147,7 +147,7 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSCombo *combo = (OSCombo *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSCombo *combo = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSCombo);
     cassert_no_null(combo);
 
     switch (uMsg)
@@ -168,8 +168,8 @@ OSCombo *oscombo_create(const uint32_t flags)
 {
     OSCombo *combo = heap_new0(OSCombo);
     combo->control.type = ekGUI_TYPE_COMBOBOX;
-    _oscontrol_init((OSControl *)combo, PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWN, WC_COMBOBOXEX, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    combo->font = osgui_create_default_font();
+    _oscontrol_init(cast(combo, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWN, WC_COMBOBOXEX, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    combo->font = _osgui_create_default_font();
     combo->launch_event = TRUE;
     combo->combo_hwnd = (HWND)SendMessage(combo->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
     combo->edit_hwnd = (HWND)SendMessage(combo->control.hwnd, CBEM_GETEDITCONTROL, (WPARAM)0, (LPARAM)0);
@@ -180,7 +180,7 @@ OSCombo *oscombo_create(const uint32_t flags)
     combo->image_list = _osimglist_create(16);
     combo->color = UINT32_MAX;
     combo->bgcolor = UINT32_MAX;
-    _oscontrol_set_font((OSControl *)combo, combo->font);
+    _oscontrol_set_font(cast(combo, OSControl), combo->font);
     unref(flags);
     return combo;
 }
@@ -244,7 +244,7 @@ void oscombo_text(OSCombo *combo, const char_t *text)
     cassert_no_null(combo);
     cassert(combo->launch_event == TRUE);
     combo->launch_event = FALSE;
-    _oscontrol_set_text((OSControl *)combo, text);
+    _oscontrol_set_text(cast(combo, OSControl), text);
     combo->launch_event = TRUE;
 }
 
@@ -262,7 +262,7 @@ void oscombo_tooltip(OSCombo *combo, const char_t *text)
 void oscombo_font(OSCombo *combo, const Font *font)
 {
     cassert_no_null(combo);
-    _oscontrol_update_font((OSControl *)combo, &combo->font, font);
+    _oscontrol_update_font(cast(combo, OSControl), &combo->font, font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -422,21 +422,21 @@ void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *wid
 
 void oscombo_attach(OSCombo *combo, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)combo);
+    _ospanel_attach_control(panel, cast(combo, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_detach(OSCombo *combo, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)combo);
+    _ospanel_detach_control(panel, cast(combo, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_visible(OSCombo *combo, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)combo, visible);
+    _oscontrol_set_visible(cast(combo, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -444,21 +444,21 @@ void oscombo_visible(OSCombo *combo, const bool_t visible)
 void oscombo_enabled(OSCombo *combo, const bool_t enabled)
 {
     cassert(GetFocus() != combo->control.hwnd);
-    _oscontrol_set_enabled((OSControl *)combo, enabled);
+    _oscontrol_set_enabled(cast(combo, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_size(const OSCombo *combo, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)combo, width, height);
+    _oscontrol_get_size(cast_const(combo, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_origin(const OSCombo *combo, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)combo, x, y);
+    _oscontrol_get_origin(cast_const(combo, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -466,7 +466,7 @@ void oscombo_origin(const OSCombo *combo, real32_t *x, real32_t *y)
 void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     uint32_t num_elems = (uint32_t)SendMessage(combo->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
-    _oscontrol_set_frame((OSControl *)combo, x, y, width, height);
+    _oscontrol_set_frame(cast(combo, OSControl), x, y, width, height);
     combo->with_initial_size = TRUE;
 
     if (num_elems == 0)
@@ -506,14 +506,14 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
             uint32_t tsize;
             EvText params;
             EvTextFilter result;
-            combo_text = _oscontrol_get_text((const OSControl *)combo, &tsize);
-            params.text = (const char_t *)combo_text;
+            combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize);
+            params.text = cast_const(combo_text, char_t);
             params.cpos = i_get_cursor_pos(combo->control.hwnd);
             result.apply = FALSE;
             result.text[0] = '\0';
             result.cpos = UINT32_MAX;
             listener_event(combo->OnFilter, ekGUI_EVENT_TXTFILTER, combo, &params, &result, OSCombo, EvText, EvTextFilter);
-            heap_free((byte_t **)&combo_text, tsize, "OSControlGetText");
+            heap_free(dcast(&combo_text, byte_t), tsize, "OSControlGetText");
 
             if (result.apply == TRUE)
             {
@@ -593,12 +593,12 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
         }
         else
         {
-            wtext_alloc = (WCHAR *)heap_malloc(num_bytes, "OSComboSetElem");
+            wtext_alloc = cast(heap_malloc(num_bytes, "OSComboSetElem"), WCHAR);
             wtext = wtext_alloc;
         }
 
         {
-            uint32_t bytes = unicode_convers(text, (char_t *)wtext, ekUTF8, kWINDOWS_UNICODE, num_bytes);
+            uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
             cassert_unref(bytes == num_bytes, bytes);
         }
 
@@ -627,7 +627,7 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
         SendMessage(hwnd, msg, (WPARAM)0, (LPARAM)&cbbi);
 
         if (wtext_alloc != NULL)
-            heap_free((byte_t **)(&wtext_alloc), num_bytes, "OSComboSetElem");
+            heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSComboSetElem");
     }
     else
     {
@@ -658,7 +658,7 @@ void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_h
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscombo_resign_focus(const OSCombo *combo)
+bool_t _oscombo_resign_focus(const OSCombo *combo)
 {
     bool_t lost_focus = TRUE;
     if (combo->OnChange != NULL)
@@ -666,10 +666,10 @@ bool_t oscombo_resign_focus(const OSCombo *combo)
         char_t *combo_text = NULL;
         uint32_t tsize = 0;
         EvText params;
-        combo_text = _oscontrol_get_text((const OSControl *)combo, &tsize);
-        params.text = (const char_t *)combo_text;
+        combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize);
+        params.text = cast_const(combo_text, char_t);
         listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
-        heap_free((byte_t **)&combo_text, tsize, "OSControlGetText");
+        heap_free(dcast(&combo_text, byte_t), tsize, "OSControlGetText");
     }
 
     return lost_focus;
@@ -677,7 +677,7 @@ bool_t oscombo_resign_focus(const OSCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
-void oscombo_focus(OSCombo *combo, const bool_t focus)
+void _oscombo_focus(OSCombo *combo, const bool_t focus)
 {
     cassert_no_null(combo);
     if (combo->OnFocus != NULL)

@@ -41,7 +41,6 @@ static gboolean i_OnMoved(GtkRange *range, GtkScrollType step, double value, OSS
 {
     cassert_unref(slider->control.widget == GTK_WIDGET(range), range);
     unref(step);
-
     if (slider->launch_event == TRUE && slider->OnMoved != NULL)
     {
         EvSlider params;
@@ -107,7 +106,7 @@ void osslider_destroy(OSSlider **slider)
     cassert_no_null(slider);
     cassert_no_null(*slider);
     listener_destroy(&(*slider)->OnMoved);
-    _oscontrol_destroy(*(OSControl **)slider);
+    _oscontrol_destroy(*dcast(slider, OSControl));
     heap_delete(slider, OSSlider);
 }
 
@@ -196,47 +195,47 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
 
 void osslider_attach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)slider);
+    _ospanel_attach_control(panel, cast(slider, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_detach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)slider);
+    _ospanel_detach_control(panel, cast(slider, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_visible(OSSlider *slider, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)slider, visible);
+    _oscontrol_set_visible(cast(slider, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_enabled(OSSlider *slider, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)slider, enabled);
+    _oscontrol_set_enabled(cast(slider, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_size(const OSSlider *slider, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)slider, width, height);
+    _oscontrol_get_size(cast_const(slider, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_origin(const OSSlider *slider, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)slider, x, y);
+    _oscontrol_get_origin(cast_const(slider, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)slider, x, y, width, height);
+    _oscontrol_set_frame(cast(slider, OSControl), x, y, width, height);
 }

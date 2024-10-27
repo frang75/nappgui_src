@@ -42,7 +42,7 @@ struct _ossplit_t
 
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    OSSplit *split = (OSSplit *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+    OSSplit *split = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSSplit);
     cassert_no_null(split);
 
     switch (uMsg)
@@ -150,7 +150,7 @@ OSSplit *ossplit_create(const uint32_t flags)
     view->control.type = ekGUI_TYPE_SPLITVIEW;
     view->flags = flags;
     /* WS_EX_CONTROLPARENT: Recursive TabStop navigation over view children */
-    _oscontrol_init((OSControl *)view, PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init(cast(view, OSControl), PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     return view;
 }
 
@@ -160,7 +160,7 @@ void ossplit_destroy(OSSplit **view)
 {
     cassert_no_null(view);
     cassert_no_null(*view);
-    cassert(_oscontrol_num_children((OSControl *)(*view)) == 0);
+    cassert(_oscontrol_num_children(*dcast(view, OSControl)) == 0);
     listener_destroy(&(*view)->OnDrag);
     _oscontrol_destroy(&(*view)->control);
     heap_delete(view, OSSplit);
@@ -181,7 +181,7 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
         view->child2 = control;
     }
 
-    _oscontrol_attach_to_parent(control, (OSControl *)view);
+    _oscontrol_attach_to_parent(control, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -199,7 +199,7 @@ void ossplit_detach_control(OSSplit *view, OSControl *control)
         view->child2 = NULL;
     }
 
-    _oscontrol_detach_from_parent(control, (OSControl *)view);
+    _oscontrol_detach_from_parent(control, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -225,47 +225,47 @@ void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const
 
 void ossplit_attach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)view);
+    _ospanel_attach_control(panel, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_detach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)view);
+    _ospanel_detach_control(panel, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_visible(OSSplit *view, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)view, visible);
+    _oscontrol_set_visible(cast(view, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_enabled(OSSplit *view, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)view, enabled);
+    _oscontrol_set_enabled(cast(view, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)view, width, height);
+    _oscontrol_get_size(cast_const(view, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)view, x, y);
+    _oscontrol_get_origin(cast_const(view, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)view, x, y, width, height);
+    _oscontrol_set_frame(cast(view, OSControl), x, y, width, height);
 }

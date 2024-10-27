@@ -46,7 +46,7 @@ struct _osmenu_t
 static void i_count(GtkWidget *widget, gpointer n)
 {
     unref(widget);
-    *((uint32_t *)n) += 1;
+    *cast(n, uint32_t) += 1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -133,9 +133,9 @@ void osmenu_delete_item(OSMenu *menu, OSMenuItem *item)
 #else
 static void i_popup_pos(GtkMenu *widget, gint *x, gint *y, gboolean *push_in, gpointer user_data)
 {
-    OSMenu *menu = (OSMenu *)user_data;
+    OSMenu *menu = cast(user_data, OSMenu);
     cassert_no_null(menu);
-    cassert_unref((GtkWidget *)widget == menu->widget, widget);
+    cassert_unref(cast(widget, GtkWidget) == menu->widget, widget);
     cassert_no_null(x);
     cassert_no_null(y);
     cassert_no_null(push_in);

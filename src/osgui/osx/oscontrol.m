@@ -139,7 +139,7 @@ static ___INLINE NSControlSize i_control_size(const gui_size_t size)
 
 void _oscontrol_size_from_font(NSCell *cell, const Font *font)
 {
-    gui_size_t size = osgui_size_font(font_size(font));
+    gui_size_t size = _osgui_size_font(font_size(font));
     [cell setControlSize:i_control_size(size)];
 }
 
@@ -176,7 +176,7 @@ void _oscontrol_tooltip_set(NSView *view, const char_t *text)
     cassert_no_null(view);
     if (text != NULL)
     {
-        NSString *str = [[NSString alloc] initWithUTF8String:(const char *)text];
+        NSString *str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
         [view setToolTip:str];
         [str release];
     }
@@ -190,14 +190,14 @@ void _oscontrol_tooltip_set(NSView *view, const char_t *text)
 
 NSColor *_oscontrol_color(const color_t color)
 {
-    return oscolor_NSColor(color);
+    return _oscolor_NSColor(color);
 }
 
 /*---------------------------------------------------------------------------*/
 
 color_t _oscontrol_from_NSColor(NSColor *color)
 {
-    return oscolor_from_NSColor(color);
+    return _oscolor_from_NSColor(color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -273,7 +273,7 @@ static NSDictionary *i_text_attribs(NSControl *control, const align_t align, con
 void _oscontrol_init_textattr(OSTextAttr *attr)
 {
     cassert_no_null(attr);
-    attr->font = osgui_create_default_font();
+    attr->font = _osgui_create_default_font();
     attr->color = kCOLOR_TRANSPARENT;
     attr->align = ekLEFT;
     attr->mark = UINT32_MAX;
@@ -306,7 +306,7 @@ static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString 
     }
 
     {
-        NSFont *font = (NSFont *)font_native(attrs->font);
+        NSFont *font = cast(font_native(attrs->font), NSFont);
         NSDictionary *dict = i_text_attribs(control, attrs->align, attrs->color, fstyle, font);
         NSAttributedString *astr = [[NSAttributedString alloc] initWithString:str attributes:dict];
         NSMutableDictionary *mdict = nil;
@@ -342,7 +342,7 @@ static void i_update_text(NSControl *control, const OSTextAttr *attrs, NSString 
 
 void _oscontrol_set_text(NSControl *control, const OSTextAttr *attrs, const char_t *text)
 {
-    NSString *str = [[NSString alloc] initWithUTF8String:(const char *)text];
+    NSString *str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
     i_update_text(control, attrs, str);
     [str release];
 }
@@ -609,35 +609,35 @@ OSControl *_oscontrol_from_nsview(NSView *object)
 
 /*---------------------------------------------------------------------------*/
 
-gui_type_t oscontrol_type(const OSControl *control)
+gui_type_t _oscontrol_type(const OSControl *control)
 {
     gui_type_t type = ENUM_MAX(gui_type_t);
     cassert_no_null(control);
-    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
-    type = i_oscontrol_type((NSView *)control);
+    cassert([cast(control, NSObject) isKindOfClass:[NSView class]] == YES);
+    type = i_oscontrol_type(cast(control, NSView));
     cassert(type != ENUM_MAX(gui_type_t));
     return type;
 }
 
 /*---------------------------------------------------------------------------*/
 
-OSControl *oscontrol_parent(const OSControl *control)
+OSControl *_oscontrol_parent(const OSControl *control)
 {
     cassert_no_null(control);
-    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
-    return (OSControl *)[(NSView *)control superview];
+    cassert([cast(control, NSObject) isKindOfClass:[NSView class]] == YES);
+    return cast([cast(control, NSView) superview], OSControl);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oscontrol_frame(const OSControl *control, OSFrame *rect)
+void _oscontrol_frame(const OSControl *control, OSFrame *rect)
 {
     real32_t x, y, w, h;
     cassert_no_null(control);
     cassert_no_null(rect);
-    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
-    _oscontrol_get_origin((NSView *)control, &x, &y);
-    _oscontrol_get_size((NSView *)control, &w, &h);
+    cassert([cast(control, NSObject) isKindOfClass:[NSView class]] == YES);
+    _oscontrol_get_origin(cast(control, NSView), &x, &y);
+    _oscontrol_get_size(cast(control, NSView), &w, &h);
     rect->left = (int32_t)x;
     rect->top = (int32_t)y;
     rect->right = rect->left + (int32_t)w;
@@ -646,7 +646,7 @@ void oscontrol_frame(const OSControl *control, OSFrame *rect)
 
 /*---------------------------------------------------------------------------*/
 
-void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
+void _oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
 {
     unref(control);
     unref(can_focus);
@@ -654,30 +654,30 @@ void oscontrol_set_can_focus(OSControl *control, const bool_t can_focus)
 
 /*---------------------------------------------------------------------------*/
 
-OSWidget *oscontrol_focus_widget(const OSControl *control)
+OSWidget *_oscontrol_focus_widget(const OSControl *control)
 {
     cassert_no_null(control);
-    cassert([(NSObject *)control isKindOfClass:[NSView class]] == YES);
-    if (_osview_is((NSView *)control) == YES)
-        return (OSWidget *)_osview_focus_widget((NSView *)control);
-    return (OSWidget *)control;
+    cassert([cast(control, NSObject) isKindOfClass:[NSView class]] == YES);
+    if (_osview_is(cast(control, NSView)) == YES)
+        return cast(_osview_focus_widget(cast(control, NSView)), OSWidget);
+    return cast(control, OSWidget);
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscontrol_widget_visible(const OSWidget *widget)
+bool_t _oscontrol_widget_visible(const OSWidget *widget)
 {
     cassert_no_null(widget);
-    return (bool_t) ![(NSView *)widget isHidden];
+    return (bool_t) ![cast(widget, NSView) isHidden];
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oscontrol_widget_enable(const OSWidget *widget)
+bool_t _oscontrol_widget_enable(const OSWidget *widget)
 {
     cassert_no_null(widget);
     if ([(NSObject *)widget isKindOfClass:[NSControl class]] == YES)
-        return (bool_t)[(NSControl *)widget isEnabled];
+        return (bool_t)[cast(widget, NSControl) isEnabled];
     else
         return TRUE;
 }

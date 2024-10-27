@@ -50,7 +50,7 @@ OSMenu *osmenu_create(const enum_t flags)
     heap_auditor_add("OSXMenu");
     [menu setAutoenablesItems:NO];
     [menu setShowsStateColumn:YES];
-    return (OSMenu *)menu;
+    return cast(menu, OSMenu);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -59,7 +59,7 @@ void osmenu_destroy(OSMenu **menu)
 {
     OSXMenu *menup = nil;
     cassert_no_null(menu);
-    menup = (OSXMenu *)*menu;
+    menup = *dcast(menu, OSXMenu);
     cassert_no_null(menup);
     cassert([menup supermenu] == nil);
     cassert([NSApp mainMenu] != menup);
@@ -77,20 +77,20 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
      * NSUInteger retain_count2 = 0;
      */
     NSUInteger num_items = 0;
-    NSMenuItem *item = nil;
-    cassert_no_null(menu);
-    cassert_no_null(menuitem);
-    cassert([(NSObject *)menu isKindOfClass:[OSXMenu class]] == YES);
-    cassert([(NSObject *)menuitem isKindOfClass:[NSMenuItem class]] == YES);
-    num_items = [[(OSXMenu *)menu itemArray] count];
-    item = (NSMenuItem *)menuitem;
-    cassert([item menu] == nil);
-    /* retain_count = [item retainCount]; */
-    [(OSXMenu *)menu addItem:item];
-    /* retain_count2 = [item retainCount]; */
-    /* cassert([item retainCount] == retain_count + 1); */
-    cassert([item menu] == (OSXMenu *)menu);
-    cassert_unref([[(OSXMenu *)menu itemArray] count] == num_items + 1, num_items);
+    OSXMenu *lmenu = cast(menu, OSXMenu);
+    NSMenuItem *litem = cast(menuitem, NSMenuItem);
+    cassert_no_null(lmenu);
+    cassert_no_null(litem);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
+    cassert([cast(litem, NSObject) isKindOfClass:[NSMenuItem class]] == YES);
+    num_items = [[lmenu itemArray] count];
+    cassert([litem menu] == nil);
+    /* retain_count = [litem retainCount]; */
+    [lmenu addItem:litem];
+    /* retain_count2 = [litem retainCount]; */
+    /* cassert([litem retainCount] == retain_count + 1); */
+    cassert([litem menu] == lmenu);
+    cassert_unref([[lmenu itemArray] count] == num_items + 1, num_items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -98,32 +98,33 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
 void osmenu_delete_item(OSMenu *menu, OSMenuItem *menuitem)
 {
     NSUInteger num_items = 0;
-    NSMenuItem *item = nil;
-    cassert_no_null(menu);
-    cassert_no_null(menuitem);
-    cassert([(NSObject *)menu isKindOfClass:[OSXMenu class]] == YES);
-    num_items = [[(OSXMenu *)menu itemArray] count];
+    OSXMenu *lmenu = cast(menu, OSXMenu);
+    NSMenuItem *litem = cast(menuitem, NSMenuItem);
+    cassert_no_null(lmenu);
+    cassert_no_null(litem);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
+    num_items = [[lmenu itemArray] count];
     cassert(num_items > 0);
-    item = (NSMenuItem *)menuitem;
-    cassert([item menu] == (OSXMenu *)menu);
-    [(OSXMenu *)menu removeItem:item];
-    cassert([item menu] == nil);
-    cassert_unref([[(OSXMenu *)menu itemArray] count] == num_items - 1, num_items);
+    cassert([litem menu] == lmenu);
+    [lmenu removeItem:litem];
+    cassert([litem menu] == nil);
+    cassert_unref([[lmenu itemArray] count] == num_items - 1, num_items);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real32_t y)
 {
+    OSXMenu *lmenu = cast(menu, OSXMenu);
     NSView *view = nil;
     CGFloat ly = 0.f;
-    cassert_no_null(menu);
-    cassert([(NSObject *)menu isKindOfClass:[OSXMenu class]] == YES);
-    /* TODO: Use vuew (convert from screen to view coordinate) */
+    cassert_no_null(lmenu);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
+    /* TODO: Use view (convert from screen to view coordinate) */
     view = _oswindow_main_view(window);
     unref(view);
     ly = [[NSScreen mainScreen] frame].size.height - (CGFloat)y;
-    [(OSXMenu *)menu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, ly) inView:nil];
+    [lmenu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, ly) inView:nil];
 }
 
 /*---------------------------------------------------------------------------*/

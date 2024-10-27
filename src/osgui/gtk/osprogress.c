@@ -50,7 +50,7 @@ void osprogress_destroy(OSProgress **progress)
     cassert_no_null(*progress);
     if ((*progress)->pulse_id != UINT32_MAX)
         g_source_remove((*progress)->pulse_id);
-    _oscontrol_destroy(*(OSControl **)progress);
+    _oscontrol_destroy(*dcast(progress, OSControl));
     heap_delete(progress, OSProgress);
 }
 
@@ -86,54 +86,54 @@ real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 {
     cassert_no_null(progress);
     cassert_unref(size == ekGUI_SIZE_REGULAR, size);
-    return (real32_t)osglobals_progress_height();
+    return (real32_t)_osglobals_progress_height();
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_attach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)progress);
+    _ospanel_attach_control(panel, cast(progress, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_detach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)progress);
+    _ospanel_detach_control(panel, cast(progress, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_visible(OSProgress *progress, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)progress, visible);
+    _oscontrol_set_visible(cast(progress, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_enabled(OSProgress *progress, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)progress, enabled);
+    _oscontrol_set_enabled(cast(progress, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_size(const OSProgress *progress, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)progress, width, height);
+    _oscontrol_get_size(cast_const(progress, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_origin(const OSProgress *progress, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)progress, x, y);
+    _oscontrol_get_origin(cast_const(progress, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_frame(OSProgress *progress, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)progress, x, y, width, height);
+    _oscontrol_set_frame(cast(progress, OSControl), x, y, width, height);
 }

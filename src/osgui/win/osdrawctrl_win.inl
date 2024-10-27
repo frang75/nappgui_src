@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image);
+void _osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image);
 
 __END_C

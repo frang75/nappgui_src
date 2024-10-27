@@ -20,18 +20,18 @@
 
 /*---------------------------------------------------------------------------*/
 
-OSButton *oswindow_apply_default_button(OSWindow *window, OSButton *button)
+OSButton *_oswindow_apply_default_button(OSWindow *window, OSButton *button)
 {
     OSButton *effective = NULL;
-    const ArrPt(OSControl) *controls = oswindow_get_all_controls(window);
+    const ArrPt(OSControl) *controls = _oswindow_get_all_controls(window);
     arrpt_foreach_const(control, controls, OSControl)
         {
             cassert_no_null(control);
-            if (oscontrol_type(control) == ekGUI_TYPE_BUTTON)
+            if (_oscontrol_type(control) == ekGUI_TYPE_BUTTON)
             {
                 OSButton *nbutton = cast(control, OSButton);
                 bool_t is_default = (bool_t)(nbutton == button);
-                osbutton_set_default(cast(control, OSButton), is_default);
+                _osbutton_set_default(cast(control, OSButton), is_default);
                 if (is_default == TRUE)
                 {
                     cassert(effective == NULL);
@@ -53,7 +53,7 @@ static void i_remove_hotkey(OSHotKey *hotkey)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_hotkey_destroy(ArrSt(OSHotKey) **hotkeys)
+void _oswindow_hotkey_destroy(ArrSt(OSHotKey) **hotkeys)
 {
     cassert_no_null(hotkeys);
     arrst_destopt(hotkeys, i_remove_hotkey, OSHotKey);
@@ -61,7 +61,7 @@ void oswindow_hotkey_destroy(ArrSt(OSHotKey) **hotkeys)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint32_t modifiers, Listener *listener)
+void _oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint32_t modifiers, Listener *listener)
 {
     cassert_no_null(hotkeys);
     if (key != ENUM_MAX(vkey_t))
@@ -111,7 +111,7 @@ void oswindow_hotkey_set(ArrSt(OSHotKey) **hotkeys, const vkey_t key, const uint
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) *hotkeys, const vkey_t key, const uint32_t modifiers)
+bool_t _oswindow_hotkey_process(OSWindow *window, ArrSt(OSHotKey) *hotkeys, const vkey_t key, const uint32_t modifiers)
 {
     if (hotkeys != NULL)
     {

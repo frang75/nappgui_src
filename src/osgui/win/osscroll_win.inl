@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-gui_scroll_t osscroll_event(WPARAM wParam);
+gui_scroll_t _osscroll_event(WPARAM wParam);
 
 __END_C

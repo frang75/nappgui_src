@@ -85,8 +85,8 @@
 
         if (self->scroll != NULL)
         {
-            params.x = (real32_t)osscrolls_x_pos(self->scroll);
-            params.y = (real32_t)osscrolls_y_pos(self->scroll);
+            params.x = (real32_t)_osscrolls_x_pos(self->scroll);
+            params.y = (real32_t)_osscrolls_y_pos(self->scroll);
         }
 
         if ((self->flags & ekVIEW_OPENGL) == 0)
@@ -103,7 +103,7 @@
 
                 params.ctx = self->ctx;
                 dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, params.x, params.y, 0, TRUE);
-                listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
+                listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, cast(self, OSView), &params, NULL, OSView, EvDraw, void);
                 dctx_unset_gcontext(self->ctx);
 
                 if (self->OnOverlay != NULL)
@@ -111,14 +111,14 @@
                     params.x = 0;
                     params.y = 0;
                     dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, TRUE);
-                    listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, (OSView *)self, &params, NULL, OSView, EvDraw, void);
+                    listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, cast(self, OSView), &params, NULL, OSView, EvDraw, void);
                     dctx_unset_gcontext(self->ctx);
                 }
             }
         }
         else
         {
-            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, (OSView *)self, &params, NULL, OSView, EvDraw, void);
+            listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, cast(self, OSView), &params, NULL, OSView, EvDraw, void);
         }
     }
 
@@ -132,8 +132,8 @@
             NSRect r = [self bounds];
             if (self->scroll != NULL)
             {
-                r.size.width -= (CGFloat)(osscrolls_bar_width(self->scroll, TRUE) + 2);
-                r.size.height -= (CGFloat)(osscrolls_bar_height(self->scroll, TRUE) + 2);
+                r.size.width -= (CGFloat)(_osscrolls_bar_width(self->scroll, TRUE) + 2);
+                r.size.height -= (CGFloat)(_osscrolls_bar_height(self->scroll, TRUE) + 2);
             }
             NSSetFocusRingStyle(NSFocusRingOnly);
             NSRectFill(r);
@@ -253,7 +253,7 @@
 {
     if (self->scroll != nil)
     {
-        gui_scroll_t ev = osscroll_wheel_event(theEvent);
+        gui_scroll_t ev = _osscroll_wheel_event(theEvent);
         if (ev != ENUM_MAX(gui_scroll_t))
             _osview_scroll_event(self, ekGUI_VERTICAL, ev);
     }
@@ -333,7 +333,7 @@ OSView *osview_create(const uint32_t flags)
 
     if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
     {
-        view->scroll = osscrolls_create(cast(view, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
+        view->scroll = _osscrolls_create(cast(view, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
     }
     else
     {
@@ -345,7 +345,7 @@ OSView *osview_create(const uint32_t flags)
     else
         [view setFocusRingType:NSFocusRingTypeNone];
 
-    return (OSView *)view;
+    return cast(view, OSView);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -353,9 +353,9 @@ OSView *osview_create(const uint32_t flags)
 static OSXView *i_get_view(const OSView *view)
 {
     cassert_no_null(view);
-    if ([(NSView *)view isKindOfClass:[OSXView class]])
+    if ([cast(view, NSView) isKindOfClass:[OSXView class]])
     {
-        return (OSXView *)view;
+        return cast(view, OSXView);
     }
 
     return nil;
@@ -386,7 +386,7 @@ void osview_destroy(OSView **view)
         dctx_destroy(&lview->ctx);
 
     if (lview->scroll != NULL)
-        osscrolls_destroy(&lview->scroll);
+        _osscrolls_destroy(&lview->scroll);
 
     [lview release];
     *view = NULL;
@@ -440,8 +440,8 @@ static void i_update_tracking_area(OSXView *view)
         /* Tracking area shouldn't have effect in scrollbars */
         if (view->scroll != NULL)
         {
-            track_size.width -= (CGFloat)osscrolls_bar_width(view->scroll, TRUE);
-            track_size.height -= (CGFloat)osscrolls_bar_height(view->scroll, TRUE);
+            track_size.width -= (CGFloat)_osscrolls_bar_width(view->scroll, TRUE);
+            track_size.height -= (CGFloat)_osscrolls_bar_height(view->scroll, TRUE);
         }
 
         /* Updated the current area */
@@ -604,7 +604,7 @@ void osview_OnScroll(OSView *view, Listener *listener)
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    osscrolls_OnScroll(lview->scroll, listener);
+    _osscrolls_OnScroll(lview->scroll, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -624,7 +624,7 @@ void osview_scroll(OSView *view, const real32_t x, const real32_t y)
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    osscrolls_set(lview->scroll, x >= 0 ? (uint32_t)x : UINT32_MAX, y >= 0 ? (uint32_t)y : UINT32_MAX, FALSE);
+    _osscrolls_set(lview->scroll, x >= 0 ? (uint32_t)x : UINT32_MAX, y >= 0 ? (uint32_t)y : UINT32_MAX, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -635,10 +635,10 @@ void osview_scroll_get(const OSView *view, real32_t *x, real32_t *y)
     cassert_no_null(lview);
 
     if (x != NULL)
-        *x = (real32_t)osscrolls_x_pos(lview->scroll);
+        *x = (real32_t)_osscrolls_x_pos(lview->scroll);
 
     if (y != NULL)
-        *y = (real32_t)osscrolls_y_pos(lview->scroll);
+        *y = (real32_t)_osscrolls_y_pos(lview->scroll);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -649,10 +649,10 @@ void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height)
     cassert_no_null(lview);
 
     if (width != NULL)
-        *width = (real32_t)osscrolls_bar_width(lview->scroll, TRUE);
+        *width = (real32_t)_osscrolls_bar_width(lview->scroll, TRUE);
 
     if (height != NULL)
-        *height = (real32_t)osscrolls_bar_height(lview->scroll, TRUE);
+        *height = (real32_t)_osscrolls_bar_height(lview->scroll, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -661,7 +661,7 @@ void osview_scroller_visible(OSView *view, const bool_t horizontal, const bool_t
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    osscrolls_visible(lview->scroll, horizontal, vertical);
+    _osscrolls_visible(lview->scroll, horizontal, vertical);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -670,7 +670,7 @@ void osview_content_size(OSView *view, const real32_t width, const real32_t heig
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    osscrolls_content_size(lview->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
+    _osscrolls_content_size(lview->scroll, (uint32_t)width, (uint32_t)height, (uint32_t)line_width, (uint32_t)line_height);
     i_update_tracking_area(lview);
 }
 
@@ -706,21 +706,21 @@ void osview_set_need_display(OSView *view)
 
 void *osview_get_native_view(const OSView *view)
 {
-    return (void *)view;
+    return cast(view, void);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_attach(OSView *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView *)view);
+    _ospanel_attach_control(panel, cast(view, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_detach(OSView *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView *)view);
+    _ospanel_detach_control(panel, cast(view, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -745,14 +745,14 @@ void osview_enabled(OSView *view, const bool_t enabled)
 
 void osview_size(const OSView *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)view, width, height);
+    _oscontrol_get_size(cast(view, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osview_origin(const OSView *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)view, x, y);
+    _oscontrol_get_origin(cast(view, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -761,10 +761,10 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
-    _oscontrol_set_frame((NSView *)lview, x, y, width, height);
+    _oscontrol_set_frame(cast(lview, NSView), x, y, width, height);
 
     if (lview->scroll)
-        osscrolls_control_size(lview->scroll, (uint32_t)width, (uint32_t)height);
+        _osscrolls_control_size(lview->scroll, (uint32_t)width, (uint32_t)height);
 
     i_update_tracking_area(lview);
     [lview setNeedsDisplay:YES];
@@ -772,7 +772,7 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osview_resign_focus(const OSView *view)
+bool_t _osview_resign_focus(const OSView *view)
 {
     OSXView *lview = i_get_view(view);
     bool_t resign = TRUE;
@@ -784,7 +784,7 @@ bool_t osview_resign_focus(const OSView *view)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osview_accept_focus(const OSView *view)
+bool_t _osview_accept_focus(const OSView *view)
 {
     OSXView *lview = i_get_view(view);
     bool_t accept = TRUE;
@@ -796,14 +796,14 @@ bool_t osview_accept_focus(const OSView *view)
 
 /*---------------------------------------------------------------------------*/
 
-void osview_focus(OSView *view, const bool_t focus)
+void _osview_focus(OSView *view, const bool_t focus)
 {
-    OSXView *lview = i_get_view((OSView *)view);
+    OSXView *lview = i_get_view(cast(view, OSView));
     cassert_no_null(lview);
     if (lview->listeners.is_enabled == YES && lview->OnFocus != NULL)
     {
         bool_t params = focus;
-        listener_event(lview->OnFocus, ekGUI_EVENT_FOCUS, (OSView *)lview, &params, NULL, OSView, bool_t, void);
+        listener_event(lview->OnFocus, ekGUI_EVENT_FOCUS, cast(lview, OSView), &params, NULL, OSView, bool_t, void);
     }
 
     lview->focused = (BOOL)focus;
@@ -817,7 +817,7 @@ void osview_focus(OSView *view, const bool_t focus)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t osview_capture_tab(const OSView *view)
+bool_t _osview_capture_tab(const OSView *view)
 {
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
@@ -830,27 +830,27 @@ bool_t osview_capture_tab(const OSView *view)
 
 BOOL _osview_is(NSView *view)
 {
-    return (BOOL)(i_get_view((OSView *)view) != nil);
+    return (BOOL)(i_get_view(cast(view, OSView)) != nil);
 }
 
 /*---------------------------------------------------------------------------*/
 
 NSView *_osview_focus_widget(NSView *view)
 {
-    OSXView *lview = i_get_view((OSView *)view);
+    OSXView *lview = i_get_view(cast(view, OSView));
     cassert_no_null(lview);
-    return (NSView *)lview;
+    return cast(lview, NSView);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _osview_scroll_event(NSView *view, const gui_orient_t orient, const gui_scroll_t event)
 {
-    OSXView *lview = (OSXView *)view;
+    OSXView *lview = cast(view, OSXView);
     cassert_no_null(lview);
     cassert_no_null(lview->scroll);
     cassert([view isKindOfClass:[OSXView class]]);
-    if (osscrolls_event(lview->scroll, orient, event, FALSE) == TRUE)
+    if (_osscrolls_event(lview->scroll, orient, event, FALSE) == TRUE)
         [lview setNeedsDisplay:YES];
 }
 

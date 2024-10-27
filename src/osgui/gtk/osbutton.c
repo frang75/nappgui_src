@@ -174,12 +174,12 @@ static const char_t *i_css_obj(const uint32_t flags)
     case ekBUTTON_PUSH:
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        return osglobals_css_button();
+        return _osglobals_css_button();
     case ekBUTTON_RADIO:
-        return osglobals_css_radio();
+        return _osglobals_css_radio();
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
-        return osglobals_css_check();
+        return _osglobals_css_check();
         cassert_default();
     }
 
@@ -194,7 +194,7 @@ static gboolean i_OnLabelDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
     real32_t bwidth = 0, bheight = 0;
     cassert_no_null(button);
     cassert(GTK_IS_LABEL(widget) == TRUE);
-    cassert(osbutton_text_allowed(button->flags) == TRUE);
+    cassert(_osbutton_text_allowed(button->flags) == TRUE);
 
     _oscontrol_widget_get_size(button->control.widget, &bwidth, &bheight);
 
@@ -352,7 +352,7 @@ OSButton *osbutton_create(const uint32_t flags)
      * 1) That the button text does not influence its minimum size, allowing to create buttons of any size.
      * 2) Ability to assign text with mnemonics, maintain the GTK shortcuts support.
      */
-    if (osbutton_text_allowed(flags) == TRUE)
+    if (_osbutton_text_allowed(flags) == TRUE)
     {
         Font *fake_font = font_system(0, 0);
         _oscontrol_update_css_font(button->control.widget, cssobj, fake_font, &button->fake_font, &button->css_font);
@@ -360,7 +360,7 @@ OSButton *osbutton_create(const uint32_t flags)
         /* The real font and text for button */
         button->text = str_c("");
         button->markup = str_c("");
-        button->font = osgui_create_default_font();
+        button->font = _osgui_create_default_font();
     }
 
     g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)button);
@@ -396,7 +396,7 @@ void osbutton_destroy(OSButton **button)
     ptr_destopt(font_destroy, &(*button)->font, Font);
     _oscontrol_destroy_css_provider(&(*button)->css_padding);
     _oscontrol_destroy_css_provider(&(*button)->css_font);
-    _oscontrol_destroy(*(OSControl **)button);
+    _oscontrol_destroy(*dcast(button, OSControl));
     heap_delete(button, OSButton);
 }
 
@@ -432,7 +432,7 @@ void osbutton_text(OSButton *button, const char_t *text)
     char_t shortcut[256], markup[256], plain[256];
     uint32_t pos = UINT32_MAX;
     cassert_no_null(button);
-    cassert(osbutton_text_allowed(button->flags) == TRUE);
+    cassert(_osbutton_text_allowed(button->flags) == TRUE);
     pos = _osgui_underline_gtk_text(text, shortcut, sizeof(shortcut));
     _osgui_underline_markup(shortcut, pos, markup, sizeof(markup));
     _osgui_underline_plain(shortcut, pos, plain, sizeof(plain));
@@ -460,7 +460,7 @@ void osbutton_text(OSButton *button, const char_t *text)
 void osbutton_tooltip(OSButton *button, const char_t *text)
 {
     cassert_no_null(button);
-    gtk_widget_set_tooltip_text(button->control.widget, (const gchar *)text);
+    gtk_widget_set_tooltip_text(button->control.widget, cast_const(text, gchar));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -481,8 +481,8 @@ void osbutton_font(OSButton *button, const Font *font)
 void osbutton_align(OSButton *button, const align_t align)
 {
     cassert_no_null(button);
-    cassert(osbutton_text_allowed(button->flags) == TRUE);
-    _oscontrol_set_halign((OSControl *)button, align);
+    cassert(_osbutton_text_allowed(button->flags) == TRUE);
+    _oscontrol_set_halign(cast(button, OSControl), align);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -491,7 +491,7 @@ void osbutton_image(OSButton *button, const Image *image)
 {
     cassert_no_null(button);
     cassert_no_null(image);
-    cassert(osbutton_image_allowed(button->flags) == TRUE);
+    cassert(_osbutton_image_allowed(button->flags) == TRUE);
     if (button->image != NULL)
         image_destroy(&button->image);
     button->image = image_copy(image);
@@ -576,16 +576,16 @@ void osbutton_vpadding(OSButton *button, const real32_t padding)
         button->vpadding = padding >= 0 ? (uint32_t)padding : kBUTTON_VPADDING;
 }
 
-#if defined __ASSERTS__
-
 /*---------------------------------------------------------------------------*/
+
+#if defined __ASSERTS__
 
 static ___INLINE bool_t i_equal_button_text(const OSButton *button, const char_t *text)
 {
     char_t shortcut[256], plain[256];
     uint32_t pos = UINT32_MAX;
     cassert_no_null(button);
-    cassert(osbutton_text_allowed(button->flags) == TRUE);
+    cassert(_osbutton_text_allowed(button->flags) == TRUE);
     pos = _osgui_underline_gtk_text(text, shortcut, sizeof(shortcut));
     _osgui_underline_plain(shortcut, pos, plain, sizeof(plain));
     return str_equ_c(plain, tc(button->text));
@@ -638,9 +638,9 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         cassert(button->vpadding != UINT32_MAX);
         cassert(button->hpadding != UINT32_MAX);
         *width = button->textwidth + i_PUSHBUTTON_EXTRAWIDTH;
-        *width += (real32_t)osglobals_check_width();
+        *width += (real32_t)_osglobals_check_width();
         *width += kCHECKBOX_IMAGE_SEP;
-        *height = (real32_t)osglobals_check_height();
+        *height = (real32_t)_osglobals_check_height();
         if (button->textheight > *height)
             *height = button->textheight;
         *height += i_CHECKBOX_EXTRAHEIGHT;
@@ -661,49 +661,49 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
 void osbutton_attach(OSButton *button, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)button);
+    _ospanel_attach_control(panel, cast(button, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_detach(OSButton *button, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)button);
+    _ospanel_detach_control(panel, cast(button, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_visible(OSButton *button, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)button, visible);
+    _oscontrol_set_visible(cast(button, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_enabled(OSButton *button, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)button, enabled);
+    _oscontrol_set_enabled(cast(button, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_size(const OSButton *button, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)button, width, height);
+    _oscontrol_get_size(cast_const(button, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_origin(const OSButton *button, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)button, x, y);
+    _oscontrol_get_origin(cast_const(button, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)button, x, y, width, height);
+    _oscontrol_set_frame(cast(button, OSControl), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -740,7 +740,7 @@ void _osbutton_command(OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_set_default(OSButton *button, const bool_t is_default)
+void _osbutton_set_default(OSButton *button, const bool_t is_default)
 {
     cassert_no_null(button);
     if (button_get_type(button->flags) == ekBUTTON_PUSH)

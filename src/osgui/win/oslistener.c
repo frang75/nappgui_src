@@ -33,7 +33,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_init(ViewListeners *listeners)
+void _oslistener_init(ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     bmem_zero(listeners, ViewListeners);
@@ -43,7 +43,7 @@ void oslistener_init(ViewListeners *listeners)
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_remove(ViewListeners *listeners)
+void _oslistener_remove(ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     listener_destroy(&listeners->OnDraw);
@@ -61,7 +61,7 @@ void oslistener_remove(ViewListeners *listeners)
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_set_enabled(ViewListeners *listeners, bool_t enabled)
+void _oslistener_set_enabled(ViewListeners *listeners, bool_t enabled)
 {
     cassert_no_null(listeners);
     listeners->enabled = enabled;
@@ -69,7 +69,7 @@ void oslistener_set_enabled(ViewListeners *listeners, bool_t enabled)
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t width, const real32_t height, const real32_t visible_x, const real32_t visible_y, const real32_t visible_width, const real32_t visible_height, ViewListeners *listeners)
+void _oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t width, const real32_t height, const real32_t visible_x, const real32_t visible_y, const real32_t visible_width, const real32_t visible_height, ViewListeners *listeners)
 {
     cassert_no_null(sender);
     cassert_no_null(listeners);
@@ -89,7 +89,7 @@ void oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t width, const r
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_mouse_exit(OSControl *sender, ViewListeners *listeners)
+void _oslistener_mouse_exit(OSControl *sender, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     cassert(listeners->is_mouse_inside == TRUE);
@@ -100,7 +100,7 @@ void oslistener_mouse_exit(OSControl *sender, ViewListeners *listeners)
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real32_t x, const real32_t y, const OSScrolls *scroll, ViewListeners *listeners)
+void _oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real32_t x, const real32_t y, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
@@ -117,8 +117,8 @@ void oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real32
         if ((event_wParam & MK_MBUTTON) && listeners->button != ekGUI_MOUSE_MIDDLE)
             return;
 
-        params.x = x + (scroll ? osscrolls_x_pos(scroll) : 0);
-        params.y = y + (scroll ? osscrolls_y_pos(scroll) : 0);
+        params.x = x + (scroll ? _osscrolls_x_pos(scroll) : 0);
+        params.y = y + (scroll ? _osscrolls_y_pos(scroll) : 0);
         params.lx = x;
         params.ly = y;
         params.button = listeners->button;
@@ -161,7 +161,7 @@ void oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real32
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const real32_t x, const real32_t y, const OSScrolls *scroll, ViewListeners *listeners)
+void _oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const real32_t x, const real32_t y, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
@@ -177,8 +177,8 @@ void oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const re
         if (listeners->OnDown != NULL)
         {
             EvMouse params;
-            params.x = x + (scroll ? osscrolls_x_pos(scroll) : 0);
-            params.y = y + (scroll ? osscrolls_y_pos(scroll) : 0);
+            params.x = x + (scroll ? _osscrolls_x_pos(scroll) : 0);
+            params.y = y + (scroll ? _osscrolls_y_pos(scroll) : 0);
             params.lx = x;
             params.ly = y;
             params.button = button;
@@ -192,15 +192,15 @@ void oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const re
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const real32_t x, const real32_t y, const OSScrolls *scroll, ViewListeners *listeners)
+void _oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const real32_t x, const real32_t y, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
     if (listeners->enabled == TRUE)
     {
         EvMouse params;
-        params.x = x + (scroll ? osscrolls_x_pos(scroll) : 0);
-        params.y = y + (scroll ? osscrolls_y_pos(scroll) : 0);
+        params.x = x + (scroll ? _osscrolls_x_pos(scroll) : 0);
+        params.y = y + (scroll ? _osscrolls_y_pos(scroll) : 0);
         params.lx = x;
         params.ly = y;
         params.button = button;
@@ -233,7 +233,7 @@ void oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const real
 
 /*---------------------------------------------------------------------------*/
 
-void oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lParam, const OSScrolls *scroll, ViewListeners *listeners)
+void _oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lParam, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     cassert_no_null(sender);
@@ -250,8 +250,8 @@ void oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lPara
             point.y = spoint.y;
             ok = ScreenToClient(sender->hwnd, &point);
             cassert_unref(ok == TRUE, ok);
-            params.x = (real32_t)point.x + (scroll ? osscrolls_x_pos(scroll) : 0);
-            params.y = (real32_t)point.y + (scroll ? osscrolls_y_pos(scroll) : 0);
+            params.x = (real32_t)point.x + (scroll ? _osscrolls_x_pos(scroll) : 0);
+            params.y = (real32_t)point.y + (scroll ? _osscrolls_y_pos(scroll) : 0);
             params.dx = 0;
             params.dy = (real32_t)(GET_WHEEL_DELTA_WPARAM(event_wParam) / WHEEL_DELTA);
             params.dz = 0;
@@ -313,7 +313,7 @@ static bool_t i_key_event(OSControl *sender, const uint32_t type, WPARAM wParam,
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oslistener_key_down(OSControl *sender, WPARAM wParam, LPARAM lParam, ViewListeners *listeners)
+bool_t _oslistener_key_down(OSControl *sender, WPARAM wParam, LPARAM lParam, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     return i_key_event(sender, ekGUI_EVENT_KEYDOWN, wParam, lParam, listeners->OnKeyDown);
@@ -321,7 +321,7 @@ bool_t oslistener_key_down(OSControl *sender, WPARAM wParam, LPARAM lParam, View
 
 /*---------------------------------------------------------------------------*/
 
-bool_t oslistener_key_up(OSControl *sender, WPARAM wParam, LPARAM lParam, ViewListeners *listeners)
+bool_t _oslistener_key_up(OSControl *sender, WPARAM wParam, LPARAM lParam, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
     return i_key_event(sender, ekGUI_EVENT_KEYUP, wParam, lParam, listeners->OnKeyUp);

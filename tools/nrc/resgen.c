@@ -307,7 +307,7 @@ static void i_read_msgfile(ResourcePack *pack, const uint32_t local_index, const
     uint32_t num_errors = UINT32_MAX;
     cassert_no_null(pack);
     num_errors = arrpt_size(pack->errors, String);
-    msgparser_process(pathname, (const char_t *)file_data, file_size, &ids, &texts, pack->errors);
+    msgparser_process(pathname, cast_const(file_data, char_t), file_size, &ids, &texts, pack->errors);
     if (num_errors == arrpt_size(pack->errors, String))
     {
         uint32_t i, num_texts = arrpt_size(ids, String);

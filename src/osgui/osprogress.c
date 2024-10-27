@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void osprogress_detach_and_destroy(OSProgress **progress, OSPanel *panel)
+void _osprogress_detach_and_destroy(OSProgress **progress, OSPanel *panel)
 {
     cassert_no_null(progress);
     osprogress_detach(*progress, panel);

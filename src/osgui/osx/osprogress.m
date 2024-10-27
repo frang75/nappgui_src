@@ -59,15 +59,18 @@ OSProgress *osprogress_create(const uint32_t flags)
     [progress setIndeterminate:NO];
     [progress setMinValue:0.];
     [progress setMaxValue:1.];
-    return (OSProgress *)progress;
+    return cast(progress, OSProgress);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_destroy(OSProgress **progress)
 {
+    OSXProgress *lprogress = nil;
     cassert_no_null(progress);
-    [(OSXProgress *)*progress release];
+    lprogress = *dcast(progress, OSXProgress);
+    cassert_no_null(lprogress);
+    [lprogress release];
     *progress = NULL;
     heap_auditor_delete("OSXProgress");
 }
@@ -76,25 +79,26 @@ void osprogress_destroy(OSProgress **progress)
 
 void osprogress_position(OSProgress *progress, const real32_t position)
 {
-    cassert_no_null(progress);
+    OSXProgress *lprogress = cast(progress, OSXProgress);
+    cassert_no_null(lprogress);
     /* Indeterminate progress */
     if (position < 0.f)
     {
-        if ([(OSXProgress *)progress isIndeterminate] == NO)
-            [(OSXProgress *)progress setIndeterminate:YES];
+        if ([lprogress isIndeterminate] == NO)
+            [lprogress setIndeterminate:YES];
 
         if (position < -1.f)
-            [(OSXProgress *)progress startAnimation:nil];
+            [lprogress startAnimation:nil];
         else
-            [(OSXProgress *)progress stopAnimation:nil];
+            [lprogress stopAnimation:nil];
     }
     else
     {
         cassert(position <= 1.f);
-        if ([(OSXProgress *)progress isIndeterminate] == YES)
-            [(OSXProgress *)progress setIndeterminate:NO];
+        if ([lprogress isIndeterminate] == YES)
+            [lprogress setIndeterminate:NO];
 
-        [(OSXProgress *)progress setDoubleValue:(double)position];
+        [lprogress setDoubleValue:(double)position];
     }
 }
 
@@ -111,21 +115,21 @@ real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
 
 void osprogress_attach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView *)progress);
+    _ospanel_attach_control(panel, cast(progress, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_detach(OSProgress *progress, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView *)progress);
+    _ospanel_detach_control(panel, cast(progress, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_visible(OSProgress *progress, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)progress, visible);
+    _oscontrol_set_visible(cast(progress, NSView), visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -140,21 +144,21 @@ void osprogress_enabled(OSProgress *progress, const bool_t enabled)
 
 void osprogress_size(const OSProgress *progress, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)progress, width, height);
+    _oscontrol_get_size(cast(progress, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_origin(const OSProgress *progress, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)progress, x, y);
+    _oscontrol_get_origin(cast(progress, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osprogress_frame(OSProgress *progress, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView *)progress, x, y, width, height);
+    _oscontrol_set_frame(cast(progress, NSView), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

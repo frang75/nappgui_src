@@ -59,7 +59,7 @@
         params.pos = (real32_t)[sender floatValue];
         params.incr = 0;
         params.step = UINT32_MAX;
-        listener_event(self->OnMoved, ekGUI_EVENT_SLIDER, (OSSlider *)sender, &params, NULL, OSSlider, EvSlider, void);
+        listener_event(self->OnMoved, ekGUI_EVENT_SLIDER, cast(sender, OSSlider), &params, NULL, OSSlider, EvSlider, void);
     }
 }
 
@@ -81,7 +81,7 @@
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down((OSControl *)self) == TRUE)
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         [super mouseDown:theEvent];
 }
 
@@ -128,17 +128,19 @@ OSSlider *osslider_create(const uint32_t flags)
     [slider setTarget:slider];
     [slider setAction:@selector(onSliderMoved:)];
     [slider setNumberOfTickMarks:0];
-    return (OSSlider *)slider;
+    return cast(slider, OSSlider);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_destroy(OSSlider **slider)
 {
+    OSXSlider *lslider = nil;
     cassert_no_null(slider);
-    cassert_no_null(*slider);
-    listener_destroy(&((OSXSlider *)*slider)->OnMoved);
-    [*(OSXSlider **)slider release];
+    lslider = *dcast(slider, OSXSlider);
+    cassert_no_null(lslider);
+    listener_destroy(&lslider->OnMoved);
+    [lslider release];
     heap_auditor_delete("OSXSlider");
     *slider = NULL;
 }
@@ -149,14 +151,14 @@ void osslider_OnMoved(OSSlider *slider, Listener *listener)
 {
     cassert_no_null(slider);
     cassert_no_null(listener);
-    listener_update(&((OSXSlider *)slider)->OnMoved, listener);
+    listener_update(&cast(slider, OSXSlider)->OnMoved, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_tooltip(OSSlider *slider, const char_t *text)
 {
-    _oscontrol_tooltip_set((OSXSlider *)slider, text);
+    _oscontrol_tooltip_set(cast(slider, OSXSlider), text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -204,7 +206,7 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
 
 void osslider_position(OSSlider *slider, const real32_t position)
 {
-    OSXSlider *lslider = (OSXSlider *)slider;
+    OSXSlider *lslider = cast(slider, OSXSlider);
     real32_t pos = position;
     cassert_no_null(lslider);
     cassert(position >= 0.f && position <= 1.f);
@@ -218,7 +220,7 @@ void osslider_position(OSSlider *slider, const real32_t position)
 real32_t osslider_get_position(const OSSlider *slider)
 {
     cassert_no_null(slider);
-    return (real32_t)[(OSXSlider *)slider floatValue];
+    return (real32_t)[cast_const(slider, OSXSlider) floatValue];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -243,7 +245,7 @@ static real32_t i_slider_without_tickmarks_height(const gui_size_t knob_size)
 
 void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_size_t knob_size, real32_t *width, real32_t *height)
 {
-    OSXSlider *lslider = (OSXSlider *)slider;
+    const OSXSlider *lslider = cast_const(slider, OSXSlider);
     cassert_no_null(lslider);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -265,49 +267,49 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
 
 void osslider_attach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView *)slider);
+    _ospanel_attach_control(panel, cast(slider, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_detach(OSSlider *slider, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView *)slider);
+    _ospanel_detach_control(panel, cast(slider, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_visible(OSSlider *slider, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)slider, visible);
+    _oscontrol_set_visible(cast(slider, NSView), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_enabled(OSSlider *slider, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)slider, enabled);
+    _oscontrol_set_enabled(cast(slider, NSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_size(const OSSlider *slider, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)slider, width, height);
+    _oscontrol_get_size(cast(slider, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_origin(const OSSlider *slider, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)slider, x, y);
+    _oscontrol_get_origin(cast(slider, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView *)slider, x, y, width, height);
+    _oscontrol_set_frame(cast(slider, NSView), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

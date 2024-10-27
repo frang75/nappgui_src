@@ -48,7 +48,7 @@ static void i_set_capture(GtkWidget *widget, OSSplit *split)
     }
     else
     {
-        OSControl *control = (OSControl *)g_object_get_data(G_OBJECT(widget), "OSControl");
+        OSControl *control = cast(g_object_get_data(G_OBJECT(widget), "OSControl"), OSControl);
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_PANEL)
@@ -74,7 +74,7 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
     }
     else
     {
-        OSControl *control = (OSControl *)g_object_get_data(G_OBJECT(widget), "OSControl");
+        OSControl *control = cast(g_object_get_data(G_OBJECT(widget), "OSControl"), OSControl);
         if (control != NULL)
         {
             if (control->type == ekGUI_TYPE_PANEL)
@@ -247,35 +247,35 @@ void ossplit_track_area(OSSplit *view, const real32_t x, const real32_t y, const
 
 void ossplit_attach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)view);
+    _ospanel_attach_control(panel, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_detach(OSSplit *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)view);
+    _ospanel_detach_control(panel, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_visible(OSSplit *view, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)view, visible);
+    _oscontrol_set_visible(cast(view, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_enabled(OSSplit *view, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)view, enabled);
+    _oscontrol_set_enabled(cast(view, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)view, width, height);
+    _oscontrol_get_size(cast_const(view, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -292,7 +292,7 @@ void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 
 void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((OSControl *)view, x, y, width, height);
+    _oscontrol_set_frame(cast(view, OSControl), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

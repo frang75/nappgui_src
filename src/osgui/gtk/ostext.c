@@ -71,7 +71,7 @@ static real32_t i_device_to_pixels(void)
     {
         /* This object is owned by Pango and must not be freed */
         PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution((PangoCairoFontMap *)fontmap);
+        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution(cast(fontmap, PangoCairoFontMap));
         i_PANGO_TO_PIXELS = (dpi / 72.f) / PANGO_SCALE;
     }
 
@@ -83,13 +83,13 @@ static real32_t i_device_to_pixels(void)
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSText *view)
 {
     unref(widget);
-    if (_oswindow_mouse_down((OSControl *)view) == TRUE)
+    if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
     {
         if (view->capture != NULL)
         {
             if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
             {
-                _ossplit_OnPress((OSSplit *)view->capture, event);
+                _ossplit_OnPress(cast(view->capture, OSSplit), event);
             }
 
             return TRUE;
@@ -147,7 +147,7 @@ static void i_OnBufferInsert(GtkTextBuffer *buffer, GtkTextIter *location, gchar
 {
     cassert_no_null(view);
     cassert_unref(view->buffer == buffer, buffer);
-    i_OnFilter(view, location, (const char_t *)text, (int32_t)len);
+    i_OnFilter(view, location, cast_const(text, char_t), (int32_t)len);
 
     /* Set the default attribs to new writted text */
     if (view->def_attribs != NULL)
@@ -226,7 +226,7 @@ OSText *ostext_create(const uint32_t flags)
         gtk_widget_show(top);
 
         {
-            String *css = osglobals_frame_focus_css();
+            String *css = _osglobals_frame_focus_css();
             view->css_bdcolor = _oscontrol_css_provider(tc(css));
             str_destroy(&css);
         }
@@ -238,7 +238,6 @@ OSText *ostext_create(const uint32_t flags)
 
     view->launch_event = TRUE;
     _oscontrol_init(&view->control, ekGUI_TYPE_TEXTVIEW, top, focus, TRUE);
-
     return view;
 }
 
@@ -248,14 +247,9 @@ static GtkWidget *i_scrolled_window(const OSText *view)
 {
     GtkWidget *scrolled = NULL;
     cassert_no_null(view);
-
     scrolled = view->control.widget;
-
-    {
-        cassert(GTK_IS_FRAME(scrolled) == TRUE);
-        scrolled = gtk_bin_get_child(GTK_BIN(scrolled));
-    }
-
+    cassert(GTK_IS_FRAME(scrolled) == TRUE);
+    scrolled = gtk_bin_get_child(GTK_BIN(scrolled));
     cassert(GTK_IS_SCROLLED_WINDOW(scrolled));
     return scrolled;
 }
@@ -281,7 +275,7 @@ void ostext_destroy(OSText **view)
     _oscontrol_destroy_css_provider(&(*view)->css_bgcolor);
     _oscontrol_destroy_css_provider(&(*view)->css_pgcolor);
     _oscontrol_destroy_css_provider(&(*view)->css_bdcolor);
-    _oscontrol_destroy(*(OSControl **)view);
+    _oscontrol_destroy(*dcast(view, OSControl));
     heap_delete(view, OSText);
 }
 
@@ -462,7 +456,7 @@ static GtkTextTag *i_tag_attribs(OSText *view)
 
 static void i_global_attribs(OSText *view)
 {
-    const char_t *cssobj = osglobals_css_textview();
+    const char_t *cssobj = _osglobals_css_textview();
     _oscontrol_update_css_font_desc(view->tview, cssobj, view->ffamily, view->fsize, view->fstyle, &view->css_font);
     _oscontrol_update_css_color(view->tview, cssobj, view->color, &view->css_color);
     _oscontrol_update_css_bgcolor(view->tview, cssobj, view->bgcolor, &view->css_bgcolor);
@@ -514,7 +508,7 @@ void ostext_insert_text(OSText *view, const char_t *text)
         view->tag_attribs = i_tag_attribs(view);
 
     gtk_text_buffer_get_end_iter(view->buffer, &end);
-    gtk_text_buffer_insert_with_tags(view->buffer, &end, (const gchar *)text, -1, view->tag_attribs, NULL);
+    gtk_text_buffer_insert_with_tags(view->buffer, &end, cast_const(text, gchar), -1, view->tag_attribs, NULL);
     view->launch_event = TRUE;
 }
 
@@ -587,7 +581,7 @@ static void i_apply_sel(OSText *view)
 
 void ostext_set_text(OSText *view, const char_t *text)
 {
-    GtkTextBuffer *buffer;
+    GtkTextBuffer *buffer = NULL;
     cassert_no_null(view);
     cassert_no_null(text);
     view->launch_event = FALSE;
@@ -599,7 +593,7 @@ void ostext_set_text(OSText *view, const char_t *text)
     }
 
     buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
-    gtk_text_buffer_set_text(buffer, (const gchar *)text, -1);
+    gtk_text_buffer_set_text(buffer, cast_const(text, gchar), -1);
     view->launch_event = TRUE;
 }
 
@@ -659,18 +653,18 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
     switch (prop)
     {
     case ekGUI_TEXT_FAMILY:
-        if (str_cmp_c(view->ffamily, (const char_t *)value) != 0)
+        if (str_cmp_c(view->ffamily, cast_const(value, char_t)) != 0)
         {
-            str_copy_c(view->ffamily, sizeof(view->ffamily), (const char_t *)value);
+            str_copy_c(view->ffamily, sizeof(view->ffamily), cast_const(value, char_t));
             view->tag_attribs = NULL;
             view->global_attribs = FALSE;
         }
         break;
 
     case ekGUI_TEXT_SIZE:
-        if (view->fsize != *((real32_t *)value))
+        if (view->fsize != *cast(value, real32_t))
         {
-            view->fsize = *((real32_t *)value);
+            view->fsize = *cast(value, real32_t);
             view->tag_attribs = NULL;
             view->global_attribs = FALSE;
         }
@@ -678,7 +672,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_STYLE:
     {
-        uint32_t fstyle = *(uint32_t *)value;
+        uint32_t fstyle = *cast(value, uint32_t);
         if (view->fstyle & ekFPOINTS)
             fstyle |= ekFPOINTS;
 
@@ -695,7 +689,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
     {
         uint32_t fstyle = view->fstyle & (~ekFPOINTS);
 
-        if (*((const uint32_t *)value) & ekFPOINTS)
+        if (*cast_const(value, uint32_t) & ekFPOINTS)
             fstyle |= ekFPOINTS;
 
         if (view->fstyle != fstyle)
@@ -708,18 +702,18 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
     }
 
     case ekGUI_TEXT_COLOR:
-        if (view->color != *((color_t *)value))
+        if (view->color != *cast(value, color_t))
         {
-            view->color = *((color_t *)value);
+            view->color = *cast(value, color_t);
             view->tag_attribs = NULL;
             view->global_attribs = FALSE;
         }
         break;
 
     case ekGUI_TEXT_BGCOLOR:
-        if (view->bgcolor != *((color_t *)value))
+        if (view->bgcolor != *cast(value, color_t))
         {
-            view->bgcolor = *((color_t *)value);
+            view->bgcolor = *cast(value, color_t);
             view->tag_attribs = NULL;
             view->global_attribs = FALSE;
         }
@@ -727,15 +721,15 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_PGCOLOR:
     {
-        const char_t *cssobj = osglobals_css_textview();
-        _oscontrol_update_css_bgcolor(view->tview, cssobj, *(color_t *)value, &view->css_pgcolor);
+        const char_t *cssobj = _osglobals_css_textview();
+        _oscontrol_update_css_bgcolor(view->tview, cssobj, *cast(value, color_t), &view->css_pgcolor);
         break;
     }
 
     case ekGUI_TEXT_PARALIGN:
-        if (view->align != *((align_t *)value))
+        if (view->align != *cast(value, align_t))
         {
-            view->align = *((align_t *)value);
+            view->align = *cast(value, align_t);
             view->tag_attribs = NULL;
             view->global_attribs = FALSE;
         }
@@ -743,7 +737,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_LSPACING:
     {
-        real32_t spacing = *((real32_t *)value);
+        real32_t spacing = *cast(value, real32_t);
         gint lspacing = 0;
         if (spacing > 1)
         {
@@ -765,7 +759,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_AFPARSPACE:
     {
-        gint lspace = i_size_pango(*((real32_t *)value), view->fstyle) / PANGO_SCALE;
+        gint lspace = i_size_pango(*cast(value, real32_t), view->fstyle) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->afspace_px)
         {
             view->afspace_px = lspace;
@@ -778,7 +772,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_BFPARSPACE:
     {
-        gint lspace = i_size_pango(*((real32_t *)value), view->fstyle) / PANGO_SCALE;
+        gint lspace = i_size_pango(*cast(value, real32_t), view->fstyle) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->bfspace_px)
         {
             view->bfspace_px = lspace;
@@ -799,7 +793,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_SELECT:
     {
-        int32_t *range = (int32_t *)value;
+        int32_t *range = cast(value, int32_t);
         view->select_start = range[0];
         view->select_end = range[1];
         g_idle_add((GSourceFunc)i_select, view);
@@ -808,7 +802,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_SHOW_SELECT:
     {
-        bool_t show = *(bool_t *)value;
+        bool_t show = *cast(value, bool_t);
         view->show_select = show;
         break;
     }
@@ -847,12 +841,12 @@ const char_t *ostext_get_text(const OSText *view)
     if (view->text_cache != NULL)
     {
         g_free(view->text_cache);
-        ((OSText *)view)->text_cache = NULL;
+        cast(view, OSText)->text_cache = NULL;
     }
 
     gtk_text_buffer_get_start_iter(view->buffer, &start);
     gtk_text_buffer_get_end_iter(view->buffer, &end);
-    ((OSText *)view)->text_cache = gtk_text_buffer_get_text(view->buffer, &start, &end, FALSE);
+    cast(view, OSText)->text_cache = gtk_text_buffer_get_text(view->buffer, &start, &end, FALSE);
     return view->text_cache;
 }
 
@@ -908,14 +902,14 @@ void ostext_clipboard(OSText *view, const clipboard_t clipboard)
 
 void ostext_attach(OSText *view, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)view);
+    _ospanel_attach_control(panel, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_detach(OSText *view, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)view);
+    _ospanel_detach_control(panel, cast(view, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -923,7 +917,7 @@ void ostext_detach(OSText *view, OSPanel *panel)
 void ostext_visible(OSText *view, const bool_t visible)
 {
     cassert_no_null(view);
-    _oscontrol_set_visible((OSControl *)view, visible);
+    _oscontrol_set_visible(cast(view, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -931,21 +925,21 @@ void ostext_visible(OSText *view, const bool_t visible)
 void ostext_enabled(OSText *view, const bool_t enabled)
 {
     cassert_no_null(view);
-    _oscontrol_set_enabled((OSControl *)view, enabled);
+    _oscontrol_set_enabled(cast(view, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_size(const OSText *view, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)view, width, height);
+    _oscontrol_get_size(cast_const(view, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ostext_origin(const OSText *view, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)view, x, y);
+    _oscontrol_get_origin(cast_const(view, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -953,12 +947,12 @@ void ostext_origin(const OSText *view, real32_t *x, real32_t *y)
 void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(view);
-    _oscontrol_set_frame((OSControl *)view, x, y, width, height);
+    _oscontrol_set_frame(cast(view, OSControl), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_focus(OSText *view, const bool_t focus)
+void _ostext_focus(OSText *view, const bool_t focus)
 {
     cassert_no_null(view);
     if (view->OnFocus != NULL)
@@ -1002,7 +996,7 @@ void ostext_focus(OSText *view, const bool_t focus)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t ostext_capture_return(const OSText *view)
+bool_t _ostext_capture_return(const OSText *view)
 {
     cassert_no_null(view);
     return (bool_t)gtk_text_view_get_editable(GTK_TEXT_VIEW(view->tview));

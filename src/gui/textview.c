@@ -167,7 +167,7 @@ uint32_t textview_printf(TextView *view, const char_t *format, ...)
     }
     else
     {
-        text_alloc = (char_t *)heap_malloc(length, "TextViewPrintf");
+        text_alloc = cast(heap_malloc(length, "TextViewPrintf"), char_t);
         text = text_alloc;
     }
 
@@ -186,7 +186,7 @@ uint32_t textview_printf(TextView *view, const char_t *format, ...)
     view->component.context->func_text_insert_text(view->component.ositem, text);
 
     if (text_alloc != NULL)
-        heap_free((byte_t **)&text_alloc, length, "TextViewPrintf");
+        heap_free(dcast(&text_alloc, byte_t), length, "TextViewPrintf");
 
     return length - 1;
 }

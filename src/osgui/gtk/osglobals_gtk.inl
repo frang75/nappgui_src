@@ -14,63 +14,63 @@
 
 __EXTERN_C
 
-void osglobals_init(void);
+void _osglobals_init(void);
 
-void osglobals_finish(void);
+void _osglobals_finish(void);
 
-bool_t osglobals_impostor_mapped(void);
+bool_t _osglobals_impostor_mapped(void);
 
-GtkStyleContext *osglobals_entry_context(void);
+GtkStyleContext *_osglobals_entry_context(void);
 
-GtkStyleContext *osglobals_button_context(void);
+GtkStyleContext *_osglobals_button_context(void);
 
-GtkStyleContext *osglobals_table_context(void);
+GtkStyleContext *_osglobals_table_context(void);
 
-const char_t *osglobals_css_label(void);
+const char_t *_osglobals_css_label(void);
 
-const char_t *osglobals_css_entry(void);
+const char_t *_osglobals_css_entry(void);
 
-const char_t *osglobals_css_button(void);
+const char_t *_osglobals_css_button(void);
 
-const char_t *osglobals_css_radio(void);
+const char_t *_osglobals_css_radio(void);
 
-const char_t *osglobals_css_check(void);
+const char_t *_osglobals_css_check(void);
 
-const char_t *osglobals_css_combobox(void);
+const char_t *_osglobals_css_combobox(void);
 
-const char_t *osglobals_css_textview(void);
+const char_t *_osglobals_css_textview(void);
 
-const char_t *osglobals_css_textview_text(void);
+const char_t *_osglobals_css_textview_text(void);
 
-color_t osglobals_text_color(void);
+color_t _osglobals_text_color(void);
 
-color_t osglobals_seltext_color(void);
+color_t _osglobals_seltext_color(void);
 
-color_t osglobals_hottext_color(void);
+color_t _osglobals_hottext_color(void);
 
-color_t osglobals_textbackdrop_color(void);
+color_t _osglobals_textbackdrop_color(void);
 
-color_t osglobals_seltextbackdrop_color(void);
+color_t _osglobals_seltextbackdrop_color(void);
 
-color_t osglobals_hottextbackdrop_color(void);
+color_t _osglobals_hottextbackdrop_color(void);
 
-color_t osglobals_border_color(void);
+color_t _osglobals_border_color(void);
 
-uint32_t osglobals_check_width(void);
+uint32_t _osglobals_check_width(void);
 
-uint32_t osglobals_check_height(void);
+uint32_t _osglobals_check_height(void);
 
-uint32_t osglobals_entry_height(void);
+uint32_t _osglobals_entry_height(void);
 
-uint32_t osglobals_progress_height(void);
+uint32_t _osglobals_progress_height(void);
 
-uint32_t osglobals_scrollbar_height(void);
+uint32_t _osglobals_scrollbar_height(void);
 
-GdkPixbuf *osglobals_checks_bitmap(void);
+GdkPixbuf *_osglobals_checks_bitmap(void);
 
-String *osglobals_frame_focus_css(void);
+String *_osglobals_frame_focus_css(void);
 
-void osglobals_restore_focus(GtkWidget *window, GtkWidget *widget);
+void _osglobals_restore_focus(GtkWidget *window, GtkWidget *widget);
 
 extern const uint32_t kBUTTON_VPADDING;
 

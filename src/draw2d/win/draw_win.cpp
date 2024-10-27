@@ -651,7 +651,7 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
     INT lstyle;
 
     family = font_family(font);
-    unicode_convers(family, (char_t *)wfamily, ekUTF8, ekUTF16, sizeof(wfamily));
+    unicode_convers(family, cast(wfamily, char_t), ekUTF8, ekUTF16, sizeof(wfamily));
 
     style = font_style(font);
     lstyle = 0;

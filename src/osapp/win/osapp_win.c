@@ -165,7 +165,7 @@ uint32_t osapp_argv_imp(OSApp *app, const uint32_t index, char_t *argv, const ui
     cassert_no_null(app);
     cassert(app == &i_APP);
     cassert(index < (uint32_t)app->nArgs);
-    return unicode_convers((const char_t *)app->szArgList[index], argv, ekUTF16, ekUTF8, max_size);
+    return unicode_convers(cast_const(app->szArgList[index], char_t), argv, ekUTF16, ekUTF8, max_size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -243,7 +243,7 @@ void osapp_open_url(const char_t *url)
 {
     WCHAR wurl[512];
     uint32_t num_bytes = 0;
-    num_bytes = unicode_convers(url, (char_t *)wurl, ekUTF8, ekUTF16, sizeof(wurl));
+    num_bytes = unicode_convers(url, cast(wurl, char_t), ekUTF8, ekUTF16, sizeof(wurl));
     cassert_unref(num_bytes < sizeof(wurl), num_bytes);
     ShellExecute(NULL, L"open", wurl, NULL, NULL, SW_RESTORE);
 }

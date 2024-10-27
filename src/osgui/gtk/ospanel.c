@@ -187,7 +187,7 @@ void ospanel_destroy(OSPanel **panel)
     if ((*panel)->areas != NULL)
         arrst_destroy(&(*panel)->areas, NULL, Area);
 
-    _oscontrol_destroy(*(OSControl **)panel);
+    _oscontrol_destroy(*dcast(panel, OSControl));
     heap_delete(panel, OSPanel);
 }
 
@@ -274,28 +274,28 @@ void ospanel_display(OSPanel *panel)
 
 void ospanel_attach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _ospanel_attach_control(parent_panel, (OSControl *)panel);
+    _ospanel_attach_control(parent_panel, cast(panel, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _ospanel_detach_control(parent_panel, (OSControl *)panel);
+    _ospanel_detach_control(parent_panel, cast(panel, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_visible(OSPanel *panel, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)panel, visible);
+    _oscontrol_set_visible(cast(panel, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_enabled(OSPanel *panel, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)panel, enabled);
+    _oscontrol_set_enabled(cast(panel, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -314,7 +314,7 @@ void ospanel_size(const OSPanel *panel, real32_t *width, real32_t *height)
 
 void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)panel, x, y);
+    _oscontrol_get_origin(cast_const(panel, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -322,7 +322,7 @@ void ospanel_origin(const OSPanel *panel, real32_t *x, real32_t *y)
 void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(panel);
-    _oscontrol_set_frame((OSControl *)panel, x, y, width, height);
+    _oscontrol_set_frame(cast(panel, OSControl), x, y, width, height);
     panel->width = width;
     panel->height = height;
 }
@@ -343,7 +343,7 @@ static void i_destroy_child(GtkWidget *widget, gpointer data)
 {
     OSPanel *panel = cast(data, OSPanel);
     OSControl *control = cast(g_object_get_data(G_OBJECT(widget), "OSControl"), OSControl);
-    oscontrol_detach_and_destroy(&control, panel);
+    _oscontrol_detach_and_destroy(&control, panel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -390,7 +390,7 @@ void _ospanel_release_capture(OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t ospanel_with_scroll(const OSPanel *panel)
+bool_t _ospanel_with_scroll(const OSPanel *panel)
 {
     cassert_no_null(panel);
     return (bool_t)(panel->hadjust != NULL);
@@ -398,10 +398,9 @@ bool_t ospanel_with_scroll(const OSPanel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
+void _ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 {
     cassert_no_null(panel);
-
     if (panel->hadjust != NULL && x != INT32_MAX)
         gtk_adjustment_set_value(panel->hadjust, (gdouble)x);
 
@@ -411,7 +410,7 @@ void ospanel_scroll(OSPanel *panel, const int32_t x, const int32_t y)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
+void _ospanel_scroll_frame(const OSPanel *panel, OSFrame *rect)
 {
     real32_t w, h;
     cassert_no_null(panel);

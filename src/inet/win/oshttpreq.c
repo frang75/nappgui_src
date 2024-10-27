@@ -66,7 +66,7 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
     if (http->hInternet != NULL)
     {
         WCHAR whost[128];
-        unicode_convers(host, (char_t *)whost, ekUTF8, ekUTF16, sizeof(whost));
+        unicode_convers(host, cast(whost, char_t), ekUTF8, ekUTF16, sizeof(whost));
         http->hConnect = InternetConnect(http->hInternet, whost, (INTERNET_PORT)port, NULL, NULL, INTERNET_SERVICE_HTTP, 0, 0);
 
         if (http->hConnect == NULL)
@@ -142,7 +142,7 @@ static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const
         return;
     }
 
-    unicode_convers(path, (char_t *)wpath, ekUTF8, ekUTF16, sizeof(wpath));
+    unicode_convers(path, cast(wpath, char_t), ekUTF8, ekUTF16, sizeof(wpath));
 
     if (http->hRequest != NULL)
     {
@@ -162,7 +162,7 @@ static void i_request(OSHttp *http, const WCHAR *verb, const char_t *path, const
     hsize = stm_bytes_written(http->headers);
     if (hsize > 0)
     {
-        WCHAR *lpszHeaders = (WCHAR *)stm_buffer(http->headers);
+        WCHAR *lpszHeaders = cast(stm_buffer(http->headers), WCHAR);
         status = HttpSendRequest(http->hRequest, lpszHeaders, (DWORD)hsize / sizeof(WCHAR), (LPVOID)data, (DWORD)size);
     }
     else
@@ -208,7 +208,7 @@ Stream *oshttp_response(OSHttp *http)
         DWORD size = 512;
         for (i = 0; i < 2; ++i)
         {
-            WCHAR *data = (WCHAR *)heap_malloc((uint32_t)asize, "http_headers");
+            WCHAR *data = cast(heap_malloc((uint32_t)asize, "http_headers"), WCHAR);
 
             if (HttpQueryInfo(http->hRequest, HTTP_QUERY_RAW_HEADERS_CRLF, (LPVOID)data, &size, NULL) == TRUE)
             {
@@ -224,13 +224,13 @@ Stream *oshttp_response(OSHttp *http)
                     stm_write_char(stm_dest, 10); /* LF '\n' */
                 stm_next(line, stm_src)
 
-                heap_free((byte_t **)&data, (uint32_t)asize, "http_headers");
+                heap_free(dcast(&data, byte_t), (uint32_t)asize, "http_headers");
                 stm_close(&stm_src);
                 return stm_dest;
             }
             else
             {
-                heap_free((byte_t **)&data, (uint32_t)asize, "http_headers");
+                heap_free(dcast(&data, byte_t), (uint32_t)asize, "http_headers");
                 if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
                 {
                     asize = size;

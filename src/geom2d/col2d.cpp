@@ -64,7 +64,7 @@ static void i_destroy(SATPoly<real> **poly)
     cassert_no_null(poly);
     cassert_no_null(*poly);
     msize = (uint32_t)(sizeof(SATPoly<real>) + (*poly)->num_vertices * sizeof(V2D<real>) + (*poly)->num_axis * sizeof(V2D<real>) + 2 * (*poly)->num_axis * sizeof(real));
-    heap_free((byte_t **)poly, msize, "SATPoly");
+    heap_free(dcast(poly, byte_t), msize, "SATPoly");
 }
 
 /*---------------------------------------------------------------------------*/

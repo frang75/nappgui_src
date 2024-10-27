@@ -32,7 +32,7 @@
 {
   @public
     OSTextAttr attrs;
-    Listener *OnSelect_listener;
+    Listener *OnSelect;
 }
 @end
 
@@ -45,13 +45,13 @@
 - (IBAction)onSelectionChange:(id)sender
 {
     cassert(sender == self);
-    if ([self isEnabled] == YES && self->OnSelect_listener != NULL)
+    if ([self isEnabled] == YES && self->OnSelect != NULL)
     {
         EvButton params;
         params.state = ekGUI_ON;
         params.index = (uint32_t)[self indexOfSelectedItem];
         params.text = NULL; /*(const char_t*)[[self titleOfSelectedItem] UTF8String];*/
-        listener_event(self->OnSelect_listener, ekGUI_EVENT_POPUP, (OSPopUp *)sender, &params, NULL, OSPopUp, EvButton, void);
+        listener_event(self->OnSelect, ekGUI_EVENT_POPUP, cast(sender, OSPopUp), &params, NULL, OSPopUp, EvButton, void);
     }
 }
 
@@ -59,7 +59,7 @@
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    if (_oswindow_mouse_down((OSControl *)self) == TRUE)
+    if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         [super mouseDown:theEvent];
 }
 
@@ -74,7 +74,7 @@ OSPopUp *ospopup_create(const uint32_t flags)
     unref(flags);
     heap_auditor_add("OSXPopUp");
     popup = [[OSXPopUp alloc] initWithFrame:NSZeroRect];
-    popup->OnSelect_listener = NULL;
+    popup->OnSelect = NULL;
     _oscontrol_init(popup);
     _oscontrol_init_textattr(&popup->attrs);
     _oscontrol_set_font(popup, &popup->attrs, popup->attrs.font);
@@ -85,18 +85,18 @@ OSPopUp *ospopup_create(const uint32_t flags)
     [popup setPullsDown:NO];
     [popup setTarget:popup];
     [popup setAction:@selector(onSelectionChange:)];
-    return (OSPopUp *)popup;
+    return cast(popup, OSPopUp);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_destroy(OSPopUp **popup)
 {
-    OSXPopUp *lpopup;
+    OSXPopUp *lpopup = nil;
     cassert_no_null(popup);
-    lpopup = (OSXPopUp *)*popup;
+    lpopup = *dcast(popup, OSXPopUp);
     cassert_no_null(lpopup);
-    listener_destroy(&lpopup->OnSelect_listener);
+    listener_destroy(&lpopup->OnSelect);
     _oscontrol_remove_textattr(&lpopup->attrs);
     [lpopup release];
     *popup = NULL;
@@ -108,34 +108,34 @@ void ospopup_destroy(OSPopUp **popup)
 void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 {
     cassert_no_null(popup);
-    listener_update(&((OSXPopUp *)popup)->OnSelect_listener, listener);
+    listener_update(&cast(popup, OSXPopUp)->OnSelect, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
 {
+    OSXPopUp *lpopup = cast(popup, OSXPopUp);
     NSString *str = nil;
-    cassert_no_null(popup);
+    cassert_no_null(lpopup);
     cassert_no_null(text);
-    unref(image);
-    str = [[NSString alloc] initWithUTF8String:(const char *)text];
-    [(OSXPopUp *)popup addItemWithTitle:str];
+    str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
+    [lpopup addItemWithTitle:str];
     [str release];
 
     if (image != NULL)
     {
         NSInteger num_items;
         NSMenuItem *item = nil;
-        NSImage *nsimage = (NSImage *)image_native(image);
+        NSImage *nsimage = cast(image_native(image), NSImage);
 #if defined(__ASSERTS__)
         NSSize size = [nsimage size];
         cassert(size.width == 16.f && size.height == 16.f);
 #endif
 
-        num_items = [(OSXPopUp *)popup numberOfItems];
+        num_items = [lpopup numberOfItems];
         cassert(num_items > 0);
-        item = [(OSXPopUp *)popup itemAtIndex:num_items - 1];
+        item = [lpopup itemAtIndex:num_items - 1];
         [item setImage:nsimage];
         [item setOnStateImage:nil];
         [item setMixedStateImage:nil];
@@ -155,13 +155,13 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const 
         NSArray *items = nil;
         NSMenuItem *item = nil;
         cassert_no_null(popup);
-        items = [((OSXPopUp *)popup) itemArray];
+        items = [cast(popup, OSXPopUp) itemArray];
         cassert_no_null(items);
         cassert(idx < [items count]);
         item = [items objectAtIndex:(NSUInteger)idx];
 
         {
-            NSString *str = [[NSString alloc] initWithUTF8String:(const char *)text];
+            NSString *str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
             [item setTitle:str];
             [str release];
         }
@@ -174,7 +174,7 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const 
         }
 #endif
 
-        [item setImage:image != NULL ? (NSImage *)image_native(image) : nil];
+        [item setImage:image != NULL ? cast(image_native(image), NSImage) : nil];
     }
     else
     {
@@ -194,7 +194,7 @@ void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 
 void ospopup_font(OSPopUp *popup, const Font *font)
 {
-    OSXPopUp *lpopup = (OSXPopUp *)popup;
+    OSXPopUp *lpopup = cast(popup, OSXPopUp);
     cassert_no_null(lpopup);
     _oscontrol_set_font(lpopup, &lpopup->attrs, font);
 }
@@ -211,7 +211,7 @@ void ospopup_list_height(OSPopUp *popup, const uint32_t num_elems)
 
 void ospopup_selected(OSPopUp *popup, const uint32_t lindex)
 {
-    OSXPopUp *lpopup = (OSXPopUp *)popup;
+    OSXPopUp *lpopup = cast(popup, OSXPopUp);
     cassert_no_null(lpopup);
     if (lindex != UINT32_MAX)
     {
@@ -228,7 +228,7 @@ void ospopup_selected(OSPopUp *popup, const uint32_t lindex)
 
 uint32_t ospopup_get_selected(const OSPopUp *popup)
 {
-    OSXPopUp *lpopup = (OSXPopUp *)popup;
+    OSXPopUp *lpopup = cast(popup, OSXPopUp);
     cassert_no_null(lpopup);
     return (uint32_t)[lpopup indexOfSelectedItem];
 }
@@ -237,7 +237,7 @@ uint32_t ospopup_get_selected(const OSPopUp *popup)
 
 void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height)
 {
-    OSXPopUp *lpopup = (OSXPopUp *)popup;
+    OSXPopUp *lpopup = cast(popup, OSXPopUp);
     cassert_no_null(lpopup);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -250,49 +250,49 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
 
 void ospopup_attach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (NSView *)popup);
+    _ospanel_attach_control(panel, cast(popup, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_detach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (NSView *)popup);
+    _ospanel_detach_control(panel, cast(popup, NSView));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_visible(OSPopUp *popup, const bool_t visible)
 {
-    _oscontrol_set_visible((NSView *)popup, visible);
+    _oscontrol_set_visible(cast(popup, NSView), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_enabled(OSPopUp *popup, const bool_t enabled)
 {
-    _oscontrol_set_enabled((NSControl *)popup, enabled);
+    _oscontrol_set_enabled(cast(popup, NSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_size(const OSPopUp *popup, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((NSView *)popup, width, height);
+    _oscontrol_get_size(cast(popup, NSView), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_origin(const OSPopUp *popup, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((NSView *)popup, x, y);
+    _oscontrol_get_origin(cast(popup, NSView), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    _oscontrol_set_frame((NSView *)popup, x, y, width, height);
+    _oscontrol_set_frame(cast(popup, NSView), x, y, width, height);
 }
 
 /*---------------------------------------------------------------------------*/

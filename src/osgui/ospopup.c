@@ -16,7 +16,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_detach_and_destroy(OSPopUp **popup, OSPanel *panel)
+void _ospopup_detach_and_destroy(OSPopUp **popup, OSPanel *panel)
 {
     cassert_no_null(popup);
     ospopup_detach(*popup, panel);

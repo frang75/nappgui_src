@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-void ospopup_detach_and_destroy(OSPopUp **popup, OSPanel *panel);
+void _ospopup_detach_and_destroy(OSPopUp **popup, OSPanel *panel);
 
 __END_C

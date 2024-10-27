@@ -128,7 +128,7 @@
         _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
         params.x = (real32_t)origin_x;
         params.y = (real32_t)origin_y;
-        listener_event(self->OnMoved, ekGUI_EVENT_WND_MOVED, (OSWindow *)window, &params, NULL, OSWindow, EvPos, void);
+        listener_event(self->OnMoved, ekGUI_EVENT_WND_MOVED, cast(window, OSWindow), &params, NULL, OSWindow, EvPos, void);
     }
 
     window->last_moved_by_interface = NO;
@@ -138,7 +138,7 @@
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)frameSize
 {
-    OSXWindow *window = (OSXWindow *)sender;
+    OSXWindow *window = cast(sender, OSXWindow);
     if (self->OnResize != NULL && window->launch_resize_event == YES)
     {
         NSRect frame, content_frame;
@@ -158,8 +158,8 @@
          */
         [window disableScreenUpdatesUntilFlush];
 
-        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZING, (OSWindow *)window, &params, &result, OSWindow, EvSize, EvSize);
-        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZE, (OSWindow *)window, &result, NULL, OSWindow, EvSize, void);
+        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZING, cast(window, OSWindow), &params, &result, OSWindow, EvSize, EvSize);
+        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZE, cast(window, OSWindow), &result, NULL, OSWindow, EvSize, void);
         frame = [window frameRectForContentRect:NSMakeRect(0.f, 0.f, (CGFloat)result.width, (CGFloat)result.height)];
         return frame.size;
     }
@@ -179,14 +179,14 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
     /* Checks if the current control allows the window to be closed */
     if (close_origin == ekGUI_CLOSE_INTRO)
-        closed = ostabstop_can_close_window(&window->tabstop);
+        closed = _ostabstop_can_close_window(&window->tabstop);
 
     /* Notify the user and check if allows the window to be closed */
     if (closed == TRUE && delegate->OnClose != NULL)
     {
         EvWinClose params;
         params.origin = close_origin;
-        listener_event(delegate->OnClose, ekGUI_EVENT_WND_CLOSE, (OSWindow *)window, &params, &closed, OSWindow, EvWinClose, bool_t);
+        listener_event(delegate->OnClose, ekGUI_EVENT_WND_CLOSE, cast(window, OSWindow), &params, &closed, OSWindow, EvWinClose, bool_t);
     }
 
     return closed;
@@ -226,7 +226,7 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 - (id)windowWillReturnFieldEditor:(NSWindow *)sender toObject:(id)client
 {
     /* https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/TextEditing/Tasks/FieldEditor.html */
-    OSXWindow *window = (OSXWindow *)sender;
+    OSXWindow *window = cast(sender, OSXWindow);
     cassert([sender isKindOfClass:[OSXWindow class]]);
     if (window->text_editor == nil)
         window->text_editor = [[OSXText alloc] initWithFrame:NSMakeRect(0, 0, 10, 10)];
@@ -299,7 +299,7 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
     if (code == kVK_Tab)
     {
-        if (ostabstop_capture_tab(&self->tabstop) == FALSE)
+        if (_ostabstop_capture_tab(&self->tabstop) == FALSE)
         {
             BOOL previous = NO;
 
@@ -312,9 +312,9 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 #endif
 
             if (previous == YES)
-                ostabstop_prev(&self->tabstop, TRUE);
+                _ostabstop_prev(&self->tabstop, TRUE);
             else
-                ostabstop_next(&self->tabstop, TRUE);
+                _ostabstop_next(&self->tabstop, TRUE);
 
             return YES;
         }
@@ -326,9 +326,9 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
     else if (code == kVK_Return || code == kVK_ANSI_KeypadEnter)
     {
-        if (ostabstop_capture_return(&self->tabstop) == FALSE)
+        if (_ostabstop_capture_return(&self->tabstop) == FALSE)
         {
-            BOOL def = _osbutton_OnIntro((NSResponder *)self->tabstop.defbutton);
+            BOOL def = _osbutton_OnIntro(cast(self->tabstop.defbutton, NSResponder));
 
             if (self->flags & ekWINDOW_RETURN)
             {
@@ -360,9 +360,9 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
     {
         if (theEvent != (NSEvent *)231)
         {
-            vkey_t vkey = osgui_vkey([theEvent keyCode]);
-            uint32_t modifiers = osgui_modifiers((NSUInteger)[theEvent modifierFlags]);
-            if (oswindow_hotkey_process(cast(self, OSWindow), self->hotkeys, vkey, modifiers) == TRUE)
+            vkey_t vkey = _osgui_vkey([theEvent keyCode]);
+            uint32_t modifiers = _osgui_modifiers((NSUInteger)[theEvent modifierFlags]);
+            if (_oswindow_hotkey_process(cast(self, OSWindow), self->hotkeys, vkey, modifiers) == TRUE)
                 return YES;
         }
     }
@@ -376,7 +376,7 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 {
     if ([self processKeyDown:theEvent] == NO)
     {
-        if (theEvent != (NSEvent *)231)
+        if (theEvent != cast(231, NSEvent))
             [super keyDown:theEvent];
     }
 }
@@ -439,7 +439,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->hotkeys = NULL;
     window->text_editor = nil;
     window->current_focus = nil;
-    ostabstop_init(&window->tabstop, (OSWindow *)window);
+    _ostabstop_init(&window->tabstop, cast(window, OSWindow));
     heap_auditor_add("OSXWindowDelegate");
     delegate = [OSXWindowDelegate alloc];
     delegate->OnMoved = NULL;
@@ -458,7 +458,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     [window setReleasedWhenClosed:NO];
     /* [window setBecomesKeyOnlyIfNeeded:YES]; */
     cassert([window contentView] != nil);
-    return (OSWindow *)window;
+    return cast(window, OSWindow);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -474,21 +474,21 @@ OSWindow *oswindow_managed(void *native_ptr)
 
 void oswindow_destroy(OSWindow **window)
 {
-    OSXWindow *windowp = NULL;
-    OSXWindowDelegate *delegate = NULL;
+    OSXWindow *lwindow = nil;
+    OSXWindowDelegate *delegate = nil;
     cassert_no_null(window);
-    cassert([(NSResponder *)*window isKindOfClass:[OSXWindow class]] == YES);
-    windowp = (OSXWindow *)*window;
-    cassert_no_null(windowp);
-    delegate = [windowp delegate];
+    lwindow = *dcast(window, OSXWindow);
+    cassert([cast(lwindow, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert_no_null(lwindow);
+    delegate = [lwindow delegate];
     cassert_no_null(delegate);
 
-    if (windowp->text_editor != nil)
-        [windowp->text_editor release];
+    if (lwindow->text_editor != nil)
+        [lwindow->text_editor release];
 
-    if (windowp->destroy_main_view == YES)
+    if (lwindow->destroy_main_view == YES)
     {
-        OSPanel *panel = (OSPanel *)[windowp contentView];
+        OSPanel *panel = cast([lwindow contentView], OSPanel);
         if (panel != NULL)
         {
             oswindow_detach_panel(*window, panel);
@@ -496,16 +496,16 @@ void oswindow_destroy(OSWindow **window)
         }
     }
 
-    cassert([windowp contentView] == nil);
-    ostabstop_remove(&windowp->tabstop);
-    oswindow_hotkey_destroy(&windowp->hotkeys);
+    cassert([lwindow contentView] == nil);
+    _ostabstop_remove(&lwindow->tabstop);
+    _oswindow_hotkey_destroy(&lwindow->hotkeys);
     listener_destroy(&delegate->OnMoved);
     listener_destroy(&delegate->OnResize);
     listener_destroy(&delegate->OnClose);
-    [windowp setDelegate:nil];
+    [lwindow setDelegate:nil];
     [delegate release];
-    [windowp close];
-    [windowp release];
+    [lwindow close];
+    [lwindow release];
     *window = NULL;
 }
 
@@ -513,10 +513,10 @@ void oswindow_destroy(OSWindow **window)
 
 void oswindow_OnMoved(OSWindow *window, Listener *listener)
 {
-    OSXWindowDelegate *delegate;
+    OSXWindowDelegate *delegate = nil;
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    delegate = [(OSXWindow *)window delegate];
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    delegate = [cast(window, OSXWindow) delegate];
     cassert_no_null(delegate);
     listener_update(&delegate->OnMoved, listener);
 }
@@ -525,10 +525,10 @@ void oswindow_OnMoved(OSWindow *window, Listener *listener)
 
 void oswindow_OnResize(OSWindow *window, Listener *listener)
 {
-    OSXWindowDelegate *delegate;
+    OSXWindowDelegate *delegate = nil;
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    delegate = [(OSXWindow *)window delegate];
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    delegate = [cast(window, OSXWindow) delegate];
     cassert_no_null(delegate);
     listener_update(&delegate->OnResize, listener);
 }
@@ -537,10 +537,10 @@ void oswindow_OnResize(OSWindow *window, Listener *listener)
 
 void oswindow_OnClose(OSWindow *window, Listener *listener)
 {
-    OSXWindowDelegate *delegate;
+    OSXWindowDelegate *delegate = nil;
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    delegate = [(OSXWindow *)window delegate];
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    delegate = [cast(window, OSXWindow) delegate];
     cassert_no_null(delegate);
     listener_update(&delegate->OnClose, listener);
 }
@@ -549,17 +549,18 @@ void oswindow_OnClose(OSWindow *window, Listener *listener)
 
 void oswindow_title(OSWindow *window, const char_t *text)
 {
-    NSString *str;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    NSString *str = nil;
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
 #if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-    cassert(([(OSXWindow *)window styleMask] & NSWindowStyleMaskTitled) == NSWindowStyleMaskTitled);
+    cassert(([lwindow styleMask] & NSWindowStyleMaskTitled) == NSWindowStyleMaskTitled);
 #else
-    cassert(([(OSXWindow *)window styleMask] & NSTitledWindowMask) == NSTitledWindowMask);
+    cassert(([lwindow styleMask] & NSTitledWindowMask) == NSTitledWindowMask);
 #endif
     cassert_no_null(text);
-    str = [[NSString alloc] initWithUTF8String:(const char *)text];
-    [(OSXWindow *)window setTitle:str];
+    str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
+    [lwindow setTitle:str];
     [str release];
 }
 
@@ -567,76 +568,81 @@ void oswindow_title(OSWindow *window, const char_t *text)
 
 void oswindow_edited(OSWindow *window, const bool_t is_edited)
 {
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    [(OSXWindow *)window setDocumentEdited:(BOOL)is_edited];
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    [lwindow setDocumentEdited:(BOOL)is_edited];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_movable(OSWindow *window, const bool_t is_movable)
 {
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
 #if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
-    [(OSXWindow *)window setMovable:(BOOL)is_movable];
+    [lwindow setMovable:(BOOL)is_movable];
 #endif
-    [(OSXWindow *)window setMovableByWindowBackground:(BOOL)is_movable];
+    [lwindow setMovableByWindowBackground:(BOOL)is_movable];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_z_order(OSWindow *window, OSWindow *below_window)
 {
+    OSXWindow *lwindow = cast(window, OSXWindow);
     NSInteger below_level = 0;
-    cassert_no_null(window);
+    cassert_no_null(lwindow);
     cassert_no_null(below_window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     below_level = [(OSXWindow *)below_window level];
-    [(OSXWindow *)window setLevel:below_level + 10];
+    [lwindow setLevel:below_level + 10];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_alpha(OSWindow *window, const real32_t alpha)
 {
-    cassert_no_null(window);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
     cassert(alpha >= 0.f && alpha <= 1.f);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     cassert(FALSE);
-    ((OSXWindow *)window)->alpha = (CGFloat)alpha;
+    lwindow->alpha = (CGFloat)alpha;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_enable_mouse_events(OSWindow *window, const bool_t enabled)
 {
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    [(OSXWindow *)window setIgnoresMouseEvents:!(BOOL)enabled];
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    [lwindow setIgnoresMouseEvents:!(BOOL)enabled];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_hotkey(OSWindow *window, const vkey_t key, const uint32_t modifiers, Listener *listener)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    oswindow_hotkey_set(&windowp->hotkeys, key, modifiers, listener);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    _oswindow_hotkey_set(&lwindow->hotkeys, key, modifiers, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_taborder(OSWindow *window, OSControl *control)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    ostabstop_list_add(&windowp->tabstop, control);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    _ostabstop_list_add(&lwindow->tabstop, control);
     if (control == NULL)
     {
         /* The window main panel has changed. We ensure that default button is still valid */
-        windowp->tabstop.defbutton = oswindow_apply_default_button(window, windowp->tabstop.defbutton);
+        lwindow->tabstop.defbutton = _oswindow_apply_default_button(window, lwindow->tabstop.defbutton);
     }
 }
 
@@ -644,77 +650,80 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
 
 void oswindow_tabcycle(OSWindow *window, const bool_t cycle)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    windowp->tabstop.cycle = cycle;
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    lwindow->tabstop.cycle = cycle;
 }
 
 /*---------------------------------------------------------------------------*/
 
 gui_focus_t oswindow_tabstop(OSWindow *window, const bool_t next)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     if (next == TRUE)
-        return ostabstop_next(&windowp->tabstop, FALSE);
+        return _ostabstop_next(&lwindow->tabstop, FALSE);
     else
-        return ostabstop_prev(&windowp->tabstop, FALSE);
+        return _ostabstop_prev(&lwindow->tabstop, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
 
 gui_focus_t oswindow_focus(OSWindow *window, OSControl *control)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    return ostabstop_move(&windowp->tabstop, control);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    return _ostabstop_move(&lwindow->tabstop, control);
 }
 
 /*---------------------------------------------------------------------------*/
 
 OSControl *oswindow_get_focus(const OSWindow *window)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    return windowp->tabstop.current;
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    return lwindow->tabstop.current;
 }
 
 /*---------------------------------------------------------------------------*/
 
 gui_tab_t oswindow_info_focus(const OSWindow *window, void **next_ctrl)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(windowp);
-    return ostabstop_info_focus(&windowp->tabstop, next_ctrl);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    return _ostabstop_info_focus(&lwindow->tabstop, next_ctrl);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_attach_panel(OSWindow *window, OSPanel *panel)
 {
-    cassert_no_null(window);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
     cassert_no_null(panel);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    [(OSXWindow *)window setContentView:(NSView *)panel];
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    [lwindow setContentView:cast(panel, NSView)];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_detach_panel(OSWindow *window, OSPanel *panel)
 {
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    NSView *lpanel = cast(panel, NSView);
     NSUInteger count = 0;
-    cassert_no_null(window);
-    cassert_no_null(panel);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    cassert([(OSXWindow *)window contentView] == (NSView *)panel);
-    count = [(NSView *)panel retainCount];
+    cassert_no_null(lwindow);
+    cassert_no_null(lpanel);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert([lwindow contentView] == lpanel);
+    count = [lpanel retainCount];
     cassert_unref(count > 0, count);
-    ((OSXWindow *)window)->in_window_destroy = YES;
-    [(OSXWindow *)window setContentView:nil /*[[NSView alloc] init]*/];
+    lwindow->in_window_destroy = YES;
+    [lwindow setContentView:nil /*[[NSView alloc] init]*/];
     /*   if (count == [(NSView*)main_view retainCount])
         [(NSView*)main_view release];
     cassert([(NSView*)main_view retainCount] == count - 1);*/
@@ -726,7 +735,9 @@ void oswindow_attach_window(OSWindow *parent_window, OSWindow *child_window)
 {
     cassert_no_null(parent_window);
     cassert_no_null(child_window);
-    [(OSXWindow *)parent_window addChildWindow:(OSXWindow *)child_window ordered:NSWindowAbove];
+    cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(child_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    [cast(parent_window, OSXWindow) addChildWindow:cast(child_window, OSXWindow) ordered:NSWindowAbove];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -735,29 +746,31 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 {
     cassert_no_null(parent_window);
     cassert_no_null(child_window);
-    [(OSXWindow *)parent_window removeChildWindow:(OSXWindow *)child_window];
+    cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(child_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    [cast(parent_window, OSXWindow) removeChildWindow:cast(child_window, OSXWindow)];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    OSXWindow *pwindowp = (OSXWindow *)parent_window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    OSXWindow *lparent = cast(parent_window, OSXWindow);
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    if (pwindowp != nil)
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    if (lparent != nil)
     {
-        cassert([(NSObject *)parent_window isKindOfClass:[OSXWindow class]] == YES);
-        windowp->role = ekGUI_ROLE_OVERLAY;
+        cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+        lwindow->role = ekGUI_ROLE_OVERLAY;
     }
     else
     {
-        pwindowp = nil; /*(OSXWindow*)window;*/
-        windowp->role = ekGUI_ROLE_MAIN;
+        lparent = nil; /*(OSXWindow*)window;*/
+        lwindow->role = ekGUI_ROLE_MAIN;
     }
 
-    ostabstop_restore(&windowp->tabstop);
+    _ostabstop_restore(&lwindow->tabstop);
 
     /* https://developer.apple.com/forums/thread/729496
      * I started seeing same warnings but they weren't there before.
@@ -765,32 +778,32 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
      * I changed my implementation to open the first window on my app.
      * The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
      */
-    if (pwindowp != nil)
-        [windowp makeKeyAndOrderFront:pwindowp];
+    if (lparent != nil)
+        [lwindow makeKeyAndOrderFront:lparent];
     else
-        [windowp orderFrontRegardless];
+        [lwindow orderFrontRegardless];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_hide(OSWindow *window, OSWindow *parent_window)
 {
-    OSXWindow *parent = NULL;
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    OSXWindow *lparent = nil;
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     if (parent_window != nil)
     {
-        cassert([(NSObject *)parent_window isKindOfClass:[OSXWindow class]] == YES);
-        parent = (OSXWindow *)parent_window;
+        cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+        lparent = cast(parent_window, OSXWindow);
     }
     else
     {
-        parent = windowp;
+        lparent = lwindow;
     }
 
-    windowp->role = ENUM_MAX(gui_role_t);
-    [windowp orderOut:parent];
+    lwindow->role = ENUM_MAX(gui_role_t);
+    [lwindow orderOut:lparent];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -807,21 +820,21 @@ void oswindow_hide(OSWindow *window, OSWindow *parent_window)
  */
 uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    OSXWindow *pwindowp = (OSXWindow *)parent_window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    OSXWindow *lparent = cast(parent_window, OSXWindow);
     OSXWindow *wfront = nil;
     NSInteger ret;
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
 
-    if (pwindowp != nil)
+    if (lparent != nil)
     {
-        cassert([(NSResponder *)parent_window isKindOfClass:[OSXWindow class]] == YES);
-        [pwindowp setWorksWhenModal:NO];
-        wfront = pwindowp;
+        cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+        [lparent setWorksWhenModal:NO];
+        wfront = lparent;
     }
 
-    windowp->role = ekGUI_ROLE_MODAL;
+    lwindow->role = ekGUI_ROLE_MODAL;
 
     /* https://developer.apple.com/forums/thread/729496
      * I started seeing same warnings but they weren't there before.
@@ -830,17 +843,17 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
      * The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
      */
     if (wfront != nil)
-        [windowp makeKeyAndOrderFront:nil];
+        [lwindow makeKeyAndOrderFront:nil];
     else
-        [windowp orderFrontRegardless];
+        [lwindow orderFrontRegardless];
 
-    ostabstop_restore(&windowp->tabstop);
-    ret = [NSApp runModalForWindow:windowp];
+    _ostabstop_restore(&lwindow->tabstop);
+    ret = [NSApp runModalForWindow:lwindow];
 
-    if (pwindowp != nil)
+    if (lparent != nil)
     {
-        ostabstop_restore(&pwindowp->tabstop);
-        [pwindowp setWorksWhenModal:YES];
+        _ostabstop_restore(&lparent->tabstop);
+        [lparent setWorksWhenModal:YES];
     }
 
     return (uint32_t)ret;
@@ -850,12 +863,12 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
 
 void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    cassert([NSApp modalWindow] == (OSXWindow *)window);
-    windowp->role = ENUM_MAX(gui_role_t);
-    [windowp close];
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert([NSApp modalWindow] == lwindow);
+    lwindow->role = ENUM_MAX(gui_role_t);
+    [lwindow close];
     [NSApp stopModalWithCode:(NSInteger)return_value];
 }
 
@@ -890,14 +903,14 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(windowp);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
     cassert_no_null(x);
     cassert_no_null(y);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     if (*x == REAL32_MAX && *y == REAL32_MAX)
     {
-        NSRect frame = [windowp frame];
+        NSRect frame = [lwindow frame];
         CGFloat origin_x, origin_y;
         _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
         *x = (real32_t)origin_x;
@@ -905,11 +918,11 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
     }
     else
     {
-        NSSize size = [[windowp contentView] frame].size;
+        NSSize size = [[lwindow contentView] frame].size;
 #if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_6
-        NSPoint pt = [windowp convertRectToScreen:NSMakeRect((CGFloat)*x, size.height - (CGFloat)*y, 100, 100)].origin;
+        NSPoint pt = [lwindow convertRectToScreen:NSMakeRect((CGFloat)*x, size.height - (CGFloat)*y, 100, 100)].origin;
 #else
-        NSPoint pt = [windowp convertBaseToScreen:NSMakePoint((CGFloat)*x, size.height - (CGFloat)*y)];
+        NSPoint pt = [lwindow convertBaseToScreen:NSMakePoint((CGFloat)*x, size.height - (CGFloat)*y)];
 #endif
 
         NSSize ssize = [[NSScreen mainScreen] frame].size;
@@ -923,29 +936,30 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 
 void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
     NSRect window_frame;
     NSPoint origin;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    window_frame = [windowp frame];
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    window_frame = [lwindow frame];
     window_frame.origin.x = (CGFloat)x;
     window_frame.origin.y = (CGFloat)y;
     _oscontrol_origin_in_screen_coordinates(&window_frame, &origin.x, &origin.y);
-    windowp->last_moved_by_interface = YES;
-    [(OSXWindow *)windowp setFrameOrigin:origin];
+    lwindow->last_moved_by_interface = YES;
+    [(OSXWindow *)lwindow setFrameOrigin:origin];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height)
 {
+    OSXWindow *lwindow = cast(window, OSXWindow);
     NSSize frame_size;
-    cassert_no_null(window);
+    cassert_no_null(lwindow);
     cassert_no_null(width);
     cassert_no_null(height);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    frame_size = [(OSXWindow *)window frame].size;
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    frame_size = [lwindow frame].size;
     *width = (real32_t)frame_size.width;
     *height = (real32_t)frame_size.height;
 }
@@ -954,24 +968,25 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 
 void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
+    OSXWindow *lwindow = cast(window, OSXWindow);
     NSSize size;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     size.width = (CGFloat)content_width;
     size.height = (CGFloat)content_height;
-    ((OSXWindow *)window)->launch_resize_event = NO;
-    [(OSXWindow *)window setContentSize:size];
-    ((OSXWindow *)window)->launch_resize_event = YES;
+    lwindow->launch_resize_event = NO;
+    [lwindow setContentSize:size];
+    lwindow->launch_resize_event = YES;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oswindow_set_default_pushbutton(OSWindow *window, OSButton *button)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    windowp->tabstop.defbutton = oswindow_apply_default_button(window, button);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    lwindow->tabstop.defbutton = _oswindow_apply_default_button(window, button);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -980,7 +995,7 @@ void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
 {
     unref(window);
     if (cursor != nil)
-        [(NSCursor *)cursor set];
+        [cast(cursor, NSCursor) set];
     else
         [[NSCursor arrowCursor] set];
 }
@@ -989,15 +1004,16 @@ void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
 
 void oswindow_property(OSWindow *window, const gui_prop_t property, const void *value)
 {
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     unref(value);
     switch (property)
     {
     case ekGUI_PROP_RESIZE:
         break;
     case ekGUI_PROP_CHILDREN:
-        ((OSXWindow *)window)->destroy_main_view = NO;
+        lwindow->destroy_main_view = NO;
         break;
         cassert_default();
     }
@@ -1005,26 +1021,26 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
+void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    NSView *view = (NSView *)widget;
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    cassert([(NSResponder *)widget isKindOfClass:[NSView class]] == YES);
-    if (windowp->current_focus != view)
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    NSView *view = cast(widget, NSView);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(widget, NSResponder) isKindOfClass:[NSView class]] == YES);
+    if (lwindow->current_focus != view)
     {
-        BOOL ok = [windowp makeFirstResponder:view];
+        BOOL ok = [lwindow makeFirstResponder:view];
         cassert_unref(ok == YES, ok);
 
 #if (defined MAC_OS_X_VERSION_10_6 && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_6) || (defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14)
 #else
         /* Clean rest of previous focus ring */
-        if (windowp->current_focus != nil)
+        if (lwindow->current_focus != nil)
         {
-            if (_osbutton_is(windowp->current_focus) || _osedit_is(windowp->current_focus) || _ostext_is(windowp->current_focus))
+            if (_osbutton_is(lwindow->current_focus) || _osedit_is(lwindow->current_focus) || _ostext_is(lwindow->current_focus))
             {
-                NSView *s = [windowp->current_focus superview];
+                NSView *s = [lwindow->current_focus superview];
                 NSView *ss = [s superview];
                 [s setNeedsDisplay:YES];
                 if (ss != nil)
@@ -1033,7 +1049,7 @@ void oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
         }
 #endif
 
-        windowp->current_focus = view;
+        lwindow->current_focus = view;
     }
 }
 
@@ -1053,7 +1069,7 @@ static void i_get_controls(NSView *view, ArrPt(OSControl) *controls)
         NSUInteger i, count = [children count];
         for (i = 0; i < count; ++i)
         {
-            NSView *child = (NSView *)[children objectAtIndex:i];
+            NSView *child = cast([children objectAtIndex:i], NSView);
             i_get_controls(child, controls);
         }
     }
@@ -1061,28 +1077,28 @@ static void i_get_controls(NSView *view, ArrPt(OSControl) *controls)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
+void _oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
     NSView *main_view = nil;
-    cassert_no_null(windowp);
+    cassert_no_null(lwindow);
     cassert(arrpt_size(controls, OSControl) == 0);
-    main_view = [windowp contentView];
+    main_view = [lwindow contentView];
     i_get_controls(main_view, controls);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const ArrPt(OSControl) *oswindow_get_all_controls(const OSWindow *window)
+const ArrPt(OSControl) *_oswindow_get_all_controls(const OSWindow *window)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
-    cassert_no_null(windowp);
-    return windowp->tabstop.controls;
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    return lwindow->tabstop.controls;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_set_app(void *app, void *icon)
+void _oswindow_set_app(void *app, void *icon)
 {
     cassert(FALSE);
     unref(app);
@@ -1091,7 +1107,7 @@ void oswindow_set_app(void *app, void *icon)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_set_app_terminate(void)
+void _oswindow_set_app_terminate(void)
 {
     cassert(FALSE);
 }
@@ -1100,58 +1116,60 @@ void oswindow_set_app_terminate(void)
 
 BOOL _oswindow_in_destroy(NSWindow *window)
 {
-    cassert_no_null(window);
-    cassert([window isKindOfClass:[OSXWindow class]] == YES);
-    return ((OSXWindow *)window)->in_window_destroy;
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    return lwindow->in_window_destroy;
 }
 
 /*---------------------------------------------------------------------------*/
 
 NSView *_oswindow_main_view(OSWindow *window)
 {
-    cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    return [(OSXWindow *)window contentView];
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    return [lwindow contentView];
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_next_tabstop(NSWindow *window, const bool_t keypress)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    ostabstop_next(&windowp->tabstop, keypress);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    _ostabstop_next(&lwindow->tabstop, keypress);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_prev_tabstop(NSWindow *window, const bool_t keypress)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    ostabstop_prev(&windowp->tabstop, keypress);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    _ostabstop_prev(&lwindow->tabstop, keypress);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_restore_focus(NSWindow *window)
 {
-    OSXWindow *windowp = (OSXWindow *)window;
+    OSXWindow *lwindow = cast(window, OSXWindow);
     cassert_no_null(window);
-    cassert([(NSResponder *)window isKindOfClass:[OSXWindow class]] == YES);
-    ostabstop_restore(&windowp->tabstop);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    _ostabstop_restore(&lwindow->tabstop);
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t _oswindow_key_down(OSControl *control, NSEvent *theEvent)
 {
-    OSXWindow *window = NULL;
+    OSXWindow *window = nil;
     cassert_no_null(control);
-    cassert([(NSResponder *)control isKindOfClass:[NSView class]] == YES);
-    window = (OSXWindow *)[(NSView *)control window];
+    cassert([cast(control, NSResponder) isKindOfClass:[NSView class]] == YES);
+    window = cast([cast(control, NSView) window], OSXWindow);
     cassert_no_null(window);
     return (bool_t)[window processKeyDown:theEvent];
 }
@@ -1160,22 +1178,22 @@ bool_t _oswindow_key_down(OSControl *control, NSEvent *theEvent)
 
 bool_t _oswindow_mouse_down(OSControl *control)
 {
-    OSXWindow *window = NULL;
+    OSXWindow *window = nil;
     cassert_no_null(control);
-    cassert([(NSResponder *)control isKindOfClass:[NSView class]] == YES);
-    window = (OSXWindow *)[(NSView *)control window];
+    cassert([cast(control, NSResponder) isKindOfClass:[NSView class]] == YES);
+    window = cast([cast(control, NSView) window], OSXWindow);
     cassert_no_null(window);
-    return ostabstop_mouse_down(&window->tabstop, control);
+    return _ostabstop_mouse_down(&window->tabstop, control);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_release_transient_focus(OSControl *control)
 {
-    OSXWindow *window = NULL;
+    OSXWindow *window = nil;
     cassert_no_null(control);
-    cassert([(NSResponder *)control isKindOfClass:[NSView class]] == YES);
-    window = (OSXWindow *)[(NSView *)control window];
+    cassert([cast(control, NSResponder) isKindOfClass:[NSView class]] == YES);
+    window = cast([cast(control, NSView) window], OSXWindow);
     cassert_no_null(window);
-    ostabstop_release_transient(&window->tabstop, control);
+    _ostabstop_release_transient(&window->tabstop, control);
 }

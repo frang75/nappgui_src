@@ -79,9 +79,9 @@ __END_C
         CHECK_STRUCT_MEMBER_TYPE(type, mname, mtype), \
         cell_dbind_imp( \
             cell, \
-            (const char_t *)#type, \
+            cast_const(#type, char_t), \
             (uint16_t)sizeof(type), \
-            (const char_t *)#mname, \
-            (const char_t *)#mtype, \
+            cast_const(#mname, char_t), \
+            cast_const(#mtype, char_t), \
             (uint16_t)STRUCT_MEMBER_OFFSET(type, mname), \
             (uint16_t)STRUCT_MEMBER_SIZE(type, mname)))

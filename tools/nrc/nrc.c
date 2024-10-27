@@ -113,14 +113,14 @@ int main(int argc, char *argv[])
     else if (str_equ_c(argv[1], "-dc") == TRUE)
     {
         if (argc == 4)
-            res = i_resdir_to_c_file((const char_t *)argv[2], (const char_t *)argv[3]);
+            res = i_resdir_to_c_file(cast_const(argv[2], char_t), cast_const(argv[3], char_t));
         else
             res = i_error_in_use();
     }
     else if (str_equ_c(argv[1], "-dp") == TRUE)
     {
         if (argc == 4)
-            res = i_resdir_to_packed_file((const char_t *)argv[2], (const char_t *)argv[3]);
+            res = i_resdir_to_packed_file(cast_const(argv[2], char_t), cast_const(argv[3], char_t));
         else
             res = i_error_in_use();
     }

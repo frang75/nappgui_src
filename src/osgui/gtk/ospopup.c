@@ -109,8 +109,8 @@ OSPopUp *ospopup_create(const uint32_t flags)
 {
     OSPopUp *popup = heap_new0(OSPopUp);
     GtkWidget *widget = gtk_combo_box_new();
-    Font *font = osgui_create_default_font();
-    const char_t *cssobj = osglobals_css_combobox();
+    Font *font = _osgui_create_default_font();
+    const char_t *cssobj = _osglobals_css_combobox();
     cassert_unref(flags == ekPOPUP_FLAG, flags);
 
 #if GTK_CHECK_VERSION(3, 16, 0)
@@ -151,7 +151,7 @@ OSPopUp *ospopup_create(const uint32_t flags)
 
     _oscontrol_init(&popup->control, ekGUI_TYPE_POPUP, widget, popup->button, TRUE);
     _oscontrol_update_css_font(popup->popup, cssobj, font, &popup->font, &popup->css_font);
-    _oscontrol_update_css_padding(popup->button, osglobals_css_button(), kPOPUP_VPADDING, kPOPUP_HPADDING, &popup->css_padding);
+    _oscontrol_update_css_padding(popup->button, _osglobals_css_button(), kPOPUP_VPADDING, kPOPUP_HPADDING, &popup->css_padding);
     popup->fsize = (uint32_t)(font_size(font) + 2.5f);
     font_destroy(&font);
     popup->launch_event = TRUE;
@@ -181,7 +181,7 @@ void ospopup_destroy(OSPopUp **popup)
     font_destroy(&(*popup)->font);
     _oscontrol_destroy_css_provider(&(*popup)->css_padding);
     _oscontrol_destroy_css_provider(&(*popup)->css_font);
-    _oscontrol_destroy(*(OSControl **)popup);
+    _oscontrol_destroy(*dcast(popup, OSControl));
     heap_delete(popup, OSPopUp);
 }
 
@@ -224,14 +224,14 @@ void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 {
     cassert_no_null(popup);
     cassert(GTK_IS_EVENT_BOX(popup->control.widget));
-    gtk_widget_set_tooltip_text(popup->popup, (const gchar *)text);
+    gtk_widget_set_tooltip_text(popup->popup, cast_const(text, gchar));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_font(OSPopUp *popup, const Font *font)
 {
-    const char_t *cssobj = osglobals_css_combobox();
+    const char_t *cssobj = _osglobals_css_combobox();
     cassert_no_null(popup);
     cassert(GTK_IS_EVENT_BOX(popup->control.widget));
     _oscontrol_update_css_font(popup->popup, cssobj, font, &popup->font, &popup->css_font);
@@ -293,42 +293,42 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
 
 void ospopup_attach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_attach_control(panel, (OSControl *)popup);
+    _ospanel_attach_control(panel, cast(popup, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_detach(OSPopUp *popup, OSPanel *panel)
 {
-    _ospanel_detach_control(panel, (OSControl *)popup);
+    _ospanel_detach_control(panel, cast(popup, OSControl));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_visible(OSPopUp *popup, const bool_t visible)
 {
-    _oscontrol_set_visible((OSControl *)popup, visible);
+    _oscontrol_set_visible(cast(popup, OSControl), visible);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_enabled(OSPopUp *popup, const bool_t enabled)
 {
-    _oscontrol_set_enabled((OSControl *)popup, enabled);
+    _oscontrol_set_enabled(cast(popup, OSControl), enabled);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_size(const OSPopUp *popup, real32_t *width, real32_t *height)
 {
-    _oscontrol_get_size((const OSControl *)popup, width, height);
+    _oscontrol_get_size(cast_const(popup, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_origin(const OSPopUp *popup, real32_t *x, real32_t *y)
 {
-    _oscontrol_get_origin((const OSControl *)popup, x, y);
+    _oscontrol_get_origin(cast_const(popup, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -336,7 +336,7 @@ void ospopup_origin(const OSPopUp *popup, real32_t *x, real32_t *y)
 void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(popup);
-    _oscontrol_set_frame((OSControl *)popup, x, y, width, height);
+    _oscontrol_set_frame(cast(popup, OSControl), x, y, width, height);
     gtk_widget_set_size_request(popup->popup, (gint)width, (gint)height);
     gtk_widget_set_size_request(popup->button, (gint)width, (gint)height);
 }

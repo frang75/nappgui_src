@@ -10,46 +10,44 @@
 
 /* Operating System globals */
 
-void osglobals_init(void);
+void _osglobals_init(void);
 
-void osglobals_finish(void);
+void _osglobals_finish(void);
 
-uint32_t osglobals_check_width(void);
+uint32_t _osglobals_check_width(void);
 
-uint32_t osglobals_check_height(void);
+uint32_t _osglobals_check_height(void);
 
-NSSize osglobals_check_size(void);
+NSRect _osglobals_check_rect(void);
 
-NSRect osglobals_check_rect(void);
+NSRect _osglobals_header_rect(void);
 
-NSRect osglobals_header_rect(void);
+NSImage *_osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state);
 
-NSImage *osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t state);
+NSImage *_osglobals_header_image(const bool_t pressed);
 
-NSImage *osglobals_header_image(const bool_t pressed);
+const CGFloat *_osglobals_text_color(void);
 
-const CGFloat *osglobals_text_color(void);
+const CGFloat *_osglobals_seltx_color(void);
 
-const CGFloat *osglobals_seltx_color(void);
+const CGFloat *_osglobals_hottx_color(void);
 
-const CGFloat *osglobals_hottx_color(void);
+const CGFloat *_osglobals_textbackdrop_color(void);
 
-const CGFloat *osglobals_textbackdrop_color(void);
+const CGFloat *_osglobals_seltxbackdrop_color(void);
 
-const CGFloat *osglobals_seltxbackdrop_color(void);
+const CGFloat *_osglobals_hottxbackdrop_color(void);
 
-const CGFloat *osglobals_hottxbackdrop_color(void);
+const CGFloat *_osglobals_back_color(void);
 
-const CGFloat *osglobals_back_color(void);
+const CGFloat *_osglobals_hotbg_color(void);
 
-const CGFloat *osglobals_hotbg_color(void);
+const CGFloat *_osglobals_selbg_color(void);
 
-const CGFloat *osglobals_selbg_color(void);
+const CGFloat *_osglobals_backbackdrop_color(void);
 
-const CGFloat *osglobals_backbackdrop_color(void);
+const CGFloat *_osglobals_hotbgbackdrop_color(void);
 
-const CGFloat *osglobals_hotbgbackdrop_color(void);
+const CGFloat *_osglobals_selbgbackdrop_color(void);
 
-const CGFloat *osglobals_selbgbackdrop_color(void);
-
-color_t osglobals_focus_color(void);
+color_t _osglobals_focus_color(void);
