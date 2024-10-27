@@ -2,6 +2,14 @@
 
 ## v1.5.0 - WIP
 
+### Fixed
+
+- Issue in `Layout` when window becomes very small. [Commit]().
+
+### Improved
+
+- Refactor code using `cast()` macro for pointer conversion. [Commit](https://github.com/frang75/nappgui_src/commit/569e797f74f94c54b81d6b7f5f3bd56e43f812c0), [Commit](https://github.com/frang75/nappgui_src/commit/79c15ce90743d9f58488e10d41a992613ebb092e), [Commit](https://github.com/frang75/nappgui_src/commit/dd459fbe248735fef5ba08f71ca77325b55e5bde).
+
 ## v1.4.3 - Oct 12, 2024 (r5533)
 
 ### Added

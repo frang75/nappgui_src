@@ -11,6 +11,7 @@
 /* Label control */
 
 #include "label.h"
+#include "labelh.h"
 #include "label.inl"
 #include "component.inl"
 #include "gui.h"
@@ -103,7 +104,7 @@ static void i_OnClick(Label *label, Event *event)
     EvText *params = NULL;
     cassert_no_null(label);
     cassert_no_null(label->OnClick);
-    params = (EvText *)event_params(event, EvText);
+    params = event_params(event, EvText);
     cassert(params->text == NULL);
     params->text = tc(label->text);
     params->cpos = 0;
@@ -204,6 +205,14 @@ void label_font(Label *label, const Font *font)
     cassert_no_null(label);
     if (_gui_update_font(&label->font, &label->over_font, font) == TRUE)
         label->component.context->func_label_set_font(label->component.ositem, label->font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *label_get_font(const Label *label)
+{
+    cassert_no_null(label);
+    return label->font;
 }
 
 /*---------------------------------------------------------------------------*/

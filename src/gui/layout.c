@@ -11,6 +11,7 @@
 /* Layouts */
 
 #include "layout.h"
+#include "layouth.h"
 #include "layout.inl"
 #include "cell.h"
 #include "cell.inl"
@@ -1025,6 +1026,7 @@ void layout_vsize(Layout *layout, const uint32_t row, const real32_t height)
     cassert_no_null(layout);
     cassert_msg(height >= 0.f, "Row 'height' must be positive.");
     dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
+    cassert_no_null(dim);
     dim->forced_size = height;
 }
 
@@ -1359,6 +1361,28 @@ void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t 
 
 /*---------------------------------------------------------------------------*/
 
+real32_t layout_get_hsize(const Layout *layout, const uint32_t col)
+{
+    i_LineDim *dim = NULL;
+    cassert_no_null(layout);
+    dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
+    cassert_no_null(dim);
+    return dim->size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_vsize(const Layout *layout, const uint32_t row)
+{
+    i_LineDim *dim = NULL;
+    cassert_no_null(layout);
+    dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
+    cassert_no_null(dim);
+    return dim->size;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _layout_attach_to_panel(Layout *layout, Panel *panel)
 {
     cassert_no_null(layout);
@@ -1548,8 +1572,18 @@ static void i_line_compose(i_LineDim *dim, const uint32_t di, Cell **cell, const
                 }
                 else
                 {
-                    if (cell[i]->dim[di].size > forced_size)
+                    switch (cell[i]->type)
+                    {
+                    case i_ekCOMPONENT:
+                    case i_ekLAYOUT:
+                        if (cell[i]->dim[di].size > forced_size)
+                            cell[i]->dim[di].size = forced_size;
+                        break;
+
+                    case i_ekEMPTY:
                         cell[i]->dim[di].size = forced_size;
+                        break;
+                    }
                 }
             }
         }
@@ -1619,12 +1653,28 @@ static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_siz
         else
             increment = bmath_roundf(diff * edim->resize_percent);
 
-        edim->size += increment;
-        total += increment;
+        /*
+         * In borderline cases, with diff approx to 0, it may be that
+         * the distribution of pixels between cells exceeds the required amount,
+         * due to rounding errors. This can cause an infinite recursion and
+         * overflow in i_line_expand(), by having cells with size < 0.
+         */
+        if (diff > 0 && total + increment > diff)
+            increment = diff - total;
+        else if (diff < 0 && total + increment < diff)
+            increment = diff - total;
 
-        if (edim->size < 0)
+        /*
+         * This is an extreme case. The cell (width or height) cannot be
+         * reduced to less than 0 pixels. This can occur when there are
+         * many empty cells.
+         */
+        if (edim->size + increment > 0)
+            edim->size += increment;
+        else
             edim->size = 0;
 
+        total += increment;
         cassert(edim->size >= 0);
     arrst_end()
 
@@ -1710,13 +1760,16 @@ void _layout_expand(Layout *layout, const uint32_t di, const real32_t current_si
 {
     Cell **cells = NULL;
     cassert_no_null(layout);
+
     i_dimension_resize(layout->lines_dim[di], current_size, required_size);
     cells = arrpt_all(layout->cells_dim[di], Cell);
     *final_size = 0.f;
 
     arrst_foreach(edim, layout->lines_dim[di], i_LineDim)
         while (i_line_expand(&edim->size, di, cells, layout->dim_num_elems[di]) == FALSE)
-            ;
+        {
+        }
+
         *final_size += edim->size;
         *final_size += edim->margin;
         cells += layout->dim_num_elems[di];
@@ -2288,6 +2341,15 @@ void cell_padding4(Cell *cell, const real32_t pt, const real32_t pr, const real3
     cell->dim[0].padding_before = pr;
     cell->dim[1].padding_after = pt;
     cell->dim[1].padding_before = pb;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void cell_force_size(Cell *cell, const real32_t width, const real32_t height)
+{
+    cassert_no_null(cell);
+    cell->dim[0].forced_size = width;
+    cell->dim[1].forced_size = height;
 }
 
 /*---------------------------------------------------------------------------*/

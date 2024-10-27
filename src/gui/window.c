@@ -316,7 +316,7 @@ static void i_main_layout_compose(Window *window, const S2Df *content_required_s
 
 /*---------------------------------------------------------------------------*/
 
-static void i_attach_main_layout(Window *window, const S2Df *content_size, Layout **layout)
+static void i_attach_main_layout(Window *window, Layout **layout)
 {
     Panel *main_panel = NULL;
     GuiComponent *panel_component = NULL;
@@ -331,7 +331,7 @@ static void i_attach_main_layout(Window *window, const S2Df *content_size, Layou
     panel_component = _panel_get_component(main_panel);
     cassert_no_null(panel_component);
     window->context->func_attach_main_panel_to_window(window->ositem, panel_component->ositem);
-    i_main_layout_compose(window, content_size);
+    i_main_layout_compose(window, NULL);
     _component_visible(panel_component, TRUE);
 }
 
@@ -350,7 +350,7 @@ void window_panel(Window *window, Panel *panel)
 {
     Layout *layout = layout_create(1, 1);
     layout_panel(layout, panel, 0, 0);
-    i_attach_main_layout(window, NULL, &layout);
+    i_attach_main_layout(window, &layout);
 }
 
 /*---------------------------------------------------------------------------*/
