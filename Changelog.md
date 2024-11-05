@@ -4,7 +4,8 @@
 
 ### Fixed
 
-- Issue in `Layout` when window becomes very small. [Commit]().
+- Issue in `Layout` when window becomes very small. [Commit](https://github.com/frang75/nappgui_src/commit/3d616fa82e072b6c46f4cf196df0516912ab634c).
+- Issue in `bmath_prec()`. [Commit]().
 
 ### Improved
 
