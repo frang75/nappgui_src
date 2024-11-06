@@ -1,0 +1,55 @@
+﻿# One line format for CI
+# { BasedOnStyle: Microsoft, ColumnLimit: 0, IndentWidth: 4, PointerAlignment: Right, Standard: Auto, UseTab: Never, SortIncludes: false, AlignEscapedNewlines: DontAlign, BraceWrapping: { AfterCaseLabel: true, AfterControlStatement: Always, AfterUnion: true }, TypenameMacros : [ArrPt, ArrSt, SetPt, SetSt, TreePt, TreeSt], MacroBlockBegin : 'arrst_foreach(.*)|arrst_foreach_const(.*)|arrst_forback(.*)|arrst_forback_const(.*)|arrpt_foreach(.*)|stm_lines(.*)|setst_foreach(.*)|setst_foreach_const(.*)|setst_forback(.*)|setst_forback_const(.*)|setpt_foreach(.*)|setpt_foreach_const(.*)|setpt_forback(.*)|setpt_forback_const(.*)', MacroBlockEnd : 'arrst_end(.*)|arrpt_end(.*)|stm_next(.*)|setst_fornext(.*)|setst_fornext_const(.*)|setst_forprev(.*)|setst_forprev_const(.*)|setpt_fornext(.*)|setpt_fornext_const(.*)|setpt_forprev(.*)|setpt_forprev_const(.*)' }
+
+---
+BasedOnStyle: Microsoft
+ColumnLimit: '0'
+IndentWidth: '4'
+PointerAlignment: Right
+Standard: Auto
+UseTab: Never
+SortIncludes: false
+AlignEscapedNewlines: DontAlign
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterControlStatement: Always
+  AfterUnion: true
+TypenameMacros:
+  - ArrSt
+  - ArrPt
+  - SetPt
+  - SetSt
+  - TreePt
+  - TreeSt
+MacroBlockBegin: "\
+arrst_foreach(.*)|\
+arrst_foreach_const(.*)|\
+arrst_forback(.*)|\
+arrst_forback_const(.*)|\
+arrpt_foreach(.*)|\
+arrpt_foreach_const(.*)|\
+arrpt_forback(.*)|\
+arrpt_forback_const(.*)|\
+stm_lines(.*)|\
+setst_foreach(.*)|\
+setst_foreach_const(.*)|\
+setst_forback(.*)|\
+setst_forback_const(.*)|\
+setpt_foreach(.*)|\
+setpt_foreach_const(.*)|\
+setpt_forback(.*)|\
+setpt_forback_const(.*)"
+
+MacroBlockEnd: "\
+arrst_end(.*)|\
+arrpt_end(.*)|\
+stm_next(.*)|\
+setst_fornext(.*)|\
+setst_fornext_const(.*)|\
+setst_forprev(.*)|\
+setst_forprev_const(.*)|\
+setpt_fornext(.*)|\
+setpt_fornext_const(.*)|\
+setpt_forprev(.*)|\
+setpt_forprev_const(.*)"
+...

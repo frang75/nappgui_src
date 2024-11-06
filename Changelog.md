@@ -2,10 +2,14 @@
 
 ## v1.5.0 - WIP
 
+### Added
+
+- `.clang-format` file. [Issue](https://github.com/frang75/nappgui_src/issues/161). [Commit]().
+
 ### Fixed
 
 - Issue in `Layout` when window becomes very small. [Commit](https://github.com/frang75/nappgui_src/commit/3d616fa82e072b6c46f4cf196df0516912ab634c).
-- Issue in `bmath_prec()`. [Commit]().
+- Issue in `bmath_prec()`. [Commit](https://github.com/frang75/nappgui_src/commit/062d2a69ea187c2c983b0db02f022a7552295a19).
 
 ### Improved
 
