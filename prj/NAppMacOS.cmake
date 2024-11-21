@@ -42,24 +42,25 @@
 #------------------------------------------------------------------------------
 
 function(nap_macos_sdk_name sdkVersion _ret)
+	string(REPLACE "macosx" "" sdkVersion ${sdkVersion})
     # 14 = "Sonoma"
-    if (sdkVersion VERSION_GREATER "13.9999")
+    if (${sdkVersion} VERSION_GREATER "13.9999")
         set(${_ret} "Sonoma" PARENT_SCOPE)
 
     # 13 = "Ventura"
-    elseif (sdkVersion VERSION_GREATER "12.9999")
+    elseif (${sdkVersion} VERSION_GREATER "12.9999")
         set(${_ret} "Ventura" PARENT_SCOPE)
 
     # 12 = "Monterey"
-    elseif (sdkVersion VERSION_GREATER "11.9999")
+    elseif (${sdkVersion} VERSION_GREATER "11.9999")
         set(${_ret} "Monterey" PARENT_SCOPE)
 
     # 11 = "Big Sur"
-    elseif (sdkVersion VERSION_GREATER "10.9999")
+    elseif (${sdkVersion} VERSION_GREATER "10.9999")
         set(${_ret} "Big Sur" PARENT_SCOPE)
 
     # 10.15 = "Catalina"
-    elseif (sdkVersion VERSION_GREATER "10.14.9999")
+    elseif (${sdkVersion} VERSION_GREATER "10.14.9999")
         set(${_ret} "Catalina" PARENT_SCOPE)
 
     # 10.14 = "Mojave"
