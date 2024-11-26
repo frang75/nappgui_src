@@ -172,16 +172,16 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     endif()
 
     # Host architecture
-    if (CMAKE_HOST_SYSTEM_PROCESSOR)
-        nap_osx_arch(${CMAKE_HOST_SYSTEM_PROCESSOR} CMAKE_HOST_ARCHITECTURE)
-    else()
-        message(FATAL_ERROR "- Unknown 'CMAKE_HOST_SYSTEM_PROCESSOR'")
-    endif()
+    #if (CMAKE_HOST_SYSTEM_PROCESSOR)
+    #    nap_osx_arch(${CMAKE_HOST_SYSTEM_PROCESSOR} CMAKE_HOST_ARCHITECTURE)
+    #else()
+    #    message(FATAL_ERROR "- Unknown 'CMAKE_HOST_SYSTEM_PROCESSOR'")
+    #endif()
 
     # Build architecture
-    if (NOT CMAKE_ARCHITECTURE)
-        set(CMAKE_ARCHITECTURE ${CMAKE_HOST_ARCHITECTURE})
-    endif()
+    #if (NOT CMAKE_ARCHITECTURE)
+    #    set(CMAKE_ARCHITECTURE ${CMAKE_HOST_ARCHITECTURE})
+    #endif()
     #nap_osx_build_arch(${CMAKE_ARCHITECTURE} CMAKE_OSX_ARCHITECTURES)
 
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
