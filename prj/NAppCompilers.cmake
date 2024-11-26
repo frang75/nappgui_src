@@ -180,7 +180,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     if (NOT CMAKE_ARCHITECTURE)
         set(CMAKE_ARCHITECTURE ${CMAKE_HOST_ARCHITECTURE})
     endif()
-    nap_osx_build_arch(${CMAKE_ARCHITECTURE} CMAKE_OSX_ARCHITECTURES)
+    #nap_osx_build_arch(${CMAKE_ARCHITECTURE} CMAKE_OSX_ARCHITECTURES)
 
     if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
         include(${NAPPGUI_ROOT_PATH}/prj/NAppAppleClang.cmake)
