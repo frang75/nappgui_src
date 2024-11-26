@@ -164,8 +164,10 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     nap_build_opt("DEPLOYMENT_TARGET_OSX" "${CMAKE_OSX_DEPLOYMENT_TARGET}")
     nap_build_opt("DEPLOYMENT_TARGET_OSX_NAME" "${deploySDKName}")
 
+	string(REPLACE "macosx" "" base_sdk ${CMAKE_BASE_OSX_SDK})
+
     # Invalid deployment target
-    if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER CMAKE_BASE_OSX_SDK)
+    if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER ${base_sdk})
         message(FATAL_ERROR "Deployment target '${CMAKE_OSX_DEPLOYMENT_TARGET}' greater than base SDK '${CMAKE_BASE_OSX_SDK}'")
     endif()
 
