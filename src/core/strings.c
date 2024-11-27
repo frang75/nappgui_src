@@ -576,19 +576,20 @@ void str_cat_c(char_t *dest, const uint32_t size, const char_t *src)
 
 void str_upd(String **str, const char_t *new_str)
 {
+    String *nstr = NULL;
+
     cassert_no_null(str);
-
-    if (tc(*str) == new_str)
-        return;
-
-    if (*str != NULL)
-        heap_free(dcast(str, byte_t), i_SIZE(*str) + sizeof32(uint32_t), "String");
 
     if (new_str != NULL)
     {
         uint32_t length = blib_strlen(new_str);
-        *str = i_create_string(length + 1, new_str);
+        nstr = i_create_string(length + 1, new_str);
     }
+
+    if (*str != NULL)
+        heap_free(dcast(str, byte_t), i_SIZE(*str) + sizeof32(uint32_t), "String");
+
+    *str = nstr;
 }
 
 /*---------------------------------------------------------------------------*/

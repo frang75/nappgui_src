@@ -658,3 +658,58 @@ bool_t bfile_delete(const char_t *filepath, ferror_t *error)
         return FALSE;
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+bool_t bfile_rename(const char_t *current_pathname, const char_t *new_pathname, ferror_t *error)
+{
+    int res = rename(cast_const(current_pathname, char), cast_const(new_pathname, char));
+    if (res == 0)
+    {
+        ptr_assign(error, ekFOK);
+        return TRUE;
+    }
+    else
+    {
+        if (error != NULL)
+        {
+            switch (errno)
+            {
+            case EACCES:
+            case EPERM:
+                *error = ekFNOACCESS;
+                break;
+            case EISDIR:
+                *error = ekFNOFILE;
+                break;
+            case ENAMETOOLONG:
+                *error = ekFBIGNAME;
+                break;
+            case ENOENT:
+                *error = ekFNOPATH;
+                break;
+            case ENOTDIR:
+                *error = ekFNOPATH;
+                break;
+            case EEXIST:
+            case ENOTEMPTY:
+                *error = ekFNOEMPTY;
+                break;
+
+            /* https://man7.org/linux/man-pages/man2/rename.2.html */
+            case EROFS:
+            case EXDEV:
+            case EBUSY:
+            case EFAULT:
+            case EINVAL:
+            case ELOOP:
+            case EMLINK:
+            case ENOMEM:
+            case ENOSPC:
+            default:
+                cassert_msg(FALSE, "file_rename: undefined");
+                *error = ekFUNDEF;
+            }
+        }
+    }
+}

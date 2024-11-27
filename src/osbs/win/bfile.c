@@ -707,3 +707,31 @@ bool_t bfile_delete(const char_t *pathname, ferror_t *error)
         return FALSE;
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+bool_t bfile_rename(const char_t *current_pathname, const char_t *new_pathname, ferror_t *error)
+{
+    WCHAR current_pathnamew[MAX_PATH + 1];
+    WCHAR new_pathnamew[MAX_PATH + 1];
+    uint32_t num_bytes1 = unicode_convers(current_pathname, cast(current_pathnamew, char_t), ekUTF8, ekUTF16, sizeof(current_pathnamew));
+    uint32_t num_bytes2 = unicode_convers(new_pathname, cast(new_pathnamew, char_t), ekUTF8, ekUTF16, sizeof(new_pathnamew));
+    if (num_bytes1 < sizeof(current_pathnamew) && num_bytes2 < sizeof(new_pathnamew))
+    {
+        if (MoveFile(current_pathnamew, new_pathnamew) != 0)
+        {
+            ptr_assign(error, ekFOK);
+            return TRUE;
+        }
+        else
+        {
+            i_file_error(error);
+            return FALSE;
+        }
+    }
+    else
+    {
+        ptr_assign(error, ekFBIGNAME);
+        return FALSE;
+    }
+}

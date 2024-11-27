@@ -791,6 +791,17 @@ void listbox_set_elem(ListBox *listbox, const uint32_t index, const char_t *text
 
 /*---------------------------------------------------------------------------*/
 
+void listbox_del_elem(ListBox *listbox, const uint32_t index)
+{
+    LData *data = view_get_data(cast(listbox, View), LData);
+    cassert_no_null(data);
+    arrst_delete(data->elems, index, i_remove_elem, PElem);
+    i_document_size(data);
+    view_update(cast(listbox, View));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void listbox_font(ListBox *listbox, const Font *font)
 {
     LData *data = view_get_data(cast(listbox, View), LData);

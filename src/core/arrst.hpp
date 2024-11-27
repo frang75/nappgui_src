@@ -67,6 +67,8 @@ struct ArrSt
 
     static type *insert_n(ArrSt<type> *array, const uint32_t pos, const uint32_t n);
 
+    static type *insert_n0(ArrSt<type> *array, const uint32_t pos, const uint32_t n);
+
     static void append(ArrSt<type> *array, const type value);
 
     static void prepend(ArrSt<type> *array, const type value);
@@ -298,6 +300,14 @@ template <typename type>
 type *ArrSt<type>::insert_n(ArrSt<type> *array, const uint32_t pos, const uint32_t n)
 {
     return cast(array_insert(cast(array, Array), pos, n), type);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template <typename type>
+type *ArrSt<type>::insert_n0(ArrSt<type> *array, const uint32_t pos, const uint32_t n)
+{
+    return cast(array_insert0(cast(array, Array), pos, n), type);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -925,7 +925,7 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
     _osgui_frame_without_shadows(window->control.hwnd, &rect2);
 
     {
-        BOOL ret = SetWindowPos(window->control.hwnd, NULL, (int)x + (rect1.left - rect2.left), (int)y + (rect1.top - rect2.top), 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+        BOOL ret = SetWindowPos(window->control.hwnd, NULL, (int)x + (rect1.left - rect2.left), (int)y + (rect1.top - rect2.top), 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
         cassert_unref(ret != 0, ret);
     }
 }
@@ -958,7 +958,7 @@ void oswindow_size(OSWindow *window, const real32_t content_width, const real32_
     ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
     cassert_unref(ok != 0, ok);
     window->launch_resize_event = FALSE;
-    ok = SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)(rect.right - rect.left), (int)(rect.bottom - rect.top), SWP_NOMOVE | SWP_NOZORDER);
+    ok = SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)(rect.right - rect.left), (int)(rect.bottom - rect.top), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
     cassert_unref(ok != 0, ok);
     window->launch_resize_event = TRUE;
 }
@@ -1068,7 +1068,7 @@ static void i_adjust_menu_size(OSWindow *window)
     cassert_unref(ok != 0, ok);
     ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
     cassert_unref(ok != 0, ok);
-    SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)(rect.right - rect.left), (int)(rect.bottom - rect.top), SWP_NOMOVE | SWP_NOZORDER);
+    SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)(rect.right - rect.left), (int)(rect.bottom - rect.top), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 /*---------------------------------------------------------------------------*/

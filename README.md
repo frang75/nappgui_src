@@ -16,7 +16,7 @@ cd nappgui_src
 cmake -S . -B build
 cmake --build build --config Debug
 
-// Run examples in 'demo' and 'howto' folders
+// Run examples in 'demo' folder
 .\build\Debug\bin\Die.exe
 .\build\Debug\bin\Bricks.exe
 .\build\Debug\bin\Products.exe
@@ -39,7 +39,7 @@ cd nappgui_src
 cmake -G Xcode -S . -B build
 cmake --build build --config Debug
 
-// Run examples in 'demo' and 'howto' folders
+// Run examples in 'demo' folder
 ./build/Debug/bin/Die.app/Contents/MacOS/Die
 ./build/Debug/bin/Bricks.app/Contents/MacOS/Bricks
 ./build/Debug/bin/Products.app/Contents/MacOS/Products
@@ -59,7 +59,7 @@ sudo apt-get install git
 sudo apt-get install cmake
 
 // Development libraries
-sudo apt-get install libgtk-3-dev                       // Mandatory Gui Toolkit
+sudo apt-get install libgtk-3-dev                       // Gui Toolkit
 sudo apt-get install libcurl4-openssl-dev               // For HTTP support
 sudo apt-get install libwebkit2gtk-4.1-dev              // For WebView support
 sudo apt-get install mesa-common-dev libeg1-mesa-dev    // For OpenGL support
@@ -71,7 +71,7 @@ cd nappgui_src
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build -j 4
 
-// Run examples in 'demo' and 'howto' folders
+// Run examples in 'demo' folder
 ./build/Debug/bin/Die
 ./build/Debug/bin/Bricks
 ./build/Debug/bin/Products

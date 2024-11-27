@@ -55,4 +55,6 @@ _osbs_api uint64_t bfile_pos(const File *file);
 
 _osbs_api bool_t bfile_delete(const char_t *pathname, ferror_t *error);
 
+_osbs_api bool_t bfile_rename(const char_t *current_pathname, const char_t *new_pathname, ferror_t *error);
+
 __END_C

@@ -11,6 +11,7 @@
 /* Button */
 
 #include "button.h"
+#include "buttonh.h"
 #include "button.inl"
 #include "component.inl"
 #include "cell.inl"
@@ -33,6 +34,7 @@ struct _button_t
     GuiComponent component;
     uint32_t flags;
     S2Df size;
+    Font *font;
     ResId textid;
     ResId taltid;
     ResId ttipid;
@@ -52,6 +54,7 @@ void _button_destroy(Button **button)
     _component_destroy_imp(&(*button)->component);
     listener_destroy(&(*button)->OnClick);
     str_destroy(&(*button)->text);
+    ptr_destopt(font_destroy, &(*button)->font, Font);
     ptr_destopt(str_destroy, &(*button)->talt, String);
     ptr_destopt(image_destroy, &(*button)->image, Image);
     ptr_destopt(image_destroy, &(*button)->imalt, Image);
@@ -194,7 +197,11 @@ static Button *i_create(const uint32_t flags, const align_t halign)
     button->text = str_c("");
 
     if (button_get_type(flags) != ekBUTTON_FLAT && button_get_type(flags) != ekBUTTON_FLATGLE)
+    {
+        button->font = _gui_create_default_font();
         context->func_button_set_align(button->component.ositem, (enum_t)halign);
+        context->func_button_set_font(button->component.ositem, button->font);
+    }
 
     context->func_button_OnClick(button->component.ositem, obj_listener(button, i_OnClick, Button));
     return button;
@@ -309,7 +316,16 @@ void button_tooltip(Button *button, const char_t *text)
 void button_font(Button *button, const Font *font)
 {
     cassert_no_null(button);
-    button->component.context->func_button_set_font(button->component.ositem, font);
+    if (_gui_update_font(&button->font, NULL, font) == TRUE)
+        button->component.context->func_button_set_font(button->component.ositem, button->font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *button_get_font(const Button *button)
+{
+    cassert_no_null(button);
+    return button->font;
 }
 
 /*---------------------------------------------------------------------------*/

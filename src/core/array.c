@@ -311,7 +311,7 @@ static const void *i_get_ptr_elem(const byte_t *data, const uint32_t elem_id, co
 static const void *i_get_str_elem(const byte_t *data, const uint32_t elem_id, const uint32_t esize)
 {
     cassert_no_null(data);
-    return *dcast(data + elem_id * esize, void);
+    return cast(data + elem_id * esize, void);
 }
 
 /*---------------------------------------------------------------------------*/

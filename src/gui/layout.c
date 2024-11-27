@@ -1383,6 +1383,64 @@ real32_t layout_get_vsize(const Layout *layout, const uint32_t row)
 
 /*---------------------------------------------------------------------------*/
 
+real32_t layout_get_hmargin(const Layout *layout, const uint32_t col)
+{
+    i_LineDim *dim = NULL;
+    cassert_no_null(layout);
+    cassert(col < arrst_size(layout->lines_dim[0], i_LineDim) - 1);
+    dim = arrst_get(layout->lines_dim[0], col + 1, i_LineDim);
+    return dim->margin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_vmargin(const Layout *layout, const uint32_t row)
+{
+    i_LineDim *dim = NULL;
+    cassert_no_null(layout);
+    cassert_msg(row < arrst_size(layout->lines_dim[1], i_LineDim) - 1, "'row' out of range");
+    dim = arrst_get(layout->lines_dim[1], row + 1, i_LineDim);
+    return dim->margin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_margin_top(const Layout *layout)
+{
+    i_LineDim *first_row = NULL;
+    cassert_no_null(layout);
+    first_row = arrst_get(layout->lines_dim[1], 0, i_LineDim);
+    return first_row->margin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_margin_bottom(const Layout *layout)
+{
+    cassert_no_null(layout);
+    return layout->dim_margin[1];
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_margin_left(const Layout *layout)
+{
+    i_LineDim *first_column = NULL;
+    cassert_no_null(layout);
+    first_column = arrst_get(layout->lines_dim[0], 0, i_LineDim);
+    return first_column->margin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_margin_right(const Layout *layout)
+{
+    cassert_no_null(layout);
+    return layout->dim_margin[0];
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_remove_cell(Layout *layout, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_get_cell(layout, col, row);
