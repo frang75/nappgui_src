@@ -21,7 +21,7 @@ static const char_t *i_LIB_PREFIX = "lib";
 static const char_t *i_LIB_SUFIX = ".so";
 #elif defined(__MACOS__)
 static const char_t *i_LIB_PREFIX = "lib";
-static const char_t *i_LIB_SUFIX = ".so";
+static const char_t *i_LIB_SUFIX = ".dylib";
 #else
 #error Unknown platform
 #endif
@@ -32,29 +32,38 @@ static const char_t *i_LIB_SUFIX = ".so";
 
 DLib *dlib_open(const char_t *path, const char_t *libname)
 {
-    char_t name[512];
+    uint32_t size = 0;
+    char_t *pathname = NULL;
     void *lib = NULL;
 
     cassert_no_null(libname);
+    size += 2; /* Backslash and null terminator */
+    size += blib_strlen(libname);
+    size += blib_strlen(i_LIB_PREFIX);
+    size += blib_strlen(i_LIB_SUFIX);
 
     if (path != NULL && path[0] != '\0')
     {
         uint32_t n = blib_strlen(path);
-        blib_strcpy(name, sizeof(name), path);
+        size += n;
+        pathname = cast(bmem_malloc(size), char_t);
+        blib_strcpy(pathname, size, path);
         if (path[n - 1] != '/')
-            blib_strcat(name, sizeof(name), "/");
-        blib_strcat(name, sizeof(name), i_LIB_PREFIX);
-        blib_strcat(name, sizeof(name), libname);
-        blib_strcat(name, sizeof(name), i_LIB_SUFIX);
+            blib_strcat(pathname, size, "/");
+        blib_strcat(pathname, size, i_LIB_PREFIX);
+        blib_strcat(pathname, size, libname);
+        blib_strcat(pathname, size, i_LIB_SUFIX);
     }
     else
     {
-        blib_strcpy(name, sizeof(name), i_LIB_PREFIX);
-        blib_strcat(name, sizeof(name), libname);
-        blib_strcat(name, sizeof(name), i_LIB_SUFIX);
+        pathname = cast(bmem_malloc(size), char_t);
+        blib_strcpy(pathname, size, i_LIB_PREFIX);
+        blib_strcat(pathname, size, libname);
+        blib_strcat(pathname, size, i_LIB_SUFIX);
     }
 
-    lib = dlopen(name, RTLD_LAZY | RTLD_LOCAL);
+    lib = dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
+    bmem_free(cast(pathname, byte_t));
     if (lib != NULL)
     {
         _osbs_dlib_alloc();

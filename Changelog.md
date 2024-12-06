@@ -5,15 +5,16 @@
 ### Added
 
 - `.clang-format` file. [Issue](https://github.com/frang75/nappgui_src/issues/161). [Commit](https://github.com/frang75/nappgui_src/commit/40356b8b17a7cb1f39c2bdfa3c7d4e8ce6ef35d8).
-- `arrst_insert_n0()`. [Doc](). [Commit]().
-- `listbox_del_elem()`. [Doc](). [Commit]().
-- `bfile_rename()`. [Doc](). [Commit]().
+- `arrst_insert_n0()`. [Doc](https://nappgui.com/en/core/arrst.html#f24). [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
+- `listbox_del_elem()`. [Doc](https://nappgui.com/en/gui/listbox.html#f9). [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
+- `bfile_rename()`. [Doc](https://nappgui.com/en/osbs/bfile.html#f21). [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
 
 ### Fixed
 
 - Issue in `Layout` when window becomes very small. [Commit](https://github.com/frang75/nappgui_src/commit/3d616fa82e072b6c46f4cf196df0516912ab634c).
 - Issue in `bmath_prec()`. [Commit](https://github.com/frang75/nappgui_src/commit/062d2a69ea187c2c983b0db02f022a7552295a19).
-- Vulnerability in `str_upd()`. [Commit]().
+- Vulnerability in `str_upd()`. [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
+- Issue in `dlib_open()` in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/164). [Commit]().
 
 ### Improved
 
