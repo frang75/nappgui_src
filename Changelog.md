@@ -14,7 +14,8 @@
 - Issue in `Layout` when window becomes very small. [Commit](https://github.com/frang75/nappgui_src/commit/3d616fa82e072b6c46f4cf196df0516912ab634c).
 - Issue in `bmath_prec()`. [Commit](https://github.com/frang75/nappgui_src/commit/062d2a69ea187c2c983b0db02f022a7552295a19).
 - Vulnerability in `str_upd()`. [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
-- Issue in `dlib_open()` in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/164). [Commit]().
+- Issue in `dlib_open()` in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/164). [Commit](https://github.com/frang75/nappgui_src/commit/393f098c8153dba0282546cb48b47b4dbe4fc217).
+- Issue in `heap_realloc_n()` macro parenthesis. [Issue](https://github.com/frang75/nappgui_src/issues/166). [Commit]().
 
 ### Improved
 
