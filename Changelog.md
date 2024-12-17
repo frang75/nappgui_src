@@ -8,7 +8,7 @@
 - `arrst_insert_n0()`. [Doc](https://nappgui.com/en/core/arrst.html#f24). [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
 - `listbox_del_elem()`. [Doc](https://nappgui.com/en/gui/listbox.html#f9). [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
 - `bfile_rename()`. [Doc](https://nappgui.com/en/osbs/bfile.html#f21). [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
-- Improved support for data binding [Doc](https://nappgui.com/en/core/dbind.html). [Commit]().
+- Improved support for data binding [Doc](https://nappgui.com/en/core/dbind.html). [Commit](https://github.com/frang75/nappgui_src/commit/ed4d43572d6c93ca6ee1ddfbe00d8640a519fa76).
     * Added `core::dbindst_t` result type.
     * `dbind()` returns now `dbindst_t`.
     * `dbind_enum()` returns now `dbindst_t`.
@@ -26,7 +26,7 @@
 
 ### Changed
 
-- `SetSt()`, `SetPt()` use compare-key instead compare-objects. [Commit]().
+- `SetSt()`, `SetPt()` use compare-key instead compare-objects. [Commit](https://github.com/frang75/nappgui_src/commit/ed4d43572d6c93ca6ee1ddfbe00d8640a519fa76).
 
 ### Fixed
 

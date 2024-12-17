@@ -711,5 +711,7 @@ bool_t bfile_rename(const char_t *current_pathname, const char_t *new_pathname, 
                 *error = ekFUNDEF;
             }
         }
+
+        return FALSE;
     }
 }
