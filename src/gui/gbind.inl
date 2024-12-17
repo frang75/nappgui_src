@@ -14,22 +14,22 @@
 
 __EXTERN_C
 
-void _gbind_upd_component(Cell *cell, const StBind *stbind, const DBind *dbind, void *obj);
+void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t member_id, const void *obj);
 
-void _gbind_upd_layout(Layout *layout, const StBind *stbind, const DBind *dbind, void *obj);
+void _gbind_update_layout(Layout *layout, const DBind *stbind, const uint32_t member_id, const void *obj);
 
-void _gbind_upd_bool(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, bool_t value);
+void _gbind_update_bool(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const bool_t value);
 
-void _gbind_upd_uint32(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, uint32_t value);
+void _gbind_update_u32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const uint32_t value);
 
-void _gbind_upd_norm_real32(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, const real32_t value);
+void _gbind_update_norm32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const real32_t value);
 
-void _gbind_upd_string(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, const char_t *str);
+void _gbind_update_incr(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const bool_t positive_incr);
 
-void _gbind_upd_image(Layout *layout, const DBind *dbind, void *objbind, const Image *image);
+void _gbind_update_str(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const char_t *str);
 
-void _gbind_upd_increment(Layout *layout, const DBind *dbind, void *obj, Layout *layout_notif, const bool_t pos);
+void _gbind_update_image(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const Image *image);
 
-bool_t _gbind_modify_data(const void *obj, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize, const EvBind *evbind);
+bool_t _gbind_field_modify(const EvBind *evbind, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
 
 __END_C

@@ -79,7 +79,7 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
     {
         Cell *cell = _component_cell(&popup->component);
         if (cell != NULL)
-            _cell_upd_uint32(cell, params->index);
+            _cell_update_u32(cell, params->index);
     }
 
     if (popup->OnChange != NULL)

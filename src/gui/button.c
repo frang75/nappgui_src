@@ -130,7 +130,7 @@ static void i_OnClick(Button *button, Event *event)
             params->index = _cell_radio_index(ccell);
 
             if (cell != NULL)
-                _cell_upd_uint32(cell, params->index);
+                _cell_update_u32(cell, params->index);
 
             if (button->OnClick == NULL)
                 sender = _cell_radio_listener(ccell);
@@ -143,7 +143,7 @@ static void i_OnClick(Button *button, Event *event)
     {
         Cell *cell = _component_cell(&button->component);
         if (cell != NULL)
-            _cell_upd_bool(cell, params->state == ekGUI_OFF ? FALSE : TRUE);
+            _cell_update_bool(cell, params->state == ekGUI_OFF ? FALSE : TRUE);
         break;
     }
 
@@ -167,7 +167,7 @@ static void i_OnClick(Button *button, Event *event)
                 cassert_default();
             }
 
-            _cell_upd_uint32(cell, v);
+            _cell_update_u32(cell, v);
         }
         break;
     }

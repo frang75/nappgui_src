@@ -30,17 +30,17 @@ Cell *_cell_radio_dbind_cell(Cell *on_cell);
 
 bool_t _cell_filter_str(Cell *cell, const char_t *str, char_t *dest, const uint32_t size);
 
-void _cell_upd_bool(Cell *cell, const bool_t value);
+void _cell_update_bool(Cell *cell, const bool_t value);
 
-void _cell_upd_uint32(Cell *cell, const uint32_t value);
+void _cell_update_u32(Cell *cell, const uint32_t value);
 
-void _cell_upd_norm_real32(Cell *cell, const real32_t value);
+void _cell_update_norm32(Cell *cell, const real32_t value);
 
-void _cell_upd_string(Cell *cell, const char_t *str);
+void _cell_update_str(Cell *cell, const char_t *str);
 
-void _cell_upd_image(Cell *cell, const Image *image);
+void _cell_update_image(Cell *cell, const Image *image);
 
-void _cell_upd_increment(Cell *cell, const bool_t pos);
+void _cell_update_incr(Cell *cell, const bool_t pos);
 
 bool_t _cell_enabled(const Cell *cell);
 

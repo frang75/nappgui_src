@@ -99,7 +99,7 @@ static void i_OnFilter(Edit *edit, Event *e)
     if (res->apply == FALSE)
     {
         if (cell != NULL)
-            _cell_upd_string(cell, p->text);
+            _cell_update_str(cell, p->text);
 
         if (edit->OnFilter != NULL)
             listener_pass_event(edit->OnFilter, e, edit, Edit);
@@ -125,7 +125,7 @@ static void i_OnChange(Edit *edit, Event *e)
     str_upd(&edit->text, p->text);
 
     if (cell != NULL)
-        _cell_upd_string(cell, p->text);
+        _cell_update_str(cell, p->text);
 
     if (edit->OnChange != NULL)
         listener_pass_event(edit->OnChange, e, edit, Edit);

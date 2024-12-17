@@ -234,7 +234,7 @@ void imageview_image(ImageView *view, const Image *image)
 
         view_update(cast(view, View));
         if (cell != NULL)
-            _cell_upd_image(cell, limage);
+            _cell_update_image(cell, limage);
     }
 }
 

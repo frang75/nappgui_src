@@ -24,40 +24,34 @@ struct _basictypes_t
     real32_t real32_val;
     myenum_t enum_val;
     gui_state_t enum3_val;
-    String* str_val;
+    String *str_val;
 };
 
 #define i_NUM_CONTROLS 9
-
-static bool_t i_DATA_BINDED = FALSE;
 
 /*---------------------------------------------------------------------------*/
 
 static void i_data_bind(void)
 {
-    if (i_DATA_BINDED == FALSE)
-    {
-        dbind_enum(gui_state_t, ekGUI_OFF, "");
-        dbind_enum(gui_state_t, ekGUI_ON, "");
-        dbind_enum(gui_state_t, ekGUI_MIXED, "");
-        dbind_enum(myenum_t, ekRED, "Red");
-        dbind_enum(myenum_t, ekBLUE, "Blue");
-        dbind_enum(myenum_t, ekGREEN, "Green");
-        dbind_enum(myenum_t, ekBLACK, "Black");
-        dbind_enum(myenum_t, ekMAGENTA, "Magenta");
-        dbind_enum(myenum_t, ekCYAN, "Cyan");
-        dbind_enum(myenum_t, ekYELLOW, "Yellow");
-        dbind_enum(myenum_t, ekWHITE, "While");
-        dbind(BasicTypes, bool_t, bool_val);
-        dbind(BasicTypes, uint16_t, uint16_val);
-        dbind(BasicTypes, real32_t, real32_val);
-        dbind(BasicTypes, gui_state_t, enum3_val);
-        dbind(BasicTypes, myenum_t, enum_val);
-        dbind(BasicTypes, String *, str_val);
-        dbind_range(BasicTypes, real32_t, real32_val, -50, 50);
-        dbind_increment(BasicTypes, real32_t, real32_val, 5);
-        i_DATA_BINDED = TRUE;
-    }
+    dbind_enum(gui_state_t, ekGUI_OFF, "");
+    dbind_enum(gui_state_t, ekGUI_ON, "");
+    dbind_enum(gui_state_t, ekGUI_MIXED, "");
+    dbind_enum(myenum_t, ekRED, "Red");
+    dbind_enum(myenum_t, ekBLUE, "Blue");
+    dbind_enum(myenum_t, ekGREEN, "Green");
+    dbind_enum(myenum_t, ekBLACK, "Black");
+    dbind_enum(myenum_t, ekMAGENTA, "Magenta");
+    dbind_enum(myenum_t, ekCYAN, "Cyan");
+    dbind_enum(myenum_t, ekYELLOW, "Yellow");
+    dbind_enum(myenum_t, ekWHITE, "While");
+    dbind(BasicTypes, bool_t, bool_val);
+    dbind(BasicTypes, uint16_t, uint16_val);
+    dbind(BasicTypes, real32_t, real32_val);
+    dbind(BasicTypes, gui_state_t, enum3_val);
+    dbind(BasicTypes, myenum_t, enum_val);
+    dbind(BasicTypes, String *, str_val);
+    dbind_range(BasicTypes, real32_t, real32_val, -50, 50);
+    dbind_increment(BasicTypes, real32_t, real32_val, 5);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -66,6 +60,8 @@ static void i_destroy_data(BasicTypes **data)
 {
     str_destroy(&(*data)->str_val);
     heap_delete(data, BasicTypes);
+    dbind_unreg(BasicTypes);
+    dbind_unreg(myenum_t);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -88,14 +84,14 @@ static Layout *i_radio_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_title_labels(Layout* layout)
+static void i_title_labels(Layout *layout)
 {
-    Font* font = font_system(font_regular_size(), ekFBOLD);
-    const char_t* strs[] = { "Label", "EditBox", "Check", "Check3", "Radio", "PopUp", "ListBox", "Slider", "UpDown" };
+    Font *font = font_system(font_regular_size(), ekFBOLD);
+    const char_t *strs[] = {"Label", "EditBox", "Check", "Check3", "Radio", "PopUp", "ListBox", "Slider", "UpDown"};
     uint32_t i = 0;
     for (i = 0; i < i_NUM_CONTROLS; ++i)
     {
-        Label* label = label_create();
+        Label *label = label_create();
         label_text(label, strs[i]);
         label_font(label, font);
         layout_label(layout, label, 0, i);
@@ -107,12 +103,12 @@ static void i_title_labels(Layout* layout)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_value_labels(Layout* layout)
+static void i_value_labels(Layout *layout)
 {
     uint32_t i = 0;
     for (i = 0; i < i_NUM_CONTROLS; ++i)
     {
-        Label* label = label_create();
+        Label *label = label_create();
         label_align(label, ekCENTER);
         layout_label(layout, label, 2, i);
         layout_halign(layout, 2, i, ekJUSTIFY);
@@ -123,8 +119,8 @@ static void i_value_labels(Layout* layout)
     for (i = 0; i < i_NUM_CONTROLS - 1; ++i)
         layout_vmargin(layout, i, 5);
 
-    cell_dbind(layout_cell(layout, 2, 0), BasicTypes, String*, str_val);
-    cell_dbind(layout_cell(layout, 2, 1), BasicTypes, String*, str_val);
+    cell_dbind(layout_cell(layout, 2, 0), BasicTypes, String *, str_val);
+    cell_dbind(layout_cell(layout, 2, 1), BasicTypes, String *, str_val);
     cell_dbind(layout_cell(layout, 2, 2), BasicTypes, bool_t, bool_val);
     cell_dbind(layout_cell(layout, 2, 3), BasicTypes, gui_state_t, enum3_val);
     cell_dbind(layout_cell(layout, 2, 4), BasicTypes, uint16_t, uint16_val);
@@ -159,8 +155,8 @@ static Layout *i_layout(void)
     layout_updown(layout, updown, 1, 8);
     layout_halign(layout, 1, 0, ekJUSTIFY);
     layout_halign(layout, 1, 8, ekLEFT);
-    cell_dbind(layout_cell(layout, 1, 0), BasicTypes, String*, str_val);
-    cell_dbind(layout_cell(layout, 1, 1), BasicTypes, String*, str_val);
+    cell_dbind(layout_cell(layout, 1, 0), BasicTypes, String *, str_val);
+    cell_dbind(layout_cell(layout, 1, 1), BasicTypes, String *, str_val);
     cell_dbind(layout_cell(layout, 1, 2), BasicTypes, bool_t, bool_val);
     cell_dbind(layout_cell(layout, 1, 3), BasicTypes, gui_state_t, enum3_val);
     cell_dbind(layout_cell(layout, 1, 4), BasicTypes, uint16_t, uint16_val);
@@ -175,7 +171,7 @@ static Layout *i_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-Panel* guibind(void)
+Panel *guibind(void)
 {
     Layout *layout = NULL;
     Panel *panel = NULL;

@@ -36,10 +36,10 @@ void _layout_locate(Layout *layout);
 
 void _layout_taborder(const Layout *layout, Window *window);
 
-void _layout_dbind_update(Layout *layout, const DBind *dbind);
+void _layout_dbind_update(Layout *layout, const uint32_t member_id);
 
 ArrPt(Cell) *_layout_cells(Layout *layout);
 
-void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener);
+void _layout_dbind_notif_obj(Layout *layout, void **obj, const char_t **obj_type, uint16_t *obj_size, Listener **listener);
 
 __END_C

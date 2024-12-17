@@ -46,6 +46,14 @@ struct _osimage_t
 
 /*---------------------------------------------------------------------------*/
 
+static IStream *i_SHCreateMemStream(const BYTE *pInit, UINT cbInit)
+{
+    /* TODO: Use i_kSHCreateMemStream in WindowsXP */
+    return SHCreateMemStream(pInit, cbInit);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osimage_alloc_globals(void)
 {
     /*
@@ -198,7 +206,7 @@ OSImage *osimage_create_from_data(const byte_t *data, const uint32_t size_in_byt
     Gdiplus::Bitmap *bitmap = NULL;
     cassert_no_null(data);
     cassert(size_in_bytes > 0);
-    stream = i_kSHCreateMemStream(cast_const(data, BYTE), (UINT)size_in_bytes);
+    stream = i_SHCreateMemStream(cast_const(data, BYTE), (UINT)size_in_bytes);
     bitmap = Gdiplus::Bitmap::FromStream(stream, TRUE);
     stream->Release();
 

@@ -9,10 +9,11 @@
  *
  */
 
-/* Sets of pointers */
+/* Pointer sets */
 
-#define setpt_create(func_compare, type) \
-    setpt_##type##_create(func_compare, (uint16_t)sizeof(type *))
+#define setpt_create(func_compare, type, ktype) \
+    (FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
+     setpt_##type##_create((FPtr_compare)func_compare, (uint16_t)sizeof(type *), cast_const(#ktype, char_t)))
 
 #define setpt_destroy(set, func_destroy, type) \
     setpt_##type##_destroy(set, func_destroy)
@@ -20,17 +21,21 @@
 #define setpt_size(set, type) \
     setpt_##type##_size(set)
 
-#define setpt_get(set, key, type) \
-    setpt_##type##_get(set, key)
+#define setpt_get(set, key, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setpt_##type##_get(set, cast_const(key, void), cast_const(#ktype, char_t)))
 
-#define setpt_get_const(set, key, type) \
-    setpt_##type##_get_const(set, key)
+#define setpt_get_const(set, key, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setpt_##type##_get_const(set, cast_const(key, void), cast_const(#ktype, char_t)))
 
-#define setpt_insert(set, value, type) \
-    setpt_##type##_insert(set, value)
+#define setpt_insert(set, key, ptr, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setpt_##type##_insert(set, cast_const(key, void), ptr, cast_const(#ktype, char_t)))
 
-#define setpt_delete(set, key, func_destroy, type) \
-    setpt_##type##_delete(set, key, func_destroy)
+#define setpt_delete(set, key, func_destroy, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setpt_##type##_delete(set, cast_const(key, void), func_destroy, cast_const(#ktype, char_t)))
 
 #define setpt_first(set, type) \
     setpt_##type##_first(set)

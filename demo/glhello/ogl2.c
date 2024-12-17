@@ -301,7 +301,7 @@ void ogl2_draw(OGL2 *ogl, const real32_t width, const real32_t height, const rea
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, ogl->texture);
-    cassert((err = glGetError()) == GL_NO_ERROR);
+    cassert_unref((err = glGetError()) == GL_NO_ERROR, err);
 
     /* Set vertex buffer */
     glBindBuffer(GL_ARRAY_BUFFER, ogl->vbo);

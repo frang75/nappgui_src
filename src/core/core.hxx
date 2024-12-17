@@ -217,6 +217,16 @@ typedef enum _token_t
 
 } ltoken_t;
 
+typedef enum _dbindst_t
+{
+    ekDBIND_OK,
+    ekDBIND_MEMBER_EXISTS,
+    ekDBIND_TYPE_EXISTS,
+    ekDBIND_TYPE_UNKNOWN,
+    ekDBIND_TYPE_USED,
+    ekDBIND_ALIAS_SIZE
+} dbindst_t;
+
 typedef struct _buffer_t Buffer;
 typedef struct _string_t String;
 typedef struct _stream_t Stream;

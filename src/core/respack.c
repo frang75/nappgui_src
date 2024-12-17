@@ -318,7 +318,7 @@ const byte_t *respack_file(const ResPack *pack, const ResId id, uint32_t *size)
 
 /*---------------------------------------------------------------------------*/
 
-void *respack_object_imp(const ResPack *pack, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy)
+void *respack_object_imp(const ResPack *pack, const ResId id, FPtr_from_data func_create, FPtr_destroy func_destroy)
 {
     i_Resource *resource = NULL;
     cassert_no_null(pack);
@@ -397,7 +397,7 @@ const byte_t *respack_afile(const ArrPt(ResPack) *packs, const ResId id, uint32_
 
 /*---------------------------------------------------------------------------*/
 
-void *respack_aobj_imp(const ArrPt(ResPack) *packs, const ResId id, FPtr_create_from_data func_create, FPtr_destroy func_destroy, bool_t *is_resid)
+void *respack_aobj_imp(const ArrPt(ResPack) *packs, const ResId id, FPtr_from_data func_create, FPtr_destroy func_destroy, bool_t *is_resid)
 {
     i_Resource *resource = i_resource(packs, id, is_resid);
     if (resource != NULL)

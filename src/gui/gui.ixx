@@ -91,11 +91,12 @@ struct _evtransition_t
 
 struct _evbind_t
 {
-    void *obj_notify;
+    void *obj_main;
     void *obj_edit;
-    const char_t *objtype_notif;
+    const char_t *objtype_main;
     const char_t *objtype_edit;
     uint16_t offset_edit;
+    uint16_t size_main;
     uint16_t size_edit;
 };
 

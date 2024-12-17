@@ -448,18 +448,17 @@ void gui_OnIdle(Listener *listener)
 void *evbind_object_imp(Event *e, const char_t *type)
 {
     const EvBind *p = event_params(e, EvBind);
-    cassert_unref(str_equ_c(p->objtype_notif, type) == TRUE, type);
-    return p->obj_notify;
+    cassert_unref(str_equ_c(p->objtype_main, type) == TRUE, type);
+    return p->obj_main;
 }
 
 /*---------------------------------------------------------------------------*/
 
 bool_t evbind_modify_imp(Event *e, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
 {
-    const EvBind *p = event_params(e, EvBind);
-    if (p->obj_notify != NULL)
-        return _gbind_modify_data(p->obj_notify, type, size, mname, mtype, moffset, msize, p);
-
+    const EvBind *evbind = event_params(e, EvBind);
+    if (evbind->obj_main != NULL)
+        return _gbind_field_modify(evbind, type, size, mname, mtype, moffset, msize);
     return FALSE;
 }
 

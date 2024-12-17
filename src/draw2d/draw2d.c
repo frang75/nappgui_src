@@ -21,7 +21,7 @@
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/core.h>
-#include <core/dbindh.h>
+#include <core/dbind.h>
 #include <core/heap.h>
 #include <core/strings.h>
 #include <osbs/log.h>
@@ -87,7 +87,7 @@ void draw2d_start(void)
 
         i_INDEXED_COLORS = arrst_create(IColor);
         i_AVG_CHAR_WIDTH_LEN = str_len_c(i_AVG_CHAR_WIDTH);
-        dbind_opaque(Image, image_from_data, NULL, image_copy, NULL, image_write, image_destroy);
+        dbind_binary(Image, image_copy, image_read, image_write, image_destroy);
     }
 
     i_NUM_USERS += 1;
@@ -100,8 +100,7 @@ void draw2d_finish(void)
     cassert(i_NUM_USERS > 0);
     if (i_NUM_USERS == 1)
     {
-        /* Destroy all image in dbind, before release OS image support */
-        dbind_opaque_destroy("Image");
+        dbind_unreg(Image);
         arrpt_destroy(&i_FONT_FAMILIES, str_destroy, String);
         arrst_destroy(&i_INDEXED_COLORS, NULL, IColor);
         str_destopt(&i_USER_MONOSPACE_FONT_FAMILY);

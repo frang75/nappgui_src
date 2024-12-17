@@ -12,6 +12,7 @@
 
 #include "buffer.h"
 #include "heap.h"
+#include "stream.h"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 
@@ -35,6 +36,16 @@ Buffer *buffer_with_data(const byte_t *data, const uint32_t size)
 {
     Buffer *buffer = buffer_create(size);
     bmem_copy(i_DATA(buffer), data, size);
+    return buffer;
+}
+
+/*---------------------------------------------------------------------------*/
+
+Buffer *buffer_read(Stream *stream)
+{
+    uint32_t size = stm_read_u32(stream);
+    Buffer *buffer = buffer_create(size);
+    stm_read(stream, buffer_data(buffer), size);
     return buffer;
 }
 
@@ -69,4 +80,13 @@ const byte_t *buffer_const(const Buffer *buffer)
 {
     cassert_no_null(buffer);
     return i_DATA(buffer);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void buffer_write(Stream *stream, const Buffer *buffer)
+{
+    cassert_no_null(buffer);
+    stm_write_u32(stream, i_SIZE(buffer));
+    stm_write(stream, i_DATA(buffer), i_SIZE(buffer));
 }

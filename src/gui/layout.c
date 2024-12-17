@@ -88,7 +88,7 @@ struct _cell_t
     i_CellDim dim[2];
     i_CellContent content;
     Layout *parent;
-    const DBind *dbind;
+    uint32_t member_id;
 };
 
 struct _layout_t
@@ -104,7 +104,7 @@ struct _layout_t
     real32_t dim_margin[2];
     color_t bgcolor;
     color_t skcolor;
-    const StBind *stbind;
+    const DBind *stbind;
     void *objbind;
     Listener *OnObjChange;
 };
@@ -154,7 +154,7 @@ static ___INLINE void i_init_cell(
     cell->dim[1] = ptr_get(dim1, i_CellDim);
     cell->content = ptr_get(content, i_CellContent);
     cell->parent = layout;
-    cell->dbind = NULL;
+    cell->member_id = UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -228,12 +228,11 @@ static ArrSt(i_LineDim) *i_create_linedim(const uint32_t num_elems)
     real32_t resize = 1.f / (real32_t)num_elems;
     real32_t total = 0.f;
 
-    arrst_grow(dimension, num_elems, i_LineDim);
+    arrst_new_n0(dimension, num_elems, i_LineDim);
     arrst_foreach(dim, dimension, i_LineDim)
         if (dim_i == dim_total - 1)
             resize = 1.f - total;
 
-        bmem_zero(dim, i_LineDim);
         dim->resize_percent = resize;
         total += resize;
     arrst_end()
@@ -250,8 +249,8 @@ static void i_cell_rowcol_order(ArrPt(Cell) *cells, const uint32_t ncols, const 
     cassert(ncells == ncols * nrows);
     cassert(arrpt_size(cells_dim0, Cell) == 0);
     cassert(arrpt_size(cells_dim1, Cell) == 0);
-    arrpt_grow(cells_dim0, ncells, Cell);
-    arrpt_grow(cells_dim1, ncells, Cell);
+    arrpt_insert_n(cells_dim0, 0, ncells, Cell);
+    arrpt_insert_n(cells_dim1, 0, ncells, Cell);
 
     /* Row major order for column-dimensions (dim[0]) */
     {
@@ -385,7 +384,7 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
     cassert_no_null(cell);
     cassert(cell->type == i_ekCOMPONENT);
     cassert(cell->content.component->type == component->type);
-    cassert(cell->dbind == NULL);
+    cassert(cell->member_id == UINT32_MAX);
     visible = cell->visible;
     enabled = cell->enabled;
     displayed = cell->displayed;
@@ -1283,17 +1282,18 @@ void layout_dbind_imp(Layout *layout, Listener *listener, const char_t *type, co
     cassert(layout->stbind == NULL);
     cassert(layout->objbind == NULL);
     cassert(layout->OnObjChange == NULL);
-    layout->stbind = dbind_stbind(type);
+    layout->stbind = dbind_from_typename(type, NULL);
     layout->OnObjChange = listener;
-    cassert_unref(dbind_stbind_sizeof(layout->stbind) == size, size);
+    cassert(dbind_type(layout->stbind) == ekDTYPE_STRUCT);
+    cassert_unref(dbind_size(layout->stbind) == size, size);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_layout_dbind(Layout *layout, const StBind *stbind, void *obj)
+static void i_layout_dbind(Layout *layout, const DBind *stbind, void *obj)
 {
     arrpt_foreach(cell, layout->cells, Cell)
-        if (cell->dbind != NULL)
+        if (cell->member_id != UINT32_MAX)
         {
             switch (cell->type)
             {
@@ -1303,17 +1303,17 @@ static void i_layout_dbind(Layout *layout, const StBind *stbind, void *obj)
                     Panel *panel = cast(cell->content.component, Panel);
                     ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
                     arrpt_foreach(panel_layout, panel_layouts, Layout)
-                        _gbind_upd_layout(panel_layout, stbind, cell->dbind, obj);
+                        _gbind_update_layout(panel_layout, stbind, cell->member_id, obj);
                     arrpt_end()
                 }
                 else
                 {
-                    _gbind_upd_component(cell, stbind, cell->dbind, obj);
+                    _gbind_update_control(cell, stbind, cell->member_id, obj);
                 }
                 break;
 
             case i_ekLAYOUT:
-                _gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
+                _gbind_update_layout(cell->content.layout, stbind, cell->member_id, obj);
                 break;
 
             case i_ekEMPTY:
@@ -1341,7 +1341,7 @@ static void i_layout_dbind(Layout *layout, const StBind *stbind, void *obj)
 void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type)
 {
     cassert_no_null(layout);
-    cassert_unref(str_equ_c(dbind_stbind_type(layout->stbind), type) == TRUE, type);
+    cassert_unref(str_equ_c(dbind_typename(layout->stbind), type) == TRUE, type);
     layout->objbind = obj;
     i_layout_dbind(layout, layout->stbind, layout->objbind);
 }
@@ -1350,13 +1350,24 @@ void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type)
 
 void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
 {
-    const StBind *stbind = dbind_stbind(type);
-    const DBind *dbind = dbind_stbind_find(stbind, mname);
-    cassert_unref(dbind_data_type(mtype, NULL, NULL) == dbind_type(dbind), mtype);
-    cassert_unref(dbind_stbind_sizeof(stbind) == size, size);
-    cassert_unref(dbind_offset(dbind) == moffset, moffset);
-    cassert_unref(dbind_sizeof(dbind) == msize, msize);
-    _layout_dbind_update(layout, dbind);
+    const DBind *stbind = dbind_from_typename(type, NULL);
+    uint32_t member_id = dbind_st_member_id(stbind, mname);
+    cassert_unref(dbind_size(stbind) == size, size);
+    cassert_unref(dbind_st_offset(stbind, member_id) == moffset, moffset);
+#if defined(__ASSERTS__)
+    {
+        bool_t is_ptr = FALSE;
+        const DBind *bind = dbind_from_typename(mtype, &is_ptr);
+        const DBind *mbind = dbind_st_member(stbind, member_id);
+        cassert(bind == mbind);
+        cassert_unref((is_ptr == TRUE && msize == sizeof(void *)) || dbind_size(mbind) == msize, msize);
+        unref(is_ptr);
+    }
+#else
+    unref(mtype);
+    unref(msize);
+#endif
+    _layout_dbind_update(layout, member_id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2112,17 +2123,17 @@ void _layout_taborder(const Layout *layout, Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *dbind, void *obj)
+static void i_dbind_update(Layout *layout, const DBind *stbind, const uint32_t member_id, const void *obj)
 {
     arrpt_foreach(cell, layout->cells, Cell)
         bool_t update = FALSE;
 
         /* Update a single object-field (dbind != NULL) */
-        if (dbind != NULL && cell->dbind == dbind)
+        if (member_id != UINT32_MAX && cell->member_id == member_id)
             update = TRUE;
 
-        /* Update the entire object (dbind == NULL) */
-        else if (dbind == NULL && cell->dbind != NULL)
+        /* Update the entire object (member_id == UINT32_MAX) */
+        else if (member_id == UINT32_MAX && cell->member_id != UINT32_MAX)
             update = TRUE;
 
         if (update)
@@ -2130,10 +2141,10 @@ static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *db
             switch (cell->type)
             {
             case i_ekCOMPONENT:
-                _gbind_upd_component(cell, stbind, cell->dbind, obj);
+                _gbind_update_control(cell, stbind, cell->member_id, obj);
                 break;
             case i_ekLAYOUT:
-                _gbind_upd_layout(cell->content.layout, stbind, cell->dbind, obj);
+                _gbind_update_layout(cell->content.layout, stbind, cell->member_id, obj);
                 break;
             case i_ekEMPTY:
                 cassert_default();
@@ -2141,24 +2152,32 @@ static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *db
         }
         else if (cell->type == i_ekLAYOUT)
         {
-            const StBind *lstbind = cell->content.layout->stbind;
-            void *lobjbind = cell->content.layout->objbind;
+            const DBind *lstbind = cell->content.layout->stbind;
             if (lstbind != NULL)
-                i_dbind_update(cell->content.layout, lstbind, dbind, lobjbind);
+            {
+                const void *lobjbind = cell->content.layout->objbind;
+                i_dbind_update(cell->content.layout, lstbind, member_id, lobjbind);
+            }
             else
-                i_dbind_update(cell->content.layout, stbind, dbind, obj);
+            {
+                i_dbind_update(cell->content.layout, stbind, member_id, obj);
+            }
         }
         else if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_PANEL)
         {
             Panel *panel = cast(cell->content.component, Panel);
             ArrPt(Layout) *panel_layouts = _panel_layouts(panel);
             arrpt_foreach(panel_layout, panel_layouts, Layout)
-                const StBind *lstbind = panel_layout->stbind;
-                void *lobjbind = panel_layout->objbind;
+                const DBind *lstbind = panel_layout->stbind;
                 if (lstbind != NULL)
-                    i_dbind_update(panel_layout, lstbind, dbind, lobjbind);
+                {
+                    const void *lobjbind = panel_layout->objbind;
+                    i_dbind_update(panel_layout, lstbind, member_id, lobjbind);
+                }
                 else
-                    i_dbind_update(panel_layout, stbind, dbind, obj);
+                {
+                    i_dbind_update(panel_layout, stbind, member_id, obj);
+                }
             arrpt_end()
         }
     arrpt_end()
@@ -2166,12 +2185,12 @@ static void i_dbind_update(Layout *layout, const StBind *stbind, const DBind *db
 
 /*---------------------------------------------------------------------------*/
 
-void _layout_dbind_update(Layout *layout, const DBind *dbind)
+void _layout_dbind_update(Layout *layout, const uint32_t member_id)
 {
     cassert_no_null(layout);
-    cassert_no_null(dbind);
-    cassert(layout->objbind != NULL);
-    i_dbind_update(layout, layout->stbind, dbind, layout->objbind);
+    cassert_no_null(layout->stbind);
+    cassert_no_null(layout->objbind);
+    i_dbind_update(layout, layout->stbind, member_id, layout->objbind);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2184,14 +2203,16 @@ ArrPt(Cell) *_layout_cells(Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-void _layout_notif(Layout *layout, void **obj, const char_t **obj_type, Listener **listener)
+void _layout_dbind_notif_obj(Layout *layout, void **obj, const char_t **obj_type, uint16_t *obj_size, Listener **listener)
 {
     cassert_no_null(layout);
     cassert_no_null(obj);
     cassert_no_null(obj_type);
+    cassert_no_null(obj_size);
     cassert_no_null(listener);
     *obj = layout->objbind;
-    *obj_type = dbind_stbind_type(layout->stbind);
+    *obj_type = dbind_typename(layout->stbind);
+    *obj_size = dbind_size(layout->stbind);
     *listener = layout->OnObjChange;
 }
 
@@ -2459,14 +2480,15 @@ align_t cell_get_valign(const Cell *cell)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_dbind(Cell *cell, const DBind *dbind)
+static void i_set_dbind(Cell *cell, const DBind *stbind, const uint32_t member_id)
 {
-    cassert(cell->dbind == NULL);
-    cell->dbind = dbind;
+    const DBind *bind = dbind_st_member(stbind, member_id);
+    dtype_t dtype = dbind_type(bind);
+    cassert(cell->member_id == UINT32_MAX);
+    cassert(member_id != UINT32_MAX);
+    cell->member_id = member_id;
     if (cell->type == i_ekCOMPONENT)
     {
-        dtype_t dtype = dbind_type(dbind);
-
         switch (cell->content.component->type)
         {
         case ekGUI_TYPE_POPUP:
@@ -2474,10 +2496,10 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
             PopUp *popup = cast(cell->content.component, PopUp);
             if (dtype == ekDTYPE_ENUM && _popup_size(popup) == 0)
             {
-                uint32_t i, n = dbind_enum_count(dbind);
+                uint32_t i, n = dbind_enum_count(bind);
                 for (i = 0; i < n; ++i)
                 {
-                    const char_t *alias = dbind_enum_alias(dbind, i);
+                    const char_t *alias = dbind_enum_alias(bind, i);
                     _popup_add_enum_item(popup, alias);
                 }
 
@@ -2495,10 +2517,10 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
                 ListBox *listbox = cast(cell->content.component, ListBox);
                 if (dtype == ekDTYPE_ENUM && _listbox_count(listbox) == 0)
                 {
-                    uint32_t i, n = dbind_enum_count(dbind);
+                    uint32_t i, n = dbind_enum_count(bind);
                     for (i = 0; i < n; ++i)
                     {
-                        const char_t *alias = dbind_enum_alias(dbind, i);
+                        const char_t *alias = dbind_enum_alias(bind, i);
                         _listbox_add_enum_item(listbox, alias);
                     }
                 }
@@ -2508,7 +2530,7 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
         }
 
         case ekGUI_TYPE_EDITBOX:
-            if (dbind_is_number_type(dbind) == TRUE)
+            if (dbind_is_number_type(dtype) == TRUE)
             {
                 Edit *edit = cast(cell->content.component, Edit);
                 edit_autoselect(edit, TRUE);
@@ -2536,10 +2558,10 @@ static void i_set_dbind(Cell *cell, const DBind *dbind)
             cassert_default();
         }
     }
-    else if (cell->type == i_ekLAYOUT && dbind_is_basic_type(dbind) == TRUE)
+    else if (cell->type == i_ekLAYOUT && dbind_is_basic_type(dtype) == TRUE)
     {
         arrpt_foreach(lcell, cell->content.layout->cells, Cell)
-            i_set_dbind(lcell, dbind);
+            i_set_dbind(lcell, stbind, member_id);
         arrpt_end()
     }
 }
@@ -2555,15 +2577,28 @@ void cell_dbind_imp(
     const uint16_t moffset,
     const uint16_t msize)
 {
-    const StBind *stbind = dbind_stbind(type);
-    const DBind *dbind = dbind_stbind_find(stbind, mname);
+    const DBind *stbind = dbind_from_typename(type, NULL);
+    uint32_t member_id = dbind_st_member_id(stbind, mname);
     cassert_no_null(cell);
-    cassert_no_null(dbind);
-    cassert_unref(dbind_stbind_sizeof(stbind) == size, size);
-    cassert_unref(dbind_data_type(mtype, NULL, NULL) == dbind_type(dbind), mtype);
-    cassert_unref(dbind_offset(dbind) == moffset, moffset);
-    cassert_unref(dbind_sizeof(dbind) == msize, msize);
-    i_set_dbind(cell, dbind);
+    cassert(member_id != UINT32_MAX);
+    cassert_unref(dbind_size(stbind) == size, size);
+    cassert_unref(dbind_st_offset(stbind, member_id) == moffset, moffset);
+
+#if defined(__ASSERTS__)
+    {
+        bool_t is_ptr = FALSE;
+        const DBind *bind = dbind_from_typename(mtype, &is_ptr);
+        const DBind *mbind = dbind_st_member(stbind, member_id);
+        cassert(bind == mbind);
+        cassert_unref((is_ptr == TRUE && msize == sizeof(void *)) || dbind_size(mbind) == msize, msize);
+        unref(is_ptr);
+    }
+#else
+    unref(mtype);
+    unref(msize);
+#endif
+
+    i_set_dbind(cell, stbind, member_id);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2655,20 +2690,11 @@ Cell *_cell_radio_dbind_cell(Cell *on_cell)
     arrpt_foreach(cell, on_cell->parent->cells, Cell)
         if (cell->type == i_ekCOMPONENT && cell->content.component->type == ekGUI_TYPE_BUTTON && _button_is_radio(cast_const(cell->content.component, Button)))
         {
-            if (cell->dbind != NULL)
+            if (cell->member_id != UINT32_MAX)
                 return cell;
         }
     arrpt_end()
     return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t _cell_filter_str(Cell *cell, const char_t *str, char_t *dest, const uint32_t size)
-{
-    if (cell->dbind != NULL)
-        return dbind_string_filter(cell->dbind, str, dest, size);
-    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2694,7 +2720,6 @@ static Layout *i_cell_obj(Cell *cell, void **obj, Layout **layout_notif)
     if (layout->stbind != NULL)
     {
         Layout *layout_notify = layout;
-        cassert(dbind_get_stbind(cell->dbind) == layout->stbind);
         *obj = layout->objbind;
 
         /* Find the closest parent layout with notification data */
@@ -2710,90 +2735,108 @@ static Layout *i_cell_obj(Cell *cell, void **obj, Layout **layout_notif)
 
 /*---------------------------------------------------------------------------*/
 
-void _cell_upd_bool(Cell *cell, const bool_t value)
+bool_t _cell_filter_str(Cell *cell, const char_t *str, char_t *dest, const uint32_t size)
 {
     cassert_no_null(cell);
-    if (cell->dbind != NULL)
+    if (cell->member_id != UINT32_MAX)
+    {
+        void *obj = NULL;
+        Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
+        cassert_no_null(layout);
+        return dbind_st_str_filter(layout->stbind, cell->member_id, str, dest, size);
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _cell_update_bool(Cell *cell, const bool_t value)
+{
+    cassert_no_null(cell);
+    if (cell->member_id != UINT32_MAX)
     {
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
         if (obj != NULL)
-            _gbind_upd_bool(layout, cell->dbind, obj, layout_notif, value);
+            _gbind_update_bool(layout, layout->stbind, cell->member_id, obj, layout_notif, value);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _cell_upd_uint32(Cell *cell, const uint32_t value)
+void _cell_update_u32(Cell *cell, const uint32_t value)
 {
     cassert_no_null(cell);
-    if (cell->dbind != NULL)
+    if (cell->member_id != UINT32_MAX)
     {
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
         if (obj != NULL)
-            _gbind_upd_uint32(layout, cell->dbind, obj, layout_notif, value);
+            _gbind_update_u32(layout, layout->stbind, cell->member_id, obj, layout_notif, value);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _cell_upd_norm_real32(Cell *cell, const real32_t value)
+void _cell_update_norm32(Cell *cell, const real32_t value)
 {
     cassert_no_null(cell);
-    if (cell->dbind != NULL)
+    if (cell->member_id != UINT32_MAX)
     {
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
         if (layout->objbind != NULL)
-            _gbind_upd_norm_real32(layout, cell->dbind, obj, layout_notif, value);
+            _gbind_update_norm32(layout, layout->stbind, cell->member_id, obj, layout_notif, value);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _cell_upd_string(Cell *cell, const char_t *str)
+void _cell_update_str(Cell *cell, const char_t *str)
 {
     cassert_no_null(cell);
-    if (cell->dbind != NULL)
+    if (cell->member_id != UINT32_MAX)
     {
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
         if (layout->objbind != NULL)
-            _gbind_upd_string(layout, cell->dbind, obj, layout_notif, str);
+            _gbind_update_str(layout, layout->stbind, cell->member_id, obj, layout_notif, str);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _cell_upd_image(Cell *cell, const Image *image)
-{
-    if (cell && cell->dbind != NULL)
-    {
-        void *obj = NULL;
-        Layout *layout_notif = NULL;
-        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
-        if (layout->objbind != NULL)
-            _gbind_upd_image(layout, cell->dbind, layout->objbind, image);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _cell_upd_increment(Cell *cell, const bool_t pos)
+void _cell_update_image(Cell *cell, const Image *image)
 {
     cassert_no_null(cell);
-    if (cell->dbind != NULL)
+    if (cell->member_id != UINT32_MAX)
     {
         void *obj = NULL;
         Layout *layout_notif = NULL;
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
         if (layout->objbind != NULL)
-            _gbind_upd_increment(layout, cell->dbind, obj, layout_notif, pos);
+            _gbind_update_image(layout, layout->stbind, cell->member_id, obj, layout_notif, image);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _cell_update_incr(Cell *cell, const bool_t pos)
+{
+    cassert_no_null(cell);
+    if (cell->member_id != UINT32_MAX)
+    {
+        void *obj = NULL;
+        Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
+        if (layout->objbind != NULL)
+            _gbind_update_incr(layout, layout->stbind, cell->member_id, obj, layout_notif, pos);
     }
 }
 

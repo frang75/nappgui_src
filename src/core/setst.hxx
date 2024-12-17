@@ -32,10 +32,10 @@
 #define SetStFuncs(type) \
     SetSt(type); \
 \
-    static __TYPECHECK SetSt(type) *setst_##type##_create(int(func_compare)(const type *, const type *), const uint16_t esize); \
-    static SetSt(type) *setst_##type##_create(int(func_compare)(const type *, const type *), const uint16_t esize) \
+    static __TYPECHECK SetSt(type) *setst_##type##_create(FPtr_compare func_compare, const uint16_t esize, const char_t *ktype); \
+    static SetSt(type) *setst_##type##_create(FPtr_compare func_compare, const uint16_t esize, const char_t *ktype) \
     { \
-        return cast(rbtree_create((FPtr_compare)func_compare, esize, 0, cast_const(SETST #type, char_t)), SetSt(type)); \
+        return cast(rbtree_create(func_compare, esize, 0, cast_const(SETST #type, char_t), ktype), SetSt(type)); \
     } \
 \
     static __TYPECHECK void setst_##type##_destroy(struct Set##St##type **set, void(func_remove)(type *)); \
@@ -50,28 +50,28 @@
         return rbtree_size(cast_const(set, RBTree)); \
     } \
 \
-    static __TYPECHECK type *setst_##type##_get(struct Set##St##type *set, const type *key); \
-    static type *setst_##type##_get(struct Set##St##type *set, const type *key) \
+    static __TYPECHECK type *setst_##type##_get(struct Set##St##type *set, const void *key, const char_t *ktype); \
+    static type *setst_##type##_get(struct Set##St##type *set, const void *key, const char_t *ktype) \
     { \
-        return cast(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE), type); \
+        return cast(rbtree_get(cast_const(set, RBTree), key, FALSE, ktype), type); \
     } \
 \
-    static __TYPECHECK const type *setst_##type##_get_const(const struct Set##St##type *set, const type *key); \
-    static const type *setst_##type##_get_const(const struct Set##St##type *set, const type *key) \
+    static __TYPECHECK const type *setst_##type##_get_const(const struct Set##St##type *set, const void *key, const char_t *ktype); \
+    static const type *setst_##type##_get_const(const struct Set##St##type *set, const void *key, const char_t *ktype) \
     { \
-        return cast_const(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE), type); \
+        return cast_const(rbtree_get(cast_const(set, RBTree), key, FALSE, ktype), type); \
     } \
 \
-    static __TYPECHECK type *setst_##type##_insert(struct Set##St##type *set, const type *key); \
-    static type *setst_##type##_insert(struct Set##St##type *set, const type *key) \
+    static __TYPECHECK type *setst_##type##_insert(struct Set##St##type *set, const void *key, const char_t *ktype); \
+    static type *setst_##type##_insert(struct Set##St##type *set, const void *key, const char_t *ktype) \
     { \
-        return cast(rbtree_insert(cast(set, RBTree), cast_const(key, void), NULL), type); \
+        return cast(rbtree_insert(cast(set, RBTree), key, NULL, ktype), type); \
     } \
 \
-    static __TYPECHECK bool_t setst_##type##_delete(struct Set##St##type *set, const type *key, void(func_remove)(type *)); \
-    static bool_t setst_##type##_delete(struct Set##St##type *set, const type *key, void(func_remove)(type *)) \
+    static __TYPECHECK bool_t setst_##type##_delete(struct Set##St##type *set, const void *key, FPtr_remove func_remove, const char_t *ktype); \
+    static bool_t setst_##type##_delete(struct Set##St##type *set, const void *key, FPtr_remove func_remove, const char_t *ktype) \
     { \
-        return rbtree_delete(cast(set, RBTree), cast_const(key, void), (FPtr_remove)func_remove, NULL); \
+        return rbtree_delete(cast(set, RBTree), key, func_remove, NULL, ktype); \
     } \
 \
     static __TYPECHECK type *setst_##type##_first(struct Set##St##type *set); \

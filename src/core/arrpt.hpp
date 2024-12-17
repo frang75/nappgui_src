@@ -8,7 +8,7 @@
  *
  */
 
-/* Arrays of pointers */
+/* Pointers arrays */
 
 #ifndef __ARRPT_HPP__
 #define __ARRPT_HPP__
@@ -53,13 +53,13 @@ struct ArrPt
 
     static const type **all(const ArrPt<type> *array);
 
-    static void grow(ArrPt<type> *array, const uint32_t n);
-
     static void append(ArrPt<type> *array, const type *value);
 
     static void prepend(ArrPt<type> *array, const type *value);
 
     static void insert(ArrPt<type> *array, const uint32_t pos, const type *value);
+
+    static type **insert_n(ArrPt<type> *array, const uint32_t pos, const uint32_t n);
 
     static void join(ArrPt<type> *dest, const ArrPt<type> *src, type *(*func_copy)(const type));
 
@@ -72,7 +72,7 @@ struct ArrPt
     static uint32_t find(ArrPt<type> *array, const type *elem);
 
 #if defined __ASSERTS__
-    // Only for debuggers inspector (non used)
+    // Only for debugger inspector (non used)
     template <class ttype>
     struct TypeData
     {
@@ -91,13 +91,13 @@ struct ArrP2
 {
     static void sort_ex(ArrPt<type> *array, int (*func_compare)(const type *, const type *, const dtype *), const dtype *data);
 
-    static type *search(ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos);
+    static type *search(ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
 
-    static const type *search(const ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos);
+    static const type *search(const ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
 
-    static type *bsearch(ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos);
+    static type *bsearch(ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
 
-    static const type *bsearch(const ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos);
+    static const type *bsearch(const ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -241,14 +241,6 @@ const type **ArrPt<type>::all(const ArrPt<type> *array)
 /*---------------------------------------------------------------------------*/
 
 template <typename type>
-void ArrPt<type>::grow(ArrPt<type> *array, const uint32_t n)
-{
-    array_insert(cast(array, Array), UINT32_MAX, n);
-}
-
-/*---------------------------------------------------------------------------*/
-
-template <typename type>
 void ArrPt<type>::append(ArrPt<type> *array, const type *value)
 {
     *dcast(array_insert(cast(array, Array), UINT32_MAX, 1), type) = cast(value, type);
@@ -268,6 +260,14 @@ template <typename type>
 void ArrPt<type>::insert(ArrPt<type> *array, const uint32_t pos, const type *value)
 {
     *dcast(array_insert(cast(array, Array), pos, 1), type) = value;
+}
+
+/*---------------------------------------------------------------------------*/
+
+template <typename type>
+type **ArrPt<type>::insert_n(ArrPt<type> *array, const uint32_t pos, const uint32_t n)
+{
+    return dcast(array_insert(cast(array, Array), pos, n), type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -321,7 +321,7 @@ void ArrP2<type, dtype>::sort_ex(ArrPt<type> *array, int (*func_compare)(const t
 /*---------------------------------------------------------------------------*/
 
 template <typename type, typename dtype>
-type *ArrP2<type, dtype>::search(ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
+type *ArrP2<type, dtype>::search(ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
 {
     return cast(array_search_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
@@ -329,7 +329,7 @@ type *ArrP2<type, dtype>::search(ArrPt<type> *array, int (*func_compare)(const t
 /*---------------------------------------------------------------------------*/
 
 template <typename type, typename dtype>
-const type *ArrP2<type, dtype>::search(const ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
+const type *ArrP2<type, dtype>::search(const ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
 {
     return cast_const(array_search_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
@@ -337,7 +337,7 @@ const type *ArrP2<type, dtype>::search(const ArrPt<type> *array, int (*func_comp
 /*---------------------------------------------------------------------------*/
 
 template <typename type, typename dtype>
-type *ArrP2<type, dtype>::bsearch(ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
+type *ArrP2<type, dtype>::bsearch(ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
 {
     return cast(array_bsearch_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
@@ -345,7 +345,7 @@ type *ArrP2<type, dtype>::bsearch(ArrPt<type> *array, int (*func_compare)(const 
 /*---------------------------------------------------------------------------*/
 
 template <typename type, typename dtype>
-const type *ArrP2<type, dtype>::bsearch(const ArrPt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
+const type *ArrP2<type, dtype>::bsearch(const ArrPt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
 {
     return cast_const(array_bsearch_ptr(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }

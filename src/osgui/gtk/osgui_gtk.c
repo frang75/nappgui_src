@@ -250,7 +250,7 @@ const char_t *_osgui_register_icon(const Image *image)
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         gtk_icon_theme_add_builtin_icon(ICON_NAME, (gint)width, cast(image_native(image), GdkPixbuf));
 #pragma GCC diagnostic pop
-        arrpt_append(kREGISTER_ICONS, image, Image);
+        arrpt_append(kREGISTER_ICONS, cast(image, Image), Image);
     }
 
     return ICON_NAME;

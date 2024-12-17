@@ -36,7 +36,7 @@ typedef struct _jsonopts_t JsonOpts;
 
 struct _jsonopts_t
 {
-    uint32_t not_used;
+    ArrPt(String) *log;
 };
 
 #endif

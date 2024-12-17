@@ -587,7 +587,7 @@ static void i_nfa_union(NFA *nfa1, NFA *nfa2)
     trans->extra = UINT32_MAX;
 
     /* 6) Copy all df2 transitions to df1 */
-    arrst_grow(nfa1->ttable, n2, Trans);
+    arrst_new_n(nfa1->ttable, n2, Trans);
     trans = arrst_all(nfa1->ttable, Trans);
     trans += n1 + 1;
     trans2 = arrst_all(nfa2->ttable, Trans);
@@ -634,7 +634,7 @@ static void i_nfa_concat(NFA *nfa1, NFA *nfa2)
     }
 
     /* 3) Copy all df2 transitions to df1 */
-    arrst_grow(nfa1->ttable, n2, Trans);
+    arrst_new_n(nfa1->ttable, n2, Trans);
     trans = arrst_all(nfa1->ttable, Trans);
     trans += n1;
     trans2 = arrst_all(nfa2->ttable, Trans);

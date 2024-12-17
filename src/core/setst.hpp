@@ -8,7 +8,7 @@
  *
  */
 
-/* Set of structures */
+/* Sets */
 
 #ifndef __SETST_HPP__
 #define __SETST_HPP__
@@ -21,17 +21,9 @@
 template <class type>
 struct SetSt
 {
-    static SetSt<type> *create(int(func_compare)(const type *, const type *));
-
     static void destroy(SetSt<type> **set, void (*func_remove)(type *));
 
     static uint32_t size(const SetSt<type> *set);
-
-    static type *get(SetSt<type> *set, const type *key);
-
-    static const type *get(const SetSt<type> *set, const type *key);
-
-    static bool_t ddelete(SetSt<type> *set, const type *key, void (*func_remove)(type *));
 
     static type *first(SetSt<type> *set);
 
@@ -50,7 +42,7 @@ struct SetSt
     static const type *prev(const SetSt<type> *set);
 
 #if defined __ASSERTS__
-    // Only for debuggers inspector (non used)
+    // Only for debugger inspector (non used)
     template <class ttype>
     struct TypeNode
     {
@@ -68,22 +60,28 @@ struct SetSt
 #endif
 };
 
+template <typename type, typename dtype>
+struct SetS2
+{
+    static SetSt<type> *create(int(func_compare)(const type *, const dtype *));
+
+    static type *get(SetSt<type> *set, const dtype *key);
+
+    static const type *get(const SetSt<type> *set, const dtype *key);
+
+    static type *insert(SetSt<type> *set, const dtype *key);
+
+    static bool_t ddelete(SetSt<type> *set, const dtype *key, void (*func_remove)(type *));
+};
+
 /*---------------------------------------------------------------------------*/
 
-template <typename type>
-static const char_t *i_settype(void)
+template <typename type, typename dtype>
+SetSt<type> *SetS2<type, dtype>::create(int(func_compare)(const type *, const dtype *))
 {
-    static char_t dtype[64];
-    bstd_sprintf(dtype, sizeof(dtype), "SetSt<%s>", typeid(type).name());
-    return dtype;
-}
-
-/*---------------------------------------------------------------------------*/
-
-template <typename type>
-SetSt<type> *SetSt<type>::create(int(func_compare)(const type *, const type *))
-{
-    return cast(rbtree_create((FPtr_compare)func_compare, (uint16_t)sizeof(type), 0, i_settype<type>()), SetSt<type>);
+    char_t ltype[64];
+    bstd_sprintf(ltype, sizeof(ltype), "SetSt<%s>", typeid(type).name());
+    return cast(rbtree_create((FPtr_compare)func_compare, (uint16_t)sizeof(type), 0, ltype, typeid(dtype).name()), SetSt<type>);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -91,7 +89,9 @@ SetSt<type> *SetSt<type>::create(int(func_compare)(const type *, const type *))
 template <typename type>
 void SetSt<type>::destroy(SetSt<type> **set, void (*func_remove)(type *))
 {
-    rbtree_destroy(dcast(set, RBTree), (FPtr_remove)func_remove, NULL, i_settype<type>());
+    char_t ltype[64];
+    bstd_sprintf(ltype, sizeof(ltype), "SetSt<%s>", typeid(type).name());
+    rbtree_destroy(dcast(set, RBTree), (FPtr_remove)func_remove, NULL, ltype);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -104,26 +104,34 @@ uint32_t SetSt<type>::size(const SetSt<type> *set)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename type>
-type *SetSt<type>::get(SetSt<type> *set, const type *key)
+template <typename type, typename dtype>
+type *SetS2<type, dtype>::get(SetSt<type> *set, const dtype *key)
 {
-    return cast(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE), type);
+    return cast(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE, typeid(dtype).name()), type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename type>
-const type *SetSt<type>::get(const SetSt<type> *set, const type *key)
+template <typename type, typename dtype>
+const type *SetS2<type, dtype>::get(const SetSt<type> *set, const dtype *key)
 {
-    return cast_const(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE), type);
+    return cast_const(rbtree_get(cast_const(set, RBTree), cast_const(key, void), FALSE, typeid(dtype).name()), type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename type>
-bool_t SetSt<type>::ddelete(SetSt<type> *set, const type *key, void (*func_remove)(type *))
+template <typename type, typename dtype>
+type *SetS2<type, dtype>::insert(SetSt<type> *set, const dtype *key)
 {
-    return rbtree_delete(cast(set, RBTree), cast_const(key, void), (FPtr_remove)func_remove, NULL);
+    return cast(rbtree_insert(cast(set, RBTree), cast_const(key, void), NULL, typeid(dtype).name()), type);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template <typename type, typename dtype>
+bool_t SetS2<type, dtype>::ddelete(SetSt<type> *set, const dtype *key, void (*func_remove)(type *))
+{
+    return rbtree_delete(cast(set, RBTree), cast_const(key, void), (FPtr_remove)func_remove, NULL, typeid(dtype).name());
 }
 
 /*---------------------------------------------------------------------------*/

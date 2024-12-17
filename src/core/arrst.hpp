@@ -8,7 +8,7 @@
  *
  */
 
-/* Arrays of structures */
+/* Arrays */
 
 #ifndef __ARRST_HPP__
 #define __ARRST_HPP__
@@ -53,8 +53,6 @@ struct ArrSt
 
     static const type *all(const ArrSt<type> *array);
 
-    static void grow(ArrSt<type> *array, const uint32_t n);
-
     static type *nnew(ArrSt<type> *array);
 
     static type *new0(ArrSt<type> *array);
@@ -84,7 +82,7 @@ struct ArrSt
     static void sort(ArrSt<type> *array, int (*func_compare)(const type *, const type *));
 
 #if defined __ASSERTS__
-    // Only for debuggers inspector (non used)
+    // Only for debugger inspector (non used)
     template <class ttype>
     struct TypeData
     {
@@ -103,9 +101,13 @@ struct ArrS2
 {
     static void sort_ex(ArrSt<type> *array, int (*func_compare)(const type *, const type *, const dtype *), const dtype *data);
 
-    static type *search(const ArrSt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos);
+    static type *search(ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
 
-    static type *bsearch(const ArrSt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos);
+    static const type *search(const ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
+
+    static type *bsearch(ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
+
+    static const type *bsearch(const ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
 };
 
 /*---------------------------------------------------------------------------*/
@@ -249,14 +251,6 @@ const type *ArrSt<type>::all(const ArrSt<type> *array)
 /*---------------------------------------------------------------------------*/
 
 template <typename type>
-void ArrSt<type>::grow(ArrSt<type> *array, const uint32_t n)
-{
-    array_insert(cast(array, Array), UINT32_MAX, n);
-}
-
-/*---------------------------------------------------------------------------*/
-
-template <typename type>
 type *ArrSt<type>::nnew(ArrSt<type> *array)
 {
     return cast(array_insert(cast(array, Array), UINT32_MAX, 1), type);
@@ -377,15 +371,31 @@ void ArrS2<type, dtype>::sort_ex(ArrSt<type> *array, int (*func_compare)(const t
 /*---------------------------------------------------------------------------*/
 
 template <typename type, typename dtype>
-type *ArrS2<type, dtype>::search(const ArrSt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
+type *ArrS2<type, dtype>::search(ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
 {
-    return cast(array_search(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
+    return cast(array_search(cast(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }
 
 /*---------------------------------------------------------------------------*/
 
 template <typename type, typename dtype>
-type *ArrS2<type, dtype>::bsearch(const ArrSt<type> *array, int (*func_compare)(const type *, const type *), const dtype *key, uint32_t *pos)
+const type *ArrS2<type, dtype>::search(const ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
+{
+    return cast_const(array_search(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template <typename type, typename dtype>
+type *ArrS2<type, dtype>::bsearch(ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
+{
+    return cast(array_bsearch(cast(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template <typename type, typename dtype>
+const type *ArrS2<type, dtype>::bsearch(const ArrSt<type> *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos)
 {
     return cast(array_bsearch(cast_const(array, Array), (FPtr_compare)func_compare, cast_const(key, void), pos), type);
 }

@@ -105,7 +105,7 @@ void ogl3_destroy(OGL3 **ogl)
             cassert((err = glGetError()) == GL_NO_ERROR);
             (*ogl)->texture = 0;
         }
-        
+
         /* Delete the shader */
         if ((*ogl)->pshader != 0)
         {
@@ -303,8 +303,8 @@ void ogl3_draw(OGL3 *ogl, const real32_t width, const real32_t height, const rea
     /* Set the texture */
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, ogl->texture);
-    cassert((err = glGetError()) == GL_NO_ERROR);
-    
+    cassert_unref((err = glGetError()) == GL_NO_ERROR, err);
+
     /* Set vertex array object */
     glBindVertexArray(ogl->vao);
     cassert((err = glGetError()) == GL_NO_ERROR);

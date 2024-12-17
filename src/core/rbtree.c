@@ -12,6 +12,7 @@
 
 #include "rbtree.h"
 #include "heap.h"
+#include "strings.h"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
@@ -45,6 +46,7 @@ struct _rbtree_t
     uint32_t elems;
     uint16_t esize;
     uint16_t ksize;
+    String *ktype;
     i_Node *root;
     FPtr_compare func_compare;
     i_Iterator it;
@@ -140,13 +142,14 @@ static void i_destroy_rbtree(RBTree **tree, FPtr_remove func_remove, FPtr_destro
     if ((*tree)->root != NULL)
         i_destroy_node(&(*tree)->root, (*tree)->esize, (*tree)->ksize, func_remove, func_destroy, func_destroy_key);
 
+    str_destroy(&(*tree)->ktype);
     heap_delete_n(&(*tree)->it.path, (*tree)->it.path_alloc, i_NodePt);
     heap_free(dcast(tree, byte_t), sizeof(RBTree), type);
 }
 
 /*---------------------------------------------------------------------------*/
 
-RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize, const char_t *type)
+RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uint16_t ksize, const char_t *type, const char_t *ktype)
 {
     RBTree *tree = cast(heap_malloc(sizeof(RBTree), type), RBTree);
     tree->func_compare = func_compare;
@@ -154,6 +157,7 @@ RBTree *rbtree_create(FPtr_compare func_compare, const uint16_t esize, const uin
     tree->esize = esize;
     tree->ksize = ksize > 0 ? ksize + ksize % sizeofptr : ksize; /* Node element alignment */
     tree->root = NULL;
+    tree->ktype = str_c(ktype);
     tree->it.path_size = 0;
     tree->it.path_alloc = 8;
     tree->it.path = heap_new_n(tree->it.path_alloc, i_NodePt);
@@ -288,9 +292,10 @@ static int i_node_by_key(i_Node *root, const void *key, const bool_t isptr, FPtr
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_get(const RBTree *tree, const void *key, const bool_t isptr)
+byte_t *rbtree_get(const RBTree *tree, const void *key, const bool_t isptr, const char_t *ktype)
 {
     cassert_no_null(tree);
+    cassert_unref(str_equ(tree->ktype, ktype) == TRUE, ktype);
     if (__TRUE_EXPECTED(tree->root != NULL))
     {
         int result = i_node_by_key(tree->root, key, isptr, tree->func_compare, &cast(tree, RBTree)->it);
@@ -678,9 +683,12 @@ static i_Node *i_insert_node(
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *rbtree_insert(RBTree *tree, const void *key, FPtr_copy func_key_copy)
+byte_t *rbtree_insert(RBTree *tree, const void *key, FPtr_copy func_key_copy, const char_t *ktype)
 {
-    i_Node *new_node = i_insert_node(&tree->root, tree->elems, key, FALSE, tree->func_compare, &tree->it, tree->ksize, tree->esize);
+    i_Node *new_node = NULL;
+    cassert_no_null(tree);
+    cassert_unref(str_equ(tree->ktype, ktype) == TRUE, ktype);
+    new_node = i_insert_node(&tree->root, tree->elems, key, FALSE, tree->func_compare, &tree->it, tree->ksize, tree->esize);
     tree->it.path_size = 0;
     if (new_node != NULL)
     {
@@ -706,9 +714,12 @@ byte_t *rbtree_insert(RBTree *tree, const void *key, FPtr_copy func_key_copy)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t rbtree_insert_ptr(RBTree *tree, void *ptr)
+bool_t rbtree_insert_ptr(RBTree *tree, const void *key, void *ptr, const char_t *ktype)
 {
-    i_Node *new_node = i_insert_node(&tree->root, tree->elems, ptr, TRUE, tree->func_compare, &tree->it, tree->ksize, tree->esize);
+    i_Node *new_node = NULL;
+    cassert_no_null(tree);
+    cassert_unref(str_equ(tree->ktype, ktype) == TRUE, ktype);
+    new_node = i_insert_node(&tree->root, tree->elems, key, TRUE, tree->func_compare, &tree->it, tree->ksize, tree->esize);
     tree->it.path_size = 0;
     if (new_node != NULL)
     {
@@ -1008,9 +1019,10 @@ static bool_t i_delete_element(
 
 /*---------------------------------------------------------------------------*/
 
-bool_t rbtree_delete(RBTree *tree, const void *key, FPtr_remove func_remove, FPtr_destroy func_destroy_key)
+bool_t rbtree_delete(RBTree *tree, const void *key, FPtr_remove func_remove, FPtr_destroy func_destroy_key, const char_t *ktype)
 {
     cassert_no_null(tree);
+    cassert_unref(str_equ(tree->ktype, ktype) == TRUE, ktype);
     if (i_delete_element(&tree->root, tree->elems, key, (bool_t)(func_destroy_key != NULL), tree->func_compare, &tree->it, tree->esize, tree->ksize, func_remove, NULL, func_destroy_key) == TRUE)
     {
         cassert(tree->elems > 0);
@@ -1027,9 +1039,10 @@ bool_t rbtree_delete(RBTree *tree, const void *key, FPtr_remove func_remove, FPt
 
 /*---------------------------------------------------------------------------*/
 
-bool_t rbtree_delete_ptr(RBTree *tree, const void *key, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key)
+bool_t rbtree_delete_ptr(RBTree *tree, const void *key, FPtr_destroy func_destroy, FPtr_destroy func_destroy_key, const char_t *ktype)
 {
     cassert_no_null(tree);
+    cassert_unref(str_equ(tree->ktype, ktype) == TRUE, ktype);
     if (i_delete_element(&tree->root, tree->elems, key, TRUE, tree->func_compare, &tree->it, tree->esize, tree->ksize, NULL, func_destroy, func_destroy_key) == TRUE)
     {
         cassert(tree->elems > 0);

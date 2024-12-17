@@ -54,6 +54,13 @@ static int i_compare(const Product *p1, const Product *p2)
 
 /*---------------------------------------------------------------------------*/
 
+static int i_compare_key(const Product *p, const uint32_t *id)
+{
+    return (int)p->id - *cast(id, int);
+}
+
+/*---------------------------------------------------------------------------*/
+
 struct i_stl_compare
 {
     inline bool operator()(const Product &lhs, const Product &rhs) const
@@ -89,10 +96,10 @@ int main(int argc, char *argv[])
     ArrPt(Product) *arrpt;
     SetSt(Product) *setst;
     SetPt(Product) *setpt;
-    vector<Product> stl_arrst;
-    vector<Product *> stl_arrpt;
-    set<Product, i_stl_compare> stl_setst;
-    set<Product *, i_stl_compare> stl_setpt;
+    vector< Product > stl_arrst;
+    vector< Product * > stl_arrpt;
+    set< Product, i_stl_compare > stl_setst;
+    set< Product *, i_stl_compare > stl_setpt;
     Clock *clock;
     real64_t t;
 
@@ -133,8 +140,8 @@ int main(int argc, char *argv[])
 
     arrst = arrst_create(Product);
     arrpt = arrpt_create(Product);
-    setst = setst_create(i_compare, Product);
-    setpt = setpt_create(i_compare, Product);
+    setst = setst_create(i_compare_key, Product, uint32_t);
+    setpt = setpt_create(i_compare_key, Product, uint32_t);
 
     clock = clock_create(0.);
     bstd_printf("- Created %u elements of %u bytes\n", n, sizeof32(Product));
@@ -179,8 +186,7 @@ int main(int argc, char *argv[])
     clock_reset(clock);
     for (uint32_t i = 0; i < n; ++i)
     {
-        // TODO: review 'setst_insert'. The copy makes the insertion slower
-        Product *product = setst_insert(setst, &products[i], Product);
+        Product *product = setst_insert(setst, &products[i].id, Product, uint32_t);
         *product = products[i];
     }
     t = clock_elapsed(clock);
@@ -196,7 +202,7 @@ int main(int argc, char *argv[])
     // NAppGUI pointer set
     clock_reset(clock);
     for (uint32_t i = 0; i < n; ++i)
-        setpt_insert(setpt, pproducts[i], Product);
+        setpt_insert(setpt, &pproducts[i]->id, pproducts[i], Product, uint32_t);
     t = clock_elapsed(clock);
     bstd_printf("- Add to SetPt(Product): %.6f\n", t);
 
@@ -252,7 +258,7 @@ int main(int argc, char *argv[])
 
     uint32_t ic = 0;
     clock_reset(clock);
-    for (set<Product, i_stl_compare>::iterator i = stl_setst.begin(); i != stl_setst.end(); ++i)
+    for (set< Product, i_stl_compare >::iterator i = stl_setst.begin(); i != stl_setst.end(); ++i)
     {
         if (i->id != ic++)
             bstd_printf("- Sorting error!!!!!\n");
@@ -270,7 +276,7 @@ int main(int argc, char *argv[])
 
     ic = 0;
     clock_reset(clock);
-    for (set<Product *, i_stl_compare>::iterator i = stl_setpt.begin(); i != stl_setpt.end(); ++i)
+    for (set< Product *, i_stl_compare >::iterator i = stl_setpt.begin(); i != stl_setpt.end(); ++i)
     {
         if ((*i)->id != ic++)
             bstd_printf("- Sorting error!!!!!\n");

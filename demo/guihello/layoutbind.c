@@ -30,15 +30,10 @@ struct _structtypes_t
     real32_t length6;
 };
 
-static bool_t i_DATA_BINDED = FALSE;
-
 /*---------------------------------------------------------------------------*/
 
 static void i_data_bind(void)
 {
-    if (i_DATA_BINDED == TRUE)
-        return;
-
     dbind(Vector, real32_t, x);
     dbind(Vector, real32_t, y);
     dbind(Vector, real32_t, z);
@@ -61,7 +56,6 @@ static void i_data_bind(void)
     dbind_increment(Vector, real32_t, x, .1f);
     dbind_increment(Vector, real32_t, y, .1f);
     dbind_increment(Vector, real32_t, z, .1f);
-    i_DATA_BINDED = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -73,6 +67,8 @@ static void i_destroy_data(StructTypes **data)
     heap_delete(&(*data)->pvec2, Vector);
     heap_delete(&(*data)->pvec3, Vector);
     heap_delete(data, StructTypes);
+    dbind_unreg(StructTypes);
+    dbind_unreg(Vector);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -117,17 +113,17 @@ static void i_OnDataChange(void *non_used, Event *e)
         data->length3 = i_vec_length(&data->vec3);
         layout_dbind_update(layout, StructTypes, real32_t, length3);
     }
-    else if (evbind_modify(e, StructTypes, Vector*, pvec1) == TRUE)
+    else if (evbind_modify(e, StructTypes, Vector *, pvec1) == TRUE)
     {
         data->length4 = i_vec_length(data->pvec1);
         layout_dbind_update(layout, StructTypes, real32_t, length4);
     }
-    else if (evbind_modify(e, StructTypes, Vector*, pvec2) == TRUE)
+    else if (evbind_modify(e, StructTypes, Vector *, pvec2) == TRUE)
     {
         data->length5 = i_vec_length(data->pvec2);
         layout_dbind_update(layout, StructTypes, real32_t, length5);
     }
-    else if (evbind_modify(e, StructTypes, Vector*, pvec3) == TRUE)
+    else if (evbind_modify(e, StructTypes, Vector *, pvec3) == TRUE)
     {
         data->length6 = i_vec_length(data->pvec3);
         layout_dbind_update(layout, StructTypes, real32_t, length6);
@@ -189,7 +185,7 @@ static Layout *i_name_layout(void)
     layout_label(layout, label, 0, 0);
     layout_edit(layout, edit, 1, 0);
     layout_hmargin(layout, 0, 10);
-    cell_dbind(layout_cell(layout, 1, 0), StructTypes, String*, name);
+    cell_dbind(layout_cell(layout, 1, 0), StructTypes, String *, name);
     return layout;
 }
 
@@ -242,9 +238,9 @@ static Layout *i_vectors_layout(void)
     cell_dbind(layout_cell(layout1, 0, 1), StructTypes, Vector, vec1);
     cell_dbind(layout_cell(layout1, 1, 1), StructTypes, Vector, vec2);
     cell_dbind(layout_cell(layout1, 2, 1), StructTypes, Vector, vec3);
-    cell_dbind(layout_cell(layout1, 0, 3), StructTypes, Vector*, pvec1);
-    cell_dbind(layout_cell(layout1, 1, 3), StructTypes, Vector*, pvec2);
-    cell_dbind(layout_cell(layout1, 2, 3), StructTypes, Vector*, pvec3);
+    cell_dbind(layout_cell(layout1, 0, 3), StructTypes, Vector *, pvec1);
+    cell_dbind(layout_cell(layout1, 1, 3), StructTypes, Vector *, pvec2);
+    cell_dbind(layout_cell(layout1, 2, 3), StructTypes, Vector *, pvec3);
     return layout1;
 }
 
@@ -324,7 +320,7 @@ static Layout *i_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-Panel* layoutbind(void)
+Panel *layoutbind(void)
 {
     Layout *layout = NULL;
     Panel *panel = NULL;

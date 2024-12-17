@@ -9,10 +9,11 @@
  *
  */
 
-/* Sets of structures */
+/* Sets */
 
-#define setst_create(func_compare, type) \
-    setst_##type##_create(func_compare, (uint16_t)sizeof(type))
+#define setst_create(func_compare, type, ktype) \
+    (FUNC_CHECK_COMPARE_KEY(func_compare, type, ktype), \
+     setst_##type##_create((FPtr_compare)func_compare, (uint16_t)sizeof(type), cast_const(#ktype, char_t)))
 
 #define setst_destroy(set, func_remove, type) \
     setst_##type##_destroy(set, func_remove)
@@ -20,17 +21,21 @@
 #define setst_size(set, type) \
     setst_##type##_size(set)
 
-#define setst_get(set, key, type) \
-    setst_##type##_get(set, key)
+#define setst_get(set, key, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setst_##type##_get(set, cast_const(key, void), cast_const(#ktype, char_t)))
 
-#define setst_get_const(set, key, type) \
-    setst_##type##_get_const(set, key)
+#define setst_get_const(set, key, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setst_##type##_get_const(set, cast_const(key, void), cast_const(#ktype, char_t)))
 
-#define setst_insert(set, key, type) \
-    setst_##type##_insert(set, key)
+#define setst_insert(set, key, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setst_##type##_insert(set, cast_const(key, void), cast_const(#ktype, char_t)))
 
-#define setst_delete(set, key, func_remove, type) \
-    setst_##type##_delete(set, key, func_remove)
+#define setst_delete(set, key, func_remove, type, ktype) \
+    ((void)((key) == cast_const(key, ktype)), \
+     setst_##type##_delete(set, cast_const(key, void), func_remove, cast_const(#ktype, char_t)))
 
 #define setst_first(set, type) \
     setst_##type##_first(set)

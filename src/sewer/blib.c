@@ -77,9 +77,7 @@ void blib_strcat(char_t *dest, const uint32_t size, const char_t *src)
     size_t len = 0;
     cassert_no_null(dest);
     cassert_no_null(src);
-
     len = strlen(dest);
-
     if (size > len + 1)
     {
         size_t len2 = strlen(src);
