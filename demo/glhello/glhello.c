@@ -391,5 +391,5 @@ void glhello_texdata(const byte_t **texdata, uint32_t *texwidth, uint32_t *texhe
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain(i_create, i_destroy, "", App)

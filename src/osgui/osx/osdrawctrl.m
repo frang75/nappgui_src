@@ -11,9 +11,9 @@
 /* Drawing custom GUI controls */
 
 #include "osgui_osx.ixx"
-#include "osdrawctrl.h"
-#include "oscolor.inl"
 #include "osglobals.inl"
+#include "oscolor.inl"
+#include "../osdrawctrl.h"
 #include <draw2d/color.h>
 #include <draw2d/draw.h>
 #include <draw2d/dctxh.h>

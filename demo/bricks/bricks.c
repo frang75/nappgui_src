@@ -100,8 +100,8 @@ static void i_OnStart(App *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
- static Panel *i_panel(App *app)
- {
+static Panel *i_panel(App *app)
+{
     Panel *panel = panel_create();
     Layout *layout = layout_create(1, 4);
     View *view = view_create();
@@ -238,13 +238,13 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
 
         /* Collision with limits */
         if (app->ball_x + i_BALL_RADIUS >= 1.f && app->ball_dir.x >= 0.f)
-            app->ball_dir.x = - app->ball_dir.x;
+            app->ball_dir.x = -app->ball_dir.x;
 
         if (app->ball_x - i_BALL_RADIUS <= 0.f && app->ball_dir.x <= 0.f)
-            app->ball_dir.x = - app->ball_dir.x;
+            app->ball_dir.x = -app->ball_dir.x;
 
         if (app->ball_y - i_BALL_RADIUS <= 0.f && app->ball_dir.y <= 0.f)
-            app->ball_dir.y = - app->ball_dir.y;
+            app->ball_dir.y = -app->ball_dir.y;
 
         /* Collision with bricks */
         collide = FALSE;
@@ -259,7 +259,7 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
                     {
                         real32_t brick_x = app->bricks[i].x + .5f * app->brick_width;
                         app->ball_dir.x = 5.f * (app->ball_x - brick_x);
-                        app->ball_dir.y = - app->ball_dir.y;
+                        app->ball_dir.y = -app->ball_dir.y;
                         v2d_normf(&app->ball_dir);
                         collide = TRUE;
                     }
@@ -275,7 +275,7 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
             if (i_collision(&player, 2.f * app->brick_width, app->ball_x, app->ball_y) == TRUE)
             {
                 app->ball_dir.x = 5.f * (app->ball_x - app->player_pos);
-                app->ball_dir.y = - app->ball_dir.y;
+                app->ball_dir.y = -app->ball_dir.y;
                 v2d_normf(&app->ball_dir);
             }
         }
@@ -293,5 +293,5 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain_sync(.04, i_create, i_destroy, i_update, "", App)

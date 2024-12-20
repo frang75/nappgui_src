@@ -10,8 +10,8 @@
 
 /* Draw context */
 
-#include "draw2d.ixx"
 #include "draw2d_gtk.ixx"
+#include "../draw2d.ixx"
 
 __EXTERN_C
 

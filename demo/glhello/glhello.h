@@ -1,6 +1,6 @@
 /* GLDemo Application */
 
-#include "draw2d.hxx"
+#include <draw2d/draw2d.hxx>
 
 __EXTERN_C
 

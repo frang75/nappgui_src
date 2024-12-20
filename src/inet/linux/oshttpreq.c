@@ -10,7 +10,7 @@
 
 /* HTTP request (LibCURL-based implementation) */
 
-#include "oshttpreq.inl"
+#include "../oshttpreq.inl"
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <core/stream.h>

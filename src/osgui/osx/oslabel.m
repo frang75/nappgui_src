@@ -10,11 +10,11 @@
 
 /* Cocoa text label */
 
-#include "oslabel.h"
 #include "oslabel_osx.inl"
 #include "oslistener.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
+#include "../oslabel.h"
 #include <geom2d/t2d.h>
 #include <draw2d/color.h>
 #include <draw2d/dctx.h>

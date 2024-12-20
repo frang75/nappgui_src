@@ -10,8 +10,8 @@
 
 /* Basic threading services */
 
-#include "osbs.inl"
-#include "bthread.h"
+#include "../osbs.inl"
+#include "../bthread.h"
 #include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)

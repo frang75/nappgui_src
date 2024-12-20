@@ -774,7 +774,7 @@ static void i_write_binary(Stream *stm, const DBind *bind, const byte_t *data)
     }
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 static void i_write_type(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data)
 {

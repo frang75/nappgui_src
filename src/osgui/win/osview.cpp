@@ -10,17 +10,17 @@
 
 /* Operating System native custom view */
 
-#include "osview.h"
-#include "osview.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
 #include "osscroll_win.inl"
 #include "oswindow_win.inl"
 #include "oslistener.inl"
-#include "osscrolls.inl"
 #include "osstyleXP.inl"
+#include "../osview.h"
+#include "../osview.inl"
+#include "../osgui.inl"
+#include "../osscrolls.inl"
 #include <draw2d/color.h>
 #include <draw2d/draw.h>
 #include <draw2d/dctxh.h>

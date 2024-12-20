@@ -15,13 +15,13 @@
  * WebView2 Windows7 end support: https://blogs.windows.com/msedgedev/2022/12/09/microsoft-edge-and-webview2-ending-support-for-windows-7-and-windows-8-8-1/
  *
  */
-#include "osweb.h"
 #include "osweb_win.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
+#include "../osweb.h"
+#include "../osgui.inl"
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>

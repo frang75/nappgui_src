@@ -10,13 +10,13 @@
 
 /* Operating System native progress indicator */
 
-#include "osprogress.h"
-#include "osprogress.inl"
-#include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "osglobals_gtk.inl"
 #include "ospanel_gtk.inl"
+#include "../osprogress.h"
+#include "../osprogress.inl"
+#include "../osgui.inl"
 #include <sewer/cassert.h>
 #include <core/heap.h>
 

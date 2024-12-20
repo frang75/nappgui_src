@@ -10,10 +10,10 @@
 
 /* Operating System native common windows */
 
-#include "oscomwin.h"
-#include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
+#include "../osgui.inl"
+#include "../oscomwin.h"
 #include <draw2d/color.h>
 #include <core/event.h>
 #include <core/strings.h>

@@ -10,8 +10,8 @@
 
 /* Drawing custom GUI controls */
 
-#include "osdrawctrl.h"
 #include "osglobals_gtk.inl"
+#include "../osdrawctrl.h"
 #include <draw2d/draw.h>
 #include <draw2d/dctxh.h>
 #include <draw2d/font.h>

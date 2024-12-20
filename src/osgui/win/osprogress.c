@@ -10,10 +10,10 @@
 
 /* Operating System native progress indicator */
 
-#include "osprogress.h"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
+#include "../osprogress.h"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 

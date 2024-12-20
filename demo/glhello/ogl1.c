@@ -7,9 +7,9 @@
 #include <core/heap.h>
 #include <gui/view.h>
 
-#include "nowarn.hxx"
+#include <sewer/nowarn.hxx>
 #include <ogl3d/glew.h>
-#include "warn.hxx"
+#include <sewer/warn.hxx>
 
 struct _ogl1_t
 {

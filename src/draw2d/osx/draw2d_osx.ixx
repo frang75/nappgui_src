@@ -16,7 +16,7 @@
 #include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>
-#include "draw2d.ixx"
+#include "../draw2d.ixx"
 
 #define MAX_COLORS 16
 #define MAX_RANGE 48

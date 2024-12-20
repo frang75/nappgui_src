@@ -11,8 +11,8 @@
 /* Cocoa NSMenuItem wrapper */
 
 #include "osgui_osx.inl"
-#include "osmenuitem.h"
-#include "osgui.inl"
+#include "../osmenuitem.h"
+#include "../osgui.inl"
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>

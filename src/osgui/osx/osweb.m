@@ -11,10 +11,10 @@
 /* Cocoa WebView wrapper */
 
 #include "osgui_osx.inl"
-#include "osweb.h"
 #include "osweb_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
+#include "../osweb.h"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

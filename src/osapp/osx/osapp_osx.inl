@@ -13,6 +13,7 @@
 #include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>
+#include <sewer/sewer.hxx>
 
 __EXTERN_C
 

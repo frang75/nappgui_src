@@ -11,12 +11,12 @@
 /* OpenGL Context */
 
 #include <sewer/nowarn.hxx>
-#include "glew.h"
-#include "wglew.h"
+#include "../glew.h"
+#include "../wglew.h"
 #include <sewer/warn.hxx>
 
-#include "ogl3d.h"
-#include "ogl3d.inl"
+#include "../ogl3d.h"
+#include "../ogl3d.inl"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

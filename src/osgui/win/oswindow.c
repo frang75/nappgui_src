@@ -10,16 +10,16 @@
 
 /* Operating System native window */
 
-#include "oswindow.h"
-#include "oswindow.inl"
 #include "oswindow_win.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "osbutton_win.inl"
 #include "oscontrol_win.inl"
-#include "ostabstop.inl"
 #include "osmenuitem_win.inl"
 #include "ospanel_win.inl"
+#include "../oswindow.h"
+#include "../oswindow.inl"
+#include "../osgui.inl"
+#include "../ostabstop.inl"
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/event.h>

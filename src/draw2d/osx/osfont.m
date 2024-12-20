@@ -14,11 +14,10 @@
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>
 #include "draw2d_osx.ixx"
-
-#include "font.h"
-#include "font.inl"
-#include "draw2d.inl"
-#include "draw.inl"
+#include "../font.h"
+#include "../font.inl"
+#include "../draw2d.inl"
+#include "../draw.inl"
 #include <core/arrpt.h>
 #include <core/strings.h>
 #include <sewer/bmath.h>

@@ -12,9 +12,9 @@
 
 #include "osgui_osx.inl"
 #include "oscontrol_osx.inl"
-#include "osgui.inl"
 #include "osglobals.inl"
 #include "oscomwin.inl"
+#include "../osgui.inl"
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)

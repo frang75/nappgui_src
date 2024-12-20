@@ -14,10 +14,9 @@
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>
 #include "draw2d_osx.ixx"
-
-#include "image.inl"
-#include "dctxh.h"
-#include "pixbuf.h"
+#include "../image.inl"
+#include "../dctxh.h"
+#include "../pixbuf.h"
 #include <core/buffer.h>
 #include <core/heap.h>
 #include <core/stream.h>

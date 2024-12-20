@@ -13,7 +13,7 @@
 #ifndef __OSAPPWIN_IXX__
 #define __OSAPPWIN_IXX__
 
-#include "osapp.ixx"
+#include "../osapp.ixx"
 #include <sewer/nowarn.hxx>
 #include <windows.h>
 #include <sewer/warn.hxx>

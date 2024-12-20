@@ -10,11 +10,11 @@
 
 /* Operating System native progress indicator */
 
-#include "osprogress.h"
 #include "osprogress_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
-#include "osgui.inl"
+#include "../osprogress.h"
+#include "../osgui.inl"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 

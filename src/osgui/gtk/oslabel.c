@@ -10,14 +10,14 @@
 
 /* Operating System label */
 
-#include "oslabel.h"
-#include "oslabel.inl"
-#include "osgui.inl"
 #include "oslistener.inl"
 #include "osgui_gtk.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
+#include "../oslabel.h"
+#include "../oslabel.inl"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <core/event.h>

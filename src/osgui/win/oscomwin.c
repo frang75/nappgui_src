@@ -10,9 +10,9 @@
 
 /* Operating System native common windows */
 
-#include "oscomwin.h"
 #include "oscontrol_win.inl"
 #include "oswindow_win.inl"
+#include "../oscomwin.h"
 #include <draw2d/color.h>
 #include <core/event.h>
 #include <sewer/cassert.h>

@@ -10,21 +10,21 @@
 
 /* Basic standard functions */
 
-#include "bstd.h"
-#include "blib.h"
-#include "bmem.h"
-#include "cassert.h"
-#include "ptr.h"
-#include "unicode.h"
+#include "../bstd.h"
+#include "../blib.h"
+#include "../bmem.h"
+#include "../cassert.h"
+#include "../ptr.h"
+#include "../unicode.h"
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
 #endif
 
-#include "nowarn.hxx"
+#include "../nowarn.hxx"
 #include <Windows.h>
 #include <stdio.h>
-#include "warn.hxx"
+#include "../warn.hxx"
 
 /*---------------------------------------------------------------------------*/
 

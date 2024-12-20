@@ -10,8 +10,8 @@
 
 /* Dynamic library loading */
 
-#include "osbs.inl"
-#include "dlib.h"
+#include "../osbs.inl"
+#include "../dlib.h"
 #include <sewer/blib.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

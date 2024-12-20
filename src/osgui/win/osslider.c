@@ -10,12 +10,12 @@
 
 /* Operating System native slider */
 
-#include "osslider.h"
 #include "osslider_win.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
+#include "../osslider.h"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

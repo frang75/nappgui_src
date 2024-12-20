@@ -10,12 +10,12 @@
 
 /* Operating system native gui */
 
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "osmenu_win.inl"
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "osstyleXP.inl"
+#include "../osgui.inl"
 #include <core/arrst.h>
 #include <core/core.h>
 #include <core/heap.h>

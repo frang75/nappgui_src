@@ -14,12 +14,11 @@
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>
 #include "draw2d_osx.ixx"
-
-#include "dctx.h"
-#include "dctxh.h"
-#include "dctx.inl"
-#include "color.h"
-#include "font.h"
+#include "../dctx.h"
+#include "../dctxh.h"
+#include "../dctx.inl"
+#include "../color.h"
+#include "../font.h"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

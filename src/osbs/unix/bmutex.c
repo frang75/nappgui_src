@@ -10,8 +10,8 @@
 
 /* Basic synchronization services */
 
-#include "bmutex.h"
-#include "osbs.inl"
+#include "../bmutex.h"
+#include "../osbs.inl"
 #include <sewer/cassert.h>
 
 #if !defined(__UNIX__)

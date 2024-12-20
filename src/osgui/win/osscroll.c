@@ -10,9 +10,9 @@
 
 /* Operating System native scrollbar */
 
-#include "osscroll.inl"
 #include "osscroll_win.inl"
 #include "osgui_win.inl"
+#include "../osscroll.inl"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 

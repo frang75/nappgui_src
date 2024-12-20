@@ -10,12 +10,12 @@
 
 /* Operating System native updown */
 
-#include "osupdown.h"
 #include "osupdown_osx.inl"
 #include "oscontrol_osx.inl"
 #include "osgui_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
+#include "../osupdown.h"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

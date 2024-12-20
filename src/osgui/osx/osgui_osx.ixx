@@ -16,7 +16,7 @@
 #include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>
-#include "osgui.ixx"
+#include "../osgui.ixx"
 
 #if !defined(__MACOS__)
 #error This file is only for OSX

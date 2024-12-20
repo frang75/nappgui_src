@@ -10,10 +10,10 @@
 
 /* Operating System native menu */
 
-#include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "osmenu_gtk.inl"
 #include "osmenuitem_gtk.inl"
+#include "../osgui.inl"
 #include <core/arrpt.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

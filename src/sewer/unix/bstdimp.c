@@ -10,16 +10,16 @@
 
 /* Basic standard functions */
 
-#include "bstd.h"
-#include "blib.h"
+#include "../bstd.h"
+#include "../blib.h"
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
 #endif
 
-#include "bmem.h"
-#include "cassert.h"
-#include "ptr.h"
+#include "../bmem.h"
+#include "../cassert.h"
+#include "../ptr.h"
 #include <stdio.h>
 #include <signal.h>
 #include <stdlib.h>

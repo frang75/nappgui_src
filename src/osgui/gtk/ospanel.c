@@ -10,13 +10,13 @@
 
 /* Operating System native panel */
 
-#include "ospanel.h"
-#include "osgui.inl"
-#include "oscontrol.inl"
 #include "osgui_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ossplit_gtk.inl"
+#include "../ospanel.h"
+#include "../osgui.inl"
+#include "../oscontrol.inl"
 #include <draw2d/color.h>
 #include <core/arrst.h>
 #include <core/heap.h>

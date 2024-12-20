@@ -1,7 +1,7 @@
 /* OpenGL 3 Demo */
 
 #include <ogl3d/ogl3d.hxx>
-#include "gui.hxx"
+#include <gui/gui.hxx>
 
 typedef struct _ogl3_t OGL3;
 

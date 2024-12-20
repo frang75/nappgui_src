@@ -10,8 +10,8 @@
 
 /* Basic file system access */
 
-#include "osbs.inl"
-#include "bfile.h"
+#include "../osbs.inl"
+#include "../bfile.h"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

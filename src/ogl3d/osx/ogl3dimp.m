@@ -10,9 +10,9 @@
 
 /* OpenGL support macos */
 
-#include "glew.h"
+#include "../glew.h"
 #include <Cocoa/Cocoa.h>
-#include "ogl3d.inl"
+#include "../ogl3d.inl"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

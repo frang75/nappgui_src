@@ -10,10 +10,7 @@
 
 /* Operating System native button */
 
-#include "osbutton.h"
-#include "osbutton.inl"
 #include "osbutton_win.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "osdrawctrl_win.inl"
@@ -21,6 +18,9 @@
 #include "oswindow_win.inl"
 #include "osimg.inl"
 #include "osstyleXP.inl"
+#include "../osbutton.h"
+#include "../osbutton.inl"
+#include "../osgui.inl"
 #include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/event.h>

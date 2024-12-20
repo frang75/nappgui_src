@@ -11,19 +11,19 @@ typedef struct _app_t App;
 
 struct _app_t
 {
-	Model *model;
+    Model *model;
     Plot *plot;
-	Ctrl *ctrl;
-	Window *window;
+    Ctrl *ctrl;
+    Window *window;
 };
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnClose(App *app, Event *e)
 {
-	unref(app);
-	unref(e);
-	osapp_finish();
+    unref(app);
+    unref(e);
+    osapp_finish();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -31,16 +31,16 @@ static void i_OnClose(App *app, Event *e)
 static App *i_create(void)
 {
     App *app = heap_new(App);
-	model_dbind();
-	app->model = model_read();
+    model_dbind();
+    app->model = model_read();
     app->plot = plot_create(bode_npoints(), bode_sim_npoints());
     app->ctrl = ctrl_create(app->model, app->plot);
-	app->window = bdview_create(app->ctrl);
+    app->window = bdview_create(app->ctrl);
     ctrl_run(app->ctrl);
     window_origin(app->window, app->model->wpos);
-	window_size(app->window, app->model->wsize);
-	window_OnClose(app->window, listener(app, i_OnClose, App));
-	window_show(app->window);
+    window_size(app->window, app->model->wsize);
+    window_OnClose(app->window, listener(app, i_OnClose, App));
+    window_show(app->window);
     return app;
 }
 
@@ -48,17 +48,17 @@ static App *i_create(void)
 
 static void i_destroy(App **app)
 {
-	cassert_no_null(app);
-	cassert_no_null(*app);
+    cassert_no_null(app);
+    cassert_no_null(*app);
     model_save((*app)->model, (*app)->window);
     ctrl_destroy(&(*app)->ctrl);
     plot_destroy(&(*app)->plot);
-	window_destroy(&(*app)->window);
+    window_destroy(&(*app)->window);
     dbind_destroy(&(*app)->model, Model);
-	heap_delete(app, App);
+    heap_delete(app, App);
 }
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain(i_create, i_destroy, "", App)

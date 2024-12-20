@@ -10,12 +10,12 @@
 
 /* Operating System native scrollbar */
 
-#include "osscroll.inl"
 #include "osscroll_gtk.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "osglobals_gtk.inl"
 #include "osview_gtk.inl"
+#include "../osscroll.inl"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 

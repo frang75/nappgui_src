@@ -11,10 +11,10 @@
 /* View listeners */
 
 #include "oslistener.inl"
-#include "oscontrol.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
-#include "osscrolls.inl"
+#include "../oscontrol.inl"
+#include "../osgui.inl"
+#include "../osscrolls.inl"
 #include <core/event.h>
 #include <osbs/btime.h>
 #include <sewer/bmem.h>

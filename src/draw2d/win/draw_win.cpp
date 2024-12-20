@@ -10,15 +10,15 @@
 
 /* Drawing commands */
 
-#include "draw.h"
-#include "draw.inl"
-#include "dctxh.h"
 #include "dctx_win.inl"
 #include "draw_win.inl"
-#include "font.inl"
-#include "image.inl"
-#include "color.h"
-#include "font.h"
+#include "../draw.h"
+#include "../draw.inl"
+#include "../dctxh.h"
+#include "../font.inl"
+#include "../image.inl"
+#include "../color.h"
+#include "../font.h"
 #include <geom2d/v2d.h>
 #include <core/heap.h>
 #include <sewer/bmath.h>

@@ -10,15 +10,15 @@
 
 /* Operating System native combo box */
 
-#include "oscombo.h"
-#include "oscombo.inl"
-#include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "oscombo_gtk.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../oscombo.h"
+#include "../oscombo.inl"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <draw2d/image.h>

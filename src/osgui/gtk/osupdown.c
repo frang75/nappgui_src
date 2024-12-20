@@ -10,13 +10,13 @@
 
 /* Operating System native updown */
 
-#include "osupdown.h"
-#include "osupdown.inl"
-#include "osgui.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../osupdown.h"
+#include "../osupdown.inl"
+#include "../osgui.inl"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

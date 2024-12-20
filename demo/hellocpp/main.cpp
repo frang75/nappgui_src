@@ -6,14 +6,20 @@ class App;
 
 class MainWindow : public IListener
 {
-public:
+  public:
     MainWindow(App *app);
     ~MainWindow();
 
-    void *operator new(size_t size) { return (void*)heap_malloc((uint32_t)size, "MainWindow"); }
-    void operator delete(void *ptr, size_t size) { heap_free((byte_t**)&ptr, (uint32_t)size, "MainWindow"); }
+    void *operator new(size_t size)
+    {
+        return (void *)heap_malloc((uint32_t)size, "MainWindow");
+    }
+    void operator delete(void *ptr, size_t size)
+    {
+        heap_free((byte_t **)&ptr, (uint32_t)size, "MainWindow");
+    }
 
-private:
+  private:
     void i_OnButton(Event *e);
     Panel *i_panel(void);
 
@@ -26,14 +32,20 @@ private:
 
 class App : public IListener
 {
-public:
+  public:
     App();
     ~App();
     void i_OnClose(Event *e);
-    void *operator new(size_t size) { return (void*)heap_malloc((uint32_t)size, "App"); }
-    void operator delete(void *ptr, size_t size) { heap_free((byte_t**)&ptr, (uint32_t)size, "App"); }
+    void *operator new(size_t size)
+    {
+        return (void *)heap_malloc((uint32_t)size, "App");
+    }
+    void operator delete(void *ptr, size_t size)
+    {
+        heap_free((byte_t **)&ptr, (uint32_t)size, "App");
+    }
 
-private:
+  private:
     MainWindow *main_window;
 };
 
@@ -133,5 +145,5 @@ static void i_destroy(App **app)
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain(i_create, i_destroy, "", App)

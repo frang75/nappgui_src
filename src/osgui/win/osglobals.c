@@ -10,10 +10,10 @@
 
 /* Operating System native screen */
 
-#include "osglobals.h"
 #include "osgui_win.inl"
 #include "oswindow_win.inl"
 #include "osimg.inl"
+#include "../osglobals.h"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>

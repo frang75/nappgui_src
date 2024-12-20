@@ -10,12 +10,12 @@
 
 /* Operating System globals */
 
-#include "osgui.inl"
 #include "osgui_osx.inl"
-#include "osglobals.h"
 #include "osglobals.inl"
 #include "oscolor.inl"
 #include "oscontrol_osx.inl"
+#include "../osgui.inl"
+#include "../osglobals.h"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <draw2d/image.h>

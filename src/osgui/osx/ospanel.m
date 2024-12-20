@@ -10,11 +10,11 @@
 
 /* Operating System native panel */
 
-#include "ospanel.h"
 #include "ospanel_osx.inl"
 #include "oscontrol_osx.inl"
-#include "oscontrol.inl"
-#include "osgui.inl"
+#include "../ospanel.h"
+#include "../oscontrol.inl"
+#include "../osgui.inl"
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

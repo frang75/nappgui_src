@@ -10,7 +10,7 @@
 
 /* Machine info */
 
-#include "osbs.h"
+#include "../osbs.h"
 #include <sewer/cassert.h>
 
 #if !defined(__UNIX__)

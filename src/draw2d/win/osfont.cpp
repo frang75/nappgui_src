@@ -10,11 +10,11 @@
 
 /* Fonts */
 
-#include "font.h"
-#include "font.inl"
-#include "draw.inl"
-#include "draw2d.inl"
 #include "draw_win.inl"
+#include "../font.h"
+#include "../font.inl"
+#include "../draw.inl"
+#include "../draw2d.inl"
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/heap.h>

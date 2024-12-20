@@ -10,12 +10,12 @@
 
 /* Operating System label */
 
-#include "oslabel.h"
 #include "oslabel_win.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
+#include "../oslabel.h"
+#include "../osgui.inl"
 #include <draw2d/font.h>
 #include <core/event.h>
 #include <core/heap.h>

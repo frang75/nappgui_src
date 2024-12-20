@@ -13,7 +13,6 @@
 #ifndef __OSDRAW_WIN_IXX__
 #define __OSDRAW_WIN_IXX__
 
-#include "draw2d.hxx"
 #include "draw2d_gdi.ixx"
 #include <sewer/nowarn.hxx>
 #include <gdiplus.h>

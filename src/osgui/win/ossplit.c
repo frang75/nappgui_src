@@ -10,12 +10,12 @@
 
 /* Operating System split view */
 
-#include "ossplit.h"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "oslistener.inl"
 #include "ospanel_win.inl"
+#include "../ossplit.h"
+#include "../osgui.inl"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

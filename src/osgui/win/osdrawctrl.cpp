@@ -11,9 +11,9 @@
 /* Drawing custom GUI controls */
 
 #include "osimg.inl"
-#include "osdrawctrl.h"
 #include "osdrawctrl_win.inl"
 #include "osstyleXP.inl"
+#include "../osdrawctrl.h"
 #include <draw2d/color.h>
 #include <draw2d/dctxh.h>
 #include <draw2d/font.h>

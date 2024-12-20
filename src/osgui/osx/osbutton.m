@@ -10,15 +10,15 @@
 
 /* Operating System native button */
 
-#include "osbutton.h"
-#include "osbutton.inl"
 #include "osbutton_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
 #include "osgui_osx.inl"
-#include "osgui.inl"
 #include "osglobals.inl"
+#include "../osbutton.h"
+#include "../osbutton.inl"
+#include "../osgui.inl"
 #include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/event.h>

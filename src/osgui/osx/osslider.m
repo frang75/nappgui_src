@@ -10,13 +10,13 @@
 
 /* Operating System native slider */
 
-#include "osslider.h"
-#include "osslider.inl"
 #include "osslider_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
-#include "osgui.inl"
+#include "../osslider.h"
+#include "../osslider.inl"
+#include "../osgui.inl"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>

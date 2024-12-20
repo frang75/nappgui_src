@@ -13,6 +13,7 @@
 #ifndef __DRAWLIB_GTK_IXX__
 #define __DRAWLIB_GTK_IXX__
 
+#include "../draw2d.hxx"
 #include <sewer/nowarn.hxx>
 #include <cairo.h>
 #include <pango/pango.h>

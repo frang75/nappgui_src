@@ -11,9 +11,9 @@
 /* Cocoa NSMenu wrapper */
 
 #include "osgui_osx.inl"
-#include "osmenu.h"
-#include "osgui.inl"
 #include "oswindow_osx.inl"
+#include "../osmenu.h"
+#include "../osgui.inl"
 #include <sewer/cassert.h>
 #include <core/heap.h>
 

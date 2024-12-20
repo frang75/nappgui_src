@@ -10,13 +10,13 @@
 
 /* Images */
 
-#include "image.inl"
-#include "dctxh.h"
 #include "dctx_win.inl"
-#include "imgutil.inl"
-#include "color.h"
-#include "palette.h"
-#include "pixbuf.h"
+#include "../image.inl"
+#include "../dctxh.h"
+#include "../imgutil.inl"
+#include "../color.h"
+#include "../palette.h"
+#include "../pixbuf.h"
 #include <core/buffer.h>
 #include <core/heap.h>
 #include <core/stream.h>

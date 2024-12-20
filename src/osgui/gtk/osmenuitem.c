@@ -10,12 +10,12 @@
 
 /* Operating System native menu item */
 
-#include "osmenuitem.h"
-#include "osgui.inl"
 #include "osmenu_gtk.inl"
 #include "osmenuitem_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "osgui_gtk.inl"
+#include "../osmenuitem.h"
+#include "../osgui.inl"
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>

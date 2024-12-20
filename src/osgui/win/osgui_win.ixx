@@ -13,7 +13,7 @@
 #ifndef __OSGUIWIN_IXX__
 #define __OSGUIWIN_IXX__
 
-#include "osgui.ixx"
+#include "../osgui.ixx"
 
 #if _MSC_VER == 1400
 #define _WIN32_WINNT 0x501

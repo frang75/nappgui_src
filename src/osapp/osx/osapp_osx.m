@@ -10,9 +10,9 @@
 
 /* Application runloop */
 
-#include "osapp.h"
-#include "osapp.inl"
 #include "osapp_osx.inl"
+#include "../osapp.h"
+#include "../osapp.inl"
 #include <osgui/osglobals.h>
 #include <core/event.h>
 #include <osbs/log.h>

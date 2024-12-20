@@ -10,10 +10,6 @@
 
 /* Operating System native window */
 
-#include "oswindow.h"
-#include "oswindow.inl"
-#include "oscontrol.inl"
-#include "ostabstop.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "osbutton_gtk.inl"
@@ -23,6 +19,10 @@
 #include "osmenu_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../oswindow.h"
+#include "../oswindow.inl"
+#include "../oscontrol.inl"
+#include "../ostabstop.inl"
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/event.h>

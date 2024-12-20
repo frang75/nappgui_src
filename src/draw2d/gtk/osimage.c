@@ -10,12 +10,12 @@
 
 /* Images */
 
-#include "image.inl"
-#include "osimage.inl"
-#include "imgutil.inl"
-#include "dctxh.h"
-#include "pixbuf.h"
 #include "draw2d_gtk.ixx"
+#include "osimage.inl"
+#include "../image.inl"
+#include "../imgutil.inl"
+#include "../dctxh.h"
+#include "../pixbuf.h"
 #include <core/buffer.h>
 #include <core/heap.h>
 #include <core/strings.h>

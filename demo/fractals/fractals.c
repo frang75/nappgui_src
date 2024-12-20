@@ -38,7 +38,7 @@ static const uint32_t i_HEIGHT = 601;
 static uint32_t i_inset(real64_t zreal, real64_t zimag, real64_t creal, real64_t cimag)
 {
     uint32_t i;
-    for(i = 0; i < i_ITERATIONS; ++i)
+    for (i = 0; i < i_ITERATIONS; ++i)
     {
         real64_t ztmp, zdist;
         ztmp = zreal * zreal - zimag * zimag;
@@ -46,7 +46,7 @@ static uint32_t i_inset(real64_t zreal, real64_t zimag, real64_t creal, real64_t
         zreal = ztmp;
         zreal = zreal + creal;
         zimag = zimag + cimag;
-        zdist = zimag * zimag  + zreal * zreal;
+        zdist = zimag * zimag + zreal * zreal;
         if (zdist > 3)
             return i;
     }
@@ -72,18 +72,18 @@ static uint32_t i_julia_thread(ThData *data)
     uint32_t edi = data->i + data->width;
     uint32_t i, j;
 
-    for(j = stj; j < edj; ++j)
+    for (j = stj; j < edj; ++j)
     {
         cimag = fimag * j - (fct / 2);
 
-        for(i = sti; i < edi; ++i)
+        for (i = sti; i < edi; ++i)
         {
             creal = freal * i - (fct / 2);
             val = i_inset(creal, cimag, kreal, kimag);
             if (val > 0)
             {
                 uint8_t n_val = (uint8_t)(val % 255);
-                if ( val < ( i_ITERATIONS >> 1 ) )
+                if (val < (i_ITERATIONS >> 1))
                     val = color_rgb((uint8_t)(n_val << 2), (uint8_t)(n_val << 3), (uint8_t)(n_val << 4));
                 else
                     val = color_rgb((uint8_t)(n_val << 4), (uint8_t)(n_val << 2), (uint8_t)(n_val << 5));
@@ -137,7 +137,7 @@ static void i_julia(const uint32_t nthreads, const bool_t vertical, const real64
                 data[i].height = height;
             }
 
-            data[nthreads-1].width += (width - (twidth * nthreads));
+            data[nthreads - 1].width += (width - (twidth * nthreads));
         }
         else
         {
@@ -151,7 +151,7 @@ static void i_julia(const uint32_t nthreads, const bool_t vertical, const real64
                 data[i].height = theight;
             }
 
-            data[nthreads-1].height += (height - (theight * nthreads));
+            data[nthreads - 1].height += (height - (theight * nthreads));
         }
 
         for (i = 0; i < nthreads; ++i)
@@ -206,12 +206,24 @@ static void i_OnSlider(App *app, Event *e)
 static void i_OnThreads(App *app, Event *e)
 {
     const EvButton *p = event_params(e, EvButton);
-    switch(p->index) {
-    case 0: app->threads = 1; break;
-    case 1: app->threads = 2; break;
-    case 2: app->threads = 3; break;
-    case 3: app->threads = 4; break;
-    case 4: app->threads = 8; break; }
+    switch (p->index)
+    {
+    case 0:
+        app->threads = 1;
+        break;
+    case 1:
+        app->threads = 2;
+        break;
+    case 2:
+        app->threads = 3;
+        break;
+    case 3:
+        app->threads = 4;
+        break;
+    case 4:
+        app->threads = 8;
+        break;
+    }
     i_image(app);
 }
 
@@ -315,5 +327,5 @@ static void i_destroy(App **app)
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain(i_create, i_destroy, "", App)

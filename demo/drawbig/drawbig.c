@@ -344,8 +344,7 @@ static void i_OnDataChange(App *app, Event *e)
     unref(e);
 
     /* If col/row editbox are changed, change the focused cell in view */
-    if (evbind_modify(e, App, uint32_t, col_id) == TRUE
-        || evbind_modify(e, App, uint32_t, row_id) == TRUE)
+    if (evbind_modify(e, App, uint32_t, col_id) == TRUE || evbind_modify(e, App, uint32_t, row_id) == TRUE)
     {
         app->sel_cell_x = app->col_id;
         app->sel_cell_y = app->row_id;
@@ -366,7 +365,8 @@ static void i_flyout_over_control(App *app, GuiControl *control, const uint32_t 
     /* Flyout window size */
     S2Df size = window_get_size(app->flyout);
 
-    switch (align) {
+    switch (align)
+    {
     case 0:
         break;
     case 1:
@@ -407,7 +407,8 @@ static void i_OnIdleLaunch(App *app, Event *e)
     GuiControl *control = guicontrol(app->list1);
     uint32_t selctrl = i_listbox_sel(app->list1);
     uint32_t selalign = i_listbox_sel(app->list2);
-    switch (selctrl) {
+    switch (selctrl)
+    {
     case 0:
         control = guicontrol(app->list1);
         break;
@@ -631,7 +632,8 @@ static void i_OnTable(App *app, Event *e)
 {
     uint32_t etype = event_type(e);
 
-    switch (etype) {
+    switch (etype)
+    {
     case ekGUI_EVENT_TBL_NROWS:
     {
         uint32_t *n = event_result(e, uint32_t);
@@ -921,5 +923,5 @@ static void i_update(App *app, const real64_t prtime, const real64_t ctime)
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain_sync(0.1, i_create, i_destroy, i_update, "", App)

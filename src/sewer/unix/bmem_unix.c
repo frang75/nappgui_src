@@ -10,14 +10,14 @@
 
 /* Operating System memory support */
 
-#include "bmem.h"
-#include "bmem.inl"
+#include "../bmem.h"
+#include "../bmem.inl"
 
 #if !defined(__UNIX__)
 #error This file is for Unix/Unix-like system
 #endif
 
-#include "cassert.h"
+#include "../cassert.h"
 #include <stdlib.h>
 #include <string.h>
 

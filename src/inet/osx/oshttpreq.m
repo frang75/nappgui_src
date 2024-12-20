@@ -10,7 +10,7 @@
 
 /* HTTP request (Cocoa-based implementation) */
 
-#include "oshttpreq.inl"
+#include "../oshttpreq.inl"
 #include <sewer/nowarn.hxx>
 #include <Cocoa/Cocoa.h>
 #include <sewer/warn.hxx>

@@ -1,6 +1,6 @@
 /* Bode Algorithm */
 
-#include "geom2d.hxx"
+#include <geom2d/geom2d.hxx>
 
 void bode_set_P_coeffs(const real32_t *p);
 

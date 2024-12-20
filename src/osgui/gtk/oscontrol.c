@@ -10,8 +10,6 @@
 
 /* Gtk Widgets common functions */
 
-#include "oscontrol.inl"
-#include "osgui.inl"
 #include "osgui_gtk.inl"
 #include "osbutton_gtk.inl"
 #include "oscombo_gtk.inl"
@@ -22,6 +20,8 @@
 #include "osview_gtk.inl"
 #include "osweb_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../oscontrol.inl"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <core/stream.h>

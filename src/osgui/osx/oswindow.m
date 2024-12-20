@@ -10,16 +10,16 @@
 
 /* Cocoa NSwindow wrapper */
 
-#include "oswindow.h"
-#include "oswindow.inl"
 #include "osbutton_osx.inl"
 #include "oscontrol_osx.inl"
 #include "osgui_osx.inl"
 #include "ospanel_osx.inl"
 #include "osview_osx.inl"
 #include "oswindow_osx.inl"
-#include "oscontrol.inl"
-#include "ostabstop.inl"
+#include "../oswindow.h"
+#include "../oswindow.inl"
+#include "../oscontrol.inl"
+#include "../ostabstop.inl"
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/event.h>

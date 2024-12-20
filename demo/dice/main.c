@@ -1,6 +1,6 @@
 /* Dice application */
 
-#include "ddraw.h"
+#include <casino/ddraw.h>
 #include <nappgui.h>
 
 typedef struct _app_t App;
@@ -121,5 +121,5 @@ static void i_destroy(App **app)
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain(i_create, i_destroy, "", App)

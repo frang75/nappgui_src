@@ -10,8 +10,8 @@
 
 /* Processes */
 
-#include "bproc.h"
-#include "osbs.inl"
+#include "../bproc.h"
+#include "../osbs.inl"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>

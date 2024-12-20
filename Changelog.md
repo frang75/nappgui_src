@@ -40,6 +40,10 @@
 
 - Refactor code using `cast()` macro for pointer conversion. [Commit](https://github.com/frang75/nappgui_src/commit/569e797f74f94c54b81d6b7f5f3bd56e43f812c0), [Commit](https://github.com/frang75/nappgui_src/commit/79c15ce90743d9f58488e10d41a992613ebb092e), [Commit](https://github.com/frang75/nappgui_src/commit/dd459fbe248735fef5ba08f71ca77325b55e5bde).
 
+### Build system
+
+- Avoid NAppGUI library paths used as global headers search path. [Issue](https://github.com/frang75/nappgui_src/issues/153). [Commit]().
+
 ## v1.4.3 - Oct 12, 2024 (r5533)
 
 ### Added

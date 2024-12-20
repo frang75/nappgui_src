@@ -378,10 +378,10 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
 
             # VS2005 does not support .ico with 256 res
             if(MSVC_VERSION EQUAL 1400 OR MSVC_VERSION LESS 1400)
-                file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res.rc "APPLICATION_ICON ICON \"res\\\\logo48.ico\"\n")
+                file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res.rc "APPLICATION_ICON ICON \"${resPath}/logo48.ico\"\n")
                 set(globalRes ${resPath}/logo48.ico)
             else()
-                file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res.rc "APPLICATION_ICON ICON \"res\\\\logo256.ico\"\n")
+                file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/res.rc "APPLICATION_ICON ICON \"${resPath}/logo256.ico\"\n")
                 set(globalRes ${resPath}/logo256.ico)
             endif()
 
@@ -716,7 +716,7 @@ function(nap_link_opengl targetName)
 
             endif()
 
-            target_include_directories(${targetName} PUBLIC ${EGL_INCLUDE_DIR})
+            target_include_directories(${targetName} PRIVATE ${EGL_INCLUDE_DIR})
             target_link_libraries(${targetName} ${EGL_LIBRARY})
 
         endif()
@@ -989,7 +989,7 @@ function(nap_target targetName targetType dependList nrcMode)
     if (WIN32)
         # Visual Studio 2005/2008 doesn't have <stdint.h>
         if(MSVC_VERSION EQUAL 1500 OR MSVC_VERSION LESS 1500)
-            target_include_directories(${targetName} PUBLIC $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/prj/depend>)
+            target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/prj/depend>)
         endif()
 
         # Platform toolset macro
@@ -1003,7 +1003,7 @@ function(nap_target targetName targetType dependList nrcMode)
     if (${targetName} STREQUAL "osgui")
         if (WEB_SUPPORT)
             if (WIN32)
-                target_include_directories("osgui" PUBLIC $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/prj/depend/web/win>)
+                target_include_directories("osgui" PRIVATE $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/prj/depend/web/win>)
                 target_compile_definitions("osgui" PUBLIC "-DNAPPGUI_WEB_SUPPORT")
 
             elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -1013,7 +1013,7 @@ function(nap_target targetName targetType dependList nrcMode)
                 nap_find_webview_linux(WEBVIEW_FOUND WEBVIEW_HEADERS WEBVIEW_LIBS)
                 if (WEBVIEW_FOUND)
                     foreach(dir ${WEBVIEW_HEADERS})
-                        target_include_directories(${targetName} PUBLIC $<BUILD_INTERFACE:${dir}>)
+                        target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${dir}>)
                     endforeach()
 
                     target_compile_definitions("osgui" PUBLIC "-DNAPPGUI_WEB_SUPPORT")
@@ -1031,27 +1031,23 @@ function(nap_target targetName targetType dependList nrcMode)
                 find_package(PkgConfig REQUIRED)
                 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
                 foreach(dir ${GTK3_INCLUDE_DIRS})
-                    target_include_directories(${targetName} PUBLIC $<BUILD_INTERFACE:${dir}>)
+                    target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${dir}>)
                 endforeach()
                 target_compile_definitions(${targetName} PUBLIC "-D__GTK3_TOOLKIT__")
             endif()
         endif()
     endif()
 
-    # Build TARGET local and /src directory include
-    target_include_directories(${targetName} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-
+    # Target global include directories
     if (NOT NAPPGUI_IS_PACKAGE)
-        target_include_directories(${targetName} PUBLIC $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/src>)
+        target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/src>)
     endif()
 
-    # Installed TARGET local and 'inc' directory include
-    target_include_directories(${targetName} PUBLIC $<INSTALL_INTERFACE:inc>)
-    target_include_directories(${targetName} PUBLIC $<INSTALL_INTERFACE:inc/${targetPathSingle}>)
+    target_include_directories(${targetName} PRIVATE $<INSTALL_INTERFACE:inc>)
 
     # Include dir for target generated resources
     if (resIncludeDir)
-        target_include_directories(${targetName} PUBLIC $<BUILD_INTERFACE:${resIncludeDir}>)
+        target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${resIncludeDir}>)
     endif()
 
     # Target dependency for compile order

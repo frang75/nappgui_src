@@ -1,8 +1,8 @@
 /* Die Gui */
 
 #include "dgui.h"
-#include "ddraw.h"
 #include "res_die.h"
+#include <casino/ddraw.h>
 #include <gui/guiall.h>
 
 /*---------------------------------------------------------------------------*/
@@ -72,8 +72,8 @@ static void i_OnLang(App *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
- static Panel *i_panel(App *app)
- {
+static Panel *i_panel(App *app)
+{
     Panel *panel = panel_create();
     Layout *layout = layout_create(2, 1);
     Layout *layout1 = layout_create(2, 6);
@@ -117,7 +117,7 @@ static void i_OnLang(App *app, Event *e)
     slider_OnMoved(slider1, listener(app, i_OnPadding, App));
     slider_OnMoved(slider2, listener(app, i_OnCorner, App));
     slider_OnMoved(slider3, listener(app, i_OnRadius, App));
-    imageview_image(img, (const Image*)CARDS_PNG);
+    imageview_image(img, (const Image *)CARDS_PNG);
     layout_view(layout, view, 0, 0);
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);

@@ -10,7 +10,7 @@
 
 /* Machine info */
 
-#include "bfile.h"
+#include "../bfile.h"
 
 #if !defined(__MACOS__)
 #error This file is only for OSX

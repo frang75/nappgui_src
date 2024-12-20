@@ -10,7 +10,7 @@
 
 /* Images */
 
-#include "draw2d.ixx"
+#include "../draw2d.ixx"
 #include <sewer/nowarn.hxx>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <sewer/warn.hxx>

@@ -13,7 +13,7 @@
 #ifndef __OSAPPGTK_IXX__
 #define __OSAPPGTK_IXX__
 
-#include "osapp.ixx"
+#include "../osapp.ixx"
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit

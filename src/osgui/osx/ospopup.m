@@ -10,12 +10,12 @@
 
 /* Operating System native popup button */
 
-#include "ospopup.h"
 #include "ospopup_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
-#include "osgui.inl"
+#include "../ospopup.h"
+#include "../osgui.inl"
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>

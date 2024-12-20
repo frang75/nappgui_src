@@ -11,9 +11,9 @@
 /* View listeners */
 
 #include "oslistener.inl"
-#include "osgui.inl"
-#include "osscrolls.inl"
 #include "osgui_osx.inl"
+#include "../osgui.inl"
+#include "../osscrolls.inl"
 #include <core/event.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>

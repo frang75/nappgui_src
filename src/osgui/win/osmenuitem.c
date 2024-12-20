@@ -10,11 +10,11 @@
 
 /* Operating System native menu item */
 
-#include "osmenuitem.h"
 #include "osmenuitem_win.inl"
 #include "osmenu_win.inl"
 #include "osgui_win.inl"
 #include "osimg.inl"
+#include "../osmenuitem.h"
 #include <core/heap.h>
 #include <core/event.h>
 #include <core/strings.h>

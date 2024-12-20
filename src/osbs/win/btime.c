@@ -10,7 +10,7 @@
 
 /* Basic time services */
 
-#include "btime.h"
+#include "../btime.h"
 #include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)

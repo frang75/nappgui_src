@@ -10,9 +10,6 @@
 
 /* Operating System native popup button */
 
-#include "ospopup.h"
-#include "ospopup.inl"
-#include "osgui.inl"
 #include "osglobals_gtk.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
@@ -20,6 +17,9 @@
 #include "ospanel_gtk.inl"
 #include "ospopup_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../ospopup.h"
+#include "../ospopup.inl"
+#include "../osgui.inl"
 #include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/arrpt.h>

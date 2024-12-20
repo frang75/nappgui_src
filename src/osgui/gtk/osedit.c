@@ -10,14 +10,14 @@
 
 /* Operating System edit box */
 
-#include "osedit.h"
-#include "osedit.inl"
-#include "osgui.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "osedit_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../osedit.h"
+#include "../osedit.inl"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <core/event.h>

@@ -636,7 +636,7 @@ void resgen_write_h_file(const ResourcePack *pack, const char_t *dest_path, cons
         bool_t with_texts = FALSE;
         bool_t with_files = FALSE;
         i_stm_header(stream);
-        stm_writef(stream, "#include \"core.hxx\"\n\n");
+        stm_writef(stream, "#include <core/core.hxx>\n\n");
         stm_writef(stream, "__EXTERN_C\n\n");
 
         arrst_foreach(resource, pack->resources, i_Resource)

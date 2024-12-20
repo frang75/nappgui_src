@@ -10,9 +10,6 @@
 
 /* Operating System native custom view */
 
-#include "osview.h"
-#include "osview.inl"
-#include "osgui.inl"
 #include "oslistener.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
@@ -21,7 +18,10 @@
 #include "ossplit_gtk.inl"
 #include "osview_gtk.inl"
 #include "oswindow_gtk.inl"
-#include "osscrolls.inl"
+#include "../osview.h"
+#include "../osview.inl"
+#include "../osgui.inl"
+#include "../osscrolls.inl"
 #include <draw2d/dctxh.h>
 #include <core/event.h>
 #include <core/heap.h>

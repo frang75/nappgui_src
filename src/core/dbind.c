@@ -544,13 +544,6 @@ static void i_remove_dbind(DBind *dbind)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_destroy_dbind(DBind **dbind)
-{
-    heap_delete(dbind, DBind);
-}
-
-/*---------------------------------------------------------------------------*/
-
 static void i_destroy_dbind_full(DBind **dbind)
 {
     cassert_no_null(dbind);
@@ -4045,7 +4038,7 @@ static bindset_t i_set_value_int(const DBind *bind, byte_t *data, const int64_t 
     case ekDTYPE_STRING:
     {
         char_t str[32];
-        bstd_sprintf(str, sizeof(str), "%d", value);
+        bstd_sprintf(str, sizeof(str), "%" PRId64, value);
         return i_update_string(bind, data, str);
     }
 
@@ -4454,14 +4447,14 @@ bindset_t dbind_create_value_binary(const DBind *bind, byte_t *data, const byte_
     return ekBINDSET_NOT_ALLOWED;
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 byte_t *dbind_container_create(const DBind *bind, const DBind *ebind)
 {
     return i_create_container(bind, ebind);
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 uint32_t dbind_container_size(const DBind *bind, const byte_t *cont)
 {
@@ -4470,7 +4463,7 @@ uint32_t dbind_container_size(const DBind *bind, const byte_t *cont)
     return bind->props.contp.func_size(cont);
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 byte_t *dbind_container_append(const DBind *bind, const DBind *ebind, byte_t *cont)
 {
@@ -4480,7 +4473,7 @@ byte_t *dbind_container_append(const DBind *bind, const DBind *ebind, byte_t *co
     return bind->props.contp.func_insert(cont, UINT32_MAX, 1, tc(ebind->name), bind->props.contp.store_pointers ? ebind->size : sizeofptr);
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 byte_t *dbind_container_get(const DBind *bind, const DBind *ebind, const uint32_t pos, byte_t *cont)
 {
@@ -4494,14 +4487,14 @@ byte_t *dbind_container_get(const DBind *bind, const DBind *ebind, const uint32_
     return elem;
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 const byte_t *dbind_container_cget(const DBind *bind, const DBind *ebind, const uint32_t pos, const byte_t *cont)
 {
     return dbind_container_get(bind, ebind, pos, cast(cont, byte_t));
 }
 
-//*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 void dbind_container_delete(const DBind *bind, const DBind *ebind, const uint32_t pos, byte_t *cont)
 {

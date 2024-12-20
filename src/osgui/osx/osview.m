@@ -10,16 +10,16 @@
 
 /* Cocoa CustomView */
 
-#include "osview.h"
-#include "osview.inl"
 #include "osview_osx.inl"
-#include "osgui.inl"
 #include "oslistener.inl"
-#include "osscrolls.inl"
 #include "osscroll_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
+#include "../osview.h"
+#include "../osview.inl"
+#include "../osgui.inl"
+#include "../osscrolls.inl"
 #include <draw2d/dctxh.h>
 #include <core/event.h>
 #include <core/heap.h>

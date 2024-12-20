@@ -10,13 +10,13 @@
 
 /* Draw context */
 
-#include "dctx.h"
-#include "dctxh.h"
-#include "dctx.inl"
 #include "dctx_win.inl"
-#include "color.h"
-#include "font.h"
-#include "font.inl"
+#include "../dctx.h"
+#include "../dctxh.h"
+#include "../dctx.inl"
+#include "../color.h"
+#include "../font.h"
+#include "../font.inl"
 #include <core/heap.h>
 #include <sewer/cassert.h>
 #include <sewer/bmath.h>

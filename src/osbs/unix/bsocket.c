@@ -10,8 +10,8 @@
 
 /* Sockets base API */
 
-#include "bsocket.h"
-#include "osbs.inl"
+#include "../bsocket.h"
+#include "../osbs.inl"
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 

@@ -11,13 +11,13 @@
 /* Cocoa NSTextView wrapper */
 
 #include "osgui_osx.inl"
-#include "ostext.h"
 #include "ostext_osx.inl"
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
-#include "osgui.inl"
 #include "oscolor.inl"
+#include "../ostext.h"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <core/event.h>

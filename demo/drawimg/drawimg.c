@@ -30,7 +30,7 @@ static real32_t i_SCALE[4] = {1, .5f, .25f, .125f};
 static void i_draw(DCtx *ctx, const T2Df *t2d_global, const Font *font)
 {
     T2Df t2d_object;
-    V2Df triangle[] = { {472,0}, {600,144}, {344,144} };
+    V2Df triangle[] = {{472, 0}, {600, 144}, {344, 144}};
     const Image *image1 = gui_image(MONKEY_GIF);
     const Image *image2 = gui_image(ZOMBIE_PNG);
     t2d_scalef(&t2d_object, t2d_global, .5f, .5f);
@@ -242,7 +242,7 @@ static void i_OnExport(App *app, Event *e)
     V2Df p0, p1;
     S2Df s0, s1;
     uint32_t res = 0;
-	unref(e);
+    unref(e);
     app->expwin = i_export_window(app);
     p0 = window_get_origin(app->window);
     s0 = window_get_size(app->window);
@@ -408,5 +408,5 @@ static void i_destroy(App **app)
 
 /*---------------------------------------------------------------------------*/
 
-#include "osmain.h"
+#include <osapp/osmain.h>
 osmain(i_create, i_destroy, "", App)

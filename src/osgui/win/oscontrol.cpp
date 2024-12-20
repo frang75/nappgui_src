@@ -10,9 +10,7 @@
 
 /* Windows controls commons */
 
-#include "oscontrol.inl"
 #include "oscontrol_win.inl"
-#include "osgui.inl"
 #include "osgui_win.inl"
 #include "osbutton_win.inl"
 #include "oscombo_win.inl"
@@ -20,6 +18,8 @@
 #include "ospopup_win.inl"
 #include "osweb_win.inl"
 #include "ostooltip.inl"
+#include "../oscontrol.inl"
+#include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <core/heap.h>
