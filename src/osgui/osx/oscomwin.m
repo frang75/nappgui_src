@@ -31,7 +31,7 @@
 
 static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32_t size)
 {
-    NSMutableArray<UTType *> *array = [NSMutableArray array];
+    NSMutableArray< UTType * > *array = [NSMutableArray array];
 
     if (ftypes != NULL && size > 0)
     {

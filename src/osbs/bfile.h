@@ -25,6 +25,8 @@ _osbs_api uint32_t bfile_dir_data(char_t *pathname, const uint32_t size);
 
 _osbs_api uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size);
 
+_osbs_api uint32_t bfile_dir_tmp(char_t *pathname, const uint32_t size);
+
 _osbs_api bool_t bfile_dir_create(const char_t *pathname, ferror_t *error);
 
 _osbs_api Dir *bfile_dir_open(const char_t *pathname, ferror_t *error);

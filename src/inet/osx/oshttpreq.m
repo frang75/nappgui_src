@@ -29,7 +29,7 @@
 /*---------------------------------------------------------------------------*/
 
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-@interface OSXURLDelegate : NSObject <NSURLSessionDelegate, NSURLSessionDataDelegate, NSURLSessionTaskDelegate>
+@interface OSXURLDelegate : NSObject < NSURLSessionDelegate, NSURLSessionDataDelegate, NSURLSessionTaskDelegate >
 {
   @public
     OSHttp *http;

@@ -160,8 +160,8 @@ void t2d_tod(T2Dd *dest, const T2Df *src)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_move(T2D<real> *dest, const T2D<real> *src, const real x, const real y)
+template < typename real >
+static void i_move(T2D< real > *dest, const T2D< real > *src, const real x, const real y)
 {
     cassert_no_null(dest);
     cassert_no_null(src);
@@ -175,27 +175,27 @@ static void i_move(T2D<real> *dest, const T2D<real> *src, const real x, const re
 
 void t2d_movef(T2Df *dest, const T2Df *t2d, const real32_t x, const real32_t y)
 {
-    i_move<real32_t>((T2D<real32_t> *)dest, (const T2D<real32_t> *)t2d, x, y);
+    i_move< real32_t >((T2D< real32_t > *)dest, (const T2D< real32_t > *)t2d, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_moved(T2Dd *dest, const T2Dd *t2d, const real64_t x, const real64_t y)
 {
-    i_move<real64_t>((T2D<real64_t> *)dest, (const T2D<real64_t> *)t2d, x, y);
+    i_move< real64_t >((T2D< real64_t > *)dest, (const T2D< real64_t > *)t2d, x, y);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_rotate(T2D<real> *dest, const T2D<real> *t2d, const real angle)
+template < typename real >
+static void i_rotate(T2D< real > *dest, const T2D< real > *t2d, const real angle)
 {
     real c, s;
     real ix, iy, jx, jy;
     cassert_no_null(dest);
     cassert_no_null(t2d);
-    c = BMath<real>::cos(angle);
-    s = BMath<real>::sin(angle);
+    c = BMath< real >::cos(angle);
+    s = BMath< real >::sin(angle);
     ix = t2d->i.x * c + t2d->j.x * s;
     iy = t2d->i.y * c + t2d->j.y * s;
     jx = -t2d->i.x * s + t2d->j.x * c;
@@ -212,20 +212,20 @@ static void i_rotate(T2D<real> *dest, const T2D<real> *t2d, const real angle)
 
 void t2d_rotatef(T2Df *dest, const T2Df *t2d, const real32_t angle)
 {
-    i_rotate<real32_t>((T2D<real32_t> *)dest, (const T2D<real32_t> *)t2d, angle);
+    i_rotate< real32_t >((T2D< real32_t > *)dest, (const T2D< real32_t > *)t2d, angle);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_rotated(T2Dd *dest, const T2Dd *t2d, const real64_t angle)
 {
-    i_rotate<real64_t>((T2D<real64_t> *)dest, (const T2D<real64_t> *)t2d, angle);
+    i_rotate< real64_t >((T2D< real64_t > *)dest, (const T2D< real64_t > *)t2d, angle);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_scale(T2D<real> *dest, const T2D<real> *t2d, const real sx, const real sy)
+template < typename real >
+static void i_scale(T2D< real > *dest, const T2D< real > *t2d, const real sx, const real sy)
 {
     cassert_no_null(dest);
     cassert_no_null(t2d);
@@ -241,22 +241,22 @@ static void i_scale(T2D<real> *dest, const T2D<real> *t2d, const real sx, const 
 
 void t2d_scalef(T2Df *dest, const T2Df *t2d, const real32_t sx, const real32_t sy)
 {
-    i_scale<real32_t>((T2D<real32_t> *)dest, (const T2D<real32_t> *)t2d, sx, sy);
+    i_scale< real32_t >((T2D< real32_t > *)dest, (const T2D< real32_t > *)t2d, sx, sy);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_scaled(T2Dd *dest, const T2Dd *t2d, const real64_t sx, const real64_t sy)
 {
-    i_scale<real64_t>((T2D<real64_t> *)dest, (const T2D<real64_t> *)t2d, sx, sy);
+    i_scale< real64_t >((T2D< real64_t > *)dest, (const T2D< real64_t > *)t2d, sx, sy);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_inverse(T2D<real> *dest, const T2D<real> *src)
+template < typename real >
+static void i_inverse(T2D< real > *dest, const T2D< real > *src)
 {
-    V2D<real> i, j, p;
+    V2D< real > i, j, p;
     real det = 0;
     cassert_no_null(dest);
     cassert_no_null(src);
@@ -277,22 +277,22 @@ static void i_inverse(T2D<real> *dest, const T2D<real> *src)
 
 void t2d_inversef(T2Df *dest, const T2Df *src)
 {
-    i_inverse<real32_t>((T2D<real32_t> *)dest, (const T2D<real32_t> *)src);
+    i_inverse< real32_t >((T2D< real32_t > *)dest, (const T2D< real32_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_inversed(T2Dd *dest, const T2Dd *src)
 {
-    i_inverse<real64_t>((T2D<real64_t> *)dest, (const T2D<real64_t> *)src);
+    i_inverse< real64_t >((T2D< real64_t > *)dest, (const T2D< real64_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_invfast(T2D<real> *dest, const T2D<real> *src)
+template < typename real >
+static void i_invfast(T2D< real > *dest, const T2D< real > *src)
 {
-    V2D<real> i, j, p;
+    V2D< real > i, j, p;
     cassert_no_null(dest);
     cassert_no_null(src);
     i.x = src->i.x;
@@ -310,20 +310,20 @@ static void i_invfast(T2D<real> *dest, const T2D<real> *src)
 
 void t2d_invfastf(T2Df *dest, const T2Df *src)
 {
-    i_invfast<real32_t>((T2D<real32_t> *)dest, (const T2D<real32_t> *)src);
+    i_invfast< real32_t >((T2D< real32_t > *)dest, (const T2D< real32_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_invfastd(T2Dd *dest, const T2Dd *src)
 {
-    i_invfast<real64_t>((T2D<real64_t> *)dest, (const T2D<real64_t> *)src);
+    i_invfast< real64_t >((T2D< real64_t > *)dest, (const T2D< real64_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_mult(T2D<real> *dest, const T2D<real> *t2d, const T2D<real> *src)
+template < typename real >
+static void i_mult(T2D< real > *dest, const T2D< real > *t2d, const T2D< real > *src)
 {
     real ix, iy, jx, jy, px, py;
     cassert_no_null(dest);
@@ -347,14 +347,14 @@ static void i_mult(T2D<real> *dest, const T2D<real> *t2d, const T2D<real> *src)
 
 void t2d_multf(T2Df *dest, const T2Df *t2d, const T2Df *src)
 {
-    i_mult<real32_t>((T2D<real32_t> *)dest, (const T2D<real32_t> *)t2d, (const T2D<real32_t> *)src);
+    i_mult< real32_t >((T2D< real32_t > *)dest, (const T2D< real32_t > *)t2d, (const T2D< real32_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_multd(T2Dd *dest, const T2Dd *t2d, const T2Dd *src)
 {
-    i_mult<real64_t>((T2D<real64_t> *)dest, (const T2D<real64_t> *)t2d, (const T2D<real64_t> *)src);
+    i_mult< real64_t >((T2D< real64_t > *)dest, (const T2D< real64_t > *)t2d, (const T2D< real64_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -374,8 +374,8 @@ void t2d_multd(T2Dd *dest, const T2Dd *t2d, const T2Dd *src)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_vmult(V2D<real> *dest, const T2D<real> *t2d, const V2D<real> *src)
+template < typename real >
+static void i_vmult(V2D< real > *dest, const T2D< real > *t2d, const V2D< real > *src)
 {
     real x, y;
     cassert_no_null(dest);
@@ -391,20 +391,20 @@ static void i_vmult(V2D<real> *dest, const T2D<real> *t2d, const V2D<real> *src)
 
 void t2d_vmultf(V2Df *dest, const T2Df *t2d, const V2Df *src)
 {
-    i_vmult<real32_t>((V2D<real32_t> *)dest, (const T2D<real32_t> *)t2d, (const V2D<real32_t> *)src);
+    i_vmult< real32_t >((V2D< real32_t > *)dest, (const T2D< real32_t > *)t2d, (const V2D< real32_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_vmultd(V2Dd *dest, const T2Dd *t2d, const V2Dd *src)
 {
-    i_vmult<real64_t>((V2D<real64_t> *)dest, (T2D<real64_t> *)t2d, (const V2D<real64_t> *)src);
+    i_vmult< real64_t >((V2D< real64_t > *)dest, (T2D< real64_t > *)t2d, (const V2D< real64_t > *)src);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_vmultn(V2D<real> *dest, const T2D<real> *t2d, const V2D<real> *src, const uint32_t n)
+template < typename real >
+static void i_vmultn(V2D< real > *dest, const T2D< real > *t2d, const V2D< real > *src, const uint32_t n)
 {
     cassert_no_null(dest);
     cassert_no_null(t2d);
@@ -434,36 +434,36 @@ static void i_vmultn(V2D<real> *dest, const T2D<real> *t2d, const V2D<real> *src
 
 void t2d_vmultnf(V2Df *dest, const T2Df *t2d, const V2Df *src, const uint32_t n)
 {
-    i_vmultn<real32_t>((V2D<real32_t> *)dest, (const T2D<real32_t> *)t2d, (const V2D<real32_t> *)src, n);
+    i_vmultn< real32_t >((V2D< real32_t > *)dest, (const T2D< real32_t > *)t2d, (const V2D< real32_t > *)src, n);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_vmultnd(V2Dd *dest, const T2Dd *t2d, const V2Dd *src, const uint32_t n)
 {
-    i_vmultn<real64_t>((V2D<real64_t> *)dest, (T2D<real64_t> *)t2d, (const V2D<real64_t> *)src, n);
+    i_vmultn< real64_t >((V2D< real64_t > *)dest, (T2D< real64_t > *)t2d, (const V2D< real64_t > *)src, n);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_decompose(const T2D<real> *t2d, V2D<real> *pos, real *angle, V2D<real> *sc)
+template < typename real >
+static void i_decompose(const T2D< real > *t2d, V2D< real > *pos, real *angle, V2D< real > *sc)
 {
     real a = 0;
 
     cassert_no_null(t2d);
-    a = V2D<real>::angle(V2D<real>::kX, &t2d->i);
+    a = V2D< real >::angle(V2D< real >::kX, &t2d->i);
 
     if (sc != NULL)
     {
-        const real hpi = BMath<real>::kPI / 2;
-        if (BMath<real>::abs(a - hpi) < .0001)
+        const real hpi = BMath< real >::kPI / 2;
+        if (BMath< real >::abs(a - hpi) < .0001)
         {
             a = hpi;
             sc->x = t2d->i.y;
             sc->y = -t2d->j.x;
         }
-        else if (BMath<real>::abs(a + hpi) < .0001)
+        else if (BMath< real >::abs(a + hpi) < .0001)
         {
             a = -hpi;
             sc->x = -t2d->i.y;
@@ -471,7 +471,7 @@ static void i_decompose(const T2D<real> *t2d, V2D<real> *pos, real *angle, V2D<r
         }
         else
         {
-            real ca = BMath<real>::cos(a);
+            real ca = BMath< real >::cos(a);
             sc->x = t2d->i.x / ca;
             sc->y = t2d->j.y / ca;
         }
@@ -512,14 +512,14 @@ static void i_decompose(const T2D<real> *t2d, V2D<real> *pos, real *angle, V2D<r
 
 void t2d_decomposef(const T2Df *t2d, V2Df *pos, real32_t *angle, V2Df *sc)
 {
-    i_decompose<real32_t>((const T2D<real32_t> *)t2d, (V2D<real32_t> *)pos, angle, (V2D<real32_t> *)sc);
+    i_decompose< real32_t >((const T2D< real32_t > *)t2d, (V2D< real32_t > *)pos, angle, (V2D< real32_t > *)sc);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void t2d_decomposed(const T2Dd *t2d, V2Dd *pos, real64_t *angle, V2Dd *sc)
 {
-    i_decompose<real64_t>((const T2D<real64_t> *)t2d, (V2D<real64_t> *)pos, angle, (V2D<real64_t> *)sc);
+    i_decompose< real64_t >((const T2D< real64_t > *)t2d, (V2D< real64_t > *)pos, angle, (V2D< real64_t > *)sc);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -531,10 +531,10 @@ const T2Df *kT2D_IDENTf = &i_kT2D_IDENTf;
 const T2Dd *kT2D_IDENTd = &i_kT2D_IDENTd;
 
 template <>
-const T2D<real32_t>(*T2D<real32_t>::kIDENT) = (T2D<real32_t> *)kT2D_IDENTf;
+const T2D< real32_t >(*T2D< real32_t >::kIDENT) = (T2D< real32_t > *)kT2D_IDENTf;
 
 template <>
-const T2D<real64_t>(*T2D<real64_t>::kIDENT) = (T2D<real64_t> *)kT2D_IDENTd;
+const T2D< real64_t >(*T2D< real64_t >::kIDENT) = (T2D< real64_t > *)kT2D_IDENTd;
 
 /*---------------------------------------------------------------------------*/
 
@@ -571,55 +571,55 @@ const T2D<real64_t>(*T2D<real64_t>::kIDENT) = (T2D<real64_t> *)kT2D_IDENTd;
 //void(*T2D<real64_t>::init_move_scale)(T2D<real64_t>*, const real64_t, const real64_t, const real64_t, const real64_t) = i_init_move_scale<real64_t>;
 
 template <>
-void (*T2D<real32_t>::move)(T2D<real32_t> *, const T2D<real32_t> *, const real32_t, const real32_t) = i_move<real32_t>;
+void (*T2D< real32_t >::move)(T2D< real32_t > *, const T2D< real32_t > *, const real32_t, const real32_t) = i_move< real32_t >;
 
 template <>
-void (*T2D<real64_t>::move)(T2D<real64_t> *, const T2D<real64_t> *, const real64_t, const real64_t) = i_move<real64_t>;
+void (*T2D< real64_t >::move)(T2D< real64_t > *, const T2D< real64_t > *, const real64_t, const real64_t) = i_move< real64_t >;
 
 template <>
-void (*T2D<real32_t>::rotate)(T2D<real32_t> *, const T2D<real32_t> *, const real32_t) = i_rotate<real32_t>;
+void (*T2D< real32_t >::rotate)(T2D< real32_t > *, const T2D< real32_t > *, const real32_t) = i_rotate< real32_t >;
 
 template <>
-void (*T2D<real64_t>::rotate)(T2D<real64_t> *, const T2D<real64_t> *, const real64_t) = i_rotate<real64_t>;
+void (*T2D< real64_t >::rotate)(T2D< real64_t > *, const T2D< real64_t > *, const real64_t) = i_rotate< real64_t >;
 
 template <>
-void (*T2D<real32_t>::scale)(T2D<real32_t> *, const T2D<real32_t> *, const real32_t, const real32_t) = i_scale<real32_t>;
+void (*T2D< real32_t >::scale)(T2D< real32_t > *, const T2D< real32_t > *, const real32_t, const real32_t) = i_scale< real32_t >;
 
 template <>
-void (*T2D<real64_t>::scale)(T2D<real64_t> *, const T2D<real64_t> *, const real64_t, const real64_t) = i_scale<real64_t>;
+void (*T2D< real64_t >::scale)(T2D< real64_t > *, const T2D< real64_t > *, const real64_t, const real64_t) = i_scale< real64_t >;
 
 template <>
-void (*T2D<real32_t>::invfast)(T2D<real32_t> *, const T2D<real32_t> *) = i_invfast<real32_t>;
+void (*T2D< real32_t >::invfast)(T2D< real32_t > *, const T2D< real32_t > *) = i_invfast< real32_t >;
 
 template <>
-void (*T2D<real64_t>::invfast)(T2D<real64_t> *, const T2D<real64_t> *) = i_invfast<real64_t>;
+void (*T2D< real64_t >::invfast)(T2D< real64_t > *, const T2D< real64_t > *) = i_invfast< real64_t >;
 
 template <>
-void (*T2D<real32_t>::inverse)(T2D<real32_t> *, const T2D<real32_t> *) = i_inverse<real32_t>;
+void (*T2D< real32_t >::inverse)(T2D< real32_t > *, const T2D< real32_t > *) = i_inverse< real32_t >;
 
 template <>
-void (*T2D<real64_t>::inverse)(T2D<real64_t> *, const T2D<real64_t> *) = i_inverse<real64_t>;
+void (*T2D< real64_t >::inverse)(T2D< real64_t > *, const T2D< real64_t > *) = i_inverse< real64_t >;
 
 template <>
-void (*T2D<real32_t>::mult)(T2D<real32_t> *, const T2D<real32_t> *, const T2D<real32_t> *) = i_mult<real32_t>;
+void (*T2D< real32_t >::mult)(T2D< real32_t > *, const T2D< real32_t > *, const T2D< real32_t > *) = i_mult< real32_t >;
 
 template <>
-void (*T2D<real64_t>::mult)(T2D<real64_t> *, const T2D<real64_t> *, const T2D<real64_t> *) = i_mult<real64_t>;
+void (*T2D< real64_t >::mult)(T2D< real64_t > *, const T2D< real64_t > *, const T2D< real64_t > *) = i_mult< real64_t >;
 
 template <>
-void (*T2D<real32_t>::vmult)(V2D<real32_t> *, const T2D<real32_t> *, const V2D<real32_t> *) = i_vmult<real32_t>;
+void (*T2D< real32_t >::vmult)(V2D< real32_t > *, const T2D< real32_t > *, const V2D< real32_t > *) = i_vmult< real32_t >;
 
 template <>
-void (*T2D<real64_t>::vmult)(V2D<real64_t> *, const T2D<real64_t> *, const V2D<real64_t> *) = i_vmult<real64_t>;
+void (*T2D< real64_t >::vmult)(V2D< real64_t > *, const T2D< real64_t > *, const V2D< real64_t > *) = i_vmult< real64_t >;
 
 template <>
-void (*T2D<real32_t>::vmultn)(V2D<real32_t> *, const T2D<real32_t> *, const V2D<real32_t> *, const uint32_t) = i_vmultn<real32_t>;
+void (*T2D< real32_t >::vmultn)(V2D< real32_t > *, const T2D< real32_t > *, const V2D< real32_t > *, const uint32_t) = i_vmultn< real32_t >;
 
 template <>
-void (*T2D<real64_t>::vmultn)(V2D<real64_t> *, const T2D<real64_t> *, const V2D<real64_t> *, const uint32_t) = i_vmultn<real64_t>;
+void (*T2D< real64_t >::vmultn)(V2D< real64_t > *, const T2D< real64_t > *, const V2D< real64_t > *, const uint32_t) = i_vmultn< real64_t >;
 
 template <>
-void (*T2D<real32_t>::decompose)(const T2D<real32_t> *, V2D<real32_t> *, real32_t *, V2D<real32_t> *) = i_decompose<real32_t>;
+void (*T2D< real32_t >::decompose)(const T2D< real32_t > *, V2D< real32_t > *, real32_t *, V2D< real32_t > *) = i_decompose< real32_t >;
 
 template <>
-void (*T2D<real64_t>::decompose)(const T2D<real64_t> *, V2D<real64_t> *, real64_t *, V2D<real64_t> *) = i_decompose<real64_t>;
+void (*T2D< real64_t >::decompose)(const T2D< real64_t > *, V2D< real64_t > *, real64_t *, V2D< real64_t > *) = i_decompose< real64_t >;

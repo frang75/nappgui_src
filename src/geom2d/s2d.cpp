@@ -49,9 +49,9 @@ const S2Df kS2D_ZEROf = {0, 0};
 const S2Dd kS2D_ZEROd = {0, 0};
 
 template <>
-const S2D<real32_t>(*S2D<real32_t>::kZERO) = ((S2D<real32_t> *)&kS2D_ZEROf);
+const S2D< real32_t >(*S2D< real32_t >::kZERO) = ((S2D< real32_t > *)&kS2D_ZEROf);
 
 template <>
-const S2D<real64_t>(*S2D<real64_t>::kZERO) = ((S2D<real64_t> *)&kS2D_ZEROd);
+const S2D< real64_t >(*S2D< real64_t >::kZERO) = ((S2D< real64_t > *)&kS2D_ZEROd);
 
 /*---------------------------------------------------------------------------*/

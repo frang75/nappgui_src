@@ -63,7 +63,7 @@
 /*---------------------------------------------------------------------------*/
 
 #if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
-@interface OSXWindowDelegate : NSObject <NSWindowDelegate>
+@interface OSXWindowDelegate : NSObject < NSWindowDelegate >
 #else
 @interface OSXWindowDelegate : NSObject
 #endif

@@ -51,4 +51,6 @@ _core_api String *hfile_appdata(const char_t *filename);
 
 _core_api String *hfile_home_dir(const char_t *path);
 
+_core_api String *hfile_tmp_path(const char_t *path);
+
 __END_C

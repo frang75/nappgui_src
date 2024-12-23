@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bmath.hpp
+ * https://nappgui.com/en/sewer/bmath.html
  *
  */
 
@@ -12,7 +13,7 @@
 
 #include "sewer.hxx"
 
-template <typename real>
+template < typename real >
 struct BMath
 {
     _sewer_api static real (*cos)(const real angle);

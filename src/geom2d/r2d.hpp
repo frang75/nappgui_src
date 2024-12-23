@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: r2d.hpp
+ * https://nappgui.com/en/geom2d/r2d.html
  *
  */
 
@@ -16,7 +17,7 @@
 #include "v2d.hpp"
 #include "s2d.hpp"
 
-template <typename real>
+template < typename real >
 struct R2D
 {
     _geom2d_api R2D()
@@ -29,7 +30,7 @@ struct R2D
         pos.x = x, pos.y = y, size.width = width, size.height = height;
     }
 
-    _geom2d_api static V2D<real> (*center)(const R2D *r2d);
+    _geom2d_api static V2D< real > (*center)(const R2D *r2d);
 
     _geom2d_api static bool_t (*collide)(const R2D *r2d1, const R2D *r2d2);
 
@@ -39,10 +40,10 @@ struct R2D
 
     _geom2d_api static void (*join)(R2D *r2d, const R2D *src);
 
-    _geom2d_api static const R2D<real> *kZERO;
+    _geom2d_api static const R2D< real > *kZERO;
 
-    V2D<real> pos;
-    S2D<real> size;
+    V2D< real > pos;
+    S2D< real > size;
 };
 
 #endif

@@ -67,6 +67,57 @@ uint32_t bfile_dir_work(char_t *pathname, const uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t bfile_dir_set_work(const char_t *pathname, ferror_t *error)
+{
+    cassert_no_null(pathname);
+    if (chdir(cast_const(pathname, char)) == 0)
+    {
+        ptr_assign(error, ekFOK);
+        return TRUE;
+    }
+    else
+    {
+        if (error != NULL)
+        {
+            switch (errno)
+            {
+            case EACCES:
+                *error = ekFNOACCESS;
+                break;
+            case EEXIST:
+                *error = ekFEXISTS;
+                break;
+            case ENAMETOOLONG:
+                *error = ekFBIGNAME;
+                break;
+            case ENOENT:
+                *error = ekFNOPATH;
+                break;
+            default:
+                cassert_msg(FALSE, "dir_set_work: undefined");
+                *error = ekFUNDEF;
+            }
+        }
+
+        return FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t bfile_dir_tmp(char_t *pathname, const uint32_t size)
+{
+    const char_t *temp = "/tmp";
+    uint32_t s = strlen(temp);
+    if (s > size)
+        s = size;
+    strncpy(pathname, temp, s);
+    pathname[s] = '\0';
+    return s;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 {
     int res = mkdir(cast_const(pathname, char), (mode_t)(S_IRUSR | S_IWUSR | S_IXUSR));

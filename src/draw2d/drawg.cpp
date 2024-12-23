@@ -37,8 +37,8 @@ void draw_v2dd(DCtx *ctx, const drawop_t op, const V2Dd *v2d, const real64_t rad
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_v2d(DCtx *ctx, const drawop_t op, const V2D<real> *v2d, const real radius)
+template < typename real >
+static void i_v2d(DCtx *ctx, const drawop_t op, const V2D< real > *v2d, const real radius)
 {
     cassert_no_null(v2d);
     draw_circle(ctx, op, (real32_t)v2d->x, (real32_t)v2d->y, (real32_t)radius);
@@ -62,8 +62,8 @@ void draw_seg2dd(DCtx *ctx, const Seg2Dd *seg)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_r2d(DCtx *ctx, const drawop_t op, const R2D<real> *rect)
+template < typename real >
+static void i_r2d(DCtx *ctx, const drawop_t op, const R2D< real > *rect)
 {
     cassert_no_null(rect);
     draw_rect(ctx, op, (real32_t)rect->pos.x, (real32_t)rect->pos.y, (real32_t)rect->size.width, (real32_t)rect->size.height);
@@ -87,8 +87,8 @@ void draw_r2dd(DCtx *ctx, const drawop_t op, const R2Dd *rect)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_seg2d(DCtx *ctx, const Seg2D<real> *seg)
+template < typename real >
+static void i_seg2d(DCtx *ctx, const Seg2D< real > *seg)
 {
     cassert_no_null(seg);
     draw_line(ctx, (real32_t)seg->p0.x, (real32_t)seg->p0.y, (real32_t)seg->p1.x, (real32_t)seg->p1.y);
@@ -112,8 +112,8 @@ void draw_cir2dd(DCtx *ctx, const drawop_t op, const Cir2Dd *cir)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_cir2d(DCtx *ctx, const drawop_t op, const Cir2D<real> *cir)
+template < typename real >
+static void i_cir2d(DCtx *ctx, const drawop_t op, const Cir2D< real > *cir)
 {
     cassert_no_null(cir);
     draw_circle(ctx, op, (real32_t)cir->c.x, (real32_t)cir->c.y, (real32_t)cir->r);
@@ -137,8 +137,8 @@ void draw_box2dd(DCtx *ctx, const drawop_t op, const Box2Dd *box)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_box2d(DCtx *ctx, const drawop_t op, const Box2D<real> *box)
+template < typename real >
+static void i_box2d(DCtx *ctx, const drawop_t op, const Box2D< real > *box)
 {
     cassert_no_null(box);
     draw_rect(ctx, op, (real32_t)box->min.x, (real32_t)box->min.y, (real32_t)(box->max.x - box->min.x), (real32_t)(box->max.y - box->min.y));
@@ -166,10 +166,10 @@ void draw_obb2dd(DCtx *ctx, const drawop_t op, const OBB2Dd *obb)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_obb2d(DCtx *ctx, const drawop_t op, const OBB2D<real> *obb)
+template < typename real >
+static void i_obb2d(DCtx *ctx, const drawop_t op, const OBB2D< real > *obb)
 {
-    const V2D<real> *v = OBB2D<real>::corners(obb);
+    const V2D< real > *v = OBB2D< real >::corners(obb);
     cassert_no_null(obb);
     cassert(sizeof(real) == 4);
     draw_polygon(ctx, op, (const V2Df *)v, 4);
@@ -178,9 +178,9 @@ static void i_obb2d(DCtx *ctx, const drawop_t op, const OBB2D<real> *obb)
 /*---------------------------------------------------------------------------*/
 
 template <>
-void i_obb2d(DCtx *ctx, const drawop_t op, const OBB2D<real64_t> *obb)
+void i_obb2d(DCtx *ctx, const drawop_t op, const OBB2D< real64_t > *obb)
 {
-    const V2D<real64_t> *vd = OBB2D<real64_t>::corners(obb);
+    const V2D< real64_t > *vd = OBB2D< real64_t >::corners(obb);
     V2Df vf[4];
     cassert_no_null(obb);
     v2d_tofn(vf, (const V2Dd *)vd, 4);
@@ -207,8 +207,8 @@ void draw_tri2dd(DCtx *ctx, const drawop_t op, const Tri2Dd *tri)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_tri2d(DCtx *ctx, const drawop_t op, const Tri2D<real> *tri)
+template < typename real >
+static void i_tri2d(DCtx *ctx, const drawop_t op, const Tri2D< real > *tri)
 {
     cassert_no_null(tri);
     cassert(sizeof(real) == 4);
@@ -218,9 +218,9 @@ static void i_tri2d(DCtx *ctx, const drawop_t op, const Tri2D<real> *tri)
 /*---------------------------------------------------------------------------*/
 
 template <>
-void i_tri2d(DCtx *ctx, const drawop_t op, const Tri2D<real64_t> *tri)
+void i_tri2d(DCtx *ctx, const drawop_t op, const Tri2D< real64_t > *tri)
 {
-    const V2D<real64_t> *vd = (const V2D<real64_t> *)tri;
+    const V2D< real64_t > *vd = (const V2D< real64_t > *)tri;
     V2Df vf[3];
     cassert_no_null(tri);
     v2d_tofn(vf, (const V2Dd *)vd, 3);
@@ -250,11 +250,11 @@ void draw_pol2dd(DCtx *ctx, const drawop_t op, const Pol2Dd *pol)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_pol2d(DCtx *ctx, const drawop_t op, const Pol2D<real> *pol)
+template < typename real >
+static void i_pol2d(DCtx *ctx, const drawop_t op, const Pol2D< real > *pol)
 {
-    const V2D<real> *v = Pol2D<real>::points(pol);
-    uint32_t n = Pol2D<real>::n(pol);
+    const V2D< real > *v = Pol2D< real >::points(pol);
+    uint32_t n = Pol2D< real >::n(pol);
     cassert(sizeof(real) == 4);
     draw_polygon(ctx, op, (const V2Df *)v, n);
 }
@@ -262,10 +262,10 @@ static void i_pol2d(DCtx *ctx, const drawop_t op, const Pol2D<real> *pol)
 /*---------------------------------------------------------------------------*/
 
 template <>
-void i_pol2d(DCtx *ctx, const drawop_t op, const Pol2D<real64_t> *pol)
+void i_pol2d(DCtx *ctx, const drawop_t op, const Pol2D< real64_t > *pol)
 {
-    const V2D<real64_t> *vd = Pol2D<real64_t>::points(pol);
-    uint32_t n = Pol2D<real64_t>::n(pol);
+    const V2D< real64_t > *vd = Pol2D< real64_t >::points(pol);
+    uint32_t n = Pol2D< real64_t >::n(pol);
     V2Df *vf = heap_new_n(n, V2Df);
     v2d_tofn(vf, (const V2Dd *)vd, n);
     draw_polygon(ctx, op, vf, n);
@@ -275,49 +275,49 @@ void i_pol2d(DCtx *ctx, const drawop_t op, const Pol2D<real64_t> *pol)
 /*---------------------------------------------------------------------------*/
 
 template <>
-void (*Draw<real32_t>::v2d)(DCtx *, const drawop_t, const V2D<real32_t> *, const real32_t) = i_v2d<real32_t>;
+void (*Draw< real32_t >::v2d)(DCtx *, const drawop_t, const V2D< real32_t > *, const real32_t) = i_v2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::v2d)(DCtx *, const drawop_t, const V2D<real64_t> *, const real64_t) = i_v2d<real64_t>;
+void (*Draw< real64_t >::v2d)(DCtx *, const drawop_t, const V2D< real64_t > *, const real64_t) = i_v2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::seg2d)(DCtx *, const Seg2D<real32_t> *) = i_seg2d<real32_t>;
+void (*Draw< real32_t >::seg2d)(DCtx *, const Seg2D< real32_t > *) = i_seg2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::seg2d)(DCtx *, const Seg2D<real64_t> *) = i_seg2d<real64_t>;
+void (*Draw< real64_t >::seg2d)(DCtx *, const Seg2D< real64_t > *) = i_seg2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::r2d)(DCtx *, const drawop_t, const R2D<real32_t> *) = i_r2d<real32_t>;
+void (*Draw< real32_t >::r2d)(DCtx *, const drawop_t, const R2D< real32_t > *) = i_r2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::r2d)(DCtx *, const drawop_t, const R2D<real64_t> *) = i_r2d<real64_t>;
+void (*Draw< real64_t >::r2d)(DCtx *, const drawop_t, const R2D< real64_t > *) = i_r2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::cir2d)(DCtx *, const drawop_t, const Cir2D<real32_t> *) = i_cir2d<real32_t>;
+void (*Draw< real32_t >::cir2d)(DCtx *, const drawop_t, const Cir2D< real32_t > *) = i_cir2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::cir2d)(DCtx *, const drawop_t, const Cir2D<real64_t> *) = i_cir2d<real64_t>;
+void (*Draw< real64_t >::cir2d)(DCtx *, const drawop_t, const Cir2D< real64_t > *) = i_cir2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::box2d)(DCtx *, const drawop_t, const Box2D<real32_t> *) = i_box2d<real32_t>;
+void (*Draw< real32_t >::box2d)(DCtx *, const drawop_t, const Box2D< real32_t > *) = i_box2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::box2d)(DCtx *, const drawop_t, const Box2D<real64_t> *) = i_box2d<real64_t>;
+void (*Draw< real64_t >::box2d)(DCtx *, const drawop_t, const Box2D< real64_t > *) = i_box2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::obb2d)(DCtx *, const drawop_t, const OBB2D<real32_t> *) = i_obb2d<real32_t>;
+void (*Draw< real32_t >::obb2d)(DCtx *, const drawop_t, const OBB2D< real32_t > *) = i_obb2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::obb2d)(DCtx *, const drawop_t, const OBB2D<real64_t> *) = i_obb2d<real64_t>;
+void (*Draw< real64_t >::obb2d)(DCtx *, const drawop_t, const OBB2D< real64_t > *) = i_obb2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::tri2d)(DCtx *, const drawop_t, const Tri2D<real32_t> *) = i_tri2d<real32_t>;
+void (*Draw< real32_t >::tri2d)(DCtx *, const drawop_t, const Tri2D< real32_t > *) = i_tri2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::tri2d)(DCtx *, const drawop_t, const Tri2D<real64_t> *) = i_tri2d<real64_t>;
+void (*Draw< real64_t >::tri2d)(DCtx *, const drawop_t, const Tri2D< real64_t > *) = i_tri2d< real64_t >;
 
 template <>
-void (*Draw<real32_t>::pol2d)(DCtx *, const drawop_t, const Pol2D<real32_t> *) = i_pol2d<real32_t>;
+void (*Draw< real32_t >::pol2d)(DCtx *, const drawop_t, const Pol2D< real32_t > *) = i_pol2d< real32_t >;
 
 template <>
-void (*Draw<real64_t>::pol2d)(DCtx *, const drawop_t, const Pol2D<real64_t> *) = i_pol2d<real64_t>;
+void (*Draw< real64_t >::pol2d)(DCtx *, const drawop_t, const Pol2D< real64_t > *) = i_pol2d< real64_t >;

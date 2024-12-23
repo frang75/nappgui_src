@@ -123,6 +123,15 @@ uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t bfile_dir_tmp(char_t *pathname, const uint32_t size)
+{
+    TCHAR wname[MAX_PATH + 1];
+    GetTempPathW(MAX_PATH + 1, wname);
+    return unicode_convers(cast_const(wname, char_t), pathname, ekUTF16, ekUTF8, size);
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t bfile_dir_create(const char_t *pathname, ferror_t *error)
 {
     WCHAR pathnamew[MAX_PATH + 1];

@@ -18,10 +18,10 @@
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
+template < typename real >
 struct Cell
 {
-    V2D<real> center;
+    V2D< real > center;
     real hsize;
     real dist;
     real maxdist;
@@ -30,11 +30,11 @@ struct Cell
 /*---------------------------------------------------------------------------*/
 
 // Signed distance from point to polygon outline (negative if point is outside)
-template <typename real>
-static real i_poly_point_dist(const V2D<real> *verts, const uint32_t n, const V2D<real> *pt)
+template < typename real >
+static real i_poly_point_dist(const V2D< real > *verts, const uint32_t n, const V2D< real > *pt)
 {
     bool_t inside = FALSE;
-    real min_sqdist = BMath<real>::kINFINITY;
+    real min_sqdist = BMath< real >::kINFINITY;
     uint32_t i = 0, j = n - 1;
 
     cassert_no_null(verts);
@@ -43,9 +43,9 @@ static real i_poly_point_dist(const V2D<real> *verts, const uint32_t n, const V2
 
     for (i = 0; i < n; j = i++)
     {
-        const V2D<real> *a = &verts[i];
-        const V2D<real> *b = &verts[j];
-        Seg2D<real> seg(a, b);
+        const V2D< real > *a = &verts[i];
+        const V2D< real > *b = &verts[j];
+        Seg2D< real > seg(a, b);
         real sqdist = 0;
 
         if ((a->y > pt->y) != (b->y > pt->y))
@@ -60,35 +60,35 @@ static real i_poly_point_dist(const V2D<real> *verts, const uint32_t n, const V2
                 inside = (bool_t)!inside;
         }
 
-        sqdist = Seg2D<real>::point_sqdist(&seg, pt, NULL);
+        sqdist = Seg2D< real >::point_sqdist(&seg, pt, NULL);
 
         if (sqdist < min_sqdist)
             min_sqdist = sqdist;
     }
 
-    return (inside ? 1 : -1) * BMath<real>::sqrt(min_sqdist);
+    return (inside ? 1 : -1) * BMath< real >::sqrt(min_sqdist);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static void i_init_cell(Cell<real> *cell, const V2D<real> center, const real hsize, const V2D<real> *verts, const uint32_t n)
+template < typename real >
+static void i_init_cell(Cell< real > *cell, const V2D< real > center, const real hsize, const V2D< real > *verts, const uint32_t n)
 {
     cassert_no_null(cell);
     cell->center = center;
     cell->hsize = hsize;
-    cell->dist = i_poly_point_dist<real>(verts, n, &cell->center);
-    cell->maxdist = cell->dist + cell->hsize * BMath<real>::kSQRT2;
+    cell->dist = i_poly_point_dist< real >(verts, n, &cell->center);
+    cell->maxdist = cell->dist + cell->hsize * BMath< real >::kSQRT2;
 }
 
 /*---------------------------------------------------------------------------*/
 
 // Get polygon centroid
-template <typename real>
-static void i_centroid_cell(const V2D<real> *verts, const uint32_t n, Cell<real> *cell)
+template < typename real >
+static void i_centroid_cell(const V2D< real > *verts, const uint32_t n, Cell< real > *cell)
 {
     real area = 0;
-    V2D<real> c(0, 0);
+    V2D< real > c(0, 0);
     uint32_t i = 0, j = n - 1;
 
     cassert(n >= 3);
@@ -96,8 +96,8 @@ static void i_centroid_cell(const V2D<real> *verts, const uint32_t n, Cell<real>
 
     for (i = 0; i < n; j = i++)
     {
-        const V2D<real> *a = &verts[i];
-        const V2D<real> *b = &verts[j];
+        const V2D< real > *a = &verts[i];
+        const V2D< real > *b = &verts[j];
         real f = a->x * b->y - b->x * a->y;
         c.x += (a->x + b->x) * f;
         c.y += (a->y + b->y) * f;
@@ -116,13 +116,13 @@ static void i_centroid_cell(const V2D<real> *verts, const uint32_t n, Cell<real>
 
     cell->hsize = 0;
 
-    i_init_cell<real>(cell, c, 0, verts, n);
+    i_init_cell< real >(cell, c, 0, verts, n);
 }
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static int i_cmp_cell(const Cell<real> *c1, const Cell<real> *c2)
+template < typename real >
+static int i_cmp_cell(const Cell< real > *c1, const Cell< real > *c2)
 {
     cassert_no_null(c1);
     cassert_no_null(c2);
@@ -131,20 +131,20 @@ static int i_cmp_cell(const Cell<real> *c1, const Cell<real> *c2)
 
 /*---------------------------------------------------------------------------*/
 
-template <typename real>
-static V2D<real> i_poly_label(const Pol2D<real> *pol, const real norm_tol)
+template < typename real >
+static V2D< real > i_poly_label(const Pol2D< real > *pol, const real norm_tol)
 {
-    Box2D<real> box = Pol2D<real>::box(pol);
-    S2D<real> size(box.max.x - box.min.x, box.max.y - box.min.y);
-    real cell_size = BMath<real>::min(size.width, size.height);
+    Box2D< real > box = Pol2D< real >::box(pol);
+    S2D< real > size(box.max.x - box.min.x, box.max.y - box.min.y);
+    real cell_size = BMath< real >::min(size.width, size.height);
 
     if (cell_size > 0)
     {
-        const V2D<real> *verts = Pol2D<real>::points(pol);
-        uint32_t n = Pol2D<real>::n(pol);
+        const V2D< real > *verts = Pol2D< real >::points(pol);
+        uint32_t n = Pol2D< real >::n(pol);
         real hsize = cell_size / 2;
-        Cell<real> best_cell;
-        ArrSt<Cell<real> > *queue = ArrSt<Cell<real> >::create();
+        Cell< real > best_cell;
+        ArrSt< Cell< real > > *queue = ArrSt< Cell< real > >::create();
         real tol = cell_size * norm_tol;
         uint32_t num_probes = 0;
 
@@ -152,30 +152,30 @@ static V2D<real> i_poly_label(const Pol2D<real> *pol, const real norm_tol)
         for (real x = box.min.x; x < box.max.x; x += cell_size)
             for (real y = box.min.y; y < box.max.y; y += cell_size)
             {
-                Cell<real> *cell = ArrSt<Cell<real> >::nnew(queue);
-                i_init_cell<real>(cell, V2D<real>(x + hsize, y + hsize), hsize, verts, n);
+                Cell< real > *cell = ArrSt< Cell< real > >::nnew(queue);
+                i_init_cell< real >(cell, V2D< real >(x + hsize, y + hsize), hsize, verts, n);
                 num_probes += 1;
             }
 
         // Take centroid as the first best guess
-        i_centroid_cell<real>(verts, n, &best_cell);
+        i_centroid_cell< real >(verts, n, &best_cell);
 
         // Second guess: bounding box centroid
         {
-            Cell<real> box_cell;
-            i_init_cell<real>(&box_cell, Box2D<real>::center(&box), 0, verts, n);
+            Cell< real > box_cell;
+            i_init_cell< real >(&box_cell, Box2D< real >::center(&box), 0, verts, n);
             if (box_cell.dist > best_cell.dist)
                 best_cell = box_cell;
         }
 
-        while (ArrSt<Cell<real> >::size(queue) > 0)
+        while (ArrSt< Cell< real > >::size(queue) > 0)
         {
-            Cell<real> cell;
+            Cell< real > cell;
 
             // Pick the most promising cell from the queue
-            ArrSt<Cell<real> >::sort(queue, i_cmp_cell<real>);
-            cell = *ArrSt<Cell<real> >::last(queue);
-            ArrSt<Cell<real> >::pop(queue, NULL);
+            ArrSt< Cell< real > >::sort(queue, i_cmp_cell< real >);
+            cell = *ArrSt< Cell< real > >::last(queue);
+            ArrSt< Cell< real > >::pop(queue, NULL);
 
             // Update the best cell if we found a better one
             if (cell.dist > best_cell.dist)
@@ -185,18 +185,18 @@ static V2D<real> i_poly_label(const Pol2D<real> *pol, const real norm_tol)
             if (cell.maxdist - best_cell.dist > tol)
             {
                 // Split the cell into four cells
-                Cell<real> *ncell = ArrSt<Cell<real> >::new_n(queue, 4);
+                Cell< real > *ncell = ArrSt< Cell< real > >::new_n(queue, 4);
                 hsize = cell.hsize / 2;
-                i_init_cell<real>(&ncell[0], V2D<real>(cell.center.x - hsize, cell.center.y - hsize), hsize, verts, n);
-                i_init_cell<real>(&ncell[1], V2D<real>(cell.center.x + hsize, cell.center.y - hsize), hsize, verts, n);
-                i_init_cell<real>(&ncell[2], V2D<real>(cell.center.x - hsize, cell.center.y + hsize), hsize, verts, n);
-                i_init_cell<real>(&ncell[3], V2D<real>(cell.center.x + hsize, cell.center.y + hsize), hsize, verts, n);
+                i_init_cell< real >(&ncell[0], V2D< real >(cell.center.x - hsize, cell.center.y - hsize), hsize, verts, n);
+                i_init_cell< real >(&ncell[1], V2D< real >(cell.center.x + hsize, cell.center.y - hsize), hsize, verts, n);
+                i_init_cell< real >(&ncell[2], V2D< real >(cell.center.x - hsize, cell.center.y + hsize), hsize, verts, n);
+                i_init_cell< real >(&ncell[3], V2D< real >(cell.center.x + hsize, cell.center.y + hsize), hsize, verts, n);
                 num_probes += 4;
             }
         }
 
         unref(num_probes);
-        ArrSt<Cell<real> >::destroy(&queue, NULL);
+        ArrSt< Cell< real > >::destroy(&queue, NULL);
         return best_cell.center;
     }
     else
@@ -208,7 +208,7 @@ static V2D<real> i_poly_label(const Pol2D<real> *pol, const real norm_tol)
 /*---------------------------------------------------------------------------*/
 
 template <>
-V2D<real32_t> (*Pol2DI<real32_t>::poly_label)(const Pol2D<real32_t> *, const real32_t) = i_poly_label<real32_t>;
+V2D< real32_t > (*Pol2DI< real32_t >::poly_label)(const Pol2D< real32_t > *, const real32_t) = i_poly_label< real32_t >;
 
 template <>
-V2D<real64_t> (*Pol2DI<real64_t>::poly_label)(const Pol2D<real64_t> *, const real64_t) = i_poly_label<real64_t>;
+V2D< real64_t > (*Pol2DI< real64_t >::poly_label)(const Pol2D< real64_t > *, const real64_t) = i_poly_label< real64_t >;

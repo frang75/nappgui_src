@@ -23,6 +23,12 @@
     * Added `buffer_read()`.
     * Added `buffer_write()`.
     * Added `JsonOpts` new field `ArrPt(String) *log`.
+- `bfile_dir_tmp()`. [Doc](). [Commit]().
+- `hfile_tmp_path()`. [Doc](). [Commit]().
+- `b64_encode_from_stm`. [Doc](). [Commit]().
+- `b64_encode_from_file`. [Doc](). [Commit]().
+- `b64_decode_from_str`. [Doc](). [Commit]().
+- `b64_decode_from_data`. [Doc](). [Commit]().
 
 ### Changed
 
@@ -42,7 +48,7 @@
 
 ### Build system
 
-- Avoid NAppGUI library paths used as global headers search path. [Issue](https://github.com/frang75/nappgui_src/issues/153). [Commit]().
+- Avoid NAppGUI library paths used as global headers search path. [Issue](https://github.com/frang75/nappgui_src/issues/153). [Commit](https://github.com/frang75/nappgui_src/commit/07b481226c16974707b83ecad6ac5554af5b2f34).
 
 ## v1.4.3 - Oct 12, 2024 (r5533)
 

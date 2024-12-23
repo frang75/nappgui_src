@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: cir2d.hpp
+ * https://nappgui.com/en/geom2d/cir2d.html
  *
  */
 
@@ -15,7 +16,7 @@
 
 #include "box2d.hpp"
 
-template <typename real>
+template < typename real >
 struct Cir2D
 {
     _geom2d_api Cir2D()
@@ -28,19 +29,19 @@ struct Cir2D
         c.x = _x, c.y = _y, r = _r;
     }
 
-    _geom2d_api static Cir2D<real> (*from_box)(const Box2D<real> *box);
+    _geom2d_api static Cir2D< real > (*from_box)(const Box2D< real > *box);
 
-    _geom2d_api static Cir2D<real> (*from_points)(const V2D<real> *p, const uint32_t n);
+    _geom2d_api static Cir2D< real > (*from_points)(const V2D< real > *p, const uint32_t n);
 
-    _geom2d_api static Cir2D<real> (*minimum)(const V2D<real> *p, const uint32_t n);
+    _geom2d_api static Cir2D< real > (*minimum)(const V2D< real > *p, const uint32_t n);
 
-    _geom2d_api static real (*area)(const Cir2D<real> *cir);
+    _geom2d_api static real (*area)(const Cir2D< real > *cir);
 
-    _geom2d_api static bool_t (*is_null)(const Cir2D<real> *cir);
+    _geom2d_api static bool_t (*is_null)(const Cir2D< real > *cir);
 
-    _geom2d_api static const Cir2D<real> *kNULL;
+    _geom2d_api static const Cir2D< real > *kNULL;
 
-    V2D<real> c;
+    V2D< real > c;
     real r;
 };
 

@@ -182,7 +182,7 @@ static void i_replace_seltext(OSXTextView *lview, NSRange range, const char_t *t
 /*---------------------------------------------------------------------------*/
 
 #if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
-@interface OSXTextViewDelegate : NSObject <NSTextViewDelegate>
+@interface OSXTextViewDelegate : NSObject < NSTextViewDelegate >
 #else
 @interface OSXTextViewDelegate : NSObject
 #endif

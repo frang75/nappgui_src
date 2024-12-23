@@ -11,6 +11,11 @@
 /* Base64 encoding */
 
 #include "base64.h"
+#include <core/buffer.h>
+#include <core/heap.h>
+#include <core/hfile.h>
+#include <core/stream.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 
 static char_t i_B64_CHR[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -145,4 +150,56 @@ uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data)
     }
 
     return k;
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *b64_encode_from_stm(Stream *stm)
+{
+    const byte_t *data = stm_buffer(stm);
+    uint32_t size = stm_buffer_size(stm);
+    uint32_t b64size = b64_encoded_size(size);
+    String *str = str_reserve(b64size);
+    char_t *b64data = tcc(str);
+    uint32_t n = b64_encode(data, size, b64data, b64size);
+    b64data[n] = '\0';
+    return str;
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *b64_encode_from_file(const char_t *pathname, ferror_t *error)
+{
+    Stream *stm = hfile_stream(pathname, error);
+    String *str = NULL;
+    if (stm != NULL)
+    {
+        str = b64_encode_from_stm(stm);
+        stm_close(&stm);
+    }
+
+    if (str == NULL)
+        str = str_c("");
+
+    return str;
+}
+
+/*---------------------------------------------------------------------------*/
+
+Buffer *b64_decode_from_str(const char_t *base64)
+{
+    uint32_t len = str_len_c(base64);
+    return b64_decode_from_data(cast_const(base64, byte_t), len);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Buffer *b64_decode_from_data(const byte_t *data, const uint32_t size)
+{
+    uint32_t dsize = b64_decoded_size(size);
+    byte_t *binary = heap_malloc(dsize, "b64_decode");
+    uint32_t binsize = b64_decode(cast_const(data, char_t), size, binary);
+    Buffer *buffer = buffer_with_data(binary, binsize);
+    heap_free(&binary, dsize, "b64_decode");
+    return buffer;
 }

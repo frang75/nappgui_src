@@ -20,3 +20,11 @@ uint32_t b64_decoded_size(const uint32_t encoded_size);
 uint32_t b64_encode(const byte_t *data, const uint32_t size, char_t *base64, const uint32_t esize);
 
 uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data);
+
+String *b64_encode_from_stm(Stream *stm);
+
+String *b64_encode_from_file(const char_t *pathname, ferror_t *error);
+
+Buffer *b64_decode_from_str(const char_t *base64);
+
+Buffer *b64_decode_from_data(const byte_t *data, const uint32_t size);

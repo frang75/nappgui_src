@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: s2d.hpp
+ * https://nappgui.com/en/geom2d/s2d.html
  *
  */
 
@@ -13,7 +14,7 @@
 #ifndef __S2D_HPP__
 #define __S2D_HPP__
 
-template <typename real>
+template < typename real >
 struct S2D
 {
     _geom2d_api S2D()
@@ -26,7 +27,7 @@ struct S2D
         width = _width, height = _height;
     }
 
-    _geom2d_api static const S2D<real> *kZERO;
+    _geom2d_api static const S2D< real > *kZERO;
 
     real width;
     real height;

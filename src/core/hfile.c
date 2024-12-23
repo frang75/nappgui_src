@@ -778,3 +778,12 @@ String *hfile_home_dir(const char_t *path)
     bfile_dir_home(homedir, 512);
     return str_cpath("%s/%s", homedir, path);
 }
+
+/*---------------------------------------------------------------------------*/
+
+String *hfile_tmp_path(const char_t *path)
+{
+    char_t tmpdir[512];
+    bfile_dir_tmp(tmpdir, 512);
+    return str_cpath("%s/%s", tmpdir, path);
+}
