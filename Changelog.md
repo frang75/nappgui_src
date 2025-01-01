@@ -29,7 +29,7 @@
 - `b64_encode_from_file`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
 - `b64_decode_from_str`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
 - `b64_decode_from_data`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
-- `b64_encode_from_data`. [Commit]().
+- `b64_encode_from_data`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
 
 ### Changed
 
@@ -41,7 +41,7 @@
 - Issue in `bmath_prec()`. [Commit](https://github.com/frang75/nappgui_src/commit/062d2a69ea187c2c983b0db02f022a7552295a19).
 - Vulnerability in `str_upd()`. [Commit](https://github.com/frang75/nappgui_src/commit/50887ca89b6a844f6b683ca1d2937f3a03cfb004).
 - Issue in `dlib_open()` in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/164). [Commit](https://github.com/frang75/nappgui_src/commit/393f098c8153dba0282546cb48b47b4dbe4fc217).
-- Issue in `heap_realloc_n()` macro parenthesis. [Issue](https://github.com/frang75/nappgui_src/issues/166). [Commit]().
+- Issue in `heap_realloc_n()` macro parenthesis. [Issue](https://github.com/frang75/nappgui_src/issues/166). [Commit](https://github.com/frang75/nappgui_src/commit/7653f529f15d8e748d47ef3772ac349ddd6f4231).
 
 ### Improved
 
