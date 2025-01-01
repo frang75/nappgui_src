@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2024 Francisco Garcia Collado
+ * 2015-2025 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -154,16 +154,23 @@ uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data)
 
 /*---------------------------------------------------------------------------*/
 
-String *b64_encode_from_stm(Stream *stm)
+static String *i_encode_from_data(const byte_t *data, const uint32_t size)
 {
-    const byte_t *data = stm_buffer(stm);
-    uint32_t size = stm_buffer_size(stm);
     uint32_t b64size = b64_encoded_size(size);
     String *str = str_reserve(b64size);
     char_t *b64data = tcc(str);
     uint32_t n = b64_encode(data, size, b64data, b64size);
     b64data[n] = '\0';
     return str;
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *b64_encode_from_stm(Stream *stm)
+{
+    const byte_t *data = stm_buffer(stm);
+    uint32_t size = stm_buffer_size(stm);
+    return i_encode_from_data(data, size);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -186,10 +193,27 @@ String *b64_encode_from_file(const char_t *pathname, ferror_t *error)
 
 /*---------------------------------------------------------------------------*/
 
-Buffer *b64_decode_from_str(const char_t *base64)
+String *b64_encode_from_data(const byte_t *data, const uint32_t size)
 {
-    uint32_t len = str_len_c(base64);
-    return b64_decode_from_data(cast_const(base64, byte_t), len);
+    return i_encode_from_data(data, size);
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *b64_encode_from_str(const String *str)
+{
+    const byte_t *data = cast_const(tc(str), byte_t);
+    uint32_t size = str_len(str);
+    return i_encode_from_data(data, size);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Buffer *b64_decode_from_str(const String *base64)
+{
+    const byte_t *data = cast_const(tc(base64), byte_t);
+    uint32_t len = str_len(base64);
+    return b64_decode_from_data(data, len);
 }
 
 /*---------------------------------------------------------------------------*/

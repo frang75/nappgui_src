@@ -23,12 +23,13 @@
     * Added `buffer_read()`.
     * Added `buffer_write()`.
     * Added `JsonOpts` new field `ArrPt(String) *log`.
-- `bfile_dir_tmp()`. [Doc](). [Commit]().
-- `hfile_tmp_path()`. [Doc](). [Commit]().
-- `b64_encode_from_stm`. [Doc](). [Commit]().
-- `b64_encode_from_file`. [Doc](). [Commit]().
-- `b64_decode_from_str`. [Doc](). [Commit]().
-- `b64_decode_from_data`. [Doc](). [Commit]().
+- `bfile_dir_tmp()`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
+- `hfile_tmp_path()`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
+- `b64_encode_from_stm`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
+- `b64_encode_from_file`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
+- `b64_decode_from_str`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
+- `b64_decode_from_data`. [Commit](https://github.com/frang75/nappgui_src/commit/f7b5470cbcabeb7bceb27268f718ccd118a7b9c0).
+- `b64_encode_from_data`. [Commit]().
 
 ### Changed
 

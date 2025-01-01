@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2024 Francisco Garcia Collado
+ * 2015-2025 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -68,7 +68,6 @@ typedef enum i_type_t
 typedef struct i_file_t i_File;
 typedef struct i_socket_t i_Socket;
 typedef struct i_buffer_t i_Buffer;
-
 struct i_buffer_t
 {
     byte_t *data;

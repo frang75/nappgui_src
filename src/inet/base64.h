@@ -1,6 +1,6 @@
 /*
  * NAppGUI Cross-platform C SDK
- * 2015-2024 Francisco Garcia Collado
+ * 2015-2025 Francisco Garcia Collado
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
@@ -25,6 +25,10 @@ String *b64_encode_from_stm(Stream *stm);
 
 String *b64_encode_from_file(const char_t *pathname, ferror_t *error);
 
-Buffer *b64_decode_from_str(const char_t *base64);
+String *b64_encode_from_data(const byte_t *data, const uint32_t size);
+
+String *b64_encode_from_str(const String *str);
+
+Buffer *b64_decode_from_str(const String *base64);
 
 Buffer *b64_decode_from_data(const byte_t *data, const uint32_t size);
