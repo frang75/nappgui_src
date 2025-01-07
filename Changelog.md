@@ -1,6 +1,8 @@
 # NAppGUI Changelog
 
-## v1.5.0 - WIP
+## v1.5.1 - WIP
+
+## v1.5.0 - Jan 1, 2025 (r5810)
 
 ### Added
 

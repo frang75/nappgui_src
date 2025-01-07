@@ -1041,6 +1041,8 @@ function(nap_target targetName targetType dependList nrcMode)
     # Target global include directories
     if (NOT NAPPGUI_IS_PACKAGE)
         target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/src>)
+    else()
+        target_include_directories(${targetName} PRIVATE $<BUILD_INTERFACE:${NAPPGUI_INCLUDE_PATH}>)
     endif()
 
     target_include_directories(${targetName} PRIVATE $<INSTALL_INTERFACE:inc>)
