@@ -368,7 +368,7 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         break;
     case ekGUI_CURSOR_USER:
     {
-        NSImage *nsimage = (NSImage *)image_native(image);
+        NSImage *nsimage = cast(image_native(image), NSImage);
         nscursor = [[NSCursor alloc] initWithImage:nsimage hotSpot:NSMakePoint((CGFloat)hot_x, (CGFloat)hot_y)];
         break;
     }

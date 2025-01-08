@@ -164,7 +164,7 @@ void _oscontrol_cell_set_image(NSCell *cell, const Image *image)
 {
     cassert_no_null(cell);
     if (image != NULL)
-        [cell setImage:(NSImage *)image_native(image)];
+        [cell setImage:cast(image_native(image), NSImage)];
     else
         [cell setImage:nil];
 }

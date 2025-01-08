@@ -2,6 +2,10 @@
 
 ## v1.5.1 - WIP
 
+### Fixed
+
+- `popup_clear()` issue in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/123). [Commit]().
+
 ## v1.5.0 - Jan 1, 2025 (r5810)
 
 ### Added

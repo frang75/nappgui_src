@@ -4,9 +4,23 @@
 #include "res_guihello.h"
 #include <gui/guiall.h>
 
+typedef struct _popupdata_t PopUpData;
+
+struct _popupdata_t
+{
+    PopUp *popup;
+};
+
 /*---------------------------------------------------------------------------*/
 
-static void i_popups(Layout *layout)
+static void i_destroy_data(PopUpData **data)
+{
+    heap_delete(data, PopUpData);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_popups(Layout *layout, PopUpData *data)
 {
     Label *label1 = label_create();
     Label *label2 = label_create();
@@ -33,6 +47,7 @@ static void i_popups(Layout *layout)
     layout_label(layout, label2, 0, 1);
     layout_popup(layout, popup1, 1, 0);
     layout_popup(layout, popup2, 1, 1);
+    data->popup = popup1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -60,19 +75,49 @@ static void i_combos(Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnAdd(PopUpData *data, Event *e)
+{
+    cassert_no_null(data);
+    unref(e);
+    popup_add_elem(data->popup, "Español", gui_image(SPAIN_PNG));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnClear(PopUpData *data, Event *e)
+{
+    cassert_no_null(data);
+    unref(e);
+    popup_clear(data->popup);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Panel *popup_combo(void)
 {
+    PopUpData *data = heap_new0(PopUpData);
     Panel *panel = panel_create();
-    Layout *layout = layout_create(4, 2);
-    i_popups(layout);
+    Layout *layout = layout_create(4, 4);
+    Button *button1 = button_push();
+    Button *button2 = button_push();
+    i_popups(layout, data);
     i_combos(layout);
-    layout_margin(layout, 10.f);
-    layout_vmargin(layout, 0, 10.f);
-    layout_hmargin(layout, 0, 5.f);
-    layout_hmargin(layout, 1, 10.f);
-    layout_hmargin(layout, 2, 5.f);
-    layout_hsize(layout, 1, 150.f);
-    layout_hsize(layout, 3, 150.f);
+    button_text(button1, "Add elem to PopUp");
+    button_text(button2, "Clear PopUp");
+    button_OnClick(button1, listener(data, i_OnAdd, PopUpData));
+    button_OnClick(button2, listener(data, i_OnClear, PopUpData));
+    layout_button(layout, button1, 1, 2);
+    layout_button(layout, button2, 1, 3);
+    layout_margin(layout, 10);
+    layout_vmargin(layout, 0, 10);
+    layout_vmargin(layout, 1, 10);
+    layout_vmargin(layout, 2, 5);
+    layout_hmargin(layout, 0, 5);
+    layout_hmargin(layout, 1, 10);
+    layout_hmargin(layout, 2, 5);
+    layout_hsize(layout, 1, 150);
+    layout_hsize(layout, 3, 150);
     panel_layout(panel, layout);
+    panel_data(panel, &data, i_destroy_data, PopUpData);
     return panel;
 }

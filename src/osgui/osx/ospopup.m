@@ -117,11 +117,15 @@ static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
 {
     OSXPopUp *lpopup = cast(popup, OSXPopUp);
     NSString *str = nil;
+    NSMenuItem *item = nil;
     cassert_no_null(lpopup);
     cassert_no_null(text);
     str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
-    [lpopup addItemWithTitle:str];
+    item = [[NSMenuItem alloc] initWithTitle:str action:nil keyEquivalent:@""];
+    [item setTarget:lpopup];
+    [[lpopup menu] addItem:item];
     [str release];
+    [item release];
 
     if (image != NULL)
     {
@@ -169,12 +173,16 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const 
 #if defined(__ASSERTS__)
         if (image != NULL)
         {
-            NSSize size = [(NSImage *)image_native(image) size];
+            NSSize size = [cast(image_native(image), NSImage) size];
             cassert(size.width == 16.f && size.height == 16.f);
         }
 #endif
 
         [item setImage:image != NULL ? cast(image_native(image), NSImage) : nil];
+    }
+    else if (op == ekCTRL_OP_DEL)
+    {
+        [cast(popup, OSXPopUp) removeItemAtIndex:(NSInteger)idx];
     }
     else
     {

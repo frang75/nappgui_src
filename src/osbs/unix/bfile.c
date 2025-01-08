@@ -108,7 +108,7 @@ bool_t bfile_dir_set_work(const char_t *pathname, ferror_t *error)
 uint32_t bfile_dir_tmp(char_t *pathname, const uint32_t size)
 {
     const char_t *temp = "/tmp";
-    uint32_t s = strlen(temp);
+    uint32_t s = (uint32_t)strlen(temp);
     if (s > size)
         s = size;
     strncpy(pathname, temp, s);
