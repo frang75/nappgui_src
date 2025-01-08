@@ -148,8 +148,8 @@ static Layout *i_left(Ctrl *ctrl)
 static void i_slider_K(Layout *layout, const char_t *title, const uint32_t row)
 {
     Label *label = label_create();
-    Slider* slider = slider_create();
-    Edit* edit = edit_create();
+    Slider *slider = slider_create();
+    Edit *edit = edit_create();
     label_text(label, title);
     edit_align(edit, ekRIGHT);
     layout_label(layout, label, 0, row);
@@ -183,12 +183,12 @@ static Layout *i_sliders(Ctrl *ctrl)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout* i_right(Ctrl *ctrl)
+static Layout *i_right(Ctrl *ctrl)
 {
     Layout *layout = layout_create(1, 3);
-    Layout* layout1 = i_sliders(ctrl);
-    View* view1 = view_create();
-    View* view2 = view_create();
+    Layout *layout1 = i_sliders(ctrl);
+    View *view1 = view_create();
+    View *view2 = view_create();
     layout_view(layout, view1, 0, 0);
     layout_view(layout, view2, 0, 1);
     layout_layout(layout, layout1, 0, 2);
@@ -207,7 +207,7 @@ static Panel *i_panel(Ctrl *ctrl)
     Panel *panel = panel_create();
     Layout *layout = layout_create(2, 1);
     Layout *layout1 = i_left(ctrl);
-    Layout* layout2 = i_right(ctrl);
+    Layout *layout2 = i_right(ctrl);
     layout_layout(layout, layout1, 0, 0);
     layout_layout(layout, layout2, 1, 0);
     layout_hmargin(layout, 0, 5);
@@ -225,7 +225,7 @@ static Panel *i_panel(Ctrl *ctrl)
 
 /*---------------------------------------------------------------------------*/
 
-Window* bdview_create(Ctrl *ctrl)
+Window *bdview_create(Ctrl *ctrl)
 {
     Panel *panel = i_panel(ctrl);
     Window *window = window_create(ekWINDOW_STDRES);

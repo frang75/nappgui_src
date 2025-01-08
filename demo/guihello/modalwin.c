@@ -25,7 +25,7 @@ static Layout *i_modal_layout(ModalData *data);
 
 /*---------------------------------------------------------------------------*/
 
-static ModalData* i_modal_data(Window* parent)
+static ModalData *i_modal_data(Window *parent)
 {
     ModalData *data = heap_new0(ModalData);
     data->parent = parent;
@@ -35,14 +35,14 @@ static ModalData* i_modal_data(Window* parent)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_destroy_modal_data(ModalData** data)
+static void i_destroy_modal_data(ModalData **data)
 {
     heap_delete(data, ModalData);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnCloseModal(Window* window, Event* e)
+static void i_OnCloseModal(Window *window, Event *e)
 {
     Button *button = event_sender(e, Button);
     window_stop_modal(window, button_get_tag(button));
@@ -50,7 +50,7 @@ static void i_OnCloseModal(Window* window, Event* e)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout* i_close_layout(Window *window)
+static Layout *i_close_layout(Window *window)
 {
     Layout *layout = layout_create(1, 4);
     Button *button1 = button_push();
@@ -84,7 +84,8 @@ static Layout* i_close_layout(Window *window)
 static uint32_t i_window_flags(const uint32_t type)
 {
     uint32_t flags = ekWINDOW_TITLE | ekWINDOW_CLOSE;
-    switch(type) {
+    switch (type)
+    {
     case 0:
         return flags;
     case 1:
@@ -93,7 +94,7 @@ static uint32_t i_window_flags(const uint32_t type)
         return flags | ekWINDOW_ESC;
     case 3:
         return flags | ekWINDOW_RETURN | ekWINDOW_ESC;
-    cassert_default();
+        cassert_default();
     }
 
     return 0;
@@ -103,7 +104,8 @@ static uint32_t i_window_flags(const uint32_t type)
 
 static const char_t *i_window_title(const uint32_t type)
 {
-    switch(type) {
+    switch (type)
+    {
     case 0:
         return i_MODAL0;
     case 1:
@@ -112,7 +114,7 @@ static const char_t *i_window_title(const uint32_t type)
         return i_MODAL2;
     case 3:
         return i_MODAL3;
-    cassert_default();
+        cassert_default();
     }
 
     return 0;
@@ -159,7 +161,7 @@ static void i_modal_window(ModalData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnClickModal(ModalData* data, Event* e)
+static void i_OnClickModal(ModalData *data, Event *e)
 {
     Button *button = event_sender(e, Button);
     data->type = button_get_tag(button);

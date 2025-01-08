@@ -296,9 +296,9 @@ static bool_t i_xy_from_canvas(const Graph *graph, const R2Df *rect, const real3
         /* v2d[index-1].x < p->x < v2d[index].x */
         else if (index < graph->n - 1)
         {
-            real32_t x0 = graph->points[index-1].x;
+            real32_t x0 = graph->points[index - 1].x;
             real32_t x1 = graph->points[index].x;
-            real32_t y0 = graph->points[index-1].y;
+            real32_t y0 = graph->points[index - 1].y;
             real32_t y1 = graph->points[index].y;
             p->y = y0 + (p->x - x0) * ((y1 - y0) / (x1 - x0));
             return TRUE;
@@ -996,4 +996,3 @@ void plot_draw_graph2(Plot *plot, DCtx *ctx, const real32_t width, const real32_
 }
 
 /*---------------------------------------------------------------------------*/
-

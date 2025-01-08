@@ -2,4 +2,4 @@
 
 #include "bode.hxx"
 
-Window* bdview_create(Ctrl *ctrl);
+Window *bdview_create(Ctrl *ctrl);

@@ -3,4 +3,3 @@
 #include <gui/gui.hxx>
 
 Panel *popup_combo(void);
-

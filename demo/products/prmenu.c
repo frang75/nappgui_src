@@ -7,7 +7,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#if defined (__APPLE__)
+#if defined(__APPLE__)
 static Menu *i_app(Ctrl *ctrl)
 {
     Menu *menu = menu_create();
@@ -47,7 +47,7 @@ static Menu *i_file(Ctrl *ctrl)
         MenuItem *item2 = menuitem_separator();
         MenuItem *item3 = menuitem_create();
         menuitem_text(item3, TMEN_EXIT);
-        menuitem_image(item3, (const Image*)EXIT_PNG);
+        menuitem_image(item3, cast_const(EXIT_PNG, Image));
         menu_item(menu, item2);
         menu_item(menu, item3);
         ctrl_exit_item(ctrl, item3);
@@ -95,7 +95,7 @@ static Menu *i_view(Ctrl *ctrl)
     MenuItem *item0 = menuitem_create();
     unref(ctrl);
     menuitem_text(item0, TMEN_LOGIN_PANEL);
-    menuitem_image(item0, (const Image*)SETTINGS16_PNG);
+    menuitem_image(item0, cast_const(SETTINGS16_PNG, Image));
     menu_item(menu, item0);
     ctrl_setting_item(ctrl, item0);
     return menu;
@@ -136,13 +136,13 @@ static Menu *i_language(Ctrl *ctrl)
     menuitem_text(item4, VIETNAMESE);
     menuitem_text(item5, RUSSIAN);
     menuitem_text(item6, JAPANESE);
-    menuitem_image(item0, (const Image*)USA_PNG);
-    menuitem_image(item1, (const Image*)SPAIN_PNG);
-    menuitem_image(item2, (const Image*)PORTUGAL_PNG);
-    menuitem_image(item3, (const Image*)ITALY_PNG);
-    menuitem_image(item4, (const Image*)VIETNAM_PNG);
-    menuitem_image(item5, (const Image*)RUSSIA_PNG);
-    menuitem_image(item6, (const Image*)JAPAN_PNG);
+    menuitem_image(item0, cast_const(USA_PNG, Image));
+    menuitem_image(item1, cast_const(SPAIN_PNG, Image));
+    menuitem_image(item2, cast_const(PORTUGAL_PNG, Image));
+    menuitem_image(item3, cast_const(ITALY_PNG, Image));
+    menuitem_image(item4, cast_const(VIETNAM_PNG, Image));
+    menuitem_image(item5, cast_const(RUSSIA_PNG, Image));
+    menuitem_image(item6, cast_const(JAPAN_PNG, Image));
     menu_item(menu, item0);
     menu_item(menu, item1);
     menu_item(menu, item2);
@@ -156,13 +156,13 @@ static Menu *i_language(Ctrl *ctrl)
 
 /*---------------------------------------------------------------------------*/
 
-#if !defined (__APPLE__)
+#if !defined(__APPLE__)
 static Menu *i_help(Ctrl *ctrl)
 {
     Menu *menu = menu_create();
     MenuItem *item0 = menuitem_create();
     menuitem_text(item0, TMEN_ABOUT);
-    menuitem_image(item0, (const Image*)ABOUT_PNG);
+    menuitem_image(item0, cast_const(ABOUT_PNG, Image));
     menu_item(menu, item0);
     ctrl_about_item(ctrl, item0);
     return menu;
@@ -185,7 +185,7 @@ Menu *prmenu_create(Ctrl *ctrl)
     Menu *submenu4 = i_server(ctrl);
     Menu *submenu5 = i_language(ctrl);
 
- #if defined (__APPLE__)
+#if defined(__APPLE__)
     {
         MenuItem *item0 = menuitem_create();
         Menu *submenu0 = i_app(ctrl);
@@ -211,7 +211,7 @@ Menu *prmenu_create(Ctrl *ctrl)
     menu_item(menu, item4);
     menu_item(menu, item5);
 
- #if !defined (__APPLE__)
+#if !defined(__APPLE__)
     {
         MenuItem *item6 = menuitem_create();
         Menu *submenu6 = i_help(ctrl);

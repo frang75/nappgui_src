@@ -20,7 +20,7 @@ struct _ctrl_t
 
 /*---------------------------------------------------------------------------*/
 
-Ctrl* ctrl_create(Model *model, Plot *plot)
+Ctrl *ctrl_create(Model *model, Plot *plot)
 {
     Ctrl *ctrl = heap_new0(Ctrl);
     ctrl->model = model;
@@ -45,7 +45,7 @@ static void i_snap(Ctrl *ctrl, const bool_t snap)
 
 /*---------------------------------------------------------------------------*/
 
-void ctrl_layout(Ctrl* ctrl, Layout* layout)
+void ctrl_layout(Ctrl *ctrl, Layout *layout)
 {
     ctrl->layout = layout;
 }
@@ -174,7 +174,7 @@ static void i_OnMove2(Ctrl *ctrl, Event *e)
 
 static void i_OnDraw1(Ctrl *ctrl, Event *e)
 {
-	const EvDraw *p = event_params(e, EvDraw);
+    const EvDraw *p = event_params(e, EvDraw);
     plot_draw_graph1(ctrl->plot, p->ctx, p->width, p->height);
 }
 
@@ -182,7 +182,7 @@ static void i_OnDraw1(Ctrl *ctrl, Event *e)
 
 static void i_OnDraw2(Ctrl *ctrl, Event *e)
 {
-	const EvDraw* p = event_params(e, EvDraw);
+    const EvDraw *p = event_params(e, EvDraw);
     plot_draw_graph2(ctrl->plot, p->ctx, p->width, p->height);
 }
 
@@ -238,11 +238,11 @@ void ctrl_run(Ctrl *ctrl)
 
 void ctrl_OnModelChange(Ctrl *ctrl, Event *e)
 {
-	bool_t *ok = event_result(e, bool_t);
+    bool_t *ok = event_result(e, bool_t);
     cassert(evbind_object(e, Model) == ctrl->model);
-	*ok = model_validate(ctrl->model);
-	if (*ok == TRUE)
-	{
+    *ok = model_validate(ctrl->model);
+    if (*ok == TRUE)
+    {
         i_update_bode(ctrl, ctrl->model->cparams.T);
         view_update(ctrl->view1);
         view_update(ctrl->view2);

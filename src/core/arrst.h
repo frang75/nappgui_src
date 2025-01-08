@@ -77,6 +77,9 @@
 #define arrst_insert_n(array, pos, n, type) \
     arrst_##type##_insert(array, pos, n)
 
+#define arrst_insert_n0(array, pos, n, type) \
+    arrst_##type##_insert0(array, pos, n)
+
 #define arrst_append(array, value, type) \
     (*arrst_##type##_insert(array, UINT32_MAX, 1)) = (value)
 

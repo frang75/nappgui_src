@@ -117,7 +117,7 @@ static Panel *i_panel(App *app)
     slider_OnMoved(slider1, listener(app, i_OnPadding, App));
     slider_OnMoved(slider2, listener(app, i_OnCorner, App));
     slider_OnMoved(slider3, listener(app, i_OnRadius, App));
-    imageview_image(img, (const Image *)CARDS_PNG);
+    imageview_image(img, cast_const(CARDS_PNG, Image));
     layout_view(layout, view, 0, 0);
     layout_label(layout1, label1, 0, 0);
     layout_label(layout1, label2, 0, 1);

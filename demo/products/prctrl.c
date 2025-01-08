@@ -87,9 +87,9 @@ Ctrl *ctrl_create(Model *model)
     ctrl->model = model;
     ctrl->status = ekWAIT_LOGIN;
     ctrl->selected = 0;
-    dbind(User, String*, name);
-    dbind(User, String*, mail);
-    dbind(User, Image*, image64);
+    dbind(User, String *, name);
+    dbind(User, String *, mail);
+    dbind(User, Image *, image64);
     dbind(UJson, int32_t, code);
     dbind(UJson, User, data);
     return ctrl;
@@ -172,20 +172,22 @@ static void i_status(Ctrl *ctrl)
     ImageView *view = layout_get_imageview(ctrl->status_layout, 0, 0);
     Label *label = layout_get_label(ctrl->status_layout, 1, 0);
 
-    switch (ctrl->status) {
+    switch (ctrl->status)
+    {
     case ekWAIT_LOGIN:
-        imageview_image(view, (const Image*)LOGIN16_PNG);
+        imageview_image(view, cast_const(LOGIN16_PNG, Image));
         label_text(label, WAIT_LOGIN);
         break;
 
     case ekIN_LOGIN:
-        imageview_image(view, (const Image*)SPIN_GIF);
+        imageview_image(view, cast_const(SPIN_GIF, Image));
         label_text(label, IN_LOGIN);
         break;
 
     case ekERR_LOGIN:
-        imageview_image(view, (const Image*)ERROR_PNG);
-        switch (ctrl->err) {
+        imageview_image(view, cast_const(ERROR_PNG, Image));
+        switch (ctrl->err)
+        {
         case ekWS_CONNECT:
             label_text(label, ERR_CONNECT);
             break;
@@ -196,16 +198,16 @@ static void i_status(Ctrl *ctrl)
             label_text(label, ERR_ACCESS);
             break;
         case ekWS_OK:
-        cassert_default();
+            cassert_default();
         }
         break;
 
     case ekOK_LOGIN:
-        imageview_image(view, (const Image*)OK_PNG);
+        imageview_image(view, cast_const(OK_PNG, Image));
         label_text(label, OK_LOGIN);
         break;
 
-    cassert_default();
+        cassert_default();
     }
 }
 
@@ -249,7 +251,7 @@ static void i_OnFirst(Ctrl *ctrl, Event *e)
 
 static void i_OnImport(Ctrl *ctrl, Event *e)
 {
-    const char_t *type[] = { "dbp" };
+    const char_t *type[] = {"dbp"};
     const char_t *file = comwin_open_file(ctrl->window, type, 1, NULL);
     if (file != NULL)
     {
@@ -272,7 +274,7 @@ void ctrl_import_item(Ctrl *ctrl, MenuItem *item)
 
 static void i_OnExport(Ctrl *ctrl, Event *e)
 {
-    const char_t *type[] = { "dbp" };
+    const char_t *type[] = {"dbp"};
     const char_t *file = comwin_save_file(ctrl->window, type, 1, NULL);
     if (file != NULL)
     {
@@ -306,7 +308,7 @@ static void i_OnImgDraw(Ctrl *ctrl, Event *e)
 
 static void i_OnImgClick(Ctrl *ctrl, Event *e)
 {
-    const char_t *type[] = { "png", "jpg" };
+    const char_t *type[] = {"png", "jpg"};
     const char_t *file = comwin_open_file(ctrl->window, type, 2, NULL);
     if (file != NULL)
     {
@@ -847,7 +849,7 @@ static void i_OnStats(Ctrl *ctrl, Event *e)
     c[0] = kHOLDER;
     c[1] = gui_view_color();
 
-    draw_fill_linear(params->ctx, c,stop, 2, 0, p, 0, params->height - p + 1);
+    draw_fill_linear(params->ctx, c, stop, 2, 0, p, 0, params->height - p + 1);
 
     for (i = 0; i < n; ++i)
     {
@@ -886,7 +888,7 @@ static void i_OnLang(Ctrl *ctrl, Event *e)
 {
     MenuItem *item = NULL;
     uint32_t lang_id = 0;
-    static const char_t *LANGS[] = { "en_US", "es_ES", "pt_PT", "it_IT", "vi_VN", "ru_RU", "ja_JP" };
+    static const char_t *LANGS[] = {"en_US", "es_ES", "pt_PT", "it_IT", "vi_VN", "ru_RU", "ja_JP"};
     if (event_type(e) == ekGUI_EVENT_POPUP)
     {
         const EvButton *params = event_params(e, EvButton);
@@ -975,21 +977,21 @@ void ctrl_window(Ctrl *ctrl, Window *window)
 void ctrl_theme_images(Ctrl *ctrl)
 {
     bool_t dark = gui_dark_mode();
-    button_image(cell_button(ctrl->first_cell), (const Image*)(dark ? FIRSTD_PNG : FIRST_PNG));
-    button_image(cell_button(ctrl->back_cell), (const Image*)(dark ? BACKD_PNG : BACK_PNG));
-    button_image(cell_button(ctrl->next_cell), (const Image*)(dark ? NEXTD_PNG : NEXT_PNG));
-    button_image(cell_button(ctrl->last_cell), (const Image*)(dark ? LASTD_PNG : LAST_PNG));
-    button_image(cell_button(ctrl->add_cell), (const Image*)ADD_PNG);
-    button_image(cell_button(ctrl->minus_cell), (const Image*)MINUS_PNG);
-    button_image(cell_button(ctrl->setting_cell), (const Image*)SETTINGS_PNG);
-    button_image(cell_button(ctrl->login_cell), (const Image*)LOGIN16_PNG);
-    button_image(cell_button(ctrl->logout_cell), (const Image*)(dark ? LOGOUT16D_PNG : LOGOUT16_PNG));
-    menuitem_image(ctrl->import_item, (const Image*)OPEN_PNG);
-    menuitem_image(ctrl->export_item, (const Image*)(dark ? SAVED_PNG : SAVE_PNG));
-    menuitem_image(ctrl->first_item, (const Image*)(dark ? FIRST16D_PNG : FIRST16_PNG));
-    menuitem_image(ctrl->back_item, (const Image*)(dark ? BACK16D_PNG : BACK16_PNG));
-    menuitem_image(ctrl->next_item, (const Image*)(dark ? NEXT16D_PNG : NEXT16_PNG));
-    menuitem_image(ctrl->last_item, (const Image*)(dark ? LAST16D_PNG : LAST16_PNG));
-    menuitem_image(ctrl->login_item, (const Image*)LOGIN16_PNG);
-    menuitem_image(ctrl->logout_item, (const Image*)(dark ? LOGOUT16D_PNG : LOGOUT16_PNG));
+    button_image(cell_button(ctrl->first_cell), cast_const(dark ? FIRSTD_PNG : FIRST_PNG, Image));
+    button_image(cell_button(ctrl->back_cell), cast_const(dark ? BACKD_PNG : BACK_PNG, Image));
+    button_image(cell_button(ctrl->next_cell), cast_const(dark ? NEXTD_PNG : NEXT_PNG, Image));
+    button_image(cell_button(ctrl->last_cell), cast_const(dark ? LASTD_PNG : LAST_PNG, Image));
+    button_image(cell_button(ctrl->add_cell), cast_const(ADD_PNG, Image));
+    button_image(cell_button(ctrl->minus_cell), cast_const(MINUS_PNG, Image));
+    button_image(cell_button(ctrl->setting_cell), cast_const(SETTINGS_PNG, Image));
+    button_image(cell_button(ctrl->login_cell), cast_const(LOGIN16_PNG, Image));
+    button_image(cell_button(ctrl->logout_cell), cast_const(dark ? LOGOUT16D_PNG : LOGOUT16_PNG, Image));
+    menuitem_image(ctrl->import_item, cast_const(OPEN_PNG, Image));
+    menuitem_image(ctrl->export_item, cast_const(dark ? SAVED_PNG : SAVE_PNG, Image));
+    menuitem_image(ctrl->first_item, cast_const(dark ? FIRST16D_PNG : FIRST16_PNG, Image));
+    menuitem_image(ctrl->back_item, cast_const(dark ? BACK16D_PNG : BACK16_PNG, Image));
+    menuitem_image(ctrl->next_item, cast_const(dark ? NEXT16D_PNG : NEXT16_PNG, Image));
+    menuitem_image(ctrl->last_item, cast_const(dark ? LAST16D_PNG : LAST16_PNG, Image));
+    menuitem_image(ctrl->login_item, cast_const(LOGIN16_PNG, Image));
+    menuitem_image(ctrl->logout_item, cast_const(dark ? LOGOUT16D_PNG : LOGOUT16_PNG, Image));
 }

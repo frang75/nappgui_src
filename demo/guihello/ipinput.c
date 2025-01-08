@@ -5,14 +5,14 @@
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnEditFilter(Window *window, Event* e)
+static void i_OnEditFilter(Window *window, Event *e)
 {
     const EvText *p = event_params(e, EvText);
     EvTextFilter *filter = event_result(e, EvTextFilter);
     uint32_t i, j = 0, n = str_len_c(p->text);
 
     /* We only accept numbers in IP controls */
-    for(i = 0; i < n; ++i)
+    for (i = 0; i < n; ++i)
     {
         if (p->text[i] >= '0' && p->text[i] <= '9')
             filter->text[j++] = p->text[i];

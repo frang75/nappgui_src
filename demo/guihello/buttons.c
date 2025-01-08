@@ -149,4 +149,3 @@ Panel *buttons_basics(Button **defbutton)
     panel_layout(panel, layout);
     return panel;
 }
-

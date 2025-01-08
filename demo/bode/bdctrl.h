@@ -2,7 +2,7 @@
 
 #include "bode.hxx"
 
-Ctrl* ctrl_create(Model *model, Plot *plot);
+Ctrl *ctrl_create(Model *model, Plot *plot);
 
 void ctrl_destroy(Ctrl **ctrl);
 

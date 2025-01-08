@@ -5,8 +5,8 @@
 
 #include <gui/gui.hxx>
 
-#define CENTER_RADIUS       3
-#define POINT_CLOUD_N       100
+#define CENTER_RADIUS 3
+#define POINT_CLOUD_N 100
 
 typedef struct _cloud_t Cloud;
 typedef struct _seg_t Seg;
@@ -98,7 +98,8 @@ struct _shape_t
     bool_t mouse;
     uint32_t collisions;
 
-    union {
+    union
+    {
         V2Df pnt;
         Cloud cloud;
         Seg seg;

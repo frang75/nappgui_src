@@ -28,4 +28,3 @@ extern color_t kTXTRED;
 __END_C
 
 #endif
-

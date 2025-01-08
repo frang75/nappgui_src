@@ -114,7 +114,7 @@ static Layout *i_control_layout_1(DynData *data)
     layout_hmargin(layout, 0, 5);
     layout_hmargin(layout, 1, 5);
     layout_hmargin(layout, 2, 5);
-    
+
     /*
      * By default, updown and button cells are JUSTIFICABLE
      * We force keep the buttons into their original size
@@ -142,7 +142,7 @@ static void i_OnSlider(DynData *data, Event *e)
     uint32_t col = tag & 0x0000FFFF;
     uint32_t row = ((tag & 0xFFFF0000) >> 16);
     uint32_t ncols = layout_ncols(data->top_layout);
-    
+
     /* Exists a column at the right of slider */
     if (ncols > col + 1)
     {
@@ -162,7 +162,8 @@ static void i_fill_cell(Layout *layout, const uint32_t col, const uint32_t row, 
     /* We are sure not to overwrite a cell */
     cassert(cell_empty(layout_cell(layout, col, row)) == TRUE);
 
-    switch (col % 5) {
+    switch (col % 5)
+    {
     case 0:
     {
         Label *label = label_create();
@@ -220,7 +221,6 @@ static void i_fill_cell(Layout *layout, const uint32_t col, const uint32_t row, 
         layout_popup(layout, popup, col, row);
         break;
     }
-
     }
 }
 
@@ -248,7 +248,8 @@ static void i_fill_col(Layout *layout, const uint32_t col, DynData *data)
 
 static const Image *i_image(const uint32_t row)
 {
-    switch (row % 6) {
+    switch (row % 6)
+    {
     case 0:
         return gui_image(FOLDER64_PNG);
     case 1:
@@ -270,7 +271,8 @@ static const Image *i_image(const uint32_t row)
 
 static const char_t *i_title_text(const uint32_t row)
 {
-    switch (row % 6) {
+    switch (row % 6)
+    {
     case 0:
         return "Title: Folder";
     case 1:
@@ -292,7 +294,8 @@ static const char_t *i_title_text(const uint32_t row)
 
 static const char_t *i_desc_text(const uint32_t row)
 {
-    switch (row % 6) {
+    switch (row % 6)
+    {
     case 0:
         return "Desc: This is a folder icon";
     case 1:
@@ -314,7 +317,8 @@ static const char_t *i_desc_text(const uint32_t row)
 
 static const char_t *i_price_text(const uint32_t row)
 {
-    switch (row % 6) {
+    switch (row % 6)
+    {
     case 0:
         return "Price: 45.12€";
     case 1:
@@ -336,7 +340,8 @@ static const char_t *i_price_text(const uint32_t row)
 
 static const char_t *i_stock_text(const uint32_t row)
 {
-    switch (row % 6) {
+    switch (row % 6)
+    {
     case 0:
         return "Stock: 25";
     case 1:
@@ -644,7 +649,7 @@ static DynData *i_panel_data(void)
     data->bgcolor[0] = gui_alt_color(color_rgb(255, 232, 232), color_rgb(128, 0, 0));
     data->bgcolor[1] = gui_alt_color(color_rgb(232, 255, 232), color_rgb(0, 128, 0));
     data->bgcolor[2] = gui_alt_color(color_rgb(232, 232, 255), color_rgb(0, 0, 128));
-    data->skcolor[0] = gui_alt_color(color_rgb(255, 85, 0), color_rgb(255,0, 0));
+    data->skcolor[0] = gui_alt_color(color_rgb(255, 85, 0), color_rgb(255, 0, 0));
     data->skcolor[1] = gui_alt_color(color_rgb(5, 163, 0), color_rgb(0, 255, 0));
     data->skcolor[2] = gui_alt_color(color_rgb(109, 0, 163), color_rgb(0, 0, 255));
     return data;

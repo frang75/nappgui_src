@@ -15,4 +15,3 @@ void casino_finish(void)
 {
     /*TODO: Implement library ending code here */
 }
-

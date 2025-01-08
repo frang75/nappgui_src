@@ -275,8 +275,8 @@ const Image *image_from_resource(const ResPack *pack, const ResId id)
 Image *image_copy(const Image *image)
 {
     cassert_no_null(image);
-    ((Image *)image)->num_instances += 1;
-    return (Image *)image;
+    cast(image, Image)->num_instances += 1;
+    return cast(image, Image);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -382,8 +382,8 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
     cassert_no_null(image);
     if (width == UINT32_MAX && height == UINT32_MAX)
     {
-        ((Image *)image)->num_instances += 1;
-        return (Image *)image;
+        cast(image, Image)->num_instances += 1;
+        return cast(image, Image);
     }
 
     osimage_info(image->osimage, &current_width, &current_height, NULL, NULL);

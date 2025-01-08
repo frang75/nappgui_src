@@ -70,7 +70,8 @@ static void i_OnIdleLaunch(FlyOut *flyout, Event *e)
     /* Flyout window size */
     S2Df size = window_get_size(flyout->flywin);
 
-    switch (flyout->align) {
+    switch (flyout->align)
+    {
     case 0:
         pos.y += frame.size.height;
         break;
