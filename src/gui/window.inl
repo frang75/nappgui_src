@@ -18,8 +18,6 @@ void _window_update(Window *window);
 
 void *_window_ositem(Window *window);
 
-bool_t _window_is_visible(const Window *window);
-
 Panel *_window_main_panel(Window *window);
 
 #if defined(__DESKTOP__)

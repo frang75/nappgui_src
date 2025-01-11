@@ -39,6 +39,8 @@ _gui_api uint32_t window_modal(Window *window, Window *parent);
 
 _gui_api void window_stop_modal(Window *window, const uint32_t return_value);
 
+_gui_api bool_t window_is_visible(const Window *window);
+
 _gui_api void window_hotkey(Window *window, const vkey_t key, const uint32_t modifiers, Listener *listener);
 
 _gui_api void window_clear_hotkeys(Window *window);

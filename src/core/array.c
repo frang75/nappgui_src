@@ -304,7 +304,7 @@ void array_write(Stream *stream, const Array *array, FPtr_write func_write)
     const byte_t *data = NULL;
     uint32_t i = 0;
     cassert_no_null(array);
-    cassert_no_null(func_write);
+    cassert_no_nullf(func_write);
     data = array->data;
     stm_write_u32(stream, array->elems);
     for (i = 0; i < array->elems; ++i, data += array->esize)
@@ -318,7 +318,7 @@ void array_write_ptr(Stream *stream, const Array *array, FPtr_write func_write)
     const byte_t **data = NULL;
     uint32_t i = 0;
     cassert_no_null(array);
-    cassert_no_null(func_write);
+    cassert_no_nullf(func_write);
     cassert(array->esize == sizeofptr);
     data = dcast_const(array->data, byte_t);
     stm_write_u32(stream, array->elems);

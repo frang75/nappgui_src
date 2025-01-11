@@ -13,6 +13,7 @@
 #include "../bfile.h"
 #include "../osbs.inl"
 #include <sewer/bmem.h>
+#include <sewer/blib.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
@@ -109,9 +110,9 @@ uint32_t bfile_dir_tmp(char_t *pathname, const uint32_t size)
 {
     const char_t *temp = "/tmp";
     uint32_t s = (uint32_t)strlen(temp);
-    if (s > size)
-        s = size;
-    strncpy(pathname, temp, s);
+    if (s > size - 1)
+        s = size - 1;
+    blib_strncpy(pathname, size, temp, s);
     pathname[s] = '\0';
     return s;
 }

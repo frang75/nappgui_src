@@ -16,7 +16,6 @@
 #include "component.inl"
 #include "gui.inl"
 #include "panel.inl"
-#include "window.inl"
 #include <draw2d/guictx.h>
 #include <geom2d/s2d.h>
 #include <geom2d/v2d.h>
@@ -685,15 +684,6 @@ void view_update(View *view)
 {
     cassert_no_null(view);
     view->component.context->func_view_set_need_display(view->component.ositem);
-    /*if (view->component.owner != NULL)
-    {
-        Window *window = NULL;
-        cassert_no_null(view->component.context);
-        cassert_no_nullf(view->component.context->func_view_set_need_display);
-        window = _panel_get_window(view->component.owner);
-        if (window && _window_is_visible(window) == TRUE)
-            view->component.context->func_view_set_need_display(view->component.ositem);
-    }*/
 }
 
 /*---------------------------------------------------------------------------*/

@@ -2,6 +2,10 @@
 
 ## v1.5.1 - WIP
 
+### Added
+
+- `window_is_visible()`. [Issue](https://github.com/frang75/nappgui_src/issues/173). [Commit]().
+
 ### Fixed
 
 - `popup_clear()` issue in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/123). [Commit]().
