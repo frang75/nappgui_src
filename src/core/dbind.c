@@ -417,8 +417,11 @@ static void i_remove_struct_data(byte_t *data, const StructProps *props)
 static void i_destroy_struct_data(byte_t **data, const StructProps *props, const char_t *name, const uint16_t esize)
 {
     cassert_no_null(data);
-    i_remove_struct_data(*data, props);
-    heap_free(data, esize, name);
+    if (*data != NULL)
+    {
+        i_remove_struct_data(*data, props);
+        heap_free(data, esize, name);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3409,6 +3412,18 @@ uint16_t dbind_st_offset(const DBind *stbind, const uint32_t member_id)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t dbind_st_is_str_ptr(const DBind *stbind, const uint32_t member_id)
+{
+    StructMember *member = i_member(stbind, member_id);
+    cassert_no_null(member);
+    if (member->bind->type == ekDTYPE_STRUCT)
+        return member->attr.structt.is_pointer;
+    else
+        return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 const char_t *dbind_st_mname(const DBind *stbind, const uint32_t member_id)
 {
     StructMember *member = i_member(stbind, member_id);
@@ -3567,7 +3582,7 @@ byte_t *dbind_st_member_data(const DBind *stbind, const uint32_t member_id, cons
         if (member->attr.structt.is_pointer == TRUE)
         {
             byte_t **data = dcast(obj + member->offset, byte_t);
-            if (*data == NULL)
+            if (*data == NULL && force_non_null == TRUE)
                 *data = i_create(member->bind, NULL);
             return *data;
         }
@@ -3880,7 +3895,7 @@ static bindset_t i_update_binary(const DBind *bind, byte_t *data, const void *va
 
 /*---------------------------------------------------------------------------*/
 
-bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data)
+bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data, byte_t **pdata)
 {
     cassert_no_null(bind);
     switch (bind->type)
@@ -3909,20 +3924,42 @@ bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool
     }
 
     case ekDTYPE_STRING:
-        return i_update_string(bind, data, NULL);
+        if (pdata != NULL)
+        {
+            if (*pdata != NULL)
+                bind->props.stringp.func_destroy(dcast(pdata, void));
+            return ekBINDSET_OK;
+        }
+        else
+        {
+            return i_update_string(bind, data, NULL);
+        }
 
     case ekDTYPE_BINARY:
-        return i_update_binary(bind, data, NULL);
+        cassert_no_null(pdata);
+        if (*pdata != NULL)
+            bind->props.binaryp.func_destroy(dcast(pdata, void));
+        return ekBINDSET_OK;
 
     case ekDTYPE_STRUCT:
         if (is_str_ptr == TRUE)
-            i_destroy_struct_data(dcast(data, byte_t), &bind->props.structp, tc(bind->name), bind->size);
+        {
+            cassert_no_null(pdata);
+            if (*pdata != NULL)
+                i_destroy_struct_data(pdata, &bind->props.structp, tc(bind->name), bind->size);
+        }
         else
+        {
             i_remove_struct_data(data, &bind->props.structp);
+        }
         return ekBINDSET_OK;
 
     case ekDTYPE_CONTAINER:
-        i_destroy_container(dcast(data, byte_t), bind, ebind);
+        if (pdata != NULL)
+        {
+            if (*pdata != NULL)
+                i_destroy_container(pdata, bind, ebind);
+        }
         return ekBINDSET_OK;
 
     case ekDTYPE_UNKNOWN:

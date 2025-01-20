@@ -212,7 +212,7 @@ String *b64_encode_from_str(const String *str)
 Buffer *b64_decode_from_str(const String *base64)
 {
     const byte_t *data = cast_const(tc(base64), byte_t);
-    uint32_t len = str_len(base64);
+    uint32_t len = str_len_c(tc(base64));
     return b64_decode_from_data(data, len);
 }
 

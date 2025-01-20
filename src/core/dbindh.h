@@ -69,6 +69,8 @@ _core_api uint32_t dbind_st_member_id(const DBind *stbind, const char_t *mname);
 
 _core_api uint16_t dbind_st_offset(const DBind *stbind, const uint32_t member_id);
 
+_core_api bool_t dbind_st_is_str_ptr(const DBind *stbind, const uint32_t member_id);
+
 _core_api const char_t *dbind_st_mname(const DBind *stbind, const uint32_t member_id);
 
 _core_api void dbind_st_int_range(const DBind *stbind, const uint32_t member_id, int64_t *min, int64_t *max);
@@ -121,7 +123,7 @@ _core_api void dbind_write_binary_value(const DBind *bind, Stream *stm, const by
 
 /* DBind object memory access: Write/convert values */
 
-_core_api bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data);
+_core_api bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data, byte_t **pdata);
 
 _core_api bindset_t dbind_set_value_bool(const DBind *bind, byte_t *data, const bool_t value);
 

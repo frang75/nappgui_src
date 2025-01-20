@@ -58,7 +58,7 @@ struct i_parser_t
 
 static byte_t *i_create_type(i_Parser *parser, const DBind *bind, const DBind *ebind);
 static bool_t i_jump_json_value(i_Parser *parser);
-static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data);
+static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data, byte_t **pdata);
 static bool_t i_parse_json_object(i_Parser *parser, const DBind *stbind, byte_t *obj);
 static void i_write_type(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data);
 static void i_write_object(Stream *stm, const DBind *stbind, const byte_t *obj);
@@ -321,7 +321,7 @@ static bool_t i_parse_json_array(i_Parser *parser, const DBind *bind, const DBin
     byte_t *data = dbind_container_append(bind, ebind, cont);
 
     dbind_init_data(ebind, data);
-    ok = i_parse_json_value(parser, ebind, NULL, FALSE, data);
+    ok = i_parse_json_value(parser, ebind, NULL, FALSE, data, NULL);
 
     if (ok == FALSE)
     {
@@ -354,7 +354,7 @@ static bool_t i_parse_json_array(i_Parser *parser, const DBind *bind, const DBin
 
         data = dbind_container_append(bind, ebind, cont);
         dbind_init_data(ebind, data);
-        ok = i_parse_json_value(parser, ebind, NULL, FALSE, data);
+        ok = i_parse_json_value(parser, ebind, NULL, FALSE, data, NULL);
         if (ok == FALSE)
             i_error(FALSE, FALSE, parser, "Element can't be readed from 'array'");
     }
@@ -395,7 +395,7 @@ static bool_t i_parse_json_arrpt(i_Parser *parser, const DBind *bind, const DBin
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data)
+static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data, byte_t **pdata)
 {
     dtype_t type = dbind_type(bind);
     bindset_t rset = ekBINDSET_NOT_ALLOWED;
@@ -411,7 +411,7 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
         return i_error(rset != ekBINDSET_NOT_ALLOWED, TRUE, parser, "Unexpected JSON 'false'");
 
     case i_ekNULL:
-        rset = dbind_set_value_null(bind, ebind, is_str_ptr, data);
+        rset = dbind_set_value_null(bind, ebind, is_str_ptr, data, pdata);
         return i_error(rset != ekBINDSET_NOT_ALLOWED, TRUE, parser, "Unexpected JSON 'null'");
 
     case i_ekNUMBER:
@@ -466,9 +466,10 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
         {
             if (is_str_ptr == TRUE)
             {
-                cassert(*dcast(data, byte_t) == NULL);
-                *dcast(data, byte_t) = dbind_create_data(bind, ebind);
-                return i_parse_json_object(parser, bind, *dcast(data, byte_t));
+                cassert_no_null(pdata);
+                if (*pdata == NULL)
+                    *pdata = dbind_create_data(bind, ebind);
+                return i_parse_json_object(parser, bind, *pdata);
             }
             else
             {
@@ -552,8 +553,10 @@ static bool_t i_parse_json_object(i_Parser *parser, const DBind *stbind, byte_t 
             const DBind *mbind = dbind_st_member(stbind, member_id);
             const DBind *mebind = dbind_st_ebind(stbind, member_id);
             byte_t *data = dbind_st_member_data(stbind, member_id, TRUE, obj);
+            byte_t **pdata = dcast(obj + dbind_st_offset(stbind, member_id), byte_t);
+            bool_t is_str_ptr = dbind_st_is_str_ptr(stbind, member_id);
 
-            if (i_parse_json_value(parser, mbind, mebind, FALSE, data) == TRUE)
+            if (i_parse_json_value(parser, mbind, mebind, is_str_ptr, data, pdata) == TRUE)
                 comma_state = FALSE;
             else
                 return FALSE;
@@ -597,7 +600,7 @@ static byte_t *i_create_type(i_Parser *parser, const DBind *bind, const DBind *e
         cassert_default();
     }
 
-    if (i_parse_json_value(parser, bind, ebind, FALSE, cdata) == FALSE)
+    if (i_parse_json_value(parser, bind, ebind, FALSE, cdata, NULL) == FALSE)
     {
         if (data != NULL)
             dbind_destroy_data(&data, bind, ebind);
@@ -778,64 +781,70 @@ static void i_write_binary(Stream *stm, const DBind *bind, const byte_t *data)
 
 static void i_write_type(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data)
 {
-    dtype_t type = dbind_type(bind);
-    cassert_no_null(data);
-    switch (type)
+    if (data != NULL)
     {
-    case ekDTYPE_BOOL:
-    {
-        bool_t value = dbind_get_bool_value(bind, data);
-        stm_writef(stm, value ? "true" : "false");
-        break;
+        dtype_t type = dbind_type(bind);
+        switch (type)
+        {
+        case ekDTYPE_BOOL:
+        {
+            bool_t value = dbind_get_bool_value(bind, data);
+            stm_writef(stm, value ? "true" : "false");
+            break;
+        }
+
+        case ekDTYPE_INT:
+        {
+            int64_t value = dbind_get_int_value(bind, data);
+            stm_printf(stm, "%" PRId64, value);
+            break;
+        }
+
+        case ekDTYPE_REAL:
+        {
+            real64_t value = dbind_get_real_value(bind, data);
+            stm_printf(stm, "%f", value);
+            break;
+        }
+
+        case ekDTYPE_ENUM:
+        {
+            enum_t value = dbind_get_enum_value(bind, data);
+            uint32_t index = dbind_enum_index(bind, value);
+            const char_t *alias = dbind_enum_alias(bind, index);
+            i_write_escape_str(stm, alias);
+            break;
+        }
+
+        case ekDTYPE_STRING:
+        {
+            const char_t *cstr = dbind_get_str_value(bind, cast_const(&data, byte_t));
+            if (cstr != NULL)
+                i_write_escape_str(stm, cstr);
+            else
+                stm_writef(stm, "null");
+            break;
+        }
+
+        case ekDTYPE_STRUCT:
+            i_write_object(stm, bind, data);
+            break;
+
+        case ekDTYPE_BINARY:
+            i_write_binary(stm, bind, data);
+            break;
+
+        case ekDTYPE_CONTAINER:
+            i_write_container(stm, bind, ebind, data);
+            break;
+
+        case ekDTYPE_UNKNOWN:
+            cassert_default();
+        }
     }
-
-    case ekDTYPE_INT:
+    else
     {
-        int64_t value = dbind_get_int_value(bind, data);
-        stm_printf(stm, "%" PRId64, value);
-        break;
-    }
-
-    case ekDTYPE_REAL:
-    {
-        real64_t value = dbind_get_real_value(bind, data);
-        stm_printf(stm, "%f", value);
-        break;
-    }
-
-    case ekDTYPE_ENUM:
-    {
-        enum_t value = dbind_get_enum_value(bind, data);
-        uint32_t index = dbind_enum_index(bind, value);
-        const char_t *alias = dbind_enum_alias(bind, index);
-        i_write_escape_str(stm, alias);
-        break;
-    }
-
-    case ekDTYPE_STRING:
-    {
-        const char_t *cstr = dbind_get_str_value(bind, cast_const(&data, byte_t));
-        if (cstr != NULL)
-            i_write_escape_str(stm, cstr);
-        else
-            stm_writef(stm, "null");
-        break;
-    }
-
-    case ekDTYPE_STRUCT:
-        i_write_object(stm, bind, data);
-        break;
-
-    case ekDTYPE_BINARY:
-        i_write_binary(stm, bind, data);
-        break;
-
-    case ekDTYPE_CONTAINER:
-        i_write_container(stm, bind, ebind, data);
-        break;
-
-    case ekDTYPE_UNKNOWN:
-        cassert_default();
+        stm_writef(stm, "null");
     }
 }
 
@@ -847,6 +856,7 @@ void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const c
     const DBind *ebind = NULL;
     i_bind_from_typename(type, &bind, &ebind);
     i_write_type(stm, bind, ebind, data);
+    stm_write_char(stm, 0);
     unref(opts);
 }
 

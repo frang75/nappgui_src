@@ -4,11 +4,12 @@
 
 ### Added
 
-- `window_is_visible()`. [Issue](https://github.com/frang75/nappgui_src/issues/173). [Commit]().
+- `window_is_visible()`. [Issue](https://github.com/frang75/nappgui_src/issues/173). [Commit](https://github.com/frang75/nappgui_src/commit/a415b4f3db1abd6d147f5a35d103debb6973e629).
 
 ### Fixed
 
-- `popup_clear()` issue in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/123). [Commit]().
+- `popup_clear()` issue in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/123). [Commit](https://github.com/frang75/nappgui_src/commit/b61c5cdda50b1587646c6b2fa7df3a99b8a25741).
+- `json_write()` issue with `null` values. [Issue](https://github.com/frang75/nappgui_src/issues/175). [Commit]().
 
 ## v1.5.0 - Jan 1, 2025 (r5810)
 
