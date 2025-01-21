@@ -386,11 +386,9 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
             endif()
 
             # Reference the manifest file (required by MinGW)
-            if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-                # https://geekthis.net/post/visual-styles-in-win32-api-c-gcc-mingw/
-                set(MANIFEST_FILE "${NAPPGUI_ROOT_PATH}/prj/templates/Application.manifest")
-                file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/res.rc "1 24 \"${MANIFEST_FILE}\"\n")
-            endif()
+            # https://geekthis.net/post/visual-styles-in-win32-api-c-gcc-mingw/
+            set(MANIFEST_FILE "${NAPPGUI_ROOT_PATH}/prj/templates/Application.manifest")
+            file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/res.rc "1 24 \"${MANIFEST_FILE}\"\n")
 
             set(globalRes ${globalRes} ${CMAKE_CURRENT_BINARY_DIR}/res.rc)
         endif()
@@ -795,6 +793,11 @@ function(nap_link_with_libraries targetName targetType firstLevelDepends)
         # Target should link with comctl32
         if (_depend_osgui)
             target_link_libraries(${targetName} comctl32 uxtheme)
+        endif()
+
+        # Disable default MSVC manifest
+        if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+            target_link_options(${targetName} PRIVATE /MANIFEST:NO)
         endif()
 
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
