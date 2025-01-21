@@ -799,7 +799,7 @@ static void i_write_message(Stream *stm, const char_t *msg)
         {
             if (in_scape == TRUE)
             {
-                stm_write_char(stm, '\n');
+                stm_writef(stm, "\\n");
                 in_scape = FALSE;
             }
             else

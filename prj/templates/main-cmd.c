@@ -11,4 +11,3 @@ int main(int argc, char *argv[])
     core_finish();
     return 0;
 }
-
