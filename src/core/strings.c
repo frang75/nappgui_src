@@ -319,24 +319,33 @@ String *str_relpath(const platform_t platform, const char_t *path1, const char_t
     if (prefix > 0)
     {
         uint32_t s1 = str_len_c(path1);
-        uint32_t i, n = 0;
-        str = str_c("");
 
-        prefix -= 1;
-        while (path1[prefix] != '/' && path1[prefix] != '\\')
-            prefix -= 1;
-
-        while (s1 >= prefix)
+        /* path2 is a subpath/file of path1 */
+        if (prefix == s1)
         {
-            if (path1[s1] == '/' || path1[s1] == '\\')
-                n += 1;
-            s1--;
+            str = str_c(path2 + s1);
         }
+        else
+        {
+            uint32_t i = 0, n = 1, ii = prefix;
 
-        for (i = 0; i < n; ++i)
-            str_cat(&str, "../");
+            if (path1[s1 - 1] == '/' || path1[s1 - 1] == '\\')
+                str = str_c("");
+            else
+                str = str_c("/");
 
-        str_cat(&str, path2 + prefix + 1);
+            while (path1[ii] != 0)
+            {
+                if ((path1[ii] == '/' || path1[ii] == '\\') && ii < s1 - 1)
+                    n += 1;
+                ii += 1;
+            }
+
+            for (i = 0; i < n; ++i)
+                str_cat(&str, "../");
+
+            str_cat(&str, path2 + prefix);
+        }
     }
     else
     {

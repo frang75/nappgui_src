@@ -9,7 +9,9 @@
 ### Fixed
 
 - `popup_clear()` issue in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/123). [Commit](https://github.com/frang75/nappgui_src/commit/b61c5cdda50b1587646c6b2fa7df3a99b8a25741).
-- `json_write()` issue with `null` values. [Issue](https://github.com/frang75/nappgui_src/issues/175). [Commit]().
+- `json_write()` issue with `null` values. [Issue](https://github.com/frang75/nappgui_src/issues/175). [Commit](https://github.com/frang75/nappgui_src/commit/d2baa3f2823aeebf554f7492cad205b7ca29a7ca).
+- Issue in NRC generated string with new lines. [Issue](https://github.com/frang75/nappgui_src/issues/177). [Commit](https://github.com/frang75/nappgui_src/commit/c4359a9ff45e5c54547048f1046d64d5f22e987a).
+- Issue in `str_relpath()`. [Commit]().
 
 ## v1.5.0 - Jan 1, 2025 (r5810)
 
