@@ -411,7 +411,6 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
     {
         const DBind *mbind = dbind_st_member(stbind, member_id);
         dtype_t mtype = dbind_type(mbind);
-        const byte_t *data = dbind_st_member_cdata(stbind, member_id, cast_const(obj, byte_t));
         GuiComponent *component = _cell_component(cell);
         cassert(component->type != ekGUI_TYPE_PANEL);
 
@@ -419,7 +418,7 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
         {
         case ekDTYPE_BOOL:
         {
-            bool_t value = dbind_get_bool_value(mbind, data);
+            bool_t value = dbind_st_get_bool_value(stbind, member_id, cast_const(obj, byte_t));
             i_set_bool(component, value);
             break;
         }
@@ -428,7 +427,7 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
         {
             int64_t min, max, value;
             dbind_st_int_range(stbind, member_id, &min, &max);
-            value = dbind_get_int_value(mbind, data);
+            value = dbind_st_get_int_value(stbind, member_id, cast_const(obj, byte_t));
             i_set_integer(component, value, min, max);
             break;
         }
@@ -439,14 +438,14 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
             const char_t *format = NULL;
             dbind_st_real_range(stbind, member_id, &min, &max);
             format = dbind_st_real_format(stbind, member_id);
-            value = dbind_get_real_value(mbind, data);
+            value = dbind_st_get_real_value(stbind, member_id, cast_const(obj, byte_t));
             i_set_real(component, value, min, max, format);
             break;
         }
 
         case ekDTYPE_ENUM:
         {
-            enum_t value = dbind_get_enum_value(mbind, data);
+            enum_t value = dbind_st_get_enum_value(stbind, member_id, obj);
             uint32_t index = dbind_enum_index(mbind, value);
             uint32_t count = dbind_enum_count(mbind);
             const char_t *alias = dbind_enum_alias(mbind, index);
@@ -456,7 +455,7 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
 
         case ekDTYPE_STRING:
         {
-            const char_t *str = dbind_get_str_value(mbind, data);
+            const char_t *str = dbind_st_get_str_value(stbind, member_id, obj);
             i_set_string(component, str);
             break;
         }
@@ -466,7 +465,7 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
             const char_t *typename = dbind_typename(mbind);
             if (str_equ_c(typename, "Image") == TRUE)
             {
-                const Image *image = cast_const(dbind_get_binary_value(mbind, data), Image);
+                const Image *image = cast_const(dbind_st_get_binary_value(stbind, member_id, obj), Image);
                 i_set_image(component, image);
             }
             break;
@@ -499,7 +498,7 @@ void _gbind_update_layout(Layout *layout, const DBind *stbind, const uint32_t me
         {
         case ekDTYPE_STRUCT:
         {
-            const byte_t *sobj = dbind_st_member_cdata(stbind, member_id, cast_const(obj, byte_t));
+            const byte_t *sobj = dbind_st_get_struct_value(stbind, member_id, cast_const(obj, byte_t));
             const char_t *typename = dbind_typename(mbind);
             layout_dbind_obj_imp(layout, cast(sobj, void), typename);
             break;
@@ -537,8 +536,6 @@ void _gbind_update_layout(Layout *layout, const DBind *stbind, const uint32_t me
 
 static void i_on_updated(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const bindset_t updated, byte_t *store, const uint32_t sizeof_store)
 {
-    const DBind *mbind = dbind_st_member(stbind, member_id);
-
     /* The value has changed in 'obj' */
     if (updated == ekBINDSET_OK)
     {
@@ -548,6 +545,7 @@ static void i_on_updated(Layout *layout, const DBind *stbind, const uint32_t mem
         {
             EvBind params;
             Listener *listener = NULL;
+            const DBind *mbind = dbind_st_member(stbind, member_id);
             _layout_dbind_notif_obj(layout_notify, &params.obj_main, &params.objtype_main, &params.size_main, &listener);
             params.obj_edit = obj;
             params.objtype_edit = dbind_typename(stbind);
@@ -560,14 +558,12 @@ static void i_on_updated(Layout *layout, const DBind *stbind, const uint32_t mem
         if (allow_change == FALSE)
         {
             /* Restore the previous field value from a copy */
-            byte_t *dest = dbind_st_member_data(stbind, member_id, FALSE, cast(obj, byte_t));
-            uint16_t dsize = dbind_size(mbind);
-            dbind_copy_field(mbind, store, dest, dsize);
+            dbind_st_restore_field(stbind, member_id, cast(obj, byte_t), store, sizeof_store);
         }
     }
 
     /* The stored field can have reserved dynamic memory (string, binaries, etc) */
-    dbind_remove_field(mbind, store, sizeof_store);
+    dbind_st_remove_field(stbind, member_id, store, sizeof_store);
 
     /* Update all controls related with this member */
     if (updated == ekBINDSET_OK)
@@ -578,10 +574,8 @@ static void i_on_updated(Layout *layout, const DBind *stbind, const uint32_t mem
 
 static void i_store_field(const DBind *stbind, const uint32_t member_id, void *obj, byte_t *store, const uint32_t sizeof_store)
 {
-    const DBind *mbind = dbind_st_member(stbind, member_id);
-    const byte_t *data = dbind_st_member_cdata(stbind, member_id, cast(obj, byte_t));
     bmem_set_zero(store, sizeof_store);
-    dbind_copy_field(mbind, data, store, sizeof_store);
+    dbind_st_store_field(stbind, member_id, cast(obj, byte_t), store, sizeof_store);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -654,16 +648,13 @@ void _gbind_update_image(Layout *layout, const DBind *stbind, const uint32_t mem
 
 bool_t _gbind_field_modify(const EvBind *evbind, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
 {
-    /* We extract the memory area that is expected to have been modified */
-    const byte_t *memblock = NULL;
-    uint16_t memsize = 0;
     const DBind *stbind = dbind_from_typename(type, NULL);
     uint32_t member_id = dbind_st_member_id(stbind, mname);
-    const DBind *mbind = dbind_st_member(stbind, member_id);
 
 #if defined(__ASSERTS__)
     {
         bool_t is_ptr = FALSE;
+        const DBind *mbind = dbind_st_member(stbind, member_id);
         const DBind *mbindt = dbind_from_typename(mtype, &is_ptr);
         const char_t *typename = dbind_typename(mbind);
         cassert(mbind == mbindt);
@@ -688,14 +679,10 @@ bool_t _gbind_field_modify(const EvBind *evbind, const char_t *type, const uint1
     unref(moffset);
 #endif
 
-    memblock = dbind_st_member_cdata(stbind, member_id, evbind->obj_main);
-    memsize = dbind_size(mbind);
-
-    if (memblock != NULL)
     {
-        const byte_t *memblock2 = cast(evbind->obj_edit, byte_t) + evbind->offset_edit;
-        return bmem_overlaps(memblock, memblock2, memsize, evbind->size_edit);
+        const byte_t *data = NULL;
+        cassert_no_null(evbind);
+        data = cast(evbind->obj_edit, byte_t) + evbind->offset_edit;
+        return dbind_st_overlaps_field(stbind, member_id, evbind->obj_main, data, evbind->size_edit);
     }
-
-    return FALSE;
 }

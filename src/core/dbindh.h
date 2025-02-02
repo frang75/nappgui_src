@@ -31,7 +31,7 @@ _core_api dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_cr
 
 _core_api dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, FPtr_container_create func_create, FPtr_container_size func_size, FPtr_container_get func_get, FPtr_container_insert func_insert, FPtr_container_delete func_delete, FPtr_container_destroy func_destroy);
 
-/* DBind info for registered */
+/* DBind info for registered types */
 
 _core_api const DBind *dbind_from_typename(const char_t *type, bool_t *is_ptr);
 
@@ -57,7 +57,7 @@ _core_api bool_t dbind_is_basic_type(const dtype_t type);
 
 _core_api bool_t dbind_is_number_type(const dtype_t type);
 
-/* DBind info registered struct members */
+/* DBind info for registered struct members */
 
 _core_api const DBind *dbind_st_member(const DBind *stbind, const uint32_t member_id);
 
@@ -69,9 +69,9 @@ _core_api uint32_t dbind_st_member_id(const DBind *stbind, const char_t *mname);
 
 _core_api uint16_t dbind_st_offset(const DBind *stbind, const uint32_t member_id);
 
-_core_api bool_t dbind_st_is_str_ptr(const DBind *stbind, const uint32_t member_id);
-
 _core_api const char_t *dbind_st_mname(const DBind *stbind, const uint32_t member_id);
+
+_core_api bool_t dbind_st_is_str_dptr(const DBind *stbind, const uint32_t member_id);
 
 _core_api void dbind_st_int_range(const DBind *stbind, const uint32_t member_id, int64_t *min, int64_t *max);
 
@@ -93,37 +93,57 @@ _core_api void dbind_remove_data(byte_t *data, const DBind *bind);
 
 _core_api void dbind_destroy_data(byte_t **data, const DBind *bind, const DBind *ebind);
 
-/* DBind object memory access: Object offset */
+/* DBind object memory access: Copy struct member values */
 
-_core_api byte_t *dbind_st_member_data(const DBind *stbind, const uint32_t member_id, const bool_t force_non_null, byte_t *obj);
+_core_api void dbind_st_store_field(const DBind *stbind, const uint32_t member_id, const byte_t *obj, byte_t *dest, const uint32_t dest_size);
 
-_core_api const byte_t *dbind_st_member_cdata(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+_core_api void dbind_st_restore_field(const DBind *stbind, const uint32_t member_id, byte_t *obj, const byte_t *src, const uint32_t src_size);
 
-/* DBind object memory access: Copy values */
+_core_api void dbind_st_remove_field(const DBind *stbind, const uint32_t member_id, byte_t *dest, const uint32_t dest_size);
 
-_core_api void dbind_copy_field(const DBind *bind, const byte_t *src, byte_t *dest, const uint32_t dest_size);
-
-_core_api void dbind_remove_field(const DBind *bind, byte_t *dest, const uint32_t dest_size);
+_core_api bool_t dbind_st_overlaps_field(const DBind *stbind, const uint32_t member_id, const byte_t *obj, const byte_t *data, const uint32_t data_size);
 
 /* DBind object memory access: Read values */
 
 _core_api bool_t dbind_get_bool_value(const DBind *bind, const byte_t *data);
 
+_core_api bool_t dbind_st_get_bool_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+
 _core_api int64_t dbind_get_int_value(const DBind *bind, const byte_t *data);
+
+_core_api int64_t dbind_st_get_int_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
 
 _core_api real64_t dbind_get_real_value(const DBind *bind, const byte_t *data);
 
+_core_api real64_t dbind_st_get_real_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+
 _core_api enum_t dbind_get_enum_value(const DBind *bind, const byte_t *data);
+
+_core_api enum_t dbind_st_get_enum_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
 
 _core_api const char_t *dbind_get_str_value(const DBind *bind, const byte_t *data);
 
+_core_api const char_t *dbind_st_get_str_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+
+_core_api byte_t *dbind_st_get_struct_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+
+_core_api byte_t *dbind_st_create_struct_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+
+_core_api byte_t *dbind_st_get_container_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
+
 _core_api const void *dbind_get_binary_value(const DBind *bind, const byte_t *data);
+
+_core_api const void *dbind_st_get_binary_value(const DBind *stbind, const uint32_t member_id, const byte_t *obj);
 
 _core_api void dbind_write_binary_value(const DBind *bind, Stream *stm, const byte_t *data);
 
+_core_api void dbind_st_write_binary_value(const DBind *stbind, const uint32_t member_id, Stream *stm, const byte_t *obj);
+
 /* DBind object memory access: Write/convert values */
 
-_core_api bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool_t is_str_ptr, byte_t *data, byte_t **pdata);
+_core_api bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool_t is_str_dptr, byte_t *data);
+
+_core_api bindset_t dbind_st_set_value_null(const DBind *stbind, const uint32_t member_id, byte_t *obj);
 
 _core_api bindset_t dbind_set_value_bool(const DBind *bind, byte_t *data, const bool_t value);
 
@@ -145,9 +165,13 @@ _core_api bindset_t dbind_set_value_str(const DBind *bind, byte_t *data, const c
 
 _core_api bindset_t dbind_st_set_value_str(const DBind *stbind, const uint32_t member_id, byte_t *obj, const char_t *value);
 
+_core_api bindset_t dbind_set_value_binary(const DBind *bind, byte_t *data, const void *value);
+
 _core_api bindset_t dbind_st_set_value_binary(const DBind *stbind, const uint32_t member_id, byte_t *obj, const void *value);
 
 _core_api bindset_t dbind_create_value_binary(const DBind *bind, byte_t *data, const byte_t *bindata, const uint32_t binsize);
+
+_core_api bindset_t dbind_st_create_value_binary(const DBind *stbind, const uint32_t member_id, byte_t *obj, const byte_t *bindata, const uint32_t binsize);
 
 /* DBind object memory access: Container operations */
 
