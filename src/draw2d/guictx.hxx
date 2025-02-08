@@ -100,10 +100,11 @@ typedef enum _gui_close_t
 
 typedef enum _gui_scale_t
 {
-    ekGUI_SCALE_AUTO = 1,
-    ekGUI_SCALE_NONE,
+    ekGUI_SCALE_NONE = 1,
+    ekGUI_SCALE_AUTO,
     ekGUI_SCALE_ASPECT,
-    ekGUI_SCALE_ASPECTDW
+    ekGUI_SCALE_ASPECTDW,
+    ekGUI_SCALE_ADJUST
 } gui_scale_t;
 
 typedef enum _gui_scroll_t

@@ -5,6 +5,7 @@
 ### Added
 
 - `window_is_visible()`. [Issue](https://github.com/frang75/nappgui_src/issues/173). [Commit](https://github.com/frang75/nappgui_src/commit/a415b4f3db1abd6d147f5a35d103debb6973e629).
+- `ekGUI_SCALE_ADJUST` to `gui_scale_t` in order to automatically adjust the size of an `ImageView` to the size of the image it contains.
 
 ### Fixed
 
