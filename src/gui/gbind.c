@@ -456,7 +456,7 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
         case ekDTYPE_STRING:
         {
             const char_t *str = dbind_st_get_str_value(stbind, member_id, obj);
-            i_set_string(component, str);
+            i_set_string(component, str != NULL ? str : "");
             break;
         }
 
