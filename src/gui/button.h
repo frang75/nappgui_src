@@ -29,6 +29,8 @@ _gui_api Button *button_flatgle(void);
 
 _gui_api void button_OnClick(Button *button, Listener *listener);
 
+_gui_api void button_min_width(Button *button, const real32_t width);
+
 _gui_api void button_text(Button *button, const char_t *text);
 
 _gui_api void button_text_alt(Button *button, const char_t *text);
@@ -36,6 +38,8 @@ _gui_api void button_text_alt(Button *button, const char_t *text);
 _gui_api void button_tooltip(Button *button, const char_t *text);
 
 _gui_api void button_font(Button *button, const Font *font);
+
+_gui_api const Font *button_get_font(const Button *button);
 
 _gui_api void button_image(Button *button, const Image *image);
 

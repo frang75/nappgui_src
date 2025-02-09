@@ -25,6 +25,8 @@ _gui_api void edit_OnChange(Edit *edit, Listener *listener);
 
 _gui_api void edit_OnFocus(Edit *edit, Listener *listener);
 
+_gui_api void edit_min_width(Edit *edit, const real32_t width);
+
 _gui_api void edit_text(Edit *edit, const char_t *text);
 
 _gui_api void edit_font(Edit *edit, const Font *font);

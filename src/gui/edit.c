@@ -32,6 +32,7 @@ struct _edit_t
 {
     GuiComponent component;
     uint32_t flags;
+    real32_t width;
     S2Df size;
     bool_t is_focused;
     bool_t is_placeholder_active;
@@ -214,6 +215,7 @@ static Edit *i_create(const align_t halign, const uint32_t flags)
     Edit *edit = obj_new0(Edit);
     void *ositem = NULL;
     edit->flags = flags;
+    edit->width = 100;
     edit->text = str_c("");
     edit->font = _gui_create_default_font();
     edit->color = kCOLOR_DEFAULT;
@@ -267,6 +269,15 @@ void edit_OnFocus(Edit *edit, Listener *listener)
 {
     cassert_no_null(edit);
     listener_update(&edit->OnFocus, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void edit_min_width(Edit *edit, const real32_t width)
+{
+    cassert_no_null(edit);
+    cassert(width > 0);
+    edit->width = width;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -475,7 +486,7 @@ void _edit_dimension(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim
     cassert_no_null(dim1);
     if (i == 0)
     {
-        edit->component.context->func_edit_bounds(edit->component.ositem, 100.f, 1, &edit->size.width, &edit->size.height);
+        edit->component.context->func_edit_bounds(edit->component.ositem, edit->width, 1, &edit->size.width, &edit->size.height);
         *dim0 = edit->size.width;
     }
     else

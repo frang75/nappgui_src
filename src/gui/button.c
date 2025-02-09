@@ -11,7 +11,6 @@
 /* Button */
 
 #include "button.h"
-#include "buttonh.h"
 #include "button.inl"
 #include "component.inl"
 #include "cell.inl"
@@ -33,6 +32,7 @@ struct _button_t
 {
     GuiComponent component;
     uint32_t flags;
+    real32_t width;
     S2Df size;
     Font *font;
     ResId textid;
@@ -195,6 +195,7 @@ static Button *i_create(const uint32_t flags, const align_t halign)
     _component_init(&button->component, context, PARAM(type, ekGUI_TYPE_BUTTON), &ositem);
     button->flags = flags;
     button->text = str_c("");
+    button->width = 0;
 
     if (button_get_type(flags) != ekBUTTON_FLAT && button_get_type(flags) != ekBUTTON_FLATGLE)
     {
@@ -255,6 +256,14 @@ void button_OnClick(Button *button, Listener *listener)
 {
     cassert_no_null(button);
     listener_update(&button->OnClick, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void button_min_width(Button *button, const real32_t width)
+{
+    cassert_no_null(button);
+    button->width = width;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -435,6 +444,12 @@ void _button_dimension(Button *button, const uint32_t i, real32_t *dim0, real32_
             }
 
             button->component.context->func_button_bounds(button->component.ositem, tc(button->text), width, height, &button->size.width, &button->size.height);
+
+            if (button_get_type(button->flags) == ekBUTTON_PUSH)
+            {
+                if (button->size.width < button->width)
+                    button->size.width = button->width;
+            }
         }
         else
         {
