@@ -239,13 +239,14 @@ static Panel *i_gl_panel(App *app)
 {
     Panel *panel = panel_create();
     View *view = view_create();
-    Label *label = label_multiline();
+    Label *label = label_create();
     Font *font = font_system(20, ekFNORMAL);
     Layout *layout1 = layout_create(1, 1);
     Layout *layout2 = layout_create(1, 1);
     view_size(view, s2df(512, 512));
     view_OnDraw(view, listener(app, i_OnDraw, App));
     view_OnSize(view, listener(app, i_OnSize, App));
+    label_multiline(label, TRUE);
     layout_view(layout1, view, 0, 0);
     label_font(label, font);
     label_align(label, ekCENTER);

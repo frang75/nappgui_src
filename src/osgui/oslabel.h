@@ -28,6 +28,8 @@ _osgui_api void oslabel_text(OSLabel *label, const char_t *text);
 
 _osgui_api void oslabel_font(OSLabel *label, const Font *font);
 
+_osgui_api void oslabel_flags(OSLabel *label, const uint32_t flags);
+
 _osgui_api void oslabel_align(OSLabel *label, const align_t align);
 
 _osgui_api void oslabel_ellipsis(OSLabel *label, const ellipsis_t ellipsis);

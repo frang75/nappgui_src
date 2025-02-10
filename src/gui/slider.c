@@ -26,14 +26,13 @@ struct _slider_t
 {
     GuiComponent component;
     real32_t current_pos;
+    real32_t width;
     S2Df size;
     ResId ttipid;
     uint32_t flags;
     gui_size_t knob_size;
     Listener *OnMoved;
 };
-
-static const real32_t i_SLIDER_DEFAULT_WIDTH = 100;
 
 /*---------------------------------------------------------------------------*/
 
@@ -86,7 +85,7 @@ static Slider *i_create(const uint32_t flags, const gui_size_t knob_size)
     ositem = context->func_create[ekGUI_TYPE_SLIDER](flags);
     _component_init(&slider->component, context, ekGUI_TYPE_SLIDER, &ositem);
     slider->current_pos = 0;
-    slider->size = s2df(-1, -1);
+    slider->width = 100;
     slider->flags = flags;
     slider->knob_size = knob_size;
     slider->OnMoved = NULL;
@@ -114,6 +113,15 @@ void slider_OnMoved(Slider *slider, Listener *listener)
 {
     cassert_no_null(slider);
     listener_update(&slider->OnMoved, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void slider_min_width(Slider *slider, const real32_t width)
+{
+    cassert_no_null(slider);
+    cassert(width > 0);
+    slider->width = width;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -169,15 +177,10 @@ void _slider_dimension(Slider *slider, const uint32_t i, real32_t *dim0, real32_
     cassert_no_null(slider);
     cassert_no_null(dim0);
     cassert_no_null(dim1);
-
-    if (slider->size.width < 0)
-    {
-        cassert_no_nullf(slider->component.context->func_slider_bounds);
-        slider->component.context->func_slider_bounds(slider->component.ositem, i_SLIDER_DEFAULT_WIDTH, slider->knob_size, &slider->size.width, &slider->size.height);
-    }
-
     if (i == 0)
     {
+        cassert_no_nullf(slider->component.context->func_slider_bounds);
+        slider->component.context->func_slider_bounds(slider->component.ositem, slider->width, slider->knob_size, &slider->size.width, &slider->size.height);
         *dim0 = slider->size.width;
     }
     else

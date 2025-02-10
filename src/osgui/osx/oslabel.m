@@ -292,6 +292,15 @@ void oslabel_font(OSLabel *label, const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
+void oslabel_flags(OSLabel *label, const uint32_t flags)
+{
+    OSXLabel *llabel = cast(label, OSXLabel);
+    cassert_no_null(llabel);
+    llabel->flags = flags;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oslabel_align(OSLabel *label, const align_t align)
 {
     OSXLabel *llabel = cast(label, OSXLabel);

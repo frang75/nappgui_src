@@ -17,6 +17,8 @@ __EXTERN_C
 
 _gui_api Progress *progress_create(void);
 
+_gui_api void progress_min_width(Progress *progress, const real32_t width);
+
 _gui_api void progress_undefined(Progress *progress, const bool_t running);
 
 _gui_api void progress_value(Progress *progress, const real32_t value);

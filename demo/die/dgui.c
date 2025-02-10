@@ -83,7 +83,7 @@ static Panel *i_panel(App *app)
     Label *label3 = label_create();
     Label *label4 = label_create();
     Label *label5 = label_create();
-    Label *label6 = label_multiline();
+    Label *label6 = label_create();
     PopUp *popup1 = popup_create();
     PopUp *popup2 = popup_create();
     Slider *slider1 = slider_create();
@@ -100,6 +100,7 @@ static Panel *i_panel(App *app)
     label_text(label4, TEXT_CORNER);
     label_text(label5, TEXT_RADIUS);
     label_text(label6, TEXT_INFO);
+    label_multiline(label6, TRUE);
     popup_add_elem(popup1, TEXT_ENGLISH, gui_image(USA_PNG));
     popup_add_elem(popup1, TEXT_SPANISH, gui_image(SPAIN_PNG));
     popup_OnSelect(popup1, listener(app, i_OnLang, App));

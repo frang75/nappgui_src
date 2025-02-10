@@ -80,6 +80,7 @@ void guictx_append_label_manager_imp(
     FPtr_gctx_set_listener func_label_OnMouseExit,
     FPtr_gctx_set_text func_label_set_text,
     FPtr_gctx_set_cptr func_label_set_font,
+    FPtr_gctx_set_uint32 func_label_set_flags,
     FPtr_gctx_set_enum func_label_set_align,
     FPtr_gctx_set_enum func_label_set_ellipsis,
     FPtr_gctx_set_uint32 func_label_set_text_color,
@@ -101,6 +102,7 @@ void guictx_append_label_manager_imp(
     cassert(context->func_label_OnMouseExit == NULL);
     cassert(context->func_label_set_text == NULL);
     cassert(context->func_label_set_font == NULL);
+    cassert(context->func_label_set_flags == NULL);
     cassert(context->func_label_set_align == NULL);
     cassert(context->func_label_set_ellipsis == NULL);
     cassert(context->func_label_set_text_color == NULL);
@@ -120,6 +122,7 @@ void guictx_append_label_manager_imp(
     cassert_no_nullf(func_label_OnMouseExit);
     cassert_no_nullf(func_label_set_text);
     cassert_no_nullf(func_label_set_font);
+    cassert_no_nullf(func_label_set_flags);
     cassert_no_nullf(func_label_set_align);
     cassert_no_nullf(func_label_set_ellipsis);
     cassert_no_nullf(func_label_set_text_color);
@@ -139,6 +142,7 @@ void guictx_append_label_manager_imp(
     context->func_label_OnMouseExit = func_label_OnMouseExit;
     context->func_label_set_text = func_label_set_text;
     context->func_label_set_font = func_label_set_font;
+    context->func_label_set_flags = func_label_set_flags;
     context->func_label_set_align = func_label_set_align;
     context->func_label_set_ellipsis = func_label_set_ellipsis;
     context->func_label_set_text_color = func_label_set_text_color;

@@ -65,12 +65,13 @@ static Window *i_modal_window(FormData *data, Edit *edit, const GuiControl *next
 {
     Layout *layout1 = layout_create(1, 2);
     Layout *layout2 = layout_create(3, 1);
-    Label *label = label_multiline();
+    Label *label = label_create();
     Button *button1 = button_push();
     Button *button2 = button_push();
     Panel *panel = panel_create();
     Window *window = window_create(ekWINDOW_STD | ekWINDOW_ESC);
     String *str = str_printf("Do you want to validate the text '%s' of the EditBox '%p'? The focus will be moved to the '%p' control using the '%s' action.", field_text, (void *)edit, (void *)next, action_text);
+    label_multiline(label, TRUE);
     label_text(label, tc(str));
     button_text(button1, "Yes");
     button_text(button2, "No");
@@ -311,8 +312,9 @@ static Layout *i_form(FormData *data)
     Layout *layout1 = layout_create(1, 3);
     Layout *layout2 = i_edits(data);
     Layout *layout3 = i_toolbar(data);
-    Label *label = label_multiline();
+    Label *label = label_create();
     cassert_no_null(data);
+    label_multiline(label, TRUE);
     label_text(label, "Please fill in all the information on the form. We will use this data to send commercial mail at all hours, not caring much if it bothers you or not.");
     label_color(label, gui_alt_color(color_rgb(255, 0, 0), color_rgb(180, 180, 180)));
     label_bgcolor(label, gui_alt_color(color_rgb(216, 191, 216), color_rgb(80, 40, 40)));

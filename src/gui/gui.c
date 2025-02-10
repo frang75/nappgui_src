@@ -637,7 +637,7 @@ const Image *_gui_respack_image(const ResId id, ResId *store_id)
             return NULL;
         }
 
-        return cast_const(id, Image);
+        return (const Image *)id;
     }
 
     return NULL;
@@ -671,7 +671,7 @@ static Layout *i_info_layout(ResPack *pack, const char_t *caption, const char_t 
 {
     Layout *layout = layout_create(1, 4);
     Label *label1 = label_create();
-    Label *label2 = label_multiline();
+    Label *label2 = label_create();
     Label *label3 = label_create();
     Label *label4 = label_create();
     Font *font = font_system(font_regular_size() + 2.f, ekFBOLD);
@@ -681,6 +681,7 @@ static Layout *i_info_layout(ResPack *pack, const char_t *caption, const char_t 
     str_split_pathname(file, NULL, &filename);
     sfile = str_printf("%s: %s", respack_text(pack, FILE_TEXT), tc(filename));
     label_font(label1, font);
+    label_multiline(label2, TRUE);
     label_text(label1, caption);
     label_text(label2, detail);
     label_text(label3, tc(sfile));
@@ -789,8 +790,9 @@ static Layout *i_assert_layout(const ResPack *pack, const char_t *message, const
     Layout *layout = layout_create(2, 1);
     Layout *layout1 = layout_create(1, (uint32_t)(icon == ekICON_CRASH ? 2 : 3));
     Layout *layout2 = i_icons_layout(pack, icon);
-    Label *label = label_multiline();
+    Label *label = label_create();
     label_text(label, message);
+    label_multiline(label, TRUE);
     layout_layout(layout, layout2, 0, 0);
     layout_valign(layout, 0, 0, ekTOP);
     layout_hmargin(layout, 0, 5.f);

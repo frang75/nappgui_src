@@ -64,10 +64,11 @@ static Layout *i_label_layout(FontX *fontx)
     Label *label4 = label_create();
     Label *label5 = label_create();
     Label *label6 = label_create();
-    Label *label7 = label_multiline();
+    Label *label7 = label_create();
     cassert_no_null(fontx);
     slider_value(slider, .5f);
     slider_OnMoved(slider, listener(fontx, i_OnMoved, FontX));
+    label_multiline(label7, TRUE);
     label_text(label1, i_TEXT1);
     label_text(label2, i_TEXT1);
     label_text(label3, i_TEXT1);

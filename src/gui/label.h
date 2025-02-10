@@ -17,9 +17,9 @@ __EXTERN_C
 
 _gui_api Label *label_create(void);
 
-_gui_api Label *label_multiline(void);
-
 _gui_api void label_OnClick(Label *label, Listener *listener);
+
+_gui_api void label_min_width(Label *label, const real32_t width);
 
 _gui_api void label_text(Label *label, const char_t *text);
 
@@ -27,7 +27,11 @@ _gui_api void label_size_text(Label *label, const char_t *text);
 
 _gui_api void label_font(Label *label, const Font *font);
 
+_gui_api const Font *label_get_font(const Label *label);
+
 _gui_api void label_style_over(Label *label, const uint32_t fstyle);
+
+_gui_api void label_multiline(Label *label, const bool_t multiline);
 
 _gui_api void label_align(Label *label, const align_t align);
 

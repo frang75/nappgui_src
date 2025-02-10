@@ -717,12 +717,13 @@ static Panel *i_panel(App *app)
     Layout *layout2 = layout_create(4, 1);
     Label *label1 = label_create();
     Label *label2 = label_create();
-    Label *label3 = label_multiline();
+    Label *label3 = label_create();
     PopUp *popup = popup_create();
     Slider *slider = slider_create();
     View *view = view_create();
     label_text(label1, "Select primitives:");
     label_text(label2, "Gradient/scale");
+    label_multiline(label3, TRUE);
     popup_add_elem(popup, "Lines", NULL);
     popup_add_elem(popup, "Shapes", NULL);
     popup_add_elem(popup, "Gradient-1", NULL);

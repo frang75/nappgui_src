@@ -48,6 +48,7 @@ GuiCtx *osguictx(void)
         oslabel_OnExit,
         oslabel_text,
         oslabel_font,
+        oslabel_flags,
         oslabel_align,
         oslabel_ellipsis,
         oslabel_color,

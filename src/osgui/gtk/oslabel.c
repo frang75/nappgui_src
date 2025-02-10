@@ -36,7 +36,6 @@ struct _oslabel_t
     GtkWidget *label;
     String *text;
     Font *font;
-    uint32_t flags;
     color_t tcolor;
     color_t bgcolor;
     align_t align;
@@ -210,7 +209,6 @@ OSLabel *oslabel_create(const uint32_t flags)
     label->label = gtk_drawing_area_new();
     label->text = str_c("");
     label->font = _osgui_create_default_font();
-    label->flags = flags;
     label->tcolor = kCOLOR_DEFAULT;
     label->bgcolor = kCOLOR_DEFAULT;
     label->align = ekLEFT;
@@ -219,6 +217,7 @@ OSLabel *oslabel_create(const uint32_t flags)
     g_signal_connect(G_OBJECT(label->label), "draw", G_CALLBACK(i_OnDraw), label);
     gtk_widget_show(label->label);
     gtk_container_add(GTK_CONTAINER(widget), label->label);
+    unref(flags);
     return label;
 }
 
@@ -293,6 +292,14 @@ void oslabel_font(OSLabel *label, const Font *font)
         label->layout_updated = FALSE;
         gtk_widget_queue_draw(label->label);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oslabel_flags(OSLabel *label, const uint32_t flags)
+{
+    unref(label);
+    unref(flags);
 }
 
 /*---------------------------------------------------------------------------*/

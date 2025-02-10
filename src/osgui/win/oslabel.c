@@ -212,6 +212,14 @@ void oslabel_font(OSLabel *label, const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
+void oslabel_flags(OSLabel *label, const uint32_t flags)
+{
+    unref(label);
+    unref(flags);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oslabel_align(OSLabel *label, const align_t align)
 {
     DWORD dwStyle = 0;

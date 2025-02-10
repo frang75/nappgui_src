@@ -6,9 +6,17 @@
 
 - `window_is_visible()`. [Issue](https://github.com/frang75/nappgui_src/issues/173). [Commit](https://github.com/frang75/nappgui_src/commit/a415b4f3db1abd6d147f5a35d103debb6973e629).
 - `ekGUI_SCALE_ADJUST` to `gui_scale_t`, for `imageview_scale()`. [Commit](https://github.com/frang75/nappgui_src/commit/814e28b45ac1cbf91b70de412f55724b819e158a).
-- `button_min_width()`.
-- `edit_min_width()`.
-- `button_get_font()`.
+- `button_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
+- `edit_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
+- `button_get_font()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
+- `label_min_width()`. [Commit]().
+- `label_get_font()`. [Commit]().
+- `progress_min_width()`. [Commit]().
+- `slider_min_width()`. [Commit]().
+
+### Changed
+
+- `label_multiline()` in now a setter and not a constructor. [Commit]().
 
 ### Fixed
 

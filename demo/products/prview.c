@@ -198,7 +198,7 @@ static Layout *i_login(Ctrl *ctrl)
 {
     Layout *layout = layout_create(1, 10);
     Label *label0 = label_create();
-    Label *label1 = label_multiline();
+    Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
     PopUp *popup0 = popup_create();
@@ -206,6 +206,7 @@ static Layout *i_login(Ctrl *ctrl)
     Edit *edit0 = edit_create();
     Edit *edit1 = edit_create();
     Button *button = button_push();
+    label_multiline(label1, TRUE);
     label_text(label0, TWIN_SETLANG);
     label_text(label1, TWIN_LOGIN_MSG);
     label_text(label2, TWIN_USER);

@@ -11,7 +11,6 @@
 /* Label control */
 
 #include "label.h"
-#include "labelh.h"
 #include "label.inl"
 #include "component.inl"
 #include "gui.h"
@@ -30,9 +29,9 @@
 struct _label_t
 {
     GuiComponent component;
-    S2Df size;
+    real32_t width;
+    real32_t height;
     ResId textid;
-    String *size_text;
     String *text;
     uint32_t flags;
     align_t halign;
@@ -54,7 +53,6 @@ void _label_destroy(Label **label)
     _component_destroy_imp(&(*label)->component);
     listener_destroy(&(*label)->OnClick);
     str_destroy(&(*label)->text);
-    str_destopt(&(*label)->size_text);
     font_destroy(&(*label)->font);
     ptr_destopt(font_destroy, &(*label)->over_font, Font);
     obj_delete(label, Label);
@@ -69,6 +67,7 @@ static Label *i_create(const uint32_t flags, const align_t halign, const ellipsi
     void *ositem = NULL;
     label->font = _gui_create_default_font();
     label->text = str_c("");
+    label->width = 0;
     label->flags = flags;
     label->halign = halign;
     label->color = gui_label_color();
@@ -88,13 +87,6 @@ static Label *i_create(const uint32_t flags, const align_t halign, const ellipsi
 Label *label_create(void)
 {
     return i_create(ekLABEL_SINGLE, PARAM(halign, ekLEFT), PARAM(ellipsis, ekELLIPEND));
-}
-
-/*---------------------------------------------------------------------------*/
-
-Label *label_multiline(void)
-{
-    return i_create(ekLABEL_MULTI, PARAM(halign, ekLEFT), PARAM(ellipsis, ekELLIPMLINE));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -152,6 +144,14 @@ void label_OnClick(Label *label, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void label_min_width(Label *label, const real32_t width)
+{
+    cassert_no_null(label);
+    label->width = width;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static bool_t i_is_mouse_sensible(Label *label)
 {
     cassert_no_null(label);
@@ -194,8 +194,9 @@ void label_text(Label *label, const char_t *text)
 
 void label_size_text(Label *label, const char_t *text)
 {
+    real32_t height = 0;
     cassert_no_null(label);
-    str_upd(&label->size_text, text);
+    font_extents(label->font, text, -1, &label->width, &height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -224,6 +225,16 @@ void label_style_over(Label *label, const uint32_t fstyle)
     if (fstyle != font_style(label->font))
         label->over_font = font_with_style(label->font, fstyle);
     i_update_mouse_listeners(label);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void label_multiline(Label *label, const bool_t multiline)
+{
+    cassert_no_null(label);
+    label->flags = multiline ? ekLABEL_MULTI : ekLABEL_SINGLE;
+    label->component.context->func_label_set_flags(label->component.ositem, label->flags);
+    label->component.context->func_label_set_ellipsis(label->component.ositem, multiline ? (enum_t)ekELLIPMLINE : (enum_t)ekELLIPEND);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -279,9 +290,12 @@ void _label_dimension(Label *label, const uint32_t i, real32_t *dim0, real32_t *
     cassert_no_null(dim1);
     if (i == 0)
     {
-        const char_t *size_text = str_empty(label->size_text) ? tc(label->text) : tc(label->size_text);
-        label->component.context->func_label_bounds(label->component.ositem, size_text, -1.f, &label->size.width, &label->size.height);
-        *dim0 = label->size.width;
+        real32_t width;
+        label->component.context->func_label_bounds(label->component.ositem, tc(label->text), -1.f, &width, &label->height);
+        if (label->width > 0)
+            *dim0 = label->width;
+        else
+            *dim0 = width;
     }
     else
     {
@@ -289,13 +303,13 @@ void _label_dimension(Label *label, const uint32_t i, real32_t *dim0, real32_t *
         switch (label_get_type(label->flags))
         {
         case ekLABEL_SINGLE:
-            *dim1 = label->size.height;
+            *dim1 = label->height;
             break;
+
         case ekLABEL_MULTI:
         {
-            real32_t width = 0.f;
-            const char_t *size_text = str_empty(label->size_text) ? tc(label->text) : tc(label->size_text);
-            label->component.context->func_label_bounds(label->component.ositem, size_text, *dim0, &width, dim1);
+            real32_t width = 0;
+            label->component.context->func_label_bounds(label->component.ositem, tc(label->text), *dim0, &width, dim1);
             break;
         }
             cassert_default();

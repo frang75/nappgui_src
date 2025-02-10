@@ -692,6 +692,7 @@ struct _guictx_t
     FPtr_gctx_set_listener func_label_OnMouseExit;
     FPtr_gctx_set_text func_label_set_text;
     FPtr_gctx_set_cptr func_label_set_font;
+    FPtr_gctx_set_uint32 func_label_set_flags;
     FPtr_gctx_set_enum func_label_set_align;
     FPtr_gctx_set_enum func_label_set_ellipsis;
     FPtr_gctx_set_uint32 func_label_set_text_color;

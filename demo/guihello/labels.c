@@ -59,7 +59,7 @@ static PopUp *i_width_popup(Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-Panel *labels_single_line(void)
+static Panel *i_labels(const bool_t multiline)
 {
     Panel *panel = panel_create();
     Layout *layout = layout_create(1, 7);
@@ -73,6 +73,12 @@ Panel *labels_single_line(void)
     color_t c1 = gui_alt_color(color_rgb(192, 255, 255), color_rgb(48, 112, 112));
     color_t c2 = gui_alt_color(color_rgb(255, 192, 255), color_rgb(128, 48, 112));
     color_t c3 = gui_alt_color(color_rgb(255, 255, 192), color_rgb(112, 112, 48));
+    label_multiline(label1, multiline);
+    label_multiline(label2, multiline);
+    label_multiline(label3, multiline);
+    label_multiline(label4, multiline);
+    label_multiline(label5, multiline);
+    label_multiline(label6, multiline);
     label_text(label1, i_LABEL_01);
     label_text(label2, i_LABEL_02);
     label_text(label3, i_LABEL_03);
@@ -99,45 +105,16 @@ Panel *labels_single_line(void)
 
 /*---------------------------------------------------------------------------*/
 
+Panel *labels_single_line(void)
+{
+    return i_labels(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Panel *labels_multi_line(void)
 {
-    Panel *panel = panel_create();
-    Layout *layout = layout_create(1, 7);
-    PopUp *popup = i_width_popup(layout);
-    Label *label1 = label_multiline();
-    Label *label2 = label_multiline();
-    Label *label3 = label_multiline();
-    Label *label4 = label_multiline();
-    Label *label5 = label_multiline();
-    Label *label6 = label_multiline();
-    color_t c1 = gui_alt_color(color_rgb(192, 255, 255), color_rgb(48, 112, 112));
-    color_t c2 = gui_alt_color(color_rgb(255, 192, 255), color_rgb(128, 48, 112));
-    color_t c3 = gui_alt_color(color_rgb(255, 255, 192), color_rgb(112, 112, 48));
-    label_text(label1, i_LABEL_01);
-    label_text(label2, i_LABEL_02);
-    label_text(label3, i_LABEL_03);
-    label_text(label4, i_LABEL_04);
-    label_text(label5, i_LABEL_05);
-    label_text(label6, i_LABEL_06);
-    label_bgcolor(label1, c1);
-    label_bgcolor(label2, c2);
-    label_bgcolor(label3, c3);
-    label_bgcolor(label4, c1);
-    label_bgcolor(label5, c2);
-    label_bgcolor(label6, c3);
-    label_align(label4, ekLEFT);
-    label_align(label5, ekCENTER);
-    label_align(label6, ekRIGHT);
-    layout_popup(layout, popup, 0, 0);
-    layout_label(layout, label1, 0, 1);
-    layout_label(layout, label2, 0, 2);
-    layout_label(layout, label3, 0, 3);
-    layout_label(layout, label4, 0, 4);
-    layout_label(layout, label5, 0, 5);
-    layout_label(layout, label6, 0, 6);
-    layout_vmargin(layout, 0, 5);
-    panel_layout(panel, layout);
-    return panel;
+    return i_labels(TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

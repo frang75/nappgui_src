@@ -32,7 +32,7 @@ struct _button_t
 {
     GuiComponent component;
     uint32_t flags;
-    real32_t width;
+    real32_t min_width;
     S2Df size;
     Font *font;
     ResId textid;
@@ -195,7 +195,7 @@ static Button *i_create(const uint32_t flags, const align_t halign)
     _component_init(&button->component, context, PARAM(type, ekGUI_TYPE_BUTTON), &ositem);
     button->flags = flags;
     button->text = str_c("");
-    button->width = 0;
+    button->min_width = 0;
 
     if (button_get_type(flags) != ekBUTTON_FLAT && button_get_type(flags) != ekBUTTON_FLATGLE)
     {
@@ -263,7 +263,8 @@ void button_OnClick(Button *button, Listener *listener)
 void button_min_width(Button *button, const real32_t width)
 {
     cassert_no_null(button);
-    button->width = width;
+    cassert(width > 0);
+    button->min_width = width;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -447,8 +448,8 @@ void _button_dimension(Button *button, const uint32_t i, real32_t *dim0, real32_
 
             if (button_get_type(button->flags) == ekBUTTON_PUSH)
             {
-                if (button->size.width < button->width)
-                    button->size.width = button->width;
+                if (button->size.width < button->min_width)
+                    button->size.width = button->min_width;
             }
         }
         else
