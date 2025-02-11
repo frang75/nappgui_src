@@ -132,15 +132,21 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
+    NSWindow *window = [self window];
     /* Called whenever graphics state updated (such as window resize)
      * OpenGL rendering is not synchronous with other rendering on the OSX.
      * Therefore, call disableScreenUpdatesUntilFlush so the window server
      * doesn't render non-OpenGL content in the window asynchronously from
      * OpenGL content, which could cause flickering.  (non-OpenGL content
      * includes the title bar and drawing done by the app with other APIs) */
-    NSWindow *window = [self window];
+#if defined(MAC_OS_VERSION_15_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_15
+    /* 'disableScreenUpdatesUntilFlush' is deprecated: first deprecated in macOS 15.0
+     * This method does not do anything and should not be called.
+     */
+#else
     if (window != nil)
         [window disableScreenUpdatesUntilFlush];
+#endif
 
     if (self->left_button == TRUE)
     {

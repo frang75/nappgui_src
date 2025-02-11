@@ -8,25 +8,11 @@
 
 #
 # Values for 'CMAKE_OSX_DEPLOYMENT_TARGET'
+# 15.0      # Sequoia
 # 14.0      # Sonoma
-# 13.6      # Ventura
-# 13.5
-# 13.4
-# 13.3
-# 13.2
-# 13.1
-# 13.0
-# 12.4      # Monterey
-# 12.3
-# 12.2
-# 12.1
-# 12.0
-# 11.5      # Big Sur
-# 11.4
-# 11.3
-# 11.2
-# 11.1
-# 11.0
+# 13.0      # Ventura
+# 12.0      # Monterey
+# 11.0      # Big Sur
 # 10.15     # Catalina
 # 10.14     # Mojave
 # 10.13     # High Sierra
@@ -42,8 +28,12 @@
 #------------------------------------------------------------------------------
 
 function(nap_macos_sdk_name sdkVersion _ret)
+    # 15 = "Sequoia"
+    if (sdkVersion VERSION_GREATER "14.9999")
+        set(${_ret} "Sequoia" PARENT_SCOPE)
+
     # 14 = "Sonoma"
-    if (sdkVersion VERSION_GREATER "13.9999")
+    elseif (sdkVersion VERSION_GREATER "13.9999")
         set(${_ret} "Sonoma" PARENT_SCOPE)
 
     # 13 = "Ventura"

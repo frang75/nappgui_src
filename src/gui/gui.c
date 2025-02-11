@@ -637,7 +637,7 @@ const Image *_gui_respack_image(const ResId id, ResId *store_id)
             return NULL;
         }
 
-        return (const Image *)id;
+        return cast_const(id, Image);
     }
 
     return NULL;

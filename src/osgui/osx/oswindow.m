@@ -156,7 +156,13 @@
          * OpenGL content, which could cause flickering.  (non-OpenGL content
          * includes the title bar and drawing done by the app with other APIs)
          */
+#if defined(MAC_OS_VERSION_15_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_15
+        /* 'disableScreenUpdatesUntilFlush' is deprecated: first deprecated in macOS 15.0
+         * This method does not do anything and should not be called.
+         */
+#else
         [window disableScreenUpdatesUntilFlush];
+#endif
 
         listener_event(self->OnResize, ekGUI_EVENT_WND_SIZING, cast(window, OSWindow), &params, &result, OSWindow, EvSize, EvSize);
         listener_event(self->OnResize, ekGUI_EVENT_WND_SIZE, cast(window, OSWindow), &result, NULL, OSWindow, EvSize, void);
