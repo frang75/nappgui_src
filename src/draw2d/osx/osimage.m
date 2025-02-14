@@ -442,7 +442,25 @@ void osimage_write(const OSImage *image, const codec_t codec, Stream *stream)
     irep = cast([[cast(image, NSImage) representations] objectAtIndex:0], NSBitmapImageRep);
     cassert_no_null(irep);
     type = i_codec(codec);
-    edata = [irep representationUsingType:type properties:[NSDictionary dictionary]];
+
+    if (codec != ekBMP)
+    {
+        edata = [irep representationUsingType:type properties:[NSDictionary dictionary]];
+    }
+    else
+    {
+        /*
+         * Cocoa/CoreGraphics don't generate a correct BMP data from original
+         * indexed "palette" (1, 2, 4, 8bpp) PNG/BMP images.
+         * Generate a full back image with corrupt data at the end of bmp buffer.
+         *
+         * This fix create an intermediate JPG image, to break the palette.
+         */
+        NSData *nedata = [irep representationUsingType:i_codec(ekJPG) properties:[NSDictionary dictionary]];
+        NSBitmapImageRep *nirep = [NSBitmapImageRep imageRepWithData:nedata];
+        edata = [nirep representationUsingType:type properties:[NSDictionary dictionary]];
+    }
+
     cassert_no_null(edata);
     stm_write(stream, cast_const([edata bytes], byte_t), (uint32_t)[edata length]);
     /*[edata release]; No release (NSApplication crash) */

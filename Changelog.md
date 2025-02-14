@@ -27,7 +27,7 @@
 
 ### Build system
 
-- Updated to macOS Sequoia. [Commit]().
+- Updated to macOS Sequoia. [Commit](https://github.com/frang75/nappgui_src/commit/a524558a4267bd53f7853ce7161846cf42a75361).
 
 ## v1.5.0 - Jan 1, 2025 (r5810)
 
