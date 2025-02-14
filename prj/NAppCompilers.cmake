@@ -58,7 +58,10 @@ if (WIN32)
         string(REPLACE ";" " " msvcWarnList "${msvcWarnList}")
         string(REGEX REPLACE "/W[1-3]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:fast ${msvcWarnList}")
         string(REGEX REPLACE "/W[1-3]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /fp:fast ${msvcWarnList}")
-        add_definitions(-DUNICODE -D_UNICODE /nologo)
+        add_definitions(-D_WINDOWS -DUNICODE -D_UNICODE /nologo)
+        
+        # Force compiler to read UTF-8
+        add_compile_options("/source-charset:utf-8")
 
         # For Non-Visual Studio generators
         if (NOT CMAKE_VS_PLATFORM_TOOLSET)
