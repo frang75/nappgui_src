@@ -104,9 +104,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
         LONG_PTR edata;
 
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-
         /*
          *  Extra data is defined in 'i_registry_view_class::cbWndExtra'
          * 0 means GDI/GDI+ based drawing

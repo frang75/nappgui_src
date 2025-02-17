@@ -143,11 +143,9 @@ struct _osmenuitem_t
     OSMenu *sub_menu;
     String *text;
     uint16_t id;
-    uint16_t empty;
     bool_t visible;
     bool_t enabled;
     uint8_t state;
-    uint8_t unused;
     HBITMAP hbitmap;
     vkey_t key;
     uint32_t modifiers;
@@ -268,13 +266,18 @@ void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
         item->enabled = enabled;
         if (item->menu != NULL && item->visible == TRUE)
         {
-            MENUITEMINFO info;
-            BOOL ok = FALSE;
-            info.fMask = MIIM_STATE;
-            info.cbSize = sizeof(MENUITEMINFO);
-            info.fState = i_item_state((gui_state_t)item->state, item->enabled);
-            ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-            cassert_unref(ok == TRUE, ok);
+            HMENU hmenu = _osmenu_hmenu(item->menu);
+            if (hmenu != NULL)
+            {
+                MENUITEMINFO info;
+                BOOL ok = FALSE;
+                info.fMask = MIIM_STATE;
+                info.cbSize = sizeof(MENUITEMINFO);
+                info.fState = i_item_state((gui_state_t)item->state, item->enabled);
+                ok = SetMenuItemInfo(hmenu, item->id, FALSE, &info);
+                cassert_unref(ok == TRUE, ok);
+                _osmenu_hmenu_redraw(item->menu);
+            }
         }
     }
 }
@@ -347,7 +350,7 @@ void osmenuitem_visible(OSMenuItem *item, const bool_t visible)
     {
         item->visible = visible;
         if (item->menu != NULL)
-            _osmenu_recompute(item->menu);
+            _osmenu_hmenu_recompute(item->menu);
     }
 }
 
@@ -359,18 +362,21 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
     cassert(item->state != UINT8_MAX);
     cassert_no_null(text);
     str_upd(&item->text, text);
-
     if (item->menu != NULL && item->visible == TRUE)
     {
-        WCHAR item_text[512];
-        MENUITEMINFO info;
-        BOOL ok = FALSE;
-        i_item_text(tc(item->text), item->key, item->modifiers, item_text, 512);
-        info.cbSize = sizeof(MENUITEMINFO);
-        info.fMask = MIIM_STRING;
-        info.dwTypeData = item_text;
-        ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert_unref(ok == TRUE, ok);
+        HMENU hmenu = _osmenu_hmenu(item->menu);
+        if (hmenu != NULL)
+        {
+            WCHAR item_text[512];
+            MENUITEMINFO info;
+            BOOL ok = FALSE;
+            i_item_text(tc(item->text), item->key, item->modifiers, item_text, 512);
+            info.cbSize = sizeof(MENUITEMINFO);
+            info.fMask = MIIM_STRING;
+            info.dwTypeData = item_text;
+            ok = SetMenuItemInfo(hmenu, item->id, FALSE, &info);
+            cassert_unref(ok == TRUE, ok);
+        }
     }
 }
 
@@ -392,13 +398,17 @@ void osmenuitem_image(OSMenuItem *item, const Image *image)
 
     if (item->menu != NULL && item->visible == TRUE)
     {
-        MENUITEMINFO info;
-        BOOL ok = FALSE;
-        info.cbSize = sizeof(MENUITEMINFO);
-        info.fMask = MIIM_BITMAP;
-        info.hbmpItem = item->hbitmap;
-        ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert_unref(ok == TRUE, ok);
+        HMENU hmenu = _osmenu_hmenu(item->menu);
+        if (hmenu != NULL)
+        {
+            MENUITEMINFO info;
+            BOOL ok = FALSE;
+            info.cbSize = sizeof(MENUITEMINFO);
+            info.fMask = MIIM_BITMAP;
+            info.hbmpItem = item->hbitmap;
+            ok = SetMenuItemInfo(hmenu, item->id, FALSE, &info);
+            cassert_unref(ok == TRUE, ok);
+        }
     }
 }
 
@@ -439,15 +449,19 @@ void osmenuitem_key(OSMenuItem *item, const vkey_t key, const uint32_t modifiers
     item->modifiers = modifiers;
     if (item->menu != NULL && item->visible == TRUE)
     {
-        WCHAR item_text[512];
-        MENUITEMINFO info;
-        BOOL ok = FALSE;
-        i_item_text(tc(item->text), item->key, item->modifiers, item_text, 512);
-        info.cbSize = sizeof(MENUITEMINFO);
-        info.fMask = MIIM_STRING;
-        info.dwTypeData = item_text;
-        ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-        cassert_unref(ok == TRUE, ok);
+        HMENU hmenu = _osmenu_hmenu(item->menu);
+        if (hmenu != NULL)
+        {
+            WCHAR item_text[512];
+            MENUITEMINFO info;
+            BOOL ok = FALSE;
+            i_item_text(tc(item->text), item->key, item->modifiers, item_text, 512);
+            info.cbSize = sizeof(MENUITEMINFO);
+            info.fMask = MIIM_STRING;
+            info.dwTypeData = item_text;
+            ok = SetMenuItemInfo(hmenu, item->id, FALSE, &info);
+            cassert_unref(ok == TRUE, ok);
+        }
     }
 }
 
@@ -462,14 +476,19 @@ void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
         item->state = state;
         if (item->menu != NULL && item->visible == TRUE)
         {
-            MENUITEMINFO info;
-            BOOL ok = FALSE;
-            info.fMask = MIIM_FTYPE | MIIM_STATE;
-            info.cbSize = sizeof(MENUITEMINFO);
-            info.fType = i_item_type((gui_state_t)item->state);
-            info.fState = i_item_state((gui_state_t)item->state, item->enabled);
-            ok = SetMenuItemInfo(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
-            cassert_unref(ok == TRUE, ok);
+            HMENU hmenu = _osmenu_hmenu(item->menu);
+            if (hmenu != NULL)
+            {
+                MENUITEMINFO info;
+                BOOL ok = FALSE;
+                info.fMask = MIIM_FTYPE | MIIM_STATE;
+                info.cbSize = sizeof(MENUITEMINFO);
+                info.fType = i_item_type((gui_state_t)item->state);
+                info.fState = i_item_state((gui_state_t)item->state, item->enabled);
+                ok = SetMenuItemInfo(hmenu, item->id, FALSE, &info);
+                cassert_unref(ok == TRUE, ok);
+                _osmenu_hmenu_redraw(item->menu);
+            }
         }
     }
 }
@@ -496,7 +515,7 @@ void osmenuitem_unset_submenu(OSMenuItem *item, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
+void _osmenuitem_append_to_hmenu(OSMenuItem *item, OSMenu *menu)
 {
     cassert_no_null(item);
     cassert(item->menu == NULL);
@@ -504,9 +523,12 @@ void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
 
     if (item->visible == TRUE)
     {
+        HMENU hmenu = NULL;
         MENUITEMINFO info;
         BOOL ok = FALSE;
         cassert_no_null(item);
+        hmenu = _osmenu_hmenu(item->menu);
+        cassert_no_null(hmenu);
         info.cbSize = sizeof(MENUITEMINFO);
 
         if (item->state != UINT8_MAX)
@@ -530,6 +552,7 @@ void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
             {
                 info.fMask |= MIIM_SUBMENU;
                 info.hSubMenu = _osmenu_hmenu(item->sub_menu);
+                cassert(info.hSubMenu != NULL);
             }
         }
         else
@@ -539,22 +562,21 @@ void _osmenuitem_insert_in_hmenu(OSMenuItem *item, OSMenu *menu)
             info.wID = item->id;
         }
 
-        ok = InsertMenuItem(_osmenu_hmenu(item->menu), item->id, FALSE, &info);
+        ok = InsertMenuItem(hmenu, item->id, FALSE, &info);
         cassert_unref(ok != 0, ok);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _osmenuitem_remove_from_hmenu(OSMenuItem *item, OSMenu *menu)
+void _osmenuitem_unset_parent(OSMenuItem *item, OSMenu *menu)
 {
-    bool_t ok = FALSE;
     cassert_no_null(item);
-    cassert_unref(item->menu == menu, menu);
-    ok = (bool_t)RemoveMenu(_osmenu_hmenu(item->menu), item->id, MF_BYCOMMAND);
-    cassert(ok == TRUE);
-    item->menu = NULL;
-    return ok;
+    if (item->menu != NULL)
+    {
+        cassert_unref(item->menu == menu, menu);
+        item->menu = NULL;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -587,80 +609,4 @@ void _osmenuitem_click(OSMenuItem *item, UINT id, UINT type, UINT state)
         params.text = NULL;
         listener_event(item->OnClick, ekGUI_EVENT_MENU, item, &params, NULL, OSMenuItem, EvMenu, void);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osmenuitem_image_size(OSMenuItem *item, UINT id, UINT *width, UINT *height)
-{
-    cassert_no_null(item);
-    cassert_unref(item->id == id, id);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    cassert(FALSE);
-    /*
-    if (item->image != NULL)
-    {
-        uint32_t im_width, im_height;
-        _osimage_size(item->image, &im_width, &im_height);
-        *width = (UINT)im_width;
-        *height = (UINT)im_height;
-    }*/
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osmenuitem_draw_image(OSMenuItem *item, UINT id, UINT state, HDC hdc, const RECT *rect)
-{
-    cassert_no_null(item);
-    cassert_unref(item->id == id, id);
-    unref(hdc);
-    unref(rect);
-    unref(state);
-    cassert(FALSE);
-    /*
-    if (item->image != NULL)
-    {
-        cassert_no_null(rect);
-        if ((state & ODS_GRAYED) != 0)
-        {
-            UINT w = rect->right - rect->left;
-            UINT h = rect->bottom - rect->top;
-            HBITMAP bitmap = _osimage_get_hbitmap(item->image);
-            HBITMAP hbmMono = CreateBitmap(w, h, 1, 1, NULL);
-            HDC hdcMono = CreateCompatibleDC(hdc);
-            HBITMAP hbmPrev = SelectObject(hdcMono, hbmMono);
-            HDC hdcScreen = CreateCompatibleDC(0);
-            HBITMAP hcolPrev = SelectObject(hdcScreen, bitmap);
-
-           //SetBkColor(hdcScreen, GetSysColor(COLOR_DESKTOP));
-           BitBlt(hdcMono, 0, 0, w, h, hdcScreen, 0, 0, SRCCOPY);
-
-             //SetTextColor(hdc, RGB(0xFF,0,0));
-             //SetBkColor(hdc, RGB(0,0x80,0));
-             BitBlt(hdc, 0, 0, w, h, hdcMono, 0, 0, SRCCOPY);
-
-               DeleteDC(hdcScreen);
-             SelectObject(hdcMono, hbmPrev);
-             DeleteDC(hdcMono);
-             DeleteObject(hbmMono);
-
-
-           // Create a monochrome bitmap.
-        HDC *monoDC = CreateCompatibleDC(0);
-        HBITMAP *monoBmp = CreateCompatibleBitmap(monoDC, (rect->right - rect->left), (rect->bottom - rect->top));
-        HBITMAP *oldMonoBmp = SelectObject(monoDC, monoBmp);
-
-        colorDC.SetBkColor(GetSysColor(COLOR_BTNHIGHLIGHT));
-        monoDC.BitBlt(0, 0, size.cx, size.cy, &colorDC, 0, 0, SRCCOPY);
-
-       }
-       else
-       {
-             SetTextColor(hdc, RGB(0xFF,0,0));
-             SetBkColor(hdc, RGB(0,0x80,0));
-           _osimage_draw(item->image, hdc, (uint32_t)(rect->left / 2), (uint32_t)rect->top, (uint32_t)(rect->right - rect->left), (uint32_t)(rect->bottom - rect->top));
-       }
-    }
-    */
 }

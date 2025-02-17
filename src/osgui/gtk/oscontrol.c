@@ -34,6 +34,14 @@
 #error This file is only for GTK Toolkit
 #endif
 
+typedef struct _wchild_t WChild;
+struct _wchild_t
+{
+    uint32_t index;
+    uint32_t current;
+    GtkWidget *widget;
+};
+
 /*---------------------------------------------------------------------------*/
 
 static void i_OnFocus(GtkWidget *widget, OSControl *control)
@@ -294,28 +302,67 @@ void _oscontrol_widget_detach(GtkWidget *widget, GtkWidget *parent_widget)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t _oscontrol_num_children(GtkContainer *container)
+uint32_t _oscontrol_num_children(GtkWidget *widget)
 {
-    cassert_no_null(container);
-    return i_num_children(container);
+    cassert_no_null(widget);
+    cassert(GTK_IS_CONTAINER(widget));
+    return i_num_children(GTK_CONTAINER(widget));
 }
 
 /*---------------------------------------------------------------------------*/
 
-GtkWidget *_oscontrol_get_child(GtkContainer *container, const uint32_t index)
+static void i_get_child(GtkWidget *widget, gpointer data)
 {
-    GList *children = NULL;
-    uint32_t i = 0;
-    cassert_no_null(container);
-    children = gtk_container_get_children(container);
-    for (i = 0; i < index; ++i)
+    WChild *wchild = cast(data, WChild);
+    cassert_no_null(wchild);
+    if (wchild->current == wchild->index)
     {
-        cassert_no_null(children);
-        children = children->next;
+        cassert(wchild->widget == NULL);
+        wchild->widget = widget;
     }
+    wchild->current += 1;
+}
 
-    cassert_no_null(children);
-    return (GtkWidget *)children->data;
+/*---------------------------------------------------------------------------*/
+
+GtkWidget *_oscontrol_get_child(GtkWidget *widget, const uint32_t index)
+{
+    WChild wchild;
+    cassert_no_null(widget);
+    cassert(GTK_IS_CONTAINER(widget));
+    wchild.index = index;
+    wchild.current = 0;
+    wchild.widget = NULL;
+    gtk_container_foreach(GTK_CONTAINER(widget), i_get_child, (gpointer)&wchild);
+    return wchild.widget;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_find_child(GtkWidget *widget, gpointer data)
+{
+    WChild *wchild = cast(data, WChild);
+    cassert_no_null(wchild);
+    if (wchild->widget == widget)
+    {
+        cassert(wchild->index == UINT32_MAX);
+        wchild->index = wchild->current;
+    }
+    wchild->current += 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _oscontrol_find_child(GtkWidget *widget, GtkWidget *child)
+{
+    WChild wchild;
+    cassert_no_null(widget);
+    cassert(GTK_IS_CONTAINER(widget));
+    wchild.index = UINT32_MAX;
+    wchild.current = 0;
+    wchild.widget = child;
+    gtk_container_foreach(GTK_CONTAINER(widget), i_find_child, (gpointer)&wchild);
+    return wchild.index;
 }
 
 /*---------------------------------------------------------------------------*/

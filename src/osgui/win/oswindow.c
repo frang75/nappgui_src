@@ -26,6 +26,7 @@
 #include <core/heap.h>
 #include <osbs/osbs.h>
 #include <osbs/bthread.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
@@ -43,15 +44,10 @@ struct _oswindow_t
     OSControl control;
     DWORD dwStyle;
     DWORD dwExStyle;
-    BOOL bMenu;
     HMENU current_popup_menu;
     HCURSOR cursor;
-    bool_t in_user_resizing;
-    bool_t in_internal_resize;
-    bool_t abort_resize;
     bool_t launch_resize_event;
     bool_t destroy_main_view;
-    uint32_t resize_strategy;
     uint32_t flags;
     wstate_t state;
     gui_role_t role;
@@ -73,6 +69,40 @@ static ArrPt(Listener) *i_IDLES = NULL;
 
 /*---------------------------------------------------------------------------*/
 
+/* Same as AdjustWindowRectEx, but compatible with multi-row menubars */
+static void i_adjust_window_size(HWND hwnd, const LONG width, const LONG height, const DWORD dwStyle, const DWORD dwExStyle, LONG *nwidth, LONG *nheight)
+{
+    RECT rect;
+    BOOL ok = FALSE;
+    HMENU menubar = GetMenu(hwnd);
+    cassert_no_null(nwidth);
+    cassert_no_null(nheight);
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = width;
+    rect.bottom = height;
+    ok = AdjustWindowRectEx(&rect, dwStyle, FALSE, dwExStyle);
+    cassert_unref(ok != 0, ok);
+    *nwidth = rect.right - rect.left;
+    *nheight = rect.bottom - rect.top;
+
+    if (menubar != NULL)
+    {
+        RECT mrect, irect;
+        int i, n = GetMenuItemCount(menubar);
+        SetRectEmpty(&mrect);
+        for (i = 0; i < n; ++i)
+        {
+            GetMenuItemRect(hwnd, menubar, i, &irect);
+            UnionRect(&mrect, &mrect, &irect);
+        }
+
+        *nheight += mrect.bottom - mrect.top;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
 {
     cassert_no_null(window);
@@ -81,56 +111,56 @@ static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
     {
         if (window->OnResize != NULL)
         {
-            RECT rc;
-            BOOL ok;
+            /* ekGUI_EVENT_WND_SIZING needs the client area size (no full window size) */
             EvSize params;
             EvSize result;
-            SetRectEmpty(&rc);
-            ok = AdjustWindowRectEx(&rc, window->dwStyle, window->bMenu, window->dwExStyle);
-            cassert_unref(ok != 0, ok);
-            params.width = (real32_t)((wrect->right - wrect->left) - (rc.right - rc.left));
-            params.height = (real32_t)((wrect->bottom - wrect->top) - (rc.bottom - rc.top));
+
+            {
+                LONG nwidth, nheight;
+                i_adjust_window_size(window->control.hwnd, 0, 0, window->dwStyle, window->dwExStyle, &nwidth, &nheight);
+                params.width = (real32_t)((wrect->right - wrect->left) - nwidth);
+                params.height = (real32_t)((wrect->bottom - wrect->top) - nheight);
+            }
+
             listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
 
-            rc.left = 0;
-            rc.top = 0;
-            rc.right = (LONG)result.width;
-            rc.bottom = (LONG)result.height;
-            ok = AdjustWindowRectEx(&rc, window->dwStyle, window->bMenu, window->dwExStyle);
-            cassert_unref(ok != 0, ok);
-
-            switch (edge)
             {
-            case WMSZ_RIGHT:
-                wrect->right = wrect->left + (rc.right - rc.left);
-                break;
-            case WMSZ_BOTTOM:
-                wrect->bottom = wrect->top + (rc.bottom - rc.top);
-                break;
-            case WMSZ_LEFT:
-                wrect->left = wrect->right - (rc.right - rc.left);
-                break;
-            case WMSZ_TOP:
-                wrect->top = wrect->bottom - (rc.bottom - rc.top);
-                break;
-            case WMSZ_BOTTOMLEFT:
-                wrect->bottom = wrect->top + (rc.bottom - rc.top);
-                wrect->left = wrect->right - (rc.right - rc.left);
-                break;
-            case WMSZ_BOTTOMRIGHT:
-                wrect->bottom = wrect->top + (rc.bottom - rc.top);
-                wrect->right = wrect->left + (rc.right - rc.left);
-                break;
-            case WMSZ_TOPLEFT:
-                wrect->top = wrect->bottom - (rc.bottom - rc.top);
-                wrect->left = wrect->right - (rc.right - rc.left);
-                break;
-            case WMSZ_TOPRIGHT:
-                wrect->top = wrect->bottom - (rc.bottom - rc.top);
-                wrect->right = wrect->left + (rc.right - rc.left);
-                break;
-            default:
-                break;
+                LONG nwidth, nheight;
+                i_adjust_window_size(window->control.hwnd, (LONG)result.width, (LONG)result.height, window->dwStyle, window->dwExStyle, &nwidth, &nheight);
+
+                switch (edge)
+                {
+                case WMSZ_RIGHT:
+                    wrect->right = wrect->left + nwidth;
+                    break;
+                case WMSZ_BOTTOM:
+                    wrect->bottom = wrect->top + nheight;
+                    break;
+                case WMSZ_LEFT:
+                    wrect->left = wrect->right - nwidth;
+                    break;
+                case WMSZ_TOP:
+                    wrect->top = wrect->bottom - nheight;
+                    break;
+                case WMSZ_BOTTOMLEFT:
+                    wrect->left = wrect->right - nwidth;
+                    wrect->bottom = wrect->top + nheight;
+                    break;
+                case WMSZ_BOTTOMRIGHT:
+                    wrect->right = wrect->left + nwidth;
+                    wrect->bottom = wrect->top + nheight;
+                    break;
+                case WMSZ_TOPLEFT:
+                    wrect->left = wrect->right - nwidth;
+                    wrect->top = wrect->bottom - nheight;
+                    break;
+                case WMSZ_TOPRIGHT:
+                    wrect->right = wrect->left + nwidth;
+                    wrect->top = wrect->bottom - nheight;
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
@@ -138,45 +168,28 @@ static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_resize(OSWindow *window, LONG width, LONG height)
+static void i_resize(OSWindow *window, LONG client_width, LONG client_height)
 {
     cassert_no_null(window);
-    if (window->launch_resize_event == TRUE)
+    if (window->launch_resize_event == TRUE && window->OnResize != NULL)
     {
-        if (window->OnResize != NULL)
-        {
-            RECT rect;
-            BOOL ok;
-            EvSize params;
-            rect.left = 0;
-            rect.top = 0;
-            rect.right = width;
-            rect.bottom = height;
-            ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
-            cassert_unref(ok != 0, ok);
-            params.width = (real32_t)width;
-            params.height = (real32_t)height;
-            listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &params, NULL, OSWindow, EvSize, void);
-        }
+        EvSize params;
+        params.width = (real32_t)client_width;
+        params.height = (real32_t)client_height;
+        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &params, NULL, OSWindow, EvSize, void);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_moved(OSWindow *window, const int16_t content_x, const int16_t content_y)
+static void i_moved(OSWindow *window)
 {
     cassert_no_null(window);
     if (window->OnMoved != NULL)
     {
         RECT rect;
-        BOOL ok;
         EvPos params;
-        rect.left = content_x;
-        rect.top = content_y;
-        rect.right = content_x + 100;
-        rect.bottom = content_y + 100;
-        ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
-        cassert_unref(ok != 0, ok);
+        _osgui_frame_without_shadows(window->control.hwnd, &rect);
         params.x = (real32_t)(rect.left);
         params.y = (real32_t)(rect.top);
         listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &params, NULL, OSWindow, EvPos, void);
@@ -353,113 +366,22 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
             return 0;
         }
 
-    case WM_PAINT:
-        if (window->in_internal_resize == TRUE)
-            return 0;
-        break;
-
     case WM_SIZING:
-        if (window->resize_strategy > 0 && window->in_user_resizing == TRUE)
-        {
-            cassert(FALSE);
-            if (window->in_internal_resize == FALSE)
-            {
-                window->in_internal_resize = TRUE;
-                ShowWindow(cast(window->main_panel, OSControl)->hwnd, SW_HIDE);
-            }
-        }
-
         i_resizing(window, wParam, cast(lParam, RECT));
         return TRUE;
 
-    case WM_ENTERSIZEMOVE:
-        window->in_user_resizing = TRUE;
-        break;
-
-    case WM_EXITSIZEMOVE:
-        if (window->in_internal_resize == TRUE)
-            ShowWindow(cast(window->main_panel, OSControl)->hwnd, SW_SHOW);
-        window->in_user_resizing = FALSE;
-        window->in_internal_resize = FALSE;
-        break;
-
     case WM_SIZE:
-        if (IsWindowVisible(window->control.hwnd) == FALSE)
-            return 0;
-
-        if (window->abort_resize == TRUE)
-        {
-            window->abort_resize = FALSE;
-            return 0;
-        }
-
-        if (wParam == SIZE_MINIMIZED)
-            return 0;
-
-        if (window->in_internal_resize == TRUE)
-        {
-            HDC memHdc = NULL;
-            LONG width, height;
-            HDC hdc;
-            cassert(FALSE);
-            _ospanel_resize_double_buffer(window->main_panel, LOWORD(lParam), HIWORD(lParam));
-            memHdc = _ospanel_paint_double_buffer(window->main_panel, window->resize_strategy, &width, &height);
-            hdc = GetDC(window->control.hwnd);
-            BitBlt(hdc, 0, 0, (int)width, (int)height, memHdc, 0, 0, SRCCOPY);
-            ReleaseDC(window->control.hwnd, hdc);
-        }
-
-        {
-            RECT rect;
-            BOOL ok;
-            rect.left = 0;
-            rect.top = 0;
-            rect.right = LOWORD(lParam);
-            rect.bottom = HIWORD(lParam);
-            ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
-            cassert_unref(ok != 0, ok);
-            i_resizing(window, 1, &rect);
-        }
-
-        if (window->resize_strategy == 0)
-            window->in_internal_resize = TRUE;
-
-        i_resize(window, LOWORD(lParam), HIWORD(lParam));
-
-        if (window->resize_strategy == 0)
-            window->in_internal_resize = FALSE;
-
+        if (IsWindowVisible(window->control.hwnd) == TRUE && wParam != SIZE_MINIMIZED)
+            i_resize(window, LOWORD(lParam), HIWORD(lParam));
         return 0;
 
     case WM_MOVE:
-        i_moved(window, (int16_t)LOWORD(lParam), (int16_t)HIWORD(lParam));
+        i_moved(window);
         return 0;
 
     case WM_CLOSE:
         i_close(window, ekGUI_CLOSE_BUTTON);
         return 0;
-
-    case WM_MEASUREITEM:
-    {
-        MEASUREITEMSTRUCT *mi = cast(lParam, MEASUREITEMSTRUCT);
-        /* Sent by menu */
-        cassert((UINT)wParam == 0);
-        cassert_no_null(mi);
-        cassert(mi->CtlType == ODT_MENU);
-        _osmenuitem_image_size(cast(mi->itemData, OSMenuItem), mi->itemID, &mi->itemWidth, &mi->itemHeight);
-        return TRUE;
-    }
-
-    case WM_DRAWITEM:
-    {
-        DRAWITEMSTRUCT *di = cast(lParam, DRAWITEMSTRUCT);
-        /* Sent by menu */
-        cassert((UINT)wParam == 0);
-        cassert_no_null(di);
-        cassert(di->CtlType == ODT_MENU);
-        _osmenuitem_draw_image(cast(di->itemData, OSMenuItem), di->itemID, di->itemState, di->hDC, &di->rcItem);
-        return TRUE;
-    }
 
     case WM_SETCURSOR:
         if (window->cursor != NULL)
@@ -947,18 +869,13 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 
 void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
-    RECT rect;
-    BOOL ok;
+    BOOL ok = FALSE;
+    LONG nwidth, nheight;
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
-    rect.left = 0;
-    rect.top = 0;
-    rect.right = (LONG)content_width;
-    rect.bottom = (LONG)content_height;
-    ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
-    cassert_unref(ok != 0, ok);
+    i_adjust_window_size(window->control.hwnd, (LONG)content_width, (LONG)content_height, window->dwStyle, window->dwExStyle, &nwidth, &nheight);
     window->launch_resize_event = FALSE;
-    ok = SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)(rect.right - rect.left), (int)(rect.bottom - rect.top), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+    ok = SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)nwidth, (int)nheight, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
     cassert_unref(ok != 0, ok);
     window->launch_resize_event = TRUE;
 }
@@ -984,12 +901,8 @@ void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
 void oswindow_property(OSWindow *window, const gui_prop_t property, const void *value)
 {
     cassert_no_null(window);
-    if (property == ekGUI_PROP_RESIZE)
-    {
-        cassert_no_null(value);
-        window->resize_strategy = *cast(value, uint32_t);
-    }
-    else if (property == ekGUI_PROP_CHILDREN)
+    unref(value);
+    if (property == ekGUI_PROP_CHILDREN)
     {
         window->destroy_main_view = FALSE;
     }
@@ -1059,32 +972,17 @@ void _oswindow_destroy_idles(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_adjust_menu_size(OSWindow *window)
-{
-    RECT rect;
-    BOOL ok = FALSE;
-    cassert_no_null(window);
-    ok = GetClientRect(window->control.hwnd, &rect);
-    cassert_unref(ok != 0, ok);
-    ok = AdjustWindowRectEx(&rect, window->dwStyle, window->bMenu, window->dwExStyle);
-    cassert_unref(ok != 0, ok);
-    SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)(rect.right - rect.left), (int)(rect.bottom - rect.top), SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _oswindow_set_menubar(OSWindow *window, HMENU hmenu)
 {
     BOOL ok = FALSE;
     cassert_no_null(window);
     cassert_no_null(hmenu);
-    cassert(window->bMenu == FALSE);
     cassert(GetMenu(window->control.hwnd) == NULL);
-    window->bMenu = TRUE;
-    i_adjust_menu_size(window);
+    window->launch_resize_event = FALSE;
     ok = SetMenu(window->control.hwnd, hmenu);
     cassert_unref(ok == TRUE, ok);
     cassert(GetMenu(window->control.hwnd) == hmenu);
+    window->launch_resize_event = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1094,12 +992,11 @@ void _oswindow_unset_menubar(OSWindow *window, HMENU hmenu)
     BOOL ok = FALSE;
     cassert_no_null(window);
     cassert_unref(GetMenu(window->control.hwnd) == hmenu, hmenu);
-    cassert(window->bMenu == TRUE);
-    window->bMenu = FALSE;
-    i_adjust_menu_size(window);
+    window->launch_resize_event = FALSE;
     ok = SetMenu(window->control.hwnd, NULL);
     cassert_unref(ok == TRUE, ok);
     cassert(GetMenu(window->control.hwnd) == NULL);
+    window->launch_resize_event = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1110,11 +1007,12 @@ void _oswindow_change_menubar(OSWindow *window, HMENU prev_hmenu, HMENU new_hmen
     cassert_no_null(window);
     cassert_no_null(prev_hmenu);
     cassert_no_null(new_hmenu);
-    cassert(window->bMenu == TRUE);
+    window->launch_resize_event = FALSE;
     cassert(GetMenu(window->control.hwnd) == prev_hmenu);
     ok = SetMenu(window->control.hwnd, new_hmenu);
     cassert_unref(ok == TRUE, ok);
     cassert(GetMenu(window->control.hwnd) == new_hmenu);
+    window->launch_resize_event = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1355,15 +1253,6 @@ static ___INLINE OSWindow *i_root(HWND hwnd)
     root_hwnd = GetAncestor(hwnd, GA_ROOT);
     cassert_no_null(root_hwnd);
     return cast(GetWindowLongPtr(root_hwnd, GWLP_USERDATA), OSWindow);
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t _oswindow_in_resizing(HWND child_hwnd)
-{
-    OSWindow *window = i_root(child_hwnd);
-    cassert_no_null(window);
-    return window->in_internal_resize;
 }
 
 /*---------------------------------------------------------------------------*/

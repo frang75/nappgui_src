@@ -206,12 +206,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         }
         break;
 
-    case WM_MEASUREITEM:
-    {
-        cassert(FALSE);
-        break;
-    }
-
     case WM_NOTIFY:
     {
         const NMHDR *nmhdr = cast_const(lParam, NMHDR);

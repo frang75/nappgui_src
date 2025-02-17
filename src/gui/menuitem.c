@@ -26,7 +26,10 @@ struct _menu_item_t
 {
     Object object;
     GuiCtx *context;
-    bool_t is_separator;
+    bool_t separator;
+    bool_t visible;
+    bool_t enabled;
+    gui_state_t state;
     uint16_t index;
     ResId textid;
     String *text;
@@ -38,24 +41,17 @@ struct _menu_item_t
 
 /*---------------------------------------------------------------------------*/
 
-static MenuItem *i_create(
-    const GuiCtx *context,
-    const bool_t is_separator,
-    Image **image,
-    void **ositem,
-    Menu **submenu,
-    Listener **OnClick)
+static MenuItem *i_create(const GuiCtx *context, const bool_t separator, void **ositem)
 {
-    MenuItem *item = obj_new(MenuItem);
+    MenuItem *item = obj_new0(MenuItem);
     item->context = guictx_retain(context);
-    item->is_separator = is_separator;
+    item->separator = separator;
+    item->visible = TRUE;
+    item->enabled = TRUE;
+    item->state = ekGUI_OFF;
     item->index = UINT16_MAX;
-    item->textid = NULL;
     item->text = str_c("");
-    item->image = ptr_dget(image, Image);
     item->ositem = ptr_dget_no_null(ositem, void);
-    item->submenu = ptr_dget(submenu, Menu);
-    item->OnClick = ptr_dget(OnClick, Listener);
     return item;
 }
 
@@ -71,7 +67,7 @@ void _menuitem_destroy(MenuItem **item)
     cassert((*item)->OnClick == NULL);
     if ((*item)->submenu != NULL)
     {
-        void *ositem;
+        void *ositem = NULL;
         cassert_no_nullf((*item)->context->func_detach_menu_from_menu_item);
         _menu_unset_parent((*item)->submenu);
         ositem = _menu_ositem((*item)->submenu);
@@ -122,29 +118,29 @@ static void i_synchro_menuitem_mark(
 static void i_OnMenuItemClick(MenuItem *item, Event *e)
 {
     cassert_no_null(item);
-    cassert(item->is_separator == FALSE);
+    cassert(item->separator == FALSE);
     cassert(event_sender_imp(e, NULL) == item->ositem);
 
     /*
-    switch (item->edit_mode)
-    {
-        case ekGUI_MENUITEM_MODE_TOOGLE_MARK:
-        case ekGUI_MENUITEM_MODE_TOOGLE_TEXT:
+        switch (item->edit_mode)
+        {
+            case ekGUI_MENUITEM_MODE_TOOGLE_MARK:
+            case ekGUI_MENUITEM_MODE_TOOGLE_TEXT:
 
-            if (item->edit_value != NULL)
-            {
-                if (*item->edit_value == TRUE)
-                    *item->edit_value = FALSE;
-                else
-                    *item->edit_value = TRUE;
-            }
+                if (item->edit_value != NULL)
+                {
+                    if (*item->edit_value == TRUE)
+                        *item->edit_value = FALSE;
+                    else
+                        *item->edit_value = TRUE;
+                }
 
-            i_synchro_menuitem_mark(item->context, item->edit_mode, item->edit_value, item->ositem, item->on_text, item->off_text);
-            break;
-        case ekGUI_MENUITEM_MODE_PUSH:
-            break;
-        cassert_default();
-    }*/
+                i_synchro_menuitem_mark(item->context, item->edit_mode, item->edit_value, item->ositem, item->on_text, item->off_text);
+                break;
+            case ekGUI_MENUITEM_MODE_PUSH:
+                break;
+            cassert_default();
+        }*/
 
     if (item->OnClick != NULL)
     {
@@ -161,18 +157,14 @@ static void i_OnMenuItemClick(MenuItem *item, Event *e)
 
 MenuItem *menuitem_create(void)
 {
-    const GuiCtx *context = NULL;
+    const GuiCtx *context = guictx_get_current();
     void *ositem = NULL;
-    Menu *submenu = NULL;
-    Image *image = NULL;
-    Listener *OnClick = NULL;
     MenuItem *item = NULL;
-    context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_menuitem_create);
     cassert_no_nullf(context->func_menuitem_OnClick);
     ositem = context->func_menuitem_create((enum_t)ekMENU_ITEM);
-    item = i_create(context, PARAM(is_separator, FALSE), &image, &ositem, &submenu, &OnClick);
+    item = i_create(context, FALSE, &ositem);
     context->func_menuitem_OnClick(item->ositem, obj_listener(item, i_OnMenuItemClick, MenuItem));
     return item;
 }
@@ -181,16 +173,12 @@ MenuItem *menuitem_create(void)
 
 MenuItem *menuitem_separator(void)
 {
-    const GuiCtx *context = NULL;
+    const GuiCtx *context = guictx_get_current();
     void *ositem = NULL;
-    Menu *submenu = NULL;
-    Image *image = NULL;
-    Listener *OnClick = NULL;
-    context = guictx_get_current();
     cassert_no_null(context);
     cassert_no_nullf(context->func_menuitem_create);
     ositem = context->func_menuitem_create((enum_t)ekMENU_SEPARATOR);
-    return i_create(context, PARAM(has_parent, FALSE), &image, &ositem, &submenu, &OnClick);
+    return i_create(context, TRUE, &ositem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -208,6 +196,7 @@ void menuitem_enabled(MenuItem *item, const bool_t enabled)
     cassert_no_null(item);
     cassert_no_null(item->context);
     cassert_no_nullf(item->context->func_menuitem_set_enabled);
+    item->enabled = enabled;
     item->context->func_menuitem_set_enabled(item->ositem, enabled);
 }
 
@@ -218,7 +207,20 @@ void menuitem_visible(MenuItem *item, const bool_t visible)
     cassert_no_null(item);
     cassert_no_null(item->context);
     cassert_no_nullf(item->context->func_menuitem_set_visible);
+    item->visible = visible;
     item->context->func_menuitem_set_visible(item->ositem, visible);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void menuitem_state(MenuItem *item, const gui_state_t state)
+{
+    cassert_no_null(item);
+    cassert(item->separator == FALSE);
+    cassert_no_null(item->context);
+    cassert_no_nullf(item->context->func_menuitem_set_state);
+    item->state = state;
+    item->context->func_menuitem_set_state(item->ositem, (enum_t)state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -227,7 +229,7 @@ static void i_update_text(MenuItem *item, const char_t *text, ResId *resid)
 {
     const char_t *ltext = NULL;
     cassert_no_null(item);
-    cassert(item->is_separator == FALSE);
+    cassert(item->separator == FALSE);
     cassert_no_null(item->context);
     cassert_no_nullf(item->context->func_menuitem_set_text);
     ltext = _gui_respack_text(text, resid);
@@ -261,7 +263,7 @@ void menuitem_image(MenuItem *item, const Image *image)
 void menuitem_key(MenuItem *item, const vkey_t key, const uint32_t modifiers)
 {
     cassert_no_null(item);
-    cassert(item->is_separator == FALSE);
+    cassert(item->separator == FALSE);
     cassert_no_null(item->context);
     cassert_no_nullf(item->context->func_menuitem_set_key_equivalent);
     item->context->func_menuitem_set_key_equivalent(item->ositem, key, modifiers);
@@ -273,7 +275,7 @@ void menuitem_submenu(MenuItem *item, Menu **submenu)
 {
     void *ositem = NULL;
     cassert_no_null(item);
-    cassert(item->is_separator == FALSE);
+    cassert(item->separator == FALSE);
     cassert(item->submenu == NULL);
     cassert_no_null(submenu);
     cassert_no_null(item->context);
@@ -287,13 +289,50 @@ void menuitem_submenu(MenuItem *item, Menu **submenu)
 
 /*---------------------------------------------------------------------------*/
 
-void menuitem_state(MenuItem *item, const gui_state_t state)
+const char_t *menuitem_get_text(const MenuItem *item)
 {
     cassert_no_null(item);
-    cassert(item->is_separator == FALSE);
-    cassert_no_null(item->context);
-    cassert_no_nullf(item->context->func_menuitem_set_state);
-    item->context->func_menuitem_set_state(item->ositem, (enum_t)state);
+    return tc(item->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Image *menuitem_get_image(const MenuItem *item)
+{
+    cassert_no_null(item);
+    return item->image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t menuitem_get_separator(const MenuItem *item)
+{
+    cassert_no_null(item);
+    return item->separator;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t menuitem_get_enabled(const MenuItem *item)
+{
+    cassert_no_null(item);
+    return item->enabled;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t menuitem_get_visible(const MenuItem *item)
+{
+    cassert_no_null(item);
+    return item->visible;
+}
+
+/*---------------------------------------------------------------------------*/
+
+gui_state_t menuitem_get_state(const MenuItem *item)
+{
+    cassert_no_null(item);
+    return item->state;
 }
 
 /*---------------------------------------------------------------------------*/

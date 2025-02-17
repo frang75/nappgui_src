@@ -94,11 +94,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             break;
         return 0;
 
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
-
     case WM_CTLCOLOREDIT:
     {
         HBRUSH default_brush = (HBRUSH)CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);

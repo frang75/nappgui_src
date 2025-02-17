@@ -8,8 +8,10 @@
  *
  */
 
-/* Cocoa NSMenu wrapper */
+/* Operating system native menu */
 
+#include "osmenu_osx.inl"
+#include "osmenuitem_osx.inl"
 #include "osgui_osx.inl"
 #include "oswindow_osx.inl"
 #include "../osmenu.h"
@@ -26,7 +28,7 @@
 @interface OSXMenu : NSMenu
 {
   @public
-    void *non_used;
+    BOOL is_menubar;
 }
 @end
 
@@ -48,6 +50,7 @@ OSMenu *osmenu_create(const enum_t flags)
     OSXMenu *menu = [[OSXMenu alloc] initWithTitle:[NSString string]];
     unref(flags);
     heap_auditor_add("OSXMenu");
+    menu->is_menubar = FALSE;
     [menu setAutoenablesItems:NO];
     [menu setShowsStateColumn:YES];
     return cast(menu, OSMenu);
@@ -70,27 +73,50 @@ void osmenu_destroy(OSMenu **menu)
 
 /*---------------------------------------------------------------------------*/
 
-void osmenu_add_item(OSMenu *menu, OSMenuItem *menuitem)
+static void i_force_submenu(OSXMenu *lmenu, NSMenuItem *litem)
 {
-    /* In BigSur, the retainCount after addItem is not +1
-     * NSUInteger retain_count = 0;
-     * NSUInteger retain_count2 = 0;
-     */
+    cassert_no_null(lmenu);
+    cassert_no_null(litem);
+    cassert_unref(lmenu->is_menubar == TRUE, lmenu);
+    if ([litem submenu] == nil)
+    {
+        /* In macOS a menu item in menubar without submenu is not visible. */
+        NSMenu *submenu = [[NSMenu alloc] initWithTitle:[litem title]];
+        [litem setSubmenu:submenu];
+        [submenu release];
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_revert_forced_submenu(OSXMenu *lmenu, NSMenuItem *litem)
+{
+    cassert_no_null(lmenu);
+    cassert_no_null(litem);
+    cassert_unref(lmenu->is_menubar == TRUE, lmenu);
+    /* Unset the submenu added by 'i_force_submenu' */
+    if ([litem submenu] != nil && [[litem submenu] numberOfItems] == 0)
+        [litem setSubmenu:nil];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osmenu_insert_item(OSMenu *menu, const uint32_t pos, OSMenuItem *item)
+{
     NSUInteger num_items = 0;
     OSXMenu *lmenu = cast(menu, OSXMenu);
-    NSMenuItem *litem = cast(menuitem, NSMenuItem);
+    NSMenuItem *litem = cast(item, NSMenuItem);
     cassert_no_null(lmenu);
     cassert_no_null(litem);
     cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
     cassert([cast(litem, NSObject) isKindOfClass:[NSMenuItem class]] == YES);
     num_items = [[lmenu itemArray] count];
     cassert([litem menu] == nil);
-    /* retain_count = [litem retainCount]; */
-    [lmenu addItem:litem];
-    /* retain_count2 = [litem retainCount]; */
-    /* cassert([litem retainCount] == retain_count + 1); */
+    [lmenu insertItem:litem atIndex:(NSInteger)pos];
     cassert([litem menu] == lmenu);
     cassert_unref([[lmenu itemArray] count] == num_items + 1, num_items);
+    if (lmenu->is_menubar == TRUE)
+        i_force_submenu(lmenu, litem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -133,4 +159,64 @@ void osmenu_hide(OSMenu *menu)
 {
     unref(menu);
     cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osmenu_is_menubar(const OSMenu *menu)
+{
+    OSXMenu *lmenu = cast(menu, OSXMenu);
+    cassert_no_null(lmenu);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
+    return lmenu->is_menubar;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osmenu_set_menubar(OSMenu *menu)
+{
+    OSXMenu *lmenu = cast(menu, OSXMenu);
+    NSInteger i = 0, n = 0;
+    cassert_no_null(lmenu);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
+    cassert(lmenu->is_menubar == FALSE);
+    lmenu->is_menubar = TRUE;
+
+    n = [lmenu numberOfItems];
+    for (i = 0; i < n; ++i)
+    {
+        NSMenuItem *item = [lmenu itemAtIndex:i];
+        if (item != nil && [item isSeparatorItem] == NO)
+        {
+            i_force_submenu(lmenu, item);
+            /* In macOS icons in items of menubar are not allowed */
+            if ([item image] != nil)
+                [item setImage:nil];
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osmenu_unset_menubar(OSMenu *menu)
+{
+    OSXMenu *lmenu = cast(menu, OSXMenu);
+    NSInteger i = 0, n = 0;
+    cassert_no_null(lmenu);
+    cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
+    cassert(lmenu->is_menubar == TRUE);
+    n = [lmenu numberOfItems];
+    for (i = 0; i < n; ++i)
+    {
+        NSMenuItem *item = [lmenu itemAtIndex:i];
+        if (item != nil && [item isSeparatorItem] == NO)
+        {
+            /* Restore the icon removed by '_osmenu_set_menubar' */
+            NSImage *image = _osmenuitem_image(cast(item, OSMenuItem));
+            [item setImage:image];
+            i_revert_forced_submenu(lmenu, item);
+        }
+    }
+
+    lmenu->is_menubar = FALSE;
 }

@@ -15,6 +15,7 @@
 #include "gui.inl"
 #include "menuitem.h"
 #include "menuitem.inl"
+#include "window.h"
 #include "window.inl"
 #include <draw2d/guictx.h>
 #include <core/arrpt.h>
@@ -62,11 +63,11 @@ Menu *menu_create(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_detach_menuitems(ArrPt(MenuItem) *items, void *ositem, FPtr_gctx_set_ptr func_detach_menuitem_from_menu)
+static void i_detach_menuitems(ArrPt(MenuItem) *items, void *ositem, FPtr_gctx_set_ptr func_menu_delete_item)
 {
     uint32_t i, num_items;
     MenuItem **item;
-    cassert_no_nullf(func_detach_menuitem_from_menu);
+    cassert_no_nullf(func_menu_delete_item);
     num_items = arrpt_size(items, MenuItem);
     item = arrpt_all(items, MenuItem);
     for (i = 0; i < num_items; ++i, ++item)
@@ -74,7 +75,7 @@ static void i_detach_menuitems(ArrPt(MenuItem) *items, void *ositem, FPtr_gctx_s
         void *renderable_menu_item;
         _menuitem_unset_parent(*item);
         renderable_menu_item = _menuitem_get_renderable(*item);
-        func_detach_menuitem_from_menu(ositem, renderable_menu_item);
+        func_menu_delete_item(ositem, renderable_menu_item);
     }
 }
 
@@ -87,7 +88,7 @@ static void i_destroy(Menu **menu)
     cassert((*menu)->has_parent == FALSE);
     cassert_no_null((*menu)->context);
     cassert_no_nullf((*menu)->context->func_menu_destroy);
-    i_detach_menuitems((*menu)->items, (*menu)->ositem, (*menu)->context->func_detach_menuitem_from_menu);
+    i_detach_menuitems((*menu)->items, (*menu)->ositem, (*menu)->context->func_menu_delete_item);
     arrpt_destroy(&(*menu)->items, _menuitem_destroy, MenuItem);
     (*menu)->context->func_menu_destroy(&(*menu)->ositem);
     guictx_release(&(*menu)->context);
@@ -112,17 +113,50 @@ void _menu_destroy(Menu **menu)
 
 /*---------------------------------------------------------------------------*/
 
-void menu_item(Menu *menu, MenuItem *item)
+void menu_add_item(Menu *menu, MenuItem *item)
+{
+    uint32_t pos = UINT32_MAX;
+    void *ositem = NULL;
+    cassert_no_null(menu);
+    cassert_no_null(menu->context);
+    cassert_no_nullf(menu->context->func_menu_insert_item);
+    cassert_no_null(item);
+    _menuitem_set_parent(item, arrpt_size(menu->items, MenuItem));
+    ositem = _menuitem_get_renderable(item);
+    pos = arrpt_size(menu->items, MenuItem);
+    menu->context->func_menu_insert_item(menu->ositem, pos, ositem);
+    arrpt_append(menu->items, item, MenuItem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void menu_ins_item(Menu *menu, const uint32_t pos, MenuItem *item)
 {
     void *ositem = NULL;
     cassert_no_null(menu);
     cassert_no_null(menu->context);
-    cassert_no_nullf(menu->context->func_attach_menuitem_to_menu);
+    cassert_no_nullf(menu->context->func_menu_insert_item);
     cassert_no_null(item);
     _menuitem_set_parent(item, arrpt_size(menu->items, MenuItem));
     ositem = _menuitem_get_renderable(item);
-    menu->context->func_attach_menuitem_to_menu(menu->ositem, ositem);
-    arrpt_append(menu->items, item, MenuItem);
+    menu->context->func_menu_insert_item(menu->ositem, pos, ositem);
+    arrpt_insert(menu->items, pos, item, MenuItem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void menu_del_item(Menu *menu, const uint32_t pos)
+{
+    MenuItem *item = NULL;
+    void *ositem = NULL;
+    cassert_no_null(menu);
+    item = arrpt_get(menu->items, pos, MenuItem);
+    cassert_no_null(item);
+    _menuitem_unset_parent(item);
+    ositem = _menuitem_get_renderable(item);
+    menu->context->func_menu_delete_item(menu->ositem, ositem);
+    _menuitem_destroy(&item);
+    arrpt_delete(menu->items, pos, NULL, MenuItem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -137,13 +171,7 @@ void menu_launch(Menu *menu, const V2Df position)
     main_window = _gui_main_window();
     window_renderable = _window_ositem(main_window);
     menu->context->func_menu_launch_popup(menu->ositem, window_renderable, position.x, position.y);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void menu_hide(Menu *menu)
-{
-    cassert_no_null(menu);
+    window_update(main_window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -152,8 +180,17 @@ void menu_off_items(Menu *menu)
 {
     cassert_no_null(menu);
     arrpt_foreach(item, menu->items, MenuItem)
-        menuitem_state(item, ekGUI_OFF);
+        if (menuitem_get_separator(item) == FALSE)
+            menuitem_state(item, ekGUI_OFF);
     arrpt_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t menu_count(const Menu *menu)
+{
+    cassert_no_null(menu);
+    return arrpt_size(menu->items, MenuItem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -166,10 +203,19 @@ MenuItem *menu_get_item(Menu *menu, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t menu_size(const Menu *menu)
+const MenuItem *menu_get_citem(const Menu *menu, const uint32_t index)
 {
     cassert_no_null(menu);
-    return arrpt_size(menu->items, MenuItem);
+    return arrpt_get_const(menu->items, index, MenuItem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t menu_is_menubar(const Menu *menu)
+{
+    cassert_no_null(menu);
+    cassert_no_null(menu->context);
+    return menu->context->func_menu_is_menubar(menu->ositem);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -179,48 +225,6 @@ void *menu_imp(const Menu *menu)
     cassert_no_null(menu);
     return menu->ositem;
 }
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void menu_detach_all_menuitems(Menu *menu);
-void menu_detach_all_menuitems(Menu *menu)
-{
-    cassert_no_null(menu);
-    cassert_no_null(menu->context);
-    cassert_no_nullf(menu->context->func_detach_menuitem_from_menu);
-    i_detach_menuitems(menu->items, menu->ositem, menu->context->func_detach_menuitem_from_menu);
-    arrptr_clear_and_destroy(menu->items, _menuitem_destroy, MenuItem);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-uint32_t menu_num_items(const Menu *menu);
-uint32_t menu_num_items(const Menu *menu)
-{
-    cassert_no_null(menu);
-    return arrptr_length(menu->items, MenuItem);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-uint32_t menu_item_index(const Menu *menu, const MenuItem *menuitem);
-uint32_t menu_item_index(const Menu *menu, const MenuItem *menuitem)
-{
-    uint32_t i, num_items;
-    const MenuItem **item;
-    cassert_no_null(menu);
-    num_items = arrptr_length(menu->items, MenuItem);
-    item = arrptr_get_c_buffer(menu->items, MenuItem);
-    for (i = 0; i < num_items; ++i, ++item)
-    {
-        if ((*item) == menuitem)
-            return i;
-    }
-    return UINT32_MAX;
-}*/
 
 /*---------------------------------------------------------------------------*/
 

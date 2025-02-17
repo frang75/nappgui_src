@@ -267,10 +267,10 @@ static GtkWidget *i_get_gtk_label(GtkWidget *widget)
     }
     else if (GTK_IS_CONTAINER(widget))
     {
-        uint32_t i, n = _oscontrol_num_children(GTK_CONTAINER(widget));
+        uint32_t i, n = _oscontrol_num_children(widget);
         for (i = 0; i < n; ++i)
         {
-            GtkWidget *child = _oscontrol_get_child(GTK_CONTAINER(widget), i);
+            GtkWidget *child = _oscontrol_get_child(widget, i);
             GtkWidget *label = i_get_gtk_label(child);
             if (label != NULL)
                 return label;

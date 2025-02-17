@@ -26,6 +26,7 @@
 #include "modalwin.h"
 #include "multilayout.h"
 #include "dynlay.h"
+#include "dynmenu.h"
 #include "scrollpanel.h"
 #include "res_guihello.h"
 
@@ -124,9 +125,12 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = dynlay_panel();
         break;
     case 26:
-        panel = ip_input(app->window);
+        panel = dynmenu_panel(app->window);
         break;
     case 27:
+        panel = ip_input(app->window);
+        break;
+    case 28:
         panel = font_x_scale();
         break;
     }
@@ -184,6 +188,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Multi-Layouts", NULL);
     listbox_add_elem(list, "Scroll panel", NULL);
     listbox_add_elem(list, "Dynamic layouts", NULL);
+    listbox_add_elem(list, "Dynamic menus", NULL);
     listbox_add_elem(list, "IP Input", NULL);
     listbox_add_elem(list, "Font x-scale", NULL);
     listbox_select(list, 0, TRUE);

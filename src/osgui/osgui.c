@@ -129,9 +129,9 @@ void osgui_set_menubar(OSMenu *menu, OSWindow *window)
 
 void osgui_unset_menubar(OSMenu *menu, OSWindow *window)
 {
-    if ((menu != NULL && i_MAIN_MENU == menu) || (window != NULL && i_MAIN_WINDOW == window))
+    unref(window);
+    if ((window != NULL && window == i_MAIN_WINDOW) || (menu != NULL && menu == i_MAIN_MENU))
     {
-        cassert_no_null(i_MAIN_WINDOW);
         _osgui_detach_menubar(i_MAIN_WINDOW, i_MAIN_MENU);
         i_MAIN_MENU = NULL;
         i_MAIN_WINDOW = NULL;

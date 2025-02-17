@@ -69,11 +69,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_NCPAINT:
         return _osgui_ncpaint(hwnd, edit->focused, &edit->border, edit->bgbrush);
 
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
-
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(edit, OSControl)) == TRUE)

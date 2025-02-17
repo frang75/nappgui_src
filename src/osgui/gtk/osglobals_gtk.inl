@@ -26,8 +26,6 @@ GtkStyleContext *_osglobals_button_context(void);
 
 GtkStyleContext *_osglobals_table_context(void);
 
-const char_t *_osglobals_css_label(void);
-
 const char_t *_osglobals_css_entry(void);
 
 const char_t *_osglobals_css_button(void);

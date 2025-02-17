@@ -1147,30 +1147,34 @@ void guictx_append_menu_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_menu_create,
     FPtr_gctx_destroy func_menu_destroy,
-    FPtr_gctx_set_ptr func_attach_menuitem_to_menu,
-    FPtr_gctx_set_ptr func_detach_menuitem_from_menu,
+    FPtr_gctx_insert func_menu_insert_item,
+    FPtr_gctx_set_ptr func_menu_delete_item,
     FPtr_gctx_menu func_menu_launch_popup,
-    FPtr_gctx_call func_menu_hide_popup)
+    FPtr_gctx_call func_menu_hide_popup,
+    FPtr_gctx_get_bool func_menu_is_menubar)
 {
     cassert_no_null(context);
     cassert(context->func_menu_create == NULL);
     cassert(context->func_menu_destroy == NULL);
-    cassert(context->func_attach_menuitem_to_menu == NULL);
-    cassert(context->func_detach_menuitem_from_menu == NULL);
+    cassert(context->func_menu_insert_item == NULL);
+    cassert(context->func_menu_delete_item == NULL);
     cassert(context->func_menu_launch_popup == NULL);
     cassert(context->func_menu_hide_popup == NULL);
+    cassert(context->func_menu_is_menubar == NULL);
     cassert_no_nullf(func_menu_create);
     cassert_no_nullf(func_menu_destroy);
-    cassert_no_nullf(func_attach_menuitem_to_menu);
-    cassert_no_nullf(func_detach_menuitem_from_menu);
+    cassert_no_nullf(func_menu_insert_item);
+    cassert_no_nullf(func_menu_delete_item);
     cassert_no_nullf(func_menu_launch_popup);
     cassert_no_nullf(func_menu_hide_popup);
+    cassert_no_nullf(func_menu_is_menubar);
     context->func_menu_create = func_menu_create;
     context->func_menu_destroy = func_menu_destroy;
-    context->func_attach_menuitem_to_menu = func_attach_menuitem_to_menu;
-    context->func_detach_menuitem_from_menu = func_detach_menuitem_from_menu;
+    context->func_menu_insert_item = func_menu_insert_item;
+    context->func_menu_delete_item = func_menu_delete_item;
     context->func_menu_launch_popup = func_menu_launch_popup;
     context->func_menu_hide_popup = func_menu_hide_popup;
+    context->func_menu_is_menubar = func_menu_is_menubar;
 }
 
 /*---------------------------------------------------------------------------*/

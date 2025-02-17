@@ -232,8 +232,7 @@ typedef enum _gui_role_t
 
 typedef enum _gui_prop_t
 {
-    ekGUI_PROP_RESIZE = 0,
-    ekGUI_PROP_CHILDREN
+    ekGUI_PROP_CHILDREN = 0
 } gui_prop_t;
 
 typedef enum _gui_text_t
@@ -566,6 +565,10 @@ typedef void *(*FPtr_gctx_get_ptr)(const void *item);
 #define FUNC_CHECK_GCTX_GET_PTR(func, type, ptr_type) \
     (void)((ptr_type * (*)(const type *)) func == func)
 
+typedef bool_t (*FPtr_gctx_get_bool)(const void *item);
+#define FUNC_CHECK_GCTX_GET_BOOL(func, type) \
+    (void)((bool_t(*)(const type *))func == func)
+
 typedef uint32_t (*FPtr_gctx_get_uint32)(const void *item);
 #define FUNC_CHECK_GCTX_GET_UINT32(func, type) \
     (void)((uint32_t(*)(const type *))func == func)
@@ -629,6 +632,10 @@ typedef void (*FPtr_gctx_bounds6)(const void *item, const real32_t length, const
 typedef void (*FPtr_gctx_tickmarks)(void *item, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top);
 #define FUNC_CHECK_GCTX_TICKMARKS(func, type) \
     (void)((void (*)(type *, const uint32_t, const bool_t))func == func)
+
+typedef void (*FPtr_gctx_insert)(void *item, const uint32_t pos, void *child);
+#define FUNC_CHECK_GCTX_INSERT(func, type, child_type) \
+    (void)((void (*)(type *, const uint32_t, child_type *))func == func)
 
 typedef void (*FPtr_gctx_menu)(void *item, void *window, const real32_t x, const real32_t y);
 #define FUNC_CHECK_GCTX_MENU(func, type, window_type) \
@@ -836,10 +843,11 @@ struct _guictx_t
     /*! <Menus> */
     FPtr_gctx_create func_menu_create;
     FPtr_gctx_destroy func_menu_destroy;
-    FPtr_gctx_set_ptr func_attach_menuitem_to_menu;
-    FPtr_gctx_set_ptr func_detach_menuitem_from_menu;
+    FPtr_gctx_insert func_menu_insert_item;
+    FPtr_gctx_set_ptr func_menu_delete_item;
     FPtr_gctx_menu func_menu_launch_popup;
     FPtr_gctx_call func_menu_hide_popup;
+    FPtr_gctx_get_bool func_menu_is_menubar;
 
     /*! <MenuItems> */
     FPtr_gctx_create func_menuitem_create;

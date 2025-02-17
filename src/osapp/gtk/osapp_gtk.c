@@ -323,3 +323,16 @@ void _osapp_OnThemeChanged(OSApp *app, Listener *listener)
     cassert_no_null(app);
     listener_update(&app->OnTheme, listener);
 }
+
+/*---------------------------------------------------------------------------*/
+
+void _osapp_menubar(OSApp *app, void *menu, void *window)
+{
+    GMenuModel *gmenu = NULL;
+    cassert_no_null(app);
+    unref(window);
+    gmenu = gtk_application_get_menubar(app->gtk_app);
+    /* In some Linux/GTK distros, the menubar is attached to common menubar, not in the window itself */
+    if (menu == NULL && gmenu != NULL)
+        gtk_application_set_menubar(app->gtk_app, NULL);
+}

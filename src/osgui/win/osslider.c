@@ -57,11 +57,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(slider, OSControl)) == TRUE)
             break;
         return 0;
-
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
     }
 
     return CallWindowProc(slider->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);

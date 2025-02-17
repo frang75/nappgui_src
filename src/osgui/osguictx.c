@@ -377,10 +377,11 @@ GuiCtx *osguictx(void)
         context,
         osmenu_create,
         osmenu_destroy,
-        osmenu_add_item,
+        osmenu_insert_item,
         osmenu_delete_item,
         osmenu_launch,
         osmenu_hide,
+        osmenu_is_menubar,
         OSMenu, OSMenuItem, OSWindow);
 
     guictx_append_menuitem_manager(

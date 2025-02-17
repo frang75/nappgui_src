@@ -42,12 +42,12 @@ macro(nap_gcc_warns)
     # set(FLAGS "${FLAGS} -Wswitch")            # included in -Wall
     # set(FLAGS "${FLAGS} -Wtrigraphs")         # included in -Wall
     # set(FLAGS "${FLAGS} -Wunknown-pragmas")   # included in -Wall
-    # set(FLAGS "${FLAGS} -Wunused-function")   # included in -Wall
+    set(FLAGS "${FLAGS} -Wunused-function")     # included in -Wall
     # set(FLAGS "${FLAGS} -Wunused-label")      # included in -Wall
-    # set(FLAGS "${FLAGS} -Wunused-variable")   # included in -Wall
-    # set(FLAGS "${FLAGS} -Wunused-value")      # included in -Wall
-    # set(FLAGS "${FLAGS} -Wuninitialized")     # included in -Wall
-    # set(FLAGS "${FLAGS} -Wstrict-aliasing")    # included in -Wall if -fstrict-aliasing
+    set(FLAGS "${FLAGS} -Wunused-variable")     # included in -Wall
+    set(FLAGS "${FLAGS} -Wunused-value")        # included in -Wall
+    set(FLAGS "${FLAGS} -Wuninitialized")       # included in -Wall
+    # set(FLAGS "${FLAGS} -Wstrict-aliasing")   # included in -Wall if -fstrict-aliasing
 
     # Warn if a user-supplied include directory does not exist.
     set(FLAGS "${FLAGS} -Wmissing-include-dirs")

@@ -189,7 +189,7 @@ static void i_OnDown(FlyOut *flyout, Event *e)
             bstd_sprintf(text, sizeof(text), "Item %d Option %d", p->tag + 1, i + 1);
             menuitem_text(item, text);
             menuitem_OnClick(item, listener(flyout, i_OnMenu, FlyOut));
-            menu_item(flyout->menu, item);
+            menu_add_item(flyout->menu, item);
         }
 
         {

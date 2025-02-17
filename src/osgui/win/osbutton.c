@@ -207,9 +207,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         return 1;
 
     case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-
         if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
         {
             i_draw_flat_button(button->control.hwnd, button->image);

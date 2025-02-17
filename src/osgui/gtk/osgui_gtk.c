@@ -200,7 +200,6 @@ void _osgui_finish_imp(void)
 
 void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
-    _osmenu_menubar(menu, window);
     _oswindow_set_menubar(window, menu);
 }
 
@@ -208,7 +207,6 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 
 void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
-    _osmenu_menubar_unlink(menu, window);
     _oswindow_unset_menubar(window, menu);
 }
 

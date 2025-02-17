@@ -56,8 +56,6 @@ struct _oswindow_t
     bool_t destroy_main_view;
     bool_t is_resizable;
     bool_t resize_event;
-    gint current_x;
-    gint current_y;
     gint current_width;
     gint current_height;
     gint minimun_width;
@@ -108,6 +106,32 @@ static gboolean i_OnClose(GtkWidget *widget, GdkEvent *event, OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
+static uint32_t i_menubar_required_width(const OSWindow *window)
+{
+    cassert_no_null(window);
+    /*
+     * This small margin creates a menu bar slightly narrower than the width of
+     * the window, allowing for shrinking the size during resizing operations.
+     */
+    if (window->is_resizable == TRUE)
+        return window->current_width - 5;
+    else
+        return window->current_width;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_menubar_current_height(const OSWindow *window)
+{
+    cassert_no_null(window);
+    if (window->menu != NULL)
+        return _osmenu_menubar_height(window->menu);
+    else
+        return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWindow *window)
 {
     if (i_APP_TERMINATE == TRUE)
@@ -127,12 +151,13 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
         {
             EvSize params;
             EvSize result;
+            uint32_t mheight = i_menubar_current_height(window);
             params.width = (real32_t)event->width;
-            params.height = (real32_t)event->height;
+            params.height = (real32_t)(event->height - mheight);
             listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
             listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &result, NULL, OSWindow, EvSize, void);
 
-            if ((gint)result.width > event->width)
+            if (result.width > params.width)
             {
                 GdkGeometry hints;
                 window->minimun_width = (gint)result.width;
@@ -141,17 +166,20 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
                 gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
             }
 
-            if ((gint)result.height > event->height)
+            if (result.height > params.height)
             {
                 GdkGeometry hints;
-                window->minimun_height = (gint)result.height;
+                window->minimun_height = (gint)result.height + mheight;
                 hints.min_width = window->minimun_width;
                 hints.min_height = window->minimun_height;
                 gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
             }
 
             window->current_width = (gint)result.width;
-            window->current_height = (gint)result.height;
+            window->current_height = (gint)result.height + mheight;
+
+            if (window->menu != NULL)
+                _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
         }
         else
         {
@@ -380,10 +408,11 @@ static void i_count(GtkWidget *widget, gpointer data)
 
 /*---------------------------------------------------------------------------*/
 
-static uint32_t i_num_children(GtkContainer *container)
+static uint32_t i_num_children(GtkWidget *widget)
 {
     uint32_t n = 0;
-    gtk_container_foreach(container, i_count, (gpointer)&n);
+    cassert(GTK_IS_CONTAINER(widget));
+    gtk_container_foreach(GTK_CONTAINER(widget), i_count, (gpointer)&n);
     return n;
 }
 
@@ -423,8 +452,8 @@ void oswindow_destroy(OSWindow **window)
     listener_destroy(&(*window)->OnClose);
     _oswindow_hotkey_destroy(&(*window)->hotkeys);
     _ostabstop_remove(&(*window)->tabstop);
-    cassert(i_num_children(GTK_CONTAINER((*window)->control.widget)) == 1);
-    cassert(i_num_children(GTK_CONTAINER(gtk_bin_get_child(GTK_BIN((*window)->control.widget)))) == 0);
+    cassert(i_num_children((*window)->control.widget) == 1);
+    cassert(i_num_children(gtk_bin_get_child(GTK_BIN((*window)->control.widget))) == 0);
     g_object_unref((*window)->control.widget);
     heap_delete(window, OSWindow);
 }
@@ -576,7 +605,7 @@ gui_tab_t oswindow_info_focus(const OSWindow *window, void **next_ctrl)
 
 void oswindow_attach_panel(OSWindow *window, OSPanel *panel)
 {
-    GtkWidget *box;
+    GtkWidget *box = NULL;
     cassert_no_null(window);
     cassert(window->main_panel == NULL);
     box = gtk_bin_get_child(GTK_BIN(window->control.widget));
@@ -588,7 +617,7 @@ void oswindow_attach_panel(OSWindow *window, OSPanel *panel)
 
 void oswindow_detach_panel(OSWindow *window, OSPanel *panel)
 {
-    GtkWidget *box;
+    GtkWidget *box = NULL;
     cassert_no_null(window);
     cassert(window->main_panel == panel);
     box = gtk_bin_get_child(GTK_BIN(window->control.widget));
@@ -738,21 +767,28 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 
 static void i_update_menu_size(OSWindow *window)
 {
+    GtkRequisition msize;
+    cassert_no_null(window);
     if (window->menu != NULL)
     {
-        GtkRequisition ws, ms;
-        GtkWidget *wmenu = _osmenu_widget(window->menu);
-        gtk_widget_get_preferred_size(window->control.widget, &ws, NULL);
-        gtk_widget_get_preferred_size(wmenu, &ms, NULL);
-        if (window->is_resizable == TRUE)
-        {
-            gtk_widget_set_size_request(window->control.widget, -1, -1);
-            gtk_window_resize(GTK_WINDOW(window->control.widget), MAX(ws.width, ms.width), ws.height + ms.height);
-        }
-        else
-        {
-            gtk_widget_set_size_request(window->control.widget, MAX(ws.width, ms.width), ws.height + ms.height);
-        }
+        GtkWidget *wmenu = _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
+        gtk_widget_get_preferred_size(wmenu, &msize, NULL);
+    }
+    else
+    {
+        msize.width = 0;
+        msize.height = 0;
+    }
+
+    if (window->is_resizable == TRUE)
+    {
+        window->resize_event = FALSE;
+        gtk_widget_set_size_request(window->control.widget, -1, -1);
+        gtk_window_resize(GTK_WINDOW(window->control.widget), window->current_width, window->current_height + msize.height);
+    }
+    else
+    {
+        gtk_widget_set_size_request(window->control.widget, window->current_width, window->current_height + msize.height);
     }
 }
 
@@ -765,8 +801,6 @@ void oswindow_size(OSWindow *window, const real32_t width, const real32_t height
     {
         window->resize_event = FALSE;
         gtk_window_resize(GTK_WINDOW(window->control.widget), (gint)width, (gint)height);
-        window->current_width = (gint)width;
-        window->current_height = (gint)height;
         window->minimun_width = -1;
         window->minimun_height = -1;
     }
@@ -775,6 +809,8 @@ void oswindow_size(OSWindow *window, const real32_t width, const real32_t height
         gtk_widget_set_size_request(window->control.widget, (gint)width, (gint)height);
     }
 
+    window->current_width = (gint)width;
+    window->current_height = (gint)height;
     i_update_menu_size(window);
 }
 
@@ -804,8 +840,6 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
     unref(value);
     switch (property)
     {
-    case ekGUI_PROP_RESIZE:
-        break;
     case ekGUI_PROP_CHILDREN:
         window->destroy_main_view = FALSE;
         break;
@@ -903,14 +937,17 @@ void _oswindow_set_app_terminate(void)
 
 void _oswindow_set_menubar(OSWindow *window, OSMenu *menu)
 {
-    GtkWidget *box, *wmenu;
+    GtkWidget *box = NULL, *wmenu = NULL;
     cassert_no_null(window);
     cassert(window->menu == NULL);
     box = gtk_bin_get_child(GTK_BIN(window->control.widget));
-    wmenu = _osmenu_widget(menu);
+    cassert(i_num_children(box) == 1);
+    wmenu = _osmenu_menubar(menu, window, i_menubar_required_width(window));
     gtk_box_pack_start(GTK_BOX(box), wmenu, FALSE, FALSE, 0);
+    cassert(i_num_children(box) == 2);
     gtk_widget_show_all(wmenu);
     window->menu = menu;
+
     if (window->accel == NULL)
     {
         window->accel = gtk_accel_group_new();
@@ -919,23 +956,29 @@ void _oswindow_set_menubar(OSWindow *window, OSMenu *menu)
 
     _osmenu_set_accel(window->menu, window->accel);
     i_update_menu_size(window);
+    cassert(i_num_children(box) == 2);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_unset_menubar(OSWindow *window, OSMenu *menu)
 {
-    GtkWidget *box, *wmenu;
     cassert_no_null(window);
     cassert(window->menu == menu);
-    cassert(window->accel != NULL);
-    box = gtk_bin_get_child(GTK_BIN(window->control.widget));
-    wmenu = _osmenu_widget(menu);
-    _osmenu_unset_accel(menu, window->accel);
-    g_object_ref(wmenu);
-    gtk_container_remove(GTK_CONTAINER(box), wmenu);
-    window->menu = NULL;
-    i_update_menu_size(window);
+    if (menu != NULL)
+    {
+        GtkWidget *box = NULL, *wmenu = NULL;
+        cassert(window->accel != NULL);
+        box = gtk_bin_get_child(GTK_BIN(window->control.widget));
+        cassert(i_num_children(box) == 2);
+        wmenu = _osmenu_menubar_unlink(menu, window);
+        gtk_widget_hide(wmenu);
+        _osmenu_unset_accel(menu, window->accel);
+        gtk_container_remove(GTK_CONTAINER(box), wmenu);
+        cassert(i_num_children(box) == 1);
+        window->menu = NULL;
+        i_update_menu_size(window);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -952,6 +995,14 @@ void _oswindow_unset_focus(OSWindow *window)
                 window->role = ENUM_MAX(gui_role_t);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+GtkAccelGroup *_oswindow_accel(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return window->accel;
 }
 
 /*---------------------------------------------------------------------------*/

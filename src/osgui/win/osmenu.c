@@ -40,11 +40,17 @@
         And finally: The menu nesting limit is currently 25 on Windows XP. That may change in the future, of course. (As with window nesting, Windows 95 let you go ahead and nest menus all you wanted. In fact, you could go really evil and create an infinite loop of menus. You crashed pretty quickly thereafter, of course...)
 */
 
+/*
+ *  hmenu == NULL --> Win32 Menu not created
+ *  hmenu != NULL && parent != NULL --> hmenu CreatePopupMenu() (submenu)
+ *  hmenu != NULL && is_popup --> hmenu CreatePopupMenu() (popupmenu)
+ *  hmenu != NULL && !is_popup --> hmenu CreateMenu() (menubar)
+ */
 struct _osmenu_t
 {
     HMENU hmenu;
-    OSWindow *window;
     bool_t is_popup;
+    OSWindow *window;
     OSMenuItem *parent;
     ArrPt(OSMenuItem) *items;
 };
@@ -54,10 +60,6 @@ struct _osmenu_t
 OSMenu *osmenu_create(const uint32_t flags)
 {
     OSMenu *menu = heap_new0(OSMenu);
-    menu->hmenu = CreatePopupMenu();
-    menu->window = NULL;
-    menu->is_popup = TRUE;
-    menu->parent = NULL;
     menu->items = arrpt_create(OSMenuItem);
     unref(flags);
     return menu;
@@ -67,27 +69,32 @@ OSMenu *osmenu_create(const uint32_t flags)
 
 void osmenu_destroy(OSMenu **menu)
 {
-    BOOL ok = FALSE;
     cassert_no_null(menu);
     cassert_no_null(*menu);
-    cassert_no_null((*menu)->hmenu);
-    cassert(GetMenuItemCount((*menu)->hmenu) == 0);
+    cassert((*menu)->parent == NULL);
+
+    if ((*menu)->hmenu != NULL)
+    {
+        BOOL ok = FALSE;
+        cassert(GetMenuItemCount((*menu)->hmenu) == 0);
+        ok = EndMenu();
+        cassert(ok != 0);
+        ok = DestroyMenu((*menu)->hmenu);
+        cassert_unref(ok != 0, ok);
+    }
+
     cassert(arrpt_size((*menu)->items, OSMenuItem) == 0);
     arrpt_destroy(&(*menu)->items, NULL, OSMenuItem);
-    ok = EndMenu();
-    cassert(ok != 0);
-    ok = DestroyMenu((*menu)->hmenu);
-    cassert_unref(ok != 0, ok);
     heap_delete(menu, OSMenu);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void osmenu_add_item(OSMenu *menu, OSMenuItem *item)
+void osmenu_insert_item(OSMenu *menu, const uint32_t pos, OSMenuItem *item)
 {
     cassert_no_null(menu);
-    arrpt_append(menu->items, item, OSMenuItem);
-    _osmenuitem_insert_in_hmenu(item, menu);
+    arrpt_insert(menu->items, pos, item, OSMenuItem);
+    _osmenu_hmenu_recompute(menu);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -95,29 +102,33 @@ void osmenu_add_item(OSMenu *menu, OSMenuItem *item)
 void osmenu_delete_item(OSMenu *menu, OSMenuItem *item)
 {
     uint32_t pos = UINT32_MAX;
-    bool_t ok;
     cassert_no_null(menu);
+    _osmenuitem_unset_parent(item, menu);
     pos = arrpt_find(menu->items, item, OSMenuItem);
     arrpt_delete(menu->items, pos, NULL, OSMenuItem);
-    ok = _osmenuitem_remove_from_hmenu(item, menu);
-    cassert_unref(ok == TRUE, ok);
+    _osmenu_hmenu_recompute(menu);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_remove_all_items(OSMenu *menu)
 {
-    uint32_t n, n0 = 0;
     cassert_no_null(menu);
     cassert_no_null(menu->hmenu);
-    n = (uint32_t)GetMenuItemCount(menu->hmenu);
     arrpt_foreach(item, menu->items, OSMenuItem)
-        if (_osmenuitem_remove_from_hmenu(item, menu) == TRUE)
-            n0 += 1;
+        _osmenuitem_unset_parent(item, menu);
     arrpt_end()
 
-    cassert_unref(n == n0, n);
-    cassert(GetMenuItemCount(menu->hmenu) == 0);
+    {
+        int i, n = GetMenuItemCount(menu->hmenu);
+        for (i = 0; i < n; ++i)
+        {
+            BOOL ok = RemoveMenu(menu->hmenu, 0, MF_BYPOSITION);
+            cassert_unref(ok == TRUE, ok);
+        }
+
+        cassert(GetMenuItemCount(menu->hmenu) == 0);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -127,7 +138,7 @@ static void i_add_all_items(OSMenu *menu)
     cassert_no_null(menu);
     cassert_no_null(menu->hmenu);
     arrpt_foreach(item, menu->items, OSMenuItem)
-        _osmenuitem_insert_in_hmenu(item, menu);
+        _osmenuitem_append_to_hmenu(item, menu);
     arrpt_end()
 }
 
@@ -137,12 +148,20 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
 {
     cassert_no_null(menu);
     cassert(menu->window == NULL);
-    if (menu->is_popup == FALSE)
+
+    /* The hmenu exists as menubar, we have to destroy it */
+    if (menu->hmenu != NULL && menu->is_popup == FALSE)
     {
         BOOL ok = FALSE;
         i_remove_all_items(menu);
         ok = DestroyMenu(menu->hmenu);
         cassert_unref(ok != 0, ok);
+        menu->hmenu = NULL;
+    }
+
+    /* No hmenu created */
+    if (menu->hmenu == NULL)
+    {
         menu->hmenu = CreatePopupMenu();
         i_add_all_items(menu);
         menu->is_popup = TRUE;
@@ -171,10 +190,26 @@ void osmenu_hide(OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t osmenu_is_menubar(const OSMenu *menu)
+{
+    cassert_no_null(menu);
+    if (menu->window != NULL)
+    {
+        cassert_no_null(menu->hmenu);
+        cassert(menu->is_popup == FALSE);
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 HMENU _osmenu_hmenu(OSMenu *menu)
 {
     cassert_no_null(menu);
-    cassert_no_null(menu->hmenu);
     return menu->hmenu;
 }
 
@@ -183,14 +218,22 @@ HMENU _osmenu_hmenu(OSMenu *menu)
 HMENU _osmenu_menubar(OSMenu *menu, OSWindow *window)
 {
     cassert_no_null(menu);
-    cassert_no_null(menu->hmenu);
     cassert(menu->window == NULL);
-    if (menu->is_popup == TRUE)
+
+    /* The hmenu exists as popup, we have to destroy it */
+    if (menu->hmenu != NULL && menu->is_popup == TRUE)
     {
         BOOL ok = FALSE;
         i_remove_all_items(menu);
         ok = DestroyMenu(menu->hmenu);
         cassert_unref(ok != 0, ok);
+        menu->hmenu = NULL;
+        menu->is_popup = FALSE;
+    }
+
+    /* No hmenu created */
+    if (menu->hmenu == NULL)
+    {
         menu->hmenu = CreateMenu();
         i_add_all_items(menu);
         menu->is_popup = FALSE;
@@ -213,12 +256,28 @@ HMENU _osmenu_menubar_unlink(OSMenu *menu, OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-void _osmenu_recompute(OSMenu *menu)
+void _osmenu_hmenu_recompute(OSMenu *menu)
 {
     cassert_no_null(menu);
-    i_remove_all_items(menu);
-    i_add_all_items(menu);
-    if (menu->window != NULL)
+    if (menu->hmenu != NULL)
+    {
+        i_remove_all_items(menu);
+        i_add_all_items(menu);
+        if (menu->window != NULL)
+        {
+            HWND hwnd = cast(menu->window, OSControl)->hwnd;
+            BOOL ok = DrawMenuBar(hwnd);
+            cassert_unref(ok != 0, ok);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osmenu_hmenu_redraw(OSMenu *menu)
+{
+    cassert_no_null(menu);
+    if (menu->hmenu != NULL && menu->window != NULL)
     {
         HWND hwnd = cast(menu->window, OSControl)->hwnd;
         BOOL ok = DrawMenuBar(hwnd);
@@ -232,15 +291,14 @@ void _osmenu_attach_to_item(OSMenu *menu, OSMenuItem *item)
 {
     cassert_no_null(menu);
     cassert(menu->parent == NULL);
-    cassert(menu->hmenu != NULL);
     menu->parent = item;
     /* A Submenu is always a PopUp menu */
-    /*if (menu->hmenu == NULL)
+    if (menu->hmenu == NULL)
     {
         menu->hmenu = CreatePopupMenu();
         menu->is_popup = TRUE;
-        i_add_all_items(menu->hmenu, &menu->items);
-    }*/
+        i_add_all_items(menu);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -250,31 +308,4 @@ void _osmenu_detach_from_item(OSMenu *menu, OSMenuItem *item)
     cassert_no_null(menu);
     cassert_unref(menu->parent == item, item);
     menu->parent = NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osmenu_append_item(HMENU menu, const Font *font, const char_t *text, const Image *image, OSControl *owner)
-{
-    unref(menu);
-    unref(font);
-    unref(text);
-    unref(image);
-    unref(owner);
-    /*
-    int index;
-    MENUITEMINFO info;
-    cassert_no_null(font);
-    cassert_no_null(text);
-    unref(image);
-    cassert_no_null(owner);
-    index = GetMenuItemCount(menu);
-    info.cbSize = sizeof(MENUITEMINFO);
-    info.fMask = MIIM_FTYPE | MIIM_DATA;
-    info.fType = MFT_OWNERDRAW;
-    info.dwItemData = (ULONG_PTR)owner;
-    BOOL res;
-    res = InsertMenuItem(menu, 0, TRUE, );
-    cassert(FALSE);
-    */
 }

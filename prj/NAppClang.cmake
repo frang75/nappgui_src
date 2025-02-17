@@ -6,7 +6,17 @@
 macro(nap_clang_flags arch)
 
     # Warnings
-    set(FLAGS "-Wall -Wextra -pedantic -fPIE -Wimplicit-function-declaration -Wno-long-long -Wno-overlength-strings -Wno-newline-eof -Wno-undefined-var-template")
+    set(FLAGS "-Wall -Wextra -pedantic -fPIE")
+    set(FLAGS "${FLAGS} -Wimplicit-function-declaration")
+    set(FLAGS "${FLAGS} -Wunused")
+    set(FLAGS "${FLAGS} -Wunused-function")
+    set(FLAGS "${FLAGS} -Wunused-variable")
+    set(FLAGS "${FLAGS} -Wunused-value")
+    set(FLAGS "${FLAGS} -Wuninitialized")
+
+    # Disable warnings
+    set(FLAGS "${FLAGS} -Wno-long-long -Wno-overlength-strings -Wno-newline-eof -Wno-undefined-var-template")
+
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 

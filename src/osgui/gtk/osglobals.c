@@ -63,7 +63,6 @@ static color_t kHOTTX_COLOR = 0;
 static color_t kTEXTBACKDROP_COLOR = 0;
 static color_t kSELTXBACKDROP_COLOR = 0;
 static color_t kHOTTXBACKDROP_COLOR = 0;
-static String *kCSS_LABEL = NULL;
 static String *kCSS_ENTRY = NULL;
 static String *kCSS_BUTTON = NULL;
 static String *kCSS_RADIO = NULL;
@@ -899,12 +898,6 @@ static void i_parse_gtk_theme(void)
             str_copy_cn(csect, sizeof(csect), section, nsection);
             csect[nsection] = '\0';
 
-            if (kCSS_LABEL == NULL)
-            {
-                if (i_section(csect, "label", &sect_n) == TRUE)
-                    kCSS_LABEL = str_cn(csect, sect_n);
-            }
-
             if (kCSS_ENTRY == NULL)
             {
                 if (i_section(csect, "entry", &sect_n) == TRUE)
@@ -921,11 +914,15 @@ static void i_parse_gtk_theme(void)
             {
                 if (i_section(csect, "radiobutton", &sect_n) == TRUE)
                     kCSS_RADIO = str_cn(csect, sect_n);
+                else if (i_section(csect, "radio", &sect_n) == TRUE)
+                    kCSS_RADIO = str_cn(csect, sect_n);
             }
 
             if (kCSS_CHECK == NULL)
             {
                 if (i_section(csect, "checkbutton", &sect_n) == TRUE)
+                    kCSS_CHECK = str_cn(csect, sect_n);
+                else if (i_section(csect, "check", &sect_n) == TRUE)
                     kCSS_CHECK = str_cn(csect, sect_n);
             }
 
@@ -957,7 +954,7 @@ static void i_parse_gtk_theme(void)
                     kCSS_TEXTVIEWTEXT = str_cn(csect, sect_n);
             }
 
-            if (kCSS_LABEL == NULL || kCSS_ENTRY == NULL || kCSS_BUTTON == NULL || kCSS_RADIO == NULL || kCSS_CHECK == NULL || kCSS_COMBOBOX == NULL || kCSS_FRAME == NULL || kCSS_TEXTVIEW == NULL || kCSS_TEXTVIEWTEXT == NULL)
+            if (kCSS_ENTRY == NULL || kCSS_BUTTON == NULL || kCSS_RADIO == NULL || kCSS_CHECK == NULL || kCSS_COMBOBOX == NULL || kCSS_FRAME == NULL || kCSS_TEXTVIEW == NULL || kCSS_TEXTVIEWTEXT == NULL)
                 i_jump_next_section(&pcss);
             else
                 break;
@@ -997,9 +994,6 @@ static void i_parse_gtk_theme(void)
 
     if (kCSS_TEXTVIEWTEXT == NULL && kCSS_TEXTVIEW != NULL)
         kCSS_TEXTVIEWTEXT = str_copy(kCSS_TEXTVIEW);
-
-    if (kCSS_LABEL == NULL)
-        log_printf("No kCSS_LABEL found in css theme");
 
     if (kCSS_ENTRY == NULL)
         log_printf("No kCSS_ENTRY found in css theme");
@@ -1097,7 +1091,6 @@ void _osglobals_finish(void)
     if (kCHECKSBITMAP != NULL)
         g_object_unref(kCHECKSBITMAP);
 
-    str_destopt(&kCSS_LABEL);
     str_destopt(&kCSS_ENTRY);
     str_destopt(&kCSS_BUTTON);
     str_destopt(&kCSS_RADIO);
@@ -1137,14 +1130,6 @@ GtkStyleContext *_osglobals_table_context(void)
 {
     cassert(kTABLE != NULL);
     return gtk_widget_get_style_context(kTABLE);
-}
-
-/*---------------------------------------------------------------------------*/
-
-const char_t *_osglobals_css_label(void)
-{
-    cassert(str_empty(kCSS_LABEL) == FALSE);
-    return tc(kCSS_LABEL);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -12,6 +12,7 @@
 
 #include "osgui_osx.inl"
 #include "oscontrol_osx.inl"
+#include "osmenu_osx.inl"
 #include "osglobals.inl"
 #include "oscomwin.inl"
 #include "../osgui.inl"
@@ -192,6 +193,7 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
     cassert_no_null(menu);
     unref(window);
+    _osmenu_set_menubar(menu);
     [NSApp setMainMenu:cast(menu, NSMenu)];
 }
 
@@ -199,10 +201,13 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 
 void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
-    cassert_no_null(menu);
-    cassert([NSApp mainMenu] == cast(menu, NSMenu));
     unref(window);
-    [NSApp setMainMenu:kEMPTY_MENUBAR];
+    if (menu != NULL)
+    {
+        cassert([NSApp mainMenu] == cast(menu, NSMenu));
+        _osmenu_unset_menubar(menu);
+        [NSApp setMainMenu:kEMPTY_MENUBAR];
+    }
 }
 
 /*---------------------------------------------------------------------------*/

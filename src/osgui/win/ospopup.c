@@ -52,11 +52,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_ERASEBKGND:
         return 1;
 
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
-
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
