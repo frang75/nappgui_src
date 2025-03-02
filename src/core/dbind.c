@@ -82,6 +82,7 @@ struct _memberattr_t
     struct _struct_
     {
         byte_t *def;
+        bool_t def_null;
         bool_t is_pointer;
     } structt;
 
@@ -1448,11 +1449,18 @@ static void i_init_struct_data(byte_t *data, const StructProps *props)
                     *ndata = i_dbind_calloc(member->bind);
                     i_copy_struct_data(*ndata, member->attr.structt.def, &member->bind->props.structp);
                 }
+                else if (member->attr.structt.def_null == FALSE)
+                {
+                    *ndata = i_dbind_calloc(member->bind);
+                    i_init_struct_data(*ndata, &member->bind->props.structp);
+                }
             }
             else
             {
-                cassert_no_null(member->attr.structt.def);
-                i_copy_struct_data(data + member->offset, member->attr.structt.def, &member->bind->props.structp);
+                if (member->attr.structt.def != NULL)
+                    i_copy_struct_data(data + member->offset, member->attr.structt.def, &member->bind->props.structp);
+                else
+                    i_init_struct_data(data + member->offset, &member->bind->props.structp);
             }
             break;
 
@@ -1588,8 +1596,8 @@ static dbindst_t i_add_member(DBind *bind, const char_t *mname, const char_t *mt
 
             case ekDTYPE_STRUCT:
                 member->attr.structt.is_pointer = is_pointer;
-                member->attr.structt.def = i_dbind_calloc(member->bind);
-                i_init_struct_data(member->attr.structt.def, &member->bind->props.structp);
+                member->attr.structt.def = NULL;
+                member->attr.structt.def_null = FALSE;
                 break;
 
             case ekDTYPE_BINARY:
@@ -1727,24 +1735,32 @@ dbindst_t dbind_alias_imp(const char_t *type, const char_t *alias, const uint16_
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_dbind_in_struct(const DBind *stbind, const DBind *bind)
+static bool_t i_nested_member(const DBind *stbind, const DBind *bind, const DBind **nbind, uint32_t *member_id)
 {
     cassert_no_null(stbind);
     cassert_no_null(bind);
     cassert(stbind->type == ekDTYPE_STRUCT);
     arrst_foreach_const(member, stbind->props.structp.members, StructMember)
         if (member->bind == bind)
+        {
+            ptr_assign(nbind, stbind);
+            ptr_assign(member_id, member_i);
             return TRUE;
+        }
 
         if (member->bind->type == ekDTYPE_CONTAINER)
         {
             if (member->attr.containert.bind == bind)
+            {
+                ptr_assign(nbind, stbind);
+                ptr_assign(member_id, member_i);
                 return TRUE;
+            }
         }
 
         if (member->bind->type == ekDTYPE_STRUCT)
         {
-            bool_t exists = i_dbind_in_struct(member->bind, bind);
+            bool_t exists = i_nested_member(member->bind, bind, nbind, member_id);
             if (exists == TRUE)
                 return TRUE;
         }
@@ -1754,27 +1770,74 @@ static bool_t i_dbind_in_struct(const DBind *stbind, const DBind *bind)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_binary_defaults_destroy(const DBind *bind)
+static void i_stbind_defaults_destroy(const DBind *stbind, const DBind *bind)
+{
+    cassert_no_null(stbind);
+    cassert(stbind->type == ekDTYPE_STRUCT);
+    arrst_foreach(member, stbind->props.structp.members, StructMember)
+        cassert_no_null(member->bind);
+        switch (member->bind->type)
+        {
+        case ekDTYPE_STRING:
+            if (member->bind == bind)
+            {
+                if (member->attr.stringt.def != NULL)
+                {
+                    cassert_no_nullf(bind->props.stringp.func_destroy);
+                    bind->props.stringp.func_destroy(&member->attr.stringt.def);
+                }
+            }
+            break;
+
+        case ekDTYPE_STRUCT:
+            if (member->bind == bind)
+            {
+                if (member->attr.structt.def != NULL)
+                    i_destroy_struct_data(&member->attr.structt.def, &member->bind->props.structp, tc(member->bind->name), member->bind->size);
+            }
+            i_stbind_defaults_destroy(member->bind, bind);
+            break;
+
+        case ekDTYPE_BINARY:
+            if (member->bind == bind)
+            {
+                if (member->attr.binaryt.def != NULL)
+                {
+                    cassert_no_nullf(bind->props.binaryp.func_destroy);
+                    bind->props.binaryp.func_destroy(&member->attr.binaryt.def);
+                }
+            }
+            break;
+
+        case ekDTYPE_CONTAINER:
+            if (member->bind == bind || member->attr.containert.bind == bind)
+            {
+                if (member->attr.containert.def != NULL)
+                    i_destroy_container(&member->attr.containert.def, member->bind, member->attr.containert.bind);
+            }
+            break;
+
+        case ekDTYPE_BOOL:
+        case ekDTYPE_INT:
+        case ekDTYPE_REAL:
+        case ekDTYPE_ENUM:
+            break;
+        case ekDTYPE_UNKNOWN:
+            cassert_default();
+        }
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_defaults_destroy(const DBind *bind)
 {
     cassert_no_null(bind);
-    cassert(bind->type == ekDTYPE_BINARY);
     if (i_DATABIND.binds != NULL)
     {
         arrpt_foreach(dbind, i_DATABIND.binds, DBind)
-            if (dbind->type == ekDTYPE_STRUCT)
-            {
-                arrst_foreach(member, dbind->props.structp.members, StructMember)
-                    cassert_no_null(member->bind);
-                    if (member->bind == bind)
-                    {
-                        if (member->attr.binaryt.def != NULL)
-                        {
-                            cassert_no_nullf(bind->props.binaryp.func_destroy);
-                            bind->props.binaryp.func_destroy(&member->attr.binaryt.def);
-                        }
-                    }
-                arrst_end()
-            }
+            if (dbind->type == ekDTYPE_STRUCT && dbind != bind)
+                i_stbind_defaults_destroy(dbind, bind);
         arrpt_end()
     }
 }
@@ -1787,15 +1850,35 @@ static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id)
     {
         cassert_no_null(bind);
 
-        if (bind->type == ekDTYPE_BINARY)
-            i_binary_defaults_destroy(bind);
+        /*
+         * Remove deadlock in this struct. If the structure is nested within itself,
+         * we must remove the member causing the deadlock. Also all default objects
+         * containing nested objects of this type.
+         */
+        if (bind->type == ekDTYPE_STRUCT)
+        {
+            const DBind *stbind = NULL;
+            uint32_t member_id = UINT32_MAX;
+            while (i_nested_member(bind, bind, &stbind, &member_id) == TRUE)
+            {
+                cassert(stbind->type == ekDTYPE_STRUCT);
+                arrpt_foreach(nbind, i_DATABIND.binds, DBind)
+                    if (nbind->type == ekDTYPE_STRUCT)
+                    {
+                        if (i_nested_member(nbind, bind, NULL, NULL) == TRUE)
+                            i_defaults_destroy(nbind);
+                    }
+                arrpt_end();
+                arrst_delete(stbind->props.structp.members, member_id, i_remove_struct_member, StructMember);
+            }
+        }
 
         arrpt_foreach_const(cbind, i_DATABIND.binds, DBind)
             if (cbind != bind)
             {
                 if (cbind->type == ekDTYPE_STRUCT)
                 {
-                    bool_t exists = i_dbind_in_struct(cbind, bind);
+                    bool_t exists = i_nested_member(cbind, bind, NULL, NULL);
                     if (exists == TRUE)
                         return ekDBIND_TYPE_USED;
                 }
@@ -1823,6 +1906,7 @@ static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id)
 
         {
             uint32_t pos = arrpt_find(i_DATABIND.binds, bind, DBind);
+            i_defaults_destroy(bind);
             arrpt_delete(i_DATABIND.binds, pos, i_destroy_dbind_full, DBind);
             return ekDBIND_OK;
         }
@@ -3010,7 +3094,7 @@ void dbind_default_imp(const char_t *type, const char_t *mname, const byte_t *va
                 }
                 else
                 {
-                    cassert(member->attr.structt.is_pointer == TRUE);
+                    member->attr.structt.def_null = TRUE;
                 }
                 break;
             }

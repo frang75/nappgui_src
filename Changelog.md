@@ -14,7 +14,7 @@
 - `progress_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 - `slider_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 
-- Dynamic menus. [Doc](). [Issue](https://github.com/frang75/nappgui_src/issues/174). [Commit]().
+- Dynamic menus. [Doc](https://nappgui.com/en/gui/menu.html). [Issue](https://github.com/frang75/nappgui_src/issues/174). [Commit](https://github.com/frang75/nappgui_src/commit/bd9fb788c687bd7a6c31bf115cd9a82e2b87ffe2).
     * Renamed `menu_add_item()`, previously `menu_item()`.
     * Renamed `menu_count()`, previously `menu_size()`.
     * Removed `menu_hide()`.
@@ -459,3 +459,4 @@
 ## v1.2.0 - Oct 16, 2021 (r3382)
 
 * First Open Source release.
+
