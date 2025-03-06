@@ -29,6 +29,8 @@ String *b64_encode_from_data(const byte_t *data, const uint32_t size);
 
 String *b64_encode_from_str(const String *str);
 
+String *b64_encode_from_cstr(const char_t *str);
+
 Buffer *b64_decode_from_str(const String *base64);
 
 Buffer *b64_decode_from_data(const byte_t *data, const uint32_t size);

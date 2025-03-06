@@ -23,6 +23,7 @@
 #include <core/heap.h>
 #include <core/strings.h>
 #include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__MACOS__)
 #error This file is only for OSX
@@ -697,23 +698,12 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     cassert_no_null(ledit);
     cassert_no_null(width);
     cassert_no_null(height);
-    cassert(lines > 0);
+    cassert_unref(lines == 1, lines);
 
-    if (lines == 1)
-    {
-        font_extents(ledit->attrs.font, "OO", -1.f, width, height);
-    }
+    if (edit_get_type(ledit->flags) == ekEDIT_SINGLE)
+        font_extents(ledit->attrs.font, "O", -1.f, width, height);
     else
-    {
-        uint32_t i;
-        char_t text[256] = "";
-        cassert(edit_get_type(ledit->flags) == ekEDIT_MULTI);
-        cassert(lines < 100);
-        for (i = 0; i < lines - 1; ++i)
-            str_cat_c(text, 256, "O\n");
-        str_cat_c(text, 256, "O");
-        font_extents(ledit->attrs.font, text, -1.f, width, height);
-    }
+        font_extents(ledit->attrs.font, "O\nO", -1.f, width, height);
 
     *width = refwidth;
     *height += ledit->rpadding;
@@ -816,6 +806,8 @@ bool_t _osedit_resign_focus(const OSEdit *edit)
     {
         EvText params;
         params.text = cast_const([[ledit->field stringValue] UTF8String], char_t);
+        params.cpos = (uint32_t)[ledit->editor selectedRange].location;
+        params.len = (int32_t)unicode_nchars(params.text, ekUTF8);
         listener_event(ledit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, &resign, OSEdit, EvText, bool_t);
     }
 

@@ -111,7 +111,7 @@ void _oscontrol_destroy(OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
+char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t *nchars)
 {
     uint32_t num_chars = 0;
     WCHAR *wtext = NULL;
@@ -150,6 +150,7 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
     if (wtext_alloc != NULL)
         heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSControlGetTextBuf");
 
+    ptr_assign(nchars, num_chars - 1);
     return control_text;
 }
 

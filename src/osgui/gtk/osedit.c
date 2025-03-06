@@ -51,6 +51,7 @@ struct _osedit_t
     color_t ccolor;
     int32_t select_start;
     int32_t select_end;
+    String *text_update;
     Listener *OnFilter;
     Listener *OnChange;
     Listener *OnFocus;
@@ -73,9 +74,18 @@ static void i_iter(GtkTextBuffer *buffer, const int32_t pos, GtkTextIter *iter)
 
 /*---------------------------------------------------------------------------*/
 
-static gboolean i_select(OSEdit *edit)
+static gboolean i_update_select(OSEdit *edit)
 {
     cassert_no_null(edit);
+    if (edit->text_update != NULL)
+    {
+        bool_t prev = edit->launch_event;
+        edit->launch_event = FALSE;
+        osedit_text(edit, tc(edit->text_update));
+        edit->launch_event = prev;
+        str_destroy(&edit->text_update);
+    }
+
     if (edit->select_start != INT32_MAX)
     {
         cassert(edit->select_start >= -1);
@@ -169,8 +179,9 @@ static gboolean i_DrawBackground(GtkWidget *widget, cairo_t *cr, OSEdit *edit)
 
 /*---------------------------------------------------------------------------*/
 
-static gchar *i_text(const OSEdit *edit, bool_t *allocated)
+static gchar *i_get_text(const OSEdit *edit, bool_t *allocated, uint32_t *nchars)
 {
+    cassert_no_null(allocated);
     if (edit->tview != NULL)
     {
         GtkTextIter st, end;
@@ -178,12 +189,18 @@ static gchar *i_text(const OSEdit *edit, bool_t *allocated)
         gtk_text_buffer_get_start_iter(tbuf, &st);
         gtk_text_buffer_get_end_iter(tbuf, &end);
         *allocated = TRUE;
+
+        if (nchars != NULL)
+            *nchars = (uint32_t)gtk_text_iter_get_offset(&end);
+
         return gtk_text_buffer_get_text(tbuf, &st, &end, FALSE);
     }
     else
     {
         *allocated = FALSE;
-        return (gchar *)gtk_entry_get_text(GTK_ENTRY(edit->control.widget));
+        if (nchars != NULL)
+            *nchars = (uint32_t)gtk_entry_get_text_length(GTK_ENTRY(edit->control.widget));
+        return cast(gtk_entry_get_text(GTK_ENTRY(edit->control.widget)), gchar);
     }
 }
 
@@ -196,8 +213,8 @@ static void i_OnFilter(OSEdit *edit, const uint32_t cpos, const int32_t len)
     {
         EvText params;
         EvTextFilter result;
-        bool_t allocated;
-        params.text = cast_const(i_text(edit, &allocated), char_t);
+        bool_t allocated = FALSE;
+        params.text = cast_const(i_get_text(edit, &allocated, NULL), char_t);
         params.cpos = cpos;
         params.len = len;
         result.apply = FALSE;
@@ -205,21 +222,35 @@ static void i_OnFilter(OSEdit *edit, const uint32_t cpos, const int32_t len)
         result.cpos = UINT32_MAX;
         listener_event(edit->OnFilter, ekGUI_EVENT_TXTFILTER, edit, &params, &result, OSEdit, EvText, EvTextFilter);
         if (allocated)
-            g_free((gchar *)params.text);
+            g_free(cast(params.text, gchar));
 
         if (result.apply == TRUE)
         {
-            bool_t prev = edit->launch_event;
-            edit->launch_event = FALSE;
-            osedit_text(edit, result.text);
-            edit->launch_event = prev;
+            if (edit->tview != NULL)
+            {
+                /*
+                 * In GtkTextView, we cannot change the GtkTextBuffer inside of
+                 * "insert-text", "delete-range" events
+                 */
+                str_upd(&edit->text_update, result.text);
+                edit->select_start = (gint)cpos;
+                edit->select_end = edit->select_start;
+                g_idle_add((GSourceFunc)i_update_select, edit);
+            }
+            else
+            {
+                bool_t prev = edit->launch_event;
+                edit->launch_event = FALSE;
+                osedit_text(edit, result.text);
+                edit->launch_event = prev;
+            }
         }
 
         if (result.cpos != UINT32_MAX)
         {
             edit->select_start = (gint)result.cpos;
             edit->select_end = edit->select_start;
-            g_idle_add((GSourceFunc)i_select, edit);
+            g_idle_add((GSourceFunc)i_update_select, edit);
         }
     }
 }
@@ -231,7 +262,7 @@ static void i_OnInsert(GtkEditable *editable, gchar *new_text, gint new_text_len
     cassert_no_null(position);
     unref(editable);
     unref(new_text);
-    i_OnFilter(edit, (uint32_t) * ((gint *)position), (int32_t)new_text_length);
+    i_OnFilter(edit, (uint32_t)*cast(position, gint), (int32_t)new_text_length);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -279,14 +310,6 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSEdit *edit
         return TRUE;
 
     return FALSE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static ___INLINE bool_t i_with_focus(const OSEdit *edit)
-{
-    cassert_no_null(edit);
-    return (bool_t)gtk_widget_has_focus(edit->control.widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -344,6 +367,7 @@ OSEdit *osedit_create(const uint32_t flags)
         _oscontrol_update_css_font(edit->tview, cssobj, font, &edit->font, &edit->css_font);
         gtk_text_view_set_accepts_tab(GTK_TEXT_VIEW(edit->tview), FALSE);
         widget = gtk_scrolled_window_new(NULL, NULL);
+        gtk_container_set_border_width(GTK_CONTAINER(widget), 0);
         gtk_container_add(GTK_CONTAINER(widget), edit->tview);
         g_signal_connect(G_OBJECT(edit->tview), "draw", G_CALLBACK(i_DrawBackground), (gpointer)edit);
         g_signal_connect(G_OBJECT(edit->tview), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)edit);
@@ -404,6 +428,7 @@ void osedit_destroy(OSEdit **edit)
         g_object_unref((*edit)->tview); */
     }
 
+    str_destopt(&(*edit)->text_update);
     listener_destroy(&(*edit)->OnFilter);
     listener_destroy(&(*edit)->OnChange);
     listener_destroy(&(*edit)->OnFocus);
@@ -615,13 +640,21 @@ void osedit_autoselect(OSEdit *edit, const bool_t autoselect)
 
 /*---------------------------------------------------------------------------*/
 
+static ___INLINE bool_t i_with_focus(const OSEdit *edit)
+{
+    GtkWidget *focus = _osedit_focus_widget(cast(edit, OSEdit));
+    return (bool_t)gtk_widget_has_focus(focus);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osedit_select(OSEdit *edit, const int32_t start, const int32_t end)
 {
     cassert_no_null(edit);
     edit->select_start = start;
     edit->select_end = end;
     if (i_with_focus(edit) == TRUE)
-        g_idle_add((GSourceFunc)i_select, edit);
+        g_idle_add((GSourceFunc)i_update_select, edit);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -668,24 +701,31 @@ void osedit_vpadding(OSEdit *edit, const real32_t padding)
 
 void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t lines, real32_t *width, real32_t *height)
 {
-    GtkRequisition s;
     cassert_no_null(edit);
     cassert_no_null(width);
     cassert_no_null(height);
     cassert_unref(lines == 1, lines);
     if (edit->tview != NULL)
     {
+        GtkRequisition s1, s2;
+        real32_t fheight = bmath_ceilf(edit->vpadding + font_size(edit->font));
+        gtk_widget_set_size_request(edit->control.widget, (gint)refwidth, (gint)fheight);
+        gtk_widget_set_size_request(edit->tview, (gint)refwidth, (gint)fheight);
+        gtk_widget_get_preferred_size(edit->control.widget, &s1, NULL);
+        gtk_widget_get_preferred_size(edit->tview, &s2, NULL);
+        gtk_widget_set_size_request(edit->control.widget, -1, -1);
         gtk_widget_set_size_request(edit->tview, -1, -1);
-        gtk_widget_get_preferred_size(edit->tview, &s, NULL);
+        *width = refwidth;
+        *height = (real32_t)(s1.height > s2.height ? s1.height : s2.height);
     }
     else
     {
+        GtkRequisition s;
         gtk_widget_set_size_request(edit->control.widget, -1, -1);
         gtk_widget_get_preferred_size(edit->control.widget, &s, NULL);
+        *width = refwidth;
+        *height = (real32_t)s.height + font_size(edit->font) - edit->fsize_render;
     }
-
-    *width = refwidth;
-    *height = (real32_t)s.height + font_size(edit->font) - edit->fsize_render;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -779,6 +819,9 @@ void osedit_origin(const OSEdit *edit, real32_t *x, real32_t *y)
 void osedit_frame(OSEdit *edit, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame(cast(edit, OSControl), x, y, width, height);
+
+    if (edit->tview != NULL)
+        gtk_widget_set_size_request(edit->tview, (gint)width, (gint)height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -822,7 +865,7 @@ void _osedit_focus(OSEdit *edit, const bool_t focus)
 {
     cassert_no_null(edit);
     if (focus == FALSE)
-        i_cache_selection((OSEdit *)edit, TRUE);
+        i_cache_selection(edit, TRUE);
 
     if (edit->OnFocus != NULL)
     {
@@ -846,7 +889,7 @@ void _osedit_focus(OSEdit *edit, const bool_t focus)
             }
         }
 
-        g_idle_add((GSourceFunc)i_select, edit);
+        g_idle_add((GSourceFunc)i_update_select, edit);
     }
 }
 
@@ -874,19 +917,22 @@ bool_t _osedit_resign_focus(const OSEdit *edit)
 {
     bool_t lost_focus = TRUE;
     cassert_no_null(edit);
-    ((OSEdit *)edit)->in_validate = TRUE;
+    cast(edit, OSEdit)->in_validate = TRUE;
     if (edit->launch_event == TRUE && gtk_widget_is_sensitive(edit->control.widget) && edit->OnChange != NULL)
     {
         EvText params;
-        bool_t allocated;
+        bool_t allocated = FALSE;
+        uint32_t nchars = 0;
         /* The OnChange event can lost focus (p.e: launching a modal window) */
-        i_cache_selection((OSEdit *)edit, TRUE);
-        params.text = cast_const(i_text(edit, &allocated), char_t);
+        i_cache_selection(cast(edit, OSEdit), TRUE);
+        params.text = cast_const(i_get_text(edit, &allocated, &nchars), char_t);
+        params.cpos = edit->select_start;
+        params.len = (uint32_t)nchars;
         listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, &lost_focus, OSEdit, EvText, bool_t);
         if (allocated)
-            g_free((gchar *)params.text);
+            g_free(cast(params.text, gchar));
     }
 
-    ((OSEdit *)edit)->in_validate = FALSE;
+    cast(edit, OSEdit)->in_validate = FALSE;
     return lost_focus;
 }

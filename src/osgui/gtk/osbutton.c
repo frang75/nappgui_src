@@ -166,28 +166,6 @@ static gboolean i_OnPushDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_css_obj(const uint32_t flags)
-{
-    /* Initial padding for button */
-    switch (button_get_type(flags))
-    {
-    case ekBUTTON_PUSH:
-    case ekBUTTON_FLAT:
-    case ekBUTTON_FLATGLE:
-        return _osglobals_css_button();
-    case ekBUTTON_RADIO:
-        return _osglobals_css_radio();
-    case ekBUTTON_CHECK2:
-    case ekBUTTON_CHECK3:
-        return _osglobals_css_check();
-        cassert_default();
-    }
-
-    return "";
-}
-
-/*---------------------------------------------------------------------------*/
-
 static gboolean i_OnLabelDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 {
     PangoLayout *layout = NULL;
@@ -290,6 +268,28 @@ static GtkWidget *i_get_gtk_label(GtkWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
+static const char_t *i_css_obj(const uint32_t flags)
+{
+    /* Initial padding for button */
+    switch (button_get_type(flags))
+    {
+    case ekBUTTON_PUSH:
+    case ekBUTTON_FLAT:
+    case ekBUTTON_FLATGLE:
+        return _osglobals_css_button();
+    case ekBUTTON_RADIO:
+        return _osglobals_css_radio();
+    case ekBUTTON_CHECK2:
+    case ekBUTTON_CHECK3:
+        return _osglobals_css_check();
+        cassert_default();
+    }
+
+    return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSButton *osbutton_create(const uint32_t flags)
 {
     OSButton *button = heap_new0(OSButton);
@@ -310,12 +310,12 @@ OSButton *osbutton_create(const uint32_t flags)
         break;
 
     case ekBUTTON_FLAT:
-        widget = (GtkWidget *)gtk_tool_button_new(NULL, NULL);
+        widget = cast(gtk_tool_button_new(NULL, NULL), GtkWidget);
         focus_widget = gtk_bin_get_child(GTK_BIN(widget));
         break;
 
     case ekBUTTON_FLATGLE:
-        widget = (GtkWidget *)gtk_toggle_tool_button_new();
+        widget = cast(gtk_toggle_tool_button_new(), GtkWidget);
         focus_widget = gtk_bin_get_child(GTK_BIN(widget));
         break;
 
@@ -345,7 +345,7 @@ OSButton *osbutton_create(const uint32_t flags)
      */
     button->vpadding = kBUTTON_VPADDING;
     button->hpadding = kBUTTON_HPADDING;
-    _oscontrol_update_css_padding(button->control.widget, cssobj, 0, 0, &button->css_padding);
+    _oscontrol_update_css_padding(focus_widget, cssobj, 0, 0, &button->css_padding);
 
     /*
      * We set the button font infinitely small for two reasons.

@@ -20,7 +20,7 @@ void _oscontrol_init_hidden(OSControl *control, const DWORD dwExStyle, const DWO
 
 void _oscontrol_destroy(OSControl *control);
 
-char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize);
+char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t *nchars);
 
 void _oscontrol_set_text(OSControl *control, const char_t *text);
 
