@@ -33,7 +33,10 @@ include(${NAPPGUI_ROOT_PATH}/prj/NAppUtils.cmake)
 
 if (WIN32)
 
-    if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
+    if (${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "ARM64")
+        set(CMAKE_HOST_ARCHITECTURE "arm64")
+        set(CMAKE_ARCHITECTURE "arm64")
+    elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
         set(CMAKE_HOST_ARCHITECTURE "x86")
         set(CMAKE_ARCHITECTURE "x86")
     elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
