@@ -8,7 +8,7 @@
 - `ekGUI_SCALE_ADJUST` to `gui_scale_t`, for `imageview_scale()`. [Commit](https://github.com/frang75/nappgui_src/commit/814e28b45ac1cbf91b70de412f55724b819e158a).
 - `button_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
 - `edit_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
-- `edit_min_height()`. [Commit]().
+- `edit_min_height()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 - `button_get_font()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
 - `label_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 - `label_get_font()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
@@ -28,12 +28,17 @@
     * Added `menuitem_get_enabled()`.
     * Added `menuitem_get_visible()`.
     * Added `menuitem_get_state()`.
-- `edit_OnChange()` set `cpos` and `len` values in `EvText` event parameters. [Commit]().
-- `b64_encode_from_cstr()`. [Commit]().
+- `edit_OnChange()` set `cpos` and `len` values in `EvText` event parameters. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- `b64_encode_from_cstr()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- `menuitem_get_submenu()`. [Commit]().
+- `layout_dbind_get_obj()`. [Commit]().
+- `listbox_get_selected()`. [Commit]().
+- `listbox_get_row_height()`. [Commit]().
 
 ### Changed
 
 - `label_multiline()` in now a setter and not a constructor. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
+- `menu_launch()` adds a new `Window` parameter. [Commit]().
 
 ### Fixed
 
@@ -44,7 +49,7 @@
 - `image_write()` in macOS, with indexed BMPs. [Commit](https://github.com/frang75/nappgui_src/commit/4bc8cd66ff0d4d9a341ad4a7cd17604cc36827f3).
 - Issue in `dbind()` default values in struct types. [Commit](https://github.com/frang75/nappgui_src/commit/73a8e0775588edd053ba707c8a748ce2b0b8c9e7).
 - Avoid GTK Warnings in `edit_OnFilter()` events with multiline controls. [Issue](https://github.com/frang75/nappgui_src/issues/187). [Commit]().
-- Excessive internal padding in GTK `button_flat()`. [Commit]().
+- Excessive internal padding in GTK `button_flat()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 
 ### Build system
 

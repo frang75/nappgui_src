@@ -25,7 +25,7 @@ _gui_api void menu_ins_item(Menu *menu, const uint32_t pos, MenuItem *item);
 
 _gui_api void menu_del_item(Menu *menu, const uint32_t pos);
 
-_gui_api void menu_launch(Menu *menu, const V2Df position);
+_gui_api void menu_launch(Menu *menu, Window *window, const V2Df position);
 
 _gui_api void menu_off_items(Menu *menu);
 

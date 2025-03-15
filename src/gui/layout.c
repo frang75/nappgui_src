@@ -1348,6 +1348,15 @@ void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
+void *layout_dbind_get_obj_imp(Layout *layout, const char_t *type)
+{
+    cassert_no_null(layout);
+    cassert_unref(str_equ_c(dbind_typename(layout->stbind), type) == TRUE, type);
+    return layout->objbind;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
 {
     const DBind *stbind = dbind_from_typename(type, NULL);

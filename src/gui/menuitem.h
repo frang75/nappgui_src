@@ -47,4 +47,6 @@ _gui_api bool_t menuitem_get_visible(const MenuItem *item);
 
 _gui_api gui_state_t menuitem_get_state(const MenuItem *item);
 
+_gui_api Menu *menuitem_get_submenu(const MenuItem *item);
+
 __END_C

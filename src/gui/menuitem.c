@@ -337,6 +337,14 @@ gui_state_t menuitem_get_state(const MenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
+Menu *menuitem_get_submenu(const MenuItem *item)
+{
+    cassert_no_null(item);
+    return item->submenu;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void *_menuitem_get_renderable(const MenuItem *item)
 {
     cassert_no_null(item);

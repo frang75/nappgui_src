@@ -263,7 +263,7 @@ static void i_OnPopUpMenu(DynMenu *dmenu, Event *e)
     }
 
     /* Launch as popup */
-    menu_launch(dmenu->menu, pos);
+    menu_launch(dmenu->menu, dmenu->window, pos);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -151,6 +151,8 @@ _gui_api void layout_dbind_imp(Layout *layout, Listener *listener, const char_t 
 
 _gui_api void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type);
 
+_gui_api void *layout_dbind_get_obj_imp(Layout *layout, const char_t *type);
+
 _gui_api void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize);
 
 __END_C
@@ -162,6 +164,9 @@ __END_C
     ( \
         (void)(cast(obj, type) == obj), \
         layout_dbind_obj_imp(layout, cast(obj, void), cast_const(#type, char_t)))
+
+#define layout_dbind_get_obj(layout, type) \
+    cast(layout_dbind_get_obj_imp(layout, cast_const(#type, char_t)), type)
 
 #define layout_dbind_update(layout, type, mtype, mname) \
     ( \

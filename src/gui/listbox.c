@@ -918,6 +918,29 @@ bool_t listbox_checked(const ListBox *listbox, uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t listbox_get_selected(const ListBox *listbox)
+{
+    LData *data = view_get_data(cast(listbox, View), LData);
+    cassert_no_null(data);
+    cassert(data->multisel == FALSE);
+    arrst_foreach_const(elem, data->elems, PElem)
+        if (elem->select == TRUE)
+            return elem_i;
+    arrst_end()
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t listbox_get_row_height(const ListBox *listbox)
+{
+    LData *data = view_get_data(cast(listbox, View), LData);
+    cassert_no_null(data);
+    return (real32_t)data->row_height;
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t _listbox_count(const ListBox *listbox)
 {
     return listbox_count(listbox);

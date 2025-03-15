@@ -194,7 +194,7 @@ static void i_OnDown(FlyOut *flyout, Event *e)
 
         {
             V2Df pos = gui_mouse_pos();
-            menu_launch(flyout->menu, pos);
+            menu_launch(flyout->menu, flyout->parent, pos);
         }
     }
 }
