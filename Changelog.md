@@ -30,15 +30,15 @@
     * Added `menuitem_get_state()`.
 - `edit_OnChange()` set `cpos` and `len` values in `EvText` event parameters. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 - `b64_encode_from_cstr()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
-- `menuitem_get_submenu()`. [Commit]().
-- `layout_dbind_get_obj()`. [Commit]().
-- `listbox_get_selected()`. [Commit]().
-- `listbox_get_row_height()`. [Commit]().
+- `menuitem_get_submenu()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `layout_dbind_get_obj()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `listbox_get_selected()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `listbox_get_row_height()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
 
 ### Changed
 
 - `label_multiline()` in now a setter and not a constructor. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
-- `menu_launch()` adds a new `Window` parameter. [Commit]().
+- `menu_launch()` adds a new `Window` parameter. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
 
 ### Fixed
 
@@ -48,7 +48,7 @@
 - Issue in `str_relpath()`. [Commit](https://github.com/frang75/nappgui_src/commit/b34b6832c361ada1acc3a6a3235ea2fa65a71d88).
 - `image_write()` in macOS, with indexed BMPs. [Commit](https://github.com/frang75/nappgui_src/commit/4bc8cd66ff0d4d9a341ad4a7cd17604cc36827f3).
 - Issue in `dbind()` default values in struct types. [Commit](https://github.com/frang75/nappgui_src/commit/73a8e0775588edd053ba707c8a748ce2b0b8c9e7).
-- Avoid GTK Warnings in `edit_OnFilter()` events with multiline controls. [Issue](https://github.com/frang75/nappgui_src/issues/187). [Commit]().
+- Avoid GTK Warnings in `edit_OnFilter()` events with multiline controls. [Issue](https://github.com/frang75/nappgui_src/issues/187). [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 - Excessive internal padding in GTK `button_flat()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 
 ### Build system
@@ -469,4 +469,3 @@
 ## v1.2.0 - Oct 16, 2021 (r3382)
 
 * First Open Source release.
-

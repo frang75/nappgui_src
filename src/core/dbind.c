@@ -214,7 +214,7 @@ static real64_t i_EPSILON = 0.00001;
 
 /*---------------------------------------------------------------------------*/
 
-static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id);
+static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id, const bool_t force);
 static void i_destroy_struct_data(byte_t **data, const StructProps *props, const char_t *name, const uint16_t esize);
 static void i_copy_struct_data(byte_t *dest, const byte_t *src, const StructProps *props);
 static void i_remove_struct_data(byte_t *data, const StructProps *props);
@@ -584,7 +584,7 @@ void _dbind_finish(void)
         while (arrpt_size(i_DATABIND.binds, DBind) > 0)
         {
             arrpt_foreach(bind, i_DATABIND.binds, DBind)
-                if (i_try_unreg(bind, UINT32_MAX) == ekDBIND_OK)
+                if (i_try_unreg(bind, UINT32_MAX, FALSE) == ekDBIND_OK)
                     break;
             arrpt_end()
         }
@@ -1844,7 +1844,7 @@ static void i_defaults_destroy(const DBind *bind)
 
 /*---------------------------------------------------------------------------*/
 
-static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id)
+static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id, const bool_t force)
 {
     if (alias_id == UINT32_MAX)
     {
@@ -1880,7 +1880,10 @@ static dbindst_t i_try_unreg(const DBind *bind, const uint32_t alias_id)
                 {
                     bool_t exists = i_nested_member(cbind, bind, NULL, NULL);
                     if (exists == TRUE)
-                        return ekDBIND_TYPE_USED;
+                    {
+                        if (force == FALSE)
+                            return ekDBIND_TYPE_USED;
+                    }
                 }
             }
         arrpt_end()
@@ -1927,9 +1930,21 @@ dbindst_t dbind_unreg_imp(const char_t *type)
     DBind *bind = i_dbind_from_typename(type, &is_pointer, &alias_id);
     cassert_unref(is_pointer == FALSE, is_pointer);
     if (bind != NULL)
-        return i_try_unreg(bind, alias_id);
+        return i_try_unreg(bind, alias_id, FALSE);
     else
         return ekDBIND_TYPE_UNKNOWN;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void dbind_force_unreg_imp(const char_t *type)
+{
+    bool_t is_pointer = FALSE;
+    uint32_t alias_id = UINT32_MAX;
+    DBind *bind = i_dbind_from_typename(type, &is_pointer, &alias_id);
+    cassert_unref(is_pointer == FALSE, is_pointer);
+    if (bind != NULL)
+        i_try_unreg(bind, alias_id, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

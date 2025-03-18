@@ -187,6 +187,8 @@ _core_api const byte_t *dbind_container_cget(const DBind *bind, const DBind *ebi
 
 _core_api void dbind_container_delete(const DBind *bind, const DBind *ebind, const uint32_t pos, byte_t *cont);
 
+_core_api void dbind_force_unreg_imp(const char_t *type);
+
 __END_C
 
 #define dbind_bool(type) \
@@ -240,3 +242,8 @@ __END_C
             (FPtr_container_insert)func_insert, \
             (FPtr_container_delete)func_delete, \
             (FPtr_container_destroy)func_destroy))
+
+#define dbind_force_unreg(type) \
+    ( \
+        dbind_force_unreg_imp( \
+            (const char_t *)#type))
