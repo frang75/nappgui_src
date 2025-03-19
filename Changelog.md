@@ -50,6 +50,7 @@
 - Issue in `dbind()` default values in struct types. [Commit](https://github.com/frang75/nappgui_src/commit/73a8e0775588edd053ba707c8a748ce2b0b8c9e7).
 - Avoid GTK Warnings in `edit_OnFilter()` events with multiline controls. [Issue](https://github.com/frang75/nappgui_src/issues/187). [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 - Excessive internal padding in GTK `button_flat()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- `dlib_open()` supports MinGW DLL naming `libXXXX.dll`. [Commit](https://github.com/frang75/nappgui_src/commit/71cf9b6bd7fa452e1a240832e005ebce96a498a6).
 
 ### Build system
 
@@ -469,3 +470,4 @@
 ## v1.2.0 - Oct 16, 2021 (r3382)
 
 * First Open Source release.
+
