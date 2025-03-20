@@ -48,6 +48,7 @@ struct _oswindow_t
     HCURSOR cursor;
     bool_t launch_resize_event;
     bool_t destroy_main_view;
+    bool_t wm_sizing;
     uint32_t flags;
     wstate_t state;
     gui_role_t role;
@@ -276,6 +277,26 @@ static void i_activate(OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
+static ___INLINE bool_t i_sizing_by_dragging(WPARAM wParam)
+{
+    switch (wParam)
+    {
+    case WMSZ_LEFT:
+    case WMSZ_RIGHT:
+    case WMSZ_TOP:
+    case WMSZ_TOPLEFT:
+    case WMSZ_TOPRIGHT:
+    case WMSZ_BOTTOM:
+    case WMSZ_BOTTOMLEFT:
+    case WMSZ_BOTTOMRIGHT:
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     OSWindow *window = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSWindow);
@@ -368,11 +389,38 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
     case WM_SIZING:
         i_resizing(window, wParam, cast(lParam, RECT));
+        window->wm_sizing = i_sizing_by_dragging(wParam);
         return TRUE;
 
     case WM_SIZE:
+        /*
+         * NAppGUI resizing in done in two steps:
+         * WM_SIZING: The user is dragging the edges. i_resizing() can block the edges
+         *            when the dragging exceed the window constraint limits.
+         * WM_SIZE: Will be called immediately after WM_SIZING and will apply the controls
+         *          dimensions calculated by i_resizing(). In these cases wParam == SIZE_RESTORED (0).
+         *
+         * But...
+         * We can recibe single WM_SIZE with SIZE_RESTORED events when using the new snap feature
+         * https://support.microsoft.com/en-us/windows/snap-your-windows-885a9b1e-a983-a3b1-16cd-c531795e6241
+         * It these cases, i_resizing() step must be done, to correcly resize the window.
+         */
         if (IsWindowVisible(window->control.hwnd) == TRUE && wParam != SIZE_MINIMIZED)
+        {
+            if (window->wm_sizing == FALSE)
+            {
+                LONG client_width = LOWORD(lParam);
+                LONG client_height = HIWORD(lParam);
+                RECT rect;
+                rect.left = 0;
+                rect.top = 0;
+                i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, &rect.right, &rect.bottom);
+                /* i_resizing() uses full window size and not client area size */
+                i_resizing(window, 1, &rect);
+            }
             i_resize(window, LOWORD(lParam), HIWORD(lParam));
+        }
+        window->wm_sizing = FALSE;
         return 0;
 
     case WM_MOVE:
@@ -441,6 +489,7 @@ OSWindow *oswindow_create(const uint32_t flags)
     _oscontrol_init_hidden(cast(window, OSControl), window->dwExStyle, window->dwStyle | WS_POPUP, kWINDOW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
     window->launch_resize_event = TRUE;
     window->destroy_main_view = TRUE;
+    window->wm_sizing = FALSE;
     window->flags = flags;
     window->state = ekNORMAL;
     window->role = ENUM_MAX(gui_role_t);
