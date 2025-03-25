@@ -272,28 +272,18 @@ static void i_add_text(OSText *view, CHARRANGE *cr, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_apply_all(OSText *view)
+void ostext_set_text(OSText *view, const char_t *text)
 {
-    WPARAM st = 0;
-    LPARAM ed = 0;
-    cassert_no_null(view);
-    SendMessage(view->control.hwnd, EM_GETSEL, (WPARAM)&st, (LPARAM)&ed);
-    SendMessage(view->control.hwnd, EM_SETSEL, 0, -1);
-    i_apply_format(view, SCF_ALL);
-    SendMessage(view->control.hwnd, EM_SETSEL, st, ed);
+    CHARRANGE cr;
+    cr.cpMin = 0;
+    cr.cpMax = -1;
+    i_add_text(view, &cr, text);
+    view->num_chars = i_text_num_chars(view->control.hwnd);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_apply_sel(OSText *view)
-{
-    cassert_no_null(view);
-    i_apply_format(view, SCF_SELECTION);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_insert_text(OSText *view, const char_t *text)
+void ostext_add_text(OSText *view, const char_t *text)
 {
     CHARRANGE cr;
     cr.cpMin = -1;
@@ -304,13 +294,43 @@ void ostext_insert_text(OSText *view, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-void ostext_set_text(OSText *view, const char_t *text)
+static void i_replace_seltext(OSText *view, const char_t *text)
 {
-    CHARRANGE cr;
-    cr.cpMin = 0;
-    cr.cpMax = -1;
-    i_add_text(view, &cr, text);
-    view->num_chars = i_text_num_chars(view->control.hwnd);
+    uint32_t num_bytes = 0;
+    WCHAR *wtext_alloc = NULL;
+    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
+    WCHAR *wtext;
+    cassert_no_null(view);
+    view->launch_event = FALSE;
+    num_bytes = unicode_convers_nbytes(text, ekUTF8, kWINDOWS_UNICODE);
+    if (num_bytes < sizeof(wtext_static))
+    {
+        wtext = wtext_static;
+    }
+    else
+    {
+        wtext_alloc = cast(heap_malloc(num_bytes, "OSTextReplaceText"), WCHAR);
+        wtext = wtext_alloc;
+    }
+
+    {
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
+        cassert_unref(bytes == num_bytes, bytes);
+    }
+
+    SendMessage(view->control.hwnd, EM_REPLACESEL, 0, (LPARAM)wtext);
+
+    if (wtext_alloc != NULL)
+        heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSTextReplaceText");
+
+    view->launch_event = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_ins_text(OSText *view, const char_t *text)
+{
+    i_replace_seltext(view, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -333,6 +353,27 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
     view->launch_event = FALSE;
     SendMessage(view->control.hwnd, EM_STREAMIN, SF_RTF, (LPARAM)&es);
     view->launch_event = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_format_all(OSText *view)
+{
+    WPARAM st = 0;
+    LPARAM ed = 0;
+    cassert_no_null(view);
+    SendMessage(view->control.hwnd, EM_GETSEL, (WPARAM)&st, (LPARAM)&ed);
+    SendMessage(view->control.hwnd, EM_SETSEL, 0, -1);
+    i_apply_format(view, SCF_ALL);
+    SendMessage(view->control.hwnd, EM_SETSEL, st, ed);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_format_sel(OSText *view)
+{
+    cassert_no_null(view);
+    i_apply_format(view, SCF_SELECTION);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -426,20 +467,20 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         view->dyLineSpacing = (LONG)(20 * *cast_const(value, real32_t));
         break;
 
-    case ekGUI_TEXT_AFPARSPACE:
-        view->dySpaceAfter = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *cast_const(value, real32_t) /** (real32_t)kLOG_PIXY / 72.f*/);
-        break;
-
     case ekGUI_TEXT_BFPARSPACE:
         view->dySpaceBefore = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *cast_const(value, real32_t) /** (real32_t)kLOG_PIXY / 72.f*/);
         break;
 
+    case ekGUI_TEXT_AFPARSPACE:
+        view->dySpaceAfter = (LONG)(20 /*kTWIPS_PER_PIXEL*/ * *cast_const(value, real32_t) /** (real32_t)kLOG_PIXY / 72.f*/);
+        break;
+
     case ekGUI_TEXT_APPLY_ALL:
-        i_apply_all(view);
+        i_apply_format_all(view);
         break;
 
     case ekGUI_TEXT_APPLY_SEL:
-        i_apply_sel(view);
+        i_apply_format_sel(view);
         break;
 
     case ekGUI_TEXT_SELECT:
@@ -711,40 +752,6 @@ static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_replace_seltext(OSText *view, const char_t *text)
-{
-    uint32_t num_bytes = 0;
-    WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-    WCHAR *wtext;
-    cassert_no_null(view);
-    view->launch_event = FALSE;
-    num_bytes = unicode_convers_nbytes(text, ekUTF8, kWINDOWS_UNICODE);
-    if (num_bytes < sizeof(wtext_static))
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_bytes, "OSTextReplaceText"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
-        cassert_unref(bytes == num_bytes, bytes);
-    }
-
-    SendMessage(view->control.hwnd, EM_REPLACESEL, 0, (LPARAM)wtext);
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSTextReplaceText");
-
-    view->launch_event = TRUE;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _ostext_command(OSText *view, WPARAM wParam)
 {
     cassert_no_null(view);
@@ -807,6 +814,14 @@ void _ostext_command(OSText *view, WPARAM wParam)
             }
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _ostext_resign_focus(OSText *view)
+{
+    unref(view);
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/

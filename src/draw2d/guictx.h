@@ -672,8 +672,9 @@ _draw2d_api void guictx_append_text_manager_imp(
     FPtr_gctx_destroy func_text_destroy,
     FPtr_gctx_set_listener func_text_OnFilter,
     FPtr_gctx_set_listener func_text_OnFocus,
-    FPtr_gctx_set_text func_text_insert_text,
     FPtr_gctx_set_text func_text_set_text,
+    FPtr_gctx_set_text func_text_add_text,
+    FPtr_gctx_set_text func_text_ins_text,
     FPtr_gctx_set_ptr func_text_set_rtf,
     FPtr_gctx_set_property func_text_set_prop,
     FPtr_gctx_set_bool func_text_set_editable,
@@ -694,8 +695,9 @@ _draw2d_api void guictx_append_text_manager_imp(
     func_text_destroy, \
     func_text_OnFilter, \
     func_text_OnFocus, \
-    func_text_insert_text, \
     func_text_set_text, \
+    func_text_add_text, \
+    func_text_ins_text, \
     func_text_set_rtf, \
     func_text_set_prop, \
     func_text_set_editable, \
@@ -716,8 +718,9 @@ _draw2d_api void guictx_append_text_manager_imp(
         FUNC_CHECK_GCTX_DESTROY(func_text_destroy, text_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_text_OnFilter, text_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_text_OnFocus, text_type), \
-        FUNC_CHECK_GCTX_SET_TEXT(func_text_insert_text, text_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_text_set_text, text_type), \
+        FUNC_CHECK_GCTX_SET_TEXT(func_text_add_text, text_type), \
+        FUNC_CHECK_GCTX_SET_TEXT(func_text_ins_text, text_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_text_set_rtf, text_type, Stream), \
         FUNC_CHECK_GCTX_SET_PROPERTY(func_text_set_prop, text_type, gui_text_t), \
         FUNC_CHECK_GCTX_SET_BOOL(func_text_set_editable, text_type), \
@@ -738,8 +741,9 @@ _draw2d_api void guictx_append_text_manager_imp(
             (FPtr_gctx_destroy)func_text_destroy, \
             (FPtr_gctx_set_listener)func_text_OnFilter, \
             (FPtr_gctx_set_listener)func_text_OnFocus, \
-            (FPtr_gctx_set_text)func_text_insert_text, \
             (FPtr_gctx_set_text)func_text_set_text, \
+            (FPtr_gctx_set_text)func_text_add_text, \
+            (FPtr_gctx_set_text)func_text_ins_text, \
             (FPtr_gctx_set_ptr)func_text_set_rtf, \
             (FPtr_gctx_set_property)func_text_set_prop, \
             (FPtr_gctx_set_bool)func_text_set_editable, \

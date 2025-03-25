@@ -16,6 +16,8 @@ __EXTERN_C
 
 void _ostext_detach_and_destroy(OSText **view, OSPanel *panel);
 
+bool_t _ostext_resign_focus(OSText *view);
+
 void _ostext_focus(OSText *view, const bool_t focus);
 
 bool_t _ostext_capture_return(const OSText *view);

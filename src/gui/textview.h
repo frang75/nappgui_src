@@ -29,6 +29,10 @@ _gui_api uint32_t textview_printf(TextView *view, const char_t *format, ...);
 
 _gui_api void textview_writef(TextView *view, const char_t *text);
 
+_gui_api uint32_t textview_cpos_printf(TextView *view, const char_t *format, ...);
+
+_gui_api void textview_cpos_writef(TextView *view, const char_t *text);
+
 _gui_api void textview_rtf(TextView *view, Stream *rtf_in);
 
 _gui_api void textview_units(TextView *view, const uint32_t units);
@@ -55,7 +59,7 @@ _gui_api void textview_afspace(TextView *view, const real32_t space);
 
 _gui_api void textview_apply_all(TextView *view);
 
-_gui_api void textview_apply_sel(TextView *view);
+_gui_api void textview_apply_select(TextView *view);
 
 _gui_api void textview_scroll_visible(TextView *view, const bool_t horizontal, const bool_t vertical);
 
@@ -64,6 +68,8 @@ _gui_api void textview_editable(TextView *view, const bool_t is_editable);
 _gui_api void textview_select(TextView *view, const int32_t start, const int32_t end);
 
 _gui_api void textview_show_select(TextView *view, const bool_t show);
+
+_gui_api void textview_del_select(TextView *view);
 
 _gui_api void textview_scroll_caret(TextView *view);
 

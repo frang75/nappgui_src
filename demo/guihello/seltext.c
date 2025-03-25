@@ -102,7 +102,7 @@ static void i_OnWrap(SelData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_filter_event(SelData *data, Event *e, const char_t *name)
+static void i_filter_event(SelData *data, Event *e, const bool_t from_editbox)
 {
     const EvText *p = event_params(e, EvText);
     cassert_no_null(data);
@@ -126,7 +126,7 @@ static void i_filter_event(SelData *data, Event *e, const char_t *name)
         while (cp != 0)
         {
             uint32_t offset = 0;
-            if (pos >= p->cpos - p->len && pos < p->cpos)
+            if ((pos >= p->cpos - p->len && pos < p->cpos) || !from_editbox)
             {
                 if (cp >= 'a' && cp <= 'z')
                     cp -= 32;
@@ -143,7 +143,7 @@ static void i_filter_event(SelData *data, Event *e, const char_t *name)
         r->apply = TRUE;
     }
 
-    textview_printf(data->info_text, "%s: Pos %d Len %d\n", name, p->cpos, p->len);
+    textview_printf(data->info_text, "%s OnFilter: Pos %d Len %d\n", from_editbox ? "Edit" : "TextView", p->cpos, p->len);
     textview_scroll_caret(data->info_text);
 }
 
@@ -151,7 +151,7 @@ static void i_filter_event(SelData *data, Event *e, const char_t *name)
 
 static void i_OnEditFilter(SelData *data, Event *e)
 {
-    i_filter_event(data, e, "Edit OnFilter");
+    i_filter_event(data, e, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -168,7 +168,7 @@ static void i_OnEditChange(SelData *data, Event *e)
 
 static void i_OnTextViewFilter(SelData *data, Event *e)
 {
-    i_filter_event(data, e, "TextView OnFilter");
+    i_filter_event(data, e, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -220,14 +220,68 @@ static Layout *i_text_controls(SelData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnAddText(SelData *data, Event *e)
+{
+    cassert_no_null(data);
+    textview_printf(data->text, "%s", "add");
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnInsertText(SelData *data, Event *e)
+{
+    cassert_no_null(data);
+    textview_cpos_printf(data->text, "%s", "ins");
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnDeleteText(SelData *data, Event *e)
+{
+    cassert_no_null(data);
+    textview_del_select(data->text);
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_textview_controls(SelData *data)
+{
+    Layout *layout = layout_create(5, 1);
+    Label *label = label_create();
+    Button *button1 = button_flat();
+    Button *button2 = button_flat();
+    Button *button3 = button_flat();
+    label_text(label, "TextView");
+    button_image(button1, gui_image(EDIT16_PNG));
+    button_image(button2, gui_image(CURSOR16_PNG));
+    button_image(button3, gui_image(ERROR16_PNG));
+    button_OnClick(button1, listener(data, i_OnAddText, SelData));
+    button_OnClick(button2, listener(data, i_OnInsertText, SelData));
+    button_OnClick(button3, listener(data, i_OnDeleteText, SelData));
+    button_tooltip(button1, "Add text at the end of TextView");
+    button_tooltip(button2, "Insert text at cursor position in TextView");
+    button_tooltip(button3, "Delete the selected text, without copy into clipboard");
+    layout_label(layout, label, 0, 0);
+    layout_button(layout, button1, 2, 0);
+    layout_button(layout, button2, 3, 0);
+    layout_button(layout, button3, 4, 0);
+    layout_hexpand(layout, 1);
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_layout(SelData *data)
 {
     Layout *layout1 = layout_create(1, 11);
-    Layout *layout2 = i_text_controls(data);
+    Layout *layout2 = i_textview_controls(data);
+    Layout *layout3 = i_text_controls(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
-    Label *label4 = label_create();
     Label *label5 = label_create();
     Edit *edit1 = edit_create();
     Edit *edit2 = edit_multiline();
@@ -238,7 +292,6 @@ static Layout *i_layout(SelData *data)
     label_text(label1, "EditBox");
     label_text(label2, "EditBox (multiline)");
     label_text(label3, "EditBox (multiline with user-height)");
-    label_text(label4, "TextView");
     label_text(label5, "Info");
     edit_text(edit1, "This is a text in the EditBox control");
     edit_text(edit2, "This is a text in the multiline EditBox control");
@@ -259,11 +312,12 @@ static Layout *i_layout(SelData *data)
     layout_edit(layout1, edit2, 0, 3);
     layout_label(layout1, label3, 0, 4);
     layout_edit(layout1, edit3, 0, 5);
-    layout_label(layout1, label4, 0, 6);
+    layout_layout(layout1, layout2, 0, 6);
     layout_textview(layout1, text1, 0, 7);
-    layout_layout(layout1, layout2, 0, 8);
+    layout_layout(layout1, layout3, 0, 8);
     layout_label(layout1, label5, 0, 9);
     layout_textview(layout1, text2, 0, 10);
+    layout_tabstop(layout1, 0, 6, FALSE);
     layout_tabstop(layout1, 0, 7, TRUE);
     layout_tabstop(layout1, 0, 8, FALSE);
     layout_halign(layout1, 0, 8, ekLEFT);

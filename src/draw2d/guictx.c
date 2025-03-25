@@ -709,8 +709,9 @@ void guictx_append_text_manager_imp(
     FPtr_gctx_destroy func_text_destroy,
     FPtr_gctx_set_listener func_text_OnFilter,
     FPtr_gctx_set_listener func_text_OnFocus,
-    FPtr_gctx_set_text func_text_insert_text,
     FPtr_gctx_set_text func_text_set_text,
+    FPtr_gctx_set_text func_text_add_text,
+    FPtr_gctx_set_text func_text_ins_text,
     FPtr_gctx_set_ptr func_text_set_rtf,
     FPtr_gctx_set_property func_text_set_prop,
     FPtr_gctx_set_bool func_text_set_editable,
@@ -731,8 +732,9 @@ void guictx_append_text_manager_imp(
     cassert(context->func_destroy[ekGUI_TYPE_TEXTVIEW] == NULL);
     cassert(context->func_text_OnFilter == NULL);
     cassert(context->func_text_OnFocus == NULL);
-    cassert(context->func_text_insert_text == NULL);
     cassert(context->func_text_set_text == NULL);
+    cassert(context->func_text_add_text == NULL);
+    cassert(context->func_text_ins_text == NULL);
     cassert(context->func_text_set_rtf == NULL);
     cassert(context->func_text_set_prop == NULL);
     cassert(context->func_text_set_editable == NULL);
@@ -751,8 +753,9 @@ void guictx_append_text_manager_imp(
     cassert_no_nullf(func_text_destroy);
     cassert_no_nullf(func_text_OnFilter);
     cassert_no_nullf(func_text_OnFocus);
-    cassert_no_nullf(func_text_insert_text);
     cassert_no_nullf(func_text_set_text);
+    cassert_no_nullf(func_text_add_text);
+    cassert_no_nullf(func_text_ins_text);
     cassert_no_nullf(func_text_set_rtf);
     cassert_no_nullf(func_text_set_prop);
     cassert_no_nullf(func_text_set_editable);
@@ -771,8 +774,9 @@ void guictx_append_text_manager_imp(
     context->func_destroy[ekGUI_TYPE_TEXTVIEW] = func_text_destroy;
     context->func_text_OnFilter = func_text_OnFilter;
     context->func_text_OnFocus = func_text_OnFocus;
-    context->func_text_insert_text = func_text_insert_text;
     context->func_text_set_text = func_text_set_text;
+    context->func_text_add_text = func_text_add_text;
+    context->func_text_ins_text = func_text_ins_text;
     context->func_text_set_rtf = func_text_set_rtf;
     context->func_text_set_prop = func_text_set_prop;
     context->func_text_set_editable = func_text_set_editable;

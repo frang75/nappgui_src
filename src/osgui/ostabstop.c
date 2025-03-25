@@ -93,6 +93,8 @@ static bool_t i_resign_focus(OSTabStop *tabstop, const OSControl *control)
         return _oscombo_resign_focus(cast(control, OSCombo));
     else if (type == ekGUI_TYPE_CUSTOMVIEW)
         return _osview_resign_focus(cast(control, OSView));
+    else if (type == ekGUI_TYPE_TEXTVIEW)
+        return _ostext_resign_focus(cast(control, OSText));
     return TRUE;
 }
 

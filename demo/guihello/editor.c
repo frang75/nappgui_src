@@ -39,7 +39,7 @@ static void i_destroy_data(EditData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_apply_params(EditData *data, const bool_t apply_all)
+static void i_set_params(EditData *data)
 {
     const char_t *ffamily = NULL;
     const char_t *tsize = NULL;
@@ -72,12 +72,14 @@ static void i_apply_params(EditData *data, const bool_t apply_all)
     textview_fstyle(data->text, fstyle);
     textview_color(data->text, color);
     textview_bgcolor(data->text, back);
+}
 
-    /* Apply the format */
-    if (apply_all == TRUE)
-        textview_apply_all(data->text);
-    else
-        textview_apply_sel(data->text);
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSetParams(EditData *data, Event *e)
+{
+    i_set_params(data);
+    unref(e);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -108,13 +110,14 @@ static PopUp *i_font_popup(EditData *data)
         popup_selected(popup, 0);
 
     popup_list_height(popup, 20);
+    popup_OnSelect(popup, listener(data, i_OnSetParams, EditData));
     font_destroy(&sfont);
     return popup;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static PopUp *i_font_size(void)
+static PopUp *i_font_size(EditData *data)
 {
     PopUp *popup = popup_create();
     uint32_t i = 0;
@@ -124,12 +127,13 @@ static PopUp *i_font_size(void)
         bstd_sprintf(buf, sizeof(buf), "%d", i);
         popup_add_elem(popup, buf, NULL);
     }
+    popup_OnSelect(popup, listener(data, i_OnSetParams, EditData));
     return popup;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static PopUp *i_font_color(void)
+static PopUp *i_font_color(EditData *data)
 {
     PopUp *popup = popup_create();
     popup_add_elem(popup, "Default", NULL);
@@ -141,6 +145,7 @@ static PopUp *i_font_color(void)
     popup_add_elem(popup, "Yellow", NULL);
     popup_add_elem(popup, "Cyan", NULL);
     popup_add_elem(popup, "Magenta", NULL);
+    popup_OnSelect(popup, listener(data, i_OnSetParams, EditData));
     return popup;
 }
 
@@ -162,6 +167,10 @@ static Layout *i_font_style(EditData *data)
     layout_button(layout, button2, 0, 1);
     layout_button(layout, button3, 0, 2);
     layout_button(layout, button4, 0, 3);
+    button_OnClick(button1, listener(data, i_OnSetParams, EditData));
+    button_OnClick(button2, listener(data, i_OnSetParams, EditData));
+    button_OnClick(button3, listener(data, i_OnSetParams, EditData));
+    button_OnClick(button4, listener(data, i_OnSetParams, EditData));
     data->bold_check = button1;
     data->italic_check = button2;
     data->under_check = button3;
@@ -181,9 +190,9 @@ static Layout *i_text_controls(EditData *data)
     Label *label4 = label_create();
     Label *label5 = label_create();
     PopUp *popup1 = i_font_popup(data);
-    PopUp *popup2 = i_font_size();
-    PopUp *popup3 = i_font_color();
-    PopUp *popup4 = i_font_color();
+    PopUp *popup2 = i_font_size(data);
+    PopUp *popup3 = i_font_color(data);
+    PopUp *popup4 = i_font_color(data);
     label_text(label1, "Font family");
     label_text(label2, "Font size");
     label_text(label3, "Font style");
@@ -219,6 +228,35 @@ static Layout *i_text_controls(EditData *data)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnInsertText(EditData *data, Event *e)
+{
+    cassert_no_null(data);
+    textview_cpos_printf(data->text, "%s", "ins");
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnAddText(EditData *data, Event *e)
+{
+    cassert_no_null(data);
+    textview_printf(data->text, "%s", "add");
+    unref(e);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_params(EditData *data, const bool_t apply_all)
+{
+    /* Apply the format */
+    if (apply_all == TRUE)
+        textview_apply_all(data->text);
+    else
+        textview_apply_select(data->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnApplyAll(EditData *data, Event *e)
 {
     i_apply_params(data, TRUE);
@@ -237,20 +275,30 @@ static void i_OnApplySel(EditData *data, Event *e)
 
 static Layout *i_apply_buttons(EditData *data)
 {
-    Layout *layout = layout_create(3, 1);
+    Layout *layout = layout_create(5, 1);
     Label *label = label_create();
     Button *button1 = button_push();
     Button *button2 = button_push();
+    Button *button3 = button_push();
+    Button *button4 = button_push();
     label_text(label, "Apply format");
-    button_text(button1, "All text");
-    button_text(button2, "Selected text");
-    button_OnClick(button1, listener(data, i_OnApplyAll, EditData));
-    button_OnClick(button2, listener(data, i_OnApplySel, EditData));
-    layout_label(layout, label, 0, 0);
-    layout_button(layout, button1, 1, 0);
-    layout_button(layout, button2, 2, 0);
-    layout_hmargin(layout, 0, 20);
-    layout_hmargin(layout, 1, 5);
+    button_text(button1, "Insert text");
+    button_text(button2, "Add text");
+    button_text(button3, "All text");
+    button_text(button4, "Selected text");
+    button_OnClick(button1, listener(data, i_OnInsertText, EditData));
+    button_OnClick(button2, listener(data, i_OnAddText, EditData));
+    button_OnClick(button3, listener(data, i_OnApplyAll, EditData));
+    button_OnClick(button4, listener(data, i_OnApplySel, EditData));
+    layout_button(layout, button1, 0, 0);
+    layout_button(layout, button2, 1, 0);
+    layout_label(layout, label, 2, 0);
+    layout_button(layout, button3, 3, 0);
+    layout_button(layout, button4, 4, 0);
+    layout_hmargin(layout, 0, 5);
+    layout_hmargin(layout, 1, 10);
+    layout_hmargin(layout, 2, 5);
+    layout_hmargin(layout, 3, 5);
     return layout;
 }
 
@@ -308,6 +356,7 @@ Panel *editor(Window *window)
     Layout *layout = i_layout(data);
     Panel *panel = panel_create();
     i_colors();
+    i_set_params(data);
     i_apply_params(data, TRUE);
     panel_data(panel, &data, i_destroy_data, EditData);
     panel_layout(panel, layout);

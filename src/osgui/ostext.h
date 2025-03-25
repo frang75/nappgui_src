@@ -22,9 +22,11 @@ _osgui_api void ostext_OnFilter(OSText *view, Listener *listener);
 
 _osgui_api void ostext_OnFocus(OSText *view, Listener *listener);
 
-_osgui_api void ostext_insert_text(OSText *view, const char_t *text);
-
 _osgui_api void ostext_set_text(OSText *view, const char_t *text);
+
+_osgui_api void ostext_add_text(OSText *view, const char_t *text);
+
+_osgui_api void ostext_ins_text(OSText *view, const char_t *text);
 
 _osgui_api void ostext_set_rtf(OSText *view, Stream *rtf_in);
 

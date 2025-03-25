@@ -248,12 +248,12 @@ typedef enum _gui_text_t
     ekGUI_TEXT_LSPACING,
     ekGUI_TEXT_BFPARSPACE,
     ekGUI_TEXT_AFPARSPACE,
+    ekGUI_TEXT_APPLY_ALL,
+    ekGUI_TEXT_APPLY_SEL,
     ekGUI_TEXT_SELECT,
     ekGUI_TEXT_SHOW_SELECT,
     ekGUI_TEXT_SCROLL,
-    ekGUI_TEXT_WRAP_MODE,
-    ekGUI_TEXT_APPLY_ALL,
-    ekGUI_TEXT_APPLY_SEL
+    ekGUI_TEXT_WRAP_MODE
 } gui_text_t;
 
 typedef enum _gui_web_t
@@ -776,8 +776,9 @@ struct _guictx_t
     /*! <Text view> */
     FPtr_gctx_set_listener func_text_OnFilter;
     FPtr_gctx_set_listener func_text_OnFocus;
-    FPtr_gctx_set_text func_text_insert_text;
     FPtr_gctx_set_text func_text_set_text;
+    FPtr_gctx_set_text func_text_add_text;
+    FPtr_gctx_set_text func_text_ins_text;
     FPtr_gctx_set_ptr func_text_set_rtf;
     FPtr_gctx_set_property func_text_set_prop;
     FPtr_gctx_set_bool func_text_set_editable;

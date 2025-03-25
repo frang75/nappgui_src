@@ -363,8 +363,8 @@ OSButton *osbutton_create(const uint32_t flags)
         button->font = _osgui_create_default_font();
     }
 
-    g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)button);
-    g_signal_connect(G_OBJECT(widget), "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)button);
+    g_signal_connect(G_OBJECT(focus_widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)button);
+    g_signal_connect(G_OBJECT(focus_widget), "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)button);
     button->launch_event = TRUE;
     return button;
 }
