@@ -1,6 +1,8 @@
 # NAppGUI Changelog
 
-## v1.5.1 - WIP
+## v1.5.2 - WIP
+
+## v1.5.1 - March 30, 2025 (r6128)
 
 ### Added
 
@@ -43,6 +45,10 @@
 - `label_multiline()` in now a setter and not a constructor. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 - `menu_launch()` adds a new `Window` parameter. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
 - `textview_apply_sel()` renamed by `textview_apply_select()`. [Issue](https://github.com/frang75/nappgui_src/issues/193). [Commit](https://github.com/frang75/nappgui_src/commit/4732dc96bdbc879f999d760887efa18f293ceb3c).
+
+### Improved
+
+- Full review and rewrite layout compose, natural sizing and expand algorithms, to avoid known problems in user resizing. [Commit](https://github.com/frang75/nappgui_src/commit/a84740a54512af6e1f49577478406f733079fb5e).
 
 ### Fixed
 
