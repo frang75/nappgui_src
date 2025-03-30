@@ -12,6 +12,7 @@
 
 #include "../osbs.inl"
 #include "../bmutex.h"
+#include <core/heap.h>
 #include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
@@ -26,8 +27,9 @@
 
 Mutex *bmutex_create(void)
 {
-    HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
+    SRWLOCK* mutex = heap_new(SRWLOCK);
     cassert_no_null(mutex);
+    InitializeSRWLock(mutex);
     _osbs_mutex_alloc();
     return cast(mutex, Mutex);
 }
@@ -36,31 +38,24 @@ Mutex *bmutex_create(void)
 
 void bmutex_close(Mutex **mutex)
 {
-    BOOL ok;
     cassert_no_null(mutex);
     cassert_no_null(*mutex);
-    ok = CloseHandle((HANDLE)*mutex);
-    cassert_unref(ok != 0, ok);
+    heap_delete((SRWLOCK**)mutex, SRWLOCK);
     _osbs_mutex_dealloc();
-    *mutex = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void bmutex_lock(Mutex *mutex)
 {
-    DWORD dwWaitResult = 0;
     cassert_no_null(mutex);
-    dwWaitResult = WaitForSingleObject((HANDLE)mutex, INFINITE);
-    cassert_unref(dwWaitResult == WAIT_OBJECT_0, dwWaitResult);
+    AcquireSRWLockExclusive(cast(mutex, SRWLOCK));
 }
 
 /*---------------------------------------------------------------------------*/
 
 void bmutex_unlock(Mutex *mutex)
 {
-    BOOL ok = FALSE;
     cassert_no_null(mutex);
-    ok = ReleaseMutex((HANDLE)mutex);
-    cassert_unref(ok != 0, ok);
+    ReleaseSRWLockExclusive(cast(mutex, SRWLOCK));
 }
