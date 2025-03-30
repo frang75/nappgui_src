@@ -12,7 +12,7 @@
 
 #include "../osbs.inl"
 #include "../bmutex.h"
-#include <core/heap.h>
+#include <sewer/bmem.h>
 #include <sewer/cassert.h>
 
 #if !defined(__WINDOWS__)
@@ -27,7 +27,7 @@
 
 Mutex *bmutex_create(void)
 {
-    SRWLOCK* mutex = heap_new(SRWLOCK);
+    SRWLOCK* mutex = cast(bmem_malloc(sizeof(SRWLOCK)), SRWLOCK);
     cassert_no_null(mutex);
     InitializeSRWLock(mutex);
     _osbs_mutex_alloc();
@@ -40,8 +40,9 @@ void bmutex_close(Mutex **mutex)
 {
     cassert_no_null(mutex);
     cassert_no_null(*mutex);
-    heap_delete((SRWLOCK**)mutex, SRWLOCK);
+    bmem_free(*mutex);
     _osbs_mutex_dealloc();
+    *mutex = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
