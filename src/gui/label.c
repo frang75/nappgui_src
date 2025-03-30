@@ -283,7 +283,7 @@ void label_bgcolor_over(Label *label, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-void _label_dimension(Label *label, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _label_natural(Label *label, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(label);
     cassert_no_null(dim0);

@@ -40,6 +40,8 @@ const char_t *_osglobals_css_textview(void);
 
 const char_t *_osglobals_css_textview_text(void);
 
+const char_t *_osglobals_css_progressbar(void);
+
 color_t _osglobals_text_color(void);
 
 color_t _osglobals_seltext_color(void);

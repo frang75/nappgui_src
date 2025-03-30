@@ -71,6 +71,7 @@ static String *kCSS_COMBOBOX = NULL;
 static String *kCSS_FRAME = NULL;
 static String *kCSS_TEXTVIEW = NULL;
 static String *kCSS_TEXTVIEWTEXT = NULL;
+static String *kCSS_PROGRESSBAR = NULL;
 const uint32_t kBUTTON_VPADDING = 8;
 const uint32_t kBUTTON_HPADDING = 16;
 const uint32_t kPOPUP_VPADDING = 8;
@@ -954,7 +955,15 @@ static void i_parse_gtk_theme(void)
                     kCSS_TEXTVIEWTEXT = str_cn(csect, sect_n);
             }
 
-            if (kCSS_ENTRY == NULL || kCSS_BUTTON == NULL || kCSS_RADIO == NULL || kCSS_CHECK == NULL || kCSS_COMBOBOX == NULL || kCSS_FRAME == NULL || kCSS_TEXTVIEW == NULL || kCSS_TEXTVIEWTEXT == NULL)
+            if (kCSS_PROGRESSBAR == NULL)
+            {
+                if (i_section(csect, "GtkProgressBar", &sect_n) == TRUE)
+                    kCSS_PROGRESSBAR = str_cn(csect, sect_n);
+                else if (i_section(csect, "progressbar", &sect_n) == TRUE)
+                    kCSS_PROGRESSBAR = str_cn(csect, sect_n);
+            }
+
+            if (kCSS_ENTRY == NULL || kCSS_BUTTON == NULL || kCSS_RADIO == NULL || kCSS_CHECK == NULL || kCSS_COMBOBOX == NULL || kCSS_FRAME == NULL || kCSS_TEXTVIEW == NULL || kCSS_TEXTVIEWTEXT == NULL || kCSS_PROGRESSBAR == NULL)
                 i_jump_next_section(&pcss);
             else
                 break;
@@ -1012,6 +1021,9 @@ static void i_parse_gtk_theme(void)
 
     if (kCSS_FRAME == NULL)
         log_printf("No kCSS_FRAME found in css theme");
+
+    if (kCSS_PROGRESSBAR == NULL)
+        log_printf("No kCSS_PROGRESSBAR found in css theme");
 
     g_free(theme_name);
     g_free(css_data);
@@ -1099,6 +1111,7 @@ void _osglobals_finish(void)
     str_destopt(&kCSS_FRAME);
     str_destopt(&kCSS_TEXTVIEW);
     str_destopt(&kCSS_TEXTVIEWTEXT);
+    str_destopt(&kCSS_PROGRESSBAR);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1184,6 +1197,13 @@ const char_t *_osglobals_css_textview(void)
 const char_t *_osglobals_css_textview_text(void)
 {
     return tc(kCSS_TEXTVIEWTEXT);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *_osglobals_css_progressbar(void)
+{
+    return tc(kCSS_PROGRESSBAR);
 }
 
 /*---------------------------------------------------------------------------*/

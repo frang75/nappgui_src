@@ -580,7 +580,7 @@ void combo_set_selected(Combo *combo, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-void _combo_dimension(Combo *combo, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _combo_natural(Combo *combo, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(combo);
     cassert_no_null(dim0);

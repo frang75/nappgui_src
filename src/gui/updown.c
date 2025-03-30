@@ -91,7 +91,7 @@ void updown_tooltip(UpDown *updown, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-void _updown_dimension(UpDown *updown, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _updown_natural(UpDown *updown, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(updown);
     cassert_no_null(dim0);

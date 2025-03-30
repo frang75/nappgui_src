@@ -43,7 +43,7 @@ struct _popup_t
     S2Df size;
     ResId ttipid;
     ArrSt(PElem) *elems;
-    Listener *OnChange;
+    Listener *OnSelect;
 };
 
 DeclSt(PElem);
@@ -64,14 +64,14 @@ void _popup_destroy(PopUp **popup)
     cassert_no_null(popup);
     cassert_no_null(*popup);
     _component_destroy_imp(&(*popup)->component);
-    listener_destroy(&(*popup)->OnChange);
+    listener_destroy(&(*popup)->OnSelect);
     arrst_destroy(&(*popup)->elems, i_remove_elem, PElem);
     obj_delete(popup, PopUp);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnSelectionChange(PopUp *popup, Event *event)
+static void i_OnSelect(PopUp *popup, Event *event)
 {
     const EvButton *params = event_params(event, EvButton);
     cassert_no_null(popup);
@@ -82,12 +82,12 @@ static void i_OnSelectionChange(PopUp *popup, Event *event)
             _cell_update_u32(cell, params->index);
     }
 
-    if (popup->OnChange != NULL)
+    if (popup->OnSelect != NULL)
     {
         const PElem *elem = arrst_get(popup->elems, params->index, PElem);
         cassert(params->text == NULL);
         cast(params, EvButton)->text = tc(elem->text);
-        listener_pass_event(popup->OnChange, event, popup, PopUp);
+        listener_pass_event(popup->OnSelect, event, popup, PopUp);
     }
 }
 
@@ -102,7 +102,7 @@ PopUp *popup_create(void)
     context->func_popup_set_font(ositem, font);
     _component_init(&popup->component, context, PARAM(type, ekGUI_TYPE_POPUP), &ositem);
     popup->elems = arrst_create(PElem);
-    context->func_popup_OnChange(popup->component.ositem, obj_listener(popup, i_OnSelectionChange, PopUp));
+    context->func_popup_OnSelect(popup->component.ositem, obj_listener(popup, i_OnSelect, PopUp));
     font_destroy(&font);
     return popup;
 }
@@ -112,7 +112,7 @@ PopUp *popup_create(void)
 void popup_OnSelect(PopUp *popup, Listener *listener)
 {
     cassert_no_null(popup);
-    listener_update(&popup->OnChange, listener);
+    listener_update(&popup->OnSelect, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -128,20 +128,29 @@ void popup_tooltip(PopUp *popup, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
+static Image *i_image(const Image *image)
+{
+    const Image *limage = _gui_respack_image((ResId)image, NULL);
+    if (limage != NULL)
+        return image_scale(limage, 16, 16);
+    else
+        return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void popup_add_elem(PopUp *popup, const char_t *text, const Image *image)
 {
-    const char_t *ltext;
-    const Image *limage;
     PElem *elem = NULL;
+    const char_t *ltext = NULL;
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
     cassert_no_nullf(popup->component.context->func_popup_set_elem);
     cassert_no_nullf(popup->component.context->func_popup_list_height);
-    elem = arrst_new(popup->elems, PElem);
+    elem = arrst_new0(popup->elems, PElem);
     ltext = _gui_respack_text(text, &elem->resid);
-    limage = _gui_respack_image((ResId)image, NULL);
-    elem->image = limage ? image_copy(limage) : NULL;
     elem->text = str_c(ltext);
+    elem->image = i_image(image);
     popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
     popup->component.context->func_popup_list_height(popup->component.ositem, arrst_size(popup->elems, PElem));
 }
@@ -151,12 +160,16 @@ void popup_add_elem(PopUp *popup, const char_t *text, const Image *image)
 void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image)
 {
     PElem *elem = NULL;
+    const char_t *ltext = NULL;
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
     cassert_no_nullf(popup->component.context->func_popup_set_elem);
     elem = arrst_get(popup->elems, index, PElem);
-    str_upd(&elem->text, text);
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, index, text, image);
+    ltext = _gui_respack_text(text, &elem->resid);
+    ptr_destopt(image_destroy, &elem->image, Image);
+    elem->image = i_image(image);
+    str_upd(&elem->text, ltext);
+    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, index, tc(elem->text), elem->image);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -193,67 +206,12 @@ void popup_list_height(PopUp *popup, const uint32_t num_elems)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-void popup_set_font(PopUp *popup, const Font *font);
-void popup_set_font(PopUp *popup, const Font *font)
-{
-    cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_font);
-    popup->component.context->func_popup_set_font(popup->component.ositem, font, _gui_font_family(font));
-}*/
-
-/*---------------------------------------------------------------------------*/
-
 void popup_selected(PopUp *popup, const uint32_t index)
 {
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
     cassert_no_nullf(popup->component.context->func_popup_set_selected);
     popup->component.context->func_popup_set_selected(popup->component.ositem, index);
-}
-
-/*---------------------------------------------------------------------------*/
-
-uint32_t _popup_size(const PopUp *popup)
-{
-    cassert_no_null(popup);
-    return arrst_size(popup->elems, PElem);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _popup_list_height(PopUp *popup, const uint32_t elems)
-{
-    popup_list_height(popup, elems);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _popup_uint32(PopUp *popup, const uint32_t value)
-{
-    cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_selected);
-
-    if (value < arrst_size(popup->elems, PElem))
-        popup->component.context->func_popup_set_selected(popup->component.ositem, value);
-    else
-        popup->component.context->func_popup_set_selected(popup->component.ositem, UINT32_MAX);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _popup_add_enum_item(PopUp *popup, const char_t *text)
-{
-    PElem *elem = NULL;
-    cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_elem);
-    elem = arrst_new(popup->elems, PElem);
-    elem->text = str_c(text);
-    elem->image = NULL;
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -278,7 +236,7 @@ const char_t *popup_get_text(const PopUp *popup, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
-void _popup_dimension(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _popup_natural(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
@@ -325,4 +283,47 @@ void _popup_locale(PopUp *popup)
         str_upd(&elem->text, text);
         popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
     arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _popup_size(const PopUp *popup)
+{
+    cassert_no_null(popup);
+    return arrst_size(popup->elems, PElem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _popup_list_height(PopUp *popup, const uint32_t elems)
+{
+    popup_list_height(popup, elems);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _popup_uint32(PopUp *popup, const uint32_t value)
+{
+    cassert_no_null(popup);
+    cassert_no_null(popup->component.context);
+    cassert_no_nullf(popup->component.context->func_popup_set_selected);
+
+    if (value < arrst_size(popup->elems, PElem))
+        popup->component.context->func_popup_set_selected(popup->component.ositem, value);
+    else
+        popup->component.context->func_popup_set_selected(popup->component.ositem, UINT32_MAX);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _popup_add_enum_item(PopUp *popup, const char_t *text)
+{
+    PElem *elem = NULL;
+    cassert_no_null(popup);
+    cassert_no_null(popup->component.context);
+    cassert_no_nullf(popup->component.context->func_popup_set_elem);
+    elem = arrst_new(popup->elems, PElem);
+    elem->text = str_c(text);
+    elem->image = NULL;
+    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
 }

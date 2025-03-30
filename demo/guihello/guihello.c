@@ -28,6 +28,7 @@
 #include "dynlay.h"
 #include "dynmenu.h"
 #include "scrollpanel.h"
+#include "reduce.h"
 #include "res_guihello.h"
 
 typedef struct _app_t App;
@@ -133,6 +134,9 @@ static void i_set_panel(App *app, const uint32_t index)
     case 28:
         panel = font_x_scale();
         break;
+    case 29:
+        panel = reduce(app->window);
+        break;
     }
 
     layout_panel_replace(app->layout, panel, 1, 0);
@@ -191,6 +195,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Dynamic menus", NULL);
     listbox_add_elem(list, "IP Input", NULL);
     listbox_add_elem(list, "Font x-scale", NULL);
+    listbox_add_elem(list, "Reduce components", NULL);
     listbox_select(list, 0, TRUE);
     listbox_OnSelect(list, listener(app, i_OnSelect, App));
     layout_listbox(layout, list, 0, 0);

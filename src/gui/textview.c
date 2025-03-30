@@ -488,7 +488,7 @@ void textview_wrap(TextView *view, const bool_t wrap)
 
 /*---------------------------------------------------------------------------*/
 
-void _textview_dimension(TextView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _textview_natural(TextView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(view);
     cassert_no_null(dim0);

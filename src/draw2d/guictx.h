@@ -204,7 +204,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_popup_create,
     FPtr_gctx_destroy func_popup_destroy,
-    FPtr_gctx_set_listener func_popup_OnChange,
+    FPtr_gctx_set_listener func_popup_OnSelect,
     FPtr_gctx_set_elem func_popup_set_elem,
     FPtr_gctx_set_text func_popup_set_tooltip,
     FPtr_gctx_set_cptr func_popup_set_font,
@@ -223,7 +223,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     context, \
     func_popup_create, \
     func_popup_destroy, \
-    func_popup_OnChange, \
+    func_popup_OnSelect, \
     func_popup_set_elem, \
     func_popup_set_tooltip, \
     func_popup_set_font, \
@@ -242,7 +242,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     ( \
         FUNC_CHECK_GCTX_CREATE(func_popup_create, popup_type), \
         FUNC_CHECK_GCTX_DESTROY(func_popup_destroy, popup_type), \
-        FUNC_CHECK_GCTX_SET_LISTENER(func_popup_OnChange, popup_type), \
+        FUNC_CHECK_GCTX_SET_LISTENER(func_popup_OnSelect, popup_type), \
         FUNC_CHECK_GCTX_SET_ELEM(func_popup_set_elem, popup_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_popup_set_tooltip, popup_type), \
         FUNC_CHECK_GCTX_SET_CPTR(func_popup_set_font, popup_type, font_type), \
@@ -261,7 +261,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
             context, \
             (FPtr_gctx_create)func_popup_create, \
             (FPtr_gctx_destroy)func_popup_destroy, \
-            (FPtr_gctx_set_listener)func_popup_OnChange, \
+            (FPtr_gctx_set_listener)func_popup_OnSelect, \
             (FPtr_gctx_set_elem)func_popup_set_elem, \
             (FPtr_gctx_set_text)func_popup_set_tooltip, \
             (FPtr_gctx_set_cptr)func_popup_set_font, \

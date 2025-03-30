@@ -73,23 +73,23 @@ static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_panels)_panel_panels,     /* ekGUI_TYPE_PANEL */
     (FPtr_panels)NULL};             /* ekGUI_TYPE_LINE */
 
-static const FPtr_dimension i_FUNC_DIMENSION[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_dimension)_label_dimension,     /* ekGUI_TYPE_LABEL */
-    (FPtr_dimension)_button_dimension,    /* ekGUI_TYPE_BUTTON */
-    (FPtr_dimension)_popup_dimension,     /* ekGUI_TYPE_POPUP */
-    (FPtr_dimension)_edit_dimension,      /* ekGUI_TYPE_EDITBOX */
-    (FPtr_dimension)_combo_dimension,     /* ekGUI_TYPE_COMBOBOX */
-    (FPtr_dimension)_slider_dimension,    /* ekGUI_TYPE_SLIDER */
-    (FPtr_dimension)_updown_dimension,    /* ekGUI_TYPE_UPDOWN */
-    (FPtr_dimension)_progress_dimension,  /* ekGUI_TYPE_PROGRESS */
-    (FPtr_dimension)_textview_dimension,  /* ekGUI_TYPE_TEXTVIEW */
-    (FPtr_dimension)_webview_dimension,   /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_dimension)NULL,                 /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_dimension)NULL,                 /* ekGUI_TYPE_BOXVIEW */
-    (FPtr_dimension)_splitview_dimension, /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_dimension)_view_dimension,      /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_dimension)_panel_dimension,     /* ekGUI_TYPE_PANEL */
-    (FPtr_dimension)NULL};                /* ekGUI_TYPE_LINE */
+static const FPtr_natural i_FUNC_NATURAL[GUI_CONTEXT_NUM_COMPONENTS] = {
+    (FPtr_natural)_label_natural,     /* ekGUI_TYPE_LABEL */
+    (FPtr_natural)_button_natural,    /* ekGUI_TYPE_BUTTON */
+    (FPtr_natural)_popup_natural,     /* ekGUI_TYPE_POPUP */
+    (FPtr_natural)_edit_natural,      /* ekGUI_TYPE_EDITBOX */
+    (FPtr_natural)_combo_natural,     /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_natural)_slider_natural,    /* ekGUI_TYPE_SLIDER */
+    (FPtr_natural)_updown_natural,    /* ekGUI_TYPE_UPDOWN */
+    (FPtr_natural)_progress_natural,  /* ekGUI_TYPE_PROGRESS */
+    (FPtr_natural)_textview_natural,  /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_natural)_webview_natural,   /* ekGUI_TYPE_WEBVIEW */
+    (FPtr_natural)NULL,               /* ekGUI_TYPE_TREEVIEW */
+    (FPtr_natural)NULL,               /* ekGUI_TYPE_BOXVIEW */
+    (FPtr_natural)_splitview_natural, /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_natural)_view_natural,      /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_natural)_panel_natural,     /* ekGUI_TYPE_PANEL */
+    (FPtr_natural)NULL};              /* ekGUI_TYPE_LINE */
 
 static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL,              /* ekGUI_TYPE_LABEL */
@@ -124,7 +124,7 @@ static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_BOXVIEW */
     (FPtr_set_size)_splitview_OnResize, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_set_size)_view_OnResize,      /* ekGUI_TYPE_CUSTOMVIEW */
-    (FPtr_set_size)NULL,                /* ekGUI_TYPE_PANEL */
+    (FPtr_set_size)_panel_OnResize,     /* ekGUI_TYPE_PANEL */
     (FPtr_set_size)NULL};               /* ekGUI_TYPE_LINE */
 
 static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
@@ -259,11 +259,11 @@ void _component_panels(GuiComponent *component, uint32_t *num_panels, Panel **pa
 
 /*---------------------------------------------------------------------------*/
 
-void _component_dimension(GuiComponent *component, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _component_natural(GuiComponent *component, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(component);
-    cassert_no_nullf(i_FUNC_DIMENSION[component->type]);
-    i_FUNC_DIMENSION[component->type](component, i, dim0, dim1);
+    cassert_no_nullf(i_FUNC_NATURAL[component->type]);
+    i_FUNC_NATURAL[component->type](component, i, dim0, dim1);
 }
 
 /*---------------------------------------------------------------------------*/

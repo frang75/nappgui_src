@@ -28,9 +28,9 @@ void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components);
 
 void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size);
 
-void _layout_dimension(Layout *layout, const uint32_t di, real32_t *dim0, real32_t *dim1);
+void _layout_natural(Layout *layout, const uint32_t di, real32_t *dim0, real32_t *dim1);
 
-void _layout_expand(Layout *layout, const uint32_t di, const real32_t current_size, const real32_t required_size, real32_t *final_size);
+void _layout_expand(Layout *layout, const uint32_t di, const real32_t natural_size, const real32_t required_size, real32_t *final_size);
 
 void _layout_locate(Layout *layout);
 

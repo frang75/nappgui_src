@@ -16,7 +16,7 @@ __EXTERN_C
 
 void _splitview_destroy(SplitView **split);
 
-void _splitview_dimension(SplitView *split, const uint32_t di, real32_t *dim0, real32_t *dim1);
+void _splitview_natural(SplitView *split, const uint32_t di, real32_t *dim0, real32_t *dim1);
 
 void _splitview_expand(SplitView *split, const uint32_t di, const real32_t current_size, const real32_t required_size, real32_t *final_size);
 

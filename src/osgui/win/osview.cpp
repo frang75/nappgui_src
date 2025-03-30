@@ -30,6 +30,8 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+#include <sewer/bstd.h>
+
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
 #endif

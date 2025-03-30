@@ -111,7 +111,7 @@ void webview_forward(WebView *view)
 
 /*---------------------------------------------------------------------------*/
 
-void _webview_dimension(WebView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _webview_natural(WebView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(view);
     cassert_no_null(dim0);

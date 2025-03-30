@@ -457,8 +457,8 @@ real32_t edit_get_height(const Edit *edit)
 {
     real32_t width, height;
     cassert_no_null(edit);
-    _edit_dimension(cast(edit, Edit), 0, &width, &height);
-    _edit_dimension(cast(edit, Edit), 1, &width, &height);
+    _edit_natural(cast(edit, Edit), 0, &width, &height);
+    _edit_natural(cast(edit, Edit), 1, &width, &height);
     return height;
 }
 
@@ -491,7 +491,7 @@ void edit_paste(Edit *edit)
 
 /*---------------------------------------------------------------------------*/
 
-void _edit_dimension(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _edit_natural(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(edit);
     cassert_no_null(dim0);

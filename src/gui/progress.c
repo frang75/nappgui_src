@@ -92,7 +92,7 @@ void progress_value(Progress *progress, const real32_t value)
 
 /*---------------------------------------------------------------------------*/
 
-void _progress_dimension(Progress *progress, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _progress_natural(Progress *progress, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(progress);
     cassert_no_null(dim0);

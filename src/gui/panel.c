@@ -477,28 +477,7 @@ static void i_activate_layout(const ArrPt(Layout) *layouts, ArrPt(GuiComponent) 
 
 /*---------------------------------------------------------------------------*/
 
-void _panel_compose(Panel *panel, const S2Df *required_size, S2Df *final_size)
-{
-    Layout *layout = NULL;
-
-    cassert_no_null(panel);
-
-    if (panel->visible_layout != panel->active_layout)
-    {
-        i_activate_layout(panel->layouts, panel->children, panel->active_layout);
-        panel->visible_layout = panel->active_layout;
-    }
-
-    layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
-    _layout_compose(layout, required_size, final_size);
-
-    cassert(panel->control_size.width <= 0 || final_size->width <= panel->control_size.width);
-    cassert(panel->control_size.height <= 0 || final_size->height <= panel->control_size.height);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _panel_dimension(Panel *panel, const uint32_t di, real32_t *dim0, real32_t *dim1)
+void _panel_natural(Panel *panel, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     Layout *layout = NULL;
     cassert_no_null(panel);
@@ -510,11 +489,12 @@ void _panel_dimension(Panel *panel, const uint32_t di, real32_t *dim0, real32_t 
     }
 
     layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
-    _layout_dimension(layout, di, dim0, dim1);
+    _layout_natural(layout, di, dim0, dim1);
 
     if (di == 0)
     {
         panel->natural_size.width = *dim0;
+        panel->content_size.width = *dim0;
         if (panel->control_size.width > 0)
             *dim0 = panel->control_size.width;
     }
@@ -522,6 +502,7 @@ void _panel_dimension(Panel *panel, const uint32_t di, real32_t *dim0, real32_t 
     {
         cassert(di == 1);
         panel->natural_size.height = *dim1;
+        panel->content_size.height = *dim1;
         if (panel->control_size.height > 0)
             *dim1 = panel->control_size.height;
     }
@@ -564,7 +545,6 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
 
         if (panel->control_size.height > 0)
         {
-            /*cassert(current_size == panel->control_size.height);*/
             if (required_size > panel->control_size.height)
                 reqsize = required_size;
             else
@@ -595,9 +575,18 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
         {
             cassert(di == 1);
             panel->content_size.height = laysize;
-            panel->component.context->func_panel_content_size(panel->component.ositem, panel->content_size.width, panel->content_size.height, 10, 10);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _panel_OnResize(Panel *panel, const S2Df *size)
+{
+    cassert_no_null(panel);
+    unref(size);
+    if (panel->flags & ekVIEW_HSCROLL || panel->flags & ekVIEW_VSCROLL)
+        panel->component.context->func_panel_content_size(panel->component.ositem, panel->content_size.width, panel->content_size.height, 10, 10);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -639,12 +628,4 @@ ArrPt(Layout) *_panel_layouts(const Panel *panel)
 {
     cassert_no_null(panel);
     return panel->layouts;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _panel_content_size(Panel *panel, const real32_t width, const real32_t height)
-{
-    cassert_no_null(panel);
-    panel->component.context->func_panel_content_size(panel->component.ositem, width, height, 10, 10);
 }

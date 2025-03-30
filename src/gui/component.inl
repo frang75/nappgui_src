@@ -28,7 +28,7 @@ void _component_set_parent_window(GuiComponent *component, Window *parent_window
 
 void _component_panels(GuiComponent *component, uint32_t *num_panels, Panel **panels);
 
-void _component_dimension(GuiComponent *component, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _component_natural(GuiComponent *component, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 void _component_expand(GuiComponent *component, const uint32_t di, const real32_t current_size, const real32_t required_size, real32_t *final_size);
 

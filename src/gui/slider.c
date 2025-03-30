@@ -172,7 +172,7 @@ real32_t slider_get_value(const Slider *slider)
 
 /*---------------------------------------------------------------------------*/
 
-void _slider_dimension(Slider *slider, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _slider_natural(Slider *slider, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(slider);
     cassert_no_null(dim0);

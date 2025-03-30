@@ -247,7 +247,7 @@ void guictx_append_popup_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_popup_create,
     FPtr_gctx_destroy func_popup_destroy,
-    FPtr_gctx_set_listener func_popup_OnChange,
+    FPtr_gctx_set_listener func_popup_OnSelect,
     FPtr_gctx_set_elem func_popup_set_elem,
     FPtr_gctx_set_text func_popup_set_tooltip,
     FPtr_gctx_set_cptr func_popup_set_font,
@@ -266,7 +266,7 @@ void guictx_append_popup_manager_imp(
     cassert_no_null(context);
     cassert(context->func_create[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_destroy[ekGUI_TYPE_POPUP] == NULL);
-    cassert(context->func_popup_OnChange == NULL);
+    cassert(context->func_popup_OnSelect == NULL);
     cassert(context->func_popup_set_elem == NULL);
     cassert(context->func_set_tooltip[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_popup_set_font == NULL);
@@ -283,7 +283,7 @@ void guictx_append_popup_manager_imp(
     cassert(context->func_set_frame[ekGUI_TYPE_POPUP] == NULL);
     cassert_no_nullf(func_popup_create);
     cassert_no_nullf(func_popup_destroy);
-    cassert_no_nullf(func_popup_OnChange);
+    cassert_no_nullf(func_popup_OnSelect);
     cassert_no_nullf(func_popup_set_elem);
     cassert_no_nullf(func_popup_set_tooltip);
     cassert_no_nullf(func_popup_set_font);
@@ -300,7 +300,7 @@ void guictx_append_popup_manager_imp(
     cassert_no_nullf(func_popup_set_frame);
     context->func_create[ekGUI_TYPE_POPUP] = func_popup_create;
     context->func_destroy[ekGUI_TYPE_POPUP] = func_popup_destroy;
-    context->func_popup_OnChange = func_popup_OnChange;
+    context->func_popup_OnSelect = func_popup_OnSelect;
     context->func_popup_set_elem = func_popup_set_elem;
     context->func_set_tooltip[ekGUI_TYPE_POPUP] = func_popup_set_tooltip;
     context->func_popup_set_font = func_popup_set_font;

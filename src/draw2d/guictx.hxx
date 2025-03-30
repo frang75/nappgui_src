@@ -718,7 +718,7 @@ struct _guictx_t
     FPtr_gctx_bounds2 func_button_bounds;
 
     /*! <PopUp> */
-    FPtr_gctx_set_listener func_popup_OnChange;
+    FPtr_gctx_set_listener func_popup_OnSelect;
     FPtr_gctx_set_elem func_popup_set_elem;
     FPtr_gctx_set_cptr func_popup_set_font;
     FPtr_gctx_set_uint32 func_popup_list_height;

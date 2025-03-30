@@ -16,7 +16,7 @@ __EXTERN_C
 
 void _edit_destroy(Edit **edit);
 
-void _edit_dimension(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _edit_natural(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 void _edit_locale(Edit *edit);
 

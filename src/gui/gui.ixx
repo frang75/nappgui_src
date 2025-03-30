@@ -37,7 +37,7 @@ typedef void (*FPtr_get_size)(void *component, S2Df *size);
 #define FUNC_CHECK_GET_SIZE(func, type) \
     (void)((void (*)(type *, S2Df *))func == func)
 
-typedef void (*FPtr_dimension)(void *component, const uint32_t di, real32_t *dim0, real32_t *dim1);
+typedef void (*FPtr_natural)(void *component, const uint32_t di, real32_t *dim0, real32_t *dim1);
 #define FUNC_CHECK_DIMENSION(func, type) \
     (void)((void (*)(type *, const uint32_t, real32_t *, real32_t *))func == func)
 
@@ -66,7 +66,6 @@ struct _gui_component_t
     void *ositem;
 };
 
-ArrPt(Column);
 DeclPt(Cell);
 DeclPt(Layout);
 DeclPt(GuiComponent);

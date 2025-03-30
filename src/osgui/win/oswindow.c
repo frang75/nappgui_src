@@ -388,9 +388,28 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         }
 
     case WM_SIZING:
-        i_resizing(window, wParam, cast(lParam, RECT));
-        window->wm_sizing = i_sizing_by_dragging(wParam);
+    {
+        RECT *rect = cast(lParam, RECT);
+        RECT current = *rect;
+        i_resizing(window, wParam, rect);
+        /* The resize edges rect is accepted --> The WM_SIZE event will be triggered */
+        if (((current.right - current.left) == (rect->right - rect->left)) && ((current.bottom - current.top) == (rect->bottom - rect->top)))
+        {
+            window->wm_sizing = i_sizing_by_dragging(wParam);
+        }
+        /* Some edge has been blocked by i_resizing(), we force the WM_SIZE event */
+        else
+        {
+            LONG owidth, oheight;
+            LONG clwidth, clheight;
+            i_adjust_window_size(window->control.hwnd, 0, 0, window->dwStyle, window->dwExStyle, &owidth, &oheight);
+            clwidth = (rect->right - rect->left) - owidth;
+            clheight = (rect->bottom - rect->top) - oheight;
+            PostMessage(window->control.hwnd, WM_SIZE, SIZE_RESTORED, MAKELPARAM(clwidth, clheight));
+            window->wm_sizing = TRUE;
+        }
         return TRUE;
+    }
 
     case WM_SIZE:
         /*

@@ -600,21 +600,26 @@ void _gui_delete_menu(Menu *menu)
 
 const char_t *_gui_respack_text(const ResId id, ResId *store_id)
 {
-    bool_t is_resid;
-    const char_t *restext = respack_atext(i_PACKS, id, &is_resid);
-    if (restext != NULL)
+    if (id != NULL)
     {
-        cassert(is_resid == TRUE);
-        ptr_assign(store_id, id);
-        return restext;
-    }
-    else if (is_resid == TRUE)
-    {
-        ptr_assign(store_id, id);
-        return "";
+        bool_t is_resid;
+        const char_t *restext = respack_atext(i_PACKS, id, &is_resid);
+        if (restext != NULL)
+        {
+            cassert(is_resid == TRUE);
+            ptr_assign(store_id, id);
+            return restext;
+        }
+        else if (is_resid == TRUE)
+        {
+            ptr_assign(store_id, id);
+            return "";
+        }
+
+        return cast_const(id, char_t);
     }
 
-    return cast_const(id, char_t);
+    return "";
 }
 
 /*---------------------------------------------------------------------------*/

@@ -206,8 +206,8 @@ static void i_OnDrag(SplitView *split, Event *e)
         if (split->child1 != NULL)
         {
             real32_t dim0 = 0, dim1 = 0, fsize0 = 0, fsize1 = 0;
-            _component_dimension(split->child1, 0, &dim0, &dim1);
-            _component_dimension(split->child1, 1, &dim0, &dim1);
+            _component_natural(split->child1, 0, &dim0, &dim1);
+            _component_natural(split->child1, 1, &dim0, &dim1);
             _component_expand(split->child1, 0, dim0, r1.size.width, &fsize0);
             _component_expand(split->child1, 1, dim1, r1.size.height, &fsize1);
             _component_locate(split->child1);
@@ -216,8 +216,8 @@ static void i_OnDrag(SplitView *split, Event *e)
         if (split->child2 != NULL)
         {
             real32_t dim0 = 0, dim1 = 0, fsize0 = 0, fsize1 = 0;
-            _component_dimension(split->child2, 0, &dim0, &dim1);
-            _component_dimension(split->child2, 1, &dim0, &dim1);
+            _component_natural(split->child2, 0, &dim0, &dim1);
+            _component_natural(split->child2, 1, &dim0, &dim1);
             _component_expand(split->child2, 0, dim0, r2.size.width, &fsize0);
             _component_expand(split->child2, 1, dim1, r2.size.height, &fsize1);
             _component_locate(split->child2);
@@ -373,19 +373,19 @@ void _splitview_destroy(SplitView **split)
 
 /*---------------------------------------------------------------------------*/
 
-void _splitview_dimension(SplitView *split, const uint32_t di, real32_t *dim0, real32_t *dim1)
+void _splitview_natural(SplitView *split, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(split);
     cassert_no_null(dim0);
     cassert_no_null(dim1);
 
     if (split->child1 != NULL)
-        _component_dimension(split->child1, di, &split->chid1_dim[0], &split->chid1_dim[1]);
+        _component_natural(split->child1, di, &split->chid1_dim[0], &split->chid1_dim[1]);
     else
         split->chid1_dim[di] = 0;
 
     if (split->child2 != NULL)
-        _component_dimension(split->child2, di, &split->chid2_dim[0], &split->chid2_dim[1]);
+        _component_natural(split->child2, di, &split->chid2_dim[0], &split->chid2_dim[1]);
     else
         split->chid2_dim[di] = 0;
 
