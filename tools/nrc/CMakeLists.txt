@@ -1,1 +1,1 @@
-nap_command_app(nrc "core" NRC_NONE)
+nap_command_app(nrc "" NRC_NONE)

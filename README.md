@@ -62,7 +62,7 @@ sudo apt-get install cmake
 sudo apt-get install libgtk-3-dev                       // Gui Toolkit
 sudo apt-get install libcurl4-openssl-dev               // For HTTP support
 sudo apt-get install libwebkit2gtk-4.1-dev              // For WebView support
-sudo apt-get install mesa-common-dev libeg1-mesa-dev    // For OpenGL support
+sudo apt-get install mesa-common-dev libglu1-mesa-dev libegl1-mesa-dev  // For OpenGL support
 ```
 ### Open the Terminal
 ```

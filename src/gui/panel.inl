@@ -44,6 +44,8 @@ Window *_panel_get_window(Panel *panel);
 
 Cell *_panel_get_component_cell(Panel *panel, const GuiComponent *component);
 
+void _panel_compose(Panel *panel, const S2Df *required_size, S2Df *final_size);
+
 void _panel_natural(Panel *panel, const uint32_t di, real32_t *dim0, real32_t *dim1);
 
 void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size, const real32_t required_size, real32_t *final_size);
@@ -57,5 +59,7 @@ void _panel_locate(Panel *panel);
 void _panel_locale(Panel *panel);
 
 ArrPt(Layout) *_panel_layouts(const Panel *panel);
+
+void _panel_content_size(Panel *panel, const real32_t width, const real32_t height);
 
 __END_C

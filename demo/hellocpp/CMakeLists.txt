@@ -1,2 +1,2 @@
-nap_desktop_app(HelloCpp "osapp" NRC_NONE)
+nap_desktop_app(HelloCpp "" NRC_NONE)
 set_target_properties(HelloCpp PROPERTIES FOLDER "demo")

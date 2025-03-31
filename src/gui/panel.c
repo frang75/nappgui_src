@@ -477,6 +477,27 @@ static void i_activate_layout(const ArrPt(Layout) *layouts, ArrPt(GuiComponent) 
 
 /*---------------------------------------------------------------------------*/
 
+void _panel_compose(Panel *panel, const S2Df *required_size, S2Df *final_size)
+{
+    Layout *layout = NULL;
+
+    cassert_no_null(panel);
+
+    if (panel->visible_layout != panel->active_layout)
+    {
+        i_activate_layout(panel->layouts, panel->children, panel->active_layout);
+        panel->visible_layout = panel->active_layout;
+    }
+
+    layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
+    _layout_compose(layout, required_size, final_size);
+
+    cassert(panel->control_size.width <= 0 || final_size->width <= panel->control_size.width);
+    cassert(panel->control_size.height <= 0 || final_size->height <= panel->control_size.height);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _panel_natural(Panel *panel, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     Layout *layout = NULL;
@@ -628,4 +649,12 @@ ArrPt(Layout) *_panel_layouts(const Panel *panel)
 {
     cassert_no_null(panel);
     return panel->layouts;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _panel_content_size(Panel *panel, const real32_t width, const real32_t height)
+{
+    cassert_no_null(panel);
+    panel->component.context->func_panel_content_size(panel->component.ositem, width, height, 10, 10);
 }
