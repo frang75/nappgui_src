@@ -29,12 +29,16 @@
 #elif defined(CMAKE_RELEASE)
     #define __RELEASE__
 
-#elif defined(CMAKE_RELEASEWITHASSERT)
+#elif defined(CMAKE_RELWITHDEBINFO)
     #define __RELEASE__
     #define __ASSERTS__
     #define __MEMORY_AUDITOR__
 
+#elif defined(CMAKE_MINSIZEREL)
+    #define __RELEASE__
+
 #else
+    #error
     /* Used from exported precompiled package */
 
 #endif

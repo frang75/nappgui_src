@@ -2,6 +2,10 @@
 
 ## v1.5.2 - WIP
 
+### Build system
+
+- NAppGUI demos use `nap_link_inet()`, `nap_link_opengl()` for coherence with documentation. [Issue](https://github.com/frang75/nappgui_src/issues/182). [Commit](https://github.com/frang75/nappgui_src/commit/fe8b336e1dae40d10dfebc667e7cc97d47801e24).
+
 ## v1.5.1 - March 30, 2025 (r6128)
 
 ### Added
