@@ -183,7 +183,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     endif()
     nap_osx_build_arch(${CMAKE_ARCHITECTURE} CMAKE_OSX_ARCHITECTURES)
 
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
         include(${NAPPGUI_ROOT_PATH}/prj/NAppAppleClang.cmake)
         nap_apple_clang_flags()
 
