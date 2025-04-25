@@ -13,6 +13,8 @@
 
 #include "inet.hxx"
 
+__EXTERN_C
+
 uint32_t b64_encoded_size(const uint32_t data_size);
 
 uint32_t b64_decoded_size(const uint32_t encoded_size);
@@ -34,3 +36,5 @@ String *b64_encode_from_cstr(const char_t *str);
 Buffer *b64_decode_from_str(const String *base64);
 
 Buffer *b64_decode_from_data(const byte_t *data, const uint32_t size);
+
+__END_C

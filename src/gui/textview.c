@@ -143,7 +143,7 @@ static uint32_t i_printf(FPtr_gctx_set_text func_text, void *ositem, const char_
     char_t *text = NULL;
     uint32_t length = 0;
 
-    cassert_no_null(func_text);
+    cassert_no_nullf(func_text);
     cassert_no_null(ositem);
     cassert_no_null(format);
 
