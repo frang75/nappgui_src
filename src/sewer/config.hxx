@@ -38,7 +38,6 @@
     #define __RELEASE__
 
 #else
-    #error
     /* Used from exported precompiled package */
 
 #endif

@@ -4,7 +4,7 @@
 
 ### Added
 
-- `tableview_column_align()`.
+- `tableview_column_align()`. [Commit](https://github.com/frang75/nappgui_src/commit/6062c1daf0cfe35acdcb99b5b5119a05455447c3).
 
 ### Build system
 
@@ -489,3 +489,4 @@
 ## v1.2.0 - Oct 16, 2021 (r3382)
 
 * First Open Source release.
+

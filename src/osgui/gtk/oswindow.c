@@ -889,7 +889,7 @@ static void i_get_controls(GtkWidget *widget, gpointer data)
     OSControl *control = cast(g_object_get_data(G_OBJECT(widget), "OSControl"), OSControl);
     if (control != NULL)
     {
-        ArrPt(OSControl) *controls = (ArrPt(OSControl) *)data;
+        ArrPt(OSControl) *controls = cast(data, ArrPt(OSControl));
         if (arrpt_find(controls, control, OSControl) == UINT32_MAX)
             arrpt_append(controls, control, OSControl);
     }
