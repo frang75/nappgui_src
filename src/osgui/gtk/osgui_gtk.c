@@ -15,6 +15,7 @@
 #include "osglobals_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "osmenu_gtk.inl"
+#include "ossplit_gtk.inl"
 #include "oswindow_gtk.inl"
 #include "../osgui.inl"
 #include <draw2d/dctxh.h>
@@ -174,6 +175,7 @@ static uint32_t kNUM_VKEYS = sizeof(kVIRTUAL_KEY) / sizeof(guint);
 
 void _osgui_start_imp(void)
 {
+    _ossplit_create_tracks();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -181,7 +183,7 @@ void _osgui_start_imp(void)
 void _osgui_finish_imp(void)
 {
     _osglobals_finish();
-
+    _ossplit_destroy_tracks();
     if (kNS_RESIZE_CURSOR != NULL)
     {
         g_object_unref(kNS_RESIZE_CURSOR);

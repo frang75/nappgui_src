@@ -195,12 +195,15 @@
     #else
         #define cast_func(fptr, type) ((type)(fptr))
     #endif
-
+#elif defined(__OBJC__)
+    #define cast_func(fptr, type) ((type)(int64_t*)fptr)
 #else /* C Compiler */
     #if defined (_MSC_VER) && _MSC_VER >= 1935 /* Visual Studio 2022 version 17.5.0 */
         #define cast_func(fptr, type) ((type)(void*)fptr)
     #elif defined(__WINDOWS__) && !defined(_MSC_VER)
         #define cast_func(fptr, type) ((type)(__int64)fptr)
+    #elif defined(__APPLE__) && __clang_major__ >= 17
+        #define cast_func(fptr, type) ((type)(void*)fptr)
     #else
         #define cast_func(fptr, type) ((type)fptr)
     #endif

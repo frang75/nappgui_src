@@ -4,20 +4,16 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: ossplit_osx.inl
+ * File: ossplit_win.inl
  *
  */
 
 /* Operating System split view */
 
-#include "osgui_osx.ixx"
+#include "osgui_win.ixx"
 
 __EXTERN_C
 
-void _ossplit_create_tracks(void);
-
-void _ossplit_destroy_tracks(void);
-
-BOOL _ossplit_is(NSView *view);
+void _ossplit_children(OSSplit *view, OSControl **child1, OSControl **child2);
 
 __END_C

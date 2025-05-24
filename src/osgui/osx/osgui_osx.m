@@ -13,6 +13,7 @@
 #include "osgui_osx.inl"
 #include "oscontrol_osx.inl"
 #include "osmenu_osx.inl"
+#include "ossplit_osx.inl"
 #include "osglobals.inl"
 #include "oscomwin.inl"
 #include "../osgui.inl"
@@ -171,6 +172,7 @@ void _osgui_start_imp(void)
     [kRIGHT_PARAGRAPH_STYLE setAlignment:_oscontrol_text_alignment(ekRIGHT)];
     kEMPTY_MENUBAR = [[NSMenu alloc] initWithTitle:@""];
     _osglobals_init();
+    _ossplit_create_tracks();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -184,6 +186,7 @@ void _osgui_finish_imp(void)
     [kUNDERLINE_STYLE_NONE release];
     [kEMPTY_MENUBAR release];
     _osglobals_finish();
+    _ossplit_destroy_tracks();
     _oscomwin_destroy_globals();
 }
 

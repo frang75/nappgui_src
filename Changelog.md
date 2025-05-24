@@ -5,6 +5,20 @@
 ### Added
 
 - `tableview_column_align()`. [Commit](https://github.com/frang75/nappgui_src/commit/6062c1daf0cfe35acdcb99b5b5119a05455447c3).
+- Improved `SplitView` support. [Doc](https://nappgui.com/en/gui/splitview.html). [Commit]().
+    * Added `split_mode_t` enum.
+    * Added `splitview_get_pos()`.
+    * Added `splitview_visible0()`.
+    * Added `splitview_visible1()`.
+    * Added `splitview_minsize0()`.
+    * Added `splitview_minsize1()`.
+    * Added `splitview_get_pos()`.
+    * Added `splitview_webview()`.
+    * Added `splitview_tableview()`.
+    * `splitview_pos()` adds a new `mode` parameter.
+    * Removed `splitview_size()`.
+    * Renamed `splitview_text()` by `splitview_textview()`.
+    * Renamed `splitview_split()` by `splitview_splitview()`.
 
 ### Build system
 

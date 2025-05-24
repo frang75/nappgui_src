@@ -367,11 +367,15 @@ typedef enum _split_flag_t
     ekSPLIT_FLAG = 0,
     ekSPLIT_VERT = 0,
     ekSPLIT_HORZ = 1,
-    ekSPLIT_TYPE = 1,
-    ekSPLIT_PROP = 2,
-    ekSPLIT_LEFT = 3,
-    ekSPLIT_RIGHT = 4
+    ekSPLIT_TYPE = 1
 } split_flag_t;
+
+typedef enum _split_mode_t
+{
+    ekSPLIT_NORMAL = 1,
+    ekSPLIT_FIXED0,
+    ekSPLIT_FIXED1
+} split_mode_t;
 
 typedef enum _window_flag_t
 {

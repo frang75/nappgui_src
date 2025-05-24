@@ -28,9 +28,11 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
 
 void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, ViewListeners *listeners);
 
+void _oslistener_mouse_up2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, const NSPoint *local_pt, Listener *OnUp);
+
 void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, ViewListeners *listeners);
 
-void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, Listener *OnDrag_listener);
+void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, const NSPoint *local_pt, Listener *OnDrag);
 
 void _oslistener_mouse_dragged(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, ViewListeners *listeners);
 

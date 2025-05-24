@@ -33,7 +33,7 @@ struct _ossplit_t
     OSControl *child1;
     OSControl *child2;
     bool_t left_button;
-    bool_t launch_OnDrag;
+    POINTS mouse_st;
     POINTS mouse_pos;
     Listener *OnDrag;
 };
@@ -76,11 +76,17 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         {
             if (split->OnDrag != NULL)
             {
-                RECT rect;
+                EvMouse params;
                 split->mouse_pos = MAKEPOINTS(lParam);
-                split->launch_OnDrag = TRUE;
-                GetWindowRect(hwnd, &rect);
-                SetWindowPos(hwnd, NULL, 0, 0, rect.right - rect.left + 1, rect.bottom - rect.top + 1, SWP_NOMOVE /*| SWP_NOSIZE */ | SWP_NOZORDER);
+                params.x = (real32_t)split->mouse_pos.x;
+                params.y = (real32_t)split->mouse_pos.y;
+                params.lx = (real32_t)split->mouse_st.x;
+                params.ly = (real32_t)split->mouse_st.y;
+                params.button = ekGUI_MOUSE_LEFT;
+                params.count = 0;
+                params.modifiers = 0;
+                params.tag = 0;
+                listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
             }
         }
         else
@@ -108,35 +114,29 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 #endif
 
         split->left_button = TRUE;
+        split->mouse_st = MAKEPOINTS(lParam);
         return 0;
     }
 
     case WM_LBUTTONUP:
         split->left_button = FALSE;
-        ReleaseCapture();
-        return 0;
-
-    case WM_SIZE:
-        if (split->launch_OnDrag == TRUE)
+        if (split->OnDrag != NULL)
         {
-            if (split->left_button == TRUE)
-            {
-                EvMouse params;
-                cassert(split->OnDrag != NULL);
-                params.x = (real32_t)split->mouse_pos.x;
-                params.y = (real32_t)split->mouse_pos.y;
-                params.lx = params.x;
-                params.ly = params.y;
-                params.button = ekGUI_MOUSE_LEFT;
-                params.count = 0;
-                params.modifiers = 0;
-                params.tag = 0;
-                listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
-                split->launch_OnDrag = FALSE;
-            }
+            EvMouse params;
+            split->mouse_pos = MAKEPOINTS(lParam);
+            params.x = (real32_t)split->mouse_pos.x;
+            params.y = (real32_t)split->mouse_pos.y;
+            params.lx = (real32_t)split->mouse_st.x;
+            params.ly = (real32_t)split->mouse_st.y;
+            params.button = ekGUI_MOUSE_LEFT;
+            params.count = 0;
+            params.modifiers = 0;
+            params.tag = 0;
+            listener_event(split->OnDrag, ekGUI_EVENT_UP, split, &params, NULL, OSSplit, EvMouse, void);
         }
 
-        break;
+        ReleaseCapture();
+        return 0;
     }
 
     return CallWindowProc(split->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -150,7 +150,7 @@ OSSplit *ossplit_create(const uint32_t flags)
     view->control.type = ekGUI_TYPE_SPLITVIEW;
     view->flags = flags;
     /* WS_EX_CONTROLPARENT: Recursive TabStop navigation over view children */
-    _oscontrol_init(cast(view, OSControl), PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init(cast(view, OSControl), PARAM(dwExStyle, WS_EX_CONTROLPARENT | WS_EX_NOPARENTNOTIFY), PARAM(dwStyle, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN /*| WS_GROUP | WS_TABSTOP*/), L"static", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     return view;
 }
 
@@ -268,4 +268,15 @@ void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame(cast(view, OSControl), x, y, width, height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ossplit_children(OSSplit *view, OSControl **child1, OSControl **child2)
+{
+    cassert_no_null(view);
+    cassert_no_null(child1);
+    cassert_no_null(child2);
+    *child1 = view->child1;
+    *child2 = view->child2;
 }

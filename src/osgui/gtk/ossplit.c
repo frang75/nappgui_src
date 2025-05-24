@@ -20,6 +20,7 @@
 #include "osweb_gtk.inl"
 #include "../ossplit.h"
 #include <geom2d/r2d.h>
+#include <core/arrpt.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -28,15 +29,29 @@
 #error This file is only for GTK Toolkit
 #endif
 
+typedef struct _ossplittrack_t OSSplitTrack;
+
 struct _ossplit_t
 {
     OSControl control;
     split_flag_t flags;
     R2Df divrect;
-    bool_t left_button;
-    bool_t inside_rect;
+    V2Df mouse_st;
     Listener *OnDrag;
 };
+
+struct _ossplittrack_t
+{
+    ArrPt(OSSplit) *splits;
+    OSSplit *pressed;
+    OSSplit *captured;
+};
+
+DeclPt(OSSplit);
+
+/*---------------------------------------------------------------------------*/
+
+static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL};
 
 /*---------------------------------------------------------------------------*/
 
@@ -91,65 +106,24 @@ static void i_release_capture(GtkWidget *widget, gpointer data)
 
 /*---------------------------------------------------------------------------*/
 /* https://stackoverflow.com/questions/63647507/gdkeventmotion-x-and-y-coordinates-appears-to-refer-to-location-within-a-differe */
-static void i_mouse_pos(GtkWidget *widget, GdkEventMotion *event, real32_t *x, real32_t *y)
+static void i_mouse_pos(GtkWidget *widget, const gdouble x_root, const gdouble y_root, real32_t *x, real32_t *y)
 {
     int mouse_x = 0;
     int mouse_y = 0;
     cassert_no_null(x);
     cassert_no_null(y);
     gdk_window_get_origin(gtk_widget_get_window(widget), &mouse_x, &mouse_y);
-    *x = (real32_t)(event->x_root - mouse_x);
-    *y = (real32_t)(event->y_root - mouse_y);
+    *x = (real32_t)(x_root - mouse_x);
+    *y = (real32_t)(y_root - mouse_y);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view)
 {
-    cassert(widget == view->control.widget);
-    if (view->left_button == TRUE)
-    {
-        if (view->OnDrag != NULL)
-        {
-            EvMouse params;
-            i_mouse_pos(widget, event, &params.x, &params.y);
-            params.button = ekGUI_MOUSE_LEFT;
-            params.count = 0;
-            params.modifiers = 0;
-            params.tag = 0;
-            listener_event(view->OnDrag, ekGUI_EVENT_DRAG, view, &params, NULL, OSSplit, EvMouse, void);
-        }
-    }
-    else
-    {
-        real32_t mouse_x = 0;
-        real32_t mouse_y = 0;
-        i_mouse_pos(widget, event, &mouse_x, &mouse_y);
-
-        if (r2d_containsf(&view->divrect, mouse_x, mouse_y) == TRUE)
-        {
-            if (view->inside_rect == FALSE)
-            {
-                i_set_capture(widget, view);
-                view->inside_rect = TRUE;
-            }
-
-            if (split_get_type(view->flags) == ekSPLIT_HORZ)
-                _osgui_ns_resize_cursor(widget);
-            else
-                _osgui_ew_resize_cursor(widget);
-        }
-        else
-        {
-            if (view->inside_rect == TRUE)
-            {
-                i_release_capture(widget, NULL);
-                view->inside_rect = FALSE;
-            }
-            _osgui_default_cursor(widget);
-        }
-    }
-
+    cassert_no_null(view);
+    cassert_unref(widget == view->control.widget, widget);
+    _ossplit_OnMove(view, event);
     return FALSE;
 }
 
@@ -157,8 +131,9 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
 
 static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSSplit *view)
 {
+    cassert_no_null(view);
+    cassert_unref(view->control.widget == widget, widget);
     _ossplit_OnPress(view, event);
-    unref(widget);
     return FALSE;
 }
 
@@ -166,17 +141,9 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSSplit *v
 
 static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSSplit *view)
 {
-    unref(widget);
-    unref(event);
-
-    view->left_button = FALSE;
-    if (view->inside_rect == TRUE)
-    {
-        i_release_capture(widget, NULL);
-        view->inside_rect = FALSE;
-    }
-
-    _osgui_default_cursor(widget);
+    cassert_no_null(view);
+    cassert_unref(view->control.widget == widget, widget);
+    _ossplit_OnRelease(view, event);
     return TRUE;
 }
 
@@ -194,6 +161,7 @@ OSSplit *ossplit_create(const uint32_t flags)
     _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    arrpt_append(i_SPLIT_TRACKS.splits, view, OSSplit);
     return view;
 }
 
@@ -203,6 +171,16 @@ void ossplit_destroy(OSSplit **view)
 {
     cassert_no_null(view);
     cassert_no_null(*view);
+
+    {
+        uint32_t pos = arrpt_find(i_SPLIT_TRACKS.splits, *view, OSSplit);
+        arrpt_delete(i_SPLIT_TRACKS.splits, pos, NULL, OSSplit);
+        if (i_SPLIT_TRACKS.captured == *view)
+            i_SPLIT_TRACKS.captured = NULL;
+        if (i_SPLIT_TRACKS.pressed == *view)
+            i_SPLIT_TRACKS.pressed = NULL;
+    }
+
     listener_destroy(&(*view)->OnDrag);
     _oscontrol_destroy(&(*view)->control);
     heap_delete(view, OSSplit);
@@ -214,6 +192,8 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
 {
     cassert_no_null(view);
     _oscontrol_attach_to_parent(control, view->control.widget);
+    if (control->type == ekGUI_TYPE_CUSTOMVIEW)
+        _osview_set_parent_split(cast(control, OSView), view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -297,15 +277,128 @@ void ossplit_frame(OSSplit *view, const real32_t x, const real32_t y, const real
 
 /*---------------------------------------------------------------------------*/
 
+void _ossplit_create_tracks(void)
+{
+    i_SPLIT_TRACKS.splits = arrpt_create(OSSplit);
+    i_SPLIT_TRACKS.pressed = NULL;
+    i_SPLIT_TRACKS.captured = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ossplit_destroy_tracks(void)
+{
+    arrpt_destroy(&i_SPLIT_TRACKS.splits, NULL, OSSplit);
+    i_SPLIT_TRACKS.splits = NULL;
+    i_SPLIT_TRACKS.pressed = NULL;
+    i_SPLIT_TRACKS.captured = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _ossplit_OnPress(OSSplit *view, GdkEventButton *event)
 {
-    cassert_no_null(view);
+    unref(view);
     cassert_no_null(event);
 
     /* Left button */
     if (event->button == 1)
     {
-        if (view->inside_rect == TRUE)
-            view->left_button = TRUE;
+        if (i_SPLIT_TRACKS.pressed == NULL && i_SPLIT_TRACKS.captured != NULL)
+        {
+            i_SPLIT_TRACKS.pressed = i_SPLIT_TRACKS.captured;
+            i_mouse_pos(i_SPLIT_TRACKS.pressed->control.widget, event->x_root, event->y_root, &i_SPLIT_TRACKS.pressed->mouse_st.x, &i_SPLIT_TRACKS.pressed->mouse_st.y);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ossplit_OnRelease(OSSplit *view, GdkEventButton *event)
+{
+    unref(event);
+    unref(view);
+    if (i_SPLIT_TRACKS.pressed != NULL)
+    {
+        i_release_capture(i_SPLIT_TRACKS.pressed->control.widget, NULL);
+        _osgui_default_cursor(i_SPLIT_TRACKS.pressed->control.widget);
+        if (i_SPLIT_TRACKS.pressed->OnDrag != NULL)
+        {
+            EvMouse params;
+            i_mouse_pos(i_SPLIT_TRACKS.pressed->control.widget, event->x_root, event->y_root, &params.x, &params.y);
+            params.lx = i_SPLIT_TRACKS.pressed->mouse_st.x;
+            params.ly = i_SPLIT_TRACKS.pressed->mouse_st.y;
+            params.button = ekGUI_MOUSE_LEFT;
+            params.count = 0;
+            params.modifiers = 0;
+            params.tag = 0;
+            listener_event(i_SPLIT_TRACKS.pressed->OnDrag, ekGUI_EVENT_UP, i_SPLIT_TRACKS.pressed, &params, NULL, OSSplit, EvMouse, void);
+        }
+
+        i_SPLIT_TRACKS.pressed = NULL;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
+{
+    cassert_no_null(event);
+    unref(view);
+    if (i_SPLIT_TRACKS.pressed != NULL)
+    {
+        if (i_SPLIT_TRACKS.pressed->OnDrag != NULL)
+        {
+            EvMouse params;
+            i_mouse_pos(i_SPLIT_TRACKS.pressed->control.widget, event->x_root, event->y_root, &params.x, &params.y);
+            params.lx = i_SPLIT_TRACKS.pressed->mouse_st.x;
+            params.ly = i_SPLIT_TRACKS.pressed->mouse_st.y;
+            params.button = ekGUI_MOUSE_LEFT;
+            params.count = 0;
+            params.modifiers = 0;
+            params.tag = 0;
+            listener_event(i_SPLIT_TRACKS.pressed->OnDrag, ekGUI_EVENT_DRAG, i_SPLIT_TRACKS.pressed, &params, NULL, OSSplit, EvMouse, void);
+        }
+    }
+    else
+    {
+        OSSplit *inside = NULL;
+        arrpt_foreach(split, i_SPLIT_TRACKS.splits, OSSplit)
+            real32_t mouse_x = 0;
+            real32_t mouse_y = 0;
+            i_mouse_pos(split->control.widget, event->x_root, event->y_root, &mouse_x, &mouse_y);
+            if (r2d_containsf(&split->divrect, mouse_x, mouse_y) == TRUE)
+            {
+                inside = split;
+                break;
+            }
+        arrpt_end()
+
+        if (inside != NULL)
+        {
+            if (i_SPLIT_TRACKS.captured != inside)
+            {
+                if (i_SPLIT_TRACKS.captured != NULL)
+                    i_release_capture(i_SPLIT_TRACKS.captured->control.widget, NULL);
+
+                i_SPLIT_TRACKS.captured = inside;
+                i_set_capture(i_SPLIT_TRACKS.captured->control.widget, i_SPLIT_TRACKS.captured);
+            }
+
+            if (split_get_type(i_SPLIT_TRACKS.captured->flags) == ekSPLIT_HORZ)
+                _osgui_ns_resize_cursor(view->control.widget);
+            else
+                _osgui_ew_resize_cursor(view->control.widget);
+        }
+        else
+        {
+            if (i_SPLIT_TRACKS.captured != NULL)
+            {
+                i_release_capture(i_SPLIT_TRACKS.captured->control.widget, NULL);
+                i_SPLIT_TRACKS.captured = NULL;
+            }
+
+            _osgui_default_cursor(view->control.widget);
+        }
     }
 }

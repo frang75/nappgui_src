@@ -96,8 +96,8 @@ union i_cell_content_t
 struct _cell_t
 {
     ctype_t type;
-    bool_t displayed2;     /* If FALSE, no space allocation */
-    bool_t visible2;       /* Only if displayed==TRUE. Shown or hide content, but space allocation is computed */
+    bool_t displayed;      /* If FALSE, no space allocation */
+    bool_t visible;        /* Only if displayed==TRUE. Shown or hide content, but space allocation is computed */
     bool_t enabled;        /* If FALSE, content is grayed and disable events */
     bool_t tabstop;        /* If TRUE, the cell will be included in the tab-list */
     i_CellDim dim[2];      /* Cell width/height dimensions */
@@ -156,8 +156,8 @@ static ___INLINE void i_init_cell(Cell *cell, Layout *layout)
 {
     cassert_no_null(cell);
     cell->type = i_ekEMPTY;
-    cell->displayed2 = TRUE;
-    cell->visible2 = TRUE;
+    cell->displayed = TRUE;
+    cell->visible = TRUE;
     cell->enabled = TRUE;
     cell->tabstop = TRUE;
     i_init_celldim(&cell->dim[0]);
@@ -377,8 +377,8 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
     cassert(cell->type == i_ekCOMPONENT);
     cassert(cell->content.component->type == component->type);
     cassert(cell->member_id == UINT32_MAX);
-    displayed = cell->displayed2;
-    visible = cell->visible2;
+    displayed = cell->displayed;
+    visible = cell->visible;
     enabled = cell->enabled;
     tabstop = cell->tabstop;
     dim0 = cell->dim[0];
@@ -387,8 +387,8 @@ static void i_change_component(Layout *layout, GuiComponent *component, const ui
     i_remove_cell(cell);
     cassert(cell->type == i_ekEMPTY);
     cell->type = i_ekCOMPONENT;
-    cell->displayed2 = displayed;
-    cell->visible2 = visible;
+    cell->displayed = displayed;
+    cell->visible = visible;
     cell->enabled = enabled;
     cell->tabstop = tabstop;
     cell->dim[0] = dim0;
@@ -1634,7 +1634,7 @@ static void i_line_natural(i_LineDim *dim, const uint32_t di, Cell **cell, const
     for (i = 0; i < n_cells; ++i)
     {
         real32_t csize = 0;
-        if (cell[i]->displayed2 == TRUE)
+        if (cell[i]->displayed == TRUE)
             i_cell_natural(cell[i], di);
         else
             cell[i]->dim[di].natural_size = 0;
@@ -1655,7 +1655,7 @@ static void i_line_natural(i_LineDim *dim, const uint32_t di, Cell **cell, const
         for (i = 0; i < n_cells; ++i)
         {
             real32_t expand_required_size = -1;
-            if (cell[i]->displayed2 == TRUE)
+            if (cell[i]->displayed == TRUE)
             {
                 real32_t csize = i_natural_with_padding(cell[i], di);
 
@@ -1718,7 +1718,7 @@ static void i_cache_natural_size(Layout *layout, const uint32_t di)
             dim->natural_size = dim->final_size;
             for (i = 0; i < n; ++i)
             {
-                if (cells[i]->displayed2 == TRUE)
+                if (cells[i]->displayed == TRUE)
                 {
                     cells[i]->dim[di].natural_size = cells[i]->dim[di].final_size;
                     if (cells[i]->type == i_ekLAYOUT)
@@ -1779,7 +1779,7 @@ static void i_line_expand(const uint32_t di, Cell **line_cells, const uint32_t n
     *final_size = required_size;
     for (i = 0; i < ncells; ++i)
     {
-        if (line_cells[i]->displayed2 == TRUE)
+        if (line_cells[i]->displayed == TRUE)
         {
             if (line_cells[i]->dim[di].align == ekJUSTIFY)
                 i_cell_expand(line_cells[i], di, required_size);
@@ -1953,19 +1953,11 @@ void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size
     real32_t natural_width = 0, natural_height = 0;
     cassert_no_null(layout);
     cassert_no_null(final_size);
-
     _layout_natural(layout, 0, &natural_width, &natural_height);
-    if (required_size != NULL)
-        _layout_expand(layout, 0, natural_width, required_size->width, &final_size->width);
-    else
-        final_size->width = natural_width;
-
+    _layout_expand(layout, 0, natural_width, required_size != NULL ? required_size->width : natural_width, &final_size->width);
     cassert(natural_height == 0);
     _layout_natural(layout, 1, &natural_width, &natural_height);
-    if (required_size != NULL)
-        _layout_expand(layout, 1, natural_height, required_size->height, &final_size->height);
-    else
-        final_size->height = natural_height;
+    _layout_expand(layout, 1, natural_height, required_size != NULL ? required_size->height : natural_height, &final_size->height);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2018,7 +2010,7 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
             uint32_t p = i * ncols + j;
             const Cell *cell = cells[p];
 
-            if (cell->displayed2 == TRUE)
+            if (cell->displayed == TRUE)
             {
                 V2Df cell_origin;
                 S2Df cell_size;
@@ -2107,7 +2099,7 @@ static void i_layout_visible(Layout *layout, const bool_t parent_visible)
     arrst_foreach(row, layout->lines_dim[1], i_LineDim)
         arrst_foreach(col, layout->lines_dim[0], i_LineDim)
             Cell *cell = *cells;
-            bool_t visible = row->displayed && col->displayed & cell->visible2 && cell->displayed2 && parent_visible;
+            bool_t visible = row->displayed && col->displayed & cell->visible && cell->displayed && parent_visible;
             switch (cell->type)
             {
             case i_ekCOMPONENT:
@@ -2177,7 +2169,7 @@ static void i_cell_taborder(const i_LineDim *col, const i_LineDim *row, const Ce
     cassert_no_null(col);
     cassert_no_null(row);
     cassert_no_null(cell);
-    if (col->displayed == TRUE && row->displayed == TRUE && cell->displayed2 == TRUE && cell->tabstop == TRUE)
+    if (col->displayed == TRUE && row->displayed == TRUE && cell->displayed == TRUE && cell->tabstop == TRUE)
     {
         switch (cell->type)
         {
@@ -2493,9 +2485,9 @@ void cell_enabled(Cell *cell, const bool_t enabled)
 void cell_visible(Cell *cell, const bool_t visible)
 {
     cassert_no_null(cell);
-    if (cell->visible2 != visible)
+    if (cell->visible != visible)
     {
-        cell->visible2 = visible;
+        cell->visible = visible;
         switch (cell->type)
         {
         case i_ekCOMPONENT:

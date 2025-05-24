@@ -14,6 +14,14 @@
 
 __EXTERN_C
 
+void _ossplit_create_tracks(void);
+
+void _ossplit_destroy_tracks(void);
+
 void _ossplit_OnPress(OSSplit *view, GdkEventButton *event);
+
+void _ossplit_OnRelease(OSSplit *view, GdkEventButton *event);
+
+void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event);
 
 __END_C

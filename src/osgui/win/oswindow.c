@@ -16,6 +16,7 @@
 #include "oscontrol_win.inl"
 #include "osmenuitem_win.inl"
 #include "ospanel_win.inl"
+#include "ossplit_win.inl"
 #include "../oswindow.h"
 #include "../oswindow.inl"
 #include "../osgui.inl"
@@ -987,15 +988,30 @@ void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_get_controls(OSPanel *panel, ArrPt(OSControl) *controls)
+static void i_get_controls(OSControl *control, ArrPt(OSControl) *controls)
 {
-    ArrPt(OSControl) *children = _ospanel_children(panel);
-    arrpt_foreach(child, children, OSControl)
-        cassert(arrpt_find(controls, child, OSControl) == UINT32_MAX);
-        arrpt_append(controls, child, OSControl);
-        if (child->type == ekGUI_TYPE_PANEL)
-            i_get_controls(cast(child, OSPanel), controls);
-    arrpt_end()
+    cassert_no_null(control);
+    if (control->type == ekGUI_TYPE_PANEL)
+    {
+        ArrPt(OSControl) *children = _ospanel_children(cast(control, OSPanel));
+        arrpt_foreach(child, children, OSControl)
+            i_get_controls(child, controls);
+        arrpt_end()
+    }
+    else if (control->type == ekGUI_TYPE_SPLITVIEW)
+    {
+        OSControl *child1 = NULL, *child2 = NULL;
+        _ossplit_children(cast(control, OSSplit), &child1, &child2);
+        if (child1 != NULL)
+            i_get_controls(child1, controls);
+        if (child2 != NULL)
+            i_get_controls(child2, controls);
+    }
+    else
+    {
+        cassert(arrpt_find(controls, control, OSControl) == UINT32_MAX);
+        arrpt_append(controls, control, OSControl);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1004,7 +1020,7 @@ void _oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     cassert_no_null(window);
     cassert(arrpt_size(controls, OSControl) == 0);
-    i_get_controls(window->main_panel, controls);
+    i_get_controls(cast(window->main_panel, OSControl), controls);
 }
 
 /*---------------------------------------------------------------------------*/
