@@ -503,4 +503,3 @@
 ## v1.2.0 - Oct 16, 2021 (r3382)
 
 * First Open Source release.
-

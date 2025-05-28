@@ -15,7 +15,13 @@ macro(nap_clang_flags arch)
     set(FLAGS "${FLAGS} -Wuninitialized")
 
     # Disable warnings
-    set(FLAGS "${FLAGS} -Wno-long-long -Wno-overlength-strings -Wno-newline-eof -Wno-undefined-var-template")
+    set(FLAGS "${FLAGS} -Wno-long-long -Wno-overlength-strings -Wno-newline-eof")
+
+    if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "3.99.9999")
+        set(FLAGS "${FLAGS} -Wno-undefined-var-template")
+    else()
+        set(FLAGS "${FLAGS} -Wno-extended-offsetof")
+    endif()
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")

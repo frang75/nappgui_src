@@ -475,39 +475,39 @@ void osedit_text(OSEdit *edit, const char_t *text)
     if (edit->tview != NULL)
     {
         GtkTextBuffer *tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(edit->tview));
-        uint32_t fstyle = font_style(edit->font);
-        String *markup = NULL;
         cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
 
 #if GTK_CHECK_VERSION(3, 22, 0)
-        if (fstyle & ekFSTRIKEOUT)
         {
-            if (fstyle & ekFUNDERLINE)
-                markup = str_printf("<u><s>%s</s></u>", text);
-            else
-                markup = str_printf("<s>%s</s>", text);
-        }
-        else if (fstyle & ekFUNDERLINE)
-        {
-            markup = str_printf("<u>%s</u>", text);
-        }
+            uint32_t fstyle = font_style(edit->font);
+            String *markup = NULL;
+            if (fstyle & ekFSTRIKEOUT)
+            {
+                if (fstyle & ekFUNDERLINE)
+                    markup = str_printf("<u><s>%s</s></u>", text);
+                else
+                    markup = str_printf("<s>%s</s>", text);
+            }
+            else if (fstyle & ekFUNDERLINE)
+            {
+                markup = str_printf("<u>%s</u>", text);
+            }
 
-        if (markup != NULL)
-        {
-            GtkTextIter iter;
-            gtk_text_buffer_set_text(tbuf, "", -1);
-            gtk_text_buffer_get_start_iter(tbuf, &iter);
-            gtk_text_buffer_insert_markup(tbuf, &iter, tc(markup), str_len(markup));
-            str_destroy(&markup);
-        }
-        else
-        {
-            gtk_text_buffer_set_text(tbuf, cast_const(text, gchar), -1);
+            if (markup != NULL)
+            {
+                GtkTextIter iter;
+                gtk_text_buffer_set_text(tbuf, "", -1);
+                gtk_text_buffer_get_start_iter(tbuf, &iter);
+                gtk_text_buffer_insert_markup(tbuf, &iter, tc(markup), str_len(markup));
+                str_destroy(&markup);
+            }
+            else
+            {
+                gtk_text_buffer_set_text(tbuf, cast_const(text, gchar), -1);
+            }
         }
 #else
-        unref(markup);
         gtk_text_buffer_set_text(tbuf, cast_const(text, gchar), -1);
-
 #endif
     }
     else

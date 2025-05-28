@@ -112,7 +112,8 @@
 #pragma GCC diagnostic ignored "-Wsign-conversion"
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 #pragma clang diagnostic ignored "-Wobjc-method-access"
-/* #pragma GCC diagnostic ignored "-Wstrict-prototypes" */
-/* #pragma clang diagnostic ignored "-Wdeprecated-implementations" */
+#pragma clang diagnostic ignored "-Wvariadic-macros"
+#pragma clang diagnostic ignored "-Wc99-extensions"
+#pragma clang diagnostic ignored "-Wlanguage-extension-token"
 
 #endif
