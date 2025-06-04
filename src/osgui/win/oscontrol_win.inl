@@ -38,8 +38,6 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y);
 
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height);
 
-void _oscontrol_set_position(OSControl *control, const int x, const int y);
-
 void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 
 void _oscontrol_attach_to_parent(OSControl *control, OSControl *parent_control);

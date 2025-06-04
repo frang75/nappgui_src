@@ -264,16 +264,6 @@ void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *he
 
 /*---------------------------------------------------------------------------*/
 
-void _oscontrol_set_position(OSControl *control, const int x, const int y)
-{
-    BOOL ret;
-    cassert_no_null(control);
-    ret = SetWindowPos(control->hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-    cassert_unref(ret != 0, ret);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     BOOL ret = FALSE;
