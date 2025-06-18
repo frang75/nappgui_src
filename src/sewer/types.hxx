@@ -53,4 +53,9 @@ typedef enum _enum_t
 #define __END_C
 #endif
 
+/* VS2012 and lowers don't provide this macro */
+#ifndef va_copy
+#define va_copy(dest, src) ((dest) = (src))
+#endif
+
 #endif

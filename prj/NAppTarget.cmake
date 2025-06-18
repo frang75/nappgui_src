@@ -659,13 +659,7 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
-function(nap_link_inet targetName)
-
-    if(NAPPGUI_IS_PACKAGE)
-        target_link_libraries(${targetName} nappgui::inet)
-    else()
-        target_link_libraries(${targetName} inet)
-    endif()
+function(nap_link_inet_depends targetName)
 
     if(WIN32)
         target_link_libraries(${targetName} wininet)
@@ -684,13 +678,21 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
-function(nap_link_opengl targetName)
+function(nap_link_inet targetName)
 
     if(NAPPGUI_IS_PACKAGE)
-        target_link_libraries(${targetName} nappgui::ogl3d)
+        target_link_libraries(${targetName} nappgui::inet)
     else()
-        target_link_libraries(${targetName} ogl3d)
+        target_link_libraries(${targetName} inet)
     endif()
+
+    nap_link_inet_depends(${targetName})
+
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(nap_link_opengl_depends targetName)
 
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         find_package(OpenGL REQUIRED EGL)
@@ -729,6 +731,25 @@ function(nap_link_opengl targetName)
         find_package(OpenGL REQUIRED)
         target_link_libraries(${targetName} ${OPENGL_LIBRARY})
 
+    endif()
+
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(nap_link_opengl targetName)
+
+    if(NAPPGUI_IS_PACKAGE)
+        target_link_libraries(${targetName} nappgui::ogl3d)
+    else()
+        target_link_libraries(${targetName} ogl3d)
+    endif()
+
+    nap_link_opengl_depends(${targetName})
+
+    get_target_property(TARGET_TYPE ogl3d TYPE)
+    if (${TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
+        set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS NAPPGUI_OGL3D_IMPORT_DLL)
     endif()
 
 endfunction()

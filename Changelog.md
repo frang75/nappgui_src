@@ -25,7 +25,7 @@
 - NAppGUI demos use `nap_link_inet()`, `nap_link_opengl()` for coherence with documentation. [Issue](https://github.com/frang75/nappgui_src/issues/182). [Commit](https://github.com/frang75/nappgui_src/commit/fe8b336e1dae40d10dfebc667e7cc97d47801e24).
 - Added `RelWithDebInfo` and `MinSizeRel` to NAppGUI configurations. [Issue](https://github.com/frang75/nappgui_src/issues/155). [Commit](https://github.com/frang75/nappgui_src/commit/e8398c8ee1bcb391a5c30c02b2efa0bc5c5506e7).
 - Fix warnings in legacy versions of GCC/Clang. [Commit](https://github.com/frang75/nappgui_src/commit/48dc3cb85379b8c3262f6626fadabd8dbccbdb0b).
-- Support for CMake 4.0. [Commit]().
+- Support for CMake 4.0. [Commit](https://github.com/frang75/nappgui_src/commit/156ae3fdc93d40e9e0f141f22e724107947f3124).
 
 ## v1.5.1 - March 30, 2025 (r6128)
 
