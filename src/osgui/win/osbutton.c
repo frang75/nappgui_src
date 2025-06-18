@@ -13,7 +13,6 @@
 #include "osbutton_win.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
-#include "osdrawctrl_win.inl"
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "osimg.inl"
@@ -149,53 +148,6 @@ static void i_draw_flat_button(HWND hwnd, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_header_button(HWND hwnd, const Font *font, const Image *image)
-{
-    HDC hdc = NULL;
-    PAINTSTRUCT ps;
-    RECT rect;
-    BOOL enabled;
-    HFONT hfont;
-    WCHAR text[WCHAR_BUFFER_SIZE];
-    int state = 0;
-    cassert_no_null(hwnd);
-    hdc = BeginPaint(hwnd, &ps);
-    GetClientRect(hwnd, &rect);
-    enabled = IsWindowEnabled(hwnd);
-
-    if (enabled == FALSE)
-    {
-        state = HIS_NORMAL;
-    }
-    else if (SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0) == BST_CHECKED)
-    {
-        state = HIS_PRESSED;
-    }
-    else if (_osgui_hit_test(hwnd) == TRUE)
-    {
-        if ((GetKeyState(VK_LBUTTON) & 0x100) != 0)
-            state = HIS_PRESSED;
-        else
-            state = HIS_HOT;
-    }
-    else
-    {
-        state = HIS_NORMAL;
-    }
-
-    hfont = (HFONT)font_native(font);
-    SendMessage(hwnd, WM_GETTEXT, (WPARAM)WCHAR_BUFFER_SIZE, (LPARAM)text);
-
-    _osdrawctrl_header_button(hwnd, hdc, hfont, &rect, state, text, ekRIGHT, image);
-
-    {
-        BOOL ok = EndPaint(hwnd, &ps);
-        cassert_unref(ok != 0, ok);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSButton *button = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSButton);
@@ -210,12 +162,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
         {
             i_draw_flat_button(button->control.hwnd, button->image);
-            if (GetFocus() == button->control.hwnd)
-                _oscontrol_draw_focus(hwnd, 3, 3, 3, 3);
-        }
-        else if (button_get_type(button->flags) == ekBUTTON_HEADER)
-        {
-            i_draw_header_button(button->control.hwnd, button->font, button->image);
             if (GetFocus() == button->control.hwnd)
                 _oscontrol_draw_focus(hwnd, 3, 3, 3, 3);
         }
@@ -269,7 +215,6 @@ static DWORD i_button_skin(const button_flag_t flags)
     {
     case ekBUTTON_PUSH:
     case ekBUTTON_FLAT:
-    case ekBUTTON_HEADER:
         return BS_PUSHBUTTON;
     case ekBUTTON_CHECK2:
     case ekBUTTON_FLATGLE:
@@ -508,7 +453,6 @@ static gui_state_t i_get_state(const button_flag_t flags, HWND hwnd)
     {
     case ekBUTTON_PUSH:
     case ekBUTTON_FLAT:
-    case ekBUTTON_HEADER:
         return ekGUI_ON;
 
     case ekBUTTON_CHECK2:
@@ -571,7 +515,6 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
-    case ekBUTTON_HEADER:
     {
         real32_t woff, hoff;
         real32_t fheight;

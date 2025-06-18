@@ -24,7 +24,6 @@ bool_t _osbutton_text_allowed(const uint32_t flags)
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
-    case ekBUTTON_HEADER:
         return TRUE;
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:

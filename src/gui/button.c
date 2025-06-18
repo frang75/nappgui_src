@@ -274,7 +274,6 @@ static void i_update_text(Button *button)
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
-    case ekBUTTON_HEADER:
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:

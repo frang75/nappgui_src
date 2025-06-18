@@ -421,7 +421,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
     Cell *cell = NULL;
     align_t align = ekJUSTIFY;
     uint32_t flags = _button_flags(button);
-    if (button_get_type(flags) != ekBUTTON_PUSH /* && button_type(flags) != ekBUTTON_HEADER*/)
+    if (button_get_type(flags) != ekBUTTON_PUSH)
         align = ekLEFT;
     cell = i_set_component(layout, cast(button, GuiComponent), col, row, align, ekCENTER);
     cassert_no_null(cell);

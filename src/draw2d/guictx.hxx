@@ -287,7 +287,6 @@ typedef enum _button_flag_t
     ekBUTTON_RADIO = 3,
     ekBUTTON_FLAT = 4,
     ekBUTTON_FLATGLE = 5,
-    ekBUTTON_HEADER = 6,
     ekBUTTON_TYPE = 7
 } button_flag_t;
 
