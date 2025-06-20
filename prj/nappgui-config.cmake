@@ -34,7 +34,7 @@ endif()
 get_filename_component(NAPPGUI_ROOT_PATH "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
 set(NAPPGUI_INCLUDE_PATH "${NAPPGUI_ROOT_PATH}/inc")
 set(NAPPGUI_NRC "${NAPPGUI_ROOT_PATH}/bin/nrc${CMAKE_EXECUTABLE_SUFFIX}")
-set(NAPPGUI_LIBRARIES "nappgui::osapp;nappgui::gui;nappgui::osgui;nappgui::draw2d;nappgui::geom2d;nappgui::core;nappgui::osbs;nappgui::sewer")
+set(NAPPGUI_LIBRARIES "nappgui::osapp;nappgui::encode;nappgui::gui;nappgui::osgui;nappgui::draw2d;nappgui::geom2d;nappgui::core;nappgui::osbs;nappgui::sewer")
 
 # Welcome and options
 message(STATUS "Found NAppGUI at '${NAPPGUI_ROOT_PATH}'")

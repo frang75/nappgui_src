@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osmain_win.h
+ * https://nappgui.com/en/osapp/osmain_win.html
  *
  */
 

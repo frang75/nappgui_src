@@ -3,8 +3,8 @@
 #include "prmodel.h"
 #include "res_products.h"
 #include <gui/guiall.h>
+#include <encode/json.h>
 #include <inet/httpreq.h>
-#include <inet/json.h>
 
 typedef struct _pjson_t PJson;
 

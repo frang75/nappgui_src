@@ -19,6 +19,11 @@
     * Removed `splitview_size()`.
     * Renamed `splitview_text()` by `splitview_textview()`.
     * Renamed `splitview_split()` by `splitview_splitview()`.
+- New library `encode` with support for data formats and encodings. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit]().
+
+### Changed
+
+- `Json`, `Base64` and `Url` modules moved from `inet` to `encode` to avoid `libcurl` dependencies when using them. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit]().
 
 ### Build system
 
@@ -26,6 +31,7 @@
 - Added `RelWithDebInfo` and `MinSizeRel` to NAppGUI configurations. [Issue](https://github.com/frang75/nappgui_src/issues/155). [Commit](https://github.com/frang75/nappgui_src/commit/e8398c8ee1bcb391a5c30c02b2efa0bc5c5506e7).
 - Fix warnings in legacy versions of GCC/Clang. [Commit](https://github.com/frang75/nappgui_src/commit/48dc3cb85379b8c3262f6626fadabd8dbccbdb0b).
 - Support for CMake 4.0. [Commit](https://github.com/frang75/nappgui_src/commit/156ae3fdc93d40e9e0f141f22e724107947f3124).
+- Fix issue when build NAppGUI shared libraries. [Issue](https://github.com/frang75/nappgui_src/issues/214). [Commit](https://github.com/frang75/nappgui_src/commit/850b45300ae6efd00b3b293477969077885e4cd5).
 
 ## v1.5.1 - March 30, 2025 (r6128)
 

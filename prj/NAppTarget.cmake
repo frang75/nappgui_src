@@ -661,6 +661,12 @@ endfunction()
 
 function(nap_link_inet_depends targetName)
 
+    if(NAPPGUI_IS_PACKAGE)
+        target_link_libraries(${targetName} nappgui::encode)
+    else()
+        target_link_libraries(${targetName} "encode")
+    endif()
+
     if(WIN32)
         target_link_libraries(${targetName} wininet)
 
@@ -683,7 +689,7 @@ function(nap_link_inet targetName)
     if(NAPPGUI_IS_PACKAGE)
         target_link_libraries(${targetName} nappgui::inet)
     else()
-        target_link_libraries(${targetName} inet)
+        target_link_libraries(${targetName} "inet")
     endif()
 
     nap_link_inet_depends(${targetName})

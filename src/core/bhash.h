@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: bhash.h
+ * https://nappgui.com/en/core/bhash.html
  *
  */
 

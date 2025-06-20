@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: rbtree.h
+ * https://nappgui.com/en/core/rbtree.html
  *
  */
 

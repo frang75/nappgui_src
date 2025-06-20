@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: types.hxx
+ * https://nappgui.com/en/sewer/types.html
  *
  */
 

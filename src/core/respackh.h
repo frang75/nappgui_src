@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: respackh.h
+ * https://nappgui.com/en/core/respackh.html
  *
  */
 

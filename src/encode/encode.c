@@ -4,15 +4,14 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: inet.c
+ * File: encode.c
  *
  */
 
-/* inet library */
+/* encode library */
 
-#include "inet.h"
-#include "oshttpreq.inl"
-#include <encode/encode.h>
+#include "encode.h"
+#include <core/core.h>
 #include <osbs/log.h>
 #include <sewer/blib.h>
 #include <sewer/cassert.h>
@@ -21,21 +20,20 @@ static uint32_t i_NUM_USERS = 0;
 
 /*---------------------------------------------------------------------------*/
 
-static void i_inet_atexit(void)
+static void i_encode_atexit(void)
 {
     if (i_NUM_USERS != 0)
-        log_printf("Error! inet is not properly closed (%d)\n", i_NUM_USERS);
+        log_printf("Error! encode is not properly closed (%d)\n", i_NUM_USERS);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void inet_start(void)
+void encode_start(void)
 {
     if (i_NUM_USERS == 0)
     {
-        encode_start();
-        oshttp_init();
-        blib_atexit(i_inet_atexit);
+        core_start();
+        blib_atexit(i_encode_atexit);
     }
 
     i_NUM_USERS += 1;
@@ -43,13 +41,12 @@ void inet_start(void)
 
 /*---------------------------------------------------------------------------*/
 
-void inet_finish(void)
+void encode_finish(void)
 {
     cassert(i_NUM_USERS > 0);
     if (i_NUM_USERS == 1)
     {
-        oshttp_finish();
-        encode_finish();
+        core_finish();
     }
 
     i_NUM_USERS -= 1;
