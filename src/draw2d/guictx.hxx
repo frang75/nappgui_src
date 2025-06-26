@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: guictx.hxx
+ * https://nappgui.com/en/draw2d/guictx.html
  *
  */
 
@@ -232,8 +233,7 @@ typedef enum _gui_role_t
 
 typedef enum _gui_prop_t
 {
-    ekGUI_PROP_RESIZE = 0,
-    ekGUI_PROP_CHILDREN
+    ekGUI_PROP_CHILDREN = 0
 } gui_prop_t;
 
 typedef enum _gui_text_t
@@ -249,12 +249,12 @@ typedef enum _gui_text_t
     ekGUI_TEXT_LSPACING,
     ekGUI_TEXT_BFPARSPACE,
     ekGUI_TEXT_AFPARSPACE,
+    ekGUI_TEXT_APPLY_ALL,
+    ekGUI_TEXT_APPLY_SEL,
     ekGUI_TEXT_SELECT,
     ekGUI_TEXT_SHOW_SELECT,
     ekGUI_TEXT_SCROLL,
-    ekGUI_TEXT_WRAP_MODE,
-    ekGUI_TEXT_APPLY_ALL,
-    ekGUI_TEXT_APPLY_SEL
+    ekGUI_TEXT_WRAP_MODE
 } gui_text_t;
 
 typedef enum _gui_web_t
@@ -288,7 +288,6 @@ typedef enum _button_flag_t
     ekBUTTON_RADIO = 3,
     ekBUTTON_FLAT = 4,
     ekBUTTON_FLATGLE = 5,
-    ekBUTTON_HEADER = 6,
     ekBUTTON_TYPE = 7
 } button_flag_t;
 
@@ -368,11 +367,15 @@ typedef enum _split_flag_t
     ekSPLIT_FLAG = 0,
     ekSPLIT_VERT = 0,
     ekSPLIT_HORZ = 1,
-    ekSPLIT_TYPE = 1,
-    ekSPLIT_PROP = 2,
-    ekSPLIT_LEFT = 3,
-    ekSPLIT_RIGHT = 4
+    ekSPLIT_TYPE = 1
 } split_flag_t;
+
+typedef enum _split_mode_t
+{
+    ekSPLIT_NORMAL = 1,
+    ekSPLIT_FIXED0,
+    ekSPLIT_FIXED1
+} split_mode_t;
 
 typedef enum _window_flag_t
 {
@@ -566,6 +569,10 @@ typedef void *(*FPtr_gctx_get_ptr)(const void *item);
 #define FUNC_CHECK_GCTX_GET_PTR(func, type, ptr_type) \
     (void)((ptr_type * (*)(const type *)) func == func)
 
+typedef bool_t (*FPtr_gctx_get_bool)(const void *item);
+#define FUNC_CHECK_GCTX_GET_BOOL(func, type) \
+    (void)((bool_t(*)(const type *))func == func)
+
 typedef uint32_t (*FPtr_gctx_get_uint32)(const void *item);
 #define FUNC_CHECK_GCTX_GET_UINT32(func, type) \
     (void)((uint32_t(*)(const type *))func == func)
@@ -629,6 +636,10 @@ typedef void (*FPtr_gctx_bounds6)(const void *item, const real32_t length, const
 typedef void (*FPtr_gctx_tickmarks)(void *item, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top);
 #define FUNC_CHECK_GCTX_TICKMARKS(func, type) \
     (void)((void (*)(type *, const uint32_t, const bool_t))func == func)
+
+typedef void (*FPtr_gctx_insert)(void *item, const uint32_t pos, void *child);
+#define FUNC_CHECK_GCTX_INSERT(func, type, child_type) \
+    (void)((void (*)(type *, const uint32_t, child_type *))func == func)
 
 typedef void (*FPtr_gctx_menu)(void *item, void *window, const real32_t x, const real32_t y);
 #define FUNC_CHECK_GCTX_MENU(func, type, window_type) \
@@ -711,7 +722,7 @@ struct _guictx_t
     FPtr_gctx_bounds2 func_button_bounds;
 
     /*! <PopUp> */
-    FPtr_gctx_set_listener func_popup_OnChange;
+    FPtr_gctx_set_listener func_popup_OnSelect;
     FPtr_gctx_set_elem func_popup_set_elem;
     FPtr_gctx_set_cptr func_popup_set_font;
     FPtr_gctx_set_uint32 func_popup_list_height;
@@ -769,8 +780,9 @@ struct _guictx_t
     /*! <Text view> */
     FPtr_gctx_set_listener func_text_OnFilter;
     FPtr_gctx_set_listener func_text_OnFocus;
-    FPtr_gctx_set_text func_text_insert_text;
     FPtr_gctx_set_text func_text_set_text;
+    FPtr_gctx_set_text func_text_add_text;
+    FPtr_gctx_set_text func_text_ins_text;
     FPtr_gctx_set_ptr func_text_set_rtf;
     FPtr_gctx_set_property func_text_set_prop;
     FPtr_gctx_set_bool func_text_set_editable;
@@ -836,10 +848,11 @@ struct _guictx_t
     /*! <Menus> */
     FPtr_gctx_create func_menu_create;
     FPtr_gctx_destroy func_menu_destroy;
-    FPtr_gctx_set_ptr func_attach_menuitem_to_menu;
-    FPtr_gctx_set_ptr func_detach_menuitem_from_menu;
+    FPtr_gctx_insert func_menu_insert_item;
+    FPtr_gctx_set_ptr func_menu_delete_item;
     FPtr_gctx_menu func_menu_launch_popup;
     FPtr_gctx_call func_menu_hide_popup;
+    FPtr_gctx_get_bool func_menu_is_menubar;
 
     /*! <MenuItems> */
     FPtr_gctx_create func_menuitem_create;

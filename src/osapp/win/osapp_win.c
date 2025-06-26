@@ -263,3 +263,12 @@ void _osapp_OnThemeChanged(OSApp *app, Listener *listener)
     unref(app);
     listener_destroy(&listener);
 }
+
+/*---------------------------------------------------------------------------*/
+
+void _osapp_menubar(OSApp *app, void *menu, void *window)
+{
+    unref(app);
+    unref(menu);
+    unref(window);
+}

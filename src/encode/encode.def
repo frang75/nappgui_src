@@ -1,0 +1,41 @@
+/*
+ * NAppGUI Cross-platform C SDK
+ * 2015-2025 Francisco Garcia Collado
+ * MIT Licence
+ * https://nappgui.com/en/legal/license.html
+ *
+ * File: encode.def
+ *
+ */
+
+/* encode library import/export */
+
+/* clang-format off */
+
+#if defined(NAPPGUI_SHARED)
+    #if defined(NAPPGUI_BUILD_ENCODE_LIB)
+        #define NAPPGUI_ENCODE_EXPORT_DLL
+    #else
+        #define NAPPGUI_ENCODE_IMPORT_DLL
+    #endif
+#endif
+
+#if defined(__GNUC__)
+    #if defined(NAPPGUI_ENCODE_EXPORT_DLL)
+        #define _encode_api __attribute__((visibility("default")))
+    #else
+        #define _encode_api
+    #endif
+#elif defined(_MSC_VER)
+    #if defined(NAPPGUI_ENCODE_IMPORT_DLL)
+        #define _encode_api __declspec(dllimport)
+    #elif defined(NAPPGUI_ENCODE_EXPORT_DLL)
+        #define _encode_api __declspec(dllexport)
+    #else
+        #define _encode_api
+    #endif
+#else
+    #error Unknown compiler
+#endif
+
+/* clang-format on */

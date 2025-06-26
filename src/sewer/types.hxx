@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: types.hxx
+ * https://nappgui.com/en/sewer/types.html
  *
  */
 
@@ -51,6 +52,11 @@ typedef enum _enum_t
 #else
 #define __EXTERN_C
 #define __END_C
+#endif
+
+/* VS2012 and lowers don't provide this macro */
+#ifndef va_copy
+#define va_copy(dest, src) ((dest) = (src))
 #endif
 
 #endif

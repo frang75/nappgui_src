@@ -2,7 +2,7 @@
 
 #include "res_htjson.h"
 #include <draw2d/draw2dall.h>
-#include <inet/json.h>
+#include <encode/json.h>
 
 /*---------------------------------------------------------------------------*/
 

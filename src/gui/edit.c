@@ -33,6 +33,7 @@ struct _edit_t
     GuiComponent component;
     uint32_t flags;
     real32_t width;
+    real32_t height;
     S2Df size;
     bool_t is_focused;
     bool_t is_placeholder_active;
@@ -216,6 +217,7 @@ static Edit *i_create(const align_t halign, const uint32_t flags)
     void *ositem = NULL;
     edit->flags = flags;
     edit->width = 100;
+    edit->height = -1;
     edit->text = str_c("");
     edit->font = _gui_create_default_font();
     edit->color = kCOLOR_DEFAULT;
@@ -278,6 +280,16 @@ void edit_min_width(Edit *edit, const real32_t width)
     cassert_no_null(edit);
     cassert(width > 0);
     edit->width = width;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void edit_min_height(Edit *edit, const real32_t height)
+{
+    cassert_no_null(edit);
+    cassert(height > 0);
+    cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
+    edit->height = height;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -445,8 +457,8 @@ real32_t edit_get_height(const Edit *edit)
 {
     real32_t width, height;
     cassert_no_null(edit);
-    _edit_dimension(cast(edit, Edit), 0, &width, &height);
-    _edit_dimension(cast(edit, Edit), 1, &width, &height);
+    _edit_natural(cast(edit, Edit), 0, &width, &height);
+    _edit_natural(cast(edit, Edit), 1, &width, &height);
     return height;
 }
 
@@ -479,7 +491,7 @@ void edit_paste(Edit *edit)
 
 /*---------------------------------------------------------------------------*/
 
-void _edit_dimension(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _edit_natural(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(edit);
     cassert_no_null(dim0);
@@ -491,8 +503,12 @@ void _edit_dimension(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim
     }
     else
     {
+        /* The height set by the user cannot be lower than the height of a single - line control */
         cassert(i == 1);
-        *dim1 = edit->size.height;
+        if (edit_get_type(edit->flags) == ekEDIT_MULTI && edit->height > edit->size.height)
+            *dim1 = edit->height;
+        else
+            *dim1 = edit->size.height;
     }
 }
 

@@ -94,11 +94,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             break;
         return 0;
 
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
-
     case WM_CTLCOLOREDIT:
     {
         HBRUSH default_brush = (HBRUSH)CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -506,7 +501,7 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
             uint32_t tsize;
             EvText params;
             EvTextFilter result;
-            combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize);
+            combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize, NULL);
             params.text = cast_const(combo_text, char_t);
             params.cpos = i_get_cursor_pos(combo->control.hwnd);
             result.apply = FALSE;
@@ -666,7 +661,7 @@ bool_t _oscombo_resign_focus(const OSCombo *combo)
         char_t *combo_text = NULL;
         uint32_t tsize = 0;
         EvText params;
-        combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize);
+        combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize, NULL);
         params.text = cast_const(combo_text, char_t);
         listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
         heap_free(dcast(&combo_text, byte_t), tsize, "OSControlGetText");

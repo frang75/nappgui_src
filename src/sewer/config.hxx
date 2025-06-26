@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: config.hxx
+ * https://nappgui.com/en/sewer/config.html
  *
  */
 
@@ -29,10 +30,13 @@
 #elif defined(CMAKE_RELEASE)
     #define __RELEASE__
 
-#elif defined(CMAKE_RELEASEWITHASSERT)
+#elif defined(CMAKE_RELWITHDEBINFO)
     #define __RELEASE__
     #define __ASSERTS__
     #define __MEMORY_AUDITOR__
+
+#elif defined(CMAKE_MINSIZEREL)
+    #define __RELEASE__
 
 #else
     /* Used from exported precompiled package */
@@ -194,12 +198,15 @@
     #else
         #define cast_func(fptr, type) ((type)(fptr))
     #endif
-
+#elif defined(__OBJC__)
+    #define cast_func(fptr, type) ((type)(int64_t*)fptr)
 #else /* C Compiler */
     #if defined (_MSC_VER) && _MSC_VER >= 1935 /* Visual Studio 2022 version 17.5.0 */
         #define cast_func(fptr, type) ((type)(void*)fptr)
     #elif defined(__WINDOWS__) && !defined(_MSC_VER)
         #define cast_func(fptr, type) ((type)(__int64)fptr)
+    #elif defined(__APPLE__) && __clang_major__ >= 17
+        #define cast_func(fptr, type) ((type)(void*)fptr)
     #else
         #define cast_func(fptr, type) ((type)fptr)
     #endif

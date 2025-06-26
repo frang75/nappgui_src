@@ -26,8 +26,6 @@ GtkStyleContext *_osglobals_button_context(void);
 
 GtkStyleContext *_osglobals_table_context(void);
 
-const char_t *_osglobals_css_label(void);
-
 const char_t *_osglobals_css_entry(void);
 
 const char_t *_osglobals_css_button(void);
@@ -41,6 +39,8 @@ const char_t *_osglobals_css_combobox(void);
 const char_t *_osglobals_css_textview(void);
 
 const char_t *_osglobals_css_textview_text(void);
+
+const char_t *_osglobals_css_progressbar(void);
 
 color_t _osglobals_text_color(void);
 

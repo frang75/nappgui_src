@@ -69,11 +69,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_NCPAINT:
         return _osgui_ncpaint(hwnd, edit->focused, &edit->border, edit->bgbrush);
 
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
-
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(edit, OSControl)) == TRUE)
@@ -322,23 +317,12 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     cassert_no_null(edit);
     cassert_no_null(width);
     cassert_no_null(height);
-    cassert(lines > 0);
+    cassert_unref(lines == 1, lines);
 
-    if (lines == 1)
-    {
+    if (edit_get_type(edit->flags) == ekEDIT_SINGLE)
         font_extents(edit->font, "O", -1.f, width, height);
-    }
     else
-    {
-        uint32_t i;
-        char_t text[256] = "";
-        cassert(edit_get_type(edit->flags) == ekEDIT_MULTI);
-        cassert(lines < 100);
-        for (i = 0; i < lines - 1; ++i)
-            str_cat_c(text, 256, "O\n");
-        str_cat_c(text, 256, "O");
-        font_extents(edit->font, text, -1.f, width, height);
-    }
+        font_extents(edit->font, "O\nO", -1.f, width, height);
 
     *width = refwidth;
     *height += edit->rpadding;
@@ -442,7 +426,7 @@ void _osedit_command(OSEdit *edit, WPARAM wParam)
             uint32_t tsize;
             EvText params;
             EvTextFilter result;
-            edit_text = _oscontrol_get_text(cast_const(edit, OSControl), &tsize);
+            edit_text = _oscontrol_get_text(cast_const(edit, OSControl), &tsize, NULL);
             params.text = cast_const(edit_text, char_t);
             params.cpos = i_get_cursor_pos(edit->control.hwnd);
             params.len = INT32_MAX;
@@ -500,11 +484,12 @@ bool_t _osedit_resign_focus(const OSEdit *edit)
     {
         char_t *edit_text = NULL;
         uint32_t tsize = 0;
+        uint32_t nchars = 0;
         EvText params;
-        edit_text = _oscontrol_get_text(cast_const(edit, OSControl), &tsize);
+        edit_text = _oscontrol_get_text(cast_const(edit, OSControl), &tsize, &nchars);
         params.text = cast_const(edit_text, char_t);
-        params.cpos = UINT32_MAX;
-        params.len = INT32_MAX;
+        params.cpos = i_get_cursor_pos(edit->control.hwnd);
+        params.len = (int32_t)nchars;
         listener_event(edit->OnChange, ekGUI_EVENT_TXTCHANGE, edit, &params, &lost_focus, OSEdit, EvText, bool_t);
         heap_free(dcast(&edit_text, byte_t), tsize, "OSControlGetText");
     }

@@ -12,6 +12,8 @@
 
 #include "osgui_osx.inl"
 #include "oscontrol_osx.inl"
+#include "osmenu_osx.inl"
+#include "ossplit_osx.inl"
 #include "osglobals.inl"
 #include "oscomwin.inl"
 #include "../osgui.inl"
@@ -170,6 +172,7 @@ void _osgui_start_imp(void)
     [kRIGHT_PARAGRAPH_STYLE setAlignment:_oscontrol_text_alignment(ekRIGHT)];
     kEMPTY_MENUBAR = [[NSMenu alloc] initWithTitle:@""];
     _osglobals_init();
+    _ossplit_create_tracks();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -183,6 +186,7 @@ void _osgui_finish_imp(void)
     [kUNDERLINE_STYLE_NONE release];
     [kEMPTY_MENUBAR release];
     _osglobals_finish();
+    _ossplit_destroy_tracks();
     _oscomwin_destroy_globals();
 }
 
@@ -192,6 +196,7 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 {
     cassert_no_null(menu);
     unref(window);
+    _osmenu_set_menubar(menu);
     [NSApp setMainMenu:cast(menu, NSMenu)];
 }
 
@@ -199,10 +204,13 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 
 void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
-    cassert_no_null(menu);
-    cassert([NSApp mainMenu] == cast(menu, NSMenu));
     unref(window);
-    [NSApp setMainMenu:kEMPTY_MENUBAR];
+    if (menu != NULL)
+    {
+        cassert([NSApp mainMenu] == cast(menu, NSMenu));
+        _osmenu_unset_menubar(menu);
+        [NSApp setMainMenu:kEMPTY_MENUBAR];
+    }
 }
 
 /*---------------------------------------------------------------------------*/

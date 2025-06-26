@@ -38,9 +38,11 @@ void _oscontrol_detach_from_parent(OSControl *control, GtkWidget *parent_widget)
 
 void _oscontrol_widget_detach(GtkWidget *widget, GtkWidget *parent_widget);
 
-uint32_t _oscontrol_num_children(GtkContainer *container);
+uint32_t _oscontrol_num_children(GtkWidget *widget);
 
-GtkWidget *_oscontrol_get_child(GtkContainer *container, const uint32_t index);
+GtkWidget *_oscontrol_get_child(GtkWidget *widget, const uint32_t index);
+
+uint32_t _oscontrol_find_child(GtkWidget *widget, GtkWidget *child);
 
 GtkCssProvider *_oscontrol_css_provider(const char_t *css);
 

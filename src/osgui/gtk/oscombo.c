@@ -186,8 +186,8 @@ OSCombo *oscombo_create(const uint32_t flags)
     cassert(GTK_IS_ENTRY(combo->button));
     combo->button = gtk_widget_get_parent(combo->button);
     cassert(GTK_IS_BOX(combo->button));
-    cassert(_oscontrol_num_children(GTK_CONTAINER(combo->button)) == 2);
-    combo->button = _oscontrol_get_child(GTK_CONTAINER(combo->button), 1);
+    cassert(_oscontrol_num_children(combo->button) == 2);
+    combo->button = _oscontrol_get_child(combo->button, 1);
     cassert(GTK_IS_TOGGLE_BUTTON(combo->button));
 #else
     combo->button = widget;

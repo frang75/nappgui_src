@@ -35,13 +35,13 @@ Thread *bthread_create_imp(uint32_t(func_thread_main)(void *), void *data)
 {
     pthread_t *thread = cast(malloc(sizeof(pthread_t)), pthread_t);
 #if defined(__GNUC__)
-#if (__GNUC__ > 5)
+#if (__GNUC__ >= 8)
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 #endif
     int ret = pthread_create(thread, NULL, cast_func(func_thread_main, void *(*)(void *)), data);
 #if defined(__GNUC__)
-#if (__GNUC__ > 5)
+#if (__GNUC__ >= 8)
 #pragma GCC diagnostic warning "-Wcast-function-type"
 #endif
 #endif

@@ -26,7 +26,7 @@ void _view_set_subtype(View *view, const char_t *subtype);
 
 const char_t *_view_subtype(const View *view);
 
-void _view_dimension(View *view, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _view_natural(View *view, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 void _view_OnResize(View *view, const S2Df *size);
 

@@ -413,10 +413,10 @@ void osapp_task_imp(void *data, const real32_t updtime, FPtr_task_main func_task
 
 void osapp_menubar(Menu *menu, Window *window)
 {
-    void *oswindow = NULL;
-    void *osmenu = NULL;
-    cassert_no_null(menu);
-    oswindow = window_imp(window);
-    osmenu = menu_imp(menu);
+    i_App *app = _osapp_listener(i_App);
+    void *oswindow = window_imp(window);
+    void *osmenu = menu != NULL ? menu_imp(menu) : NULL;
     osgui_set_menubar(cast(osmenu, OSMenu), cast(oswindow, OSWindow));
+    _osapp_menubar(app->osapp, osmenu, oswindow);
+    window_update(window);
 }

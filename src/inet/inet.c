@@ -12,7 +12,7 @@
 
 #include "inet.h"
 #include "oshttpreq.inl"
-#include <core/core.h>
+#include <encode/encode.h>
 #include <osbs/log.h>
 #include <sewer/blib.h>
 #include <sewer/cassert.h>
@@ -33,7 +33,7 @@ void inet_start(void)
 {
     if (i_NUM_USERS == 0)
     {
-        core_start();
+        encode_start();
         oshttp_init();
         blib_atexit(i_inet_atexit);
     }
@@ -49,7 +49,7 @@ void inet_finish(void)
     if (i_NUM_USERS == 1)
     {
         oshttp_finish();
-        core_finish();
+        encode_finish();
     }
 
     i_NUM_USERS -= 1;

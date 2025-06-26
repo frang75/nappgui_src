@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osbsall.h
+ * https://nappgui.com/en/osbs/osbsall.html
  *
  */
 

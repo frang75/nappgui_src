@@ -9,6 +9,7 @@ struct _app_t
     Window *window;
     Window *flyout;
     Panel *panel;
+    Menu *menu;
     ListBox *list1;
     ListBox *list2;
     ListBox *list3;
@@ -455,6 +456,7 @@ static void i_OnColored(App *app, Event *e)
         layout_bgcolor(app->middle_layout, color_rgb(0, 128, 0));
         layout_bgcolor(app->control_layout, color_rgb(0, 0, 128));
         layout_bgcolor(app->info_layout, color_rgb(128, 128, 0));
+        osapp_menubar(app->menu, app->window);
     }
     else
     {
@@ -462,6 +464,7 @@ static void i_OnColored(App *app, Event *e)
         layout_bgcolor(app->middle_layout, kCOLOR_DEFAULT);
         layout_bgcolor(app->control_layout, kCOLOR_DEFAULT);
         layout_bgcolor(app->info_layout, kCOLOR_DEFAULT);
+        osapp_menubar(NULL, app->window);
     }
 
     panel_update(app->panel);
@@ -860,6 +863,25 @@ static Window *i_create_flywin(void)
 
 /*---------------------------------------------------------------------------*/
 
+/* This code is added for testing big menubars in resizable windows */
+static Menu *i_menubar(void)
+{
+    Menu *menu = menu_create();
+    uint32_t i, n = 30;
+    for (i = 0; i < n; ++i)
+    {
+        char_t text[32];
+        MenuItem *item = menuitem_create();
+        bstd_sprintf(text, sizeof(text), "ItemName%d", i);
+        menuitem_text(item, text);
+        menu_add_item(menu, item);
+    }
+
+    return menu;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static App *i_create(void)
 {
     App *app = heap_new0(App);
@@ -878,6 +900,7 @@ static App *i_create(void)
     app->window = window_create(ekWINDOW_STDRES);
     app->flyout = i_create_flywin();
     app->panel = panel;
+    app->menu = i_menubar();
     app->anim_frame = 0;
     app->anim_total = str_len_c(i_STATUS_TEXT);
     app->fullfont = font_system(40, 0);
@@ -900,6 +923,7 @@ static App *i_create(void)
 
 static void i_destroy(App **app)
 {
+    menu_destroy(&(*app)->menu);
     window_destroy(&(*app)->window);
     window_destroy(&(*app)->flyout);
     font_destroy(&(*app)->fullfont);

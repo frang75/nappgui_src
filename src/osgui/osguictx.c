@@ -265,8 +265,9 @@ GuiCtx *osguictx(void)
         ostext_destroy,
         ostext_OnFilter,
         ostext_OnFocus,
-        ostext_insert_text,
         ostext_set_text,
+        ostext_add_text,
+        ostext_ins_text,
         ostext_set_rtf,
         ostext_property,
         ostext_editable,
@@ -377,10 +378,11 @@ GuiCtx *osguictx(void)
         context,
         osmenu_create,
         osmenu_destroy,
-        osmenu_add_item,
+        osmenu_insert_item,
         osmenu_delete_item,
         osmenu_launch,
         osmenu_hide,
+        osmenu_is_menubar,
         OSMenu, OSMenuItem, OSWindow);
 
     guictx_append_menuitem_manager(

@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: eglew.h
+ * https://nappgui.com/en/ogl3d/eglew.html
  *
  */
 

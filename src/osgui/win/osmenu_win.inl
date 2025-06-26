@@ -20,12 +20,12 @@ HMENU _osmenu_menubar(OSMenu *menu, OSWindow *window);
 
 HMENU _osmenu_menubar_unlink(OSMenu *menu, OSWindow *window);
 
-void _osmenu_recompute(OSMenu *menu);
+void _osmenu_hmenu_recompute(OSMenu *menu);
+
+void _osmenu_hmenu_redraw(OSMenu *menu);
 
 void _osmenu_attach_to_item(OSMenu *menu, OSMenuItem *item);
 
 void _osmenu_detach_from_item(OSMenu *menu, OSMenuItem *item);
-
-void _osmenu_append_item(HMENU menu, const Font *font, const char_t *text, const Image *image, OSControl *owner);
 
 __END_C

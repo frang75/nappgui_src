@@ -41,6 +41,7 @@ struct _osview_t
     GtkWidget *darea;
     OSScrolls *scroll;
     OSControl *capture;
+    OSSplit *split;
     real32_t clip_width;
     real32_t clip_height;
     ViewListeners listeners;
@@ -155,20 +156,30 @@ static gboolean i_OnRender(GtkGLArea *widget, GdkGLContext *glctx, OSView *view)
 
 static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSView *view)
 {
-    int w, h;
     cassert_no_null(event);
     cassert_no_null(view);
     cassert_unref(widget == view->darea, widget);
-    w = gdk_window_get_width(event->window);
-    h = gdk_window_get_height(event->window);
-
-    /* Scroll bars can send confusing move events
-       Only we accept the motion over scroll window */
-    if ((int)view->clip_width == w && (int)view->clip_height == h)
+    if (view->capture == NULL)
     {
-        real32_t scroll_x = view->scroll ? (real32_t)_osscrolls_x_pos(view->scroll) : 0;
-        real32_t scroll_y = view->scroll ? (real32_t)_osscrolls_y_pos(view->scroll) : 0;
-        _oslistener_mouse_moved(cast(view, OSControl), event, scroll_x, scroll_y, &view->listeners);
+        int w = gdk_window_get_width(event->window);
+        int h = gdk_window_get_height(event->window);
+
+        /* Scroll bars can send confusing move events
+        Only we accept the motion over scroll window */
+        if ((int)view->clip_width == w && (int)view->clip_height == h)
+        {
+            real32_t scroll_x = view->scroll ? (real32_t)_osscrolls_x_pos(view->scroll) : 0;
+            real32_t scroll_y = view->scroll ? (real32_t)_osscrolls_y_pos(view->scroll) : 0;
+            _oslistener_mouse_moved(cast(view, OSControl), event, scroll_x, scroll_y, &view->listeners);
+        }
+
+        if (view->split != NULL)
+            _ossplit_OnMove(view->split, event);
+    }
+    else
+    {
+        if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
+            _ossplit_OnMove(cast(view->capture, OSSplit), event);
     }
 
     return TRUE;
@@ -220,7 +231,7 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSView *vi
                 if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
                 {
                     _ossplit_OnPress(cast(view->capture, OSSplit), event);
-                    return TRUE;
+                    return FALSE;
                 }
             }
         }
@@ -244,13 +255,20 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSView *vi
 
 static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSView *view)
 {
-    real32_t scroll_x = 0.f;
-    real32_t scroll_y = 0.f;
     cassert_no_null(view);
     unref(widget);
-    scroll_x = view->scroll ? (real32_t)_osscrolls_x_pos(view->scroll) : 0;
-    scroll_y = view->scroll ? (real32_t)_osscrolls_y_pos(view->scroll) : 0;
-    _oslistener_mouse_up(cast(view, OSControl), event, scroll_x, scroll_y, &view->listeners);
+    if (view->capture == NULL)
+    {
+        real32_t scroll_x = view->scroll ? (real32_t)_osscrolls_x_pos(view->scroll) : 0;
+        real32_t scroll_y = view->scroll ? (real32_t)_osscrolls_y_pos(view->scroll) : 0;
+        _oslistener_mouse_up(cast(view, OSControl), event, scroll_x, scroll_y, &view->listeners);
+    }
+    else
+    {
+        if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
+            _ossplit_OnRelease(cast(view, OSSplit), event);
+    }
+
     return TRUE;
 }
 
@@ -385,6 +403,7 @@ OSView *osview_create(const uint32_t flags)
     gtk_widget_add_events(view->darea, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     g_signal_connect(view->darea, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
     g_signal_connect(view->darea, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(view->darea, TRUE, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     gtk_widget_set_can_focus(view->darea, TRUE);
     gtk_widget_set_can_focus(top, TRUE);
     return view;
@@ -396,6 +415,8 @@ void osview_destroy(OSView **view)
 {
     cassert_no_null(view);
     cassert_no_null(*view);
+    (*view)->capture = NULL;
+    (*view)->split = NULL;
     _oslistener_remove(&(*view)->listeners);
     listener_destroy(&(*view)->OnFocus);
     listener_destroy(&(*view)->OnResignFocus);
@@ -459,11 +480,8 @@ void osview_OnExit(OSView *view, Listener *listener)
 
 void osview_OnMoved(OSView *view, Listener *listener)
 {
-    bool_t add_signal;
     cassert_no_null(view);
     listener_update(&view->listeners.OnMoved, listener);
-    add_signal = listener != NULL || view->listeners.OnDrag;
-    _oslistener_signal(view->darea, add_signal, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -496,11 +514,8 @@ void osview_OnClick(OSView *view, Listener *listener)
 
 void osview_OnDrag(OSView *view, Listener *listener)
 {
-    bool_t add_signal;
     cassert_no_null(view);
     listener_update(&view->listeners.OnDrag, listener);
-    add_signal = listener != NULL || view->listeners.OnMoved;
-    _oslistener_signal(view->darea, add_signal, &view->listeners.moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -724,6 +739,14 @@ void _osview_release_capture(OSView *view)
 {
     cassert_no_null(view);
     view->capture = NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_set_parent_split(OSView *view, OSSplit *split)
+{
+    cassert_no_null(view);
+    view->split = split;
 }
 
 /*---------------------------------------------------------------------------*/

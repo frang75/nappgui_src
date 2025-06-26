@@ -4,8 +4,8 @@
 #include "prmodel.h"
 #include "res_products.h"
 #include <nappgui.h>
+#include <encode/json.h>
 #include <inet/httpreq.h>
-#include <inet/json.h>
 
 typedef enum _status_t
 {
@@ -923,7 +923,7 @@ void ctrl_lang_cell(Ctrl *ctrl, Cell *cell)
 
 void ctrl_lang_menu(Ctrl *ctrl, Menu *menu)
 {
-    uint32_t i, n = menu_size(menu);
+    uint32_t i, n = menu_count(menu);
     for (i = 0; i < n; ++i)
     {
         MenuItem *item = menu_get_item(menu, i);

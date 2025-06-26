@@ -274,7 +274,6 @@ static void i_update_text(Button *button)
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
-    case ekBUTTON_HEADER:
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
@@ -421,14 +420,14 @@ real32_t button_get_height(const Button *button)
 {
     real32_t width, height;
     cassert_no_null(button);
-    _button_dimension(cast(button, Button), 0, &width, &height);
-    _button_dimension(cast(button, Button), 1, &width, &height);
+    _button_natural(cast(button, Button), 0, &width, &height);
+    _button_natural(cast(button, Button), 1, &width, &height);
     return height;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _button_dimension(Button *button, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _button_natural(Button *button, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(button);
     cassert_no_null(dim0);

@@ -144,37 +144,43 @@ ArrSt(DirEntry) *hfile_dir_list(const char_t *pathname, const bool_t subdirs, fe
 {
     ArrSt(DirEntry) *entries = arrst_create(DirEntry);
     Dir *dir = bfile_dir_open(pathname, error);
-    char_t filename[512];
-    file_type_t type;
-    uint64_t size;
-    Date updated;
-    ferror_t err;
-    while (bfile_dir_get(dir, filename, 512, &type, &size, &updated, &err) == TRUE)
+    if (dir != NULL)
     {
-        if (str_equ_c(filename, ".") == FALSE && str_equ_c(filename, "..") == FALSE)
+        char_t filename[512];
+        file_type_t type;
+        uint64_t size;
+        Date updated;
+        ferror_t err;
+        while (bfile_dir_get(dir, filename, 512, &type, &size, &updated, &err) == TRUE)
         {
-            if (type == ekARCHIVE || (type == ekDIRECTORY && subdirs == TRUE))
+            if (str_equ_c(filename, ".") == FALSE && str_equ_c(filename, "..") == FALSE)
             {
-                DirEntry *entry = arrst_new(entries, DirEntry);
-                entry->name = str_c(filename);
-                entry->size = size;
-                entry->type = type;
-                entry->date = updated;
+                if (type == ekARCHIVE || (type == ekDIRECTORY && subdirs == TRUE))
+                {
+                    DirEntry *entry = arrst_new(entries, DirEntry);
+                    entry->name = str_c(filename);
+                    entry->size = size;
+                    entry->type = type;
+                    entry->date = updated;
+                }
             }
         }
-    }
 
-    bfile_dir_close(&dir);
+        bfile_dir_close(&dir);
 
-    if (err == ekFNOFILES)
-    {
-        ptr_assign(error, ekFOK);
+        if (err == ekFNOFILES)
+        {
+            ptr_assign(error, ekFOK);
+        }
+        else
+        {
+            ptr_assign(error, err);
+        }
     }
     else
     {
-        ptr_assign(error, err);
+        ptr_assign(error, ekFNOPATH);
     }
-
     arrst_sort(entries, i_cmp_entry, DirEntry);
     return entries;
 }

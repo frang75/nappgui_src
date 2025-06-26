@@ -1016,8 +1016,6 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
     unref(value);
     switch (property)
     {
-    case ekGUI_PROP_RESIZE:
-        break;
     case ekGUI_PROP_CHILDREN:
         lwindow->destroy_main_view = NO;
         break;

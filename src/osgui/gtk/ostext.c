@@ -24,10 +24,20 @@
 #include <core/heap.h>
 #include <core/strings.h>
 #include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
 #endif
+
+typedef enum textev_t
+{
+    ekTEXTEV_USER = 1,
+    ekTEXTEV_ADD,
+    ekTEXTEV_INS,
+    ekTEXTEV_SET,
+    ekTEXTEV_UPD
+} textev_t;
 
 struct _ostext_t
 {
@@ -43,11 +53,10 @@ struct _ostext_t
     gint afspace_px;
     int32_t select_start;
     int32_t select_end;
+    int32_t select_default;
     bool_t show_select;
+    textev_t text_event;
     GtkTextTag *tag_attribs;
-    GtkTextTag *def_attribs;
-    bool_t global_attribs;
-    bool_t launch_event;
     GtkWidget *tview;
     GtkTextBuffer *buffer;
     gchar *text_cache;
@@ -76,223 +85,6 @@ static real32_t i_device_to_pixels(void)
     }
 
     return i_PANGO_TO_PIXELS;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSText *view)
-{
-    unref(widget);
-    if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
-    {
-        if (view->capture != NULL)
-        {
-            if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
-            {
-                _ossplit_OnPress(cast(view->capture, OSSplit), event);
-            }
-
-            return TRUE;
-        }
-        /*
-        The handler will be called before the default handler of the signal.
-        This is the default behaviour
-        */
-        else
-        {
-            return FALSE;
-        }
-    }
-
-    return TRUE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnFilter(OSText *view, GtkTextIter *ed_iter, const char_t *text, const int32_t len)
-{
-    cassert_no_null(view);
-    cassert_no_null(ed_iter);
-    cassert_no_null(text);
-
-    if (view->launch_event == TRUE && gtk_widget_is_sensitive(view->control.widget) && view->OnFilter != NULL)
-    {
-        EvText params;
-        EvTextFilter result;
-        params.text = text;
-        params.cpos = (uint32_t)gtk_text_iter_get_offset(ed_iter);
-        params.len = len;
-        result.apply = FALSE;
-        result.text[0] = '\0';
-        result.cpos = UINT32_MAX;
-        listener_event(view->OnFilter, ekGUI_EVENT_TXTFILTER, view, &params, &result, OSText, EvText, EvTextFilter);
-
-        if (result.apply == TRUE)
-        {
-            bool_t prev = view->launch_event;
-            GtkTextIter st_iter;
-            view->launch_event = FALSE;
-            gtk_text_buffer_get_start_iter(view->buffer, &st_iter);
-            gtk_text_iter_forward_chars(&st_iter, params.cpos - len);
-            gtk_text_buffer_delete(view->buffer, &st_iter, ed_iter);
-            gtk_text_buffer_insert(view->buffer, ed_iter, result.text, -1);
-            view->launch_event = prev;
-        }
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnBufferInsert(GtkTextBuffer *buffer, GtkTextIter *location, gchar *text, gint len, OSText *view)
-{
-    cassert_no_null(view);
-    cassert_unref(view->buffer == buffer, buffer);
-    i_OnFilter(view, location, cast_const(text, char_t), (int32_t)len);
-
-    /* Set the default attribs to new writted text */
-    if (view->def_attribs != NULL)
-    {
-        GtkTextIter start, end;
-        start = *location;
-        gtk_text_iter_backward_chars(&start, len);
-        end = *location;
-
-        /* Only apply defaults if text is writted at beginning or end.
-         * In between, will be applied the current format */
-        if (gtk_text_iter_is_start(&start) == TRUE || gtk_text_iter_is_end(&end) == TRUE)
-            gtk_text_buffer_apply_tag(view->buffer, view->def_attribs, &start, &end);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnBufferDelete(GtkTextBuffer *buffer, GtkTextIter *start, GtkTextIter *end, OSText *view)
-{
-    unref(buffer);
-    unref(start);
-    unref(end);
-    unref(view);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_set_wrap_mode(GtkWidget *tview, const bool_t wrap)
-{
-    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tview), wrap == TRUE ? GTK_WRAP_WORD_CHAR : GTK_WRAP_NONE);
-}
-
-/*---------------------------------------------------------------------------*/
-
-OSText *ostext_create(const uint32_t flags)
-{
-    OSText *view = heap_new0(OSText);
-    GtkWidget *scrolled = gtk_scrolled_window_new(NULL, NULL);
-    GtkWidget *top = NULL;
-    GtkWidget *focus = NULL;
-    unref(flags);
-    view->tview = gtk_text_view_new();
-    view->select_start = INT32_MAX;
-    view->select_end = INT32_MAX;
-    view->show_select = FALSE;
-
-    /* A parent widget can "capture" the mouse */
-    {
-        GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(scrolled));
-        GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(scrolled));
-        g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
-        g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
-        g_signal_connect(G_OBJECT(scrolled), "button-press-event", G_CALLBACK(i_OnPressed), view);
-        g_signal_connect(G_OBJECT(view->tview), "button-press-event", G_CALLBACK(i_OnPressed), view);
-    }
-
-    gtk_widget_show(view->tview);
-    view->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
-    g_signal_connect_after(G_OBJECT(view->buffer), "insert-text", G_CALLBACK(i_OnBufferInsert), (gpointer)view);
-    g_signal_connect(G_OBJECT(view->buffer), "delete-range", G_CALLBACK(i_OnBufferDelete), (gpointer)view);
-    gtk_text_view_set_editable(GTK_TEXT_VIEW(view->tview), FALSE);
-    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view->tview), GTK_WRAP_WORD);
-    gtk_text_view_set_left_margin(GTK_TEXT_VIEW(view->tview), 5);
-    gtk_text_view_set_right_margin(GTK_TEXT_VIEW(view->tview), 5);
-    i_set_wrap_mode(view->tview, TRUE);
-    gtk_container_add(GTK_CONTAINER(scrolled), view->tview);
-    top = scrolled;
-    focus = view->tview;
-
-    /* Creating the frame (border) view */
-    {
-        GtkWidget *frame = gtk_frame_new(NULL);
-        cassert(gtk_widget_get_has_window(frame) == FALSE);
-        gtk_container_add(GTK_CONTAINER(frame), top);
-        gtk_widget_show(top);
-
-        {
-            String *css = _osglobals_frame_focus_css();
-            view->css_bdcolor = _oscontrol_css_provider(tc(css));
-            str_destroy(&css);
-        }
-
-        g_object_set_data(G_OBJECT(scrolled), "OSControl", &view->control);
-        gtk_widget_set_state_flags(frame, GTK_STATE_FLAG_FOCUSED, FALSE);
-        top = frame;
-    }
-
-    view->launch_event = TRUE;
-    _oscontrol_init(&view->control, ekGUI_TYPE_TEXTVIEW, top, focus, TRUE);
-    return view;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static GtkWidget *i_scrolled_window(const OSText *view)
-{
-    GtkWidget *scrolled = NULL;
-    cassert_no_null(view);
-    scrolled = view->control.widget;
-    cassert(GTK_IS_FRAME(scrolled) == TRUE);
-    scrolled = gtk_bin_get_child(GTK_BIN(scrolled));
-    cassert(GTK_IS_SCROLLED_WINDOW(scrolled));
-    return scrolled;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_destroy(OSText **view)
-{
-    cassert_no_null(view);
-    cassert_no_null(*view);
-    listener_destroy(&(*view)->OnFilter);
-    listener_destroy(&(*view)->OnFocus);
-    gtk_container_remove(GTK_CONTAINER(i_scrolled_window(*view)), (*view)->tview);
-
-    if ((*view)->text_cache != NULL)
-    {
-        g_free((*view)->text_cache);
-        (*view)->text_cache = NULL;
-    }
-
-    _oscontrol_destroy_css_provider(&(*view)->css_font);
-    _oscontrol_destroy_css_provider(&(*view)->css_color);
-    _oscontrol_destroy_css_provider(&(*view)->css_bgcolor);
-    _oscontrol_destroy_css_provider(&(*view)->css_pgcolor);
-    _oscontrol_destroy_css_provider(&(*view)->css_bdcolor);
-    _oscontrol_destroy(*dcast(view, OSControl));
-    heap_delete(view, OSText);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_OnFilter(OSText *view, Listener *listener)
-{
-    cassert_no_null(view);
-    listener_update(&view->OnFilter, listener);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_OnFocus(OSText *view, Listener *listener)
-{
-    cassert_no_null(view);
-    listener_update(&view->OnFocus, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -454,79 +246,342 @@ static GtkTextTag *i_tag_attribs(OSText *view)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_global_attribs(OSText *view)
+static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSText *view)
 {
-    const char_t *cssobj = _osglobals_css_textview();
-    _oscontrol_update_css_font_desc(view->tview, cssobj, view->ffamily, view->fsize, view->fstyle, &view->css_font);
-    _oscontrol_update_css_color(view->tview, cssobj, view->color, &view->css_color);
-    _oscontrol_update_css_bgcolor(view->tview, cssobj, view->bgcolor, &view->css_bgcolor);
-
-    {
-        GtkJustification justif = _oscontrol_justification(view->align);
-        GValue gvalue = G_VALUE_INIT;
-        g_value_init(&gvalue, GTK_TYPE_JUSTIFICATION);
-        g_value_set_enum(&gvalue, justif);
-        g_object_set_property(G_OBJECT(view->tview), "justification", &gvalue);
-        g_value_unset(&gvalue);
-    }
-
-    {
-        GValue gvalue = G_VALUE_INIT;
-        g_value_init(&gvalue, G_TYPE_INT);
-        g_value_set_int(&gvalue, view->lspacing_px);
-        g_object_set_property(G_OBJECT(view->tview), "pixels-inside-wrap", &gvalue);
-        g_value_unset(&gvalue);
-    }
-
-    {
-        GValue gvalue = G_VALUE_INIT;
-        g_value_init(&gvalue, G_TYPE_INT);
-        g_value_set_int(&gvalue, view->bfspace_px);
-        g_object_set_property(G_OBJECT(view->tview), "pixels-above-lines", &gvalue);
-        g_value_unset(&gvalue);
-    }
-
-    {
-        GValue gvalue = G_VALUE_INIT;
-        g_value_init(&gvalue, G_TYPE_INT);
-        g_value_set_int(&gvalue, view->afspace_px);
-        g_object_set_property(G_OBJECT(view->tview), "pixels-below-lines", &gvalue);
-        g_value_unset(&gvalue);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_insert_text(OSText *view, const char_t *text)
-{
-    GtkTextIter end;
     cassert_no_null(view);
-    cassert_no_null(text);
-    view->launch_event = FALSE;
+    cassert_no_null(event);
+    unref(widget);
 
-    if (view->tag_attribs == NULL)
-        view->tag_attribs = i_tag_attribs(view);
+    /* Check click over textview, remove selection cache */
+    if (event->button == 1)
+    {
+        view->select_start = INT32_MAX;
+        view->select_end = INT32_MAX;
+    }
 
-    gtk_text_buffer_get_end_iter(view->buffer, &end);
-    gtk_text_buffer_insert_with_tags(view->buffer, &end, cast_const(text, gchar), -1, view->tag_attribs, NULL);
-    view->launch_event = TRUE;
+    if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
+    {
+        if (view->capture != NULL)
+        {
+            if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
+            {
+                _ossplit_OnPress(cast(view->capture, OSSplit), event);
+            }
+
+            return TRUE;
+        }
+        /*
+        The handler will be called before the default handler of the signal.
+        This is the default behaviour
+        */
+        else
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_apply_all(OSText *view)
+static void i_OnFilter(OSText *view, GtkTextIter *location_iter, const char_t *text, const int32_t lenChars, GtkTextIter *start_iter, GtkTextIter *end_iter)
+{
+    bool_t changed = FALSE;
+    cassert_no_null(view);
+    cassert_no_null(location_iter);
+    cassert_no_null(start_iter);
+    cassert_no_null(end_iter);
+    cassert_no_null(text);
+    cassert(lenChars > 0);
+    cassert(view->text_event == ekTEXTEV_USER);
+
+    if (gtk_widget_is_sensitive(view->control.widget) && view->OnFilter != NULL)
+    {
+        EvText params;
+        EvTextFilter result;
+        params.text = text;
+        params.cpos = (uint32_t)gtk_text_iter_get_offset(location_iter);
+        params.len = lenChars;
+        result.apply = FALSE;
+        result.text[0] = '\0';
+        result.cpos = UINT32_MAX;
+        listener_event(view->OnFilter, ekGUI_EVENT_TXTFILTER, view, &params, &result, OSText, EvText, EvTextFilter);
+
+        if (result.apply == TRUE)
+        {
+            GtkTextIter begin_iter;
+            uint32_t nlen = unicode_nchars(result.text, ekUTF8);
+            view->text_event = ekTEXTEV_UPD;
+            /* Remove the previously inserted text */
+            begin_iter = *location_iter;
+            gtk_text_iter_backward_chars(&begin_iter, lenChars);
+            gtk_text_buffer_delete(view->buffer, &begin_iter, location_iter);
+            /* Add the new filtered text */
+            gtk_text_buffer_insert(view->buffer, location_iter, result.text, -1);
+            /* And select the text range */
+            *start_iter = *location_iter;
+            *end_iter = *location_iter;
+            gtk_text_iter_backward_chars(start_iter, (gint)nlen);
+            view->text_event = ekTEXTEV_USER;
+            changed = TRUE;
+        }
+    }
+
+    if (changed == FALSE)
+    {
+        *start_iter = *location_iter;
+        *end_iter = *location_iter;
+        gtk_text_iter_backward_chars(start_iter, lenChars);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GSList *i_tags_at_pos(OSText *view, const int32_t pos)
+{
+    GtkTextIter iter;
+    cassert_no_null(view);
+    gtk_text_buffer_get_start_iter(view->buffer, &iter);
+    gtk_text_iter_forward_chars(&iter, pos);
+    return gtk_text_iter_get_tags(&iter);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_tag_list(OSText *view, GSList *tags, GtkTextIter *start, GtkTextIter *end)
+{
+    GSList *tag = NULL;
+    cassert_no_null(view);
+    for (tag = tags; tag != NULL; tag = tag->next)
+        gtk_text_buffer_apply_tag(view->buffer, cast(tag->data, GtkTextTag), start, end);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnBufferInsert(GtkTextBuffer *buffer, GtkTextIter *location, gchar *text, gint lenBytes, OSText *view)
 {
     GtkTextIter start, end;
+    int32_t lenChars = unicode_nchars(text, ekUTF8);
     cassert_no_null(view);
+    cassert_unref(view->buffer == buffer, buffer);
+    unref(lenBytes);
+    switch (view->text_event)
+    {
+    case ekTEXTEV_USER:
+        i_OnFilter(view, location, cast_const(text, char_t), lenChars, &start, &end);
+        break;
 
-    if (view->tag_attribs == NULL)
-        view->tag_attribs = i_tag_attribs(view);
+    case ekTEXTEV_ADD:
+        start = *location;
+        end = *location;
+        gtk_text_iter_backward_chars(&start, (gint)lenChars);
+#if defined(__ASSERTS__)
+        {
+            GtkTextIter tend;
+            gtk_text_buffer_get_end_iter(view->buffer, &tend);
+            cassert(gtk_text_iter_equal(&tend, location) == TRUE);
+        }
+#endif
+        break;
 
-    view->def_attribs = view->tag_attribs;
-    gtk_text_buffer_get_start_iter(view->buffer, &start);
-    gtk_text_buffer_get_end_iter(view->buffer, &end);
-    gtk_text_buffer_remove_all_tags(view->buffer, &start, &end);
-    gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
+    case ekTEXTEV_INS:
+    case ekTEXTEV_UPD:
+        start = *location;
+        end = *location;
+        gtk_text_iter_backward_chars(&start, (gint)lenChars);
+        break;
+
+    case ekTEXTEV_SET:
+        gtk_text_buffer_get_start_iter(view->buffer, &start);
+        gtk_text_buffer_get_end_iter(view->buffer, &end);
+        break;
+
+        cassert_default();
+    }
+
+    {
+        /* Apply the format to inserted text */
+        gint stpos = gtk_text_iter_get_offset(&start);
+        gint edpos = gtk_text_iter_get_offset(&end);
+
+        /* The added text will always use the default format */
+        if (view->text_event == ekTEXTEV_ADD)
+        {
+            if (view->tag_attribs == NULL)
+                view->tag_attribs = i_tag_attribs(view);
+            gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
+        }
+        /* First we have a default format in this caret position */
+        else if (view->select_default == stpos && view->tag_attribs != NULL)
+        {
+            gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
+        }
+        else
+        {
+            /* We take the format from neighbors characters */
+            if (stpos == 0)
+            {
+                gint tepos = gtk_text_buffer_get_char_count(view->buffer);
+
+                /* The text is inserted at begin. We take the format from next char */
+                if (edpos < tepos)
+                {
+                    GSList *tags = i_tags_at_pos(view, edpos);
+                    i_apply_tag_list(view, tags, &start, &end);
+                    g_slist_free(tags);
+                }
+                /* The inserted text is whole text --> Use the default tag */
+                else
+                {
+                    if (view->tag_attribs == NULL)
+                        view->tag_attribs = i_tag_attribs(view);
+                    gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
+                }
+            }
+            /* We take the format from previous char */
+            else
+            {
+                GSList *tags = i_tags_at_pos(view, stpos - 1);
+                i_apply_tag_list(view, tags, &start, &end);
+                g_slist_free(tags);
+            }
+        }
+    }
+
+    view->select_default = INT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnBufferDelete(GtkTextBuffer *buffer, GtkTextIter *start, GtkTextIter *end, OSText *view)
+{
+    unref(buffer);
+    unref(start);
+    unref(end);
+    unref(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_wrap_mode(GtkWidget *tview, const bool_t wrap)
+{
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tview), wrap == TRUE ? GTK_WRAP_WORD_CHAR : GTK_WRAP_NONE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+OSText *ostext_create(const uint32_t flags)
+{
+    OSText *view = heap_new0(OSText);
+    GtkWidget *scrolled = gtk_scrolled_window_new(NULL, NULL);
+    GtkWidget *top = NULL;
+    GtkWidget *focus = NULL;
+    unref(flags);
+    view->tview = gtk_text_view_new();
+    view->select_start = INT32_MAX;
+    view->select_end = INT32_MAX;
+    view->select_default = INT32_MAX;
+    view->show_select = FALSE;
+    view->text_event = ekTEXTEV_USER;
+
+    /* A parent widget can "capture" the mouse */
+    {
+        GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(scrolled));
+        GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(scrolled));
+        g_signal_connect(G_OBJECT(vscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(hscroll), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(scrolled), "button-press-event", G_CALLBACK(i_OnPressed), view);
+        g_signal_connect(G_OBJECT(view->tview), "button-press-event", G_CALLBACK(i_OnPressed), view);
+    }
+
+    gtk_widget_show(view->tview);
+    view->buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
+    g_signal_connect_after(G_OBJECT(view->buffer), "insert-text", G_CALLBACK(i_OnBufferInsert), (gpointer)view);
+    g_signal_connect(G_OBJECT(view->buffer), "delete-range", G_CALLBACK(i_OnBufferDelete), (gpointer)view);
+    gtk_text_view_set_editable(GTK_TEXT_VIEW(view->tview), FALSE);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view->tview), GTK_WRAP_WORD);
+    gtk_text_view_set_left_margin(GTK_TEXT_VIEW(view->tview), 5);
+    gtk_text_view_set_right_margin(GTK_TEXT_VIEW(view->tview), 5);
+    i_set_wrap_mode(view->tview, TRUE);
+    gtk_container_add(GTK_CONTAINER(scrolled), view->tview);
+    top = scrolled;
+    focus = view->tview;
+
+    /* Creating the frame (border) view */
+    {
+        GtkWidget *frame = gtk_frame_new(NULL);
+        cassert(gtk_widget_get_has_window(frame) == FALSE);
+        gtk_container_add(GTK_CONTAINER(frame), top);
+        gtk_widget_show(top);
+
+        {
+            String *css = _osglobals_frame_focus_css();
+            view->css_bdcolor = _oscontrol_css_provider(tc(css));
+            str_destroy(&css);
+        }
+
+        g_object_set_data(G_OBJECT(scrolled), "OSControl", &view->control);
+        gtk_widget_set_state_flags(frame, GTK_STATE_FLAG_FOCUSED, FALSE);
+        top = frame;
+    }
+
+    _oscontrol_init(&view->control, ekGUI_TYPE_TEXTVIEW, top, focus, TRUE);
+    return view;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_scrolled_window(const OSText *view)
+{
+    GtkWidget *scrolled = NULL;
+    cassert_no_null(view);
+    scrolled = view->control.widget;
+    cassert(GTK_IS_FRAME(scrolled) == TRUE);
+    scrolled = gtk_bin_get_child(GTK_BIN(scrolled));
+    cassert(GTK_IS_SCROLLED_WINDOW(scrolled));
+    return scrolled;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_destroy(OSText **view)
+{
+    cassert_no_null(view);
+    cassert_no_null(*view);
+    listener_destroy(&(*view)->OnFilter);
+    listener_destroy(&(*view)->OnFocus);
+    gtk_container_remove(GTK_CONTAINER(i_scrolled_window(*view)), (*view)->tview);
+
+    if ((*view)->text_cache != NULL)
+    {
+        g_free((*view)->text_cache);
+        (*view)->text_cache = NULL;
+    }
+
+    _oscontrol_destroy_css_provider(&(*view)->css_font);
+    _oscontrol_destroy_css_provider(&(*view)->css_color);
+    _oscontrol_destroy_css_provider(&(*view)->css_bgcolor);
+    _oscontrol_destroy_css_provider(&(*view)->css_pgcolor);
+    _oscontrol_destroy_css_provider(&(*view)->css_bdcolor);
+    _oscontrol_destroy(*dcast(view, OSControl));
+    heap_delete(view, OSText);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_OnFilter(OSText *view, Listener *listener)
+{
+    cassert_no_null(view);
+    listener_update(&view->OnFilter, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_OnFocus(OSText *view, Listener *listener)
+{
+    cassert_no_null(view);
+    listener_update(&view->OnFocus, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -542,67 +597,6 @@ static void i_iter(GtkTextBuffer *buffer, const int32_t pos, GtkTextIter *iter)
     {
         gtk_text_buffer_get_end_iter(buffer, iter);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_apply_sel(OSText *view)
-{
-    GtkTextIter start, end;
-    bool_t apply = FALSE;
-    cassert_no_null(view);
-
-    if (view->tag_attribs == NULL)
-        view->tag_attribs = i_tag_attribs(view);
-
-    if (gtk_widget_has_focus(GTK_WIDGET(view->control.widget)))
-    {
-        gtk_text_buffer_get_selection_bounds(view->buffer, &start, &end);
-        apply = TRUE;
-    }
-    else
-    {
-        if (view->select_start != INT32_MAX)
-        {
-            i_iter(view->buffer, view->select_start, &start);
-            i_iter(view->buffer, view->select_end, &end);
-            apply = TRUE;
-        }
-    }
-
-    if (apply == TRUE)
-    {
-        gtk_text_buffer_remove_all_tags(view->buffer, &start, &end);
-        gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_set_text(OSText *view, const char_t *text)
-{
-    GtkTextBuffer *buffer = NULL;
-    cassert_no_null(view);
-    cassert_no_null(text);
-    view->launch_event = FALSE;
-
-    if (view->global_attribs == FALSE)
-    {
-        i_global_attribs(view);
-        view->global_attribs = TRUE;
-    }
-
-    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
-    gtk_text_buffer_set_text(buffer, cast_const(text, gchar), -1);
-    view->launch_event = TRUE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_set_rtf(OSText *view, Stream *rtf_in)
-{
-    unref(view);
-    unref(rtf_in);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -629,6 +623,147 @@ static gboolean i_select(OSText *view)
 
 /*---------------------------------------------------------------------------*/
 
+void ostext_set_text(OSText *view, const char_t *text)
+{
+    GtkTextBuffer *buffer = NULL;
+    cassert_no_null(view);
+    cassert_no_null(text);
+    cassert(view->text_event == ekTEXTEV_USER);
+    view->text_event = ekTEXTEV_SET;
+    buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
+    gtk_text_buffer_set_text(buffer, cast_const(text, gchar), -1);
+    /* Deselect and caret at the end */
+    view->select_start = -1;
+    view->select_end = -1;
+    g_idle_add((GSourceFunc)i_select, view);
+    view->text_event = ekTEXTEV_USER;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_add_text(OSText *view, const char_t *text)
+{
+    GtkTextIter end;
+    cassert_no_null(view);
+    cassert_no_null(text);
+    cassert(view->text_event == ekTEXTEV_USER);
+    view->text_event = ekTEXTEV_ADD;
+    gtk_text_buffer_get_end_iter(view->buffer, &end);
+    gtk_text_buffer_insert(view->buffer, &end, cast_const(text, gchar), -1);
+    /* Deselect and caret at the end */
+    view->select_start = -1;
+    view->select_end = -1;
+    g_idle_add((GSourceFunc)i_select, view);
+    view->text_event = ekTEXTEV_USER;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_ins_text(OSText *view, const char_t *text)
+{
+    GtkTextIter start, end;
+    gboolean selected = FALSE;
+    cassert_no_null(view);
+    cassert_no_null(text);
+    cassert(view->text_event == ekTEXTEV_USER);
+
+    /* First, remove the selected (if any) */
+    if (gtk_widget_has_focus(GTK_WIDGET(view->tview)))
+    {
+        selected = gtk_text_buffer_get_selection_bounds(view->buffer, &start, &end);
+        if (selected == FALSE)
+        {
+            gtk_text_buffer_get_iter_at_mark(view->buffer, &start, gtk_text_buffer_get_insert(view->buffer));
+            end = start;
+        }
+    }
+    else
+    {
+        if (view->select_start != INT32_MAX)
+        {
+            i_iter(view->buffer, view->select_start, &start);
+            i_iter(view->buffer, view->select_end, &end);
+            selected = !gtk_text_iter_equal(&start, &end);
+        }
+        else
+        {
+            gtk_text_buffer_get_end_iter(view->buffer, &end);
+            start = end;
+            selected = FALSE;
+        }
+    }
+
+    if (selected == TRUE)
+    {
+        gtk_text_buffer_delete(view->buffer, &start, &end);
+        if (view->select_start != INT32_MAX)
+            view->select_end = view->select_start;
+    }
+
+    if (str_empty_c(text) == FALSE)
+    {
+        gint stpos = gtk_text_iter_get_offset(&start);
+        view->text_event = ekTEXTEV_INS;
+        gtk_text_buffer_insert(view->buffer, &start, cast_const(text, gchar), -1);
+        view->text_event = ekTEXTEV_USER;
+        view->select_start = stpos + unicode_nchars(text, ekUTF8);
+        view->select_end = view->select_start;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_set_rtf(OSText *view, Stream *rtf_in)
+{
+    unref(view);
+    unref(rtf_in);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_format_sel(OSText *view)
+{
+    GtkTextIter start, end;
+    gboolean selection = FALSE;
+    bool_t apply = FALSE;
+    cassert_no_null(view);
+
+    view->select_default = INT32_MAX;
+
+    if (gtk_widget_has_focus(GTK_WIDGET(view->tview)))
+    {
+        selection = gtk_text_buffer_get_selection_bounds(view->buffer, &start, &end);
+        apply = TRUE;
+    }
+    else
+    {
+        if (view->select_start != INT32_MAX)
+        {
+            i_iter(view->buffer, view->select_start, &start);
+            i_iter(view->buffer, view->select_end, &end);
+            if (view->select_end > view->select_start)
+                selection = TRUE;
+            apply = TRUE;
+        }
+    }
+
+    if (apply == TRUE)
+    {
+        if (view->tag_attribs == NULL)
+            view->tag_attribs = i_tag_attribs(view);
+
+        if (selection == TRUE)
+            gtk_text_buffer_remove_all_tags(view->buffer, &start, &end);
+
+        gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
+
+        if (selection == FALSE)
+            view->select_default = gtk_text_iter_get_offset(&start);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static gboolean i_scroll_to_caret(OSText *view)
 {
     GtkTextIter iter;
@@ -647,6 +782,22 @@ static gboolean i_scroll_to_caret(OSText *view)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_apply_format_all(OSText *view)
+{
+    GtkTextIter start, end;
+    cassert_no_null(view);
+
+    if (view->tag_attribs == NULL)
+        view->tag_attribs = i_tag_attribs(view);
+
+    gtk_text_buffer_get_start_iter(view->buffer, &start);
+    gtk_text_buffer_get_end_iter(view->buffer, &end);
+    gtk_text_buffer_remove_all_tags(view->buffer, &start, &end);
+    gtk_text_buffer_apply_tag(view->buffer, view->tag_attribs, &start, &end);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 {
     cassert_no_null(view);
@@ -657,16 +808,29 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             str_copy_c(view->ffamily, sizeof(view->ffamily), cast_const(value, char_t));
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
         break;
+
+    case ekGUI_TEXT_UNITS:
+    {
+        uint32_t fstyle = view->fstyle & (~ekFPOINTS);
+
+        if (*cast_const(value, uint32_t) & ekFPOINTS)
+            fstyle |= ekFPOINTS;
+
+        if (view->fstyle != fstyle)
+        {
+            view->fstyle = fstyle;
+            view->tag_attribs = NULL;
+        }
+        break;
+    }
 
     case ekGUI_TEXT_SIZE:
         if (view->fsize != *cast(value, real32_t))
         {
             view->fsize = *cast(value, real32_t);
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
         break;
 
@@ -680,23 +844,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->fstyle = fstyle;
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
-        }
-        break;
-    }
-
-    case ekGUI_TEXT_UNITS:
-    {
-        uint32_t fstyle = view->fstyle & (~ekFPOINTS);
-
-        if (*cast_const(value, uint32_t) & ekFPOINTS)
-            fstyle |= ekFPOINTS;
-
-        if (view->fstyle != fstyle)
-        {
-            view->fstyle = fstyle;
-            view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
         break;
     }
@@ -706,7 +853,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->color = *cast(value, color_t);
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
         break;
 
@@ -715,7 +861,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->bgcolor = *cast(value, color_t);
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
         break;
 
@@ -731,7 +876,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->align = *cast(value, align_t);
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
         break;
 
@@ -751,7 +895,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->lspacing_px = lspacing;
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
 
         break;
@@ -764,7 +907,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->afspace_px = lspace;
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
 
         break;
@@ -777,18 +919,17 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         {
             view->bfspace_px = lspace;
             view->tag_attribs = NULL;
-            view->global_attribs = FALSE;
         }
 
         break;
     }
 
     case ekGUI_TEXT_APPLY_ALL:
-        i_apply_all(view);
+        i_apply_format_all(view);
         break;
 
     case ekGUI_TEXT_APPLY_SEL:
-        i_apply_sel(view);
+        i_apply_format_sel(view);
         break;
 
     case ekGUI_TEXT_SELECT:
@@ -952,6 +1093,25 @@ void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32
 
 /*---------------------------------------------------------------------------*/
 
+static void i_cache_text_sel(OSText *view)
+{
+    GtkTextIter start, end;
+    cassert_no_null(view);
+    gtk_text_buffer_get_selection_bounds(view->buffer, &start, &end);
+    view->select_start = (int32_t)gtk_text_iter_get_offset(&start);
+    view->select_end = (int32_t)gtk_text_iter_get_offset(&end);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _ostext_resign_focus(OSText *view)
+{
+    i_cache_text_sel(view);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _ostext_focus(OSText *view, const bool_t focus)
 {
     cassert_no_null(view);
@@ -973,23 +1133,17 @@ void _ostext_focus(OSText *view, const bool_t focus)
     if (focus == TRUE)
     {
         /* Select */
-        g_idle_add((GSourceFunc)i_select, view);
+        if (view->select_start != INT32_MAX)
+            g_idle_add((GSourceFunc)i_select, view);
     }
     else
     {
-        /* Cache the current selection */
-        GtkTextIter start, end;
-        GtkTextBuffer *tbuf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view->tview));
-        GtkTextIter iter;
-        gtk_text_buffer_get_selection_bounds(tbuf, &start, &end);
-        view->select_start = (int32_t)gtk_text_iter_get_offset(&start);
-        view->select_end = (int32_t)gtk_text_iter_get_offset(&end);
-
-        /* Deselect */
+        i_cache_text_sel(view);
         if (view->show_select == FALSE)
         {
-            gtk_text_buffer_get_start_iter(tbuf, &iter);
-            gtk_text_buffer_select_range(tbuf, &iter, &iter);
+            GtkTextIter iter;
+            gtk_text_buffer_get_start_iter(view->buffer, &iter);
+            gtk_text_buffer_select_range(view->buffer, &iter, &iter);
         }
     }
 }

@@ -19,6 +19,7 @@
 #include "../osgui.inl"
 #include <sewer/cassert.h>
 #include <core/heap.h>
+#include <core/strings.h>
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -36,7 +37,13 @@ OSProgress *osprogress_create(const uint32_t flags)
 {
     OSProgress *progress = heap_new0(OSProgress);
     GtkWidget *widget = gtk_progress_bar_new();
+    const char_t *cssobj = _osglobals_css_progressbar();
+    String *css = str_printf("%s {-GtkProgressBar-min-horizontal-bar-width: 1;-GtkProgressBar-min-horizontal-bar-height: 1;}", cssobj);
     _oscontrol_init(&progress->control, ekGUI_TYPE_PROGRESS, widget, widget, TRUE);
+    gtk_widget_set_size_request(widget, 5, 5);
+    gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(widget), FALSE);
+    _oscontrol_fixed_css_provider(widget, tc(css));
+    str_destroy(&css);
     progress->pulse_id = UINT32_MAX;
     unref(flags);
     return progress;

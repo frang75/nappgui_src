@@ -30,6 +30,8 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+#include <sewer/bstd.h>
+
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
 #endif
@@ -103,9 +105,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_PAINT:
     {
         LONG_PTR edata;
-
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
 
         /*
          *  Extra data is defined in 'i_registry_view_class::cbWndExtra'

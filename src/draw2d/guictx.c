@@ -247,7 +247,7 @@ void guictx_append_popup_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_popup_create,
     FPtr_gctx_destroy func_popup_destroy,
-    FPtr_gctx_set_listener func_popup_OnChange,
+    FPtr_gctx_set_listener func_popup_OnSelect,
     FPtr_gctx_set_elem func_popup_set_elem,
     FPtr_gctx_set_text func_popup_set_tooltip,
     FPtr_gctx_set_cptr func_popup_set_font,
@@ -266,7 +266,7 @@ void guictx_append_popup_manager_imp(
     cassert_no_null(context);
     cassert(context->func_create[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_destroy[ekGUI_TYPE_POPUP] == NULL);
-    cassert(context->func_popup_OnChange == NULL);
+    cassert(context->func_popup_OnSelect == NULL);
     cassert(context->func_popup_set_elem == NULL);
     cassert(context->func_set_tooltip[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_popup_set_font == NULL);
@@ -283,7 +283,7 @@ void guictx_append_popup_manager_imp(
     cassert(context->func_set_frame[ekGUI_TYPE_POPUP] == NULL);
     cassert_no_nullf(func_popup_create);
     cassert_no_nullf(func_popup_destroy);
-    cassert_no_nullf(func_popup_OnChange);
+    cassert_no_nullf(func_popup_OnSelect);
     cassert_no_nullf(func_popup_set_elem);
     cassert_no_nullf(func_popup_set_tooltip);
     cassert_no_nullf(func_popup_set_font);
@@ -300,7 +300,7 @@ void guictx_append_popup_manager_imp(
     cassert_no_nullf(func_popup_set_frame);
     context->func_create[ekGUI_TYPE_POPUP] = func_popup_create;
     context->func_destroy[ekGUI_TYPE_POPUP] = func_popup_destroy;
-    context->func_popup_OnChange = func_popup_OnChange;
+    context->func_popup_OnSelect = func_popup_OnSelect;
     context->func_popup_set_elem = func_popup_set_elem;
     context->func_set_tooltip[ekGUI_TYPE_POPUP] = func_popup_set_tooltip;
     context->func_popup_set_font = func_popup_set_font;
@@ -709,8 +709,9 @@ void guictx_append_text_manager_imp(
     FPtr_gctx_destroy func_text_destroy,
     FPtr_gctx_set_listener func_text_OnFilter,
     FPtr_gctx_set_listener func_text_OnFocus,
-    FPtr_gctx_set_text func_text_insert_text,
     FPtr_gctx_set_text func_text_set_text,
+    FPtr_gctx_set_text func_text_add_text,
+    FPtr_gctx_set_text func_text_ins_text,
     FPtr_gctx_set_ptr func_text_set_rtf,
     FPtr_gctx_set_property func_text_set_prop,
     FPtr_gctx_set_bool func_text_set_editable,
@@ -731,8 +732,9 @@ void guictx_append_text_manager_imp(
     cassert(context->func_destroy[ekGUI_TYPE_TEXTVIEW] == NULL);
     cassert(context->func_text_OnFilter == NULL);
     cassert(context->func_text_OnFocus == NULL);
-    cassert(context->func_text_insert_text == NULL);
     cassert(context->func_text_set_text == NULL);
+    cassert(context->func_text_add_text == NULL);
+    cassert(context->func_text_ins_text == NULL);
     cassert(context->func_text_set_rtf == NULL);
     cassert(context->func_text_set_prop == NULL);
     cassert(context->func_text_set_editable == NULL);
@@ -751,8 +753,9 @@ void guictx_append_text_manager_imp(
     cassert_no_nullf(func_text_destroy);
     cassert_no_nullf(func_text_OnFilter);
     cassert_no_nullf(func_text_OnFocus);
-    cassert_no_nullf(func_text_insert_text);
     cassert_no_nullf(func_text_set_text);
+    cassert_no_nullf(func_text_add_text);
+    cassert_no_nullf(func_text_ins_text);
     cassert_no_nullf(func_text_set_rtf);
     cassert_no_nullf(func_text_set_prop);
     cassert_no_nullf(func_text_set_editable);
@@ -771,8 +774,9 @@ void guictx_append_text_manager_imp(
     context->func_destroy[ekGUI_TYPE_TEXTVIEW] = func_text_destroy;
     context->func_text_OnFilter = func_text_OnFilter;
     context->func_text_OnFocus = func_text_OnFocus;
-    context->func_text_insert_text = func_text_insert_text;
     context->func_text_set_text = func_text_set_text;
+    context->func_text_add_text = func_text_add_text;
+    context->func_text_ins_text = func_text_ins_text;
     context->func_text_set_rtf = func_text_set_rtf;
     context->func_text_set_prop = func_text_set_prop;
     context->func_text_set_editable = func_text_set_editable;
@@ -1147,30 +1151,34 @@ void guictx_append_menu_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_menu_create,
     FPtr_gctx_destroy func_menu_destroy,
-    FPtr_gctx_set_ptr func_attach_menuitem_to_menu,
-    FPtr_gctx_set_ptr func_detach_menuitem_from_menu,
+    FPtr_gctx_insert func_menu_insert_item,
+    FPtr_gctx_set_ptr func_menu_delete_item,
     FPtr_gctx_menu func_menu_launch_popup,
-    FPtr_gctx_call func_menu_hide_popup)
+    FPtr_gctx_call func_menu_hide_popup,
+    FPtr_gctx_get_bool func_menu_is_menubar)
 {
     cassert_no_null(context);
     cassert(context->func_menu_create == NULL);
     cassert(context->func_menu_destroy == NULL);
-    cassert(context->func_attach_menuitem_to_menu == NULL);
-    cassert(context->func_detach_menuitem_from_menu == NULL);
+    cassert(context->func_menu_insert_item == NULL);
+    cassert(context->func_menu_delete_item == NULL);
     cassert(context->func_menu_launch_popup == NULL);
     cassert(context->func_menu_hide_popup == NULL);
+    cassert(context->func_menu_is_menubar == NULL);
     cassert_no_nullf(func_menu_create);
     cassert_no_nullf(func_menu_destroy);
-    cassert_no_nullf(func_attach_menuitem_to_menu);
-    cassert_no_nullf(func_detach_menuitem_from_menu);
+    cassert_no_nullf(func_menu_insert_item);
+    cassert_no_nullf(func_menu_delete_item);
     cassert_no_nullf(func_menu_launch_popup);
     cassert_no_nullf(func_menu_hide_popup);
+    cassert_no_nullf(func_menu_is_menubar);
     context->func_menu_create = func_menu_create;
     context->func_menu_destroy = func_menu_destroy;
-    context->func_attach_menuitem_to_menu = func_attach_menuitem_to_menu;
-    context->func_detach_menuitem_from_menu = func_detach_menuitem_from_menu;
+    context->func_menu_insert_item = func_menu_insert_item;
+    context->func_menu_delete_item = func_menu_delete_item;
     context->func_menu_launch_popup = func_menu_launch_popup;
     context->func_menu_hide_popup = func_menu_hide_popup;
+    context->func_menu_is_menubar = func_menu_is_menubar;
 }
 
 /*---------------------------------------------------------------------------*/

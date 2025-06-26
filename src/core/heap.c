@@ -396,7 +396,7 @@ void _heap_finish(void)
 #if defined(__DEBUG__)
         log_printf("Config: Debug");
 #elif defined(__ASSERTS__)
-        log_printf("Config: ReleaseWithAssert");
+        log_printf("Config: RelWithDebInfo");
 #else
         log_printf("Config: Release");
 #endif

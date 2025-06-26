@@ -16,7 +16,7 @@ __EXTERN_C
 
 void _slider_destroy(Slider **slider);
 
-void _slider_dimension(Slider *slider, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _slider_natural(Slider *slider, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 bool_t _slider_is_horizontal(const Slider *slider);
 

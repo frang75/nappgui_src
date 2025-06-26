@@ -14,15 +14,17 @@
 
 __EXTERN_C
 
-GtkWidget *_osmenu_widget(OSMenu *menu);
+GtkWidget *_osmenu_menubar(OSMenu *menu, OSWindow *window, const uint32_t max_width);
 
-void _osmenu_menubar(OSMenu *menu, OSWindow *window);
+GtkWidget *_osmenu_menubar_unlink(OSMenu *menu, OSWindow *window);
 
-void _osmenu_menubar_unlink(OSMenu *menu, OSWindow *window);
+uint32_t _osmenu_menubar_height(const OSMenu *menu);
 
-void _osmenu_attach_to_item(OSMenu *menu, OSMenuItem *item, GtkMenuItem *menuitem);
+void _osmenu_widget_recompute(OSMenu *menu);
 
-void _osmenu_detach_from_item(OSMenu *menu, OSMenuItem *item, GtkMenuItem *menuitem);
+void _osmenu_attach_to_item(OSMenu *menu, OSMenuItem *item);
+
+void _osmenu_detach_from_item(OSMenu *menu, OSMenuItem *item);
 
 void _osmenu_set_accel(OSMenu *menu, GtkAccelGroup *accel);
 

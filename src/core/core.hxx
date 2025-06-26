@@ -339,6 +339,7 @@ DeclSt(real64_t);
 DeclPt(String);
 DeclSt(DirEntry);
 DeclPt(ResPack);
+DeclPt(RegEx);
 
 #ifdef __cplusplus
 

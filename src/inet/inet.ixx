@@ -16,14 +16,5 @@
 #include "inet.hxx"
 
 typedef struct _oshttp_t OSHttp;
-typedef struct _field_t Field;
-
-struct _field_t
-{
-    String *name;
-    String *value;
-};
-
-DeclSt(Field);
 
 #endif

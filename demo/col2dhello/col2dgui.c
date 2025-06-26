@@ -487,7 +487,6 @@ static Layout *i_left_layout(App *app)
     layout_vmargin(layout1, 2, 5);
     layout_vmargin(layout1, 3, 5);
     layout_vmargin(layout1, 4, 10);
-    layout_margin(layout1, 10);
     app->obj_panel = panel;
     app->main_layout = layout1;
     cell_dbind(layout_cell(layout1, 0, 1), App, bool_t, show_seg_pt);
@@ -987,9 +986,11 @@ static Layout *i_layout(App *app)
     view_OnDown(view, listener(app, i_OnDown, App));
     view_OnDrag(view, listener(app, i_OnDrag, App));
     view_OnAcceptFocus(view, listener(app, i_OnAcceptFocus, App));
+    layout_margin(layout1, 10);
     layout_layout(layout1, layout2, 0, 0);
     layout_view(layout1, view, 1, 0);
     layout_valign(layout1, 0, 0, ekTOP);
+    layout_hmargin(layout1, 0, 10);
     layout_hexpand(layout1, 1);
     app->view = view;
     return layout1;

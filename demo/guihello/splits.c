@@ -49,7 +49,7 @@ static Panel *i_left_panel(void)
         layout_vmargin(layout, i, 3);
 
     layout_hmargin(layout, 0, 5);
-    layout_margin4(layout, 0, rmargin + 5, 0, 0);
+    layout_margin4(layout, 0, rmargin, 0, 0);
     layout_hexpand(layout, 1);
     panel_layout(panel, layout);
     return panel;
@@ -67,14 +67,13 @@ Panel *split_panel(void)
     TextView *text = textview_create();
     View *view = view_create();
     textview_writef(text, i_LOREM);
+    view_size(view, s2df(400, 200));
+    textview_size(text, s2df(400, 200));
     view_OnDraw(view, listener(view, i_OnDraw, View));
-    splitview_pos(split1, .25f);
-    splitview_size(split1, s2df(800, 480));
-    splitview_size(split2, s2df(640, 480));
     splitview_view(split2, view, FALSE);
-    splitview_text(split2, text, FALSE);
+    splitview_textview(split2, text, FALSE);
     splitview_panel(split1, panel2);
-    splitview_split(split1, split2);
+    splitview_splitview(split1, split2);
     layout_splitview(layout, split1, 0, 0);
     panel_layout(panel1, layout);
     return panel1;

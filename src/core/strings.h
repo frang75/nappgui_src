@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: strings.h
+ * https://nappgui.com/en/core/strings.html
  *
  */
 

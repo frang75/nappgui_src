@@ -1,6 +1,39 @@
 # NAppGUI Changelog
 
-## v1.5.1 - WIP
+## v1.5.2 - WIP
+
+### Added
+
+- `tableview_column_align()`. [Commit](https://github.com/frang75/nappgui_src/commit/6062c1daf0cfe35acdcb99b5b5119a05455447c3).
+- Improved `SplitView` support. [Doc](https://nappgui.com/en/gui/splitview.html). [Commit](https://github.com/frang75/nappgui_src/commit/2cb829bb4f1d69678d6ebb0d819f8b5b6f551125).
+    * Added `split_mode_t` enum.
+    * Added `splitview_get_pos()`.
+    * Added `splitview_visible0()`.
+    * Added `splitview_visible1()`.
+    * Added `splitview_minsize0()`.
+    * Added `splitview_minsize1()`.
+    * Added `splitview_get_pos()`.
+    * Added `splitview_webview()`.
+    * Added `splitview_tableview()`.
+    * `splitview_pos()` adds a new `mode` parameter.
+    * Removed `splitview_size()`.
+    * Renamed `splitview_text()` by `splitview_textview()`.
+    * Renamed `splitview_split()` by `splitview_splitview()`.
+- New library `encode` with support for data formats and encodings. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit]().
+
+### Changed
+
+- `Json`, `Base64` and `Url` modules moved from `inet` to `encode` to avoid `libcurl` dependencies when using them. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit]().
+
+### Build system
+
+- NAppGUI demos use `nap_link_inet()`, `nap_link_opengl()` for coherence with documentation. [Issue](https://github.com/frang75/nappgui_src/issues/182). [Commit](https://github.com/frang75/nappgui_src/commit/fe8b336e1dae40d10dfebc667e7cc97d47801e24).
+- Added `RelWithDebInfo` and `MinSizeRel` to NAppGUI configurations. [Issue](https://github.com/frang75/nappgui_src/issues/155). [Commit](https://github.com/frang75/nappgui_src/commit/e8398c8ee1bcb391a5c30c02b2efa0bc5c5506e7).
+- Fix warnings in legacy versions of GCC/Clang. [Commit](https://github.com/frang75/nappgui_src/commit/48dc3cb85379b8c3262f6626fadabd8dbccbdb0b).
+- Support for CMake 4.0. [Commit](https://github.com/frang75/nappgui_src/commit/156ae3fdc93d40e9e0f141f22e724107947f3124).
+- Fix issue when build NAppGUI shared libraries. [Issue](https://github.com/frang75/nappgui_src/issues/214). [Commit](https://github.com/frang75/nappgui_src/commit/850b45300ae6efd00b3b293477969077885e4cd5).
+
+## v1.5.1 - March 30, 2025 (r6128)
 
 ### Added
 
@@ -8,15 +41,45 @@
 - `ekGUI_SCALE_ADJUST` to `gui_scale_t`, for `imageview_scale()`. [Commit](https://github.com/frang75/nappgui_src/commit/814e28b45ac1cbf91b70de412f55724b819e158a).
 - `button_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
 - `edit_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
+- `edit_min_height()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
 - `button_get_font()`. [Commit](https://github.com/frang75/nappgui_src/commit/8639d19df195376620179e17f523646242a5e823).
 - `label_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 - `label_get_font()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 - `progress_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
 - `slider_min_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
+- Dynamic menus. [Doc](https://nappgui.com/en/gui/menu.html). [Issue](https://github.com/frang75/nappgui_src/issues/174). [Commit](https://github.com/frang75/nappgui_src/commit/bd9fb788c687bd7a6c31bf115cd9a82e2b87ffe2).
+    * Renamed `menu_add_item()`, previously `menu_item()`.
+    * Renamed `menu_count()`, previously `menu_size()`.
+    * Removed `menu_hide()`.
+    * Added `menu_ins_item()`.
+    * Added `menu_del_item()`.
+    * Added `menu_get_citem()`.
+    * Added `menu_is_menubar()`.
+    * Added `menuitem_get_text()`.
+    * Added `menuitem_get_image()`.
+    * Added `menuitem_get_separator()`.
+    * Added `menuitem_get_enabled()`.
+    * Added `menuitem_get_visible()`.
+    * Added `menuitem_get_state()`.
+- `edit_OnChange()` set `cpos` and `len` values in `EvText` event parameters. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- `b64_encode_from_cstr()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- `menuitem_get_submenu()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `layout_dbind_get_obj()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `listbox_get_selected()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `listbox_get_row_height()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `textview_cpos_printf()`. [Issue](https://github.com/frang75/nappgui_src/issues/193). [Commit](https://github.com/frang75/nappgui_src/commit/4732dc96bdbc879f999d760887efa18f293ceb3c).
+- `textview_cpos_writef()`. [Issue](https://github.com/frang75/nappgui_src/issues/193). [Commit](https://github.com/frang75/nappgui_src/commit/4732dc96bdbc879f999d760887efa18f293ceb3c).
+- `textview_del_select()`. [Issue](https://github.com/frang75/nappgui_src/issues/193). [Commit](https://github.com/frang75/nappgui_src/commit/4732dc96bdbc879f999d760887efa18f293ceb3c).
 
 ### Changed
 
 - `label_multiline()` in now a setter and not a constructor. [Commit](https://github.com/frang75/nappgui_src/commit/bccc5d36a6ec9f68b0f3e682067da456b2b98ba4).
+- `menu_launch()` adds a new `Window` parameter. [Commit](https://github.com/frang75/nappgui_src/commit/7e7f4da78c6b18aa25956356dfa853e134e027da).
+- `textview_apply_sel()` renamed by `textview_apply_select()`. [Issue](https://github.com/frang75/nappgui_src/issues/193). [Commit](https://github.com/frang75/nappgui_src/commit/4732dc96bdbc879f999d760887efa18f293ceb3c).
+
+### Improved
+
+- Full review and rewrite layout compose, natural sizing and expand algorithms, to avoid known problems in user resizing. [Commit](https://github.com/frang75/nappgui_src/commit/a84740a54512af6e1f49577478406f733079fb5e).
 
 ### Fixed
 
@@ -24,10 +87,15 @@
 - `json_write()` issue with `null` values. [Issue](https://github.com/frang75/nappgui_src/issues/175). [Commit](https://github.com/frang75/nappgui_src/commit/d2baa3f2823aeebf554f7492cad205b7ca29a7ca).
 - Issue in NRC generated string with new lines. [Issue](https://github.com/frang75/nappgui_src/issues/177). [Commit](https://github.com/frang75/nappgui_src/commit/c4359a9ff45e5c54547048f1046d64d5f22e987a).
 - Issue in `str_relpath()`. [Commit](https://github.com/frang75/nappgui_src/commit/b34b6832c361ada1acc3a6a3235ea2fa65a71d88).
+- `image_write()` in macOS, with indexed BMPs. [Commit](https://github.com/frang75/nappgui_src/commit/4bc8cd66ff0d4d9a341ad4a7cd17604cc36827f3).
+- Issue in `dbind()` default values in struct types. [Commit](https://github.com/frang75/nappgui_src/commit/73a8e0775588edd053ba707c8a748ce2b0b8c9e7).
+- Avoid GTK Warnings in `edit_OnFilter()` events with multiline controls. [Issue](https://github.com/frang75/nappgui_src/issues/187). [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- Excessive internal padding in GTK `button_flat()`. [Commit](https://github.com/frang75/nappgui_src/commit/788f43a0d26cc80540671a822933d48fb593f93e).
+- `dlib_open()` supports MinGW DLL naming `libXXXX.dll`. [Commit](https://github.com/frang75/nappgui_src/commit/71cf9b6bd7fa452e1a240832e005ebce96a498a6).
 
 ### Build system
 
-- Updated to macOS Sequoia. [Commit]().
+- Updated to macOS Sequoia. [Commit](https://github.com/frang75/nappgui_src/commit/a524558a4267bd53f7853ce7161846cf42a75361).
 
 ## v1.5.0 - Jan 1, 2025 (r5810)
 

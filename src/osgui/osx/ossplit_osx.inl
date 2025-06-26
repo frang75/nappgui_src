@@ -14,6 +14,10 @@
 
 __EXTERN_C
 
+void _ossplit_create_tracks(void);
+
+void _ossplit_destroy_tracks(void);
+
 BOOL _ossplit_is(NSView *view);
 
 __END_C

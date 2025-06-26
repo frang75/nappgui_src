@@ -865,8 +865,11 @@ void _osgui_attach_menubar(OSWindow *window, OSMenu *menu)
 
 void _osgui_detach_menubar(OSWindow *window, OSMenu *menu)
 {
-    HMENU hmenu = _osmenu_menubar_unlink(menu, window);
-    _oswindow_unset_menubar(window, hmenu);
+    if (menu != NULL)
+    {
+        HMENU hmenu = _osmenu_menubar_unlink(menu, window);
+        _oswindow_unset_menubar(window, hmenu);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -30,8 +30,6 @@ void _oswindow_OnIdle(Listener *listener);
 
 uint32_t _oswindow_message_loop(OSWindow *window);
 
-bool_t _oswindow_in_resizing(HWND child_hwnd);
-
 bool_t _oswindow_mouse_down(OSControl *control);
 
 void _oswindow_release_transient_focus(OSControl *control);

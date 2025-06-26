@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: dbindh.h
+ * https://nappgui.com/en/core/dbindh.html
  *
  */
 
@@ -187,6 +188,8 @@ _core_api const byte_t *dbind_container_cget(const DBind *bind, const DBind *ebi
 
 _core_api void dbind_container_delete(const DBind *bind, const DBind *ebind, const uint32_t pos, byte_t *cont);
 
+_core_api void dbind_defaults_unreg_imp(const char_t *type);
+
 __END_C
 
 #define dbind_bool(type) \
@@ -240,3 +243,8 @@ __END_C
             (FPtr_container_insert)func_insert, \
             (FPtr_container_delete)func_delete, \
             (FPtr_container_destroy)func_destroy))
+
+#define dbind_defaults_unreg(type) \
+    ( \
+        dbind_defaults_unreg_imp( \
+            cast_const(#type, char_t)))

@@ -57,6 +57,7 @@
     NSScrollView *scroll;
     NSMutableDictionary *attribs;
     NSRange select;
+    NSUInteger select_default;
     uint32_t num_chars;
     BOOL focused;
     BOOL focus_draw;
@@ -173,10 +174,34 @@ static char_t *i_get_seltext(OSXTextView *lview, NSRange range, uint32_t *size)
 
 /*---------------------------------------------------------------------------*/
 
+static NSAttributedString *i_attr_str(OSXTextView *lview, const char_t *text)
+{
+    NSString *str = nil;
+    NSAttributedString *astr = nil;
+    cassert_no_null(lview);
+    str = [NSString stringWithUTF8String:cast_const(text, char)];
+    astr = [[NSAttributedString alloc] initWithString:str attributes:lview->attribs];
+    return astr;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_replace_seltext(OSXTextView *lview, NSRange range, const char_t *text)
 {
-    NSString *str = [NSString stringWithUTF8String:cast_const(text, char)];
-    [[lview textStorage] replaceCharactersInRange:range withString:str];
+    cassert_no_null(lview);
+    /* The text will be inserted in a position with default attributes mark */
+    if (lview->select_default == range.location)
+    {
+        NSAttributedString *astr = i_attr_str(lview, text);
+        [[lview textStorage] replaceCharactersInRange:range withAttributedString:astr];
+        [astr release];
+        lview->select_default = NSUIntegerMax;
+    }
+    else
+    {
+        NSString *str = [NSString stringWithUTF8String:cast_const(text, char)];
+        [[lview textStorage] replaceCharactersInRange:range withString:str];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -331,6 +356,7 @@ OSText *ostext_create(const uint32_t flags)
     view->pafter = REAL32_MAX;
     view->pbefore = REAL32_MAX;
     view->select = NSMakeRange(0, 0);
+    view->select_default = NSUIntegerMax;
     view->num_chars = 0;
     view->OnFilter = NULL;
     view->OnFocus = NULL;
@@ -406,45 +432,6 @@ void ostext_OnFocus(OSText *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static NSAttributedString *i_attr_str(OSXTextView *lview, const char_t *text)
-{
-    NSString *str = nil;
-    NSAttributedString *astr = nil;
-    cassert_no_null(lview);
-    str = [NSString stringWithUTF8String:cast_const(text, char)];
-    astr = [[NSAttributedString alloc] initWithString:str attributes:lview->attribs];
-    return astr;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ostext_insert_text(OSText *view, const char_t *text)
-{
-    OSXTextView *lview = nil;
-    NSAttributedString *astr = nil;
-    cassert_no_null(view);
-    cassert_no_null(text);
-    lview = [cast(view, NSScrollView) documentView];
-    cassert_no_null(lview);
-    astr = i_attr_str(lview, text);
-
-    if (lview->is_editable == YES)
-    {
-        [[lview textStorage] appendAttributedString:astr];
-    }
-    else
-    {
-        [lview setEditable:YES];
-        [[lview textStorage] appendAttributedString:astr];
-        [lview setEditable:NO];
-    }
-
-    [astr release];
-    lview->num_chars = i_text_num_chars(lview);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void ostext_set_text(OSText *view, const char_t *text)
 {
     OSXTextView *lview = nil;
@@ -467,6 +454,75 @@ void ostext_set_text(OSText *view, const char_t *text)
 
     [astr release];
     lview->num_chars = i_text_num_chars(lview);
+    lview->select = NSMakeRange(NSUIntegerMax, 0);
+
+    if (lview->focused)
+        [lview setSelectedRange:lview->select];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_add_text(OSText *view, const char_t *text)
+{
+    OSXTextView *lview = nil;
+    NSAttributedString *astr = nil;
+    cassert_no_null(view);
+    cassert_no_null(text);
+    lview = [cast(view, NSScrollView) documentView];
+    cassert_no_null(lview);
+    astr = i_attr_str(lview, text);
+
+    if (lview->is_editable == YES)
+    {
+        [[lview textStorage] appendAttributedString:astr];
+    }
+    else
+    {
+        [lview setEditable:YES];
+        [[lview textStorage] appendAttributedString:astr];
+        [lview setEditable:NO];
+    }
+
+    [astr release];
+    lview->num_chars = i_text_num_chars(lview);
+    lview->select = NSMakeRange(NSUIntegerMax, 0);
+
+    if (lview->focused)
+        [lview setSelectedRange:lview->select];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ostext_ins_text(OSText *view, const char_t *text)
+{
+    OSXTextView *lview = nil;
+    uint32_t nchars = unicode_nchars(text, ekUTF8);
+    NSRange range;
+    cassert_no_null(view);
+    cassert_no_null(text);
+    lview = [cast(view, NSScrollView) documentView];
+    cassert_no_null(lview);
+    if (lview->focused == YES)
+        range = [lview selectedRange];
+    else
+        range = lview->select;
+
+    if (lview->is_editable == YES)
+    {
+        i_replace_seltext(lview, range, text);
+    }
+    else
+    {
+        [lview setEditable:YES];
+        i_replace_seltext(lview, range, text);
+        [lview setEditable:NO];
+    }
+
+    lview->num_chars = i_text_num_chars(lview);
+    lview->select = NSMakeRange(range.location + nchars, 0);
+
+    if (lview->focused)
+        [lview setSelectedRange:lview->select];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -577,13 +633,24 @@ static void i_apply_all(OSXTextView *lview)
 
 static void i_apply_sel(OSXTextView *lview)
 {
-    NSTextStorage *storage = nil;
     NSRange sel;
     cassert_no_null(lview);
-    storage = [lview textStorage];
-    sel = [lview selectedRange];
-    [storage setAttributes:@{} range:sel];
-    [storage setAttributes:lview->attribs range:sel];
+    if (lview->focused == YES)
+        sel = [lview selectedRange];
+    else
+        sel = lview->select;
+
+    if (sel.length > 0)
+    {
+        NSTextStorage *storage = [lview textStorage];
+        [storage setAttributes:@{} range:sel];
+        [storage setAttributes:lview->attribs range:sel];
+        lview->select_default = NSUIntegerMax;
+    }
+    else
+    {
+        lview->select_default = sel.location;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -687,6 +754,14 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         }
         break;
 
+    case ekGUI_TEXT_APPLY_ALL:
+        i_apply_all(lview);
+        break;
+
+    case ekGUI_TEXT_APPLY_SEL:
+        i_apply_sel(lview);
+        break;
+
     case ekGUI_TEXT_SELECT:
     {
         int32_t start = cast_const(value, int32_t)[0];
@@ -751,14 +826,6 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         }
         break;
     }
-
-    case ekGUI_TEXT_APPLY_ALL:
-        i_apply_all(lview);
-        break;
-
-    case ekGUI_TEXT_APPLY_SEL:
-        i_apply_sel(lview);
-        break;
 
         cassert_default();
     }
@@ -882,6 +949,14 @@ void ostext_frame(OSText *view, const real32_t x, const real32_t y, const real32
     lview = [cast(view, NSScrollView) documentView];
     _oscontrol_set_frame(cast(view, NSView), x, y, width, height);
     i_set_wrap_mode(lview, lview->is_wrap_mode);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _ostext_resign_focus(OSText *view)
+{
+    unref(view);
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/

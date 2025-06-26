@@ -180,6 +180,36 @@ void _oslistener_mouse_down(const NSView *view, NSEvent *theEvent, const gui_mou
 
 /*---------------------------------------------------------------------------*/
 
+void _oslistener_mouse_up2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, const NSPoint *local_pt, Listener *OnUp)
+{
+    real32_t x, y;
+    cassert_no_null(theEvent);
+    cassert_no_null(local_pt);
+    i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &x, &y);
+
+    if (OnUp != NULL)
+    {
+        EvMouse params;
+        i_mouse_position_in_view_coordinates(view, *local_pt, &params.lx, &params.ly);
+        params.button = button;
+        params.count = 0;
+        params.x = params.lx;
+        params.y = params.ly;
+        params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
+
+        if (scroll != NULL)
+        {
+            params.x += _osscrolls_x_pos(scroll);
+            params.y += _osscrolls_y_pos(scroll);
+        }
+
+        listener_event(OnUp, ekGUI_EVENT_UP, cast(view, OSView), &params, NULL, OSView, EvMouse, void);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, ViewListeners *listeners)
 {
     cassert_no_null(listeners);
@@ -227,17 +257,17 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
 
 /*---------------------------------------------------------------------------*/
 
-void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, Listener *OnDrag_listener)
+void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui_mouse_t button, const OSScrolls *scroll, const NSPoint *local_pt, Listener *OnDrag)
 {
     cassert_no_null(theEvent);
-    if (OnDrag_listener != NULL)
+    cassert_no_null(local_pt);
+    if (OnDrag != NULL)
     {
         EvMouse params;
-        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.lx, &params.ly);
+        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.x, &params.y);
+        i_mouse_position_in_view_coordinates(view, *local_pt, &params.lx, &params.ly);
         params.button = button;
         params.count = 0;
-        params.x = params.lx;
-        params.y = params.ly;
         params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
         params.tag = 0;
 
@@ -247,7 +277,7 @@ void _oslistener_mouse_dragged2(const NSView *view, NSEvent *theEvent, const gui
             params.y += _osscrolls_y_pos(scroll);
         }
 
-        listener_event(OnDrag_listener, ekGUI_EVENT_DRAG, cast(view, OSView), &params, NULL, OSView, EvMouse, void);
+        listener_event(OnDrag, ekGUI_EVENT_DRAG, cast(view, OSView), &params, NULL, OSView, EvMouse, void);
     }
 }
 
@@ -257,7 +287,10 @@ void _oslistener_mouse_dragged(const NSView *view, NSEvent *theEvent, const gui_
 {
     cassert_no_null(listeners);
     if (listeners->is_enabled == YES)
-        _oslistener_mouse_dragged2(view, theEvent, button, scroll, listeners->OnDrag);
+    {
+        NSPoint local_pt = [theEvent locationInWindow];
+        _oslistener_mouse_dragged2(view, theEvent, button, scroll, &local_pt, listeners->OnDrag);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

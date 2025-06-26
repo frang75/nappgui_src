@@ -11,6 +11,7 @@
 /* TableView */
 
 #include "tableview.h"
+#include "tableviewh.h"
 #include "drawctrl.inl"
 #include "scrollview.inl"
 #include "component.inl"
@@ -53,6 +54,7 @@ struct _column_t
     uint32_t min_width;
     uint32_t max_width;
     align_t align;
+    align_t dalign;
     bool_t editable;
     bool_t resizable;
 };
@@ -168,12 +170,13 @@ static void i_destroy_data(TData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_cell_data(TableView *view, const TData *data, const uint32_t col_id, const uint32_t row_id, EvTbCell *cell)
+static void i_cell_data(TableView *view, const TData *data, const uint32_t col_id, const uint32_t row_id, const Column *col, EvTbCell *cell)
 {
     cassert_no_null(data);
+    cassert_no_null(col);
     cassert_no_null(cell);
     cell->text = i_EMPTY_TEXT;
-    cell->align = ekLEFT;
+    cell->align = col->dalign;
 
     if (data->OnData != NULL)
     {
@@ -412,7 +415,7 @@ static void i_OnDraw(TableView *view, Event *e)
             {
                 if (cols[j].width > 0)
                 {
-                    i_cell_data(view, data, j, i, &cell);
+                    i_cell_data(view, data, j, i, &cols[j], &cell);
                     i_draw_cell(&cell, p->ctx, cols + j, lx, y, cols[j].width, state);
                     lx += cols[j].width;
                 }
@@ -472,7 +475,7 @@ static void i_OnDraw(TableView *view, Event *e)
                 {
                     if (cols[j].width > 0)
                     {
-                        i_cell_data(view, data, j, i, &cell);
+                        i_cell_data(view, data, j, i, &cols[j], &cell);
                         i_draw_cell(&cell, p->ctx, cols + j, lx, y, cols[j].width, state);
                         lx += cols[j].width;
                     }
@@ -1674,6 +1677,7 @@ uint32_t tableview_new_column_text(TableView *view)
     column->min_width = 0;
     column->max_width = UINT32_MAX;
     column->align = ekLEFT;
+    column->dalign = ekLEFT;
     column->editable = FALSE;
     column->resizable = TRUE;
     i_row_height(data);
@@ -1735,6 +1739,18 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
             view_update(cast(view, View));
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void tableview_column_align(TableView *view, const uint32_t column_id, const align_t align)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get(data->columns, column_id, Column);
+    cassert_no_null(column);
+    column->dalign = align;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2117,4 +2133,75 @@ uint32_t tableview_get_focus_row(const TableView *view)
 void tableview_scroll_visible(TableView *view, const bool_t horizontal, const bool_t vertical)
 {
     view_scroll_visible(cast(view, View), horizontal, vertical);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *tableview_get_font(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return data->font;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t tableview_get_header_height(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return (real32_t)data->head_height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t tableview_get_num_columns(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return arrst_size(data->columns, Column);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t tableview_get_column_width(const TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+    return (real32_t)column->width;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *tableview_get_header_title(const TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+    if (arrpt_size(column->head_text, String) > 0)
+    {
+        const String *text = arrpt_get_const(column->head_text, 0, String);
+        return tc(text);
+    }
+    else
+    {
+        return "";
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+align_t tableview_get_header_align(const TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+    return column->align;
 }

@@ -136,25 +136,19 @@ void textview_clear(TextView *view)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t textview_printf(TextView *view, const char_t *format, ...)
+static uint32_t i_printf(FPtr_gctx_set_text func_text, void *ositem, const char_t *format, va_list args, va_list args_copy)
 {
     char_t ctext[1024];
     char_t *text_alloc = NULL;
     char_t *text = NULL;
     uint32_t length = 0;
 
-    cassert_no_null(view);
+    cassert_no_nullf(func_text);
+    cassert_no_null(ositem);
     cassert_no_null(format);
-    cassert_no_null(view->component.context);
-    cassert_no_nullf(view->component.context->func_text_insert_text);
 
     /* Memory requeriments */
-    {
-        va_list args;
-        va_start(args, format);
-        length = 1 + bstd_vsprintf(NULL, 0, format, args);
-        va_end(args);
-    }
+    length = 1 + bstd_vsprintf(NULL, 0, format, args);
 
     /* Nothing to write */
     if (length == 1)
@@ -173,17 +167,13 @@ uint32_t textview_printf(TextView *view, const char_t *format, ...)
 
     /* Printf */
     {
-        uint32_t clength;
-        va_list args;
-        va_start(args, format);
-        clength = bstd_vsprintf(text, length, format, args);
-        va_end(args);
+        uint32_t clength = bstd_vsprintf(text, length, format, args_copy);
         cassert_unref(clength + 1 == length, clength);
     }
 
     cassert(text[length - 1] == '\0');
 
-    view->component.context->func_text_insert_text(view->component.ositem, text);
+    func_text(ositem, text);
 
     if (text_alloc != NULL)
         heap_free(dcast(&text_alloc, byte_t), length, "TextViewPrintf");
@@ -193,12 +183,54 @@ uint32_t textview_printf(TextView *view, const char_t *format, ...)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t textview_printf(TextView *view, const char_t *format, ...)
+{
+    uint32_t length = 0;
+    va_list args, args_copy;
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    va_start(args, format);
+    va_copy(args_copy, args);
+    length = i_printf(view->component.context->func_text_add_text, view->component.ositem, format, args, args_copy);
+    va_end(args);
+    va_end(args_copy);
+    return length;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void textview_writef(TextView *view, const char_t *text)
 {
     cassert_no_null(view);
     cassert_no_null(view->component.context);
-    cassert_no_nullf(view->component.context->func_text_insert_text);
-    view->component.context->func_text_insert_text(view->component.ositem, text);
+    cassert_no_nullf(view->component.context->func_text_add_text);
+    view->component.context->func_text_add_text(view->component.ositem, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t textview_cpos_printf(TextView *view, const char_t *format, ...)
+{
+    uint32_t length = 0;
+    va_list args, args_copy;
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    va_start(args, format);
+    va_copy(args_copy, args);
+    length = i_printf(view->component.context->func_text_ins_text, view->component.ositem, format, args, args_copy);
+    va_end(args);
+    va_end(args_copy);
+    return length;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void textview_cpos_writef(TextView *view, const char_t *text)
+{
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_text_ins_text);
+    view->component.context->func_text_ins_text(view->component.ositem, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -334,7 +366,7 @@ void textview_apply_all(TextView *view)
 
 /*---------------------------------------------------------------------------*/
 
-void textview_apply_sel(TextView *view)
+void textview_apply_select(TextView *view)
 {
     uint32_t nonused = 0;
     cassert_no_null(view);
@@ -384,6 +416,16 @@ void textview_show_select(TextView *view, const bool_t show)
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_prop);
     view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_SHOW_SELECT, cast(&show, void));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void textview_del_select(TextView *view)
+{
+    cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_text_ins_text);
+    view->component.context->func_text_ins_text(view->component.ositem, "");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -446,7 +488,7 @@ void textview_wrap(TextView *view, const bool_t wrap)
 
 /*---------------------------------------------------------------------------*/
 
-void _textview_dimension(TextView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _textview_natural(TextView *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(view);
     cassert_no_null(dim0);

@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: osmain_gtk.h
+ * https://nappgui.com/en/osapp/osmain_gtk.html
  *
  */
 

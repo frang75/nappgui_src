@@ -16,11 +16,11 @@ __EXTERN_C
 
 GtkWidget *_osmenuitem_widget(OSMenuItem *item);
 
-GtkWidget *_osmenuitem_bar_widget(OSMenuItem *item);
+void _osmenuitem_append_to_menu(OSMenuItem *item, OSMenu *menu, GtkWidget *widget);
 
-void _osmenuitem_set_parent(OSMenuItem *item, OSMenu *menu, GtkMenuShell *menushell);
+void _osmenuitem_append_to_menubar(OSMenuItem *item, OSMenu *menu, GtkWidget *widget, const uint32_t max_width);
 
-void _osmenuitem_unset_parent(OSMenuItem *item, OSMenu *menu, GtkMenuShell *menushell);
+void _osmenuitem_unset_parent(OSMenuItem *item, OSMenu *menu);
 
 void _osmenuitem_set_accel(OSMenuItem *item, GtkAccelGroup *accel);
 

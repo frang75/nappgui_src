@@ -138,7 +138,6 @@ static const guint i_VIRTUAL_KEY[] =
 struct _osmenuitem_t
 {
     GtkWidget *widget;
-    GtkWidget *box;
     GtkWidget *check;
     GtkWidget *icon;
     GtkWidget *label;
@@ -148,6 +147,9 @@ struct _osmenuitem_t
     OSMenu *menu;
     OSMenu *sub_menu;
     Listener *OnClick;
+    bool_t visible;
+    bool_t show_icon;
+    bool_t show_check;
     bool_t launch_event;
 #if defined(__ASSERTS__)
     bool_t is_alive;
@@ -158,10 +160,11 @@ struct _osmenuitem_t
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDestroy(GtkWidget *obj, OSMenuItem *item)
+static void i_OnDestroy(GtkWidget *widget, OSMenuItem *item)
 {
+    cassert_no_null(item);
     cassert(item->is_alive == TRUE);
-    unref(obj);
+    unref(widget);
     item->is_alive = FALSE;
 }
 
@@ -190,19 +193,24 @@ OSMenuItem *osmenuitem_create(const uint32_t flags)
     OSMenuItem *item = heap_new0(OSMenuItem);
     if ((menu_flag_t)flags == ekMENU_ITEM)
     {
+        GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
         item->widget = gtk_menu_item_new();
-        item->box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
         item->label = gtk_accel_label_new("");
+        item->check = gtk_label_new("✓");
+        item->icon = gtk_image_new_from_icon_name("document-save", GTK_ICON_SIZE_MENU);
         item->key = ENUM_MAX(vkey_t);
+        item->visible = TRUE;
         item->launch_event = TRUE;
+        g_object_ref_sink(item->check);
+        g_object_ref_sink(item->icon);
         /*_oscontrol_widget_set_css(item->box, "box {padding-top:1px;padding-bottom:1px;}");*/
         gtk_label_set_use_underline(GTK_LABEL(item->label), TRUE);
         gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), item->widget);
 #if GTK_CHECK_VERSION(3, 16, 0)
         gtk_label_set_xalign(GTK_LABEL(item->label), 0.0);
 #endif
-        gtk_box_pack_end(GTK_BOX(item->box), item->label, TRUE, TRUE, 0);
-        gtk_container_add(GTK_CONTAINER(item->widget), item->box);
+        gtk_box_pack_end(GTK_BOX(box), item->label, TRUE, TRUE, 0);
+        gtk_container_add(GTK_CONTAINER(item->widget), box);
         g_signal_connect(G_OBJECT(item->widget), "activate", G_CALLBACK(i_OnClick), (gpointer)item);
     }
     else
@@ -210,14 +218,40 @@ OSMenuItem *osmenuitem_create(const uint32_t flags)
         cassert((menu_flag_t)flags == ekMENU_SEPARATOR);
         item->widget = gtk_separator_menu_item_new();
         item->key = ENUM_MAX(vkey_t);
+        item->visible = TRUE;
     }
+
+    /*
+     * Increase the reference count of object, and remove the floating reference.
+     * In other words, if the object is floating, then this call "assumes ownership" of the floating reference.
+     * Will be explicitly destroyed in 'osmenuitem_destroy'
+    */
+    g_object_ref_sink(item->widget);
+
     return item;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_widget(OSMenuItem *item, GtkWidget *widget)
+{
+    cassert_no_null(item);
+    cassert_no_null(widget);
+#if defined(__ASSERTS__)
+    item->is_alive = TRUE;
+    g_signal_connect(widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)item);
+#else
+    unref(item);
+#endif
+    g_object_unref(widget);
+    cassert(item->is_alive == FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osmenuitem_destroy(OSMenuItem **item)
 {
+    GtkWidget *box = NULL;
     cassert_no_null(item);
     cassert_no_null(*item);
     cassert((*item)->menu == NULL);
@@ -225,12 +259,26 @@ void osmenuitem_destroy(OSMenuItem **item)
     cassert(gtk_menu_item_get_submenu(GTK_MENU_ITEM((*item)->widget)) == NULL);
     cassert((*item)->accel == NULL);
     listener_destroy(&(*item)->OnClick);
-#if defined(__ASSERTS__)
-    (*item)->is_alive = TRUE;
-    g_signal_connect((*item)->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)*item);
-#endif
-    g_object_unref((*item)->widget);
-    cassert((*item)->is_alive == FALSE);
+
+    box = gtk_bin_get_child(GTK_BIN((*item)->widget));
+    if (box != NULL)
+    {
+        if (_oscontrol_find_child(box, (*item)->check) != UINT32_MAX)
+            gtk_container_remove(GTK_CONTAINER(box), (*item)->check);
+
+        if (_oscontrol_find_child(box, (*item)->icon) != UINT32_MAX)
+            gtk_container_remove(GTK_CONTAINER(box), (*item)->icon);
+
+        i_destroy_widget(*item, (*item)->check);
+        i_destroy_widget(*item, (*item)->icon);
+    }
+    else
+    {
+        cassert((*item)->check == NULL);
+        cassert((*item)->icon == NULL);
+    }
+
+    i_destroy_widget(*item, (*item)->widget);
     heap_delete(item, OSMenuItem);
 }
 
@@ -255,9 +303,13 @@ void osmenuitem_enabled(OSMenuItem *item, const bool_t enabled)
 
 void osmenuitem_visible(OSMenuItem *item, const bool_t visible)
 {
-    unref(item);
-    unref(visible);
-    cassert_msg(FALSE, "Not implemented");
+    cassert_no_null(item);
+    if (item->visible != visible)
+    {
+        item->visible = visible;
+        if (item->menu != NULL)
+            _osmenu_widget_recompute(item->menu);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -266,22 +318,61 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
 {
     cassert_no_null(item);
     gtk_label_set_text(GTK_LABEL(item->label), cast_const(text, gchar));
+    if (item->menu != NULL)
+        _osmenu_widget_recompute(item->menu);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_icons(OSMenuItem *item)
+{
+    GtkWidget *box = NULL;
+    cassert_no_null(item);
+    box = gtk_bin_get_child(GTK_BIN(item->widget));
+    if (_oscontrol_find_child(box, item->icon) != UINT32_MAX)
+    {
+        gtk_container_remove(GTK_CONTAINER(box), item->icon);
+        cassert(_oscontrol_find_child(box, item->icon) == UINT32_MAX);
+    }
+
+    if (_oscontrol_find_child(box, item->check) != UINT32_MAX)
+    {
+        gtk_container_remove(GTK_CONTAINER(box), item->check);
+        cassert(_oscontrol_find_child(box, item->check) == UINT32_MAX);
+    }
+
+    if (item->show_icon == TRUE)
+        gtk_box_pack_start(GTK_BOX(box), item->icon, FALSE, FALSE, 0);
+
+    if (item->show_check == TRUE)
+        gtk_box_pack_start(GTK_BOX(box), item->check, FALSE, FALSE, 0);
+
+    if (item->menu != NULL)
+        _osmenu_widget_recompute(item->menu);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osmenuitem_image(OSMenuItem *item, const Image *image)
 {
-    const char_t *icon_name = _osgui_register_icon(image);
     cassert_no_null(item);
-    if (item->icon == NULL)
+    if (image != NULL)
     {
-        item->icon = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
-        gtk_box_pack_start(GTK_BOX(item->box), item->icon, FALSE, TRUE, 0);
+        const char_t *icon_name = _osgui_register_icon(image);
+        gtk_image_set_from_icon_name(GTK_IMAGE(item->icon), icon_name, GTK_ICON_SIZE_MENU);
+        if (item->show_icon == FALSE)
+        {
+            item->show_icon = TRUE;
+            i_update_icons(item);
+        }
     }
     else
     {
-        gtk_image_set_from_icon_name(GTK_IMAGE(item->icon), icon_name, GTK_ICON_SIZE_MENU);
+        if (item->show_icon == TRUE)
+        {
+            item->show_icon = FALSE;
+            i_update_icons(item);
+        }
     }
 }
 
@@ -328,36 +419,24 @@ void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
     switch (state)
     {
     case ekGUI_OFF:
-        /*
-        if (item->check != NULL)
+        if (item->show_check == TRUE)
         {
-            gtk_container_remove(GTK_CONTAINER(item->box), item->check);
-            item->check = NULL;
+            item->show_check = FALSE;
+            i_update_icons(item);
         }
-        */
         break;
 
     case ekGUI_ON:
     case ekGUI_MIXED:
-        /*
-        if (item->check == NULL && kIMAGE)
+        if (item->show_check == FALSE)
         {
-            const char_t *icon_name = _osgui_register_icon(kIMAGE);
-
-            item->check = gtk_image_new_from_icon_name(icon_name, GTK_ICON_SIZE_MENU);
-            gtk_box_pack_end(GTK_BOX(item->box), item->check, FALSE, TRUE, 20);
-            gtk_widget_queue_draw(item->widget);
-
-            gtk_container_add(GTK_CONTAINER(item->box), item->check);
+            item->show_check = TRUE;
+            i_update_icons(item);
         }
-        */
         break;
+
         cassert_default();
     }
-
-    /* item->launch_event = FALSE;
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item->widget), (state == ekGUI_ON) ? TRUE : FALSE);
-    item->launch_event = TRUE; */
 }
 
 /*---------------------------------------------------------------------------*/
@@ -367,7 +446,7 @@ void osmenuitem_submenu(OSMenuItem *item, OSMenu *menu)
     cassert_no_null(item);
     cassert(item->sub_menu == NULL);
     item->sub_menu = menu;
-    _osmenu_attach_to_item(menu, item, GTK_MENU_ITEM(item->widget));
+    _osmenu_attach_to_item(menu, item);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -376,7 +455,7 @@ void osmenuitem_unset_submenu(OSMenuItem *item, OSMenu *menu)
 {
     cassert_no_null(item);
     cassert_unref(item->sub_menu == menu, menu);
-    _osmenu_detach_from_item(item->sub_menu, item, GTK_MENU_ITEM(item->widget));
+    _osmenu_detach_from_item(item->sub_menu, item);
     item->sub_menu = NULL;
 }
 
@@ -390,78 +469,161 @@ GtkWidget *_osmenuitem_widget(OSMenuItem *item)
 
 /*---------------------------------------------------------------------------*/
 
-GtkWidget *_osmenuitem_bar_widget(OSMenuItem *item)
-{
-    cassert_no_null(item);
-    /* GtkCheckMenuItem shows an ugly checkbox in menubar items.
-       This hack converts a GtkCheckMenuItem into a simple GtkMenuItem
-    */
-    /*
-    if (str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkCheckMenuItem") == TRUE)
-    {
-        GtkWidget *widget = gtk_menu_item_new();
-        g_signal_connect(G_OBJECT(widget), "activate", G_CALLBACK(i_OnClick), (gpointer)item);
-        gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL(item->label), widget);
-        if (item->accel != NULL)
-        {
-            if (item->key != ENUM_MAX2(vkey_t))
-            {
-                gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
-                cassert_unref(ok == TRUE, ok);
-                gtk_widget_add_accelerator(widget, "activate", item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers), GTK_ACCEL_VISIBLE);
-            }
-        }
-
-        g_object_ref(item->box);
-        gtk_container_remove(GTK_CONTAINER(item->widget), item->box);
-        gtk_container_add(GTK_CONTAINER(widget), item->box);
-        g_object_unref(item->box);
-
-        if (item->sub_menu != NULL)
-        {
-            GtkWidget *mwidget = _osmenu_widget(item->sub_menu);
-            g_object_ref(mwidget);
-            gtk_menu_item_set_submenu(GTK_MENU_ITEM(item->widget), NULL);
-            gtk_menu_item_set_submenu(GTK_MENU_ITEM(widget), mwidget);
-            g_object_unref(mwidget);
-        }
-
-        #if defined (__ASSERTS__)
-        item->is_alive = TRUE;
-        g_signal_connect(item->widget, "destroy", G_CALLBACK(i_OnDestroy), (gpointer)item);
-        #endif
-        g_object_unref(item->widget);
-        cassert(item->is_alive == FALSE);
-
-        item->widget = widget;
-    }
-    else
-    {
-        cassert(str_equ_c(G_OBJECT_TYPE_NAME(item->widget), "GtkMenuItem") == TRUE);
-    }
-    */
-    return item->widget;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osmenuitem_set_parent(OSMenuItem *item, OSMenu *menu, GtkMenuShell *menushell)
+void _osmenuitem_append_to_menu(OSMenuItem *item, OSMenu *menu, GtkWidget *widget)
 {
     cassert_no_null(item);
     cassert(item->menu == NULL);
-    gtk_menu_shell_append(menushell, item->widget);
     item->menu = menu;
+    if (item->visible == TRUE && widget != NULL)
+    {
+        cassert(GTK_IS_MENU(widget));
+        gtk_menu_shell_append(GTK_MENU_SHELL(widget), item->widget);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _osmenuitem_unset_parent(OSMenuItem *item, OSMenu *menu, GtkMenuShell *menushell)
+static void i_current_menubar(GtkWidget *widget, gpointer current)
+{
+    cassert(GTK_IS_MENU_BAR(widget));
+    if (_oscontrol_num_children(widget) == 0)
+    {
+        /* If the first menubar is empty, is the current */
+        if (*dcast(current, GtkWidget) == NULL)
+            *dcast(current, GtkWidget) = widget;
+    }
+    else
+    {
+        /* The last bar with widgets is the current */
+        *dcast(current, GtkWidget) = widget;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_get_current_menubar(GtkWidget *widget)
+{
+    GtkWidget *last = NULL;
+    cassert(GTK_IS_BOX(widget));
+    gtk_container_foreach(GTK_CONTAINER(widget), i_current_menubar, (gpointer)&last);
+    return last;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_next_menubar(GtkWidget *widget, gpointer data)
+{
+    cassert(GTK_IS_MENU_BAR(widget));
+    if (dcast(data, GtkWidget)[0] == widget)
+    {
+        cassert(dcast(data, GtkWidget)[1] == NULL);
+        cassert(dcast(data, GtkWidget)[2] == NULL);
+        dcast(data, GtkWidget)[2] = widget;
+    }
+    /* This means, we are in the next widget */
+    else if (dcast(data, GtkWidget)[2] != NULL)
+    {
+        cassert(dcast(data, GtkWidget)[1] == NULL);
+        dcast(data, GtkWidget)[1] = widget;
+        dcast(data, GtkWidget)[2] = NULL;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_get_next_menubar(GtkWidget *widget, GtkWidget *current)
+{
+    GtkWidget *data[3];
+    data[0] = current;
+    data[1] = NULL; /* Next */
+    data[2] = NULL; /* Flag */
+    cassert(GTK_IS_BOX(widget));
+    gtk_container_foreach(GTK_CONTAINER(widget), i_next_menubar, (gpointer)data);
+    if (data[1] != NULL)
+    {
+        cassert(_oscontrol_num_children(data[1]) == 0);
+    }
+
+    return data[1];
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_add_item_to_new_bar(OSMenuItem *item, GtkWidget *widget)
+{
+    GtkWidget *menubar = gtk_menu_bar_new();
+    cassert_no_null(item);
+    cassert_no_null(item->widget);
+    cassert(GTK_IS_BOX(widget));
+    gtk_box_pack_start(GTK_BOX(widget), menubar, FALSE, FALSE, 0);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menubar), item->widget);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osmenuitem_append_to_menubar(OSMenuItem *item, OSMenu *menu, GtkWidget *widget, const uint32_t max_width)
 {
     cassert_no_null(item);
-    cassert_unref(item->menu == menu, menu);
-    g_object_ref(item->widget);
-    gtk_container_remove(GTK_CONTAINER(menushell), item->widget);
-    item->menu = NULL;
+    cassert_no_null(item->widget);
+    cassert(item->menu == NULL);
+    item->menu = menu;
+    if (item->visible == TRUE && widget != NULL)
+    {
+        GtkWidget *current = NULL;
+        cassert(GTK_IS_BOX(widget));
+        current = i_get_current_menubar(widget);
+        if (current != NULL)
+        {
+            GtkRequisition bsize;
+            cassert(GTK_IS_MENU_BAR(current));
+            gtk_menu_shell_append(GTK_MENU_SHELL(current), item->widget);
+            gtk_widget_show_all(widget);
+            gtk_widget_get_preferred_size(widget, &bsize, NULL);
+            /* bsize == 0 --> The menubar isn't in window, is in a top screen bar */
+            cassert((bsize.width > 0 && bsize.height > 0) || (bsize.width == 0 && bsize.height == 0));
+
+            /* Remove the last item and create a new menubar */
+            if ((uint32_t)bsize.width > max_width)
+            {
+                GtkWidget *next = NULL;
+                gtk_container_remove(GTK_CONTAINER(current), item->widget);
+#if defined(__ASSERTS__)
+                {
+                    GtkRequisition nbsize;
+                    gtk_widget_get_preferred_size(current, &nbsize, NULL);
+                    cassert((uint32_t)nbsize.width <= max_width);
+                }
+#endif
+
+                next = i_get_next_menubar(widget, current);
+                if (next != NULL)
+                {
+                    gtk_menu_shell_append(GTK_MENU_SHELL(next), item->widget);
+                    gtk_widget_show_all(widget);
+                }
+                else
+                {
+                    i_add_item_to_new_bar(item, widget);
+                }
+            }
+        }
+        else
+        {
+            i_add_item_to_new_bar(item, widget);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osmenuitem_unset_parent(OSMenuItem *item, OSMenu *menu)
+{
+    cassert_no_null(item);
+    if (item->menu != NULL)
+    {
+        cassert_unref(item->menu == menu, menu);
+        item->menu = NULL;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -484,15 +646,17 @@ void _osmenuitem_set_accel(OSMenuItem *item, GtkAccelGroup *accel)
 void _osmenuitem_unset_accel(OSMenuItem *item, GtkAccelGroup *accel)
 {
     cassert_no_null(item);
-    cassert_no_null(item->accel);
-    cassert(item->accel == accel);
-    if (item->key != ENUM_MAX(vkey_t))
+    if (item->accel != NULL)
     {
-        gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
-        cassert_unref(ok == TRUE, ok);
-    }
+        cassert(item->accel == accel);
+        if (item->key != ENUM_MAX(vkey_t))
+        {
+            gboolean ok = gtk_widget_remove_accelerator(item->widget, item->accel, i_VIRTUAL_KEY[item->key], i_kmod(item->modifiers));
+            cassert_unref(ok == TRUE, ok);
+        }
 
-    item->accel = NULL;
+        item->accel = NULL;
+    }
 
     if (item->sub_menu != NULL)
         _osmenu_unset_accel(item->sub_menu, accel);

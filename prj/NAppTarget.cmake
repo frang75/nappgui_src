@@ -659,10 +659,12 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
-function(nap_link_inet targetName)
+function(nap_link_inet_depends targetName)
 
     if(NAPPGUI_IS_PACKAGE)
-        target_link_libraries(${targetName} nappgui::inet)
+        target_link_libraries(${targetName} nappgui::encode)
+    else()
+        target_link_libraries(${targetName} "encode")
     endif()
 
     if(WIN32)
@@ -682,11 +684,21 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
-function(nap_link_opengl targetName)
+function(nap_link_inet targetName)
 
     if(NAPPGUI_IS_PACKAGE)
-        target_link_libraries(${targetName} nappgui::ogl3d)
+        target_link_libraries(${targetName} nappgui::inet)
+    else()
+        target_link_libraries(${targetName} "inet")
     endif()
+
+    nap_link_inet_depends(${targetName})
+
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(nap_link_opengl_depends targetName)
 
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         find_package(OpenGL REQUIRED EGL)
@@ -725,6 +737,25 @@ function(nap_link_opengl targetName)
         find_package(OpenGL REQUIRED)
         target_link_libraries(${targetName} ${OPENGL_LIBRARY})
 
+    endif()
+
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(nap_link_opengl targetName)
+
+    if(NAPPGUI_IS_PACKAGE)
+        target_link_libraries(${targetName} nappgui::ogl3d)
+    else()
+        target_link_libraries(${targetName} ogl3d)
+    endif()
+
+    nap_link_opengl_depends(${targetName})
+
+    get_target_property(TARGET_TYPE ogl3d TYPE)
+    if (${TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
+        set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS NAPPGUI_OGL3D_IMPORT_DLL)
     endif()
 
 endfunction()
@@ -839,24 +870,6 @@ function(nap_link_with_libraries targetName targetType firstLevelDepends)
     nap_web_libs(_weblibs)
     if (_weblibs)
         target_link_libraries(${targetName} ${_weblibs})
-    endif()
-
-    # Target should link with network libraries
-    # Apps that use NAppGUI package must call 'nap_link_inet()'
-    if (NOT NAPPGUI_IS_PACKAGE)
-        nap_exists_dependency(${targetName} "inet" _depends)
-        if (_depends)
-            nap_link_inet(${targetName})
-        endif()
-    endif()
-
-    # Target should link with OpenGL
-    # Apps that use NAppGUI package must call 'nap_link_opengl()'
-    if (NOT NAPPGUI_IS_PACKAGE)
-        nap_exists_dependency(${targetName} "ogl3d" _depends)
-        if (_depends)
-            nap_link_opengl(${targetName})
-        endif()
     endif()
 
     # In GCC the g++ linker must be used
@@ -1091,6 +1104,16 @@ endfunction()
 
 function(nap_command_app appName dependList nrcMode)
 
+    # This is for demos and apps that are compiled with the SDK.
+    # For apps that use NAppGUI with find_package(), NAppGUI is linked in nap_link_with_libraries().
+    if (NOT NAPPGUI_IS_PACKAGE)
+        if (dependList)
+            set(dependList "core;${dependList}")
+        else()
+            set(dependList "core")
+        endif()
+    endif()
+
     if (WIN32)
         nap_target("${appName}" WIN_CONSOLE "${dependList}" ${nrcMode})
 
@@ -1120,6 +1143,16 @@ endfunction()
 #------------------------------------------------------------------------------
 
 function(nap_desktop_app appName dependList nrcMode)
+
+    # This is for demos and apps that are compiled with the SDK.
+    # For apps that use NAppGUI with find_package(), NAppGUI is linked in nap_link_with_libraries().
+    if (NOT NAPPGUI_IS_PACKAGE)
+        if (dependList)
+            set(dependList "osapp;${dependList}")
+        else()
+            set(dependList "osapp")
+        endif()
+    endif()
 
     if (WIN32)
         nap_target(${appName} WIN_DESKTOP "${dependList}" ${nrcMode})

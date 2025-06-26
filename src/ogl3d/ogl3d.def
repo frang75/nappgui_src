@@ -22,7 +22,11 @@
 
 #if defined(__GNUC__)
     #if defined(NAPPGUI_OGL3D_EXPORT_DLL)
-        #define _ogl3d_api __attribute__((visibility("default")))
+        #if defined(_WIN32)
+            #define _ogl3d_api __declspec(dllexport)
+        #else
+            #define _ogl3d_api __attribute__((visibility("default")))
+        #endif
         #define GLEW_BUILD
     #else
         #define _ogl3d_api

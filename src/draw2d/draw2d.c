@@ -22,6 +22,7 @@
 #include <core/arrst.h>
 #include <core/core.h>
 #include <core/dbind.h>
+#include <core/dbindh.h>
 #include <core/heap.h>
 #include <core/strings.h>
 #include <osbs/log.h>
@@ -100,7 +101,12 @@ void draw2d_finish(void)
     cassert(i_NUM_USERS > 0);
     if (i_NUM_USERS == 1)
     {
-        dbind_unreg(Image);
+        /*
+         * In Windows, we will get a crash if we destroy an image (Gdiplus::Bitmap) once
+         * closed Gdiplus. dbind may have images in cache, as 'default' objects. This command
+         * eliminates all the images in cache, before closing Gdiplus.
+         */
+        dbind_defaults_unreg(Image);
         arrpt_destroy(&i_FONT_FAMILIES, str_destroy, String);
         arrst_destroy(&i_INDEXED_COLORS, NULL, IColor);
         str_destopt(&i_USER_MONOSPACE_FONT_FAMILY);

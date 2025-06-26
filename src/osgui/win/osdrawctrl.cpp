@@ -11,7 +11,6 @@
 /* Drawing custom GUI controls */
 
 #include "osimg.inl"
-#include "osdrawctrl_win.inl"
 #include "osstyleXP.inl"
 #include "../osdrawctrl.h"
 #include <draw2d/color.h>
@@ -485,88 +484,4 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
     rect.right = rect.left + (LONG)width;
     rect.bottom = rect.top + (LONG)height;
     _osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osdrawctrl_header_button(HWND hwnd, HDC hdc, HFONT font, const RECT *rect, int state, const WCHAR *text, const align_t align, const Image *image)
-{
-    BOOL use_style = FALSE;
-
-    cassert_no_null(rect);
-    cassert(FALSE);
-
-    use_style = _osstyleXP_OpenThemeData(hwnd, L"HEADER");
-
-    if (use_style == TRUE)
-    {
-        DWORD flags = 0;
-        RECT rect2;
-
-        switch (align)
-        {
-        case ekLEFT:
-        case ekJUSTIFY:
-            flags = DT_LEFT;
-            break;
-        case ekCENTER:
-            flags = DT_CENTER;
-            break;
-        case ekRIGHT:
-            flags = DT_RIGHT;
-            break;
-            cassert_default();
-        }
-
-        flags |= DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS;
-        _osstyleXP_DrawThemeBackground(hwnd, hdc, HP_HEADERITEM, state, FALSE, rect, NULL);
-        cassert(_osstyleXP_HasThemeFont(hdc, HP_HEADERITEM, state, TMT_FONT) == FALSE);
-        SelectObject(hdc, font);
-        rect2 = *rect;
-        InflateRect(&rect2, -16, 0);
-        _osstyleXP_DrawThemeText(hdc, HP_HEADERITEM, state, text, UINT32_MAX, flags, &rect2);
-        rect2 = *rect;
-        rect2.bottom = rect2.top + 10;
-        _osstyleXP_DrawThemeText(hdc, HP_HEADERSORTARROW, HSAS_SORTEDUP, L"W", UINT32_MAX, flags, rect);
-
-        // LOGFONT lf;
-        // SelectObject(hdc, tv->font);
-        // res = GetThemeFont(i_STYLEXP.theme, hdc, iPartId, iStateId, TMT_FONT, &lf);
-        // cassert_unref(res == S_OK, res);
-    }
-    else
-    {
-        cassert(FALSE);
-        // UINT state = DFCS_BUTTONPUSH;
-        // if (enabled == FALSE)
-        //{
-        //     state |= DFCS_INACTIVE;
-        // }
-        // else if (SendMessage(hwnd, BM_GETCHECK, (WPARAM)0, (LPARAM)0) == BST_CHECKED)
-        //{
-        //     state |= DFCS_PUSHED;
-        // }
-        // else if (_osgui_hit_test(hwnd) == TRUE)
-        //{
-        //     if ((GetKeyState(VK_LBUTTON) & 0x100) != 0)
-        //         state |= DFCS_PUSHED;
-        //     else
-        //         state |= DFCS_HOT;
-        // }
-
-        // _osstyleXP_DrawNonThemedButtonBackground(hwnd, hdc, FALSE, state, &rect, &border);
-    }
-
-    if (image != NULL)
-    {
-        //    uint32_t width, height;
-        //    uint32_t offset_x, offset_y;
-        //    image_size(image, &width, &height);
-        //    offset_x = (rect.right - rect.left - width) / 2;
-        //    offset_y = (rect.bottom - rect.top - height) / 2;
-        //    osimage_draw(image, hdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)width, (real32_t)height, !enabled);
-    }
-
-    if (use_style == TRUE)
-        _osstyleXP_CloseThemeData();
 }

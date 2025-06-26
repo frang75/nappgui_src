@@ -20,7 +20,7 @@ void _oscontrol_init_hidden(OSControl *control, const DWORD dwExStyle, const DWO
 
 void _oscontrol_destroy(OSControl *control);
 
-char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize);
+char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t *nchars);
 
 void _oscontrol_set_text(OSControl *control, const char_t *text);
 
@@ -37,8 +37,6 @@ void _oscontrol_set_enabled(OSControl *control, const bool_t enabled);
 void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y);
 
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height);
-
-void _oscontrol_set_position(OSControl *control, const int x, const int y);
 
 void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 

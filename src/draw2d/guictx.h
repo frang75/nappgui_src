@@ -5,6 +5,7 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: guictx.h
+ * https://nappgui.com/en/draw2d/guictx.html
  *
  */
 
@@ -204,7 +205,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_popup_create,
     FPtr_gctx_destroy func_popup_destroy,
-    FPtr_gctx_set_listener func_popup_OnChange,
+    FPtr_gctx_set_listener func_popup_OnSelect,
     FPtr_gctx_set_elem func_popup_set_elem,
     FPtr_gctx_set_text func_popup_set_tooltip,
     FPtr_gctx_set_cptr func_popup_set_font,
@@ -223,7 +224,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     context, \
     func_popup_create, \
     func_popup_destroy, \
-    func_popup_OnChange, \
+    func_popup_OnSelect, \
     func_popup_set_elem, \
     func_popup_set_tooltip, \
     func_popup_set_font, \
@@ -242,7 +243,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     ( \
         FUNC_CHECK_GCTX_CREATE(func_popup_create, popup_type), \
         FUNC_CHECK_GCTX_DESTROY(func_popup_destroy, popup_type), \
-        FUNC_CHECK_GCTX_SET_LISTENER(func_popup_OnChange, popup_type), \
+        FUNC_CHECK_GCTX_SET_LISTENER(func_popup_OnSelect, popup_type), \
         FUNC_CHECK_GCTX_SET_ELEM(func_popup_set_elem, popup_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_popup_set_tooltip, popup_type), \
         FUNC_CHECK_GCTX_SET_CPTR(func_popup_set_font, popup_type, font_type), \
@@ -261,7 +262,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
             context, \
             (FPtr_gctx_create)func_popup_create, \
             (FPtr_gctx_destroy)func_popup_destroy, \
-            (FPtr_gctx_set_listener)func_popup_OnChange, \
+            (FPtr_gctx_set_listener)func_popup_OnSelect, \
             (FPtr_gctx_set_elem)func_popup_set_elem, \
             (FPtr_gctx_set_text)func_popup_set_tooltip, \
             (FPtr_gctx_set_cptr)func_popup_set_font, \
@@ -672,8 +673,9 @@ _draw2d_api void guictx_append_text_manager_imp(
     FPtr_gctx_destroy func_text_destroy,
     FPtr_gctx_set_listener func_text_OnFilter,
     FPtr_gctx_set_listener func_text_OnFocus,
-    FPtr_gctx_set_text func_text_insert_text,
     FPtr_gctx_set_text func_text_set_text,
+    FPtr_gctx_set_text func_text_add_text,
+    FPtr_gctx_set_text func_text_ins_text,
     FPtr_gctx_set_ptr func_text_set_rtf,
     FPtr_gctx_set_property func_text_set_prop,
     FPtr_gctx_set_bool func_text_set_editable,
@@ -694,8 +696,9 @@ _draw2d_api void guictx_append_text_manager_imp(
     func_text_destroy, \
     func_text_OnFilter, \
     func_text_OnFocus, \
-    func_text_insert_text, \
     func_text_set_text, \
+    func_text_add_text, \
+    func_text_ins_text, \
     func_text_set_rtf, \
     func_text_set_prop, \
     func_text_set_editable, \
@@ -716,8 +719,9 @@ _draw2d_api void guictx_append_text_manager_imp(
         FUNC_CHECK_GCTX_DESTROY(func_text_destroy, text_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_text_OnFilter, text_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_text_OnFocus, text_type), \
-        FUNC_CHECK_GCTX_SET_TEXT(func_text_insert_text, text_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_text_set_text, text_type), \
+        FUNC_CHECK_GCTX_SET_TEXT(func_text_add_text, text_type), \
+        FUNC_CHECK_GCTX_SET_TEXT(func_text_ins_text, text_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_text_set_rtf, text_type, Stream), \
         FUNC_CHECK_GCTX_SET_PROPERTY(func_text_set_prop, text_type, gui_text_t), \
         FUNC_CHECK_GCTX_SET_BOOL(func_text_set_editable, text_type), \
@@ -738,8 +742,9 @@ _draw2d_api void guictx_append_text_manager_imp(
             (FPtr_gctx_destroy)func_text_destroy, \
             (FPtr_gctx_set_listener)func_text_OnFilter, \
             (FPtr_gctx_set_listener)func_text_OnFocus, \
-            (FPtr_gctx_set_text)func_text_insert_text, \
             (FPtr_gctx_set_text)func_text_set_text, \
+            (FPtr_gctx_set_text)func_text_add_text, \
+            (FPtr_gctx_set_text)func_text_ins_text, \
             (FPtr_gctx_set_ptr)func_text_set_rtf, \
             (FPtr_gctx_set_property)func_text_set_prop, \
             (FPtr_gctx_set_bool)func_text_set_editable, \
@@ -1269,34 +1274,38 @@ _draw2d_api void guictx_append_menu_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_menu_create,
     FPtr_gctx_destroy func_menu_destroy,
-    FPtr_gctx_set_ptr func_attach_menuitem_to_menu,
-    FPtr_gctx_set_ptr func_detach_menuitem_from_menu,
+    FPtr_gctx_insert func_menu_insert_item,
+    FPtr_gctx_set_ptr func_menu_delete_item,
     FPtr_gctx_menu func_menu_launch_popup,
-    FPtr_gctx_call func_menu_hide_popup);
+    FPtr_gctx_call func_menu_hide_popup,
+    FPtr_gctx_get_bool func_menu_is_menubar);
 #define guictx_append_menu_manager( \
     context, \
     func_menu_create, \
     func_menu_destroy, \
-    func_attach_menuitem_to_menu, \
-    func_detach_menuitem_from_menu, \
+    func_menu_insert_item, \
+    func_menu_delete_item, \
     func_menu_launch_popup, \
     func_menu_hide_popup, \
+    func_menu_is_menubar, \
     menu_type, menuitem_type, window_type) \
     ( \
         FUNC_CHECK_GCTX_CREATE(func_menu_create, menu_type), \
         FUNC_CHECK_GCTX_DESTROY(func_menu_destroy, menu_type), \
-        FUNC_CHECK_GCTX_SET_PTR(func_attach_menuitem_to_menu, menu_type, menuitem_type), \
-        FUNC_CHECK_GCTX_SET_PTR(func_detach_menuitem_from_menu, menu_type, menuitem_type), \
+        FUNC_CHECK_GCTX_INSERT(func_menu_insert_item, menu_type, menuitem_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_menu_delete_item, menu_type, menuitem_type), \
         FUNC_CHECK_GCTX_MENU(func_menu_launch_popup, menu_type, window_type), \
         FUNC_CHECK_GCTX_CALL(func_menu_hide_popup, menu_type), \
+        FUNC_CHECK_GCTX_GET_BOOL(func_menu_is_menubar, menu_type), \
         guictx_append_menu_manager_imp( \
             context, \
             (FPtr_gctx_create)func_menu_create, \
             (FPtr_gctx_destroy)func_menu_destroy, \
-            (FPtr_gctx_set_ptr)func_attach_menuitem_to_menu, \
-            (FPtr_gctx_set_ptr)func_detach_menuitem_from_menu, \
+            (FPtr_gctx_insert)func_menu_insert_item, \
+            (FPtr_gctx_set_ptr)func_menu_delete_item, \
             (FPtr_gctx_menu)func_menu_launch_popup, \
-            (FPtr_gctx_call)func_menu_hide_popup))
+            (FPtr_gctx_call)func_menu_hide_popup, \
+            (FPtr_gctx_get_bool)func_menu_is_menubar))
 
 _draw2d_api void guictx_append_menuitem_manager_imp(
     GuiCtx *context,

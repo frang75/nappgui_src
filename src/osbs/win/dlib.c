@@ -27,7 +27,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-DLib *dlib_open(const char_t *path, const char_t *libname)
+static DLib *i_open(const char_t *path, const char_t *prefix, const char_t *libname)
 {
     char_t pathname[MAX_PATH + 1];
     WCHAR pathnamew[MAX_PATH + 1];
@@ -41,6 +41,7 @@ DLib *dlib_open(const char_t *path, const char_t *libname)
         blib_strcat(pathname, sizeof(pathname), "\\");
     }
 
+    blib_strcat(pathname, sizeof(pathname), prefix);
     blib_strcat(pathname, sizeof(pathname), libname);
 
     num_bytes = unicode_convers(pathname, cast(pathnamew, char_t), ekUTF8, ekUTF16, sizeof(pathnamew));
@@ -61,6 +62,17 @@ DLib *dlib_open(const char_t *path, const char_t *libname)
     {
         return NULL;
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+DLib *dlib_open(const char_t *path, const char_t *libname)
+{
+    DLib *lib = i_open(path, "", libname);
+    /* MinGW generate DLLs with lib prefix */
+    if (lib == NULL)
+        lib = i_open(path, "lib", libname);
+    return lib;
 }
 
 /*---------------------------------------------------------------------------*/

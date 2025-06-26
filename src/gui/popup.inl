@@ -16,7 +16,7 @@ __EXTERN_C
 
 void _popup_destroy(PopUp **popup);
 
-void _popup_dimension(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _popup_natural(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 void _popup_locale(PopUp *popup);
 

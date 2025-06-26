@@ -16,7 +16,7 @@ __EXTERN_C
 
 void _button_destroy(Button **button);
 
-void _button_dimension(Button *button, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _button_natural(Button *button, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 void _button_locale(Button *button);
 

@@ -52,11 +52,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_ERASEBKGND:
         return 1;
 
-    case WM_PAINT:
-        if (_oswindow_in_resizing(hwnd) == TRUE)
-            return 0;
-        break;
-
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
@@ -198,7 +193,7 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
     cassert_no_null(height);
     font_extents(popup->font, text, -1.f, width, height);
     *width += 40.f;
-    *height = 24.f;
+    *height += 8.f;
     imgwidth = _osimglist_width(popup->image_list);
     if (imgwidth != UINT32_MAX)
         *width += (real32_t)(imgwidth + 5);

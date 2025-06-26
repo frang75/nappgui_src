@@ -11,6 +11,7 @@
 /* Cocoa NSMenuItem wrapper */
 
 #include "osgui_osx.inl"
+#include "osmenuitem_osx.inl"
 #include "../osmenuitem.h"
 #include "../osgui.inl"
 #include <draw2d/image.h>
@@ -18,6 +19,7 @@
 #include <core/heap.h>
 #include <core/strings.h>
 #include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__MACOS__)
 #error This file is only for OSX
@@ -138,6 +140,7 @@ static uint16_t i_VIRTUAL_KEY[] =
 @interface OSXMenuItem : NSMenuItem
 {
   @public
+    Image *image;
     Listener *OnClick;
 }
 @end
@@ -213,6 +216,7 @@ OSMenuItem *osmenuitem_create(const uint32_t flag)
     {
         OSXMenuItem *item = [[OSXMenuItem alloc] initWithTitle:[NSString string] action:@selector(menuItemPressed:) keyEquivalent:[NSString string]];
         heap_auditor_add("OSXMenuItem");
+        item->image = NULL;
         item->OnClick = NULL;
         [item setAction:@selector(menuItemPressed:)];
         [item setTarget:item];
@@ -264,6 +268,7 @@ void osmenuitem_destroy(OSMenuItem **item)
     if ([cast(litem, NSObject) isKindOfClass:[OSXMenuItem class]] == YES)
     {
         cassert([litem menu] == nil);
+        ptr_destopt(image_destroy, &litem->image, Image);
         listener_destroy(&litem->OnClick);
         [litem release];
     }
@@ -340,8 +345,19 @@ void osmenuitem_text(OSMenuItem *item, const char_t *text)
 
 void osmenuitem_image(OSMenuItem *item, const Image *image)
 {
-    cassert_no_null(item);
-    [cast(item, OSXMenuItem) setImage:cast(image_native(image), NSImage)];
+    OSXMenuItem *litem = cast(item, OSXMenuItem);
+    cassert_no_null(litem);
+    cassert([(cast(item, NSObject)) isKindOfClass:[OSXMenuItem class]] == YES);
+    ptr_destopt(image_destroy, &litem->image, Image);
+    if (image != NULL)
+    {
+        litem->image = image_copy(image);
+        [litem setImage:cast(image_native(litem->image), NSImage)];
+    }
+    else
+    {
+        [litem setImage:nil];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -449,4 +465,17 @@ void osmenuitem_unset_submenu(OSMenuItem *item, OSMenu *menu)
     cassert([cast(lmenu, NSObject) isKindOfClass:[NSMenu class]] == YES);
     cassert([cast(item, OSXMenuItem) submenu] == lmenu);
     [litem setSubmenu:nil];
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSImage *_osmenuitem_image(OSMenuItem *item)
+{
+    OSXMenuItem *litem = cast(item, OSXMenuItem);
+    cassert_no_null(litem);
+    cassert([cast(item, NSObject) isKindOfClass:[OSXMenuItem class]] == YES);
+    if (litem->image != NULL)
+        return cast(image_native(litem->image), NSImage);
+    else
+        return nil;
 }

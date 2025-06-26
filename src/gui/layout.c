@@ -43,25 +43,39 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+#define LAYOUT_DEBUGGING
+#undef LAYOUT_DEBUGGING
+
 typedef struct i_line_dim_t i_LineDim;
 typedef struct i_cell_dim_t i_CellDim;
 typedef union i_cell_content_t i_CellContent;
 
+/* Represents a grid partition (Column or Row) */
 struct i_line_dim_t
 {
-    real32_t forced_size;
-    real32_t margin;
-    real32_t size;
-    real32_t resize_percent;
+    /* Fixed attributes. Change required execute compose algorithm */
+    /* Computed attributes. Final results of compose algorithm  */
+    bool_t displayed;      /* Fixed: If FALSE, no space allocation */
+    real32_t forced_size;  /* Fixed: Specific size by user */
+    real32_t resize_perc;  /* Fixed: Weight for resizing */
+    real32_t margin_after; /* Fixed: Space after particion */
+    real32_t natural_size; /* Computed: Natural size of partition */
+    real32_t final_size;   /* Computed: Final size after expansion */
+    bool_t blocked;        /* Computed: Size can't be changed during resizing part */
+    bool_t must_resize;    /* Computed: Marked as must-resize during resizing part */
 };
 
+/* Represents a cell dimension (Width or Height) */
 struct i_cell_dim_t
 {
-    real32_t forced_size;
-    real32_t padding_before;
-    real32_t padding_after;
-    real32_t size;
-    align_t align;
+    /* Fixed attributes. Change required execute compose algorithm */
+    /* Computed attributes. Final results of compose algorithm  */
+    align_t align;           /* Fixed: Cell alignment within the partition */
+    real32_t forced_size;    /* Fixed: Specific size by user */
+    real32_t padding_before; /* Fixed: Internal space before content */
+    real32_t padding_after;  /* Fixed: Internal space after content */
+    real32_t natural_size;   /* Computed: Natural size of dimension */
+    real32_t final_size;     /* Computed: Final size after expansion */
 };
 
 typedef enum _ctype_t
@@ -78,81 +92,77 @@ union i_cell_content_t
     Layout *layout;
 };
 
+/* Represents a cell within a layout */
 struct _cell_t
 {
     ctype_t type;
-    bool_t visible;
-    bool_t enabled;
-    bool_t displayed;
-    bool_t tabstop;
-    i_CellDim dim[2];
-    i_CellContent content;
-    Layout *parent;
-    uint32_t member_id;
+    bool_t displayed;      /* If FALSE, no space allocation */
+    bool_t visible;        /* Only if displayed==TRUE. Shown or hide content, but space allocation is computed */
+    bool_t enabled;        /* If FALSE, content is grayed and disable events */
+    bool_t tabstop;        /* If TRUE, the cell will be included in the tab-list */
+    i_CellDim dim[2];      /* Cell width/height dimensions */
+    i_CellContent content; /* Content */
+    Layout *parent;        /* Layout to which it belongs */
+    uint32_t member_id;    /* DBind struct member linked to the cell */
 };
 
+/* GUI composition grid. Can be also de content of a cell (recursive sublayouts) */
 struct _layout_t
 {
-    Object object;
-    Cell *parent;
-    Panel *panel;
-    bool_t is_row_major_tab;
-    ArrPt(Cell) *cells;
-    ArrSt(i_LineDim) *lines_dim[2];
-    ArrPt(Cell) *cells_dim[2];
-    uint32_t dim_num_elems[2];
-    real32_t dim_margin[2];
-    color_t bgcolor;
-    color_t skcolor;
-    const DBind *stbind;
-    void *objbind;
-    Listener *OnObjChange;
+#if defined(LAYOUT_DEBUGGING)
+    char_t name[64];
+#endif
+    Cell *parent;                   /* For sublayouts, cell to which it belongs */
+    Panel *panel;                   /* Nearest ancestor panel */
+    bool_t is_row_major_tab;        /* TRUE, cells are traversed by rows */
+    ArrPt(Cell) *cells;             /* Cells */
+    ArrSt(i_LineDim) *lines_dim[2]; /* Columns/Rows dimensions */
+    ArrPt(Cell) *cells_dim[2];      /* Cells in row-major/column-major order */
+    uint32_t dim_num_elems[2];      /* Total rows, total columns. Dimension 0 (columns) has 'dim_num_elems[0]' (rows) elements */
+    real32_t dim_margin_before[2];  /* Left/top border margin */
+    real32_t dim_margin_after[2];   /* Right/bottom border margin */
+    color_t bgcolor;                /* Background color */
+    color_t skcolor;                /* Border color */
+    const DBind *stbind;            /* Data binding: Struct linked to layout */
+    void *objbind;                  /* Data binding: Struct instance linked to layout */
+    Listener *OnObjChange;          /* Data binding: Struct instance change event */
 };
 
 DeclSt(i_LineDim);
-static real32_t i_EPSILON = 0.00001f;
+static real32_t i_EPSILON = 0.0001f;
+static real32_t i_MINIMUM_PIXELS_SIZE = 5;
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_init_celldim(
-    i_CellDim *dim,
-    const real32_t forced_size,
-    const real32_t padding_before,
-    const real32_t padding_after,
-    const real32_t size,
-    const align_t align)
+#define i_NUM_COLS(layout) ((layout)->dim_num_elems[1])
+#define i_NUM_ROWS(layout) ((layout)->dim_num_elems[0])
+
+/*---------------------------------------------------------------------------*/
+
+static ___INLINE void i_init_celldim(i_CellDim *dim)
 {
     cassert_no_null(dim);
-    dim->forced_size = forced_size;
-    dim->padding_before = padding_before;
-    dim->padding_after = padding_after;
-    dim->size = size;
-    dim->align = align;
+    dim->align = ENUM_MAX(align_t);
+    dim->forced_size = 0;
+    dim->padding_before = 0;
+    dim->padding_after = 0;
+    dim->natural_size = 0;
+    dim->final_size = 0;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_init_cell(
-    Cell *cell,
-    const ctype_t type,
-    const bool_t visible,
-    const bool_t enabled,
-    const bool_t displayed,
-    const bool_t tabstop,
-    const i_CellDim *dim0,
-    const i_CellDim *dim1,
-    const i_CellContent *content,
-    Layout *layout)
+static ___INLINE void i_init_cell(Cell *cell, Layout *layout)
 {
     cassert_no_null(cell);
-    cell->type = type;
-    cell->visible = visible;
-    cell->enabled = enabled;
-    cell->displayed = displayed;
-    cell->tabstop = tabstop;
-    cell->dim[0] = ptr_get(dim0, i_CellDim);
-    cell->dim[1] = ptr_get(dim1, i_CellDim);
-    cell->content = ptr_get(content, i_CellContent);
+    cell->type = i_ekEMPTY;
+    cell->displayed = TRUE;
+    cell->visible = TRUE;
+    cell->enabled = TRUE;
+    cell->tabstop = TRUE;
+    i_init_celldim(&cell->dim[0]);
+    i_init_celldim(&cell->dim[1]);
+    cell->content.empty = NULL;
     cell->parent = layout;
     cell->member_id = UINT32_MAX;
 }
@@ -204,20 +214,13 @@ void _layout_destroy(Layout **layout)
 {
     cassert_no_null(layout);
     cassert_no_null(*layout);
-    if ((*layout)->object.count == 0)
-    {
-        arrst_destroy(&(*layout)->lines_dim[0], NULL, i_LineDim);
-        arrst_destroy(&(*layout)->lines_dim[1], NULL, i_LineDim);
-        arrpt_destroy(&(*layout)->cells_dim[0], NULL, Cell);
-        arrpt_destroy(&(*layout)->cells_dim[1], NULL, Cell);
-        arrpt_destroy(&(*layout)->cells, i_destroy_cell, Cell);
-        listener_destroy(&(*layout)->OnObjChange);
-        obj_delete(layout, Layout);
-    }
-    else
-    {
-        obj_release(layout, Layout);
-    }
+    arrst_destroy(&(*layout)->lines_dim[0], NULL, i_LineDim);
+    arrst_destroy(&(*layout)->lines_dim[1], NULL, i_LineDim);
+    arrpt_destroy(&(*layout)->cells_dim[0], NULL, Cell);
+    arrpt_destroy(&(*layout)->cells_dim[1], NULL, Cell);
+    arrpt_destroy(&(*layout)->cells, i_destroy_cell, Cell);
+    listener_destroy(&(*layout)->OnObjChange);
+    heap_delete(layout, Layout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -225,19 +228,19 @@ void _layout_destroy(Layout **layout)
 static ArrSt(i_LineDim) *i_create_linedim(const uint32_t num_elems)
 {
     ArrSt(i_LineDim) *dimension = arrst_create(i_LineDim);
-    real32_t resize = 1.f / (real32_t)num_elems;
-    real32_t total = 0.f;
+    real32_t resize = 1 / (real32_t)num_elems;
+    real32_t total = 0;
 
     arrst_new_n0(dimension, num_elems, i_LineDim);
     arrst_foreach(dim, dimension, i_LineDim)
         if (dim_i == dim_total - 1)
-            resize = 1.f - total;
-
-        dim->resize_percent = resize;
+            resize = 1 - total;
+        dim->displayed = TRUE;
+        dim->resize_perc = resize;
         total += resize;
     arrst_end()
 
-    cassert(bmath_absf(total - 1.f) < i_EPSILON);
+    cassert(bmath_absf(total - 1) < i_EPSILON);
     return dimension;
 }
 
@@ -278,36 +281,26 @@ static void i_cell_rowcol_order(ArrPt(Cell) *cells, const uint32_t ncols, const 
 
 Layout *layout_create(const uint32_t ncols, const uint32_t nrows)
 {
+    Layout *layout = heap_new0(Layout);
     uint32_t i, ncells = nrows * ncols;
-    ArrPt(Cell) *cells = arrpt_create(Cell);
-    ArrSt(i_LineDim) *lines_dim0 = i_create_linedim(ncols);
-    ArrSt(i_LineDim) *lines_dim1 = i_create_linedim(nrows);
-    ArrPt(Cell) *cells_dim0 = arrpt_create(Cell);
-    ArrPt(Cell) *cells_dim1 = arrpt_create(Cell);
-    Layout *layout = obj_new0(Layout);
-
     cassert(ncells > 0);
+    layout->cells = arrpt_create(Cell);
+    layout->lines_dim[0] = i_create_linedim(ncols);
+    layout->lines_dim[1] = i_create_linedim(nrows);
+    layout->cells_dim[0] = arrpt_create(Cell);
+    layout->cells_dim[1] = arrpt_create(Cell);
+    layout->is_row_major_tab = TRUE;
+    layout->dim_num_elems[0] = nrows; /* Every column has nrows elems */
+    layout->dim_num_elems[1] = ncols; /* Every row has ncols elems */
+
     for (i = 0; i < ncells; ++i)
     {
         Cell *cell = heap_new(Cell);
-        i_CellDim cdim0, cdim1;
-        i_CellContent content;
-        content.empty = NULL;
-        i_init_celldim(&cdim0, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-        i_init_celldim(&cdim1, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-        i_init_cell(cell, i_ekEMPTY, PARAM(visible, TRUE), PARAM(enabled, TRUE), PARAM(displayed, TRUE), PARAM(tabstop, TRUE), &cdim0, &cdim1, &content, layout);
-        arrpt_append(cells, cell, Cell);
+        i_init_cell(cell, layout);
+        arrpt_append(layout->cells, cell, Cell);
     }
 
-    i_cell_rowcol_order(cells, ncols, nrows, cells_dim0, cells_dim1);
-    layout->is_row_major_tab = TRUE;
-    layout->cells = cells;
-    layout->lines_dim[0] = lines_dim0;
-    layout->lines_dim[1] = lines_dim1;
-    layout->cells_dim[0] = cells_dim0;
-    layout->cells_dim[1] = cells_dim1;
-    layout->dim_num_elems[0] = nrows; /* Every column has nrows elems */
-    layout->dim_num_elems[1] = ncols; /* Every row has ncols elems */
+    i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
     return layout;
 }
 
@@ -317,9 +310,9 @@ static Cell *i_get_cell(Layout *layout, const uint32_t col, const uint32_t row)
 {
     uint32_t position = UINT32_MAX;
     cassert_no_null(layout);
-    cassert(col < arrst_size(layout->lines_dim[0], i_LineDim));
-    cassert(row < arrst_size(layout->lines_dim[1], i_LineDim));
-    position = row * arrst_size(layout->lines_dim[0], i_LineDim) + col;
+    cassert(col < i_NUM_COLS(layout));
+    cassert(row < i_NUM_ROWS(layout));
+    position = row * i_NUM_COLS(layout) + col;
     return arrpt_get(layout->cells, position, Cell);
 }
 
@@ -373,27 +366,34 @@ static Cell *i_set_component(Layout *layout, GuiComponent *component, const uint
 static void i_change_component(Layout *layout, GuiComponent *component, const uint32_t col, const uint32_t row)
 {
     Cell *cell = NULL;
-    bool_t visible = FALSE, enabled = FALSE, displayed = FALSE, tabstop = FALSE;
+    bool_t displayed = FALSE, visible = FALSE, enabled = FALSE, tabstop = FALSE;
     i_CellDim dim0, dim1;
     i_CellContent content;
     Window *parent_window;
     cassert_no_null(layout);
     cassert_no_null(layout->panel);
-    content.component = obj_retain(component, GuiComponent);
     cell = i_get_cell(layout, col, row);
     cassert_no_null(cell);
     cassert(cell->type == i_ekCOMPONENT);
     cassert(cell->content.component->type == component->type);
     cassert(cell->member_id == UINT32_MAX);
+    displayed = cell->displayed;
     visible = cell->visible;
     enabled = cell->enabled;
-    displayed = cell->displayed;
     tabstop = cell->tabstop;
     dim0 = cell->dim[0];
     dim1 = cell->dim[1];
+    content.component = obj_retain(component, GuiComponent);
     i_remove_cell(cell);
     cassert(cell->type == i_ekEMPTY);
-    i_init_cell(cell, i_ekCOMPONENT, visible, enabled, displayed, tabstop, &dim0, &dim1, &content, layout);
+    cell->type = i_ekCOMPONENT;
+    cell->displayed = displayed;
+    cell->visible = visible;
+    cell->enabled = enabled;
+    cell->tabstop = tabstop;
+    cell->dim[0] = dim0;
+    cell->dim[1] = dim1;
+    cell->content = content;
     _panel_attach_component(layout->panel, cell->content.component);
     _panel_invalidate_layout(layout->panel, layout);
     parent_window = _panel_get_window(layout->panel);
@@ -421,7 +421,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
     Cell *cell = NULL;
     align_t align = ekJUSTIFY;
     uint32_t flags = _button_flags(button);
-    if (button_get_type(flags) != ekBUTTON_PUSH /* && button_type(flags) != ekBUTTON_HEADER*/)
+    if (button_get_type(flags) != ekBUTTON_PUSH)
         align = ekLEFT;
     cell = i_set_component(layout, cast(button, GuiComponent), col, row, align, ekCENTER);
     cassert_no_null(cell);
@@ -760,7 +760,7 @@ Layout *layout_get_layout(Layout *layout, const uint32_t col, const uint32_t row
 uint32_t layout_ncols(const Layout *layout)
 {
     cassert_no_null(layout);
-    return arrst_size(layout->lines_dim[0], i_LineDim);
+    return i_NUM_COLS(layout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -768,7 +768,7 @@ uint32_t layout_ncols(const Layout *layout)
 uint32_t layout_nrows(const Layout *layout)
 {
     cassert_no_null(layout);
-    return arrst_size(layout->lines_dim[1], i_LineDim);
+    return i_NUM_ROWS(layout);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -776,42 +776,34 @@ uint32_t layout_nrows(const Layout *layout)
 void layout_insert_col(Layout *layout, const uint32_t col)
 {
     uint32_t i, ncols = 0, nrows = 0;
-    i_LineDim *line_dim = NULL;
+    i_LineDim *dim = NULL;
 
     cassert_no_null(layout);
-    cassert(col <= arrst_size(layout->lines_dim[0], i_LineDim));
-    ncols = arrst_size(layout->lines_dim[0], i_LineDim);
-    nrows = arrst_size(layout->lines_dim[1], i_LineDim);
+    ncols = i_NUM_COLS(layout);
+    nrows = i_NUM_ROWS(layout);
+    cassert(col <= ncols);
 
     /* Insert and init (empty) the new cells */
     for (i = 0; i < nrows; ++i)
     {
         uint32_t inspos = ((ncols + 1) * i) + col;
-        i_CellDim cdim0, cdim1;
-        i_CellContent content;
         Cell *new_cell = heap_new(Cell);
-        content.empty = NULL;
-        i_init_celldim(&cdim0, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-        i_init_celldim(&cdim1, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-        i_init_cell(new_cell, i_ekEMPTY, PARAM(visible, TRUE), PARAM(enabled, TRUE), PARAM(displayed, TRUE), PARAM(tabstop, TRUE), &cdim0, &cdim1, &content, layout);
+        i_init_cell(new_cell, layout);
         arrpt_insert(layout->cells, inspos, new_cell, Cell);
     }
 
-    /* Add a new column dimensions */
-    line_dim = arrst_insert_n(layout->lines_dim[0], col, 1, i_LineDim);
-    line_dim->forced_size = 0;
-    line_dim->margin = 0;
-    line_dim->size = 0;
-    line_dim->resize_percent = 0;
+    /* Add a new column dimensions. The margin after this new column will be 0 */
+    dim = arrst_insert_n0(layout->lines_dim[0], col, 1, i_LineDim);
+    dim->displayed = TRUE;
+
+    /* Every row has ncols elems */
     ncols += 1;
+    layout->dim_num_elems[1] = ncols;
 
     /* Regenerate the cell indices */
     arrpt_clear(layout->cells_dim[0], NULL, Cell);
     arrpt_clear(layout->cells_dim[1], NULL, Cell);
     i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
-
-    /* Every row has ncols elems */
-    layout->dim_num_elems[1] = ncols;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -821,79 +813,70 @@ void layout_insert_row(Layout *layout, const uint32_t row)
     uint32_t inspos = 0;
     uint32_t i, ncols = 0, nrows = 0;
     Cell **new_cells = NULL;
-    i_LineDim *line_dim = NULL;
+    i_LineDim *dim = NULL;
 
     cassert_no_null(layout);
-    cassert(row <= arrst_size(layout->lines_dim[1], i_LineDim));
-    ncols = arrst_size(layout->lines_dim[0], i_LineDim);
-    nrows = arrst_size(layout->lines_dim[1], i_LineDim);
+    ncols = i_NUM_COLS(layout);
+    nrows = i_NUM_ROWS(layout);
+    cassert(row <= nrows);
+
     /* Cells insert position */
     inspos = row * ncols;
     /* Cells array is in row-major order. All row cells are together in memory */
     new_cells = arrpt_insert_n(layout->cells, inspos, ncols, Cell);
 
-    /* Initialize the new cells (empty) */
+    /* Init the new cells (empty) */
     for (i = 0; i < ncols; ++i)
     {
-        i_CellDim cdim0, cdim1;
-        i_CellContent content;
         new_cells[i] = heap_new(Cell);
-        content.empty = NULL;
-        i_init_celldim(&cdim0, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-        i_init_celldim(&cdim1, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-        i_init_cell(new_cells[i], i_ekEMPTY, PARAM(visible, TRUE), PARAM(enabled, TRUE), PARAM(displayed, TRUE), PARAM(tabstop, TRUE), &cdim0, &cdim1, &content, layout);
+        i_init_cell(new_cells[i], layout);
     }
 
-    /* Add a new row dimensions */
-    line_dim = arrst_insert_n(layout->lines_dim[1], row, 1, i_LineDim);
-    line_dim->forced_size = 0;
-    line_dim->margin = 0;
-    line_dim->size = 0;
-    line_dim->resize_percent = 0;
+    /* Add a new row dimensions. The margin after this new column will be 0 */
+    dim = arrst_insert_n0(layout->lines_dim[1], row, 1, i_LineDim);
+    dim->displayed = TRUE;
+
+    /* Every row has ncols elems */
     nrows += 1;
+    layout->dim_num_elems[0] = nrows;
 
     /* Regenerate the cell indices */
     arrpt_clear(layout->cells_dim[0], NULL, Cell);
     arrpt_clear(layout->cells_dim[1], NULL, Cell);
     i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
-
-    /* Every row has ncols elems */
-    layout->dim_num_elems[0] = nrows;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_recompute_resize_percent(ArrSt(i_LineDim) *line_dim)
+static void i_recompute_resize_percent(ArrSt(i_LineDim) *dim)
 {
     real32_t norm = 0;
     real32_t nedims = 0;
-    cassert_no_null(line_dim);
-    cassert(arrst_size(line_dim, i_LineDim) > 0);
-    arrst_foreach(dim, line_dim, i_LineDim)
-        if (dim->resize_percent > i_EPSILON)
+    cassert_no_null(dim);
+    cassert(arrst_size(dim, i_LineDim) > 0);
+    arrst_foreach(edim, dim, i_LineDim)
+        if (edim->resize_perc > i_EPSILON)
         {
-            norm += dim->resize_percent;
+            norm += edim->resize_perc;
             nedims += 1;
         }
     arrst_end()
 
-    /* We must recompute */
+    /* We must normalize */
     if (bmath_absf(1 - norm) >= i_EPSILON)
     {
-        /* Equal division */
         if (nedims > 0)
         {
-            real32_t diff = (1.f - norm) / nedims;
-            arrst_foreach(dim, line_dim, i_LineDim)
-                if (dim->resize_percent > i_EPSILON)
-                    dim->resize_percent += diff;
+            arrst_foreach(edim, dim, i_LineDim)
+                if (edim->resize_perc > i_EPSILON)
+                    edim->resize_perc /= norm;
             arrst_end()
         }
         /* All resize to last dim */
         else
         {
-            i_LineDim *dim = arrst_last(line_dim, i_LineDim);
-            dim->resize_percent = 1;
+            i_LineDim *edim = arrst_last(dim, i_LineDim);
+            edim->resize_perc = 1;
         }
     }
 }
@@ -902,88 +885,76 @@ static void i_recompute_resize_percent(ArrSt(i_LineDim) *line_dim)
 
 void layout_remove_col(Layout *layout, const uint32_t col)
 {
-    uint32_t i, ncols = 0, nrows = 0;
-    i_LineDim *line_dim = NULL;
+    uint32_t ncols = 0;
     cassert_no_null(layout);
-    cassert(col < arrst_size(layout->lines_dim[0], i_LineDim));
-    ncols = arrst_size(layout->lines_dim[0], i_LineDim);
-    nrows = arrst_size(layout->lines_dim[1], i_LineDim);
+    ncols = i_NUM_COLS(layout);
 
-    /* Destroy the column cells (but not the cell content) */
-    for (i = 0; i < nrows; ++i)
+    /* 0 cols layout is not supported */
+    if (ncols > 1)
     {
-        uint32_t delrow = nrows - i - 1;
-        uint32_t delpos = (ncols * delrow) + col;
-        arrpt_delete(layout->cells, delpos, i_destroy_cell, Cell);
+        uint32_t i, nrows = i_NUM_ROWS(layout);
+        cassert(col < ncols);
+
+        /* Destroy the column cells */
+        for (i = 0; i < nrows; ++i)
+        {
+            uint32_t delrow = nrows - i - 1;
+            uint32_t delpos = (ncols * delrow) + col;
+            arrpt_delete(layout->cells, delpos, i_destroy_cell, Cell);
+        }
+
+        /* Remove the column dimensions */
+        arrst_delete(layout->lines_dim[0], col, NULL, i_LineDim);
+        /* Every row has ncols elems */
+        ncols -= 1;
+        layout->dim_num_elems[1] = ncols;
+
+        /* Regenerate the cell indices */
+        arrpt_clear(layout->cells_dim[0], NULL, Cell);
+        arrpt_clear(layout->cells_dim[1], NULL, Cell);
+        i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
+
+        /* Resize percent */
+        i_recompute_resize_percent(layout->lines_dim[0]);
     }
-
-    /* Remove the column dimensions */
-    line_dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
-
-    /* The left-border margin goes to next cell */
-    if (col == 0 && ncols > 1)
-    {
-        i_LineDim *next_line_dim = arrst_get(layout->lines_dim[0], col + 1, i_LineDim);
-        next_line_dim->margin = line_dim->margin;
-    }
-
-    arrst_delete(layout->lines_dim[0], col, NULL, i_LineDim);
-    ncols -= 1;
-
-    /* Regenerate the cell indices */
-    arrpt_clear(layout->cells_dim[0], NULL, Cell);
-    arrpt_clear(layout->cells_dim[1], NULL, Cell);
-    i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
-
-    /* Resize percent */
-    i_recompute_resize_percent(layout->lines_dim[0]);
-
-    /* Every row has ncols elems */
-    layout->dim_num_elems[1] = ncols;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void layout_remove_row(Layout *layout, const uint32_t row)
 {
-    uint32_t i, ncols = 0, nrows = 0;
-    i_LineDim *line_dim = NULL;
+    uint32_t nrows = 0;
     cassert_no_null(layout);
-    cassert(row < arrst_size(layout->lines_dim[1], i_LineDim));
-    ncols = arrst_size(layout->lines_dim[0], i_LineDim);
-    nrows = arrst_size(layout->lines_dim[1], i_LineDim);
+    nrows = i_NUM_ROWS(layout);
 
-    /* Destroy the row cells (but not the cell content) */
-    for (i = 0; i < ncols; ++i)
+    /* 0 rows layout is not supported */
+    if (nrows > 1)
     {
-        uint32_t delcol = ncols - i - 1;
-        uint32_t delpos = (ncols * row) + delcol;
-        arrpt_delete(layout->cells, delpos, i_destroy_cell, Cell);
+        uint32_t i, ncols = i_NUM_COLS(layout);
+        cassert(row < nrows);
+
+        /* Destroy the row cells */
+        for (i = 0; i < ncols; ++i)
+        {
+            uint32_t delcol = ncols - i - 1;
+            uint32_t delpos = (ncols * row) + delcol;
+            arrpt_delete(layout->cells, delpos, i_destroy_cell, Cell);
+        }
+
+        /* Remove the row dimensions */
+        arrst_delete(layout->lines_dim[1], row, NULL, i_LineDim);
+        /* Every column has nrows elems */
+        nrows -= 1;
+        layout->dim_num_elems[0] = nrows;
+
+        /* Regenerate the cell indices */
+        arrpt_clear(layout->cells_dim[0], NULL, Cell);
+        arrpt_clear(layout->cells_dim[1], NULL, Cell);
+        i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
+
+        /* Resize percent */
+        i_recompute_resize_percent(layout->lines_dim[1]);
     }
-
-    /* Remove the row dimensions */
-    line_dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
-
-    /* The top-border margin goes to next cell */
-    if (row == 0 && nrows > 1)
-    {
-        i_LineDim *next_line_dim = arrst_get(layout->lines_dim[1], row + 1, i_LineDim);
-        next_line_dim->margin = line_dim->margin;
-    }
-
-    arrst_delete(layout->lines_dim[1], row, NULL, i_LineDim);
-    nrows -= 1;
-
-    /* Regenerate the cell indices */
-    arrpt_clear(layout->cells_dim[0], NULL, Cell);
-    arrpt_clear(layout->cells_dim[1], NULL, Cell);
-    i_cell_rowcol_order(layout->cells, ncols, nrows, layout->cells_dim[0], layout->cells_dim[1]);
-
-    /* Resize percent */
-    i_recompute_resize_percent(layout->lines_dim[1]);
-
-    /* Every row has ncols elems */
-    layout->dim_num_elems[0] = nrows;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1011,7 +982,7 @@ void layout_hsize(Layout *layout, const uint32_t col, const real32_t width)
 {
     i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert_msg(width >= 0.f, "Column 'width' must be positive.");
+    cassert(width >= 0);
     dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
     cassert_no_null(dim);
     dim->forced_size = width;
@@ -1023,7 +994,7 @@ void layout_vsize(Layout *layout, const uint32_t row, const real32_t height)
 {
     i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert_msg(height >= 0.f, "Row 'height' must be positive.");
+    cassert(height >= 0);
     dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
     cassert_no_null(dim);
     dim->forced_size = height;
@@ -1035,9 +1006,9 @@ void layout_hmargin(Layout *layout, const uint32_t col, const real32_t margin)
 {
     i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert(col < arrst_size(layout->lines_dim[0], i_LineDim) - 1);
-    dim = arrst_get(layout->lines_dim[0], col + 1, i_LineDim);
-    dim->margin = margin;
+    cassert(col < i_NUM_COLS(layout) - 1);
+    dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
+    dim->margin_after = margin;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1046,59 +1017,62 @@ void layout_vmargin(Layout *layout, const uint32_t row, const real32_t margin)
 {
     i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert_msg(row < arrst_size(layout->lines_dim[1], i_LineDim) - 1, "'row' out of range");
-    dim = arrst_get(layout->lines_dim[1], row + 1, i_LineDim);
-    dim->margin = margin;
+    cassert(row < i_NUM_ROWS(layout) - 1);
+    dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
+    dim->margin_after = margin;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_expand1(ArrSt(i_LineDim) *line_dim, const uint32_t index)
+static void i_expand1(ArrSt(i_LineDim) *dim, const uint32_t index)
 {
-    cassert(index < arrst_size(line_dim, i_LineDim));
-    arrst_foreach(dim, line_dim, i_LineDim)
-        dim->resize_percent = (dim_i == index) ? 1.f : 0.f;
+    cassert(index < arrst_size(dim, i_LineDim));
+    arrst_foreach(edim, dim, i_LineDim)
+        if (edim_i == index)
+            edim->resize_perc = 1;
+        else
+            edim->resize_perc = 0;
     arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_expand2(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const uint32_t index2, const real32_t exp)
+static void i_expand2(ArrSt(i_LineDim) *dim, const uint32_t index1, const uint32_t index2, const real32_t exp)
 {
     cassert(index1 != index2);
-    cassert(index1 < arrst_size(line_dim, i_LineDim));
-    cassert(index2 < arrst_size(line_dim, i_LineDim));
+    cassert(index1 < arrst_size(dim, i_LineDim));
+    cassert(index2 < arrst_size(dim, i_LineDim));
     cassert(exp <= 1);
-    arrst_foreach(dim, line_dim, i_LineDim)
-        if (dim_i == index1)
-            dim->resize_percent = exp;
-        else if (dim_i == index2)
-            dim->resize_percent = 1.f - exp;
+    arrst_foreach(edim, dim, i_LineDim)
+        if (edim_i == index1)
+            edim->resize_perc = exp;
+        else if (edim_i == index2)
+            edim->resize_perc = 1 - exp;
         else
-            dim->resize_percent = 0.f;
+            edim->resize_perc = 0;
     arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_expand3(ArrSt(i_LineDim) *line_dim, const uint32_t index1, const uint32_t index2, const uint32_t index3, const real32_t exp1, const real32_t exp2)
+static void i_expand3(ArrSt(i_LineDim) *dim, const uint32_t index1, const uint32_t index2, const uint32_t index3, const real32_t exp1, const real32_t exp2)
 {
     cassert(index1 != index2);
     cassert(index1 != index3);
     cassert(index2 != index3);
-    cassert(index1 < arrst_size(line_dim, i_LineDim));
-    cassert(index2 < arrst_size(line_dim, i_LineDim));
-    cassert(index3 < arrst_size(line_dim, i_LineDim));
+    cassert(index1 < arrst_size(dim, i_LineDim));
+    cassert(index2 < arrst_size(dim, i_LineDim));
+    cassert(index3 < arrst_size(dim, i_LineDim));
     cassert(exp1 + exp2 <= 1);
-    arrst_foreach(dim, line_dim, i_LineDim)
-        if (dim_i == index1)
-            dim->resize_percent = exp1;
-        else if (dim_i == index2)
-            dim->resize_percent = exp2;
-        else if (dim_i == index3)
-            dim->resize_percent = 1.f - exp1 - exp2;
+    arrst_foreach(edim, dim, i_LineDim)
+        if (edim_i == index1)
+            edim->resize_perc = exp1;
+        else if (edim_i == index2)
+            edim->resize_perc = exp2;
+        else if (edim_i == index3)
+            edim->resize_perc = 1 - exp1 - exp2;
         else
-            dim->resize_percent = 0.f;
+            edim->resize_perc = 0;
     arrst_end()
 }
 
@@ -1172,77 +1146,53 @@ void layout_valign(Layout *layout, const uint32_t col, const uint32_t row, const
 
 void layout_show_col(Layout *layout, const uint32_t col, const bool_t visible)
 {
-    uint32_t i, num_rows;
+    i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert(col < arrst_size(layout->lines_dim[0], i_LineDim));
-    num_rows = arrst_size(layout->lines_dim[1], i_LineDim);
-    for (i = 0; i < num_rows; ++i)
-    {
-        Cell *cell = i_get_cell(layout, col, i);
-        cassert_no_null(cell);
-        cell->displayed = visible;
-    }
+    dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
+    dim->displayed = visible;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void layout_show_row(Layout *layout, const uint32_t row, const bool_t visible)
 {
-    uint32_t i, num_cols;
+    i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert(row < arrst_size(layout->lines_dim[1], i_LineDim));
-    num_cols = arrst_size(layout->lines_dim[0], i_LineDim);
-    for (i = 0; i < num_cols; ++i)
-    {
-        Cell *cell = i_get_cell(layout, i, row);
-        cassert_no_null(cell);
-        cell->displayed = visible;
-    }
+    dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
+    dim->displayed = visible;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void layout_margin(Layout *layout, const real32_t mall)
 {
-    i_LineDim *first_column = NULL;
-    i_LineDim *first_row = NULL;
     cassert_no_null(layout);
-    first_column = arrst_get(layout->lines_dim[0], 0, i_LineDim);
-    first_row = arrst_get(layout->lines_dim[1], 0, i_LineDim);
-    first_column->margin = mall;
-    first_row->margin = mall;
-    layout->dim_margin[0] = mall;
-    layout->dim_margin[1] = mall;
+    layout->dim_margin_before[0] = mall;
+    layout->dim_margin_before[1] = mall;
+    layout->dim_margin_after[0] = mall;
+    layout->dim_margin_after[1] = mall;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void layout_margin2(Layout *layout, const real32_t mtb, const real32_t mlr)
 {
-    i_LineDim *first_column = NULL;
-    i_LineDim *first_row = NULL;
     cassert_no_null(layout);
-    first_column = arrst_get(layout->lines_dim[0], 0, i_LineDim);
-    first_row = arrst_get(layout->lines_dim[1], 0, i_LineDim);
-    first_column->margin = mlr;
-    first_row->margin = mtb;
-    layout->dim_margin[0] = mlr;
-    layout->dim_margin[1] = mtb;
+    layout->dim_margin_before[0] = mlr;
+    layout->dim_margin_before[1] = mtb;
+    layout->dim_margin_after[0] = mlr;
+    layout->dim_margin_after[1] = mtb;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void layout_margin4(Layout *layout, const real32_t mt, const real32_t mr, const real32_t mb, const real32_t ml)
 {
-    i_LineDim *first_column = NULL;
-    i_LineDim *first_row = NULL;
     cassert_no_null(layout);
-    first_column = arrst_get(layout->lines_dim[0], 0, i_LineDim);
-    first_row = arrst_get(layout->lines_dim[1], 0, i_LineDim);
-    first_column->margin = ml;
-    first_row->margin = mt;
-    layout->dim_margin[0] = mr;
-    layout->dim_margin[1] = mb;
+    layout->dim_margin_before[0] = ml;
+    layout->dim_margin_before[1] = mt;
+    layout->dim_margin_after[0] = mr;
+    layout->dim_margin_after[1] = mb;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1348,6 +1298,15 @@ void layout_dbind_obj_imp(Layout *layout, void *obj, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
+void *layout_dbind_get_obj_imp(Layout *layout, const char_t *type)
+{
+    cassert_no_null(layout);
+    cassert_unref(str_equ_c(dbind_typename(layout->stbind), type) == TRUE, type);
+    return layout->objbind;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_dbind_update_imp(Layout *layout, const char_t *type, const uint16_t size, const char_t *mname, const char_t *mtype, const uint16_t moffset, const uint16_t msize)
 {
     const DBind *stbind = dbind_from_typename(type, NULL);
@@ -1378,7 +1337,7 @@ real32_t layout_get_hsize(const Layout *layout, const uint32_t col)
     cassert_no_null(layout);
     dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
     cassert_no_null(dim);
-    return dim->size;
+    return dim->final_size;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1389,7 +1348,7 @@ real32_t layout_get_vsize(const Layout *layout, const uint32_t row)
     cassert_no_null(layout);
     dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
     cassert_no_null(dim);
-    return dim->size;
+    return dim->final_size;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1398,9 +1357,9 @@ real32_t layout_get_hmargin(const Layout *layout, const uint32_t col)
 {
     i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert(col < arrst_size(layout->lines_dim[0], i_LineDim) - 1);
-    dim = arrst_get(layout->lines_dim[0], col + 1, i_LineDim);
-    return dim->margin;
+    cassert(col < i_NUM_COLS(layout) - 1);
+    dim = arrst_get(layout->lines_dim[0], col, i_LineDim);
+    return dim->margin_after;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1409,37 +1368,17 @@ real32_t layout_get_vmargin(const Layout *layout, const uint32_t row)
 {
     i_LineDim *dim = NULL;
     cassert_no_null(layout);
-    cassert_msg(row < arrst_size(layout->lines_dim[1], i_LineDim) - 1, "'row' out of range");
-    dim = arrst_get(layout->lines_dim[1], row + 1, i_LineDim);
-    return dim->margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-real32_t layout_get_margin_top(const Layout *layout)
-{
-    i_LineDim *first_row = NULL;
-    cassert_no_null(layout);
-    first_row = arrst_get(layout->lines_dim[1], 0, i_LineDim);
-    return first_row->margin;
-}
-
-/*---------------------------------------------------------------------------*/
-
-real32_t layout_get_margin_bottom(const Layout *layout)
-{
-    cassert_no_null(layout);
-    return layout->dim_margin[1];
+    cassert(row < i_NUM_ROWS(layout) - 1);
+    dim = arrst_get(layout->lines_dim[1], row, i_LineDim);
+    return dim->margin_after;
 }
 
 /*---------------------------------------------------------------------------*/
 
 real32_t layout_get_margin_left(const Layout *layout)
 {
-    i_LineDim *first_column = NULL;
     cassert_no_null(layout);
-    first_column = arrst_get(layout->lines_dim[0], 0, i_LineDim);
-    return first_column->margin;
+    return layout->dim_margin_before[0];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1447,7 +1386,23 @@ real32_t layout_get_margin_left(const Layout *layout)
 real32_t layout_get_margin_right(const Layout *layout)
 {
     cassert_no_null(layout);
-    return layout->dim_margin[0];
+    return layout->dim_margin_after[0];
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_margin_top(const Layout *layout)
+{
+    cassert_no_null(layout);
+    return layout->dim_margin_before[1];
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t layout_get_margin_bottom(const Layout *layout)
+{
+    cassert_no_null(layout);
+    return layout->dim_margin_after[1];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1455,14 +1410,23 @@ real32_t layout_get_margin_right(const Layout *layout)
 void layout_remove_cell(Layout *layout, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_get_cell(layout, col, row);
-    i_CellDim cdim0, cdim1;
-    i_CellContent content;
     cassert_no_null(cell);
     i_remove_cell(cell);
-    content.empty = NULL;
-    i_init_celldim(&cdim0, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-    i_init_celldim(&cdim1, 0.f, 0.f, 0.f, 0.f, ENUM_MAX(align_t));
-    i_init_cell(cell, i_ekEMPTY, PARAM(visible, TRUE), PARAM(enabled, TRUE), PARAM(displayed, TRUE), PARAM(tabstop, TRUE), &cdim0, &cdim1, &content, layout);
+    i_init_cell(cell, layout);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void layout_name(Layout *layout, const char_t *name)
+{
+#if defined(LAYOUT_DEBUGGING)
+    cassert_no_null(layout);
+    str_copy_c(layout->name, sizeof(layout->name), name);
+#else
+    unref(layout);
+    unref(name);
+    cassert(FALSE);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1591,103 +1555,186 @@ void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_line_compose(i_LineDim *dim, const uint32_t di, Cell **cell, const uint32_t n_cells)
+static void i_cell_natural(Cell *cell, const uint32_t di)
 {
-    uint32_t i = 0;
-    cassert_no_null(dim);
     cassert_no_null(cell);
-    cassert(di <= 1);
-    dim->size = 0.f;
-    for (i = 0; i < n_cells; ++i)
+    switch (cell->type)
     {
-        real32_t forced_size = 0;
-        if (cell[i]->displayed == TRUE)
-        {
-            switch (cell[i]->type)
-            {
-            case i_ekCOMPONENT:
-                _component_dimension(cell[i]->content.component, di, &cell[i]->dim[0].size, &cell[i]->dim[1].size);
-                break;
-
-            case i_ekLAYOUT:
-                _layout_dimension(cell[i]->content.layout, di, &cell[i]->dim[0].size, &cell[i]->dim[1].size);
-                break;
-
-            case i_ekEMPTY:
-                cell[i]->dim[di].size = 0;
-                break;
-            }
-        }
-        else
-        {
-            cell[i]->dim[di].size = 0;
-        }
-
-        /* Forced size == Internal resizing */
-        if (cell[i]->dim[di].forced_size > 0)
-            forced_size = cell[i]->dim[di].forced_size;
-        else if (dim->forced_size > 0)
-            forced_size = dim->forced_size;
-
-        if (forced_size > 0)
-        {
-            forced_size -= cell[i]->dim[di].padding_after;
-            forced_size -= cell[i]->dim[di].padding_before;
-            cassert_msg(forced_size > 0.f, "Cell forced size smaller than padding");
-
-            if (cell[i]->displayed == TRUE)
-            {
-                if (cell[i]->dim[di].align == ekJUSTIFY)
-                {
-                    switch (cell[i]->type)
-                    {
-                    case i_ekCOMPONENT:
-                        _component_expand(cell[i]->content.component, di, cell[i]->dim[di].size, forced_size, &cell[i]->dim[di].size);
-                        break;
-
-                    case i_ekLAYOUT:
-                        _layout_expand(cell[i]->content.layout, di, cell[i]->dim[di].size, forced_size, &cell[i]->dim[di].size);
-                        break;
-
-                    case i_ekEMPTY:
-                        cell[i]->dim[di].size = forced_size;
-                        break;
-                    }
-                }
-                else
-                {
-                    switch (cell[i]->type)
-                    {
-                    case i_ekCOMPONENT:
-                    case i_ekLAYOUT:
-                        if (cell[i]->dim[di].size > forced_size)
-                            cell[i]->dim[di].size = forced_size;
-                        break;
-
-                    case i_ekEMPTY:
-                        cell[i]->dim[di].size = forced_size;
-                        break;
-                    }
-                }
-            }
-        }
-
-        {
-            real32_t total_cell_size = cell[i]->dim[di].size;
-            total_cell_size += cell[i]->dim[di].padding_after;
-            total_cell_size += cell[i]->dim[di].padding_before;
-
-            if (total_cell_size > dim->size)
-                dim->size = total_cell_size;
-        }
+    case i_ekCOMPONENT:
+        _component_natural(cell->content.component, di, &cell->dim[0].natural_size, &cell->dim[1].natural_size);
+        break;
+    case i_ekLAYOUT:
+        _layout_natural(cell->content.layout, di, &cell->dim[0].natural_size, &cell->dim[1].natural_size);
+        break;
+    case i_ekEMPTY:
+        cell->dim[di].natural_size = 0;
+        break;
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _layout_dimension(Layout *layout, const uint32_t di, real32_t *dim0, real32_t *dim1)
+static real32_t i_natural_with_padding(const Cell *cell, const uint32_t di)
 {
-    real32_t size = 0.f;
+    cassert_no_null(cell);
+    return cell->dim[di].natural_size + cell->dim[di].padding_after + cell->dim[di].padding_before;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_cell_expand(Cell *cell, const uint32_t di, const real32_t required_size)
+{
+    real32_t required_net_size = required_size;
+    cassert_no_null(cell);
+
+    /* Cell expansion doesn't include padding */
+    required_net_size -= cell->dim[di].padding_after;
+    required_net_size -= cell->dim[di].padding_before;
+
+    if (required_net_size < 0)
+        required_net_size = 0;
+
+    switch (cell->type)
+    {
+    case i_ekCOMPONENT:
+        _component_expand(cell->content.component, di, cell->dim[di].natural_size, required_net_size, &cell->dim[di].final_size);
+        break;
+    case i_ekLAYOUT:
+        _layout_expand(cell->content.layout, di, cell->dim[di].natural_size, required_net_size, &cell->dim[di].final_size);
+        break;
+    case i_ekEMPTY:
+        cell->dim[di].final_size = required_net_size;
+        break;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+/*
+ * Natural sizing has two steps:
+ * - Compute the natural sizing of cells
+ * - Compute internal cell expansion, that will occur when:
+ *   - The line has a forced size
+ *   - The cell has a forced size
+ *   - The cell has JUSTIFY alignment
+ */
+static void i_line_natural(i_LineDim *dim, const uint32_t di, Cell **cell, const uint32_t n_cells)
+{
+    uint32_t i = 0;
+    bool_t recompute = TRUE;
+    real32_t final_natural_size = 0;
+
+    cassert_no_null(dim);
+    cassert_no_null(cell);
+    cassert(di <= 1);
+
+    dim->natural_size = 0;
+    dim->final_size = 0;
+
+    /* Compose the line (column or row) and compute its size (width or height) */
+    for (i = 0; i < n_cells; ++i)
+    {
+        real32_t csize = 0;
+        if (cell[i]->displayed == TRUE)
+            i_cell_natural(cell[i], di);
+        else
+            cell[i]->dim[di].natural_size = 0;
+
+        csize = i_natural_with_padding(cell[i], di);
+        if (csize > dim->natural_size)
+            dim->natural_size = csize;
+    }
+
+    final_natural_size = dim->natural_size;
+
+    if (dim->forced_size > 0)
+        final_natural_size = dim->forced_size;
+
+    /* Need to recompute the natural size, until the constrainst are met  */
+    while (recompute == TRUE)
+    {
+        for (i = 0; i < n_cells; ++i)
+        {
+            real32_t expand_required_size = -1;
+            if (cell[i]->displayed == TRUE)
+            {
+                real32_t csize = i_natural_with_padding(cell[i], di);
+
+                /* We have user-defined size in column/row */
+                if (expand_required_size < 0 && dim->forced_size < csize)
+                    expand_required_size = dim->forced_size;
+
+                /* We have user-defined size in cell width/height */
+                if (expand_required_size < 0 && cell[i]->dim[di].forced_size > 0)
+                    expand_required_size = cell[i]->dim[di].forced_size;
+
+                /* We cell dimension must be expanded */
+                if (expand_required_size < 0 && cell[i]->dim[di].align == ekJUSTIFY)
+                    expand_required_size = final_natural_size;
+            }
+
+            if (expand_required_size > 0)
+            {
+                i_cell_expand(cell[i], di, expand_required_size);
+                /* Its not possible for this cell met the constraint. Move the constraint and abort */
+                if (cell[i]->dim[di].final_size > final_natural_size)
+                {
+                    final_natural_size = cell[i]->dim[di].final_size;
+                    break;
+                }
+            }
+            else
+            {
+                cell[i]->dim[di].final_size = cell[i]->dim[di].natural_size;
+            }
+        }
+
+        recompute = i < n_cells;
+    }
+
+    /* The natural size have been successfully computed */
+    dim->natural_size = final_natural_size;
+    dim->final_size = final_natural_size;
+    for (i = 0; i < n_cells; ++i)
+        cell[i]->dim[di].natural_size = cell[i]->dim[di].final_size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_cache_natural_size(Layout *layout, const uint32_t di)
+{
+    Cell **cells = NULL;
+    uint32_t n = 0;
+    cassert_no_null(layout);
+    cassert(di <= 1);
+
+    cells = arrpt_all(layout->cells_dim[di], Cell);
+    n = layout->dim_num_elems[di];
+
+    arrst_foreach(dim, layout->lines_dim[di], i_LineDim)
+        cassert((dim_i == dim_total - 1 && dim->margin_after == 0) || dim_i < dim_total - 1);
+        if (dim->displayed == TRUE)
+        {
+            uint32_t i = 0;
+            dim->natural_size = dim->final_size;
+            for (i = 0; i < n; ++i)
+            {
+                if (cells[i]->displayed == TRUE)
+                {
+                    cells[i]->dim[di].natural_size = cells[i]->dim[di].final_size;
+                    if (cells[i]->type == i_ekLAYOUT)
+                        i_cache_natural_size(cells[i]->content.layout, di);
+                }
+            }
+        }
+        cells += layout->dim_num_elems[di];
+    arrst_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _layout_natural(Layout *layout, const uint32_t di, real32_t *dim0, real32_t *dim1)
+{
+    real32_t size = 0;
     Cell **cells = NULL;
     cassert_no_null(layout);
     cassert(di <= 1);
@@ -1695,15 +1742,27 @@ void _layout_dimension(Layout *layout, const uint32_t di, real32_t *dim0, real32
     cassert_no_null(dim1);
 
     cells = arrpt_all(layout->cells_dim[di], Cell);
+    size += layout->dim_margin_before[di];
 
     arrst_foreach(dim, layout->lines_dim[di], i_LineDim)
-        size += dim->margin;
-        i_line_compose(dim, di, cells, layout->dim_num_elems[di]);
-        size += dim->size;
+        cassert((dim_i == dim_total - 1 && dim->margin_after == 0) || dim_i < dim_total - 1);
+        if (dim->displayed == TRUE)
+        {
+            i_line_natural(dim, di, cells, layout->dim_num_elems[di]);
+            size += dim->final_size;
+            size += dim->margin_after;
+        }
+        else
+        {
+            dim->natural_size = 0;
+            dim->final_size = 0;
+        }
         cells += layout->dim_num_elems[di];
     arrst_end()
 
-    size += layout->dim_margin[di];
+    size += layout->dim_margin_after[di];
+
+    i_cache_natural_size(layout, di);
 
     if (di == 0)
         *dim0 = size;
@@ -1713,180 +1772,205 @@ void _layout_dimension(Layout *layout, const uint32_t di, real32_t *dim0, real32
 
 /*---------------------------------------------------------------------------*/
 
-static void i_dimension_resize(ArrSt(i_LineDim) *dim, const real32_t current_size, const real32_t required_size)
-{
-    real32_t diff = required_size - current_size;
-    real32_t total = 0;
-    uint32_t last_id = UINT32_MAX;
-    real32_t norm = 0;
-
-    cassert_no_null(dim);
-    arrst_foreach(edim, dim, i_LineDim)
-        norm += edim->resize_percent;
-        if (edim->resize_percent > 0)
-            last_id = edim_i;
-    arrst_end()
-
-    cassert_unref(bmath_absf(1 - norm) < i_EPSILON, norm);
-
-    arrst_foreach(edim, dim, i_LineDim)
-        real32_t increment = 0;
-
-        if (edim_i == last_id)
-            increment = diff - total;
-        else
-            increment = bmath_roundf(diff * edim->resize_percent);
-
-        /*
-         * In borderline cases, with diff approx to 0, it may be that
-         * the distribution of pixels between cells exceeds the required amount,
-         * due to rounding errors. This can cause an infinite recursion and
-         * overflow in i_line_expand(), by having cells with size < 0.
-         */
-        if (diff > 0 && total + increment > diff)
-            increment = diff - total;
-        else if (diff < 0 && total + increment < diff)
-            increment = diff - total;
-
-        /*
-         * This is an extreme case. The cell (width or height) cannot be
-         * reduced to less than 0 pixels. This can occur when there are
-         * many empty cells.
-         */
-        if (edim->size + increment > 0)
-            edim->size += increment;
-        else
-            edim->size = 0;
-
-        total += increment;
-        cassert(edim->size >= 0);
-    arrst_end()
-
-    cassert(bmath_absf(diff - total) < i_EPSILON);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static bool_t i_line_expand(real32_t *size, const uint32_t di, Cell **cell, const uint32_t n_cells)
+static void i_line_expand(const uint32_t di, Cell **line_cells, const uint32_t ncells, const real32_t required_size, real32_t *final_size)
 {
     uint32_t i = 0;
-    for (i = 0; i < n_cells; ++i)
+    cassert_no_null(final_size);
+    *final_size = required_size;
+    for (i = 0; i < ncells; ++i)
     {
-        if (cell[i]->displayed == FALSE)
-            continue;
-
-        switch (cell[i]->dim[di].align)
+        if (line_cells[i]->displayed == TRUE)
         {
-        case ekJUSTIFY:
-        {
-            real32_t cell_diff = *size - cell[i]->dim[di].size - cell[i]->dim[di].padding_after - cell[i]->dim[di].padding_before;
-            real32_t new_size = cell[i]->dim[di].size + cell_diff;
+            if (line_cells[i]->dim[di].align == ekJUSTIFY)
+                i_cell_expand(line_cells[i], di, required_size);
 
-            switch (cell[i]->type)
-            {
-            case i_ekCOMPONENT:
-                _component_expand(cell[i]->content.component, di, cell[i]->dim[di].size, new_size, &cell[i]->dim[di].size);
-                break;
-
-            case i_ekLAYOUT:
-                _layout_expand(cell[i]->content.layout, di, cell[i]->dim[di].size, new_size, &cell[i]->dim[di].size);
-                break;
-
-            case i_ekEMPTY:
-                break;
-
-                cassert_default();
-            }
-
-            break;
-        }
-
-        case ekLEFT:
-        case ekRIGHT:
-        case ekCENTER:
-            switch (cell[i]->type)
-            {
-            case i_ekCOMPONENT:
-                _component_expand(cell[i]->content.component, di, cell[i]->dim[di].size, cell[i]->dim[di].size, &cell[i]->dim[di].size);
-                break;
-
-            case i_ekLAYOUT:
-                _layout_expand(cell[i]->content.layout, di, cell[i]->dim[di].size, cell[i]->dim[di].size, &cell[i]->dim[di].size);
-                break;
-
-            case i_ekEMPTY:
-                break;
-
-                cassert_default();
-            }
-
-            break;
-
-        default:
-            cassert(cell[i]->dim[di].align == ENUM_MAX(align_t));
-            cassert(cell[i]->type == i_ekEMPTY);
-        }
-
-        /* A col/row can not be narrowed below what is allowed in a cell. */
-        if (cell[i]->dim[di].size > *size)
-        {
-            *size = cell[i]->dim[di].size;
-            return FALSE;
+            if (line_cells[i]->dim[di].final_size > *final_size)
+                *final_size = line_cells[i]->dim[di].final_size;
         }
     }
-
-    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _layout_expand(Layout *layout, const uint32_t di, const real32_t current_size, const real32_t required_size, real32_t *final_size)
+static bool_t i_dimension_resize(ArrSt(i_LineDim) *dim, const uint32_t di, Cell **cells, const uint32_t dim_num_elems, const real32_t current_size, const real32_t required_size, real32_t *final_size)
 {
-    Cell **cells = NULL;
+    real32_t diff = bmath_roundf(required_size - current_size);
+    real32_t norm = 0;
+    uint32_t last_edim = UINT32_MAX;
+    bool_t can_resize = FALSE;
+    cassert_no_null(final_size);
+
+    /* There are space for grow/shrink */
+    if (bmath_absf(diff) > i_EPSILON)
+        can_resize = TRUE;
+
+    /* Estimate which partions can be resized */
+    if (can_resize == TRUE)
+    {
+        arrst_foreach(edim, dim, i_LineDim)
+            cassert(edim->resize_perc >= 0);
+            if (edim->blocked == FALSE && edim->displayed == TRUE && edim->resize_perc > i_EPSILON)
+            {
+                edim->must_resize = TRUE;
+                norm += edim->resize_perc;
+                last_edim = edim_i;
+            }
+            else
+            {
+                edim->must_resize = FALSE;
+            }
+        arrst_end()
+        can_resize = bmath_absf(norm) > i_EPSILON;
+    }
+
+    /* At least, one partition can be resized */
+    if (can_resize == TRUE)
+    {
+        real32_t diff_apply = 0;
+
+        *final_size = current_size;
+
+        arrst_foreach(edim, dim, i_LineDim)
+            cassert(edim->resize_perc >= 0);
+            if (edim->must_resize == TRUE)
+            {
+                real32_t increment = 0;
+                real32_t erequired_size, efinal_size = 0;
+
+                /* Perfect adjust. Avoid a new resize for a few pixels because the round of increment */
+                if (edim_i == last_edim)
+                    increment = diff - diff_apply;
+                else
+                    increment = bmath_roundf(diff * (edim->resize_perc / norm));
+
+                if (diff_apply + increment > bmath_absf(diff))
+                    increment = diff - diff_apply;
+
+                /* Any partition can be narrower than */
+                if (bmath_absf(edim->final_size + increment) > i_MINIMUM_PIXELS_SIZE)
+                {
+                    erequired_size = edim->final_size + increment;
+                }
+                /* The cell has reached a minimum size. Blocked it */
+                else
+                {
+                    erequired_size = i_MINIMUM_PIXELS_SIZE;
+                    edim->blocked = TRUE;
+                }
+
+                /* We try to expand all cells in the partition */
+                i_line_expand(di, cells + (edim_i * dim_num_elems), dim_num_elems, erequired_size, &efinal_size);
+
+                diff_apply += efinal_size - edim->final_size;
+                *final_size += efinal_size - edim->final_size;
+                edim->final_size = efinal_size;
+            }
+        arrst_end()
+    }
+    else
+    {
+        /* No resize can be done, restrictions cannot be met */
+        *final_size = current_size;
+    }
+
+    /* If TRUE, another resize iteration can be carried out */
+    return can_resize;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _layout_expand(Layout *layout, const uint32_t di, const real32_t natural_size, const real32_t required_size, real32_t *final_size)
+{
+    bool_t recompute = TRUE;
+    real32_t current_size = natural_size;
+    Cell **cells = arrpt_all(layout->cells_dim[di], Cell);
     cassert_no_null(layout);
-
-    i_dimension_resize(layout->lines_dim[di], current_size, required_size);
+    cassert_no_null(final_size);
     cells = arrpt_all(layout->cells_dim[di], Cell);
-    *final_size = 0.f;
 
-    arrst_foreach(edim, layout->lines_dim[di], i_LineDim)
-        while (i_line_expand(&edim->size, di, cells, layout->dim_num_elems[di]) == FALSE)
-        {
-        }
-
-        *final_size += edim->size;
-        *final_size += edim->margin;
-        cells += layout->dim_num_elems[di];
+    /* Unblock all partitions */
+    arrst_foreach(dim, layout->lines_dim[di], i_LineDim)
+        dim->blocked = FALSE;
+        dim->final_size = dim->natural_size;
     arrst_end()
 
-    *final_size += layout->dim_margin[di];
+    while (recompute == TRUE)
+    {
+        real32_t iter_final_size = 0;
+        recompute = i_dimension_resize(layout->lines_dim[di], di, cells, layout->dim_num_elems[di], current_size, required_size, &iter_final_size);
+
+        if (recompute == TRUE)
+        {
+            /* The current iteration has met the constraints */
+            if (bmath_absf(current_size - iter_final_size) < i_EPSILON)
+                recompute = FALSE;
+        }
+
+        if (recompute == TRUE)
+            current_size = iter_final_size;
+        else
+            *final_size = iter_final_size;
+    }
+
+    /*
+     * Finally, we have the final size of each partition. However, there may be cells with ekJUSTIFY
+     * that are narrower than the final dimension, as they would have allowed for a smaller resizing.
+     * Here, we force these cells to expand to the final partition size.
+     */
+    arrst_foreach(dim, layout->lines_dim[di], i_LineDim)
+        if (dim->displayed == TRUE)
+        {
+            uint32_t i, dim_num_elems = layout->dim_num_elems[di];
+            Cell **line_cells = cells + (dim_i * dim_num_elems);
+            for (i = 0; i < dim_num_elems; ++i)
+            {
+                if (line_cells[i]->dim[di].align == ekJUSTIFY)
+                    i_cell_expand(line_cells[i], di, dim->final_size);
+            }
+        }
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
+
+/*
+ * _layout_compose() is a constraint satisfaction algorithm that recursively calculates
+ * the positions and sizes (frames) of the widgets that make up a window. It consists
+ * of two phases: _layout_natural() and _layout_expand(). The first calculates the initial
+ * (natural) size of the window, and the second expands or contracts it if a size has been
+ * forced from outside, for example, when the window is resized.
+ * It acts first on the X coordinate (width) and then on the Y coordinate (height).
+ * This is because the height of a widget can be conditioned by its width, for example, in
+ * multi-line labels.
+ *
+ * Important: _layout_compose() is very fast because it only manipulates numbers that
+ * represent sizes and does not actually size any widget (it does not call native APIs).
+ * This will be done using _layout_locate() once _layout_compose() has completed.
+ */
 
 void _layout_compose(Layout *layout, const S2Df *required_size, S2Df *final_size)
 {
-    S2Df original_size = kS2D_ZEROf;
+    real32_t natural_width = 0, natural_height = 0;
     cassert_no_null(layout);
     cassert_no_null(final_size);
-    _layout_dimension(layout, 0, &original_size.width, &original_size.height);
-    _layout_expand(layout, 0, original_size.width, required_size != NULL ? required_size->width : original_size.width, &final_size->width);
-    cassert(original_size.height == 0.f);
-    _layout_dimension(layout, 1, &original_size.width, &original_size.height);
-    _layout_expand(layout, 1, original_size.height, required_size != NULL ? required_size->height : original_size.height, &final_size->height);
+    _layout_natural(layout, 0, &natural_width, &natural_height);
+    _layout_expand(layout, 0, natural_width, required_size != NULL ? required_size->width : natural_width, &final_size->width);
+    cassert(natural_height == 0);
+    _layout_natural(layout, 1, &natural_width, &natural_height);
+    _layout_expand(layout, 1, natural_height, required_size != NULL ? required_size->height : natural_height, &final_size->height);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_dimension_size(const ArrSt(i_LineDim) *dim, const real32_t margin)
+static real32_t i_dimension_size(const ArrSt(i_LineDim) *dim, const real32_t margin_before, const real32_t margin_after)
 {
-    real32_t size = margin;
+    real32_t size = margin_before;
     arrst_foreach_const(edim, dim, i_LineDim)
-        {
-            size += edim->margin;
-            size += edim->size;
-        }
+        cassert((edim_i == edim_total - 1 && edim->margin_after == 0) || edim_i < edim_total - 1);
+        size += edim->final_size;
+        size += edim->margin_after;
     arrst_end()
+    size += margin_after;
     return size;
 }
 
@@ -1903,26 +1987,28 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
     cassert_no_null(layout);
     if (layout->bgcolor != 0 || layout->skcolor != 0)
     {
-        real32_t width = i_dimension_size(layout->lines_dim[0], layout->dim_margin[0]);
-        real32_t height = i_dimension_size(layout->lines_dim[1], layout->dim_margin[1]);
+        real32_t width = i_dimension_size(layout->lines_dim[0], layout->dim_margin_before[0], layout->dim_margin_after[0]);
+        real32_t height = i_dimension_size(layout->lines_dim[1], layout->dim_margin_before[1], layout->dim_margin_after[1]);
         func_area(ospanel, layout, layout->bgcolor, layout->skcolor, lorigin.x, lorigin.y, width, height);
     }
 
-    ncols = arrst_size(layout->lines_dim[0], i_LineDim);
-    nrows = arrst_size(layout->lines_dim[1], i_LineDim);
+    ncols = i_NUM_COLS(layout);
+    nrows = i_NUM_ROWS(layout);
     cols = arrst_all(layout->lines_dim[0], i_LineDim);
     rows = arrst_all(layout->lines_dim[1], i_LineDim);
     cells = arrpt_all_const(layout->cells, Cell);
+
+    lorigin.y += layout->dim_margin_before[1];
+
     for (i = 0; i < nrows; ++i)
     {
-        lorigin.y += rows[i].margin;
         lorigin.x = xorigin;
+        lorigin.x += layout->dim_margin_before[0];
+
         for (j = 0; j < ncols; ++j)
         {
             uint32_t p = i * ncols + j;
             const Cell *cell = cells[p];
-
-            lorigin.x += cols[j].margin;
 
             if (cell->displayed == TRUE)
             {
@@ -1931,8 +2017,8 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
 
                 cell_origin.x = lorigin.x + cell->dim[0].padding_after;
                 cell_origin.y = lorigin.y + cell->dim[1].padding_after;
-                cell_size.width = cell->dim[0].size;
-                cell_size.height = cell->dim[1].size;
+                cell_size.width = cell->dim[0].final_size;
+                cell_size.height = cell->dim[1].final_size;
 
                 switch (cell->dim[0].align)
                 {
@@ -1942,14 +2028,14 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
 
                 case ekRIGHT:
                 {
-                    real32_t cell_diff = cols[j].size - cell->dim[0].size - cell->dim[0].padding_after - cell->dim[0].padding_before;
+                    real32_t cell_diff = cols[j].final_size - cell->dim[0].final_size - cell->dim[0].padding_before - cell->dim[0].padding_after;
                     cell_origin.x += cell_diff;
                     break;
                 }
 
                 case ekCENTER:
                 {
-                    real32_t cell_diff = cols[j].size - cell->dim[0].size - cell->dim[0].padding_after - cell->dim[0].padding_before;
+                    real32_t cell_diff = cols[j].final_size - cell->dim[0].final_size - cell->dim[0].padding_before - cell->dim[0].padding_after;
                     cell_origin.x += bmath_floorf(.5f * cell_diff);
                     break;
                 }
@@ -1963,14 +2049,14 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
 
                 case ekBOTTOM:
                 {
-                    real32_t cell_diff = rows[i].size - cell->dim[1].size - cell->dim[1].padding_after - cell->dim[1].padding_before;
+                    real32_t cell_diff = rows[i].final_size - cell->dim[1].final_size - cell->dim[1].padding_before - cell->dim[1].padding_after;
                     cell_origin.y += cell_diff;
                     break;
                 }
 
                 case ekCENTER:
                 {
-                    real32_t cell_diff = rows[i].size - cell->dim[1].size - cell->dim[1].padding_after - cell->dim[1].padding_before;
+                    real32_t cell_diff = rows[i].final_size - cell->dim[1].final_size - cell->dim[1].padding_before - cell->dim[1].padding_after;
                     cell_origin.y += bmath_floorf(.5f * cell_diff);
                     break;
                 }
@@ -1993,10 +2079,12 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
                 }
             }
 
-            lorigin.x += cols[j].size;
+            lorigin.x += cols[j].final_size;
+            lorigin.x += cols[j].margin_after;
         }
 
-        lorigin.y += rows[i].size;
+        lorigin.y += rows[i].final_size;
+        lorigin.y += rows[i].margin_after;
     }
 }
 
@@ -2004,23 +2092,29 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
 
 static void i_layout_visible(Layout *layout, const bool_t parent_visible)
 {
+    Cell **cells = NULL;
     cassert_no_null(layout);
-    arrpt_foreach(cell, layout->cells, Cell)
-        bool_t visible = cell->visible && cell->displayed && parent_visible;
 
-        switch (cell->type)
-        {
-        case i_ekCOMPONENT:
-            _component_visible(cell->content.component, visible);
-            break;
-        case i_ekLAYOUT:
-            i_layout_visible(cell->content.layout, visible);
-            break;
-        case i_ekEMPTY:
-            break;
-            cassert_default();
-        }
-    arrpt_end()
+    cells = arrpt_all(layout->cells, Cell);
+    arrst_foreach(row, layout->lines_dim[1], i_LineDim)
+        arrst_foreach(col, layout->lines_dim[0], i_LineDim)
+            Cell *cell = *cells;
+            bool_t visible = row->displayed && col->displayed & cell->visible && cell->displayed && parent_visible;
+            switch (cell->type)
+            {
+            case i_ekCOMPONENT:
+                _component_visible(cell->content.component, visible);
+                break;
+            case i_ekLAYOUT:
+                i_layout_visible(cell->content.layout, visible);
+                break;
+            case i_ekEMPTY:
+                break;
+                cassert_default();
+            }
+            cells += 1;
+        arrst_end()
+    arrst_end()
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2030,7 +2124,6 @@ static void i_layout_enabled(Layout *layout, const bool_t parent_enabled)
     cassert_no_null(layout);
     arrpt_foreach(cell, layout->cells, Cell)
         bool_t enabled = cell->enabled && parent_enabled;
-
         switch (cell->type)
         {
         case i_ekCOMPONENT:
@@ -2071,10 +2164,12 @@ void _layout_locate(Layout *layout)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_cell_taborder(const Cell *cell, Window *window)
+static void i_cell_taborder(const i_LineDim *col, const i_LineDim *row, const Cell *cell, Window *window)
 {
+    cassert_no_null(col);
+    cassert_no_null(row);
     cassert_no_null(cell);
-    if (cell->displayed == TRUE && cell->tabstop == TRUE)
+    if (col->displayed == TRUE && row->displayed == TRUE && cell->displayed == TRUE && cell->tabstop == TRUE)
     {
         switch (cell->type)
         {
@@ -2098,17 +2193,21 @@ static void i_cell_taborder(const Cell *cell, Window *window)
 void _layout_taborder(const Layout *layout, Window *window)
 {
     const Cell **cells = NULL;
+    const i_LineDim *cols = NULL;
+    const i_LineDim *rows = NULL;
     uint32_t i = 0, j = 0, ncols = 0, nrows = 0;
     cassert_no_null(layout);
     cells = arrpt_all_const(layout->cells, Cell);
-    ncols = arrst_size(layout->lines_dim[0], i_LineDim);
-    nrows = arrst_size(layout->lines_dim[1], i_LineDim);
+    cols = arrst_all_const(layout->lines_dim[0], i_LineDim);
+    rows = arrst_all_const(layout->lines_dim[1], i_LineDim);
+    ncols = i_NUM_COLS(layout);
+    nrows = i_NUM_ROWS(layout);
     if (layout->is_row_major_tab == TRUE)
     {
         for (i = 0; i < nrows; ++i)
         {
             for (j = 0; j < ncols; ++j)
-                i_cell_taborder(cells[i * ncols + j], window);
+                i_cell_taborder(cols + j, rows + i, cells[i * ncols + j], window);
         }
     }
     else
@@ -2116,7 +2215,7 @@ void _layout_taborder(const Layout *layout, Window *window)
         for (i = 0; i < ncols; ++i)
         {
             for (j = 0; j < nrows; ++j)
-                i_cell_taborder(cells[j * ncols + i], window);
+                i_cell_taborder(cols + i, rows + j, cells[j * ncols + i], window);
         }
     }
 }
@@ -2451,7 +2550,7 @@ void cell_force_size(Cell *cell, const real32_t width, const real32_t height)
 real32_t cell_get_hsize(const Cell *cell)
 {
     cassert_no_null(cell);
-    return cell->dim[0].size;
+    return cell->dim[0].final_size;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2459,7 +2558,7 @@ real32_t cell_get_hsize(const Cell *cell)
 real32_t cell_get_vsize(const Cell *cell)
 {
     cassert_no_null(cell);
-    return cell->dim[1].size;
+    return cell->dim[1].final_size;
 }
 
 /*---------------------------------------------------------------------------*/

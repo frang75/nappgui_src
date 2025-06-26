@@ -12,7 +12,7 @@
 
 #include "httpreq.h"
 #include "oshttpreq.inl"
-#include "url.h"
+#include <encode/url.h>
 #include <core/arrst.h>
 #include <core/heap.h>
 #include <core/stream.h>
@@ -20,6 +20,14 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
+
+typedef struct _field_t Field;
+
+struct _field_t
+{
+    String *name;
+    String *value;
+};
 
 struct _http_t
 {
@@ -33,6 +41,8 @@ struct _http_t
     String *rmsg;
     ArrSt(Field) *headers;
 };
+
+DeclSt(Field);
 
 /*---------------------------------------------------------------------------*/
 

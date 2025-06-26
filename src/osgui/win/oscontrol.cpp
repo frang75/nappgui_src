@@ -111,7 +111,7 @@ void _oscontrol_destroy(OSControl *control)
 
 /*---------------------------------------------------------------------------*/
 
-char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
+char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t *nchars)
 {
     uint32_t num_chars = 0;
     WCHAR *wtext = NULL;
@@ -150,6 +150,7 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize)
     if (wtext_alloc != NULL)
         heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSControlGetTextBuf");
 
+    ptr_assign(nchars, num_chars - 1);
     return control_text;
 }
 
@@ -259,16 +260,6 @@ void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *he
     cassert_unref(ret != 0, ret);
     *width = (real32_t)(rect.right - rect.left);
     *height = (real32_t)(rect.bottom - rect.top);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_set_position(OSControl *control, const int x, const int y)
-{
-    BOOL ret;
-    cassert_no_null(control);
-    ret = SetWindowPos(control->hwnd, NULL, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-    cassert_unref(ret != 0, ret);
 }
 
 /*---------------------------------------------------------------------------*/
