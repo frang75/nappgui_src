@@ -194,6 +194,7 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
     case ekGUI_TYPE_COMBOBOX:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
+    case ekGUI_TYPE_CUSTOMVIEW:
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
@@ -201,7 +202,6 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
-    case ekGUI_TYPE_CUSTOMVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
     case ekGUI_TYPE_HEADER:

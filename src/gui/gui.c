@@ -240,8 +240,10 @@ const char_t *gui_text(const ResId id)
 {
     bool_t is_resid;
     const char_t *text = respack_atext(i_PACKS, id, &is_resid);
-    cassert_unref(is_resid == TRUE, is_resid);
-    return text;
+    if (is_resid == TRUE)
+        return text;
+    else
+        return id;
 }
 
 /*---------------------------------------------------------------------------*/

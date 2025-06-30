@@ -19,11 +19,15 @@
     * Removed `splitview_size()`.
     * Renamed `splitview_text()` by `splitview_textview()`.
     * Renamed `splitview_split()` by `splitview_splitview()`.
-- New library `encode` with support for data formats and encodings. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit]().
+- New library `encode` with support for data formats and encodings. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit](https://github.com/frang75/nappgui_src/commit/b936b4d388dcc2eef40b0d6ef11bb55dc50e0999).
+
+### Fixed
+
+- `gui_text()` bypass `const char_t*` strings. [Commit]().
 
 ### Changed
 
-- `Json`, `Base64` and `Url` modules moved from `inet` to `encode` to avoid `libcurl` dependencies when using them. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit]().
+- `Json`, `Base64` and `Url` modules moved from `inet` to `encode` to avoid `libcurl` dependencies when using them. [Issue](https://github.com/frang75/nappgui_src/issues/176) **Set5**. [Commit](https://github.com/frang75/nappgui_src/commit/b936b4d388dcc2eef40b0d6ef11bb55dc50e0999).
 
 ### Build system
 
