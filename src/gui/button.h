@@ -49,6 +49,8 @@ _gui_api void button_state(Button *button, const gui_state_t state);
 
 _gui_api void button_tag(Button *button, const uint32_t tag);
 
+_gui_api void button_hpadding(Button *button, const real32_t padding);
+
 _gui_api void button_vpadding(Button *button, const real32_t padding);
 
 _gui_api gui_state_t button_get_state(const Button *button);

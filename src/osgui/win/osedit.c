@@ -63,12 +63,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_ERASEBKGND:
         return 1;
 
-    case WM_NCCALCSIZE:
-        return _osgui_nccalcsize(hwnd, wParam, lParam, TRUE, edit->wpadding, &edit->border);
-
-    case WM_NCPAINT:
-        return _osgui_ncpaint(hwnd, edit->focused, &edit->border, edit->bgbrush);
-
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(edit, OSControl)) == TRUE)
@@ -147,7 +141,7 @@ OSEdit *osedit_create(const uint32_t flags)
     DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | _oscontrol_halign(ekLEFT) | i_flags(flags);
     edit->control.type = ekGUI_TYPE_EDITBOX;
     edit->flags = flags;
-    _oscontrol_init(cast(edit, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY /*| WS_EX_CLIENTEDGE*/), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init(cast(edit, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     edit->font = _osgui_create_default_font();
     edit->launch_event = TRUE;
     edit->focused = FALSE;

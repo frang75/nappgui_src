@@ -50,6 +50,7 @@
 {
   @public
     uint32_t flags;
+    uint32_t hpadding;
     uint32_t vpadding;
     OSTextAttr attrs;
     NSString *keyEquivalent;
@@ -863,6 +864,7 @@ OSButton *osbutton_create(const uint32_t flags)
     heap_auditor_add("OSXButtonCell");
     button = [[OSXButton alloc] initWithFrame:NSZeroRect];
     button->flags = flags;
+    button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->OnClick = NULL;
     _oscontrol_init(button);
@@ -1067,17 +1069,26 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+void osbutton_hpadding(OSButton *button, const real32_t padding)
+{
+    OSXButton *lbutton = cast(button, OSXButton);
+    cassert_no_null(lbutton);
+    if (padding >= 0)
+        lbutton->hpadding = (uint32_t)padding;
+    else
+        lbutton->hpadding = UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osbutton_vpadding(OSButton *button, const real32_t padding)
 {
     OSXButton *lbutton = cast(button, OSXButton);
     cassert_no_null(lbutton);
-    if (button_get_type(lbutton->flags) == ekBUTTON_PUSH)
-    {
-        if (padding >= 0)
-            lbutton->vpadding = (uint32_t)padding;
-        else
-            lbutton->vpadding = UINT32_MAX;
-    }
+    if (padding >= 0)
+        lbutton->vpadding = (uint32_t)padding;
+    else
+        lbutton->vpadding = UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1094,14 +1105,26 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_PUSH:
     {
         char_t tbuff[256];
-        real32_t margin_width, margin_height;
+        real32_t woff, hoff;
         OSXButtonCell *cell = [lbutton cell];
         real32_t xscale = font_xscale(lbutton->attrs.font);
         uint32_t imgwidth = 0;
         _osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
         font_extents(lbutton->attrs.font, tbuff, -1.f, width, height);
-        font_extents(lbutton->attrs.font, xscale >= 1 ? "OO" : "OOOO", -1.f, &margin_width, &margin_height);
-        *width += margin_width + 2;
+        font_extents(lbutton->attrs.font, "O", -1.f, &woff, &hoff);
+
+        if (lbutton->hpadding == UINT32_MAX)
+        {
+            *width += 4 * woff;
+        }
+        else
+        {
+            if (lbutton->hpadding < 2 * woff)
+                *width += 2 * woff;
+            else
+                *width += (real32_t)lbutton->hpadding;
+        }
+
         cell->text_width = *width;
 
         if (cell->image != NULL)
@@ -1169,10 +1192,19 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
-        *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        if (lbutton->hpadding == UINT32_MAX)
+            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+        else
+            *width = refwidth + (real32_t)lbutton->hpadding;
+
+        if (lbutton->vpadding == UINT32_MAX)
+            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        else
+            *height = refheight + (real32_t)lbutton->vpadding;
+
         if (refwidth <= 16.f)
             *width += 4.f;
+
         if (refheight <= 16.f)
             *height += 4.f;
         break;

@@ -34,6 +34,8 @@ _osgui_api void osbutton_state(OSButton *button, const gui_state_t state);
 
 _osgui_api gui_state_t osbutton_get_state(const OSButton *button);
 
+_osgui_api void osbutton_hpadding(OSButton *button, const real32_t padding);
+
 _osgui_api void osbutton_vpadding(OSButton *button, const real32_t padding);
 
 _osgui_api void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t refwidth, const real32_t refheight, real32_t *width, real32_t *height);

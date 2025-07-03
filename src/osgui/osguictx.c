@@ -75,6 +75,7 @@ GuiCtx *osguictx(void)
         osbutton_image,
         osbutton_state,
         osbutton_get_state,
+        osbutton_hpadding,
         osbutton_vpadding,
         osbutton_bounds,
         osbutton_attach,

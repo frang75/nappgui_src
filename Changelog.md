@@ -1,6 +1,16 @@
 # NAppGUI Changelog
 
-## v1.5.2 - WIP
+## v1.5.3 - WIP
+
+### Added
+
+- `button_hpadding()`. [Doc](). [Commit]().
+
+### Changed
+
+- `button_vpadding()` also is applied to flat buttons. [Doc](). [Commit]().
+
+## v1.5.2 - June 30, 2025 (r6370)
 
 ### Added
 
@@ -23,7 +33,7 @@
 
 ### Fixed
 
-- `gui_text()` bypass `const char_t*` strings. [Commit]().
+- `gui_text()` bypass `const char_t*` strings. [Commit](https://github.com/frang75/nappgui_src/commit/e6cf5a6dbd9f39a6283130f18e5ef9ef65442d9a).
 
 ### Changed
 

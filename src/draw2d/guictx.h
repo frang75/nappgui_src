@@ -128,6 +128,7 @@ _draw2d_api void guictx_append_button_manager_imp(
     FPtr_gctx_set_cptr func_button_set_image,
     FPtr_gctx_set_enum func_button_set_state,
     FPtr_gctx_get_enum func_button_get_state,
+    FPtr_gctx_set_real32 func_button_set_hpadding,
     FPtr_gctx_set_real32 func_button_set_vpadding,
     FPtr_gctx_bounds2 func_button_bounds,
     FPtr_gctx_set_ptr func_attach_button_to_panel,
@@ -149,6 +150,7 @@ _draw2d_api void guictx_append_button_manager_imp(
     func_button_set_image, \
     func_button_set_state, \
     func_button_get_state, \
+    func_button_set_hpadding, \
     func_button_set_vpadding, \
     func_button_bounds, \
     func_attach_button_to_panel, \
@@ -170,6 +172,7 @@ _draw2d_api void guictx_append_button_manager_imp(
         FUNC_CHECK_GCTX_SET_CPTR(func_button_set_image, button_type, image_type), \
         FUNC_CHECK_GCTX_SET_ENUM(func_button_set_state, button_type, gui_state_t), \
         FUNC_CHECK_GCTX_GET_ENUM(func_button_get_state, button_type, gui_state_t), \
+        FUNC_CHECK_GCTX_SET_REAL32(func_button_set_hpadding, button_type), \
         FUNC_CHECK_GCTX_SET_REAL32(func_button_set_vpadding, button_type), \
         FUNC_CHECK_GCTX_BOUNDS2(func_button_bounds, button_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_button_to_panel, button_type, panel_type), \
@@ -191,6 +194,7 @@ _draw2d_api void guictx_append_button_manager_imp(
             (FPtr_gctx_set_cptr)func_button_set_image, \
             (FPtr_gctx_set_enum)func_button_set_state, \
             (FPtr_gctx_get_enum)func_button_get_state, \
+            (FPtr_gctx_set_real32)func_button_set_hpadding, \
             (FPtr_gctx_set_real32)func_button_set_vpadding, \
             (FPtr_gctx_bounds2)func_button_bounds, \
             (FPtr_gctx_set_ptr)func_attach_button_to_panel, \

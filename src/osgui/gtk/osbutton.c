@@ -569,11 +569,18 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+void osbutton_hpadding(OSButton *button, const real32_t padding)
+{
+    cassert_no_null(button);
+    button->hpadding = padding >= 0 ? (uint32_t)padding : kBUTTON_HPADDING;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osbutton_vpadding(OSButton *button, const real32_t padding)
 {
     cassert_no_null(button);
-    if (button_get_type(button->flags) == ekBUTTON_PUSH)
-        button->vpadding = padding >= 0 ? (uint32_t)padding : kBUTTON_VPADDING;
+    button->vpadding = padding >= 0 ? (uint32_t)padding : kBUTTON_VPADDING;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -649,8 +656,15 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
-        *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        if (button->hpadding == UINT32_MAX)
+            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+        else
+            *width = refwidth + (real32_t)button->hpadding;
+
+        if (button->vpadding == UINT32_MAX)
+            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        else
+            *height = refheight + (real32_t)button->vpadding;
         break;
 
         cassert_default();

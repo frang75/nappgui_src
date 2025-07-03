@@ -391,6 +391,15 @@ void button_tag(Button *button, const uint32_t tag)
 
 /*---------------------------------------------------------------------------*/
 
+void button_hpadding(Button *button, const real32_t padding)
+{
+    cassert_no_null(button);
+    cassert_no_nullf(button->component.context->func_button_set_hpadding);
+    button->component.context->func_button_set_hpadding(button->component.ositem, padding);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void button_vpadding(Button *button, const real32_t padding)
 {
     cassert_no_null(button);

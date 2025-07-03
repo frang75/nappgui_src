@@ -44,6 +44,7 @@ struct _osbutton_t
     vkey_t key;
     Font *font;
     Image *image;
+    uint32_t hpadding;
     uint32_t vpadding;
     Listener *OnClick;
 };
@@ -272,6 +273,7 @@ OSButton *osbutton_create(const uint32_t flags)
     button->flags = flags;
     button->is_default = FALSE;
     button->can_focus = TRUE;
+    button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->key = ENUM_MAX(vkey_t);
     button->id = _osgui_unique_child_id();
@@ -492,16 +494,24 @@ gui_state_t osbutton_get_state(const OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+void osbutton_hpadding(OSButton *button, const real32_t padding)
+{
+    cassert_no_null(button);
+    if (padding >= 0)
+        button->hpadding = (uint32_t)padding;
+    else
+        button->hpadding = UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osbutton_vpadding(OSButton *button, const real32_t padding)
 {
     cassert_no_null(button);
-    if (button_get_type(button->flags) == ekBUTTON_PUSH)
-    {
-        if (padding >= 0)
-            button->vpadding = (uint32_t)padding;
-        else
-            button->vpadding = UINT32_MAX;
-    }
+    if (padding >= 0)
+        button->vpadding = (uint32_t)padding;
+    else
+        button->vpadding = UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -516,17 +526,22 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     {
     case ekBUTTON_PUSH:
     {
-        real32_t woff, hoff;
         real32_t fheight;
+        real32_t woff, hoff;
         font_extents(button->font, text, -1.f, width, &fheight);
-
-        /* Image is higher than text */
-        if (refheight > fheight)
-            *height = refheight;
-        else
-            *height = fheight;
-
         font_extents(button->font, "O", -1.f, &woff, &hoff);
+
+        if (button->hpadding == UINT32_MAX)
+        {
+            *width += 3 * woff;
+        }
+        else
+        {
+            if (button->hpadding < woff)
+                *width += woff;
+            else
+                *width += (real32_t)button->hpadding;
+        }
 
         /* Image width */
         if (refwidth > 0.f)
@@ -535,7 +550,11 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             *width += (real32_t)(2 * GetSystemMetrics(SM_CXEDGE));
         }
 
-        *width += 2 * woff;
+        /* Image is higher than text */
+        if (refheight > fheight)
+            *height = refheight;
+        else
+            *height = fheight;
 
         if (button->vpadding == UINT32_MAX)
         {
@@ -568,8 +587,15 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
-        *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        if (button->hpadding == UINT32_MAX)
+            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+        else
+            *width = refwidth + (real32_t)button->hpadding;
+
+        if (button->vpadding == UINT32_MAX)
+            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        else
+            *height = refheight + (real32_t)button->vpadding;
         break;
 
         cassert_default();

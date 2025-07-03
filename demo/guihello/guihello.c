@@ -22,7 +22,8 @@
 #include "sublayout.h"
 #include "subpanel.h"
 #include "tabstops.h"
-#include "vpadding.h"
+#include "buttonpad.h"
+#include "editpad.h"
 #include "modalwin.h"
 #include "multilayout.h"
 #include "dynlay.h"
@@ -78,63 +79,66 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = sliders();
         break;
     case 10:
-        panel = vpadding();
-        break;
-    case 11:
         panel = tabstops();
         break;
-    case 12:
+    case 11:
         panel = textviews();
         break;
-    case 13:
+    case 12:
         panel = table_view();
         break;
-    case 14:
+    case 13:
         panel = split_panel();
         break;
-    case 15:
+    case 14:
         panel = modal_windows(app->window);
         break;
-    case 16:
+    case 15:
         panel = flyout_window(app->window);
         break;
+    case 16:
+        panel = editpad();
+        break;
     case 17:
-        panel = hotkeys(app->window);
+        panel = buttonpad();
         break;
     case 18:
-        panel = guibind();
+        panel = hotkeys(app->window);
         break;
     case 19:
-        panel = layoutbind();
+        panel = guibind();
         break;
     case 20:
-        panel = basic_layout();
+        panel = layoutbind();
         break;
     case 21:
-        panel = sublayouts();
+        panel = basic_layout();
         break;
     case 22:
-        panel = subpanels();
+        panel = sublayouts();
         break;
     case 23:
-        panel = multilayouts();
+        panel = subpanels();
         break;
     case 24:
-        panel = scrollpanel();
+        panel = multilayouts();
         break;
     case 25:
-        panel = dynlay_panel();
+        panel = scrollpanel();
         break;
     case 26:
-        panel = dynmenu_panel(app->window);
+        panel = dynlay_panel();
         break;
     case 27:
-        panel = ip_input(app->window);
+        panel = dynmenu_panel(app->window);
         break;
     case 28:
-        panel = font_x_scale();
+        panel = ip_input(app->window);
         break;
     case 29:
+        panel = font_x_scale();
+        break;
+    case 30:
         panel = reduce(app->window);
         break;
     }
@@ -176,13 +180,14 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Text select", NULL);
     listbox_add_elem(list, "Text editor", NULL);
     listbox_add_elem(list, "Sliders", NULL);
-    listbox_add_elem(list, "Vertical padding", NULL);
     listbox_add_elem(list, "Tabstops", NULL);
     listbox_add_elem(list, "TextViews", NULL);
     listbox_add_elem(list, "TableView", NULL);
     listbox_add_elem(list, "SplitViews", NULL);
     listbox_add_elem(list, "Modal Windows", NULL);
     listbox_add_elem(list, "Flyout Windows", NULL);
+    listbox_add_elem(list, "Editbox padding", NULL);
+    listbox_add_elem(list, "Button padding", NULL);
     listbox_add_elem(list, "Hotkeys", NULL);
     listbox_add_elem(list, "Data Binding", NULL);
     listbox_add_elem(list, "Struct Binding", NULL);

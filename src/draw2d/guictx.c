@@ -171,6 +171,7 @@ void guictx_append_button_manager_imp(
     FPtr_gctx_set_cptr func_button_set_image,
     FPtr_gctx_set_enum func_button_set_state,
     FPtr_gctx_get_enum func_button_get_state,
+    FPtr_gctx_set_real32 func_button_set_hpadding,
     FPtr_gctx_set_real32 func_button_set_vpadding,
     FPtr_gctx_bounds2 func_button_bounds,
     FPtr_gctx_set_ptr func_attach_button_to_panel,
@@ -192,6 +193,7 @@ void guictx_append_button_manager_imp(
     cassert(context->func_button_set_image == NULL);
     cassert(context->func_button_set_state == NULL);
     cassert(context->func_button_get_state == NULL);
+    cassert(context->func_button_set_hpadding == NULL);
     cassert(context->func_button_set_vpadding == NULL);
     cassert(context->func_button_bounds == NULL);
     cassert(context->func_attach_to_panel[ekGUI_TYPE_BUTTON] == NULL);
@@ -211,6 +213,7 @@ void guictx_append_button_manager_imp(
     cassert_no_nullf(func_button_set_image);
     cassert_no_nullf(func_button_set_state);
     cassert_no_nullf(func_button_get_state);
+    cassert_no_nullf(func_button_set_hpadding);
     cassert_no_nullf(func_button_set_vpadding);
     cassert_no_nullf(func_button_bounds);
     cassert_no_nullf(func_attach_button_to_panel);
@@ -230,6 +233,7 @@ void guictx_append_button_manager_imp(
     context->func_button_set_image = func_button_set_image;
     context->func_button_set_state = func_button_set_state;
     context->func_button_get_state = func_button_get_state;
+    context->func_button_set_hpadding = func_button_set_hpadding;
     context->func_button_set_vpadding = func_button_set_vpadding;
     context->func_button_bounds = func_button_bounds;
     context->func_attach_to_panel[ekGUI_TYPE_BUTTON] = func_attach_button_to_panel;
