@@ -645,7 +645,11 @@ function(nap_web_libs _weblibs)
             set(${_weblibs} "${WEBVIEW_LIBPATH};version" PARENT_SCOPE)
 
         elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-            set(WEBVIEW_FRAMEWORK ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/WebKit.framework)
+            if (NOT OSX_SYSROOT)
+                message(FATAL_ERROR "OSX_SYSROOT is not set")
+            endif()
+
+            set(WEBVIEW_FRAMEWORK ${OSX_SYSROOT}/System/Library/Frameworks/WebKit.framework)
             set(${_weblibs} "${WEBVIEW_FRAMEWORK}" PARENT_SCOPE)
 
         elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")

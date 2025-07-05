@@ -139,11 +139,18 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     include(${NAPPGUI_ROOT_PATH}/prj/NAppMacOS.cmake)
 
     # Get the Base SDK
-    if (NOT CMAKE_OSX_SYSROOT)
-        message(FATAL_ERROR "CMAKE_OSX_SYSROOT is not set")
+    set(OSX_SYSROOT ${CMAKE_OSX_SYSROOT})
+
+    # In CMake 4, CMAKE_OSX_SYSROOT is empty by default
+    if (NOT OSX_SYSROOT)
+        execute_process(COMMAND xcrun --sdk macosx --show-sdk-path OUTPUT_VARIABLE OSX_SYSROOT)
     endif()
 
-    get_filename_component(CMAKE_BASE_OSX_SDK ${CMAKE_OSX_SYSROOT} NAME)
+    if (NOT OSX_SYSROOT)
+        message(FATAL_ERROR "OSX_SYSROOT is not set")
+    endif()
+
+    get_filename_component(CMAKE_BASE_OSX_SDK ${OSX_SYSROOT} NAME)
     string(REPLACE "MacOSX" "" CMAKE_BASE_OSX_SDK ${CMAKE_BASE_OSX_SDK})
     string(REPLACE ".sdk" "" CMAKE_BASE_OSX_SDK ${CMAKE_BASE_OSX_SDK})
 
@@ -207,9 +214,9 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     endif()
 
     # Libraries
-    set(COCOA_LIB ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/Cocoa.framework)
+    set(COCOA_LIB ${OSX_SYSROOT}/System/Library/Frameworks/Cocoa.framework)
     if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_GREATER 11.9999)
-        set(COCOA_LIB ${COCOA_LIB};${CMAKE_OSX_SYSROOT}/System/Library/Frameworks/UniformTypeIdentifiers.framework)
+        set(COCOA_LIB ${COCOA_LIB};${OSX_SYSROOT}/System/Library/Frameworks/UniformTypeIdentifiers.framework)
     endif()
 
 # Linux configuration

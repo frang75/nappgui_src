@@ -4,11 +4,11 @@
 
 ### Added
 
-- `button_hpadding()`. [Doc](). [Commit]().
+- `button_hpadding()`. [Doc](https://nappgui.com/en/gui/button.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/81e47587d356757dabaae565df0ddb54599ccf19).
 
 ### Changed
 
-- `button_vpadding()` also is applied to flat buttons. [Doc](). [Commit]().
+- `button_vpadding()` also is applied to flat buttons. [Doc](https://nappgui.com/en/gui/button.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/81e47587d356757dabaae565df0ddb54599ccf19).
 
 ## v1.5.2 - June 30, 2025 (r6370)
 
