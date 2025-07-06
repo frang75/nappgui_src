@@ -24,6 +24,7 @@
 #include <core/event.h>
 #include <core/heap.h>
 #include <core/strings.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)
@@ -81,15 +82,45 @@
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t button)
+{
+    cassert_no_null(label);
+    cassert_no_null(theEvent);
+    if (label->OnClick != NULL)
+    {
+        EvMouse params;
+        _oslistener_mouse_position_in_view_coordinates(label, [theEvent locationInWindow], &params.lx, &params.ly);
+        params.lx = bmath_roundf(params.lx);
+        params.ly = bmath_roundf(params.ly);
+        params.x = params.lx;
+        params.y = params.ly;
+        params.button = button;
+        params.count = (uint32_t)[theEvent clickCount];
+        params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
+        listener_event(label->OnClick, ekGUI_EVENT_LABEL, cast(label, OSLabel), &params, NULL, OSLabel, EvMouse, void);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void)mouseUp:(NSEvent *)theEvent
 {
-    unref(theEvent);
-    if (self->OnClick != NULL)
-    {
-        EvText params;
-        params.text = NULL;
-        listener_event(self->OnClick, ekGUI_EVENT_LABEL, cast(self, OSLabel), &params, NULL, OSLabel, EvText, void);
-    }
+    i_OnClick(self, theEvent, ekGUI_MOUSE_LEFT);
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)rightMouseUp:(NSEvent *)theEvent
+{
+    i_OnClick(self, theEvent, ekGUI_MOUSE_RIGHT);
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)otherMouseUp:(NSEvent *)theEvent
+{
+    i_OnClick(self, theEvent, ekGUI_MOUSE_MIDDLE);
 }
 
 /*---------------------------------------------------------------------------*/

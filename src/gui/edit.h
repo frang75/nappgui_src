@@ -61,14 +61,14 @@ _gui_api void edit_phstyle(Edit *edit, const uint32_t fstyle);
 
 _gui_api void edit_vpadding(Edit *edit, const real32_t padding);
 
-_gui_api const char_t *edit_get_text(const Edit *edit);
-
-_gui_api real32_t edit_get_height(const Edit *edit);
-
 _gui_api void edit_copy(const Edit *edit);
 
 _gui_api void edit_cut(Edit *edit);
 
 _gui_api void edit_paste(Edit *edit);
+
+_gui_api const char_t *edit_get_text(const Edit *edit);
+
+_gui_api real32_t edit_get_height(const Edit *edit);
 
 __END_C

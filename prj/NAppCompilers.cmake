@@ -153,6 +153,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     get_filename_component(CMAKE_BASE_OSX_SDK ${OSX_SYSROOT} NAME)
     string(REPLACE "MacOSX" "" CMAKE_BASE_OSX_SDK ${CMAKE_BASE_OSX_SDK})
     string(REPLACE ".sdk" "" CMAKE_BASE_OSX_SDK ${CMAKE_BASE_OSX_SDK})
+    string(REPLACE "\n" "" CMAKE_BASE_OSX_SDK ${CMAKE_BASE_OSX_SDK})
 
     # Get the Deployment target
     set(CMAKE_OSX_DEPLOYMENT_TARGET ${CMAKE_BASE_OSX_SDK} CACHE STRING "Minimun macOS SDK to support")

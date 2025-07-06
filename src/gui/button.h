@@ -39,8 +39,6 @@ _gui_api void button_tooltip(Button *button, const char_t *text);
 
 _gui_api void button_font(Button *button, const Font *font);
 
-_gui_api const Font *button_get_font(const Button *button);
-
 _gui_api void button_image(Button *button, const Image *image);
 
 _gui_api void button_image_alt(Button *button, const Image *image);
@@ -54,6 +52,10 @@ _gui_api void button_hpadding(Button *button, const real32_t padding);
 _gui_api void button_vpadding(Button *button, const real32_t padding);
 
 _gui_api gui_state_t button_get_state(const Button *button);
+
+_gui_api const char_t *button_get_text(const Button *button);
+
+_gui_api const Font *button_get_font(const Button *button);
 
 _gui_api uint32_t button_get_tag(const Button *button);
 

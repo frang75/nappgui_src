@@ -14,6 +14,7 @@
 #include "osgui_gtk.inl"
 #include <core/event.h>
 #include <sewer/cassert.h>
+#include <sewer/bmath.h>
 #include <sewer/bmem.h>
 
 #if !defined(__GTK3__)
@@ -138,10 +139,10 @@ void _oslistener_mouse_enter(OSControl *sender, GdkEventCrossing *event, const r
     if (listeners->OnEnter != NULL)
     {
         EvMouse params;
-        params.lx = (real32_t)event->x;
-        params.ly = (real32_t)event->y;
-        params.x = params.lx + scroll_x;
-        params.y = params.ly + scroll_y;
+        params.lx = bmath_roundf((real32_t)event->x);
+        params.ly = bmath_roundf((real32_t)event->y);
+        params.x = bmath_roundf(params.lx + scroll_x);
+        params.y = bmath_roundf(params.ly + scroll_y);
         params.button = ENUM_MAX(gui_mouse_t);
         params.count = 0;
         params.modifiers = _osgui_modifiers(event->state);
@@ -169,19 +170,20 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
     cassert_no_null(event);
     if (listeners->is_enabled == TRUE)
     {
+        EvMouse params;
+        params.lx = bmath_roundf((real32_t)event->x);
+        params.ly = bmath_roundf((real32_t)event->y);
+        params.x = bmath_roundf(params.lx + scroll_x);
+        params.y = bmath_roundf(params.ly + scroll_y);
+        params.count = 0;
+        params.modifiers = _osgui_modifiers(event->state);
+        params.tag = 0;
+
         if (listeners->button != ENUM_MAX(gui_mouse_t))
         {
             if (listeners->OnDrag != NULL)
             {
-                EvMouse params;
-                params.lx = (real32_t)event->x;
-                params.ly = (real32_t)event->y;
-                params.x = params.lx + scroll_x;
-                params.y = params.ly + scroll_y;
                 params.button = listeners->button;
-                params.count = 0;
-                params.modifiers = _osgui_modifiers(event->state);
-                params.tag = 0;
                 listener_event(listeners->OnDrag, ekGUI_EVENT_DRAG, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
@@ -189,15 +191,7 @@ void _oslistener_mouse_moved(OSControl *sender, GdkEventMotion *event, const rea
         {
             if (listeners->OnMoved != NULL)
             {
-                EvMouse params;
-                params.lx = (real32_t)event->x;
-                params.ly = (real32_t)event->y;
-                params.x = params.lx + scroll_x;
-                params.y = params.ly + scroll_y;
                 params.button = ENUM_MAX(gui_mouse_t);
-                params.count = 0;
-                params.modifiers = _osgui_modifiers(event->state);
-                params.tag = 0;
                 listener_event(listeners->OnMoved, ekGUI_EVENT_MOVED, sender, &params, NULL, OSControl, EvMouse, void);
             }
         }
@@ -212,29 +206,15 @@ void _oslistener_mouse_down(OSControl *sender, GdkEventButton *event, const real
     cassert_no_null(event);
     if (listeners->is_enabled == TRUE)
     {
-        switch (event->button)
-        {
-        case 1:
-            listeners->button = ekGUI_MOUSE_LEFT;
-            break;
-        case 2:
-            listeners->button = ekGUI_MOUSE_MIDDLE;
-            break;
-        case 3:
-            listeners->button = ekGUI_MOUSE_RIGHT;
-            break;
-        default:
-            listeners->button = ekGUI_MOUSE_LEFT;
-            break;
-        }
+        listeners->button = _oslistener_button(event);
 
         if (listeners->OnDown != NULL)
         {
             EvMouse params;
-            params.lx = (real32_t)event->x;
-            params.ly = (real32_t)event->y;
-            params.x = params.lx + scroll_x;
-            params.y = params.ly + scroll_y;
+            params.lx = bmath_roundf((real32_t)event->x);
+            params.ly = bmath_roundf((real32_t)event->y);
+            params.x = bmath_roundf(params.lx + scroll_x);
+            params.y = bmath_roundf(params.ly + scroll_y);
             params.button = listeners->button;
             params.count = 0;
             params.modifiers = _osgui_modifiers(event->state);
@@ -253,47 +233,22 @@ void _oslistener_mouse_up(OSControl *sender, GdkEventButton *event, const real32
     cassert_no_null(event);
     if (listeners->is_enabled == TRUE && listeners->button != ENUM_MAX(gui_mouse_t))
     {
+        EvMouse params;
+        params.lx = bmath_roundf((real32_t)event->x);
+        params.ly = bmath_roundf((real32_t)event->y);
+        params.x = bmath_roundf(params.lx + scroll_x);
+        params.y = bmath_roundf(params.ly + scroll_y);
+        params.button = listeners->button;
+        params.count = 0;
+        params.modifiers = _osgui_modifiers(event->state);
+        params.tag = 0;
+
         if (listeners->OnUp != NULL)
-        {
-            EvMouse params;
-            params.lx = (real32_t)event->x;
-            params.ly = (real32_t)event->y;
-            params.x = params.lx + scroll_x;
-            params.y = params.ly + scroll_y;
-            params.button = listeners->button;
-            params.count = 0;
-            params.modifiers = _osgui_modifiers(event->state);
-            params.tag = 0;
             listener_event(listeners->OnUp, ekGUI_EVENT_UP, sender, &params, NULL, OSControl, EvMouse, void);
-        }
 
         if (listeners->OnClick != NULL)
         {
-            EvMouse params;
-            params.lx = (real32_t)event->x;
-            params.ly = (real32_t)event->y;
-            params.x = params.lx + scroll_x;
-            params.y = params.ly + scroll_y;
-            params.button = listeners->button;
-            params.modifiers = _osgui_modifiers(event->state);
-            params.tag = 0;
-
-            switch (event->type)
-            {
-            case GDK_BUTTON_PRESS:
-                params.count = 1;
-                break;
-            case GDK_2BUTTON_PRESS:
-                params.count = 2;
-                break;
-            case GDK_3BUTTON_PRESS:
-                params.count = 3;
-                break;
-            default:
-                params.count = 1;
-                break;
-            }
-
+            params.count = _oslistener_click_count(event);
             listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, sender, &params, NULL, OSControl, EvMouse, void);
         }
 
@@ -312,8 +267,8 @@ void _oslistener_scroll_whell(OSControl *sender, GdkEventScroll *event, const re
         if (listeners->OnWheel != NULL)
         {
             EvWheel params;
-            params.x = (real32_t)event->x + scroll_x;
-            params.y = (real32_t)event->y + scroll_y;
+            params.x = bmath_roundf((real32_t)event->x + scroll_x);
+            params.y = bmath_roundf((real32_t)event->y + scroll_y);
             params.dx = 0;
             params.dy = event->direction == GDK_SCROLL_DOWN ? -1 : 1;
             params.dz = 0;
@@ -362,3 +317,37 @@ bool_t _oslistener_key_up(OSControl *sender, GdkEventKey *event, ViewListeners *
 }
 
 /*---------------------------------------------------------------------------*/
+
+gui_mouse_t _oslistener_button(const GdkEventButton *event)
+{
+    cassert_no_null(event);
+    switch (event->button)
+    {
+    case 1:
+        return ekGUI_MOUSE_LEFT;
+    case 2:
+        return ekGUI_MOUSE_MIDDLE;
+    case 3:
+        return ekGUI_MOUSE_RIGHT;
+    }
+
+    return ekGUI_MOUSE_LEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _oslistener_click_count(const GdkEventButton *event)
+{
+    cassert_no_null(event);
+    switch (event->type)
+    {
+    case GDK_BUTTON_PRESS:
+        return 1;
+    case GDK_2BUTTON_PRESS:
+        return 2;
+    case GDK_3BUTTON_PRESS:
+        return 3;
+    default:
+        return 1;
+    }
+}

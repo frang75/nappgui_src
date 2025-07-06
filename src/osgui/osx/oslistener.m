@@ -125,14 +125,11 @@ void _oslistener_mouse_moved(const NSView *view, NSEvent *theEvent, const OSScro
     cassert_no_null(theEvent);
     if (listeners->is_enabled && listeners->OnMoved != NULL)
     {
-        real32_t x, y;
+        EvMouse params;
         /*NSSize size = [view frame].size;*/
-        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &x, &y);
+        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.lx, &params.ly);
         /*if (x >= 0.f && x < size.width && y >= 0.f && y < size.height)*/
         {
-            EvMouse params;
-            params.lx = x;
-            params.ly = y;
             params.button = ENUM_MAX(gui_mouse_t);
             params.count = 0;
             params.x = params.lx;
@@ -216,40 +213,28 @@ void _oslistener_mouse_up(const NSView *view, NSEvent *theEvent, const gui_mouse
     cassert_no_null(theEvent);
     if (listeners->is_enabled == YES)
     {
-        real32_t x, y;
+        EvMouse params;
         cassert_no_null(theEvent);
-        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &x, &y);
+        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.lx, &params.ly);
+        params.button = button;
+        params.count = 0;
+        params.x = params.lx;
+        params.y = params.ly;
+        params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
+        params.tag = 0;
+
+        if (scroll != NULL)
+        {
+            params.x += _osscrolls_x_pos(scroll);
+            params.y += _osscrolls_y_pos(scroll);
+        }
 
         if (listeners->OnUp != NULL)
-        {
-            EvMouse params;
-            params.lx = x;
-            params.ly = y;
-            params.button = button;
-            params.count = 0;
-            params.x = params.lx;
-            params.y = params.ly;
-            params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
-            params.tag = 0;
-
-            if (scroll != NULL)
-            {
-                params.x += _osscrolls_x_pos(scroll);
-                params.y += _osscrolls_y_pos(scroll);
-            }
-
             listener_event(listeners->OnUp, ekGUI_EVENT_UP, cast(view, OSView), &params, NULL, OSView, EvMouse, void);
-        }
 
         if (listeners->OnClick != NULL)
         {
-            EvMouse params;
-            params.x = x;
-            params.y = y;
-            params.button = button;
             params.count = (uint32_t)[theEvent clickCount];
-            params.modifiers = _osgui_modifiers([theEvent modifierFlags]);
-            params.tag = 0;
             listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, cast(view, OSView), &params, NULL, OSView, EvMouse, void);
         }
     }

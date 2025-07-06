@@ -45,14 +45,14 @@ _gui_api void listbox_check(ListBox *listbox, const uint32_t index, const bool_t
 
 _gui_api uint32_t listbox_count(const ListBox *listbox);
 
-_gui_api const char_t *listbox_text(const ListBox *listbox, const uint32_t index);
-
-_gui_api bool_t listbox_selected(const ListBox *listbox, uint32_t index);
-
-_gui_api bool_t listbox_checked(const ListBox *listbox, uint32_t index);
+_gui_api const char_t *listbox_get_text(const ListBox *listbox, const uint32_t index);
 
 _gui_api uint32_t listbox_get_selected(const ListBox *listbox);
 
 _gui_api real32_t listbox_get_row_height(const ListBox *listbox);
+
+_gui_api bool_t listbox_selected(const ListBox *listbox, uint32_t index);
+
+_gui_api bool_t listbox_checked(const ListBox *listbox, uint32_t index);
 
 __END_C

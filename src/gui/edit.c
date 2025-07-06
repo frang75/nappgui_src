@@ -445,25 +445,6 @@ void edit_vpadding(Edit *edit, const real32_t padding)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *edit_get_text(const Edit *edit)
-{
-    cassert_no_null(edit);
-    return tc(edit->text);
-}
-
-/*---------------------------------------------------------------------------*/
-
-real32_t edit_get_height(const Edit *edit)
-{
-    real32_t width, height;
-    cassert_no_null(edit);
-    _edit_natural(cast(edit, Edit), 0, &width, &height);
-    _edit_natural(cast(edit, Edit), 1, &width, &height);
-    return height;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void edit_copy(const Edit *edit)
 {
     cassert_no_null(edit);
@@ -487,6 +468,25 @@ void edit_paste(Edit *edit)
     cassert_no_null(edit);
     cassert_no_nullf(edit->component.context->func_edit_clipboard);
     edit->component.context->func_edit_clipboard(edit->component.ositem, ekCLIPBOARD_PASTE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *edit_get_text(const Edit *edit)
+{
+    cassert_no_null(edit);
+    return tc(edit->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t edit_get_height(const Edit *edit)
+{
+    real32_t width, height;
+    cassert_no_null(edit);
+    _edit_natural(cast(edit, Edit), 0, &width, &height);
+    _edit_natural(cast(edit, Edit), 1, &width, &height);
+    return height;
 }
 
 /*---------------------------------------------------------------------------*/

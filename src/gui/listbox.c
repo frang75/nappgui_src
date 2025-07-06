@@ -885,35 +885,13 @@ uint32_t listbox_count(const ListBox *listbox)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *listbox_text(const ListBox *listbox, const uint32_t index)
+const char_t *listbox_get_text(const ListBox *listbox, const uint32_t index)
 {
     LData *data = view_get_data(cast(listbox, View), LData);
     const PElem *elem = NULL;
     cassert_no_null(data);
     elem = arrst_get(data->elems, index, PElem);
     return tc(elem->text);
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t listbox_selected(const ListBox *listbox, uint32_t index)
-{
-    LData *data = view_get_data(cast(listbox, View), LData);
-    const PElem *elem = NULL;
-    cassert_no_null(data);
-    elem = arrst_get(data->elems, index, PElem);
-    return elem->select;
-}
-
-/*---------------------------------------------------------------------------*/
-
-bool_t listbox_checked(const ListBox *listbox, uint32_t index)
-{
-    LData *data = view_get_data(cast(listbox, View), LData);
-    const PElem *elem = NULL;
-    cassert_no_null(data);
-    elem = arrst_get(data->elems, index, PElem);
-    return elem->check;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -937,6 +915,28 @@ real32_t listbox_get_row_height(const ListBox *listbox)
     LData *data = view_get_data(cast(listbox, View), LData);
     cassert_no_null(data);
     return (real32_t)data->row_height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t listbox_selected(const ListBox *listbox, uint32_t index)
+{
+    LData *data = view_get_data(cast(listbox, View), LData);
+    const PElem *elem = NULL;
+    cassert_no_null(data);
+    elem = arrst_get(data->elems, index, PElem);
+    return elem->select;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t listbox_checked(const ListBox *listbox, uint32_t index)
+{
+    LData *data = view_get_data(cast(listbox, View), LData);
+    const PElem *elem = NULL;
+    cassert_no_null(data);
+    elem = arrst_get(data->elems, index, PElem);
+    return elem->check;
 }
 
 /*---------------------------------------------------------------------------*/

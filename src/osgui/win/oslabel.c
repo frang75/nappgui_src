@@ -65,6 +65,27 @@ static bool_t i_is_mouse_sensible(const OSLabel *label)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnClick(OSLabel *label, const gui_mouse_t button, const uint32_t count, LPARAM lParam)
+{
+    cassert_no_null(label);
+    if (label->OnClick != NULL)
+    {
+        EvMouse params;
+        POINTS point = MAKEPOINTS(lParam);
+        params.x = (real32_t)point.x;
+        params.y = (real32_t)point.y;
+        params.lx = params.x;
+        params.ly = params.y;
+        params.button = button;
+        params.count = count;
+        params.modifiers = _osgui_modifiers();
+        params.tag = 0;
+        listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvMouse, void);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSLabel *label = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSLabel);
@@ -79,14 +100,28 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             return HTTRANSPARENT;
 
     case WM_LBUTTONUP:
-        if (label->OnClick != NULL)
-        {
-            EvText params;
-            params.text = NULL;
-            listener_event(label->OnClick, ekGUI_EVENT_LABEL, label, &params, NULL, OSLabel, EvText, void);
-            return 0;
-        }
-        break;
+        i_OnClick(label, ekGUI_MOUSE_LEFT, 1, lParam);
+        return 0;
+
+    case WM_RBUTTONUP:
+        i_OnClick(label, ekGUI_MOUSE_RIGHT, 1, lParam);
+        return 0;
+
+    case WM_MBUTTONUP:
+        i_OnClick(label, ekGUI_MOUSE_MIDDLE, 1, lParam);
+        return 0;
+
+    case WM_LBUTTONDBLCLK:
+        i_OnClick(label, ekGUI_MOUSE_LEFT, 2, lParam);
+        return 0;
+
+    case WM_RBUTTONDBLCLK:
+        i_OnClick(label, ekGUI_MOUSE_RIGHT, 2, lParam);
+        return 0;
+
+    case WM_MBUTTONDBLCLK:
+        i_OnClick(label, ekGUI_MOUSE_MIDDLE, 2, lParam);
+        return 0;
 
     case WM_MOUSELEAVE:
         cassert(label->mouse_inside == TRUE);

@@ -3,6 +3,20 @@
 #include "sublayout.h"
 #include <gui/guiall.h>
 
+typedef struct _lpdata_t LPData;
+
+struct _lpdata_t
+{
+    TextView *view;
+};
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_ldata(LPData **data)
+{
+    heap_delete(data, LPData);
+}
+
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_updown_layout(void)
@@ -71,21 +85,34 @@ static Layout *i_left_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_top_layout(void)
+static Layout *i_top_layout(LPData *data)
 {
     Layout *layout1 = layout_create(2, 1);
     Layout *layout2 = i_left_layout();
     TextView *view = textview_create();
+    cassert_no_null(data);
     layout_layout(layout1, layout2, 0, 0);
     layout_textview(layout1, view, 1, 0);
     layout_hsize(layout1, 1, 230);
     layout_hmargin(layout1, 0, 5);
+    data->view = view;
     return layout1;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_bottom_layout(void)
+static void i_OnLabelClick(LPData *data, Event *e)
+{
+    Label *label = event_sender(e, Label);
+    const EvMouse *p = event_params(e, EvMouse);
+    const char_t *text = label_get_text(label);
+    textview_printf(data->view, "%s (%g, %g) %d %d\n", text, p->x, p->y, p->button, p->count);
+    textview_scroll_caret(data->view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_bottom_layout(LPData *data)
 {
     Layout *layout = layout_create(6, 1);
     Label *label1 = label_create();
@@ -100,6 +127,12 @@ static Layout *i_bottom_layout(void)
     label_text(label4, "Select 4");
     label_text(label5, "Select 5");
     label_text(label6, "Select 6");
+    label_OnClick(label1, listener(data, i_OnLabelClick, LPData));
+    label_OnClick(label2, listener(data, i_OnLabelClick, LPData));
+    label_OnClick(label3, listener(data, i_OnLabelClick, LPData));
+    label_OnClick(label4, listener(data, i_OnLabelClick, LPData));
+    label_OnClick(label5, listener(data, i_OnLabelClick, LPData));
+    label_OnClick(label6, listener(data, i_OnLabelClick, LPData));
     label_style_over(label1, ekFUNDERLINE);
     label_style_over(label2, ekFUNDERLINE);
     label_style_over(label3, ekFUNDERLINE);
@@ -117,11 +150,11 @@ static Layout *i_bottom_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_main_layout(void)
+static Layout *i_main_layout(LPData *data)
 {
     Layout *layout1 = layout_create(1, 2);
-    Layout *layout2 = i_top_layout();
-    Layout *layout3 = i_bottom_layout();
+    Layout *layout2 = i_top_layout(data);
+    Layout *layout3 = i_bottom_layout(data);
     layout_layout(layout1, layout2, 0, 0);
     layout_layout(layout1, layout3, 0, 1);
     layout_margin(layout1, 5);
@@ -133,8 +166,10 @@ static Layout *i_main_layout(void)
 
 Panel *sublayouts(void)
 {
+    LPData *data = heap_new0(LPData);
     Panel *panel = panel_create();
-    Layout *layout = i_main_layout();
+    Layout *layout = i_main_layout(data);
     panel_layout(panel, layout);
+    panel_data(panel, &data, i_destroy_ldata, LPData);
     return panel;
 }

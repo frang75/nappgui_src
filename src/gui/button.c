@@ -331,14 +331,6 @@ void button_font(Button *button, const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-const Font *button_get_font(const Button *button)
-{
-    cassert_no_null(button);
-    return button->font;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void button_image(Button *button, const Image *image)
 {
     const Image *limage = _gui_respack_image((ResId)image, NULL);
@@ -413,6 +405,22 @@ gui_state_t button_get_state(const Button *button)
 {
     cassert_no_null(button);
     return (gui_state_t)button->component.context->func_button_get_state(button->component.ositem);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *button_get_text(const Button *button)
+{
+    cassert_no_null(button);
+    return tc(button->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *button_get_font(const Button *button)
+{
+    cassert_no_null(button);
+    return button->font;
 }
 
 /*---------------------------------------------------------------------------*/

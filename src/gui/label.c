@@ -93,14 +93,8 @@ Label *label_create(void)
 
 static void i_OnClick(Label *label, Event *event)
 {
-    EvText *params = NULL;
     cassert_no_null(label);
     cassert_no_null(label->OnClick);
-    params = event_params(event, EvText);
-    cassert(params->text == NULL);
-    params->text = tc(label->text);
-    params->cpos = 0;
-    params->len = 0;
     listener_pass_event(label->OnClick, event, label, Label);
 }
 
@@ -210,14 +204,6 @@ void label_font(Label *label, const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
-const Font *label_get_font(const Label *label)
-{
-    cassert_no_null(label);
-    return label->font;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void label_style_over(Label *label, const uint32_t fstyle)
 {
     cassert_no_null(label);
@@ -279,6 +265,22 @@ void label_bgcolor_over(Label *label, const color_t color)
     cassert_no_null(label);
     label->bg_over_color = color;
     i_update_mouse_listeners(label);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *label_get_text(const Label *label)
+{
+    cassert_no_null(label);
+    return tc(label->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const Font *label_get_font(const Label *label)
+{
+    cassert_no_null(label);
+    return label->font;
 }
 
 /*---------------------------------------------------------------------------*/

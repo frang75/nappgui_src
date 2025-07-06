@@ -38,4 +38,8 @@ bool_t _oslistener_key_down(OSControl *sender, GdkEventKey *event, ViewListeners
 
 bool_t _oslistener_key_up(OSControl *sender, GdkEventKey *event, ViewListeners *listeners);
 
+gui_mouse_t _oslistener_button(const GdkEventButton *event);
+
+uint32_t _oslistener_click_count(const GdkEventButton *event);
+
 __END_C
