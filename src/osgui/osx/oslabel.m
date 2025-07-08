@@ -41,6 +41,8 @@
     uint32_t flags;
     color_t color;
     color_t bgcolor;
+    align_t align;
+    real32_t width;
     NSTrackingArea *tracking_area;
     Listener *OnClick;
     Listener *OnMouseEntered;
@@ -134,6 +136,7 @@ static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t butt
 
 - (void)drawRect:(NSRect)rect
 {
+    real32_t origin_x = 0;
     NSGraphicsContext *nscontext;
     unref(rect);
     cassert_no_null(self->ctx);
@@ -150,13 +153,30 @@ static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t butt
     else
         draw_text_color(self->ctx, ekSYSCOLOR_LABEL);
 
+    cassert(self->width > 0);
+
+    switch (self->align)
+    {
+    case ekLEFT:
+    case ekJUSTIFY:
+        origin_x = 0;
+        break;
+    case ekRIGHT:
+        origin_x = self->width;
+        break;
+    case ekCENTER:
+        origin_x = .5f * self->width;
+        break;
+        cassert_default();
+    }
+
     switch (label_get_type(self->flags))
     {
     case ekLABEL_SINGLE:
-        draw_text_single_line(self->ctx, tc(self->text), 0, 0);
+        draw_text_single_line(self->ctx, tc(self->text), origin_x, 0);
         break;
     case ekLABEL_MULTI:
-        draw_text(self->ctx, tc(self->text), 0, 0);
+        draw_text(self->ctx, tc(self->text), origin_x, 0);
         break;
         cassert_default();
     }
@@ -186,9 +206,11 @@ OSLabel *oslabel_create(const uint32_t flags)
     label->text = str_c("");
     label->color = kCOLOR_DEFAULT;
     label->bgcolor = kCOLOR_DEFAULT;
-    draw_text_align(label->ctx, ekLEFT, ekTOP);
-    draw_text_width(label->ctx, -1);
-    draw_text_halign(label->ctx, ekLEFT);
+    label->align = ekLEFT;
+    label->width = -1;
+    draw_text_align(label->ctx, label->align, ekTOP);
+    draw_text_halign(label->ctx, label->align);
+    draw_text_width(label->ctx, label->width);
     label->tracking_area = nil;
     label->OnClick = NULL;
     label->OnMouseEntered = NULL;
@@ -336,7 +358,9 @@ void oslabel_align(OSLabel *label, const align_t align)
 {
     OSXLabel *llabel = cast(label, OSXLabel);
     cassert_no_null(llabel);
-    draw_text_halign(llabel->ctx, align);
+    llabel->align = align;
+    draw_text_align(llabel->ctx, llabel->align, ekTOP);
+    draw_text_halign(llabel->ctx, llabel->align);
     [llabel setNeedsDisplay:YES];
 }
 
@@ -428,8 +452,9 @@ void oslabel_frame(OSLabel *label, const real32_t x, const real32_t y, const rea
 {
     OSXLabel *llabel = cast(label, OSXLabel);
     cassert_no_null(llabel);
+    llabel->width = width;
     _oscontrol_set_frame(llabel, x, y, width, height);
-    draw_text_width(llabel->ctx, width);
+    draw_text_width(llabel->ctx, llabel->width);
     i_update_tracking_area(llabel);
     [llabel setNeedsDisplay:YES];
 }

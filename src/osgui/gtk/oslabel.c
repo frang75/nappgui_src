@@ -166,6 +166,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSLabel *label)
         pango_layout_set_width(label->layout, (int)((label->control_width / xscale) * PANGO_SCALE));
         pango_layout_set_height(label->layout, -1);
         pango_layout_set_ellipsize(label->layout, label->ellipsis);
+        pango_layout_set_alignment(label->layout, _oscontrol_alignment(label->align));
         font_extents(label->font, tc(label->text), label->control_width / xscale, &label->text_width, &label->text_height);
         i_set_text(label);
         label->layout_updated = TRUE;
@@ -181,23 +182,6 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSLabel *label)
     }
 
     cairo_save(cr);
-
-    if (label->control_width > label->text_width)
-    {
-        switch (label->align)
-        {
-        case ekLEFT:
-        case ekJUSTIFY:
-            break;
-        case ekCENTER:
-            cairo_translate(cr, (double)((label->control_width - label->text_width) / 2), 0);
-            break;
-        case ekRIGHT:
-            cairo_translate(cr, (double)(label->control_width - label->text_width), 0);
-            break;
-        }
-    }
-
     cairo_scale(cr, xscale, 1);
     pango_cairo_show_layout(cr, label->layout);
     cairo_restore(cr);

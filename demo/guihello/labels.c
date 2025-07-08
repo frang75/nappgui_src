@@ -85,6 +85,8 @@ static Panel *i_labels(const bool_t multiline)
     label_text(label4, i_LABEL_04);
     label_text(label5, i_LABEL_05);
     label_text(label6, i_LABEL_06);
+    label_align(label5, ekCENTER);
+    label_align(label6, ekRIGHT);
     label_bgcolor(label1, c1);
     label_bgcolor(label2, c2);
     label_bgcolor(label3, c3);

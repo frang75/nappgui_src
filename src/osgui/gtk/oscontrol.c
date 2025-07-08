@@ -724,6 +724,25 @@ GtkJustification _oscontrol_justification(const align_t align)
 
 /*---------------------------------------------------------------------------*/
 
+PangoAlignment _oscontrol_alignment(const align_t align)
+{
+    switch (align)
+    {
+    case ekLEFT:
+    case ekJUSTIFY:
+        return PANGO_ALIGN_LEFT;
+    case ekCENTER:
+        return PANGO_ALIGN_CENTER;
+    case ekRIGHT:
+        return PANGO_ALIGN_RIGHT;
+        cassert_default();
+    }
+
+    return PANGO_ALIGN_LEFT;
+}
+
+/*---------------------------------------------------------------------------*/
+
 gui_type_t _oscontrol_type(const OSControl *control)
 {
     cassert_no_null(control);

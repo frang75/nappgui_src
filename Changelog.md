@@ -5,14 +5,18 @@
 ### Added
 
 - `button_hpadding()`. [Doc](https://nappgui.com/en/gui/button.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/81e47587d356757dabaae565df0ddb54599ccf19).
-- `label_get_text()`. [Commit]().
-- `button_get_text()`. [Commit]().
+- `label_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
+- `button_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
+
+### Fixed
+
+- Issue in `label_align()`. [Issue](https://github.com/frang75/nappgui_src/issues/225). [Commit]().
 
 ### Changed
 
 - `button_vpadding()` also is applied to flat buttons. [Doc](https://nappgui.com/en/gui/button.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/81e47587d356757dabaae565df0ddb54599ccf19).
-- `label_OnClick()` pass `EvMouse` event param, instead `EvText`. [Commit]().
-- `listbox_text()` renamed by `listbox_get_text()` for API coherence. [Commit]().
+- `label_OnClick()` pass `EvMouse` event param, instead `EvText`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
+- `listbox_text()` renamed by `listbox_get_text()` for API coherence. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 
 ### Build system
 

@@ -76,4 +76,6 @@ void _oscontrol_to_gdkrgba(const color_t color, GdkRGBA *gdkcolor);
 
 GtkJustification _oscontrol_justification(const align_t align);
 
+PangoAlignment _oscontrol_alignment(const align_t align);
+
 __END_C
