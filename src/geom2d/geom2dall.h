@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: geom2dall.h
- * https://nappgui.com/en/geom2d/geom2dall.html
  *
  */
 

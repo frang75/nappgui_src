@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: coreh.hxx
- * https://nappgui.com/en/core/coreh.html
  *
  */
 

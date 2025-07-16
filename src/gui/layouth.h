@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: layouth.h
- * https://nappgui.com/en/gui/layouth.html
  *
  */
 

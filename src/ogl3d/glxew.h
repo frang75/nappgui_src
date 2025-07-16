@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: glxew.h
- * https://nappgui.com/en/ogl3d/glxew.html
  *
  */
 

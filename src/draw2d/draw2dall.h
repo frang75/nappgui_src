@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: draw2dall.h
- * https://nappgui.com/en/draw2d/draw2dall.html
  *
  */
 

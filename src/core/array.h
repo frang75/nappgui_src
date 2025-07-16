@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: array.h
- * https://nappgui.com/en/core/array.html
  *
  */
 

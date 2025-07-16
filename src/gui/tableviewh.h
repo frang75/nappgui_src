@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: tableviewh.h
- * https://nappgui.com/en/gui/tableviewh.html
  *
  */
 

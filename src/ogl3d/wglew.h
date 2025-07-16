@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: wglew.h
- * https://nappgui.com/en/ogl3d/wglew.html
  *
  */
 

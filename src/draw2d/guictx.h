@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: guictx.h
- * https://nappgui.com/en/draw2d/guictx.html
  *
  */
 

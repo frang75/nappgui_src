@@ -135,7 +135,7 @@ Font *font_monospace(const real32_t size, const uint32_t style)
 Font *font_with_style(const Font *font, const uint32_t style)
 {
     cassert_no_null(font);
-    return i_create_font(font->family, font->size, style);
+    return i_create_font(font->family, font->size, font->style | style);
 }
 
 /*---------------------------------------------------------------------------*/

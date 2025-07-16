@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: config.hxx
- * https://nappgui.com/en/sewer/config.html
  *
  */
 

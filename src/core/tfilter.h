@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: tfilter.h
- * https://nappgui.com/en/core/tfilter.html
  *
  */
 

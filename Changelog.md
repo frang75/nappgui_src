@@ -10,7 +10,7 @@
 
 ### Fixed
 
-- Issue in `label_align()`. [Issue](https://github.com/frang75/nappgui_src/issues/225). [Commit]().
+- Issue in `label_align()`. [Issue](https://github.com/frang75/nappgui_src/issues/225). [Commit](https://github.com/frang75/nappgui_src/commit/0afe4f04611fc14ce8274bcb2f200660f3745f0e).
 
 ### Changed
 

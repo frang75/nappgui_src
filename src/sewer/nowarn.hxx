@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: nowarn.hxx
- * https://nappgui.com/en/sewer/nowarn.html
  *
  */
 

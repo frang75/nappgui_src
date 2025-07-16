@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: sewerall.h
- * https://nappgui.com/en/sewer/sewerall.html
  *
  */
 

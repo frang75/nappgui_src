@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: globals.h
- * https://nappgui.com/en/gui/globals.html
  *
  */
 

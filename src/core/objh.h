@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: objh.h
- * https://nappgui.com/en/core/objh.html
  *
  */
 
