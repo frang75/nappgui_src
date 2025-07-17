@@ -419,11 +419,32 @@ void layout_label(Layout *layout, Label *label, const uint32_t col, const uint32
 void layout_button(Layout *layout, Button *button, const uint32_t col, const uint32_t row)
 {
     Cell *cell = NULL;
-    align_t align = ekJUSTIFY;
+    align_t halign = ekJUSTIFY;
+    align_t valign = ekJUSTIFY;
     uint32_t flags = _button_flags(button);
-    if (button_get_type(flags) != ekBUTTON_PUSH)
-        align = ekLEFT;
-    cell = i_set_component(layout, cast(button, GuiComponent), col, row, align, ekCENTER);
+    switch (button_get_type(flags))
+    {
+    case ekBUTTON_PUSH:
+        halign = ekJUSTIFY;
+        valign = ekCENTER;
+        break;
+
+    case ekBUTTON_CHECK2:
+    case ekBUTTON_CHECK3:
+    case ekBUTTON_RADIO:
+        halign = ekLEFT;
+        valign = ekCENTER;
+        break;
+
+    case ekBUTTON_FLAT:
+    case ekBUTTON_FLATGLE:
+        halign = ekCENTER;
+        valign = ekCENTER;
+        break;
+        cassert_default();
+    }
+
+    cell = i_set_component(layout, cast(button, GuiComponent), col, row, halign, valign);
     cassert_no_null(cell);
     cassert_unref(cell->tabstop == TRUE, cell);
 }

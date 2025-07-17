@@ -57,6 +57,10 @@ _gui_api const char_t *button_get_text(const Button *button);
 
 _gui_api const Font *button_get_font(const Button *button);
 
+_gui_api const Image *button_get_image(const Button *button);
+
+_gui_api const Image *button_get_image_alt(const Button *button);
+
 _gui_api uint32_t button_get_tag(const Button *button);
 
 _gui_api real32_t button_get_height(const Button *button);
