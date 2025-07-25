@@ -146,6 +146,7 @@
 - (void)selectWithFrame:(NSRect)frame inView:(NSView *)controlView editor:(NSText *)textObj delegate:(id)anObject start:(NSInteger)selStart length:(NSInteger)selLength
 {
     frame.origin.y += cast(parent, OSXEdit)->wpadding;
+    frame.size.height -= cast(parent, OSXEdit)->wpadding;
     [super selectWithFrame:frame inView:controlView editor:textObj delegate:anObject start:selStart length:selLength];
 }
 
@@ -154,6 +155,7 @@
 - (void)editWithFrame:(NSRect)frame inView:(NSView *)controlView editor:(NSText *)textObj delegate:(id)anObject event:(NSEvent *)theEvent
 {
     frame.origin.y += cast(parent, OSXEdit)->wpadding;
+    frame.size.height -= cast(parent, OSXEdit)->wpadding;
     [super editWithFrame:frame inView:controlView editor:textObj delegate:anObject event:theEvent];
 }
 
@@ -162,6 +164,7 @@
 - (void)drawInteriorWithFrame:(NSRect)frame inView:(NSView *)controlView
 {
     frame.origin.y += cast(parent, OSXEdit)->wpadding;
+    frame.size.height -= cast(parent, OSXEdit)->wpadding;
     [super drawInteriorWithFrame:frame inView:controlView];
 }
 
@@ -178,6 +181,7 @@
 - (void)selectWithFrame:(NSRect)frame inView:(NSView *)controlView editor:(NSText *)textObj delegate:(id)anObject start:(NSInteger)selStart length:(NSInteger)selLength
 {
     frame.origin.y += cast(parent, OSXEdit)->wpadding;
+    frame.size.height -= cast(parent, OSXEdit)->wpadding;
     [super selectWithFrame:frame inView:controlView editor:textObj delegate:anObject start:selStart length:selLength];
 }
 
@@ -186,6 +190,7 @@
 - (void)editWithFrame:(NSRect)frame inView:(NSView *)controlView editor:(NSText *)textObj delegate:(id)anObject event:(NSEvent *)theEvent
 {
     frame.origin.y += cast(parent, OSXEdit)->wpadding;
+    frame.size.height -= cast(parent, OSXEdit)->wpadding;
     [super editWithFrame:frame inView:controlView editor:textObj delegate:anObject event:theEvent];
 }
 
@@ -194,6 +199,7 @@
 - (void)drawInteriorWithFrame:(NSRect)frame inView:(NSView *)controlView
 {
     frame.origin.y += cast(parent, OSXEdit)->wpadding;
+    frame.size.height -= cast(parent, OSXEdit)->wpadding;
     [super drawInteriorWithFrame:frame inView:controlView];
 }
 
@@ -430,8 +436,9 @@ OSEdit *osedit_create(const uint32_t flags)
     [edit->field setAlignment:_oscontrol_text_alignment(ekLEFT)];
     _oscontrol_set_align(edit->field, &edit->attrs, ekLEFT);
     _oscontrol_set_font(edit->field, &edit->attrs, edit->attrs.font);
+    [[edit->field cell] setScrollable:(BOOL)edit_get_type(flags) == ekEDIT_SINGLE];
 #if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
-    [[edit->field cell] setUsesSingleLineMode:((flags & 1) == 1) ? NO : YES];
+    [[edit->field cell] setUsesSingleLineMode:(BOOL)edit_get_type(flags) == ekEDIT_SINGLE];
 #endif
     return cast(edit, OSEdit);
 }
@@ -561,8 +568,9 @@ void osedit_passmode(OSEdit *edit, const bool_t passmode)
         _oscontrol_set_align(field, &ledit->attrs, ledit->attrs.align);
         _oscontrol_set_text(field, &ledit->attrs, cast_const([text UTF8String], char_t));
         _oscontrol_detach_from_parent(ledit->field, ledit);
+        [[field cell] setScrollable:(BOOL)edit_get_type(ledit->flags) == ekEDIT_SINGLE];
 #if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
-        [[field cell] setUsesSingleLineMode:((ledit->flags & 1) == 1) ? NO : YES];
+        [[field cell] setUsesSingleLineMode:(BOOL)edit_get_type(ledit->flags) == ekEDIT_SINGLE];
 #endif
         [ledit->field release];
         ledit->field = field;
