@@ -635,10 +635,16 @@ endfunction()
 function(nap_web_libs _weblibs)
     if (WEB_SUPPORT)
         if (WIN32)
+            if(NAPPGUI_IS_PACKAGE)
+                set(WEB_LIB_PATH "${NAPPGUI_ROOT_PATH}/lib")
+            else()
+                set(WEB_LIB_PATH "${NAPPGUI_ROOT_PATH}/src/osgui/win/depend")
+            endif()
+
             if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
-                set(WEBVIEW_LIBPATH "${NAPPGUI_ROOT_PATH}/prj/depend/web/win/x86/WebView2LoaderStatic.lib")
+                set(WEBVIEW_LIBPATH "${WEB_LIB_PATH}/x86/WebView2LoaderStatic.lib")
             elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
-                set(WEBVIEW_LIBPATH "${NAPPGUI_ROOT_PATH}/prj/depend/web/win/x64/WebView2LoaderStatic.lib")
+                set(WEBVIEW_LIBPATH "${WEB_LIB_PATH}/x64/WebView2LoaderStatic.lib")
             endif()
 
             # 'version' is required by WebView2Loader
@@ -757,9 +763,11 @@ function(nap_link_opengl targetName)
 
     nap_link_opengl_depends(${targetName})
 
-    get_target_property(TARGET_TYPE ogl3d TYPE)
-    if (${TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
-        set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS NAPPGUI_OGL3D_IMPORT_DLL)
+    if(NOT NAPPGUI_IS_PACKAGE)
+        get_target_property(TARGET_TYPE ogl3d TYPE)
+        if (${TARGET_TYPE} STREQUAL "SHARED_LIBRARY")
+            set_property(TARGET ${targetName} APPEND PROPERTY COMPILE_DEFINITIONS NAPPGUI_OGL3D_IMPORT_DLL)
+        endif()
     endif()
 
 endfunction()
@@ -871,9 +879,11 @@ function(nap_link_with_libraries targetName targetType firstLevelDepends)
     endif()
 
     # Target should link with WebView
-    nap_web_libs(_weblibs)
-    if (_weblibs)
-        target_link_libraries(${targetName} ${_weblibs})
+    if (_depend_osgui)
+        nap_web_libs(_weblibs)
+        if (_weblibs)
+            target_link_libraries(${targetName} ${_weblibs})
+        endif()
     endif()
 
     # In GCC the g++ linker must be used
@@ -1020,8 +1030,11 @@ function(nap_target targetName targetType dependList nrcMode)
     if (${targetName} STREQUAL "osgui")
         if (WEB_SUPPORT)
             if (WIN32)
-                target_include_directories("osgui" PRIVATE $<BUILD_INTERFACE:${NAPPGUI_ROOT_PATH}/prj/depend/web/win>)
                 target_compile_definitions("osgui" PUBLIC "-DNAPPGUI_WEB_SUPPORT")
+                # Install Win32 WebView binaries
+                install(DIRECTORY "${NAPPGUI_ROOT_PATH}/src/osgui/win/depend/x64" DESTINATION "lib")
+                install(DIRECTORY "${NAPPGUI_ROOT_PATH}/src/osgui/win/depend/x86" DESTINATION "lib")
+                install(DIRECTORY "${NAPPGUI_ROOT_PATH}/src/osgui/win/depend/arm64" DESTINATION "lib")
 
             elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
                 target_compile_definitions("osgui" PUBLIC "-DNAPPGUI_WEB_SUPPORT")
@@ -1035,7 +1048,6 @@ function(nap_target targetName targetType dependList nrcMode)
 
                     target_compile_definitions("osgui" PUBLIC "-DNAPPGUI_WEB_SUPPORT")
                 endif()
-
             endif()
         endif()
     endif()

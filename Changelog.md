@@ -7,8 +7,8 @@
 - `button_hpadding()`. [Doc](https://nappgui.com/en/gui/button.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/81e47587d356757dabaae565df0ddb54599ccf19).
 - `label_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `button_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
-- `button_get_image()`. [Commit]().
-- `button_get_image_alt()`. [Commit]().
+- `button_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
+- `button_get_image_alt()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
 
 ### Fixed
 
@@ -23,6 +23,7 @@
 ### Build system
 
 - Fix issue in macOS with CMake 4. [Commit](https://github.com/frang75/nappgui_src/commit/9eea4b36544305e4d5c4c6b57e87ceb941e657cf).
+- Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`.
 
 ## v1.5.2 - June 30, 2025 (r6370)
 

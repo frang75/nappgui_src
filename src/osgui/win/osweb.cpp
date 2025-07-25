@@ -37,7 +37,7 @@ typedef struct _webimpt_t WebImp;
 
 #if defined(NAPPGUI_WEB_SUPPORT)
 #include <sewer/nowarn.hxx>
-#include <WebView2.h>
+#include "depend/WebView2.h"
 #include <sewer/warn.hxx>
 
 class WebCtrlCallback;
