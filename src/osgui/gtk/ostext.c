@@ -549,6 +549,11 @@ void ostext_destroy(OSText **view)
 {
     cassert_no_null(view);
     cassert_no_null(*view);
+
+    while (g_idle_remove_by_data(*view))
+    {
+    }
+
     listener_destroy(&(*view)->OnFilter);
     listener_destroy(&(*view)->OnFocus);
     gtk_container_remove(GTK_CONTAINER(i_scrolled_window(*view)), (*view)->tview);

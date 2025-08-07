@@ -151,10 +151,10 @@ static void i_update_product(Ctrl *ctrl)
     }
 
     layout_dbind_obj(ctrl->main_layout, product, Product);
+    cell_enabled(ctrl->filter_cell, model_with_data(ctrl->model));
     cell_enabled(ctrl->add_cell, enabled);
     cell_enabled(ctrl->minus_cell, enabled);
     cell_enabled(ctrl->slider_cell, enabled);
-    cell_enabled(ctrl->filter_cell, enabled);
     cell_enabled(ctrl->first_cell, !is_first);
     cell_enabled(ctrl->back_cell, !is_first);
     cell_enabled(ctrl->next_cell, !is_last);
@@ -489,16 +489,13 @@ static void i_OnFilter(Ctrl *ctrl, Event *e)
     Combo *combo = event_sender(e, Combo);
     uint32_t color = color_rgb(255, 0, 0);
 
-    if (unicode_nchars(params->text, ekUTF8) >= 3)
+    if (model_filter(ctrl->model, params->text) == TRUE)
     {
-        if (model_filter(ctrl->model, params->text) == TRUE)
-        {
-            color = UINT32_MAX;
-            ctrl->selected = 0;
-            i_update_product(ctrl);
-        }
+        color = kCOLOR_DEFAULT;
+        ctrl->selected = 0;
     }
 
+    i_update_product(ctrl);
     combo_color(combo, color);
     result->apply = FALSE;
 }
@@ -512,13 +509,9 @@ static void i_OnFilterEnd(Ctrl *ctrl, Event *e)
 
     if (model_filter(ctrl->model, params->text) == TRUE)
         combo_ins_elem(combo, 0, params->text, NULL);
-    else
-        combo_text(combo, "");
 
     ctrl->selected = 0;
     i_update_product(ctrl);
-
-    combo_color(combo, UINT32_MAX);
 }
 
 /*---------------------------------------------------------------------------*/

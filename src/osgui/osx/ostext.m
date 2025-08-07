@@ -1012,3 +1012,12 @@ BOOL _ostext_is(NSView *view)
         return [[cast(view, NSScrollView) documentView] isKindOfClass:[OSXTextView class]];
     return FALSE;
 }
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _ostext_is_enabled(NSView *text)
+{
+    cassert_unref([text isKindOfClass:[NSScrollView class]], text);
+    cassert([[cast(text, NSScrollView) documentView] isKindOfClass:[OSXTextView class]]);
+    return TRUE;
+}

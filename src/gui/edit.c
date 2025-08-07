@@ -12,21 +12,14 @@
 
 #include "edit.h"
 #include "edit.inl"
-#include "cell.inl"
+#include "editimp.inl"
 #include "component.inl"
 #include "gui.inl"
-#include "panel.inl"
-#include "window.inl"
 #include <geom2d/s2d.h>
-#include <draw2d/color.h>
-#include <draw2d/font.h>
 #include <draw2d/guictx.h>
 #include <core/event.h>
 #include <core/objh.h>
-#include <core/strings.h>
 #include <sewer/cassert.h>
-#include <sewer/ptr.h>
-#include <sewer/unicode.h>
 
 struct _edit_t
 {
@@ -35,22 +28,8 @@ struct _edit_t
     real32_t width;
     real32_t height;
     S2Df size;
-    bool_t is_focused;
-    bool_t is_placeholder_active;
     ResId ttipid;
-    ResId placid;
-    String *placeholder;
-    String *text;
-    Font *font;
-    Font *placeholder_font;
-    color_t color;
-    color_t focus_color;
-    color_t bg_color;
-    color_t bg_focus_color;
-    color_t placeholder_color;
-    Listener *OnFilter;
-    Listener *OnChange;
-    Listener *OnFocus;
+    EditImp *impl;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -60,152 +39,38 @@ void _edit_destroy(Edit **edit)
     cassert_no_null(edit);
     cassert_no_null(*edit);
     _component_destroy_imp(&(*edit)->component);
-    listener_destroy(&(*edit)->OnFilter);
-    listener_destroy(&(*edit)->OnChange);
-    listener_destroy(&(*edit)->OnFocus);
-    ptr_destopt(str_destroy, &(*edit)->placeholder, String);
-    str_destroy(&(*edit)->text);
-    font_destroy(&(*edit)->font);
-    ptr_destopt(font_destroy, &(*edit)->placeholder_font, Font);
+    _editimp_destroy(&(*edit)->impl);
     obj_delete(edit, Edit);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static int32_t i_text_diff(const char_t *ctext, const char_t *ntext)
-{
-    int32_t n1 = (int32_t)unicode_nchars(ctext, ekUTF8);
-    int32_t n2 = (int32_t)unicode_nchars(ntext, ekUTF8);
-    return n2 - n1;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnFilter(Edit *edit, Event *e)
 {
-    EvTextFilter *res = event_result(e, EvTextFilter);
-    const EvText *p = event_params(e, EvText);
     Cell *cell = NULL;
-
     cassert_no_null(edit);
     cell = _component_cell(&edit->component);
-    res->apply = FALSE;
-
-    /* Native edit doesn't known exactly the inserted or deleted text size */
-    if (p->len == INT32_MAX)
-        cast(p, EvText)->len = i_text_diff(tc(edit->text), p->text);
-
-    if (cell != NULL)
-        res->apply = _cell_filter_str(cell, p->text, res->text, sizeof(res->text));
-
-    if (res->apply == FALSE)
-    {
-        if (cell != NULL)
-            _cell_update_str(cell, p->text);
-
-        if (edit->OnFilter != NULL)
-            listener_pass_event(edit->OnFilter, e, edit, Edit);
-    }
-
-    if (res->apply == TRUE)
-        str_upd(&edit->text, res->text);
-    else
-        str_upd(&edit->text, p->text);
+    _editimp_OnFilter(edit->impl, e, cell, cast(edit, void), "Edit");
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnChange(Edit *edit, Event *e)
 {
-    const EvText *p = event_params(e, EvText);
     Cell *cell = NULL;
     cassert_no_null(edit);
-    cassert_no_null(p);
-    cassert(event_type(e) == ekGUI_EVENT_TXTCHANGE);
-    cassert(event_sender_imp(e, NULL) == edit->component.ositem);
     cell = _component_cell(&edit->component);
-    str_upd(&edit->text, p->text);
-
-    if (cell != NULL)
-        _cell_update_str(cell, p->text);
-
-    if (edit->OnChange != NULL)
-        listener_pass_event(edit->OnChange, e, edit, Edit);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static void i_update_placeholder(Edit *edit)
-{
-    cassert_no_null(edit);
-    if (edit->placeholder != NULL && edit->is_focused == FALSE && str_equ(edit->text, "") == TRUE)
-    {
-        if (_gui_effective_alt_font(edit->font, edit->placeholder_font) == TRUE)
-            edit->component.context->func_edit_set_font(edit->component.ositem, edit->placeholder_font);
-        if (edit->placeholder_color != kCOLOR_DEFAULT)
-            edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->placeholder_color);
-        edit->component.context->func_edit_set_text(edit->component.ositem, tc(edit->placeholder));
-        edit->is_placeholder_active = TRUE;
-    }
-    else if (edit->is_placeholder_active == TRUE)
-    {
-        if (_gui_effective_alt_font(edit->font, edit->placeholder_font) == TRUE)
-            edit->component.context->func_edit_set_font(edit->component.ositem, edit->font);
-
-        if (edit->placeholder_color != kCOLOR_DEFAULT)
-        {
-            if (edit->is_focused == TRUE && edit->focus_color != kCOLOR_DEFAULT)
-                edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->focus_color);
-            else
-                edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->color);
-        }
-
-        edit->component.context->func_edit_set_text(edit->component.ositem, tc(edit->text));
-        edit->is_placeholder_active = FALSE;
-    }
+    _editimp_OnChange(edit->impl, e, cell, cast(edit, void), "Edit");
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnFocus(Edit *edit, Event *e)
 {
-    const bool_t *p = event_params(e, bool_t);
+    Cell *cell = NULL;
     cassert_no_null(edit);
-    cassert_no_null(p);
-    if (*p == TRUE)
-    {
-        Cell *cell = _component_cell(&edit->component);
-        char_t filter[128];
-
-        if (edit->focus_color != kCOLOR_DEFAULT)
-            edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->focus_color);
-
-        if (edit->bg_focus_color != kCOLOR_DEFAULT)
-            edit->component.context->func_edit_set_bg_color(edit->component.ositem, edit->bg_focus_color);
-
-        if (cell != NULL)
-        {
-            if (_cell_filter_str(cell, tc(edit->text), filter, sizeof(filter)) == TRUE)
-                edit->component.context->func_edit_set_text(edit->component.ositem, filter);
-        }
-    }
-    else
-    {
-        if (edit->focus_color != kCOLOR_DEFAULT)
-            edit->component.context->func_edit_set_text_color(edit->component.ositem, edit->color);
-
-        if (edit->bg_focus_color != kCOLOR_DEFAULT)
-            edit->component.context->func_edit_set_bg_color(edit->component.ositem, edit->bg_color);
-    }
-
-    edit->is_focused = *p;
-    i_update_placeholder(edit);
-
-    if (*p == TRUE && BIT_TEST(edit->flags, ekEDIT_AUTOSEL) == TRUE)
-        edit_select(edit, 0, -1);
-
-    if (edit->OnFocus != NULL)
-        listener_pass_event(edit->OnFocus, e, edit, Edit);
+    cell = _component_cell(&edit->component);
+    _editimp_OnFocus(edit->impl, e, cell, cast(edit, void), "Edit");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -214,19 +79,11 @@ static Edit *i_create(const align_t halign, const uint32_t flags)
 {
     const GuiCtx *context = guictx_get_current();
     Edit *edit = obj_new0(Edit);
-    void *ositem = NULL;
+    void *ositem = context->func_create[ekGUI_TYPE_EDITBOX](flags);
     edit->flags = flags;
     edit->width = 100;
     edit->height = -1;
-    edit->text = str_c("");
-    edit->font = _gui_create_default_font();
-    edit->color = kCOLOR_DEFAULT;
-    edit->focus_color = kCOLOR_DEFAULT;
-    edit->bg_color = kCOLOR_DEFAULT;
-    edit->bg_focus_color = kCOLOR_DEFAULT;
-    edit->placeholder_color = kCOLOR_DEFAULT;
-    ositem = context->func_create[ekGUI_TYPE_EDITBOX](flags);
-    context->func_edit_set_font(ositem, edit->font);
+    edit->impl = _editimp_from_edit(context, ositem);
     context->func_edit_set_align(ositem, (enum_t)halign);
     _component_init(&edit->component, context, PARAM(type, ekGUI_TYPE_EDITBOX), &ositem);
     context->func_edit_OnFilter(edit->component.ositem, obj_listener(edit, i_OnFilter, Edit));
@@ -254,7 +111,7 @@ Edit *edit_multiline(void)
 void edit_OnFilter(Edit *edit, Listener *listener)
 {
     cassert_no_null(edit);
-    listener_update(&edit->OnFilter, listener);
+    _editimp_set_OnFilter(edit->impl, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -262,7 +119,7 @@ void edit_OnFilter(Edit *edit, Listener *listener)
 void edit_OnChange(Edit *edit, Listener *listener)
 {
     cassert_no_null(edit);
-    listener_update(&edit->OnChange, listener);
+    _editimp_set_OnChange(edit->impl, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -270,7 +127,7 @@ void edit_OnChange(Edit *edit, Listener *listener)
 void edit_OnFocus(Edit *edit, Listener *listener)
 {
     cassert_no_null(edit);
-    listener_update(&edit->OnFocus, listener);
+    _editimp_set_OnFocus(edit->impl, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -297,9 +154,7 @@ void edit_min_height(Edit *edit, const real32_t height)
 void edit_text(Edit *edit, const char_t *text)
 {
     cassert_no_null(edit);
-    str_upd(&edit->text, text);
-    edit->component.context->func_edit_set_text(edit->component.ositem, text);
-    i_update_placeholder(edit);
+    _editimp_text(edit->impl, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -307,11 +162,7 @@ void edit_text(Edit *edit, const char_t *text)
 void edit_font(Edit *edit, const Font *font)
 {
     cassert_no_null(edit);
-    if (_gui_update_font(&edit->font, &edit->placeholder_font, font) == TRUE)
-    {
-        edit->component.context->func_edit_set_font(edit->component.ositem, edit->font);
-        i_update_placeholder(edit);
-    }
+    _editimp_font(edit->impl, font);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -327,7 +178,7 @@ void edit_align(Edit *edit, const align_t align)
 void edit_passmode(Edit *edit, const bool_t passmode)
 {
     cassert_no_null(edit);
-    edit->component.context->func_edit_set_passmode(edit->component.ositem, passmode);
+    _editimp_passmode(edit->impl, passmode);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -370,9 +221,7 @@ void edit_tooltip(Edit *edit, const char_t *text)
 void edit_color(Edit *edit, const color_t color)
 {
     cassert_no_null(edit);
-    edit->color = color;
-    edit->component.context->func_edit_set_text_color(edit->component.ositem, color);
-    i_update_placeholder(edit);
+    _editimp_color(edit->impl, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -380,7 +229,7 @@ void edit_color(Edit *edit, const color_t color)
 void edit_color_focus(Edit *edit, const color_t color)
 {
     cassert_no_null(edit);
-    edit->focus_color = color;
+    _editimp_color_focus(edit->impl, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -388,8 +237,7 @@ void edit_color_focus(Edit *edit, const color_t color)
 void edit_bgcolor(Edit *edit, const color_t color)
 {
     cassert_no_null(edit);
-    edit->bg_color = color;
-    edit->component.context->func_edit_set_bg_color(edit->component.ositem, color);
+    _editimp_bgcolor(edit->impl, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -397,21 +245,15 @@ void edit_bgcolor(Edit *edit, const color_t color)
 void edit_bgcolor_focus(Edit *edit, const color_t color)
 {
     cassert_no_null(edit);
-    edit->bg_focus_color = color;
-    if (edit->is_focused)
-        edit->component.context->func_edit_set_bg_color(edit->component.ositem, color);
+    _editimp_bgcolor_focus(edit->impl, color);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void edit_phtext(Edit *edit, const char_t *text)
 {
-    const char_t *ltext = NULL;
     cassert_no_null(edit);
-    if (text != NULL)
-        ltext = _gui_respack_text(text, &edit->placid);
-    str_upd(&edit->placeholder, ltext);
-    i_update_placeholder(edit);
+    _editimp_phtext(edit->impl, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -419,8 +261,7 @@ void edit_phtext(Edit *edit, const char_t *text)
 void edit_phcolor(Edit *edit, const color_t color)
 {
     cassert_no_null(edit);
-    edit->placeholder_color = color;
-    i_update_placeholder(edit);
+    _editimp_phcolor(edit->impl, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -428,10 +269,7 @@ void edit_phcolor(Edit *edit, const color_t color)
 void edit_phstyle(Edit *edit, const uint32_t fstyle)
 {
     cassert_no_null(edit);
-    ptr_destopt(font_destroy, &edit->placeholder_font, Font);
-    if (fstyle != font_style(edit->font))
-        edit->placeholder_font = font_with_style(edit->font, fstyle);
-    i_update_placeholder(edit);
+    _editimp_phstyle(edit->impl, fstyle);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -475,7 +313,7 @@ void edit_paste(Edit *edit)
 const char_t *edit_get_text(const Edit *edit)
 {
     cassert_no_null(edit);
-    return tc(edit->text);
+    return _editimp_get_text(edit->impl);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -517,13 +355,7 @@ void _edit_natural(Edit *edit, const uint32_t i, real32_t *dim0, real32_t *dim1)
 void _edit_locale(Edit *edit)
 {
     cassert_no_null(edit);
-    if (edit->placid != NULL)
-    {
-        const char_t *text = _gui_respack_text(edit->placid, NULL);
-        str_upd(&edit->placeholder, text);
-        i_update_placeholder(edit);
-    }
-
+    _editimp_locale(edit->impl);
     if (edit->ttipid != NULL)
     {
         const char_t *text = _gui_respack_text(edit->ttipid, NULL);

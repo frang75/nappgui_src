@@ -20,11 +20,11 @@ _osgui_api void ospopup_destroy(OSPopUp **popup);
 
 _osgui_api void ospopup_OnSelect(OSPopUp *popup, Listener *listener);
 
-_osgui_api void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image);
-
 _osgui_api void ospopup_tooltip(OSPopUp *popup, const char_t *text);
 
 _osgui_api void ospopup_font(OSPopUp *popup, const Font *font);
+
+_osgui_api void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image);
 
 _osgui_api void ospopup_list_height(OSPopUp *popup, const uint32_t num_elems);
 

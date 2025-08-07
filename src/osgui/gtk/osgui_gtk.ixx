@@ -24,6 +24,7 @@
 #include <sewer/warn.hxx>
 
 typedef struct _view_listeners_t ViewListeners;
+typedef struct _osentry_t OSEntry;
 
 struct _view_listeners_t
 {

@@ -195,18 +195,11 @@ NSColor *_oscontrol_color(const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-color_t _oscontrol_from_NSColor(NSColor *color)
-{
-    return _oscolor_from_NSColor(color);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static NSColor *i_control_color(NSControl *control, const color_t color)
+NSColor *_oscontrol_text_color(NSControl *control, const color_t color)
 {
     if ([control isEnabled] == YES)
     {
-        if (color == kCOLOR_TRANSPARENT)
+        if (color == kCOLOR_DEFAULT)
         {
             if ([control isKindOfClass:[NSTextField class]])
             {
@@ -230,6 +223,13 @@ static NSColor *i_control_color(NSControl *control, const color_t color)
     {
         return [NSColor disabledControlTextColor];
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t _oscontrol_from_NSColor(NSColor *color)
+{
+    return _oscolor_from_NSColor(color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -262,7 +262,7 @@ static NSDictionary *i_text_attribs(NSControl *control, const align_t align, con
         cassert_default();
     }
 
-    objects[3] = i_control_color(control, color);
+    objects[3] = _oscontrol_text_color(control, color);
     objects[4] = font;
 
     return [NSDictionary dictionaryWithObjects:objects forKeys:keys count:5];
@@ -387,6 +387,7 @@ void _oscontrol_attach_to_parent(NSView *control, NSView *parent)
 {
     cassert_no_null(control);
     cassert_no_null(parent);
+    cassert([control superview] == nil);
     [parent addSubview:control];
 }
 
@@ -394,6 +395,7 @@ void _oscontrol_attach_to_parent(NSView *control, NSView *parent)
 
 void _oscontrol_detach_from_parent(NSView *control, NSView *parent)
 {
+    NSView *sup = [control superview];
     cassert_no_null(control);
     cassert_no_null(parent);
     cassert([control superview] == parent);
@@ -675,9 +677,42 @@ bool_t _oscontrol_widget_visible(const OSWidget *widget)
 
 bool_t _oscontrol_widget_enable(const OSWidget *widget)
 {
+    gui_type_t type = i_oscontrol_type(cast(widget, NSView));
     cassert_no_null(widget);
-    if ([(NSObject *)widget isKindOfClass:[NSControl class]] == YES)
-        return (bool_t)[cast(widget, NSControl) isEnabled];
-    else
+    switch (type)
+    {
+    case ekGUI_TYPE_LABEL:
+    case ekGUI_TYPE_PROGRESS:
         return TRUE;
+
+    case ekGUI_TYPE_EDITBOX:
+        return _osedit_is_enabled(cast(widget, NSView));
+
+    case ekGUI_TYPE_COMBOBOX:
+        return _oscombo_is_enabled(cast(widget, NSView));
+
+    case ekGUI_TYPE_TEXTVIEW:
+        return _ostext_is_enabled(cast(widget, NSView));
+
+    case ekGUI_TYPE_BUTTON:
+    case ekGUI_TYPE_POPUP:
+    case ekGUI_TYPE_SLIDER:
+    case ekGUI_TYPE_UPDOWN:
+        cassert([cast(widget, NSObject) isKindOfClass:[NSControl class]] == YES);
+        return (bool_t)[cast(widget, NSControl) isEnabled];
+
+    case ekGUI_TYPE_WEBVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
+        return TRUE;
+
+    case ekGUI_TYPE_TREEVIEW:
+    case ekGUI_TYPE_BOXVIEW:
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_WINDOW:
+    case ekGUI_TYPE_TOOLBAR:
+        cassert_default();
+    }
 }

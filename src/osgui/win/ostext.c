@@ -633,19 +633,7 @@ void ostext_set_need_display(OSText *view)
 void ostext_clipboard(OSText *view, const clipboard_t clipboard)
 {
     cassert_no_null(view);
-    switch (clipboard)
-    {
-    case ekCLIPBOARD_COPY:
-        SendMessage(view->control.hwnd, WM_COPY, (WPARAM)0, (LPARAM)0);
-        break;
-    case ekCLIPBOARD_PASTE:
-        SendMessage(view->control.hwnd, WM_PASTE, (WPARAM)0, (LPARAM)0);
-        break;
-    case ekCLIPBOARD_CUT:
-        SendMessage(view->control.hwnd, WM_CUT, (WPARAM)0, (LPARAM)0);
-        break;
-        cassert_default();
-    }
+    _oscontrol_clipboard(view->control.hwnd, clipboard);
 }
 
 /*---------------------------------------------------------------------------*/

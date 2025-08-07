@@ -24,6 +24,8 @@ enum _gievent_t
 typedef struct _line_t Line;
 typedef union _tag_t Tag;
 typedef struct _gui_component_t GuiComponent;
+typedef struct _editimp_t EditImp;
+typedef struct _items_t Items;
 typedef struct _scrollview_t ScrollView;
 typedef struct _colitem_t ColItem;
 typedef struct _evtransition_t EvTransition;

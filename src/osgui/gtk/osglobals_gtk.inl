@@ -73,19 +73,13 @@ String *_osglobals_frame_focus_css(void);
 void _osglobals_restore_focus(GtkWidget *window, GtkWidget *widget);
 
 extern const uint32_t kBUTTON_VPADDING;
-
 extern const uint32_t kBUTTON_HPADDING;
-
 extern const uint32_t kPOPUP_VPADDING;
-
 extern const uint32_t kPOPUP_HPADDING;
-
 extern const uint32_t kENTRY_VPADDING;
-
 extern const uint32_t kENTRY_HPADDING;
-
+extern const uint32_t kCOMBO_HPADDING;
 extern const uint32_t kBUTTON_IMAGE_SEP;
-
 extern const uint32_t kCHECKBOX_IMAGE_SEP;
 
 __END_C

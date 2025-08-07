@@ -9,10 +9,29 @@
 - `button_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `button_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
 - `button_get_image_alt()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
+- New functions in `PopUp` and `Combo`. [Doc](https://nappgui.com/en/gui/combo.html). [Commit]().
+    - `popup_ins_elem()`.
+    - `popup_del_elem()`.
+    - `combo_OnFocus()`.
+    - `combo_OnSelect()`.
+    - `combo_min_width()`.
+    - `combo_passmode()`.
+    - `combo_editable()`.
+    - `combo_autoselect()`.
+    - `combo_select()`.
+    - `combo_copy()`.
+    - `combo_cut()`.
+    - `combo_paste()`.
+    - `combo_clear()`.
+    - `combo_list_height()`.
+    - `combo_selected()`.
+    - `combo_get_selected()`.
 
 ### Fixed
 
 - Issue in `label_align()`. [Issue](https://github.com/frang75/nappgui_src/issues/225). [Commit](https://github.com/frang75/nappgui_src/commit/0afe4f04611fc14ce8274bcb2f200660f3745f0e).
+- Issue in `Edit` single-line scroll in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/230). [Commit](https://github.com/frang75/nappgui_src/commit/9f54924b9b0cc1f405a13d47a6b305a8f69f5fc0).
+- Issues in `Combo`. [Issue](https://github.com/frang75/nappgui_src/issues/86). [Issue](https://github.com/frang75/nappgui_src/issues/81). [Issue](https://github.com/frang75/nappgui_src/issues/68). [Commit]().
 
 ### Changed
 
@@ -20,10 +39,14 @@
 - `label_OnClick()` pass `EvMouse` event param, instead `EvText`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `listbox_text()` renamed by `listbox_get_text()` for API coherence. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 
+### Removed
+
+- `combo_duplicates()`.
+
 ### Build system
 
 - Fix issue in macOS with CMake 4. [Commit](https://github.com/frang75/nappgui_src/commit/9eea4b36544305e4d5c4c6b57e87ceb941e657cf).
-- Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`.
+- Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`. [Commit](https://github.com/frang75/nappgui_src/commit/ea1734559c62e21bc8862826074db804e0a129ba).
 
 ## v1.5.2 - June 30, 2025 (r6370)
 

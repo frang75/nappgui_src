@@ -73,11 +73,12 @@ static String *kCSS_TEXTVIEW = NULL;
 static String *kCSS_TEXTVIEWTEXT = NULL;
 static String *kCSS_PROGRESSBAR = NULL;
 const uint32_t kBUTTON_VPADDING = 8;
-const uint32_t kBUTTON_HPADDING = 16;
+const uint32_t kBUTTON_HPADDING = 8;
 const uint32_t kPOPUP_VPADDING = 8;
 const uint32_t kPOPUP_HPADDING = 16;
-const uint32_t kENTRY_VPADDING = 8;
+const uint32_t kENTRY_VPADDING = 6;
 const uint32_t kENTRY_HPADDING = 8;
+const uint32_t kCOMBO_HPADDING = 6;
 const uint32_t kBUTTON_IMAGE_SEP = 4;
 const uint32_t kCHECKBOX_IMAGE_SEP = 8;
 

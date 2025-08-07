@@ -10,20 +10,20 @@
 
 /* Operating System native combo box */
 
-#include "oscombo_win.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
-#include "osimglist.inl"
+#include "oscombo_win.inl"
 #include "ospanel_win.inl"
-#include "ostooltip.inl"
 #include "oswindow_win.inl"
+#include "osimglist.inl"
+#include "ostooltip.inl"
 #include "../oscombo.h"
+#include "../oscombo.inl"
 #include "../osgui.inl"
 #include <draw2d/font.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
-#include <sewer/ptr.h>
 #include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
@@ -33,9 +33,12 @@
 struct _oscombo_t
 {
     OSControl control;
+    uint32_t flags;
     Font *font;
     bool_t launch_event;
     bool_t with_initial_size;
+    uint32_t list_num_elems;
+
     HWND combo_hwnd;
     HWND edit_hwnd;
     HWND tooltip_combo;
@@ -43,6 +46,8 @@ struct _oscombo_t
     WNDPROC def_combo_proc;
     WNDPROC def_edit_proc;
     OSImgList *image_list;
+    DWORD cursor_st;
+    DWORD cursor_ed;
     COLORREF color;
     COLORREF bgcolor;
     HBRUSH bgbrush;
@@ -51,16 +56,6 @@ struct _oscombo_t
     Listener *OnFocus;
     Listener *OnSelect;
 };
-
-/*---------------------------------------------------------------------------*/
-
-static COLORREF i_color(const OSCombo *combo)
-{
-    cassert_no_null(combo);
-    if (combo->color != UINT32_MAX)
-        return combo->color & 0x00FFFFFF;
-    return UINT32_MAX;
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -96,23 +91,10 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_CTLCOLOREDIT:
     {
-        HBRUSH default_brush = (HBRUSH)CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
-        HDC hdc = (HDC)wParam;
-        COLORREF color = UINT32_MAX, bgcolor = UINT32_MAX;
-        HBRUSH bgbrush = NULL;
-        color = i_color(combo);
-        bgbrush = i_background_color(combo, &bgcolor);
-
-        if (color != UINT32_MAX)
-            SetTextColor(hdc, color);
-
-        if (bgbrush != NULL)
-        {
-            SetBkColor(hdc, bgcolor);
-            return (LRESULT)bgbrush;
-        }
-
-        return (LRESULT)default_brush;
+        HBRUSH defbrush = (HBRUSH)CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+        COLORREF bgcolor = UINT32_MAX;
+        HBRUSH brush = i_background_color(combo, &bgcolor);
+        return (LRESULT)_oscontrol_ctl_color_edit((HDC)wParam, combo->color, bgcolor, brush, defbrush);
     }
     }
 
@@ -140,9 +122,20 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
 /*---------------------------------------------------------------------------*/
 
+static uint32_t i_get_cursor_pos(HWND hwnd)
+{
+    DWORD start;
+    SendMessage(hwnd, CB_GETEDITSEL, (WPARAM)&start, (LPARAM)NULL);
+    return (uint32_t)start;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSCombo *combo = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSCombo);
+    DWORD cursor_st = 0, cursor_ed = 0;
+    LRESULT res = 0;
     cassert_no_null(combo);
 
     switch (uMsg)
@@ -152,9 +145,18 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
         if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
             break;
         return 0;
+
+    case WM_SETFOCUS:
+        SendMessage(combo->control.hwnd, CB_GETEDITSEL, (WPARAM)&cursor_st, (LPARAM)&cursor_ed);
+        break;
     }
 
-    return combo->def_edit_proc(hwnd, uMsg, wParam, lParam);
+    res = CallWindowProc(combo->def_edit_proc, hwnd, uMsg, wParam, lParam);
+
+    if (uMsg == WM_SETFOCUS)
+        SendMessage(combo->edit_hwnd, EM_SETSEL, cursor_st, cursor_ed);
+
+    return res;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -162,8 +164,13 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 OSCombo *oscombo_create(const uint32_t flags)
 {
     OSCombo *combo = heap_new0(OSCombo);
+    DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWN | CBS_AUTOHSCROLL;
+    DWORD dwExStyle = WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT;
     combo->control.type = ekGUI_TYPE_COMBOBOX;
-    _oscontrol_init(cast(combo, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | CBES_EX_NOSIZELIMIT), WS_CHILD | WS_CLIPSIBLINGS | CBS_DROPDOWN, WC_COMBOBOXEX, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    combo->flags = flags;
+    combo->with_initial_size = FALSE;
+    combo->list_num_elems = 5;
+    _oscontrol_init(cast(combo, OSControl), dwExStyle, dwStyle, WC_COMBOBOXEX, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     combo->font = _osgui_create_default_font();
     combo->launch_event = TRUE;
     combo->combo_hwnd = (HWND)SendMessage(combo->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
@@ -173,10 +180,7 @@ OSCombo *oscombo_create(const uint32_t flags)
     SetWindowLongPtr(combo->combo_hwnd, GWLP_USERDATA, (LONG_PTR)combo);
     SetWindowLongPtr(combo->edit_hwnd, GWLP_USERDATA, (LONG_PTR)combo);
     combo->image_list = _osimglist_create(16);
-    combo->color = UINT32_MAX;
-    combo->bgcolor = UINT32_MAX;
     _oscontrol_set_font(cast(combo, OSControl), combo->font);
-    unref(flags);
     return combo;
 }
 
@@ -264,9 +268,14 @@ void oscombo_font(OSCombo *combo, const Font *font)
 
 void oscombo_align(OSCombo *combo, const align_t align)
 {
+    DWORD dwStyle = 0;
     cassert_no_null(combo);
-    unref(align);
-    cassert(FALSE);
+    dwStyle = (DWORD)GetWindowLongPtr(combo->edit_hwnd, GWL_STYLE);
+    dwStyle &= ~ES_LEFT;
+    dwStyle &= ~ES_CENTER;
+    dwStyle &= ~ES_RIGHT;
+    dwStyle |= _oscontrol_es_halign(align);
+    SetWindowLongPtr(combo->edit_hwnd, GWL_STYLE, dwStyle);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -274,8 +283,46 @@ void oscombo_align(OSCombo *combo, const align_t align)
 void oscombo_passmode(OSCombo *combo, const bool_t passmode)
 {
     cassert_no_null(combo);
-    unref(passmode);
-    cassert(FALSE);
+    if (passmode == TRUE)
+    {
+        wchar_t pchar = L'\x2022';
+        SendMessage(combo->edit_hwnd, EM_SETPASSWORDCHAR, (WPARAM)pchar, (LPARAM)0);
+    }
+    else
+    {
+        SendMessage(combo->edit_hwnd, EM_SETPASSWORDCHAR, (WPARAM)0, (LPARAM)0);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_editable(OSCombo *combo, const bool_t is_editable)
+{
+    LRESULT res = 0;
+    cassert_no_null(combo);
+    res = SendMessage(combo->edit_hwnd, EM_SETREADONLY, (WPARAM)!is_editable, (LPARAM)0);
+    cassert_unref(res != 0, res);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_autoselect(OSCombo *combo, const bool_t autoselect)
+{
+    cassert_no_null(combo);
+    if (autoselect == TRUE)
+        BIT_SET(combo->flags, ekCOMBO_AUTOSEL);
+    else
+        BIT_CLEAR(combo->flags, ekCOMBO_AUTOSEL);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_select(OSCombo *combo, const int32_t start, const int32_t end)
+{
+    int32_t platform_st, platform_ed;
+    cassert_no_null(combo);
+    _osgui_select_text(start, end, &platform_st, &platform_ed);
+    SendMessage(combo->edit_hwnd, EM_SETSEL, (WPARAM)platform_st, (LPARAM)platform_ed);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -283,7 +330,7 @@ void oscombo_passmode(OSCombo *combo, const bool_t passmode)
 void oscombo_color(OSCombo *combo, const color_t color)
 {
     cassert_no_null(combo);
-    combo->color = color;
+    combo->color = _oscontrol_colorref(color);
     InvalidateRect(combo->control.hwnd, NULL, FALSE);
 }
 
@@ -362,28 +409,44 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, cons
 {
     cassert_no_null(combo);
     _oscombo_elem(combo->control.hwnd, combo->image_list, op, index, text, image);
-    if (combo->with_initial_size == TRUE)
-    {
-        uint32_t num_elems = (uint32_t)SendMessage(combo->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
-        if (num_elems == 0)
-            num_elems = 1;
-        else if (num_elems > 10)
-            num_elems = 10;
 
-        _oscombo_set_list_height(combo->control.hwnd, combo->combo_hwnd, _osimglist_height(combo->image_list), num_elems);
+    /* If the editBox has not previous text, take the first element text */
+    if (SendMessage(combo->edit_hwnd, WM_GETTEXTLENGTH, (WPARAM)0, (LPARAM)0) == 0)
+    {
+        if (SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0) == -1)
+            SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
     }
+
+    InvalidateRect(combo->control.hwnd, NULL, FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_list_height(OSCombo *combo, const uint32_t num_elems)
+{
+    cassert_no_null(combo);
+    combo->list_num_elems = num_elems;
+    if (combo->with_initial_size == TRUE)
+        _oscombo_set_list_height(combo->control.hwnd, combo->combo_hwnd, _osimglist_height(combo->image_list), combo->list_num_elems);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_selected(OSCombo *combo, const uint32_t index)
 {
-    LRESULT ret = 0;
     cassert_no_null(combo);
     cassert(combo->launch_event == TRUE);
     combo->launch_event = FALSE;
-    ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (index != UINT32_MAX) ? (WPARAM)index : (WPARAM)-1, (LPARAM)0);
-    cassert_unref(ret == (LRESULT)index, ret);
+    if (index != UINT32_MAX)
+    {
+        LRESULT ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)index, (LPARAM)0);
+        cassert_unref(ret == (LRESULT)index, ret);
+    }
+    else
+    {
+        LRESULT ret = SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)-1, (LPARAM)0);
+        cassert_unref(ret == (LRESULT)CB_ERR, ret);
+    }
     combo->launch_event = TRUE;
 }
 
@@ -391,13 +454,10 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
 
 uint32_t oscombo_get_selected(const OSCombo *combo)
 {
-    LRESULT res = CB_ERR;
+    LRESULT res = 0;
     cassert_no_null(combo);
     res = SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-    if (res != CB_ERR)
-        return (uint32_t)res;
-    else
-        return UINT32_MAX;
+    return (res != CB_ERR) ? (uint32_t)res : UINT32_MAX;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -411,6 +471,14 @@ void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *wid
     button_height = (14 * HIWORD(GetDialogBaseUnits())) / 8;
     *width = refwidth;
     *height = (real32_t)(button_height - 4);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_clipboard(OSCombo *combo, const clipboard_t clipboard)
+{
+    cassert_no_null(combo);
+    _oscontrol_clipboard(combo->edit_hwnd, clipboard);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -460,32 +528,17 @@ void oscombo_origin(const OSCombo *combo, real32_t *x, real32_t *y)
 
 void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
-    uint32_t num_elems = (uint32_t)SendMessage(combo->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
     _oscontrol_set_frame(cast(combo, OSControl), x, y, width, height);
+    _oscombo_set_list_height(combo->control.hwnd, combo->combo_hwnd, _osimglist_height(combo->image_list), combo->list_num_elems);
     combo->with_initial_size = TRUE;
-
-    if (num_elems == 0)
-        num_elems = 1;
-    else if (num_elems > 10)
-        num_elems = 10;
-
-    _oscombo_set_list_height(combo->control.hwnd, combo->combo_hwnd, _osimglist_height(combo->image_list), num_elems);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static uint32_t i_get_cursor_pos(HWND hwnd)
-{
-    DWORD start;
-    SendMessage(hwnd, CB_GETEDITSEL, (WPARAM)&start, (LPARAM)NULL);
-    return (uint32_t)start;
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_set_cursor_pos(HWND hwnd, const uint32_t pos)
 {
-    SendMessage(hwnd, CB_SETEDITSEL, (WPARAM)0, (LPARAM)MAKELONG((WORD)pos, (WORD)pos));
+    /* CB_SETEDITSEL is not working fine */
+    SendMessage(hwnd, EM_SETSEL, (WPARAM)pos, (LPARAM)pos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -504,6 +557,7 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
             combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize, NULL);
             params.text = cast_const(combo_text, char_t);
             params.cpos = i_get_cursor_pos(combo->control.hwnd);
+            params.len = INT32_MAX;
             result.apply = FALSE;
             result.text[0] = '\0';
             result.cpos = UINT32_MAX;
@@ -519,44 +573,21 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
             }
 
             if (result.cpos != UINT32_MAX)
-                i_set_cursor_pos(combo->control.hwnd, result.cpos);
+                i_set_cursor_pos(combo->edit_hwnd, result.cpos);
             else
-                i_set_cursor_pos(combo->control.hwnd, params.cpos);
+                i_set_cursor_pos(combo->edit_hwnd, params.cpos);
         }
     }
-
     else if (HIWORD(wParam) == CBN_SELCHANGE)
     {
-        InvalidateRect((HWND)combo->control.hwnd, NULL, FALSE);
-        InvalidateRect((HWND)combo->edit_hwnd, NULL, FALSE);
-        InvalidateRect((HWND)combo->combo_hwnd, NULL, FALSE);
-
-        SendMessage(combo->control.hwnd, CB_SETCURSEL, (WPARAM)1, (LPARAM)0);
-
-        /*
-        if (IsWindowEnabled(combo->control.hwnd) && combo->OnSelect.object != NULL)
+        if (IsWindowEnabled(combo->control.hwnd) && combo->OnSelect != NULL)
         {
-            Event event;
             EvButton params;
-            uint32_t i,n;
-            event.type = ekGUI_EVENT_BUTTON_PUSH;
-            event.sender1 = combo;
-            event.params1 = &params;
-            event.result1 = NULL;
-            #if defined (__ASSERTS__)
-            event.sender_type = "OSCombo";
-            event.params_type = "EvButton";
-            event.result_type = "";
-            #endif
             params.state = ekGUI_ON;
             params.index = (uint16_t)SendMessage(combo->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-            i = SendMessage(combo->combo_hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-            n = SendMessage(combo->combo_hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
-            cassert(params.index >= 0 && params.index < (uint16_t)SendMessage(combo->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0));
             params.text = NULL;
-            listener_event(&combo->OnSelect, &event);
+            listener_event(combo->OnSelect, ekGUI_EVENT_BUTTON, combo, &params, NULL, OSCombo, EvButton, void);
         }
-        */
     }
 }
 
@@ -636,18 +667,18 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
 void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_height, uint32_t num_elems)
 {
     uint32_t height = ((14 * HIWORD(GetDialogBaseUnits())) / 8) - 4;
-    uint32_t line_height = (uint32_t)SendMessage(hwnd, CB_GETITEMHEIGHT, (WPARAM) /*-1*/ 0, (LPARAM)0);
+    uint32_t line_height = (uint32_t)SendMessage(hwnd, CB_GETITEMHEIGHT, (WPARAM)0, (LPARAM)0);
     RECT rect;
-
     GetClientRect(hwnd, &rect);
 
     if (image_height != UINT32_MAX)
     {
-        if (line_height < image_height + 4)
-            line_height = image_height + 4;
+        if (line_height < image_height)
+            line_height = image_height;
     }
 
-    height += (num_elems /* - 1*/) * line_height;
+    height += num_elems * line_height;
+    height += 2;
     SetWindowPos(combo_hwnd, NULL, 0, 0, rect.right - rect.left, height, SWP_NOMOVE | SWP_NOZORDER);
 }
 
@@ -660,9 +691,12 @@ bool_t _oscombo_resign_focus(const OSCombo *combo)
     {
         char_t *combo_text = NULL;
         uint32_t tsize = 0;
+        uint32_t nchars = 0;
         EvText params;
-        combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize, NULL);
+        combo_text = _oscontrol_get_text(cast_const(combo, OSControl), &tsize, &nchars);
         params.text = cast_const(combo_text, char_t);
+        params.cpos = i_get_cursor_pos(combo->control.hwnd);
+        params.len = (int32_t)nchars;
         listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
         heap_free(dcast(&combo_text, byte_t), tsize, "OSControlGetText");
     }
@@ -679,5 +713,18 @@ void _oscombo_focus(OSCombo *combo, const bool_t focus)
     {
         bool_t params = focus;
         listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
+    }
+
+    if (focus == TRUE)
+    {
+        /* CB_SETEDITSEL is not working fine */
+        if (BIT_TEST(combo->flags, ekCOMBO_AUTOSEL) == TRUE)
+            SendMessage(combo->edit_hwnd, EM_SETSEL, (WPARAM)0, (LPARAM)-1);
+        else
+            SendMessage(combo->edit_hwnd, EM_SETSEL, combo->cursor_st, combo->cursor_ed);
+    }
+    else
+    {
+        SendMessage(combo->control.hwnd, CB_GETEDITSEL, (WPARAM)&combo->cursor_st, (LPARAM)&combo->cursor_ed);
     }
 }

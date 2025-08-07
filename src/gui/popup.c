@@ -12,50 +12,23 @@
 
 #include "popup.h"
 #include "popup.inl"
+#include "items.inl"
 #include "cell.inl"
 #include "component.inl"
 #include "gui.inl"
 #include <draw2d/font.h>
 #include <draw2d/guictx.h>
-#include <draw2d/image.h>
-#include <geom2d/v2d.h>
 #include <geom2d/s2d.h>
-#include <core/arrpt.h>
-#include <core/arrst.h>
-#include <core/event.h>
 #include <core/objh.h>
-#include <core/strings.h>
 #include <sewer/cassert.h>
-#include <sewer/ptr.h>
-
-typedef struct _pelem_t PElem;
-
-struct _pelem_t
-{
-    ResId resid;
-    String *text;
-    Image *image;
-};
 
 struct _popup_t
 {
     GuiComponent component;
     S2Df size;
     ResId ttipid;
-    ArrSt(PElem) *elems;
-    Listener *OnSelect;
+    Items *items;
 };
-
-DeclSt(PElem);
-
-/*---------------------------------------------------------------------------*/
-
-static void i_remove_elem(PElem *elem)
-{
-    cassert_no_null(elem);
-    str_destroy(&elem->text);
-    ptr_destopt(image_destroy, &elem->image, Image);
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -64,31 +37,18 @@ void _popup_destroy(PopUp **popup)
     cassert_no_null(popup);
     cassert_no_null(*popup);
     _component_destroy_imp(&(*popup)->component);
-    listener_destroy(&(*popup)->OnSelect);
-    arrst_destroy(&(*popup)->elems, i_remove_elem, PElem);
+    _items_destroy(&(*popup)->items);
     obj_delete(popup, PopUp);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnSelect(PopUp *popup, Event *event)
+static void i_OnSelect(PopUp *popup, Event *e)
 {
-    const EvButton *params = event_params(event, EvButton);
+    Cell *cell = NULL;
     cassert_no_null(popup);
-
-    {
-        Cell *cell = _component_cell(&popup->component);
-        if (cell != NULL)
-            _cell_update_u32(cell, params->index);
-    }
-
-    if (popup->OnSelect != NULL)
-    {
-        const PElem *elem = arrst_get(popup->elems, params->index, PElem);
-        cassert(params->text == NULL);
-        cast(params, EvButton)->text = tc(elem->text);
-        listener_pass_event(popup->OnSelect, event, popup, PopUp);
-    }
+    cell = _component_cell(&popup->component);
+    _items_OnSelect(popup->items, e, cell, cast(popup, void), "PopUp");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -96,12 +56,12 @@ static void i_OnSelect(PopUp *popup, Event *event)
 PopUp *popup_create(void)
 {
     const GuiCtx *context = guictx_get_current();
-    Font *font = _gui_create_default_font();
     PopUp *popup = obj_new0(PopUp);
     void *ositem = context->func_create[ekGUI_TYPE_POPUP](ekPOPUP_FLAG);
+    Font *font = _gui_create_default_font();
+    popup->items = _items_from_popup(context, ositem);
     context->func_popup_set_font(ositem, font);
     _component_init(&popup->component, context, PARAM(type, ekGUI_TYPE_POPUP), &ositem);
-    popup->elems = arrst_create(PElem);
     context->func_popup_OnSelect(popup->component.ositem, obj_listener(popup, i_OnSelect, PopUp));
     font_destroy(&font);
     return popup;
@@ -112,7 +72,7 @@ PopUp *popup_create(void)
 void popup_OnSelect(PopUp *popup, Listener *listener)
 {
     cassert_no_null(popup);
-    listener_update(&popup->OnSelect, listener);
+    _items_set_OnSelect(popup->items, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -128,62 +88,42 @@ void popup_tooltip(PopUp *popup, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
-static Image *i_image(const Image *image)
-{
-    const Image *limage = _gui_respack_image((ResId)image, NULL);
-    if (limage != NULL)
-        return image_scale(limage, 16, 16);
-    else
-        return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void popup_add_elem(PopUp *popup, const char_t *text, const Image *image)
 {
-    PElem *elem = NULL;
-    const char_t *ltext = NULL;
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_elem);
-    cassert_no_nullf(popup->component.context->func_popup_list_height);
-    elem = arrst_new0(popup->elems, PElem);
-    ltext = _gui_respack_text(text, &elem->resid);
-    elem->text = str_c(ltext);
-    elem->image = i_image(image);
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
-    popup->component.context->func_popup_list_height(popup->component.ositem, arrst_size(popup->elems, PElem));
+    _items_add_elem(popup->items, text, image);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image)
 {
-    PElem *elem = NULL;
-    const char_t *ltext = NULL;
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_elem);
-    elem = arrst_get(popup->elems, index, PElem);
-    ltext = _gui_respack_text(text, &elem->resid);
-    ptr_destopt(image_destroy, &elem->image, Image);
-    elem->image = i_image(image);
-    str_upd(&elem->text, ltext);
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, index, tc(elem->text), elem->image);
+    _items_set_elem(popup->items, index, text, image);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void popup_ins_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image)
+{
+    cassert_no_null(popup);
+    _items_ins_elem(popup->items, index, text, image);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void popup_del_elem(PopUp *popup, const uint32_t index)
+{
+    cassert_no_null(popup);
+    _items_del_elem(popup->items, index);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void popup_clear(PopUp *popup)
 {
-    uint32_t i, n;
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_elem);
-    n = arrst_size(popup->elems, PElem);
-    arrst_clear(popup->elems, i_remove_elem, PElem);
-    for (i = 0; i < n; ++i)
-        popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_DEL, 0, NULL, NULL);
+    _items_clear(popup->items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -191,7 +131,7 @@ void popup_clear(PopUp *popup)
 uint32_t popup_count(const PopUp *popup)
 {
     cassert_no_null(popup);
-    return arrst_size(popup->elems, PElem);
+    return _items_count(popup->items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -199,9 +139,7 @@ uint32_t popup_count(const PopUp *popup)
 void popup_list_height(PopUp *popup, const uint32_t num_elems)
 {
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_list_height);
-    popup->component.context->func_popup_list_height(popup->component.ositem, num_elems);
+    _items_list_height(popup->items, num_elems);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -209,9 +147,7 @@ void popup_list_height(PopUp *popup, const uint32_t num_elems)
 void popup_selected(PopUp *popup, const uint32_t index)
 {
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_selected);
-    popup->component.context->func_popup_set_selected(popup->component.ositem, index);
+    _items_selected(popup->items, index);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -219,24 +155,20 @@ void popup_selected(PopUp *popup, const uint32_t index)
 uint32_t popup_get_selected(const PopUp *popup)
 {
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_get_selected);
-    return popup->component.context->func_popup_get_selected(popup->component.ositem);
+    return _items_get_selected(popup->items);
 }
 
 /*---------------------------------------------------------------------------*/
 
 const char_t *popup_get_text(const PopUp *popup, const uint32_t index)
 {
-    const PElem *elem = NULL;
     cassert_no_null(popup);
-    elem = arrst_get_const(popup->elems, index, PElem);
-    return tc(elem->text);
+    return _items_get_text(popup->items, index);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _popup_natural(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _popup_natural(PopUp *popup, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(popup);
     cassert_no_null(popup->component.context);
@@ -244,20 +176,24 @@ void _popup_natural(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *di
     cassert_no_null(dim0);
     cassert_no_null(dim1);
 
-    if (i == 0)
+    if (di == 0)
     {
+        uint32_t n = _items_count(popup->items);
         popup->size = kS2D_ZEROf;
 
-        if (arrst_size(popup->elems, PElem) > 0)
+        if (n > 0)
         {
-            arrst_foreach(elem, popup->elems, PElem)
+            uint32_t i = 0;
+            for (i = 0; i < n; ++i)
+            {
                 real32_t width, height;
-                popup->component.context->func_popup_bounds(popup->component.ositem, tc(elem->text), &width, &height);
+                const char_t *text = _items_get_text(popup->items, i);
+                popup->component.context->func_popup_bounds(popup->component.ositem, text, &width, &height);
                 if (width > popup->size.width)
                     popup->size.width = width;
                 if (height > popup->size.height)
                     popup->size.height = height;
-            arrst_end()
+            }
         }
         else
         {
@@ -268,7 +204,7 @@ void _popup_natural(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *di
     }
     else
     {
-        cassert(i == 1);
+        cassert(di == 1);
         *dim1 = popup->size.height;
     }
 }
@@ -278,11 +214,13 @@ void _popup_natural(PopUp *popup, const uint32_t i, real32_t *dim0, real32_t *di
 void _popup_locale(PopUp *popup)
 {
     cassert_no_null(popup);
-    arrst_foreach(elem, popup->elems, PElem)
-        const char_t *text = _gui_respack_text(elem->resid, NULL);
-        str_upd(&elem->text, text);
-        popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_SET, elem_i, text, elem->image);
-    arrst_end()
+    _items_locale(popup->items);
+
+    if (popup->ttipid != NULL)
+    {
+        const char_t *text = _gui_respack_text(popup->ttipid, NULL);
+        popup->component.context->func_set_tooltip[ekGUI_TYPE_POPUP](popup->component.ositem, text);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -290,7 +228,7 @@ void _popup_locale(PopUp *popup)
 uint32_t _popup_size(const PopUp *popup)
 {
     cassert_no_null(popup);
-    return arrst_size(popup->elems, PElem);
+    return _items_count(popup->items);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -305,25 +243,13 @@ void _popup_list_height(PopUp *popup, const uint32_t elems)
 void _popup_uint32(PopUp *popup, const uint32_t value)
 {
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_selected);
-
-    if (value < arrst_size(popup->elems, PElem))
-        popup->component.context->func_popup_set_selected(popup->component.ositem, value);
-    else
-        popup->component.context->func_popup_set_selected(popup->component.ositem, UINT32_MAX);
+    _items_uint32(popup->items, value);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _popup_add_enum_item(PopUp *popup, const char_t *text)
 {
-    PElem *elem = NULL;
     cassert_no_null(popup);
-    cassert_no_null(popup->component.context);
-    cassert_no_nullf(popup->component.context->func_popup_set_elem);
-    elem = arrst_new(popup->elems, PElem);
-    elem->text = str_c(text);
-    elem->image = NULL;
-    popup->component.context->func_popup_set_elem(popup->component.ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
+    _items_add_elem(popup->items, text, NULL);
 }

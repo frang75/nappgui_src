@@ -13,3 +13,5 @@
 #include "osgui_osx.ixx"
 
 BOOL _ostext_is(NSView *view);
+
+bool_t _ostext_is_enabled(NSView *text);

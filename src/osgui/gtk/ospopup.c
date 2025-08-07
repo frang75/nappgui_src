@@ -195,6 +195,26 @@ void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void ospopup_tooltip(OSPopUp *popup, const char_t *text)
+{
+    cassert_no_null(popup);
+    cassert(GTK_IS_EVENT_BOX(popup->control.widget));
+    gtk_widget_set_tooltip_text(popup->popup, cast_const(text, gchar));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospopup_font(OSPopUp *popup, const Font *font)
+{
+    const char_t *cssobj = _osglobals_css_combobox();
+    cassert_no_null(popup);
+    cassert(GTK_IS_EVENT_BOX(popup->control.widget));
+    _oscontrol_update_css_font(popup->popup, cssobj, font, &popup->font, &popup->css_font);
+    popup->fsize = (uint32_t)(font_size(font) + 2.5f);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
     uint32_t imgw, imgh;
@@ -216,26 +236,6 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, cons
     popup->launch_event = FALSE;
     gtk_combo_box_set_active(GTK_COMBO_BOX(popup->popup), current);
     popup->launch_event = TRUE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ospopup_tooltip(OSPopUp *popup, const char_t *text)
-{
-    cassert_no_null(popup);
-    cassert(GTK_IS_EVENT_BOX(popup->control.widget));
-    gtk_widget_set_tooltip_text(popup->popup, cast_const(text, gchar));
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ospopup_font(OSPopUp *popup, const Font *font)
-{
-    const char_t *cssobj = _osglobals_css_combobox();
-    cassert_no_null(popup);
-    cassert(GTK_IS_EVENT_BOX(popup->control.widget));
-    _oscontrol_update_css_font(popup->popup, cssobj, font, &popup->font, &popup->css_font);
-    popup->fsize = (uint32_t)(font_size(font) + 2.5f);
 }
 
 /*---------------------------------------------------------------------------*/

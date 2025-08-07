@@ -14,24 +14,36 @@
 #include "oscontrol_osx.inl"
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
+#include "ostextfield.inl"
 #include "../oscombo.h"
+#include "../oscombo.inl"
 #include "../osgui.inl"
 #include <core/event.h>
-#include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
-#include <sewer/ptr.h>
 
 /*---------------------------------------------------------------------------*/
 
 @interface OSXCombo : NSComboBox
 {
   @public
-    OSTextAttr attrs;
-    Listener *OnFilter;
-    Listener *OnChange;
-    Listener *OnFocus;
+    OSTextField *field;
+    bool_t launch_OnSelect;
     Listener *OnSelect;
 }
+@end
+
+/*---------------------------------------------------------------------------*/
+
+#if defined(MAC_OS_X_VERSION_10_5) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+@interface OSXComboDelegate : NSObject < NSComboBoxDelegate >
+#else
+@interface OSXComboDelegate : NSObject
+#endif
+{
+    uint32_t dummy;
+}
+
 @end
 
 /*---------------------------------------------------------------------------*/
@@ -43,48 +55,14 @@
 - (void)textDidChange:(NSNotification *)notification
 {
     unref(notification);
-    if ([self isEnabled] == YES && self->OnFilter != NULL)
-    {
-        EvText params;
-        EvTextFilter result;
-        NSText *text = NULL;
-        params.text = cast_const([[self stringValue] UTF8String], char_t);
-        text = [[self window] fieldEditor:YES forObject:self];
-        params.cpos = (uint32_t)[text selectedRange].location;
-        result.apply = FALSE;
-        result.text[0] = '\0';
-        result.cpos = UINT32_MAX;
-        listener_event(self->OnFilter, ekGUI_EVENT_TXTFILTER, cast(self, OSCombo), &params, &result, OSCombo, EvText, EvTextFilter);
-
-        if (result.apply == TRUE)
-            _oscontrol_set_text(self, &self->attrs, result.text);
-
-        if (result.cpos != UINT32_MAX)
-            [text setSelectedRange:NSMakeRange((NSUInteger)result.cpos, 0)];
-        else
-            [text setSelectedRange:NSMakeRange((NSUInteger)params.cpos, 0)];
-    }
+    _ostextfield_textDidChange(self->field);
 }
 
 /*---------------------------------------------------------------------------*/
 
 - (void)textDidEndEditing:(NSNotification *)notification
 {
-    unsigned int whyEnd = [[[notification userInfo] objectForKey:@"NSTextMovement"] unsignedIntValue];
-    NSWindow *window = [self window];
-
-    if (whyEnd == NSReturnTextMovement)
-    {
-        [window keyDown:cast(231, NSEvent)];
-    }
-    else if (whyEnd == NSTabTextMovement)
-    {
-        _oswindow_next_tabstop(window, TRUE);
-    }
-    else if (whyEnd == NSBacktabTextMovement)
-    {
-        _oswindow_prev_tabstop(window, TRUE);
-    }
+    _ostextfield_textDidEndEditing(self->field, notification);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -95,31 +73,40 @@
         [super mouseDown:theEvent];
 }
 
+@end
+
 /*---------------------------------------------------------------------------*/
 
-/*
-- (IBAction)onSelectionChange:(id)sender
+@implementation OSXComboDelegate
+
+/*---------------------------------------------------------------------------*/
+
+- (void)comboBoxSelectionDidChange:(NSNotification *)notification
 {
-    cassert(sender == self);
-    if ([self isEnabled] == YES && self->OnSelect.object != NULL)
+    OSXCombo *combo = [notification object];
+    cassert_no_null(combo);
+    unref(notification);
+    if (combo->launch_OnSelect == TRUE)
     {
-        Event event;
-        EvButton params;
-        event.type = ekGUI_EVENT_BUTTON_PUSH;
-        event.sender1 = self;
-        event.params1 = &params;
-        event.result1 = NULL;
-        #if defined (__ASSERTS__)
-        event.sender_type = "OSCombo";
-        event.params_type = "EvButton";
-        event.result_type = "";
-        #endif
-        params.state = ekGUI_STATE_ON;
-        params.index = (uint16_t)[self indexOfSelectedItem];
-        params.text = NULL;
-        listener_event(&self->OnSelect, &event);
+        NSString *text = [combo objectValueOfSelectedItem];
+        if (text != nil)
+        {
+            const char_t *utf8 = cast_const([text UTF8String], char_t);
+            _ostextfield_text(combo->field, utf8);
+        }
+
+        _ostextfield_textDidChange(combo->field);
+
+        if ([combo isEnabled] == YES && combo->OnSelect != NULL)
+        {
+            EvButton params;
+            params.state = ekGUI_ON;
+            params.index = (uint32_t)[combo indexOfSelectedItem];
+            params.text = NULL;
+            listener_event(combo->OnSelect, ekGUI_EVENT_BUTTON, cast(combo, OSCombo), &params, NULL, OSCombo, EvButton, void);
+        }
     }
-}*/
+}
 
 @end
 
@@ -128,28 +115,21 @@
 OSCombo *oscombo_create(const uint32_t flags)
 {
     OSXCombo *combo = nil;
-    NSComboBoxCell *cell = nil;
+    OSXComboDelegate *delegate = [[OSXComboDelegate alloc] init];
     unref(flags);
     heap_auditor_add("OSXCombo");
     combo = [[OSXCombo alloc] initWithFrame:NSZeroRect];
-    combo->OnFilter = NULL;
-    combo->OnChange = NULL;
-    combo->OnFocus = NULL;
+    combo->field = _ostextfield_from_combo(combo);
     combo->OnSelect = NULL;
+    combo->launch_OnSelect = TRUE;
     _oscontrol_init(combo);
-    _oscontrol_init_textattr(&combo->attrs);
-    _oscontrol_set_align(combo, &combo->attrs, ekLEFT);
-    _oscontrol_set_font(combo, &combo->attrs, combo->attrs.font);
-    cell = [combo cell];
-    [cell setStringValue:@""];
-    _oscontrol_cell_set_control_size(cell, ekGUI_SIZE_REGULAR);
-    /*[combo setTarget:combo];*/
-    /*[combo setAction:@selector(onSelectionChange:)];*/
+    [combo setStringValue:@""];
     [combo setUsesDataSource:NO];
     [combo setEditable:YES];
     [combo setSelectable:YES];
     [combo setHasVerticalScroller:YES];
     [combo setNumberOfVisibleItems:10];
+    [combo setDelegate:delegate];
     return cast(combo, OSCombo);
 }
 
@@ -161,11 +141,8 @@ void oscombo_destroy(OSCombo **combo)
     cassert_no_null(combo);
     lcombo = *dcast(combo, OSXCombo);
     cassert_no_null(lcombo);
-    listener_destroy(&lcombo->OnFilter);
-    listener_destroy(&lcombo->OnChange);
-    listener_destroy(&lcombo->OnFocus);
     listener_destroy(&lcombo->OnSelect);
-    _oscontrol_remove_textattr(&lcombo->attrs);
+    _ostextfield_destroy(&lcombo->field);
     [lcombo release];
     *combo = NULL;
     heap_auditor_delete("OSXCombo");
@@ -176,7 +153,8 @@ void oscombo_destroy(OSCombo **combo)
 void oscombo_OnFilter(OSCombo *combo, Listener *listener)
 {
     cassert_no_null(combo);
-    listener_update(&cast(combo, OSXCombo)->OnFilter, listener);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_OnFilter(cast(combo, OSXCombo)->field, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -184,7 +162,8 @@ void oscombo_OnFilter(OSCombo *combo, Listener *listener)
 void oscombo_OnChange(OSCombo *combo, Listener *listener)
 {
     cassert_no_null(combo);
-    listener_update(&cast(combo, OSXCombo)->OnChange, listener);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_OnChange(cast(combo, OSXCombo)->field, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -192,7 +171,8 @@ void oscombo_OnChange(OSCombo *combo, Listener *listener)
 void oscombo_OnFocus(OSCombo *combo, Listener *listener)
 {
     cassert_no_null(combo);
-    listener_update(&cast(combo, OSXCombo)->OnFocus, listener);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_OnFocus(cast(combo, OSXCombo)->field, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -207,65 +187,93 @@ void oscombo_OnSelect(OSCombo *combo, Listener *listener)
 
 void oscombo_text(OSCombo *combo, const char_t *text)
 {
-    _oscontrol_set_text(cast(combo, OSXCombo), &cast(combo, OSXCombo)->attrs, text);
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_text(cast(combo, OSXCombo)->field, text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_tooltip(OSCombo *combo, const char_t *text)
 {
-    _oscontrol_tooltip_set(cast(combo, OSXCombo), text);
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_tooltip(cast(combo, OSXCombo)->field, text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_font(OSCombo *combo, const Font *font)
 {
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    _oscontrol_set_font(lcombo, &lcombo->attrs, font);
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_font(cast(combo, OSXCombo)->field, font);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_align(OSCombo *combo, const align_t align)
 {
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    _oscontrol_set_align(lcombo, &lcombo->attrs, align);
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_align(cast(combo, OSXCombo)->field, align);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_passmode(OSCombo *combo, const bool_t passmode)
 {
-    /* Utilizar NSSecureTextFieldCell al crear el control */
+    /*
+     * Native NSComboBox doesn't support passmode.
+     * A custom control have to be created.
+     */
     unref(combo);
     unref(passmode);
-    cassert_msg(FALSE, "Not implemented");
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_editable(OSCombo *combo, const bool_t is_editable)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_editable(cast(combo, OSXCombo)->field, is_editable);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_autoselect(OSCombo *combo, const bool_t autoselect)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_autoselect(cast(combo, OSXCombo)->field, autoselect);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_select(OSCombo *combo, const int32_t start, const int32_t end)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_select(cast(combo, OSXCombo)->field, start, end);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_color(OSCombo *combo, const color_t color)
 {
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    _oscontrol_set_text_color(lcombo, &lcombo->attrs, color);
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_color(cast(combo, OSXCombo)->field, color);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_bgcolor(OSCombo *combo, const color_t color)
 {
-    NSColor *nscolor = nil;
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    if (color != 0)
-        nscolor = _oscontrol_color(color);
-    else
-        nscolor = [NSColor textBackgroundColor];
-    [lcombo setBackgroundColor:nscolor];
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_bgcolor(cast(combo, OSXCombo)->field, color);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -275,6 +283,7 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
     OSXCombo *lcombo = cast(combo, OSXCombo);
     cassert_no_null(lcombo);
     unref(image);
+    lcombo->launch_OnSelect = FALSE;
     if (op != ekCTRL_OP_DEL)
     {
         NSString *str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
@@ -283,14 +292,25 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
         {
         case ekCTRL_OP_ADD:
             [lcombo addItemWithObjectValue:str];
+            if (oscombo_get_selected(combo) == UINT32_MAX && str_empty_c(_ostextfield_get_text(lcombo->field)) == TRUE)
+            {
+                oscombo_selected(combo, 0);
+            }
             break;
+
         case ekCTRL_OP_INS:
             [lcombo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
+            if (oscombo_get_selected(combo) == UINT32_MAX && str_empty_c(_ostextfield_get_text(lcombo->field)) == TRUE)
+            {
+                oscombo_selected(combo, 0);
+            }
             break;
+
         case ekCTRL_OP_SET:
             [lcombo removeItemAtIndex:(NSInteger)idx];
             [lcombo insertItemWithObjectValue:str atIndex:(NSInteger)idx];
             break;
+
         case ekCTRL_OP_DEL:
             cassert_default();
         }
@@ -301,6 +321,17 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
     {
         [lcombo removeItemAtIndex:(NSInteger)idx];
     }
+
+    lcombo->launch_OnSelect = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_list_height(OSCombo *combo, const uint32_t num_elems)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    [cast(combo, OSXCombo) setNumberOfVisibleItems:(NSInteger)num_elems];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -335,12 +366,23 @@ uint32_t oscombo_get_selected(const OSCombo *combo)
 void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     OSXCombo *lcombo = cast(combo, OSXCombo);
+    const Font *font = NULL;
     cassert_no_null(lcombo);
     cassert_no_null(width);
     cassert_no_null(height);
-    font_extents(lcombo->attrs.font, "OO", -1.f, width, height);
+    font = _ostextfield_get_font(lcombo->field);
+    font_extents(font, "OO", -1.f, width, height);
     *width = refwidth;
     *height = 27.f;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_clipboard(OSCombo *combo, const clipboard_t clipboard)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_clipboard(cast(combo, OSXCombo)->field, clipboard);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -368,10 +410,9 @@ void oscombo_visible(OSCombo *combo, const bool_t visible)
 
 void oscombo_enabled(OSCombo *combo, const bool_t enabled)
 {
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    _oscontrol_set_enabled(lcombo, enabled);
-    _oscontrol_set_text_color(lcombo, &lcombo->attrs, lcombo->attrs.color);
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_enabled(cast(combo, OSXCombo)->field, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -402,33 +443,18 @@ void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const rea
 
 bool_t _oscombo_resign_focus(const OSCombo *combo)
 {
-    bool_t lost_focus = TRUE;
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    if (lcombo->OnChange != NULL && _oswindow_in_destroy([lcombo window]) == NO)
-    {
-        EvText params;
-        params.text = cast_const([[lcombo stringValue] UTF8String], char_t);
-        listener_event(lcombo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
-    }
-
-    return lost_focus;
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    return _ostextfield_resign_focus(cast(combo, OSXCombo)->field);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oscombo_focus(OSCombo *combo, const bool_t focus)
 {
-    OSXCombo *lcombo = cast(combo, OSXCombo);
-    cassert_no_null(lcombo);
-    if (lcombo->OnFocus != NULL)
-    {
-        bool_t params = focus;
-        listener_event(lcombo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
-    }
-
-    if (focus == FALSE)
-        [[lcombo window] endEditingFor:nil];
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    _ostextfield_focus(cast(combo, OSXCombo)->field, focus);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -436,4 +462,13 @@ void _oscombo_focus(OSCombo *combo, const bool_t focus)
 BOOL _oscombo_is(NSView *view)
 {
     return [view isKindOfClass:[OSXCombo class]];
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _oscombo_is_enabled(NSView *combo)
+{
+    cassert_no_null(combo);
+    cassert([cast(combo, NSObject) isKindOfClass:[OSXCombo class]] == YES);
+    return _ostextfield_is_enabled(cast_const(combo, OSXCombo)->field);
 }

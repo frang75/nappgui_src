@@ -25,6 +25,10 @@ _gui_api void popup_add_elem(PopUp *popup, const char_t *text, const Image *imag
 
 _gui_api void popup_set_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image);
 
+_gui_api void popup_ins_elem(PopUp *popup, const uint32_t index, const char_t *text, const Image *image);
+
+_gui_api void popup_del_elem(PopUp *popup, const uint32_t index);
+
 _gui_api void popup_clear(PopUp *popup);
 
 _gui_api uint32_t popup_count(const PopUp *popup);

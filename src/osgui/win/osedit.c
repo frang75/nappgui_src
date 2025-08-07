@@ -36,18 +36,15 @@ struct _osedit_t
     uint32_t flags;
     Font *font;
     bool_t launch_event;
-    bool_t focused;
     COLORREF color;
     COLORREF bgcolor;
     HBRUSH bgbrush;
-    RECT border;
     uint32_t vpadding;
     real32_t rpadding;
     INT wpadding;
     Listener *OnFilter;
     Listener *OnChange;
     Listener *OnFocus;
-    UINT_PTR timer;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -55,7 +52,7 @@ struct _osedit_t
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSEdit *edit = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSEdit);
-    LRESULT res;
+    LRESULT res = 0;
     cassert_no_null(edit);
 
     switch (uMsg)
@@ -138,15 +135,13 @@ static void i_update_vpadding(OSEdit *edit)
 OSEdit *osedit_create(const uint32_t flags)
 {
     OSEdit *edit = heap_new0(OSEdit);
-    DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | _oscontrol_halign(ekLEFT) | i_flags(flags);
+    DWORD dwStyle = WS_CHILD | WS_CLIPSIBLINGS | _oscontrol_es_halign(ekLEFT) | i_flags(flags);
     edit->control.type = ekGUI_TYPE_EDITBOX;
     edit->flags = flags;
-    _oscontrol_init(cast(edit, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE), dwStyle, L"edit", 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    _oscontrol_init(cast(edit, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE), dwStyle, WC_EDIT, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     edit->font = _osgui_create_default_font();
     edit->launch_event = TRUE;
-    edit->focused = FALSE;
     edit->vpadding = UINT32_MAX;
-    edit->timer = 0;
     i_update_vpadding(edit);
     _oscontrol_set_font(cast(edit, OSControl), edit->font);
     return edit;
@@ -224,10 +219,10 @@ void osedit_align(OSEdit *edit, const align_t align)
     DWORD dwStyle = 0;
     cassert_no_null(edit);
     dwStyle = (DWORD)GetWindowLongPtr(edit->control.hwnd, GWL_STYLE);
-    dwStyle &= ~SS_LEFT;
-    dwStyle &= ~SS_CENTER;
-    dwStyle &= ~SS_RIGHT;
-    dwStyle |= _oscontrol_halign(align);
+    dwStyle &= ~ES_LEFT;
+    dwStyle &= ~ES_CENTER;
+    dwStyle &= ~ES_RIGHT;
+    dwStyle |= _oscontrol_es_halign(align);
     SetWindowLongPtr(edit->control.hwnd, GWL_STYLE, dwStyle);
 }
 
@@ -299,7 +294,6 @@ void osedit_bgcolor(OSEdit *edit, const color_t color)
 void osedit_vpadding(OSEdit *edit, const real32_t padding)
 {
     cassert_no_null(edit);
-    cassert(padding >= 0);
     edit->vpadding = (padding < 0) ? UINT32_MAX : (uint32_t)padding;
     i_update_vpadding(edit);
 }
@@ -327,19 +321,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
 void osedit_clipboard(OSEdit *edit, const clipboard_t clipboard)
 {
     cassert_no_null(edit);
-    switch (clipboard)
-    {
-    case ekCLIPBOARD_COPY:
-        SendMessage(edit->control.hwnd, WM_COPY, (WPARAM)0, (LPARAM)0);
-        break;
-    case ekCLIPBOARD_PASTE:
-        SendMessage(edit->control.hwnd, WM_PASTE, (WPARAM)0, (LPARAM)0);
-        break;
-    case ekCLIPBOARD_CUT:
-        SendMessage(edit->control.hwnd, WM_CUT, (WPARAM)0, (LPARAM)0);
-        break;
-        cassert_default();
-    }
+    _oscontrol_clipboard(edit->control.hwnd, clipboard);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -496,7 +478,6 @@ bool_t _osedit_resign_focus(const OSEdit *edit)
 void _osedit_focus(OSEdit *edit, const bool_t focus)
 {
     cassert_no_null(edit);
-    edit->focused = focus;
     if (edit->OnFocus != NULL)
     {
         bool_t params = focus;

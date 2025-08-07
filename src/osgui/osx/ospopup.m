@@ -50,7 +50,7 @@
         EvButton params;
         params.state = ekGUI_ON;
         params.index = (uint32_t)[self indexOfSelectedItem];
-        params.text = NULL; /*(const char_t*)[[self titleOfSelectedItem] UTF8String];*/
+        params.text = NULL;
         listener_event(self->OnSelect, ekGUI_EVENT_POPUP, cast(sender, OSPopUp), &params, NULL, OSPopUp, EvButton, void);
     }
 }
@@ -113,7 +113,24 @@ void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
+void ospopup_tooltip(OSPopUp *popup, const char_t *text)
+{
+    cassert_no_null(popup);
+    _oscontrol_tooltip_set(cast(popup, OSXPopUp), text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospopup_font(OSPopUp *popup, const Font *font)
+{
+    OSXPopUp *lpopup = cast(popup, OSXPopUp);
+    cassert_no_null(lpopup);
+    _oscontrol_set_font(lpopup, &lpopup->attrs, font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_insert_elem(OSPopUp *popup, const char_t *text, const Image *image, NSInteger pos)
 {
     OSXPopUp *lpopup = cast(popup, OSXPopUp);
     NSString *str = nil;
@@ -123,23 +140,20 @@ static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
     str = [[NSString alloc] initWithUTF8String:cast_const(text, char)];
     item = [[NSMenuItem alloc] initWithTitle:str action:nil keyEquivalent:@""];
     [item setTarget:lpopup];
-    [[lpopup menu] addItem:item];
+    [[lpopup menu] insertItem:item atIndex:pos];
     [str release];
     [item release];
 
     if (image != NULL)
     {
-        NSInteger num_items;
-        NSMenuItem *item = nil;
+        NSMenuItem *item = [lpopup itemAtIndex:pos];
         NSImage *nsimage = cast(image_native(image), NSImage);
 #if defined(__ASSERTS__)
-        NSSize size = [nsimage size];
-        cassert(size.width == 16.f && size.height == 16.f);
+        {
+            NSSize size = [nsimage size];
+            cassert(size.width == 16.f && size.height == 16.f);
+        }
 #endif
-
-        num_items = [lpopup numberOfItems];
-        cassert(num_items > 0);
-        item = [lpopup itemAtIndex:num_items - 1];
         [item setImage:nsimage];
         [item setOnStateImage:nil];
         [item setMixedStateImage:nil];
@@ -150,11 +164,13 @@ static void i_add_elem(OSPopUp *popup, const char_t *text, const Image *image)
 
 void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const char_t *text, const Image *image)
 {
-    if (op == ekCTRL_OP_ADD)
+    switch (op)
     {
-        i_add_elem(popup, text, image);
-    }
-    else if (op == ekCTRL_OP_SET)
+    case ekCTRL_OP_ADD:
+        i_insert_elem(popup, text, image, [cast(popup, OSXPopUp) numberOfItems]);
+        break;
+
+    case ekCTRL_OP_SET:
     {
         NSArray *items = nil;
         NSMenuItem *item = nil;
@@ -179,38 +195,25 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const 
 #endif
 
         [item setImage:image != NULL ? cast(image_native(image), NSImage) : nil];
+        break;
     }
-    else if (op == ekCTRL_OP_DEL)
-    {
+
+    case ekCTRL_OP_INS:
+        i_insert_elem(popup, text, image, (NSInteger)idx);
+        break;
+
+    case ekCTRL_OP_DEL:
         [cast(popup, OSXPopUp) removeItemAtIndex:(NSInteger)idx];
+        break;
+        cassert_default();
     }
-    else
-    {
-        cassert_msg(FALSE, "Not implemented");
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ospopup_tooltip(OSPopUp *popup, const char_t *text)
-{
-    unref(popup);
-    unref(text);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ospopup_font(OSPopUp *popup, const Font *font)
-{
-    OSXPopUp *lpopup = cast(popup, OSXPopUp);
-    cassert_no_null(lpopup);
-    _oscontrol_set_font(lpopup, &lpopup->attrs, font);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospopup_list_height(OSPopUp *popup, const uint32_t num_elems)
 {
+    /* No direct API (NSPopUpButton uses a internal NSMenu) */
     unref(popup);
     unref(num_elems);
 }

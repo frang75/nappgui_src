@@ -10,16 +10,16 @@
 
 /* Operating System native combo box */
 
-#include "osgui_gtk.inl"
-#include "oscombo_gtk.inl"
 #include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
+#include "oscombo_gtk.inl"
+#include "osgui_gtk.inl"
+#include "osentry_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
 #include "../oscombo.h"
 #include "../oscombo.inl"
 #include "../osgui.inl"
-#include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/arrpt.h>
@@ -40,54 +40,14 @@ struct _oscombo_t
     GtkWidget *button;
     GtkCellRenderer *imgcell;
     GtkCellRenderer *txtcell;
-    Font *font;
-    GtkCssProvider *css_font;
-    GtkCssProvider *css_color;
-    GtkCssProvider *css_bgcolor;
-    bool_t launch_event;
-    color_t ccolor;
-    int32_t select_start;
-    int32_t select_end;
-    Listener *OnFilter;
-    Listener *OnChange;
-    Listener *OnFocus;
+    GtkCssProvider *css_padding_entry;
+    GtkCssProvider *css_padding_button;
     Listener *OnSelect;
+    uint32_t selected;
     ArrPt(String) *texts;
     ArrPt(Image) *images;
+    OSEntry *entry;
 };
-
-/*---------------------------------------------------------------------------*/
-
-static void i_OnChange(GtkEditable *editable, OSCombo *combo)
-{
-    GtkWidget *entry = NULL;
-    cassert_no_null(combo);
-    entry = gtk_bin_get_child(GTK_BIN(combo->combo));
-    if (combo->launch_event == TRUE && gtk_widget_is_sensitive(entry) && combo->OnFilter != NULL)
-    {
-        EvText params;
-        EvTextFilter result;
-        params.text = cast_const(gtk_entry_get_text(GTK_ENTRY(entry)), char_t);
-        params.cpos = (uint32_t)gtk_editable_get_position(editable);
-        result.apply = FALSE;
-        result.text[0] = '\0';
-        result.cpos = UINT32_MAX;
-        listener_event(combo->OnFilter, ekGUI_EVENT_TXTFILTER, combo, &params, &result, OSCombo, EvText, EvTextFilter);
-
-        if (result.apply == TRUE)
-        {
-            bool_t prev = combo->launch_event;
-            combo->launch_event = FALSE;
-            oscombo_text(combo, result.text);
-            combo->launch_event = prev;
-        }
-
-        if (result.cpos != UINT32_MAX)
-            gtk_editable_set_position(editable, (gint)result.cpos);
-        else
-            gtk_editable_set_position(editable, (gint)params.cpos);
-    }
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -97,21 +57,26 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSCombo *combo)
     cassert_no_null(event);
     cassert_unref(widget == combo->control.widget, widget);
     cassert(GTK_IS_EVENT_BOX(widget) == TRUE);
+    if (_oswindow_mouse_down(cast(combo, OSControl)) == FALSE)
+        return TRUE;
+
     if (event->button.button == 1)
     {
-        if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
-        {
-            bool_t over = FALSE;
+        bool_t over = FALSE;
 #if GTK_CHECK_VERSION(3, 16, 0)
-            over = _oscontrol_widget_mouse_over(combo->button, event);
+        over = _oscontrol_widget_mouse_over(combo->button, event);
 #else
-            over = _oscontrol_widget_mouse_over_right(combo->button, event, 30);
+        over = _oscontrol_widget_mouse_over_right(combo->button, event, 30);
 #endif
-            if (over == TRUE)
-                gtk_combo_box_popup(GTK_COMBO_BOX(combo->combo));
+        if (over == TRUE)
+        {
+            gtk_combo_box_popup(GTK_COMBO_BOX(combo->combo));
+            return FALSE;
         }
     }
-    return TRUE;
+
+    _osentry_deselect(combo->entry);
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -138,36 +103,32 @@ static gboolean i_OnLeave(GtkWidget *widget, GdkEvent *event, OSCombo *combo)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-static gboolean i_select(OSCombo *combo)
+static gchar *i_OnSelect(GtkComboBox *widget, const char *path, OSCombo *combo)
 {
+    EvButton params;
+    const String *str = NULL;
+    unref(widget);
     cassert_no_null(combo);
-    if (combo->select_start != INT32_MAX)
-    {
-        GtkWidget *entry = gtk_bin_get_child(GTK_BIN(combo->control.widget));
-        cassert(edit->select_start >= -1);
-        cassert(edit->select_end >= -1);
-        gtk_editable_select_region(GTK_EDITABLE(entry), (gint)combo->select_start, (gint)combo->select_end);
-        combo->select_start = INT32_MAX;
-        combo->select_end = INT32_MAX;
-    }
-
-    return FALSE;
-}*/
+    combo->selected = str_to_u32(path, 10, NULL);
+    cassert(combo->selected < arrpt_size(combo->texts, String));
+    params.state = ekGUI_ON;
+    params.index = combo->selected;
+    params.text = NULL;
+    listener_event(combo->OnSelect, ekGUI_EVENT_BUTTON, combo, &params, NULL, OSCombo, EvButton, void);
+    str = arrpt_get_const(combo->texts, combo->selected, String);
+    return g_strdup(tc(str));
+}
 
 /*---------------------------------------------------------------------------*/
 
 OSCombo *oscombo_create(const uint32_t flags)
 {
     OSCombo *combo = heap_new0(OSCombo);
-    Font *font = _osgui_create_default_font();
     GtkWidget *widget = gtk_combo_box_new_with_entry();
     GtkWidget *entry = gtk_bin_get_child(GTK_BIN(widget));
-    const char_t *cssobj = _osglobals_css_entry();
+    const char_t *cssentry = _osglobals_css_entry();
     cassert_unref(flags == ekCOMBO_FLAG, flags);
     cassert(GTK_IS_ENTRY(entry) == TRUE);
-    combo->select_start = INT32_MAX;
-    combo->select_end = INT32_MAX;
     gtk_entry_set_width_chars(GTK_ENTRY(entry), 0);
     combo->imgcell = gtk_cell_renderer_pixbuf_new();
     combo->txtcell = gtk_cell_renderer_text_new();
@@ -175,20 +136,23 @@ OSCombo *oscombo_create(const uint32_t flags)
     gtk_cell_layout_pack_end(GTK_CELL_LAYOUT(widget), combo->txtcell, TRUE);
     gtk_cell_renderer_set_alignment(combo->imgcell, 0.f, .5);
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(widget), combo->imgcell, "pixbuf", 0, NULL);
-    /* gtk_cell_renderer_set_padding(combo->imgcell, 0, 0); */
     gtk_cell_renderer_set_alignment(combo->txtcell, 0.f, .5);
-    /* gtk_cell_renderer_set_padding(combo->txtcell, 0, 0); */
     gtk_cell_layout_set_attributes(GTK_CELL_LAYOUT(widget), combo->txtcell, "text", 1, NULL);
-    g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(i_OnChange), (gpointer)combo);
+    _oscontrol_update_css_padding(entry, cssentry, kENTRY_VPADDING, kENTRY_HPADDING, &combo->css_padding_entry);
+    g_signal_connect(G_OBJECT(widget), "format-entry-text", G_CALLBACK(i_OnSelect), (gpointer)combo);
 
 #if GTK_CHECK_VERSION(3, 22, 0)
-    combo->button = gtk_bin_get_child(GTK_BIN(widget));
-    cassert(GTK_IS_ENTRY(combo->button));
-    combo->button = gtk_widget_get_parent(combo->button);
-    cassert(GTK_IS_BOX(combo->button));
-    cassert(_oscontrol_num_children(combo->button) == 2);
-    combo->button = _oscontrol_get_child(combo->button, 1);
-    cassert(GTK_IS_TOGGLE_BUTTON(combo->button));
+    {
+        const char_t *cssbutton = _osglobals_css_button();
+        combo->button = gtk_bin_get_child(GTK_BIN(widget));
+        cassert(GTK_IS_ENTRY(combo->button));
+        combo->button = gtk_widget_get_parent(combo->button);
+        cassert(GTK_IS_BOX(combo->button));
+        cassert(_oscontrol_num_children(combo->button) == 2);
+        combo->button = _oscontrol_get_child(combo->button, 1);
+        cassert(GTK_IS_TOGGLE_BUTTON(combo->button));
+        _oscontrol_update_css_padding(combo->button, cssbutton, 0, kCOMBO_HPADDING, &combo->css_padding_button);
+    }
 #else
     combo->button = widget;
 #endif
@@ -208,13 +172,20 @@ OSCombo *oscombo_create(const uint32_t flags)
     g_signal_connect(G_OBJECT(widget), "leave-notify-event", G_CALLBACK(i_OnLeave), (gpointer)combo);
     gtk_widget_show(combo->combo);
 
-    _oscontrol_init(&combo->control, ekGUI_TYPE_COMBOBOX, widget, entry, TRUE);
-    _oscontrol_update_css_font(entry, cssobj, font, &combo->font, &combo->css_font);
-    combo->fsize = (uint32_t)(font_size(font) + 2.5f);
-    font_destroy(&font);
+    combo->entry = _osentry_from_combo(entry, cast(combo, OSControl));
     combo->texts = arrpt_create(String);
     combo->images = arrpt_create(Image);
-    combo->launch_event = TRUE;
+    combo->selected = UINT32_MAX;
+
+    {
+
+        Font *font = _osgui_create_default_font();
+        combo->fsize = (uint32_t)(font_size(font) + 2.5f);
+        _osentry_font(combo->entry, font);
+        font_destroy(&font);
+    }
+
+    _oscontrol_init(&combo->control, ekGUI_TYPE_COMBOBOX, widget, entry, TRUE);
     return combo;
 }
 
@@ -233,16 +204,12 @@ void oscombo_destroy(OSCombo **combo)
 {
     cassert_no_null(combo);
     cassert_no_null(*combo);
-    listener_destroy(&(*combo)->OnFilter);
-    listener_destroy(&(*combo)->OnChange);
-    listener_destroy(&(*combo)->OnFocus);
     listener_destroy(&(*combo)->OnSelect);
     arrpt_destroy(&(*combo)->texts, str_destroy, String);
     arrpt_destroy(&(*combo)->images, i_img_dest, Image);
-    font_destroy(&(*combo)->font);
-    _oscontrol_destroy_css_provider(&(*combo)->css_font);
-    _oscontrol_destroy_css_provider(&(*combo)->css_color);
-    _oscontrol_destroy_css_provider(&(*combo)->css_bgcolor);
+    _oscontrol_destroy_css_provider(&(*combo)->css_padding_entry);
+    _oscontrol_destroy_css_provider(&(*combo)->css_padding_button);
+    _osentry_destroy(&(*combo)->entry);
     _oscontrol_destroy(*dcast(combo, OSControl));
     heap_delete(combo, OSCombo);
 }
@@ -252,7 +219,7 @@ void oscombo_destroy(OSCombo **combo)
 void oscombo_OnFilter(OSCombo *combo, Listener *listener)
 {
     cassert_no_null(combo);
-    listener_update(&combo->OnFilter, listener);
+    _osentry_OnFilter(combo->entry, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -260,7 +227,7 @@ void oscombo_OnFilter(OSCombo *combo, Listener *listener)
 void oscombo_OnChange(OSCombo *combo, Listener *listener)
 {
     cassert_no_null(combo);
-    listener_update(&combo->OnChange, listener);
+    _osentry_OnChange(combo->entry, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -268,7 +235,7 @@ void oscombo_OnChange(OSCombo *combo, Listener *listener)
 void oscombo_OnFocus(OSCombo *combo, Listener *listener)
 {
     cassert_no_null(combo);
-    listener_update(&combo->OnFocus, listener);
+    _osentry_OnFocus(combo->entry, listener);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -283,14 +250,8 @@ void oscombo_OnSelect(OSCombo *combo, Listener *listener)
 
 void oscombo_text(OSCombo *combo, const char_t *text)
 {
-    GtkWidget *entry;
     cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    combo->launch_event = FALSE;
-    entry = gtk_bin_get_child(GTK_BIN(combo->combo));
-    gtk_entry_set_text(GTK_ENTRY(entry), (const gchar *)text);
-    combo->launch_event = TRUE;
+    _osentry_text(combo->entry, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -298,9 +259,7 @@ void oscombo_text(OSCombo *combo, const char_t *text)
 void oscombo_tooltip(OSCombo *combo, const char_t *text)
 {
     cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    gtk_widget_set_tooltip_text(combo->combo, cast_const(text, gchar));
+    _osentry_tooltip(combo->entry, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -308,75 +267,67 @@ void oscombo_tooltip(OSCombo *combo, const char_t *text)
 void oscombo_font(OSCombo *combo, const Font *font)
 {
     cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    if (font_equals(combo->font, font) == FALSE)
-    {
-        GtkWidget *entry = gtk_bin_get_child(GTK_BIN(combo->combo));
-        const char_t *cssobj = _osglobals_css_entry();
-        cassert(GTK_IS_ENTRY(entry) == TRUE);
-        _oscontrol_update_css_font(entry, cssobj, font, &combo->font, &combo->css_font);
-        combo->fsize = (uint32_t)(font_size(font) + 2.5f);
-    }
+    _osentry_font(combo->entry, font);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_align(OSCombo *combo, const align_t align)
 {
-    unref(combo);
-    unref(align);
-    cassert_msg(FALSE, "Not implemented");
+    cassert_no_null(combo);
+    _osentry_align(combo->entry, align);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_passmode(OSCombo *combo, const bool_t passmode)
 {
-    unref(combo);
-    unref(passmode);
-    cassert_msg(FALSE, "Not implemented");
+    cassert_no_null(combo);
+    _osentry_passmode(combo->entry, passmode);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_color(OSCombo *combo, const color_t color)
+void oscombo_editable(OSCombo *combo, const bool_t is_editable)
 {
-    const char_t *cssobj = NULL;
-    GtkWidget *entry = NULL;
     cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    cssobj = _osglobals_css_entry();
-    entry = gtk_bin_get_child(GTK_BIN(combo->combo));
-    cassert(GTK_IS_ENTRY(entry) == TRUE);
-    _oscontrol_update_css_color(entry, cssobj, color, &combo->css_color);
+    _osentry_editable(combo->entry, is_editable);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_autoselect(OSCombo *combo, const bool_t autoselect)
+{
+    cassert_no_null(combo);
+    _osentry_autoselect(combo->entry, autoselect);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_select(OSCombo *combo, const int32_t start, const int32_t end)
+{
+    cassert_no_null(combo);
+    _osentry_select(combo->entry, start, end);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_color(OSCombo *combo, const color_t color)
 {
-    i_set_color(combo, color);
-    combo->ccolor = color;
+    cassert_no_null(combo);
+    _osentry_color(combo->entry, color);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_bgcolor(OSCombo *combo, const color_t color)
 {
-    /* TODO: bgcolor from osedit */
     cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    unref(combo);
-    unref(color);
+    _osentry_bgcolor(combo->entry, color);
 }
 
 /*---------------------------------------------------------------------------*/
 
-/* Is not possible configure the visible items in drop-down menu
-   https://gitlab.gnome.org/GNOME/gtk/issues/158 */
 void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
     uint32_t imgw, imgh;
@@ -392,33 +343,45 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, cons
     gtk_cell_renderer_set_fixed_size(combo->imgcell, imgw, imgh);
     gtk_cell_renderer_set_fixed_size(combo->txtcell, -1, imgh);
 
-    /*    if (current == -1)
-       current = 0;
+    if (op == ekCTRL_OP_ADD || op == ekCTRL_OP_INS)
+    {
+        const char_t *etext = _osentry_get_const_text(combo->entry);
+        if (str_empty_c(etext) == TRUE)
+            _osentry_text(combo->entry, text);
+    }
+}
 
-   combo->launch_event = FALSE;
-   gint current;
-   current = gtk_combo_box_get_active(GTK_COMBO_BOX(combo->control.widget));
-   gtk_combo_box_set_active(GTK_COMBO_BOX(popup->control.widget), current);
-   combo->launch_event = TRUE;
+/*---------------------------------------------------------------------------*/
+
+/*
+ * Is not possible configure the visible items in drop-down menu
+ * https://gitlab.gnome.org/GNOME/gtk/issues/158
  */
+void oscombo_list_height(OSCombo *combo, const uint32_t num_elems)
+{
+    unref(combo);
+    unref(num_elems);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oscombo_selected(OSCombo *combo, const uint32_t index)
 {
-    unref(combo);
-    unref(index);
-    cassert_msg(FALSE, "Not implemented");
+    const String *text = NULL;
+    cassert_no_null(combo);
+    text = arrpt_get_const(combo->texts, index, String);
+    combo->selected = index;
+    _osentry_text(combo->entry, tc(text));
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t oscombo_get_selected(const OSCombo *combo)
 {
-    unref(combo);
-    cassert_msg(FALSE, "Not implemented");
-    return 0;
+    cassert_no_null(combo);
+    if (combo->selected >= arrpt_size(combo->texts, String))
+        cast(combo, OSCombo)->selected = UINT32_MAX;
+    return combo->selected;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -433,6 +396,14 @@ void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *wid
     gtk_widget_get_preferred_size(combo->control.widget, &minsize, NULL);
     *width = refwidth;
     *height = (real32_t)minsize.height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oscombo_clipboard(OSCombo *combo, const clipboard_t clipboard)
+{
+    cassert_no_null(combo);
+    _osentry_clipboard(combo->entry, clipboard);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -460,8 +431,8 @@ void oscombo_visible(OSCombo *combo, const bool_t visible)
 
 void oscombo_enabled(OSCombo *combo, const bool_t enabled)
 {
-    _oscontrol_set_enabled(cast(combo, OSControl), enabled);
-    i_set_color(combo, enabled ? combo->ccolor : UINT32_MAX);
+    cassert_no_null(combo);
+    _osentry_enabled(combo->entry, enabled);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -488,34 +459,10 @@ void oscombo_frame(OSCombo *combo, const real32_t x, const real32_t y, const rea
 
 /*---------------------------------------------------------------------------*/
 
-bool_t _oscombo_resign_focus(const OSCombo *combo)
-{
-    bool_t lost_focus = TRUE;
-    GtkWidget *entry = NULL;
-    cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    entry = gtk_bin_get_child(GTK_BIN(combo->combo));
-    if (combo->launch_event == TRUE && gtk_widget_is_sensitive(entry) && combo->OnChange != NULL)
-    {
-        EvText params;
-        params.text = cast_const(gtk_entry_get_text(GTK_ENTRY(entry)), char_t);
-        listener_event(combo->OnChange, ekGUI_EVENT_TXTCHANGE, combo, &params, &lost_focus, OSCombo, EvText, bool_t);
-    }
-
-    return lost_focus;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscombo_focus(OSCombo *combo, const bool_t focus)
+bool_t _oscombo_autosel(const OSCombo *combo)
 {
     cassert_no_null(combo);
-    if (combo->OnFocus != NULL)
-    {
-        bool_t params = focus;
-        listener_event(combo->OnFocus, ekGUI_EVENT_FOCUS, combo, &params, NULL, OSCombo, bool_t, void);
-    }
+    return _osentry_get_autoselect(combo->entry);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -523,9 +470,23 @@ void _oscombo_focus(OSCombo *combo, const bool_t focus)
 GtkWidget *_oscombo_focus_widget(OSCombo *combo)
 {
     cassert_no_null(combo);
-    cassert(GTK_IS_EVENT_BOX(combo->control.widget));
-    cassert(GTK_IS_COMBO_BOX(combo->combo));
-    return gtk_bin_get_child(GTK_BIN(combo->combo));
+    return _osentry_get_widget(combo->entry);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _oscombo_resign_focus(const OSCombo *combo)
+{
+    cassert_no_null(combo);
+    return _osentry_resign_focus(combo->entry);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscombo_focus(OSCombo *combo, const bool_t focus)
+{
+    cassert_no_null(combo);
+    _osentry_focus(combo->entry, focus);
 }
 
 /*---------------------------------------------------------------------------*/

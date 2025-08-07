@@ -34,6 +34,8 @@ static void i_OnCopy(SelData *data, Event *e)
     control = window_get_focus(data->window);
     if (guicontrol_edit(control) != NULL)
         edit_copy(guicontrol_edit(control));
+    else if (guicontrol_combo(control) != NULL)
+        combo_copy(guicontrol_combo(control));
     else if (guicontrol_textview(control) != NULL)
         textview_copy(guicontrol_textview(control));
 }
@@ -48,6 +50,8 @@ static void i_OnPaste(SelData *data, Event *e)
     control = window_get_focus(data->window);
     if (guicontrol_edit(control) != NULL)
         edit_paste(guicontrol_edit(control));
+    else if (guicontrol_combo(control) != NULL)
+        combo_paste(guicontrol_combo(control));
     else if (guicontrol_textview(control) != NULL)
         textview_paste(guicontrol_textview(control));
 }
@@ -62,6 +66,8 @@ static void i_OnCut(SelData *data, Event *e)
     control = window_get_focus(data->window);
     if (guicontrol_edit(control) != NULL)
         edit_cut(guicontrol_edit(control));
+    else if (guicontrol_combo(control) != NULL)
+        combo_cut(guicontrol_combo(control));
     else if (guicontrol_textview(control) != NULL)
         textview_cut(guicontrol_textview(control));
 }
@@ -84,6 +90,8 @@ static void i_OnSelect(SelData *data, Event *e)
 
     if (guicontrol_edit(control) != NULL)
         edit_select(guicontrol_edit(control), start, end);
+    else if (guicontrol_combo(control) != NULL)
+        combo_select(guicontrol_combo(control), start, end);
     else if (guicontrol_textview(control) != NULL)
         textview_select(guicontrol_textview(control), start, end);
 
@@ -102,7 +110,7 @@ static void i_OnWrap(SelData *data, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_filter_event(SelData *data, Event *e, const bool_t from_editbox)
+static void i_filter_event(SelData *data, Event *e, const char_t *type)
 {
     const EvText *p = event_params(e, EvText);
     cassert_no_null(data);
@@ -126,7 +134,7 @@ static void i_filter_event(SelData *data, Event *e, const bool_t from_editbox)
         while (cp != 0)
         {
             uint32_t offset = 0;
-            if ((pos >= p->cpos - p->len && pos < p->cpos) || !from_editbox)
+            if ((pos >= p->cpos - p->len && pos < p->cpos) || str_equ_c(type, "TextView"))
             {
                 if (cp >= 'a' && cp <= 'z')
                     cp -= 32;
@@ -143,7 +151,7 @@ static void i_filter_event(SelData *data, Event *e, const bool_t from_editbox)
         r->apply = TRUE;
     }
 
-    textview_printf(data->info_text, "%s OnFilter: Pos %d Len %d\n", from_editbox ? "Edit" : "TextView", p->cpos, p->len);
+    textview_printf(data->info_text, "%s OnFilter: Pos %d Len %d\n", type, p->cpos, p->len);
     textview_scroll_caret(data->info_text);
 }
 
@@ -151,24 +159,45 @@ static void i_filter_event(SelData *data, Event *e, const bool_t from_editbox)
 
 static void i_OnEditFilter(SelData *data, Event *e)
 {
-    i_filter_event(data, e, TRUE);
+    i_filter_event(data, e, "Edit");
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnComboFilter(SelData *data, Event *e)
+{
+    i_filter_event(data, e, "Combo");
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_change_event(SelData *data, Event *e, const char_t *type)
+{
+    const EvText *p = event_params(e, EvText);
+    cassert_no_null(data);
+    textview_printf(data->info_text, "%s OnChange: Pos: %d Len %d\n", type, p->cpos, p->len);
+    textview_scroll_caret(data->info_text);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnEditChange(SelData *data, Event *e)
 {
-    const EvText *p = event_params(e, EvText);
-    cassert_no_null(data);
-    textview_printf(data->info_text, "Edit OnChange: Pos: %d Len %d\n", p->cpos, p->len);
-    textview_scroll_caret(data->info_text);
+    i_change_event(data, e, "Edit");
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnComboChange(SelData *data, Event *e)
+{
+    i_change_event(data, e, "Combo");
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnTextViewFilter(SelData *data, Event *e)
 {
-    i_filter_event(data, e, FALSE);
+    i_filter_event(data, e, "TextView");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -276,33 +305,43 @@ static Layout *i_textview_controls(SelData *data)
 
 static Layout *i_layout(SelData *data)
 {
-    Layout *layout1 = layout_create(1, 11);
+    Layout *layout1 = layout_create(1, 13);
     Layout *layout2 = i_textview_controls(data);
     Layout *layout3 = i_text_controls(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
+    Label *label4 = label_create();
     Label *label5 = label_create();
     Edit *edit1 = edit_create();
     Edit *edit2 = edit_multiline();
     Edit *edit3 = edit_multiline();
+    Combo *combo = combo_create();
     TextView *text1 = textview_create();
     TextView *text2 = textview_create();
     cassert_no_null(data);
     label_text(label1, "EditBox");
     label_text(label2, "EditBox (multiline)");
     label_text(label3, "EditBox (multiline with user-height)");
+    label_text(label4, "ComboBox");
     label_text(label5, "Info");
     edit_text(edit1, "This is a text in the EditBox control");
     edit_text(edit2, "This is a text in the multiline EditBox control");
     edit_text(edit3, "This is a text in the multiline EditBox control");
+    combo_text(combo, "This is a text in the ComboBox control");
+    combo_add_elem(combo, "Other text 1", NULL);
+    combo_add_elem(combo, "Other text 2", NULL);
+    combo_add_elem(combo, "Other text 3", NULL);
+    combo_add_elem(combo, "Other text 4", NULL);
     edit_min_height(edit3, 100);
     edit_OnFilter(edit1, listener(data, i_OnEditFilter, SelData));
     edit_OnFilter(edit2, listener(data, i_OnEditFilter, SelData));
     edit_OnFilter(edit3, listener(data, i_OnEditFilter, SelData));
+    combo_OnFilter(combo, listener(data, i_OnComboFilter, SelData));
     edit_OnChange(edit1, listener(data, i_OnEditChange, SelData));
     edit_OnChange(edit2, listener(data, i_OnEditChange, SelData));
     edit_OnChange(edit3, listener(data, i_OnEditChange, SelData));
+    combo_OnChange(combo, listener(data, i_OnComboChange, SelData));
     textview_writef(text1, "This is another text in the TextView control, wider than the control.");
     textview_editable(text1, TRUE);
     textview_OnFilter(text1, listener(data, i_OnTextViewFilter, SelData));
@@ -312,19 +351,22 @@ static Layout *i_layout(SelData *data)
     layout_edit(layout1, edit2, 0, 3);
     layout_label(layout1, label3, 0, 4);
     layout_edit(layout1, edit3, 0, 5);
-    layout_layout(layout1, layout2, 0, 6);
-    layout_textview(layout1, text1, 0, 7);
-    layout_layout(layout1, layout3, 0, 8);
-    layout_label(layout1, label5, 0, 9);
-    layout_textview(layout1, text2, 0, 10);
-    layout_tabstop(layout1, 0, 6, FALSE);
-    layout_tabstop(layout1, 0, 7, TRUE);
+    layout_label(layout1, label4, 0, 6);
+    layout_combo(layout1, combo, 0, 7);
+    layout_layout(layout1, layout2, 0, 8);
+    layout_textview(layout1, text1, 0, 9);
+    layout_layout(layout1, layout3, 0, 10);
+    layout_label(layout1, label5, 0, 11);
+    layout_textview(layout1, text2, 0, 12);
     layout_tabstop(layout1, 0, 8, FALSE);
-    layout_halign(layout1, 0, 8, ekLEFT);
+    layout_tabstop(layout1, 0, 9, TRUE);
+    layout_tabstop(layout1, 0, 10, FALSE);
+    layout_halign(layout1, 0, 10, ekLEFT);
     layout_vmargin(layout1, 1, 5);
     layout_vmargin(layout1, 3, 5);
     layout_vmargin(layout1, 5, 5);
     layout_vmargin(layout1, 7, 5);
+    layout_vmargin(layout1, 9, 5);
     data->text = text1;
     data->info_text = text2;
     return layout1;

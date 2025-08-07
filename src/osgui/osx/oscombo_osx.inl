@@ -13,3 +13,5 @@
 #include "osgui_osx.ixx"
 
 BOOL _oscombo_is(NSView *view);
+
+bool_t _oscombo_is_enabled(NSView *combo);

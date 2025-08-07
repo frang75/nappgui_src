@@ -45,7 +45,7 @@ DeclPt(Product);
 Model *model_create(void)
 {
     Model *model = heap_new(Model);
-    model->filter = arrst_create(uint32_t);
+    model->filter = NULL;
     model->products = arrpt_create(Product);
     return model;
 }
@@ -54,7 +54,7 @@ Model *model_create(void)
 
 void model_destroy(Model **model)
 {
-    arrst_destroy(&(*model)->filter, NULL, uint32_t);
+    arrst_destopt(&(*model)->filter, NULL, uint32_t);
     dbind_destroy(&(*model)->products, ArrPt(Product));
     heap_delete(model, Model);
 }
@@ -145,12 +145,21 @@ bool_t model_export(Model *model, const char_t *pathname, ferror_t *err)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t model_with_data(const Model *model)
+{
+    cassert_no_null(model);
+    return arrpt_size(model->products, Product);
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t model_count(const Model *model)
 {
-    uint32_t total = arrst_size(model->filter, uint32_t);
-    if (total == 0)
-        total = arrpt_size(model->products, Product);
-    return total;
+    cassert_no_null(model);
+    if (model->filter != NULL)
+        return arrst_size(model->filter, uint32_t);
+    else
+        return arrpt_size(model->products, Product);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -158,7 +167,7 @@ uint32_t model_count(const Model *model)
 void model_clear(Model *model)
 {
     dbind_destroy(&model->products, ArrPt(Product));
-    arrst_clear(model->filter, NULL, uint32_t);
+    arrst_destopt(&model->filter, NULL, uint32_t);
     model->products = dbind_create(ArrPt(Product));
 }
 
@@ -168,14 +177,14 @@ void model_add(Model *model)
 {
     Product *product = dbind_create(Product);
     arrpt_append(model->products, product, Product);
-    arrst_clear(model->filter, NULL, uint32_t);
+    arrst_destopt(&model->filter, NULL, uint32_t);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static uint32_t i_index(ArrSt(uint32_t) *filter, const uint32_t index)
 {
-    if (arrst_size(filter, uint32_t) > 0)
+    if (filter != NULL)
         return *arrst_get(filter, index, uint32_t);
     else
         return index;
@@ -201,17 +210,17 @@ void model_delete(Model *model, const uint32_t index)
 
 bool_t model_filter(Model *model, const char_t *filter)
 {
-    ArrSt(uint32_t) *new_filter = arrst_create(uint32_t);
+    arrst_destopt(&model->filter, NULL, uint32_t);
+    if (unicode_nchars(filter, ekUTF8) >= 3)
+    {
+        model->filter = arrst_create(uint32_t);
+        arrpt_foreach(product, model->products, Product)
+            if (str_str(tc(product->description), filter) != NULL)
+                arrst_append(model->filter, product_i, uint32_t);
+        arrpt_end()
+    }
 
-    arrpt_foreach(product, model->products, Product)
-        if (str_str(tc(product->description), filter) != NULL)
-            arrst_append(new_filter, product_i, uint32_t);
-    arrpt_end()
-
-    arrst_destroy(&model->filter, NULL, uint32_t);
-    model->filter = new_filter;
-
-    return (bool_t)(arrst_size(new_filter, uint32_t) > 0);
+    return model->filter != NULL && arrst_size(model->filter, uint32_t) > 0;
 }
 
 /*---------------------------------------------------------------------------*/

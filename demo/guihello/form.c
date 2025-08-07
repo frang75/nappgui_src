@@ -203,6 +203,7 @@ static Layout *i_numbers(FormData *data, color_t colorbg)
     edit_text(edit1, "25");
     edit_text(edit2, "175");
     edit_autoselect(edit1, TRUE);
+    edit_autoselect(edit2, TRUE);
     edit_align(edit1, ekRIGHT);
     edit_align(edit2, ekRIGHT);
     edit_OnFilter(edit1, listener(NULL, i_OnFilter, void));

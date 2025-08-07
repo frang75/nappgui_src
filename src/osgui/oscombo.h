@@ -36,17 +36,27 @@ _osgui_api void oscombo_align(OSCombo *combo, const align_t align);
 
 _osgui_api void oscombo_passmode(OSCombo *combo, const bool_t passmode);
 
+_osgui_api void oscombo_editable(OSCombo *combo, const bool_t is_editable);
+
+_osgui_api void oscombo_autoselect(OSCombo *combo, const bool_t autoselect);
+
+_osgui_api void oscombo_select(OSCombo *combo, const int32_t start, const int32_t end);
+
 _osgui_api void oscombo_color(OSCombo *combo, const color_t color);
 
 _osgui_api void oscombo_bgcolor(OSCombo *combo, const color_t color);
 
 _osgui_api void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image);
 
+_osgui_api void oscombo_list_height(OSCombo *combo, const uint32_t num_elems);
+
 _osgui_api void oscombo_selected(OSCombo *combo, const uint32_t index);
 
 _osgui_api uint32_t oscombo_get_selected(const OSCombo *combo);
 
 _osgui_api void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height);
+
+_osgui_api void oscombo_clipboard(OSCombo *combo, const clipboard_t clipboard);
 
 _osgui_api void oscombo_attach(OSCombo *combo, OSPanel *panel);
 

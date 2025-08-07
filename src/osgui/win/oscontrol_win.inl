@@ -48,7 +48,9 @@ uint32_t _oscontrol_num_children(const OSControl *control);
 
 void _oscontrol_draw_focus(HWND hwnd, const INT left_offset, const INT right_offset, const INT top_offset, const INT bottom_offset);
 
-DWORD _oscontrol_halign(const align_t align);
+DWORD _oscontrol_ss_halign(const align_t align);
+
+DWORD _oscontrol_es_halign(const align_t align);
 
 DWORD _oscontrol_ellipsis(const ellipsis_t ellipsis);
 
@@ -56,8 +58,12 @@ COLORREF _oscontrol_colorref(const color_t color);
 
 color_t _oscontrol_from_colorref(const COLORREF color);
 
+HBRUSH _oscontrol_ctl_color_edit(HDC hdc, COLORREF color, COLORREF bgcolor, HBRUSH brush, HBRUSH defbrush);
+
 void _oscontrol_update_brush(const color_t color, HBRUSH *brush, COLORREF *colorref);
 
 void _oscontrol_destroy_brush(HBRUSH *brush);
+
+void _oscontrol_clipboard(HWND hwnd, const clipboard_t clipboard);
 
 __END_C

@@ -108,7 +108,6 @@ static void i_OnClick(Button *button, Event *event)
 {
     EvButton *params = NULL;
     Button *sender = button;
-
     cassert_no_null(button);
     cassert(button->component.ositem == event_sender_imp(event, NULL));
     cassert_no_null(event);

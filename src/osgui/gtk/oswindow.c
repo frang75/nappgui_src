@@ -872,11 +872,17 @@ void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
     }
     else if (control->type == ekGUI_TYPE_COMBOBOX)
     {
+        if (_oscombo_autosel(cast(control, OSCombo)) == FALSE)
+        {
 #if GTK_CHECK_VERSION(3, 16, 0)
-        cassert(GTK_IS_ENTRY(widget));
-        gtk_entry_grab_focus_without_selecting((GTK_ENTRY(widget)));
-        return;
+            /* osedit can be multiline text-view */
+            if (GTK_IS_ENTRY(widget))
+            {
+                gtk_entry_grab_focus_without_selecting((GTK_ENTRY(widget)));
+                return;
+            }
 #endif
+        }
     }
 
     gtk_widget_grab_focus(GTK_WIDGET(widget));

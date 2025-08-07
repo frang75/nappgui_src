@@ -25,6 +25,10 @@ static Layout *i_toolbar(Ctrl *ctrl)
     button_text(button4, TWIN_ADD);
     button_text(button5, TWIN_DEL);
     button_text(button6, TWIN_SETTINGS_PANEL);
+    combo_align(combo, ekLEFT);
+    combo_passmode(combo, FALSE);
+    combo_autoselect(combo, FALSE);
+    combo_editable(combo, TRUE);
     combo_tooltip(combo, TWIN_FILTER_DESC);
     combo_bgcolor_focus(combo, kEDITBG);
     combo_phtext(combo, TWIN_FILTER);
@@ -63,6 +67,7 @@ static Layout *i_code_desc(Ctrl *ctrl)
     Edit *edit1 = edit_multiline();
     label_text(label0, TWIN_CODE);
     label_text(label1, TWIN_DESC);
+    edit_editable(edit0, TRUE);
     edit_phtext(edit0, TWIN_TYPE_CODE);
     edit_phtext(edit1, TWIN_TYPE_DESC);
     edit_bgcolor_focus(edit0, kEDITBG);

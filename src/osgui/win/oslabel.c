@@ -44,7 +44,7 @@ struct _oslabel_t
 
 static DWORD i_style(const align_t align, const ellipsis_t ellipsis)
 {
-    DWORD oshalign = _oscontrol_halign(align);
+    DWORD oshalign = _oscontrol_ss_halign(align);
     DWORD osellipsis = _oscontrol_ellipsis(ellipsis);
     return WS_CHILD | WS_CLIPSIBLINGS | oshalign | osellipsis;
 }

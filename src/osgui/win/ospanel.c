@@ -261,33 +261,20 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_CTLCOLOREDIT:
     {
-        HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
         OSControl *control = cast(GetWindowLongPtr((HWND)lParam, GWLP_USERDATA), OSControl);
-        HDC hdc = (HDC)wParam;
         cassert_no_null(control);
         if (control->type == ekGUI_TYPE_EDITBOX)
         {
+            HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
             COLORREF color = UINT32_MAX, bgcolor = UINT32_MAX;
-            HBRUSH bgbrush = NULL;
-
+            HBRUSH brush = NULL;
             color = _osedit_color(cast_const(control, OSEdit));
-            bgbrush = _osedit_background_color(cast_const(control, OSEdit), &bgcolor);
-
-            if (color != 0)
-                SetTextColor(hdc, color);
-
-            if (bgbrush != NULL)
-            {
-                SetBkColor(hdc, bgcolor);
-                return (LRESULT)bgbrush;
-            }
-        }
-        else
-        {
-            cassert_msg(FALSE, "Unexpected control type");
+            brush = _osedit_background_color(cast_const(control, OSEdit), &bgcolor);
+            return (LRESULT)_oscontrol_ctl_color_edit((HDC)wParam, color, bgcolor, brush, defbrush);
         }
 
-        return (LRESULT)defbrush;
+        cassert_msg(FALSE, "Unexpected control type");
+        return (LRESULT)NULL;
     }
 
     case WM_CTLCOLORBTN:

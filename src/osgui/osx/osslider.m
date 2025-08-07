@@ -41,15 +41,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*
- -(void)drawRect:(NSRect)rect
- {
-     NSFrameRect(rect);
-     [super drawRect:rect];
- }*/
-
-/*---------------------------------------------------------------------------*/
-
 - (IBAction)onSliderMoved:(id)sender
 {
     cassert(sender == self);

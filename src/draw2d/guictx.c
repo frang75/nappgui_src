@@ -252,9 +252,9 @@ void guictx_append_popup_manager_imp(
     FPtr_gctx_create func_popup_create,
     FPtr_gctx_destroy func_popup_destroy,
     FPtr_gctx_set_listener func_popup_OnSelect,
-    FPtr_gctx_set_elem func_popup_set_elem,
     FPtr_gctx_set_text func_popup_set_tooltip,
     FPtr_gctx_set_cptr func_popup_set_font,
+    FPtr_gctx_set_elem func_popup_set_elem,
     FPtr_gctx_set_uint32 func_popup_list_height,
     FPtr_gctx_set_uint32 func_popup_set_selected,
     FPtr_gctx_get_uint32 func_popup_get_selected,
@@ -271,9 +271,9 @@ void guictx_append_popup_manager_imp(
     cassert(context->func_create[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_destroy[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_popup_OnSelect == NULL);
-    cassert(context->func_popup_set_elem == NULL);
     cassert(context->func_set_tooltip[ekGUI_TYPE_POPUP] == NULL);
     cassert(context->func_popup_set_font == NULL);
+    cassert(context->func_popup_set_elem == NULL);
     cassert(context->func_popup_list_height == NULL);
     cassert(context->func_popup_set_selected == NULL);
     cassert(context->func_popup_get_selected == NULL);
@@ -288,9 +288,9 @@ void guictx_append_popup_manager_imp(
     cassert_no_nullf(func_popup_create);
     cassert_no_nullf(func_popup_destroy);
     cassert_no_nullf(func_popup_OnSelect);
-    cassert_no_nullf(func_popup_set_elem);
     cassert_no_nullf(func_popup_set_tooltip);
     cassert_no_nullf(func_popup_set_font);
+    cassert_no_nullf(func_popup_set_elem);
     cassert_no_nullf(func_popup_list_height);
     cassert_no_nullf(func_popup_set_selected);
     cassert_no_nullf(func_popup_get_selected);
@@ -305,9 +305,9 @@ void guictx_append_popup_manager_imp(
     context->func_create[ekGUI_TYPE_POPUP] = func_popup_create;
     context->func_destroy[ekGUI_TYPE_POPUP] = func_popup_destroy;
     context->func_popup_OnSelect = func_popup_OnSelect;
-    context->func_popup_set_elem = func_popup_set_elem;
     context->func_set_tooltip[ekGUI_TYPE_POPUP] = func_popup_set_tooltip;
     context->func_popup_set_font = func_popup_set_font;
+    context->func_popup_set_elem = func_popup_set_elem;
     context->func_popup_list_height = func_popup_list_height;
     context->func_popup_set_selected = func_popup_set_selected;
     context->func_popup_get_selected = func_popup_get_selected;
@@ -444,12 +444,17 @@ void guictx_append_combo_manager_imp(
     FPtr_gctx_set_cptr func_combo_set_font,
     FPtr_gctx_set_enum func_combo_set_align,
     FPtr_gctx_set_bool func_combo_set_passmode,
+    FPtr_gctx_set_bool func_combo_set_editable,
+    FPtr_gctx_set_bool func_combo_set_autoselect,
+    FPtr_gctx_set2_int32 func_combo_set_select,
     FPtr_gctx_set_uint32 func_combo_set_text_color,
     FPtr_gctx_set_uint32 func_combo_set_bg_color,
     FPtr_gctx_set_elem func_combo_set_elem,
+    FPtr_gctx_set_uint32 func_combo_list_height,
     FPtr_gctx_set_uint32 func_combo_set_selected,
     FPtr_gctx_get_uint32 func_combo_get_selected,
     FPtr_gctx_bounds5 func_combo_bounds,
+    FPtr_gctx_clipboard func_combo_clipboard,
     FPtr_gctx_set_ptr func_attach_combo_to_panel,
     FPtr_gctx_set_ptr func_detach_combo_from_panel,
     FPtr_gctx_set_bool func_combo_set_visible,
@@ -470,12 +475,17 @@ void guictx_append_combo_manager_imp(
     cassert(context->func_combo_set_font == NULL);
     cassert(context->func_combo_set_align == NULL);
     cassert(context->func_combo_set_passmode == NULL);
+    cassert(context->func_combo_set_editable == NULL);
+    cassert(context->func_combo_set_autoselect == NULL);
+    cassert(context->func_combo_set_select == NULL);
     cassert(context->func_combo_set_text_color == NULL);
     cassert(context->func_combo_set_bg_color == NULL);
     cassert(context->func_combo_set_elem == NULL);
+    cassert(context->func_combo_list_height == NULL);
     cassert(context->func_combo_set_selected == NULL);
     cassert(context->func_combo_get_selected == NULL);
     cassert(context->func_combo_bounds == NULL);
+    cassert(context->func_combo_clipboard == NULL);
     cassert(context->func_attach_to_panel[ekGUI_TYPE_COMBOBOX] == NULL);
     cassert(context->func_detach_from_panel[ekGUI_TYPE_COMBOBOX] == NULL);
     cassert(context->func_set_visible[ekGUI_TYPE_COMBOBOX] == NULL);
@@ -494,12 +504,17 @@ void guictx_append_combo_manager_imp(
     cassert_no_nullf(func_combo_set_font);
     cassert_no_nullf(func_combo_set_align);
     cassert_no_nullf(func_combo_set_passmode);
+    cassert_no_nullf(func_combo_set_editable);
+    cassert_no_nullf(func_combo_set_autoselect);
+    cassert_no_nullf(func_combo_set_select);
     cassert_no_nullf(func_combo_set_text_color);
     cassert_no_nullf(func_combo_set_bg_color);
     cassert_no_nullf(func_combo_set_elem);
+    cassert_no_nullf(func_combo_list_height);
     cassert_no_nullf(func_combo_set_selected);
     cassert_no_nullf(func_combo_get_selected);
     cassert_no_nullf(func_combo_bounds);
+    cassert_no_nullf(func_combo_clipboard);
     cassert_no_nullf(func_attach_combo_to_panel);
     cassert_no_nullf(func_detach_combo_from_panel);
     cassert_no_nullf(func_combo_set_visible);
@@ -518,12 +533,17 @@ void guictx_append_combo_manager_imp(
     context->func_combo_set_font = func_combo_set_font;
     context->func_combo_set_align = func_combo_set_align;
     context->func_combo_set_passmode = func_combo_set_passmode;
+    context->func_combo_set_editable = func_combo_set_editable;
+    context->func_combo_set_autoselect = func_combo_set_autoselect;
+    context->func_combo_set_select = func_combo_set_select;
     context->func_combo_set_text_color = func_combo_set_text_color;
     context->func_combo_set_bg_color = func_combo_set_bg_color;
     context->func_combo_set_elem = func_combo_set_elem;
+    context->func_combo_list_height = func_combo_list_height;
     context->func_combo_set_selected = func_combo_set_selected;
     context->func_combo_get_selected = func_combo_get_selected;
     context->func_combo_bounds = func_combo_bounds;
+    context->func_combo_clipboard = func_combo_clipboard;
     context->func_attach_to_panel[ekGUI_TYPE_COMBOBOX] = func_attach_combo_to_panel;
     context->func_detach_from_panel[ekGUI_TYPE_COMBOBOX] = func_detach_combo_from_panel;
     context->func_set_visible[ekGUI_TYPE_COMBOBOX] = func_combo_set_visible;

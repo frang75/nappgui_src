@@ -30,6 +30,8 @@ void _oscontrol_tooltip_set(NSView *view, const char_t *text);
 
 NSColor *_oscontrol_color(const color_t color);
 
+NSColor *_oscontrol_text_color(NSControl *control, const color_t color);
+
 color_t _oscontrol_from_NSColor(NSColor *color);
 
 void _oscontrol_init_textattr(OSTextAttr *attr);

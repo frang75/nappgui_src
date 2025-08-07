@@ -182,6 +182,7 @@ typedef struct _view_listeners_t ViewListeners;
 typedef struct _osdraw_t OSDraw;
 typedef struct _osscrollview_t OSScrollView;
 typedef struct _ostext_attr_t OSTextAttr;
+typedef struct _ostext_field_t OSTextField;
 
 struct _view_listeners_t
 {

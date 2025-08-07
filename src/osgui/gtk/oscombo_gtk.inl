@@ -14,6 +14,8 @@
 
 __EXTERN_C
 
+bool_t _oscombo_autosel(const OSCombo *combo);
+
 GtkWidget *_oscombo_focus_widget(OSCombo *combo);
 
 void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) *texts, ArrPt(Image) *images, uint32_t *imgwidth, uint32_t *imgheight);

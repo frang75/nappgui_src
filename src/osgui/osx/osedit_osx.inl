@@ -13,3 +13,5 @@
 #include "osgui_osx.ixx"
 
 BOOL _osedit_is(NSView *view);
+
+bool_t _osedit_is_enabled(NSView *edit);

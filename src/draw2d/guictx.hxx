@@ -12,8 +12,8 @@
    The GUI library knows how to compose and manage dynamic graphical
    user interfaces. But it does NOT know how to draw the elements (widgets)
    nor how to get the user events (keyboard, mouse). The drawing and event
-   capture tasks are performed through a GuiCtx context object. Currently,
-   NAppGUI implements a native context in OSGUI that links to Win32, Cocoa,
+   capture tasks are performed through a backend that implements a GuiCtx context object.
+   Currently, NAppGUI implements a native context in OSGUI that links to Win32, Cocoa,
    and GTK. However, is opened the possibility of creating alternative contexts
    (for example OpenGL) and the use of them with Gui library to manage interfaces created
    with other technologies.
@@ -306,7 +306,8 @@ typedef enum _edit_flag_t
 
 typedef enum _combo_flag_t
 {
-    ekCOMBO_FLAG = 0
+    ekCOMBO_FLAG = 0,
+    ekCOMBO_AUTOSEL = 4
 } combo_flag_t;
 
 typedef enum _slider_flag_t
@@ -723,8 +724,8 @@ struct _guictx_t
 
     /*! <PopUp> */
     FPtr_gctx_set_listener func_popup_OnSelect;
-    FPtr_gctx_set_elem func_popup_set_elem;
     FPtr_gctx_set_cptr func_popup_set_font;
+    FPtr_gctx_set_elem func_popup_set_elem;
     FPtr_gctx_set_uint32 func_popup_list_height;
     FPtr_gctx_set_uint32 func_popup_set_selected;
     FPtr_gctx_get_uint32 func_popup_get_selected;
@@ -756,12 +757,17 @@ struct _guictx_t
     FPtr_gctx_set_cptr func_combo_set_font;
     FPtr_gctx_set_enum func_combo_set_align;
     FPtr_gctx_set_bool func_combo_set_passmode;
+    FPtr_gctx_set_bool func_combo_set_editable;
+    FPtr_gctx_set_bool func_combo_set_autoselect;
+    FPtr_gctx_set2_int32 func_combo_set_select;
     FPtr_gctx_set_uint32 func_combo_set_text_color;
     FPtr_gctx_set_uint32 func_combo_set_bg_color;
     FPtr_gctx_set_elem func_combo_set_elem;
+    FPtr_gctx_set_uint32 func_combo_list_height;
     FPtr_gctx_set_uint32 func_combo_set_selected;
     FPtr_gctx_get_uint32 func_combo_get_selected;
     FPtr_gctx_bounds5 func_combo_bounds;
+    FPtr_gctx_clipboard func_combo_clipboard;
 
     /*! <Slider> */
     FPtr_gctx_set_listener func_slider_OnMoved;

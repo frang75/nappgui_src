@@ -94,9 +94,9 @@ OSPopUp *ospopup_create(const uint32_t flags)
     popup->font = _osgui_create_default_font();
     popup->combo_hwnd = (HWND)SendMessage(popup->control.hwnd, CBEM_GETCOMBOCONTROL, (WPARAM)0, (LPARAM)0);
     popup->def_combo_proc = (WNDPROC)SetWindowLongPtr(popup->combo_hwnd, GWLP_WNDPROC, (LONG_PTR)i_ComboWndProc);
+    popup->list_num_elems = 5;
     SetWindowLongPtr(popup->combo_hwnd, GWLP_USERDATA, (LONG_PTR)popup);
     popup->image_list = _osimglist_create(16);
-    popup->list_num_elems = 5;
     _oscontrol_set_font(cast(popup, OSControl), popup->font);
     return popup;
 }
@@ -124,17 +124,6 @@ void ospopup_OnSelect(OSPopUp *popup, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
-{
-    cassert_no_null(popup);
-    _oscombo_elem(popup->control.hwnd, popup->image_list, op, index, text, image);
-    if (SendMessage(popup->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0) == -1)
-        SendMessage(popup->control.hwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
-    InvalidateRect(popup->control.hwnd, NULL, FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void ospopup_tooltip(OSPopUp *popup, const char_t *text)
 {
     cassert_no_null(popup);
@@ -147,6 +136,17 @@ void ospopup_font(OSPopUp *popup, const Font *font)
 {
     cassert_no_null(popup);
     _oscontrol_update_font(cast(popup, OSControl), &popup->font, font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
+{
+    cassert_no_null(popup);
+    _oscombo_elem(popup->control.hwnd, popup->image_list, op, index, text, image);
+    if (SendMessage(popup->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0) == -1)
+        SendMessage(popup->control.hwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
+    InvalidateRect(popup->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -12,6 +12,8 @@ bool_t model_import(Model *model, const char_t *pathname, ferror_t *err);
 
 bool_t model_export(Model *model, const char_t *pathname, ferror_t *err);
 
+bool_t model_with_data(const Model *model);
+
 uint32_t model_count(const Model *model);
 
 void model_clear(Model *model);
