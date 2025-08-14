@@ -137,8 +137,9 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSEdit *ed
     if (_oswindow_mouse_down(cast(edit, OSControl)) == FALSE)
         return TRUE;
 
-    /* Propagate the event */
-    _osentry_deselect(edit->entry);
+    if (event->button == 1)
+        _osentry_deselect(edit->entry);
+
     return FALSE;
 }
 

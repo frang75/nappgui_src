@@ -44,6 +44,7 @@ struct _ostext_t
     OSControl control;
     char_t ffamily[64];
     real32_t fsize;
+    uint32_t funits;
     uint32_t fstyle;
     color_t color;
     color_t bgcolor;
@@ -89,20 +90,30 @@ static real32_t i_device_to_pixels(void)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE gint i_size_pango(const real32_t size, const uint32_t fstyle)
+static ___INLINE gint i_size_pango(const char_t *family, const real32_t size, const uint32_t fstyle, const uint32_t funits)
 {
-    static gint val = 0;
-    if ((fstyle & ekFPOINTS) == ekFPOINTS)
+    static gint psize = 0;
+    if ((funits & ekFPOINTS) == ekFPOINTS)
     {
-        val = (gint)(size * (real32_t)PANGO_SCALE);
+        psize = (gint)(size * (real32_t)PANGO_SCALE);
     }
     else
     {
-        cassert((fstyle & ekFPIXELS) == ekFPIXELS);
-        val = (gint)(size / i_device_to_pixels());
+        /* Pixels */
+        psize = (gint)(size / i_device_to_pixels());
     }
 
-    return val;
+    if ((funits & ekFCELL) == ekFCELL && str_empty_c(family) == FALSE)
+    {
+        Font *font = font_create(family, size, fstyle);
+        real32_t w, h, s;
+        font_extents(font, "REFTEXT", -1, &w, &h);
+        s = size / h;
+        psize *= s;
+        font_destroy(&font);
+    }
+
+    return psize;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -120,7 +131,7 @@ static GtkTextTag *i_tag_attribs(OSText *view)
     {
         GValue gvalue = G_VALUE_INIT;
         g_value_init(&gvalue, G_TYPE_STRING);
-        g_value_set_string(&gvalue, (gchar *)view->ffamily);
+        g_value_set_string(&gvalue, cast(view->ffamily, gchar));
         g_object_set_property(G_OBJECT(tag), "family-set", &gtrue);
         g_object_set_property(G_OBJECT(tag), "family", &gvalue);
         g_value_unset(&gvalue);
@@ -129,7 +140,7 @@ static GtkTextTag *i_tag_attribs(OSText *view)
     {
         GValue gvalue = G_VALUE_INIT;
         g_value_init(&gvalue, G_TYPE_INT);
-        g_value_set_int(&gvalue, i_size_pango(view->fsize, view->fstyle));
+        g_value_set_int(&gvalue, i_size_pango(view->ffamily, view->fsize, view->fstyle, view->funits));
         g_object_set_property(G_OBJECT(tag), "size-set", &gtrue);
         g_object_set_property(G_OBJECT(tag), "size", &gvalue);
         g_value_unset(&gvalue);
@@ -818,14 +829,10 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_UNITS:
     {
-        uint32_t fstyle = view->fstyle & (~ekFPOINTS);
-
-        if (*cast_const(value, uint32_t) & ekFPOINTS)
-            fstyle |= ekFPOINTS;
-
-        if (view->fstyle != fstyle)
+        uint32_t funits = *cast(value, uint32_t);
+        if (view->funits != funits)
         {
-            view->fstyle = fstyle;
+            view->funits = funits;
             view->tag_attribs = NULL;
         }
         break;
@@ -842,9 +849,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
     case ekGUI_TEXT_STYLE:
     {
         uint32_t fstyle = *cast(value, uint32_t);
-        if (view->fstyle & ekFPOINTS)
-            fstyle |= ekFPOINTS;
-
         if (view->fstyle != fstyle)
         {
             view->fstyle = fstyle;
@@ -907,7 +911,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_AFPARSPACE:
     {
-        gint lspace = i_size_pango(*cast(value, real32_t), view->fstyle) / PANGO_SCALE;
+        gint lspace = i_size_pango(NULL, *cast(value, real32_t), 0, view->funits) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->afspace_px)
         {
             view->afspace_px = lspace;
@@ -919,7 +923,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_BFPARSPACE:
     {
-        gint lspace = i_size_pango(*cast(value, real32_t), view->fstyle) / PANGO_SCALE;
+        gint lspace = i_size_pango(NULL, *cast(value, real32_t), 0, view->funits) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->bfspace_px)
         {
             view->bfspace_px = lspace;

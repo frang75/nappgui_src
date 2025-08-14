@@ -65,6 +65,8 @@ macro(nap_msvc_flags runtimeLib)
 
     endforeach()
 
+    set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
+
 endmacro()
 
 #------------------------------------------------------------------------------

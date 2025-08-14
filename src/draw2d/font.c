@@ -318,6 +318,14 @@ uint32_t font_style(const Font *font)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t font_units(const Font *font)
+{
+    cassert_no_null(font);
+    return (font->style & ekFPOINTS) | (font->style & ekFCELL);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void font_extents(const Font *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     cassert_no_null(font);

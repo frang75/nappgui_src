@@ -385,13 +385,8 @@ function(nap_resource_packs targetName targetType nrcMode dir _resFiles _resIncl
                 set(globalRes ${resPath}/logo256.ico)
             endif()
 
-            # Reference the manifest file (required by MinGW)
-            if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-                # https://geekthis.net/post/visual-styles-in-win32-api-c-gcc-mingw/
-                set(MANIFEST_FILE "${NAPPGUI_ROOT_PATH}/prj/templates/Application.manifest")
-                file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/res.rc "1 24 \"${MANIFEST_FILE}\"\n")
-            endif()
-
+            set(MANIFEST_FILE "${NAPPGUI_ROOT_PATH}/prj/templates/Application.manifest")
+            file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/res.rc "1 24 \"${MANIFEST_FILE}\"\n")
             set(globalRes ${globalRes} ${CMAKE_CURRENT_BINARY_DIR}/res.rc)
         endif()
 

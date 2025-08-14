@@ -37,9 +37,9 @@
 struct _ostext_t
 {
     OSControl control;
-    uint32_t units;
-    DWORD dwEffects;
-    LONG yHeight;
+    uint32_t funits;
+    uint32_t fstyle;
+    real32_t fsize;
     COLORREF crTextColor;
     COLORREF crBackColor;
     WORD wAlignment;
@@ -198,6 +198,51 @@ static uint32_t i_text_num_chars(HWND hwnd)
 
 /*---------------------------------------------------------------------------*/
 
+static LONG i_font_yHeight(HWND hwnd, const WCHAR *szFaceName, const real32_t fsize, const uint32_t funits, const uint32_t fstyle)
+{
+    /* We need to create a temporal HFONT, to get the internal leading */
+    if (funits & ekFCELL)
+    {
+        int height_px = 0;
+        HDC hdc = GetDC(hwnd);
+        HFONT font = CreateFont(
+            (int)fsize,
+            PARAM(nWidth, 0),
+            PARAM(nEscapement, 0),
+            PARAM(nOrientation, 0),
+            (fstyle & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
+            (DWORD)((fstyle & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
+            (DWORD)((fstyle & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
+            (DWORD)((fstyle & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
+            PARAM(fdwCharSet, ANSI_CHARSET),
+            PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
+            PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
+            PARAM(fdwQuality, DEFAULT_QUALITY),
+            PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
+            szFaceName);
+        HFONT ofont = (HFONT)SelectObject(hdc, font);
+        TEXTMETRIC tm;
+
+        GetTextMetrics(hdc, &tm);
+        height_px = tm.tmHeight - tm.tmInternalLeading;
+        SelectObject(hdc, ofont);
+        DeleteObject(font);
+        ReleaseDC(hwnd, hdc);
+        return (LONG)(height_px * kTWIPS_PER_PIXEL_GUI);
+    }
+    else if (funits & ekFPOINTS)
+    {
+        real32_t size = fsize * (real32_t)kLOG_PIXY_GUI / 72.f;
+        return (LONG)(size * kTWIPS_PER_PIXEL_GUI);
+    }
+    else
+    {
+        return (LONG)(fsize * kTWIPS_PER_PIXEL_GUI);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_apply_format(OSText *view, WPARAM char_sel)
 {
     LRESULT res = 0;
@@ -206,8 +251,26 @@ static void i_apply_format(OSText *view, WPARAM char_sel)
     cassert_no_null(view);
     format.cbSize = sizeof(CHARFORMAT2);
     format.dwMask = CFM_FACE | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | CFM_SUBSCRIPT | CFM_SIZE | CFM_COLOR | CFM_BACKCOLOR;
-    format.dwEffects = view->dwEffects;
-    format.yHeight = view->yHeight;
+    format.yHeight = i_font_yHeight(view->control.hwnd, view->szFaceName, view->fsize, view->funits, view->fstyle);
+
+    format.dwEffects = 0;
+    if (view->fstyle & ekFBOLD)
+        format.dwEffects |= CFE_BOLD;
+
+    if (view->fstyle & ekFITALIC)
+        format.dwEffects |= CFE_ITALIC;
+
+    if (view->fstyle & ekFSTRIKEOUT)
+        format.dwEffects |= CFE_STRIKEOUT;
+
+    if (view->fstyle & ekFUNDERLINE)
+        format.dwEffects |= CFE_UNDERLINE;
+
+    if (view->fstyle & ekFSUBSCRIPT)
+        format.dwEffects |= CFE_SUBSCRIPT;
+
+    if (view->fstyle & ekFSUPSCRIPT)
+        format.dwEffects |= CFE_SUPERSCRIPT;
 
     if (view->crTextColor == 0)
         format.dwEffects |= CFE_AUTOCOLOR;
@@ -389,42 +452,16 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         break;
 
     case ekGUI_TEXT_UNITS:
-        view->units = *cast_const(value, uint32_t);
+        view->funits = *cast_const(value, uint32_t);
         break;
 
     case ekGUI_TEXT_SIZE:
-    {
-        real32_t size = *cast_const(value, real32_t);
-        if (view->units & ekFPOINTS)
-            size = size * (real32_t)kLOG_PIXY_GUI / 72.f;
-        view->yHeight = (LONG)(size * kTWIPS_PER_PIXEL_GUI);
+        view->fsize = *cast_const(value, real32_t);
         break;
-    }
 
     case ekGUI_TEXT_STYLE:
-    {
-        uint32_t style = *cast_const(value, uint32_t);
-        view->dwEffects = 0;
-        if (style & ekFBOLD)
-            view->dwEffects |= CFE_BOLD;
-
-        if (style & ekFITALIC)
-            view->dwEffects |= CFE_ITALIC;
-
-        if (style & ekFSTRIKEOUT)
-            view->dwEffects |= CFE_STRIKEOUT;
-
-        if (style & ekFUNDERLINE)
-            view->dwEffects |= CFE_UNDERLINE;
-
-        if (style & ekFSUBSCRIPT)
-            view->dwEffects |= CFE_SUBSCRIPT;
-
-        if (style & ekFSUPSCRIPT)
-            view->dwEffects |= CFE_SUPERSCRIPT;
-
+        view->fstyle = *cast_const(value, uint32_t);
         break;
-    }
 
     case ekGUI_TEXT_COLOR:
         if (*cast(value, color_t) == kCOLOR_TRANSPARENT)

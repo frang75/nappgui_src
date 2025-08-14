@@ -645,16 +645,16 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
 
 static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily **ffamily, INT *fstyle, Gdiplus::REAL *fsize, Gdiplus::REAL *fintleading)
 {
-    const char_t *family;
+    const char_t *family = NULL;
     WCHAR wfamily[128];
-    uint32_t style;
-    INT lstyle;
+    uint32_t style = 0;
+    INT lstyle = 0;
+    Gdiplus::Unit unit = Gdiplus::UnitPixel;
 
     family = font_family(font);
     unicode_convers(family, cast(wfamily, char_t), ekUTF8, ekUTF16, sizeof(wfamily));
 
     style = font_style(font);
-    lstyle = 0;
     if (style & ekFBOLD)
         lstyle |= Gdiplus::FontStyleBold;
     if (style & ekFITALIC)
@@ -663,6 +663,8 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
         lstyle |= Gdiplus::FontStyleStrikeout;
     if (style & ekFUNDERLINE)
         lstyle |= Gdiplus::FontStyleUnderline;
+    if (style & ekFPOINTS)
+        unit = Gdiplus::UnitPoint;
 
     if (*ffamily != NULL)
         delete *ffamily;
@@ -671,6 +673,16 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
     *fstyle = lstyle;
     *fsize = (Gdiplus::REAL)font_size(font);
 
+    if (style & ekFCELL)
+    {
+        *fintleading = (Gdiplus::REAL)font_leading(font);
+        *fsize -= *fintleading;
+    }
+    else
+    {
+        *fintleading = 0;
+    }
+
     if (*ffont != NULL)
         delete *ffont;
 
@@ -678,12 +690,7 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
      * Careful creating GDI+ fonts from HFONT
      * Pure GDI fonts don't allow fonts with fsize < 1
      */
-    *ffont = new Gdiplus::Font(*ffamily, *fsize, *fstyle, (style & ekFPOINTS) == ekFPOINTS ? Gdiplus::UnitPoint : Gdiplus::UnitPixel);
-
-    // if (style & ekFCELL)
-    //     *fintleading = (Gdiplus::REAL)font_internal_leading(font);
-    // else
-    *fintleading = 0;
+    *ffont = new Gdiplus::Font(*ffamily, *fsize, *fstyle, unit);
 }
 
 /*---------------------------------------------------------------------------*/

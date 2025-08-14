@@ -59,6 +59,8 @@ _draw2d_api bool_t font_is_monospace(const Font *font);
 
 _draw2d_api uint32_t font_style(const Font *font);
 
+_draw2d_api uint32_t font_units(const Font *font);
+
 _draw2d_api void font_extents(const Font *font, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
 
 _draw2d_api bool_t font_exists_family(const char_t *family);

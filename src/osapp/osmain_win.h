@@ -14,17 +14,6 @@
 #include <Windows.h>
 #include <sewer/warn.hxx>
 
-#if (_MSC_VER)
-/* Enabling Visual Styles for WindowsXP and later without manifest file (only in Visual C++) */
-#pragma comment(linker, \
-                "\"/manifestdependency:type='Win32' " \
-                "name='Microsoft.Windows.Common-Controls' " \
-                "version='6.0.0.0' " \
-                "processorArchitecture='*' " \
-                "publicKeyToken='6595b64144ccf1df' " \
-                "language='*'\"")
-#endif
-
 #define osmain(func_create, func_destroy, options, type) \
     int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) \
     { \

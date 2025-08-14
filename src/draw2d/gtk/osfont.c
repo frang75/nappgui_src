@@ -91,7 +91,7 @@ static gint i_font_size(const real32_t size, const uint32_t style)
     }
     else
     {
-        cassert((style & ekFPIXELS) == ekFPIXELS);
+        /* Pixels */
         return (gint)(size / i_device_to_pixels());
     }
 }

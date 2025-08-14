@@ -54,6 +54,10 @@ Panel *ip_input(Window *window)
     edit_OnFilter(edit2, listener(window, i_OnEditFilter, Window));
     edit_OnFilter(edit3, listener(window, i_OnEditFilter, Window));
     edit_OnFilter(edit4, listener(window, i_OnEditFilter, Window));
+    edit_min_width(edit1, 50);
+    edit_min_width(edit2, 50);
+    edit_min_width(edit3, 50);
+    edit_min_width(edit4, 50);
     layout_label(layout1, label1, 1, 0);
     layout_label(layout1, label2, 3, 0);
     layout_label(layout1, label3, 5, 0);
@@ -66,7 +70,6 @@ Panel *ip_input(Window *window)
     layout_button(layout2, button2, 0, 2);
     layout_vmargin(layout2, 0, 5.f);
     layout_vmargin(layout2, 1, 5.f);
-    layout_hsize(layout2, 0, 200.f);
     panel_layout(panel, layout2);
     return panel;
 }

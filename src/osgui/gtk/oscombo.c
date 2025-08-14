@@ -53,6 +53,7 @@ struct _oscombo_t
 
 static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSCombo *combo)
 {
+    GtkWidget *entry = NULL;
     cassert_no_null(combo);
     cassert_no_null(event);
     cassert_unref(widget == combo->control.widget, widget);
@@ -73,9 +74,24 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSCombo *combo)
             gtk_combo_box_popup(GTK_COMBO_BOX(combo->combo));
             return FALSE;
         }
+
+        _osentry_deselect(combo->entry);
     }
 
-    _osentry_deselect(combo->entry);
+    entry = _osentry_get_widget(combo->entry);
+    gtk_widget_event(entry, cast(event, GdkEvent));
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSCombo *combo)
+{
+    GtkWidget *entry = NULL;
+    cassert_no_null(widget);
+    cassert_no_null(combo);
+    entry = _osentry_get_widget(combo->entry);
+    gtk_widget_event(entry, cast(event, GdkEvent));
     return FALSE;
 }
 
@@ -166,8 +182,9 @@ OSCombo *oscombo_create(const uint32_t flags)
     widget = gtk_event_box_new();
     gtk_container_add(GTK_CONTAINER(widget), combo->combo);
     gtk_event_box_set_above_child(GTK_EVENT_BOX(widget), TRUE);
-    gtk_widget_add_events(widget, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+    gtk_widget_add_events(widget, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_POINTER_MOTION_MASK);
     g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)combo);
+    g_signal_connect(G_OBJECT(widget), "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)combo);
     g_signal_connect(G_OBJECT(widget), "enter-notify-event", G_CALLBACK(i_OnEnter), (gpointer)combo);
     g_signal_connect(G_OBJECT(widget), "leave-notify-event", G_CALLBACK(i_OnLeave), (gpointer)combo);
     gtk_widget_show(combo->combo);

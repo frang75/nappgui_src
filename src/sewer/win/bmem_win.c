@@ -35,7 +35,7 @@
 #endif
 #endif
 
-#include "../nowarn.hxx"
+#include "../warn.hxx"
 
 #if defined(__MEMORY_SUBSYTEM_CHECKING__)
 

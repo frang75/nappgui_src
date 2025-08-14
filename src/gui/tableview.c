@@ -198,7 +198,10 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
         if (width > i_COLUMN_MIN_DISPLAY)
         {
             draw_font(ctx, col->font);
-            draw_text_width(ctx, (real32_t)(width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
+
+            if (cell->align != ekJUSTIFY)
+                draw_text_width(ctx, (real32_t)(width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
+
             draw_text_halign(ctx, cell->align);
             draw_text_color(ctx, kCOLOR_DEFAULT);
             drawctrl_text(ctx, cell->text, (int32_t)(x + i_COLUMN_LEFT_PADDING), (int32_t)(y + col->yoffset), state);
@@ -582,9 +585,10 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
 
     if (col->width > i_COLUMN_MIN_DISPLAY)
     {
-        draw_text_width(ctx, (real32_t)(col->width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
-        draw_text_halign(ctx, col->align);
+        if (col->align != ekJUSTIFY)
+            draw_text_width(ctx, (real32_t)(col->width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
 
+        draw_text_halign(ctx, col->align);
         arrpt_foreach_const(text, col->head_text, String)
             draw_text_color(ctx, kCOLOR_DEFAULT);
             drawctrl_text(ctx, tc(text), tx, ty, data->focused ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL);
