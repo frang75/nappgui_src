@@ -296,3 +296,12 @@ void imageview_OnOverDraw(ImageView *view, Listener *listener)
     view_OnEnter(cast(view, View), listener(cast(view, View), i_OnEnter, View));
     view_OnExit(cast(view, View), listener(cast(view, View), i_OnExit, View));
 }
+
+/*---------------------------------------------------------------------------*/
+
+const Image *imageview_get_image(const ImageView *view)
+{
+    VImgData *data = view_get_data(cast(view, View), VImgData);
+    cassert_no_null(data);
+    return data->image;
+}

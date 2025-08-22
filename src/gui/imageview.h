@@ -27,4 +27,6 @@ _gui_api void imageview_OnClick(ImageView *view, Listener *listener);
 
 _gui_api void imageview_OnOverDraw(ImageView *view, Listener *listener);
 
+_gui_api const Image *imageview_get_image(const ImageView *view);
+
 __END_C

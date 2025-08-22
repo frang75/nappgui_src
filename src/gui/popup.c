@@ -168,6 +168,13 @@ const char_t *popup_get_text(const PopUp *popup, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
+const Image *popup_get_image(const PopUp *popup, const uint32_t index)
+{
+    cassert_no_null(popup);
+    return _items_get_image(popup->items, index);
+}
+
+/*---------------------------------------------------------------------------*/
 void _popup_natural(PopUp *popup, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(popup);

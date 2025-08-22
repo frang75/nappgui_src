@@ -47,6 +47,8 @@ _gui_api uint32_t listbox_count(const ListBox *listbox);
 
 _gui_api const char_t *listbox_get_text(const ListBox *listbox, const uint32_t index);
 
+_gui_api const Image *listbox_get_image(const ListBox *listbox, const uint32_t index);
+
 _gui_api uint32_t listbox_get_selected(const ListBox *listbox);
 
 _gui_api real32_t listbox_get_row_height(const ListBox *listbox);

@@ -44,6 +44,8 @@ uint32_t _items_get_selected(const Items *items);
 
 const char_t *_items_get_text(const Items *items, const uint32_t index);
 
+const Image *_items_get_image(const Items *items, const uint32_t index);
+
 void _items_locale(Items *items);
 
 void _items_uint32(Items *items, const uint32_t value);

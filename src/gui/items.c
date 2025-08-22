@@ -272,6 +272,16 @@ const char_t *_items_get_text(const Items *items, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
+const Image *_items_get_image(const Items *items, const uint32_t index)
+{
+    const PElem *elem = NULL;
+    cassert_no_null(items);
+    elem = arrst_get_const(items->elems, index, PElem);
+    return elem->image;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _items_locale(Items *items)
 {
     cassert_no_null(items);

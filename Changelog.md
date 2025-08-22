@@ -9,6 +9,11 @@
 - `button_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `button_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
 - `button_get_image_alt()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
+- `combo_get_image()`. [Commit]().
+- `imageview_get_image()`. [Commit]().
+- `listbox_get_image()`. [Commit]().
+- `popup_get_image()`. [Commit]().
+
 - New functions in `PopUp` and `Combo`. [Doc](https://nappgui.com/en/gui/combo.html). [Commit](https://github.com/frang75/nappgui_src/commit/850954a50d2dfde51cd846dbb306cd9c6345c2dc).
     - `popup_ins_elem()`.
     - `popup_del_elem()`.
@@ -27,7 +32,7 @@
     - `combo_selected()`.
     - `combo_get_selected()`.
 - `font_units()`. [Commit]().
-- Support for `ekFCELL` in `textview_units()`. [Commit]().
+- Support for `ekFCELL` in `textview_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 
 ### Fixed
 

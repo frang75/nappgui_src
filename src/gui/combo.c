@@ -369,6 +369,14 @@ const char_t *combo_get_text(const Combo *combo, const uint32_t index)
 
 /*---------------------------------------------------------------------------*/
 
+const Image *combo_get_image(const Combo *combo, const uint32_t index)
+{
+    cassert_no_null(combo);
+    return _items_get_image(combo->items, index);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _combo_natural(Combo *combo, const uint32_t i, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(combo);

@@ -81,4 +81,6 @@ _gui_api uint32_t combo_get_selected(const Combo *combo);
 
 _gui_api const char_t *combo_get_text(const Combo *combo, const uint32_t index);
 
+_gui_api const Image *combo_get_image(const Combo *combo, const uint32_t index);
+
 __END_C
