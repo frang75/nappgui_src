@@ -51,9 +51,9 @@ struct _ossplittrack_t
     OSXSplitView *captured;
 };
 
-#pragma clang diagnostic ignored "-Wcast-function-type"
+#include <sewer/nowarn.hxx>
 DeclPt(OSXSplitView);
-#pragma clang diagnostic warning "-Wcast-function-type"
+#include <sewer/warn.hxx>
 
 /*---------------------------------------------------------------------------*/
 

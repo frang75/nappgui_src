@@ -90,7 +90,7 @@
 #ifndef __glew_h__
 #define __glew_h__
 #define __GLEW_H__
-#include "ogl3d.def"
+#include "ogl3d.hdf"
 
 #if defined(__gl_h_) || defined(__GL_H__) || defined(_GL_H) || defined(__X_GL_H)
 #error gl.h included before glew.h
@@ -23647,11 +23647,11 @@ extern "C"
     /* GLEW version info */
 
     /*
-VERSION 2.1.0
-VERSION_MAJOR 2
-VERSION_MINOR 1
-VERSION_MICRO 0
-*/
+    VERSION 2.1.0
+    VERSION_MAJOR 2
+    VERSION_MINOR 1
+    VERSION_MICRO 0
+    */
 
     /* API */
     GLEWAPI GLenum GLEWAPIENTRY glewInit(void);

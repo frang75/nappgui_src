@@ -15,7 +15,7 @@
 #define __ENCODE_HXX__
 
 #include <core/core.hxx>
-#include "encode.def"
+#include "encode.hdf"
 
 typedef struct _url_t Url;
 typedef struct _json_t Json;

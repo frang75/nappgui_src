@@ -15,7 +15,7 @@
 #define __CORE_HXX__
 
 #include <osbs/osbs.hxx>
-#include "core.def"
+#include "core.hdf"
 
 typedef enum _core_event_t
 {

@@ -4,7 +4,7 @@
 #define __CASINO_HXX__
 
 #include <draw2d/draw2d.hxx>
-#include "casino.def"
+#include "casino.hdf"
 
 /* TODO: Define data types here */
 

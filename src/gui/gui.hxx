@@ -15,7 +15,7 @@
 #define __GUI_HXX__
 
 #include <draw2d/guictx.hxx>
-#include "gui.def"
+#include "gui.hdf"
 
 typedef enum _gui_notif_t
 {

@@ -15,7 +15,7 @@
 #define __GEOM2D_HXX__
 
 #include <core/core.hxx>
-#include "geom2d.def"
+#include "geom2d.hdf"
 
 typedef struct _v2df_t V2Df;
 typedef struct _v2dd_t V2Dd;

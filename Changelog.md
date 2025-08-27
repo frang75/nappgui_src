@@ -9,10 +9,10 @@
 - `button_get_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `button_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
 - `button_get_image_alt()`. [Commit](https://github.com/frang75/nappgui_src/commit/7d158af6719910c4c89425830ac55bc6d65d1e17).
-- `combo_get_image()`. [Commit]().
-- `imageview_get_image()`. [Commit]().
-- `listbox_get_image()`. [Commit]().
-- `popup_get_image()`. [Commit]().
+- `combo_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/5ef9bf3009fbf1737c0e24fee1eb49a73de2d3e3).
+- `imageview_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/5ef9bf3009fbf1737c0e24fee1eb49a73de2d3e3).
+- `listbox_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/5ef9bf3009fbf1737c0e24fee1eb49a73de2d3e3).
+- `popup_get_image()`. [Commit](https://github.com/frang75/nappgui_src/commit/5ef9bf3009fbf1737c0e24fee1eb49a73de2d3e3).
 
 - New functions in `PopUp` and `Combo`. [Doc](https://nappgui.com/en/gui/combo.html). [Commit](https://github.com/frang75/nappgui_src/commit/850954a50d2dfde51cd846dbb306cd9c6345c2dc).
     - `popup_ins_elem()`.
@@ -31,7 +31,7 @@
     - `combo_list_height()`.
     - `combo_selected()`.
     - `combo_get_selected()`.
-- `font_units()`. [Commit]().
+- `font_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 - Support for `ekFCELL` in `textview_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 
 ### Fixed
@@ -39,7 +39,7 @@
 - Issue in `label_align()`. [Issue](https://github.com/frang75/nappgui_src/issues/225). [Commit](https://github.com/frang75/nappgui_src/commit/0afe4f04611fc14ce8274bcb2f200660f3745f0e).
 - Issue in `Edit` single-line scroll in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/230). [Commit](https://github.com/frang75/nappgui_src/commit/9f54924b9b0cc1f405a13d47a6b305a8f69f5fc0).
 - Issues in `Combo`. [Issue](https://github.com/frang75/nappgui_src/issues/86). [Issue](https://github.com/frang75/nappgui_src/issues/81). [Issue](https://github.com/frang75/nappgui_src/issues/68). [Commit](https://github.com/frang75/nappgui_src/commit/850954a50d2dfde51cd846dbb306cd9c6345c2dc).
-- Added include guard to `bmath.hpp`. [Issue](https://github.com/frang75/nappgui_src/issues/235). [Commit]().
+- Added include guard to `bmath.hpp`. [Issue](https://github.com/frang75/nappgui_src/issues/235). [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 
 ### Changed
 
@@ -49,12 +49,13 @@
 
 ### Removed
 
-- `combo_duplicates()`.
+- `combo_duplicates()`. [Commit](https://github.com/frang75/nappgui_src/commit/850954a50d2dfde51cd846dbb306cd9c6345c2dc).
 
 ### Build system
 
 - Fix issue in macOS with CMake 4. [Commit](https://github.com/frang75/nappgui_src/commit/9eea4b36544305e4d5c4c6b57e87ceb941e657cf).
 - Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`. [Commit](https://github.com/frang75/nappgui_src/commit/ea1734559c62e21bc8862826074db804e0a129ba).
+- Renamed macros definition files `.def` to `.hdf`, because incompatibility with older MSVC versions. [Commit]().
 
 ## v1.5.2 - June 30, 2025 (r6370)
 

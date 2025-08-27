@@ -15,7 +15,7 @@
 #define __SEWER_HXX__
 
 #include "config.hxx"
-#include "sewer.def"
+#include "sewer.hdf"
 
 typedef enum _unicode_t
 {

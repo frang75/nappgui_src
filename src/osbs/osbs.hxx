@@ -15,7 +15,7 @@
 #define __OSBS_HXX__
 
 #include <sewer/sewer.hxx>
-#include "osbs.def"
+#include "osbs.hdf"
 
 typedef enum _platform_t
 {

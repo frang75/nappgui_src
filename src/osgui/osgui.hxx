@@ -14,7 +14,7 @@
 #define __OSGUI_HXX__
 
 #include <draw2d/guictx.hxx>
-#include "osgui.def"
+#include "osgui.hdf"
 
 typedef struct _oscontrol_t OSControl;
 typedef struct _oslabel_t OSLabel;

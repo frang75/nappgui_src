@@ -15,7 +15,7 @@
 #define __OPENGL_HXX__
 
 #include <sewer/sewer.hxx>
-#include "ogl3d.def"
+#include "ogl3d.hdf"
 
 typedef struct _oglprops_t OGLProps;
 typedef struct _oglctx_t OGLCtx;

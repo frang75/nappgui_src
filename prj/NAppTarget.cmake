@@ -3,7 +3,7 @@
 # See README.md and LICENSE.txt
 #------------------------------------------------------------------------------
 
-set(NAP_TARGET_PUBLIC_HEADER_EXTENSION "*.h;*.hxx;*.hpp;*.def")
+set(NAP_TARGET_PUBLIC_HEADER_EXTENSION "*.h;*.hxx;*.hpp;*.hdf")
 set(NAP_TARGET_HEADER_EXTENSION "${NAP_TARGET_PUBLIC_HEADER_EXTENSION};*.inl;*.ixx;*.ipp")
 set(NAP_TARGET_SRC_EXTENSION "${NAP_TARGET_HEADER_EXTENSION};*.c;*.cpp")
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -317,15 +317,7 @@ function(nap_source_files targetName dir group publicHeaders)
         else()
             get_filename_component(ext ${child} EXT)
             string(TOLOWER ${ext} extLower)
-
-            # VisualStudio 2005 treat all .def files as module definitions
-            # Even if you mark then as headers
-            # .def files will not be shown as source files in VS2005
-            if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 8 2005" AND ${extLower} STREQUAL ".def")
-                set(index -1)
-            else()
-                list (FIND NAP_TARGET_SRC_EXTENSION "*${extLower}" index)
-            endif()
+            list (FIND NAP_TARGET_SRC_EXTENSION "*${extLower}" index)
 
             if (${index} GREATER -1)
                 string(REPLACE "/" "\\" groupname ${group})
@@ -336,7 +328,7 @@ function(nap_source_files targetName dir group publicHeaders)
                 list (FIND NAP_TARGET_HEADER_EXTENSION "*${extLower}" index)
                 if (${index} GREATER -1)
                     set_source_files_properties(${dir}/${child} PROPERTIES HEADER_FILE_ONLY ON)
-                    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+                    if(CMAKE_GENERATOR STREQUAL "Xcode")
                         set_source_files_properties(${dir}/${child} PROPERTIES XCODE_EXPLICIT_FILE_TYPE sourcecode.c.h)
                     endif()
                 endif()

@@ -15,7 +15,7 @@
 #define __DRAW2D_HXX__
 
 #include <geom2d/geom2d.hxx>
-#include "draw2d.def"
+#include "draw2d.hdf"
 
 typedef enum _pixformat_t
 {

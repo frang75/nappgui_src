@@ -15,7 +15,7 @@
 #define __INET_HXX__
 
 #include <encode/encode.hxx>
-#include "inet.def"
+#include "inet.hdf"
 
 typedef enum _ierror_t
 {
