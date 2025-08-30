@@ -158,8 +158,11 @@
 /*! <Struct Access> */
 #if defined (__clang__)
     /* Avoid Warn Using extended field designator is an extension */
-    #define STRUCT_MEMBER_OFFSET(type, member) offsetof(type, member)
-    /* #define STRUCT_MEMBER_OFFSET(type, member) ((size_t)((char*)&((type*)0)->member - (char*)0))*/
+    #if (__clang_major__ > 3) || (__clang_major__ == 3 && __clang_minor__ > 0)
+    	#define STRUCT_MEMBER_OFFSET(type, member) offsetof(type, member)
+    #else
+        #define STRUCT_MEMBER_OFFSET(type, member) ((size_t)((char*)&((type*)0)->member - (char*)0))
+    #endif
 #else
     #define STRUCT_MEMBER_OFFSET(type, member) offsetof(type, member)
 #endif

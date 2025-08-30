@@ -154,6 +154,13 @@ win_t osbs_windows(void)
 
 /*---------------------------------------------------------------------------*/
 
+macos_t osbs_macos(void)
+{
+    return ekMACOS_NO;
+}
+
+/*---------------------------------------------------------------------------*/
+
 endian_t osbs_endian(void)
 {
     if (i_ENDIANNESS == ENUM_MAX(endian_t))

@@ -39,6 +39,11 @@
 
 void _draw_alloc_globals(void)
 {
+    /* GObject system must be initializated explicitly in older GLIB versions */
+#if !GLIB_CHECK_VERSION(2, 36, 0)
+    g_type_init();
+#endif
+
     /* This for 'gtk_settings_get_default' works
     Used in osfont::i_default_font()
     gtk_init(0, NULL); */
@@ -165,7 +170,7 @@ static void i_line_path(cairo_t *cairo, const V2Df *points, const uint32_t n, co
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
+static void i_color(cairo_t *cairo, const color_t color, color_t *source_color)
 {
     /* Check ColorView if de-comment
     if (color != *source_color) */
@@ -179,7 +184,7 @@ static ___INLINE void i_color(cairo_t *cairo, const color_t color, color_t *sour
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pattern_t *lpattern, fillmode_t fillmode, color_t *source_color)
+static void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pattern_t *lpattern, fillmode_t fillmode, color_t *source_color)
 {
     switch (fillmode)
     {
@@ -196,7 +201,7 @@ static ___INLINE void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_p
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_line_pattern(DCtx *ctx)
+static void i_line_pattern(DCtx *ctx)
 {
     if (ctx->fill_line == TRUE)
         i_fill_pattern(ctx->cairo, ctx->fill_color, ctx->lpattern, ctx->fillmode, &ctx->source_color);
@@ -286,7 +291,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE cairo_line_cap_t i_linecap(const linecap_t cap)
+static cairo_line_cap_t i_linecap(const linecap_t cap)
 {
     switch (cap)
     {
@@ -312,7 +317,7 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE cairo_line_join_t i_linejoin(const linejoin_t join)
+static cairo_line_join_t i_linejoin(const linejoin_t join)
 {
     switch (join)
     {
@@ -518,7 +523,7 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE cairo_extend_t i_wrap(const fillwrap_t wrap)
+static cairo_extend_t i_wrap(const fillwrap_t wrap)
 {
     switch (wrap)
     {
@@ -720,7 +725,7 @@ void draw_text_width(DCtx *ctx, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
+static PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
 {
     switch (ellipsis)
     {
@@ -758,7 +763,7 @@ void draw_text_align(DCtx *ctx, const align_t halign, const align_t valign)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE PangoAlignment i_align(const align_t align)
+static PangoAlignment i_align(const align_t align)
 {
     switch (align)
     {

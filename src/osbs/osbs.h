@@ -23,6 +23,8 @@ _osbs_api platform_t osbs_platform(void);
 
 _osbs_api win_t osbs_windows(void);
 
+_osbs_api macos_t osbs_macos(void);
+
 _osbs_api endian_t osbs_endian(void);
 
 _osbs_api void osbs_memory_mt(Mutex *mutex);

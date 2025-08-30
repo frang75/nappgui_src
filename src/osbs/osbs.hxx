@@ -34,7 +34,8 @@ typedef enum _device_t
 
 typedef enum _win_t
 {
-    ekWIN_9x = 1,
+    ekWIN_NO = 0,
+    ekWIN_9x,
     ekWIN_NT4,
     ekWIN_2K,
     ekWIN_XP,
@@ -48,9 +49,29 @@ typedef enum _win_t
     ekWIN_71,
     ekWIN_8,
     ekWIN_81,
-    ekWIN_10,
-    ekWIN_NO
+    ekWIN_10
 } win_t;
+
+typedef enum _macos_t
+{
+    ekMACOS_NO = 0,
+    ekMACOS_LEGACY,
+    ekMACOS_SNOW_LEOPARD,
+    ekMACOS_LION,
+    ekMACOS_MOUNTAIN_LION,
+    ekMACOS_MAVERICKS,
+    ekMACOS_YOSEMITE,
+    ekMACOS_ELCAPITAN,
+    ekMACOS_SIERRA,
+    ekMACOS_HIGHSIERRA,
+    ekMACOS_MOJAVE,
+    ekMACOS_CATALINA,
+    ekMACOS_BIGSUR,
+    ekMACOS_MONTEREY,
+    ekMACOS_VENTURA,
+    ekMACOS_SONOMA,
+    ekMACOS_SEQUOIA
+} macos_t;
 
 typedef enum _endian_t
 {

@@ -33,6 +33,7 @@
     - `combo_get_selected()`.
 - `font_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 - Support for `ekFCELL` in `textview_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
+- `osbs_macos()` and `macos_t`. [Commit]().
 
 ### Fixed
 
@@ -55,7 +56,8 @@
 
 - Fix issue in macOS with CMake 4. [Commit](https://github.com/frang75/nappgui_src/commit/9eea4b36544305e4d5c4c6b57e87ceb941e657cf).
 - Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`. [Commit](https://github.com/frang75/nappgui_src/commit/ea1734559c62e21bc8862826074db804e0a129ba).
-- Renamed macros definition files `.def` to `.hdf`, because incompatibility with older MSVC versions. [Commit]().
+- Renamed macros definition files `.def` to `.hdf`, because incompatibility with older MSVC versions. [Commit](https://github.com/frang75/nappgui_src/commit/2e5ea8e89b3ca0ab4d3819016ccc8d823452a0aa).
+- Warnings in legacy compilacions. [Commit]().
 
 ## v1.5.2 - June 30, 2025 (r6370)
 
