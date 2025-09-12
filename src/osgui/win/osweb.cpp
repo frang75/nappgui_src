@@ -305,6 +305,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -390,7 +393,8 @@ void osweb_command(OSWeb *view, const gui_web_t cmd, const void *param, void *re
             view->web.webView->GoForward();
         break;
 
-        cassert_default();
+    default:
+        cassert_default(cmd);
     }
 #else
     unref(view);

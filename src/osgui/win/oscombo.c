@@ -96,6 +96,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         HBRUSH brush = i_background_color(combo, &bgcolor);
         return (LRESULT)_oscontrol_ctl_color_edit((HDC)wParam, combo->color, bgcolor, brush, defbrush);
     }
+
+    default:
+        break;
     }
 
     return CallWindowProc(combo->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -115,6 +118,8 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
         if (_oswindow_mouse_down(cast(combo, OSControl)) == TRUE)
             break;
         return 0;
+    default:
+        break;
     }
 
     return combo->def_combo_proc(hwnd, uMsg, wParam, lParam);
@@ -148,6 +153,9 @@ static LRESULT CALLBACK i_EditWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
 
     case WM_SETFOCUS:
         SendMessage(combo->control.hwnd, CB_GETEDITSEL, (WPARAM)&cursor_st, (LPARAM)&cursor_ed);
+        break;
+
+    default:
         break;
     }
 
@@ -271,9 +279,9 @@ void oscombo_align(OSCombo *combo, const align_t align)
     DWORD dwStyle = 0;
     cassert_no_null(combo);
     dwStyle = (DWORD)GetWindowLongPtr(combo->edit_hwnd, GWL_STYLE);
-    dwStyle &= ~ES_LEFT;
-    dwStyle &= ~ES_CENTER;
-    dwStyle &= ~ES_RIGHT;
+    dwStyle &= ~(DWORD)ES_LEFT;
+    dwStyle &= ~(DWORD)ES_CENTER;
+    dwStyle &= ~(DWORD)ES_RIGHT;
     dwStyle |= _oscontrol_es_halign(align);
     SetWindowLongPtr(combo->edit_hwnd, GWL_STYLE, dwStyle);
 }
@@ -464,7 +472,7 @@ uint32_t oscombo_get_selected(const OSCombo *combo)
 
 void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    WORD button_height = 0;
+    long button_height = 0;
     cassert_no_null(combo);
     cassert_no_null(width);
     cassert_no_null(height);
@@ -643,7 +651,8 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
             msg = CBEM_SETITEM;
             break;
         case ekCTRL_OP_DEL:
-            cassert_default();
+        default:
+            cassert_default(op);
         }
 
         cbbi.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
@@ -666,7 +675,7 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
 
 void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_height, uint32_t num_elems)
 {
-    uint32_t height = ((14 * HIWORD(GetDialogBaseUnits())) / 8) - 4;
+    uint32_t height = (uint32_t)((14 * HIWORD(GetDialogBaseUnits())) / 8) - 4;
     uint32_t line_height = (uint32_t)SendMessage(hwnd, CB_GETITEMHEIGHT, (WPARAM)0, (LPARAM)0);
     RECT rect;
     GetClientRect(hwnd, &rect);
@@ -679,7 +688,7 @@ void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_h
 
     height += num_elems * line_height;
     height += 2;
-    SetWindowPos(combo_hwnd, NULL, 0, 0, rect.right - rect.left, height, SWP_NOMOVE | SWP_NOZORDER);
+    SetWindowPos(combo_hwnd, NULL, 0, 0, rect.right - rect.left, (int)height, SWP_NOMOVE | SWP_NOZORDER);
 }
 
 /*---------------------------------------------------------------------------*/

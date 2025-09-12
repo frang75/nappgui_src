@@ -18,7 +18,7 @@ void _oslistener_init(ViewListeners *listeners);
 
 void _oslistener_remove(ViewListeners *listeners);
 
-void _oslistener_signal(GtkWidget *widget, bool_t add, gint *signal_id, gint signal_mask, const gchar *signal_name, GCallback callback, gpointer callback_data);
+void _oslistener_signal(GtkWidget *widget, bool_t add, gulong *signal_id, gint signal_mask, const gchar *signal_name, GCallback callback, gpointer callback_data);
 
 void _oslistener_redraw(OSControl *sender, EvDraw *params, ViewListeners *listeners);
 

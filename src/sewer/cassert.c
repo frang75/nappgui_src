@@ -11,7 +11,7 @@
 /* Code assertion */
 
 #include "cassert.h"
-
+#include "bstd.h"
 #include "nowarn.hxx"
 #include <stdarg.h>
 #include "warn.hxx"
@@ -69,9 +69,11 @@ void cassert_no_nullf_imp(void (*ptr)(void), const char_t *detail, const char_t 
 
 /*---------------------------------------------------------------------------*/
 
-void cassert_default_imp(const char_t *file, const uint32_t line)
+void cassert_default_imp(const char_t *file, const uint32_t line, const int32_t value)
 {
-    i_assert_message(1, "Switch default", "", file, line);
+    char_t sval[64];
+    bstd_sprintf(sval, sizeof(sval), "Wrong value: %d", value);
+    i_assert_message(1, "Switch default", sval, file, line);
 }
 
 /*---------------------------------------------------------------------------*/

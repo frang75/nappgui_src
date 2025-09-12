@@ -270,6 +270,8 @@ static gui_state_t i_START(const uint32_t code, ltoken_t *token)
         return stIDENTIFIER;
     case '"':
         return stSTRING;
+    default:
+        break;
     }
 
     if (code == ' ' || code == '\t' || code == '\v' || code == '\f' || code == '\r')
@@ -460,6 +462,9 @@ static gui_state_t i_STRING_ESCAPE(uint32_t *code, const bool_t escapes, uint32_
 
     case '?':
         return stSTRING;
+
+    default:
+        break;
     }
 
     /* Octal char */
@@ -836,7 +841,8 @@ ltoken_t _lexscn_token(LexScn *lex, Stream *stm)
                 state = i_EXP1(code, &token, &charst);
                 break;
             case stEND:
-                cassert_default();
+            default:
+                cassert_default(state);
             }
 
             if (charst == VALID_CHAR)
@@ -1000,7 +1006,8 @@ const char_t *_lexscn_string(const ltoken_t token)
         return "eof";
     case ekTRESERVED:
         return "reserved";
-        cassert_default();
+    default:
+        cassert_default(token);
     }
 
     return "--";

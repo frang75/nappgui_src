@@ -70,6 +70,8 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
     case ekDOWN_CLICK:
         downstate = GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_FOCUSED | GTK_STATE_FLAG_ACTIVE;
         break;
+
+    case ekNORMAL:
     default:
         break;
     }

@@ -221,7 +221,8 @@ static void i_remove_bounds(Cloud *cloud)
     case 4:
         pol2d_destroyf(&cloud->bound.poly);
         break;
-        cassert_default();
+    default:
+        cassert_default(cloud->ctype);
     }
 }
 
@@ -253,7 +254,8 @@ static void i_remove_shape(Shape *shape)
     case ekTRIANGLE:
         break;
 
-        cassert_default();
+    default:
+        cassert_default(shape->type);
     }
 }
 
@@ -309,7 +311,8 @@ void col2dhello_new_shape(App *app, const V2Df pos)
         i_new_pol(app->shapes, ekSIMPLE_POLY, pos.x, pos.y, 0, 10);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(app->seltype);
     }
 
     app->selshape = arrst_size(app->shapes, Shape) - 1;
@@ -352,7 +355,8 @@ void col2dhello_update_gui(App *app)
             app->sel_area = pol2d_areaf(shape->body.pol.pol);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(shape->type);
         }
     }
     else
@@ -451,7 +455,9 @@ void col2dhello_update_cloud_bounds(Cloud *cloud)
     case 4:
         cloud->bound.poly = pol2d_convex_hullf(p, n);
         break;
-        cassert_default();
+
+    default:
+        cassert_default(cloud->type);
     }
 
     cloud->ctype = cloud->type;
@@ -546,7 +552,8 @@ static bool_t i_mouse_inside(const Shape *shape, const real32_t mouse_x, const r
     case ekSIMPLE_POLY:
         return col2d_poly_pointf(shape->body.pol.pol, &m, NULL);
 
-        cassert_default();
+    default:
+        cassert_default(shape->type);
     }
 
     return FALSE;
@@ -630,7 +637,8 @@ void col2dhello_collisions(App *app)
                     col = col2d_poly_pointf(shape2->body.pol.pol, &shape1->body.pnt, NULL);
                     break;
 
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
@@ -668,7 +676,8 @@ void col2dhello_collisions(App *app)
 
                 case ekPOINT:
                 case ekPOINT_CLOUD:
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
@@ -699,7 +708,8 @@ void col2dhello_collisions(App *app)
                 case ekPOINT:
                 case ekPOINT_CLOUD:
                 case ekSEGMENT:
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
@@ -727,7 +737,8 @@ void col2dhello_collisions(App *app)
                 case ekPOINT_CLOUD:
                 case ekSEGMENT:
                 case ekCIRCLE:
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
@@ -752,7 +763,8 @@ void col2dhello_collisions(App *app)
                 case ekSEGMENT:
                 case ekCIRCLE:
                 case ekBOX:
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
@@ -774,7 +786,8 @@ void col2dhello_collisions(App *app)
                 case ekCIRCLE:
                 case ekBOX:
                 case ekOBB:
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
@@ -794,11 +807,13 @@ void col2dhello_collisions(App *app)
                 case ekBOX:
                 case ekOBB:
                 case ekTRIANGLE:
-                    cassert_default();
+                default:
+                    cassert_default(shape2->type);
                 }
                 break;
 
-                cassert_default();
+            default:
+                cassert_default(shape1->type);
             }
 
             if (col == TRUE)

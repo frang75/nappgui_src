@@ -167,3 +167,134 @@ void _sewer_atexit(void (*func)(void))
     i_ATEXIT->func_exit = func;
     i_ATEXIT->next_node = next;
 }
+
+/*#define SEWER_CHECK_COMPILER_WARNINGS*/
+#if defined(SEWER_CHECK_COMPILER_WARNINGS)
+
+/*
+ * List of warnings that the compiler should detect
+ *
+ * Unused local variable
+ * Unused static variable
+ * Unused static function
+ * Implicit function declaration (use a function not declared - missing include)
+ * Missing declaration (define a global function without a previous declaration)
+ * Format string is not a literal (printf)
+ * printf wrong arguments
+ * Incompatible pointer types
+ * Signed/Unsigned comparison
+ * float/integer conversion
+ * Use variable without initialization
+ * Control reaches end of non-void function
+ * Enumeration value not handled in switch
+ * Wrong pointer in function argument
+ *
+ * -Wenum-int-mismatch
+ */
+
+/* Unused static variable */
+static uint32_t i_NON_USED_STATIC = 0;
+
+typedef struct _str1_t Str1;
+typedef struct _str2_t Str2;
+
+struct _str1_t
+{
+    uint32_t data1;
+};
+
+struct _str2_t
+{
+    real32_t data1;
+    real64_t data2;
+};
+
+/*---------------------------------------------------------------------------*/
+
+/* Unused static function */
+static uint32_t i_unused_static_function(void)
+{
+    uint32_t i = 0;
+    uint32_t t = 0;
+    for (i = 0; i < 100; ++i)
+        t += i;
+    return t;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* Missing declaration */
+uint32_t sewer_warns(void)
+{
+    uint32_t i;
+    int32_t k = 0;
+    /* Unused local variable */
+    uint32_t j = 0;
+    uint32_t l;
+    const char_t *format = "%s";
+    /* Use variable without initialization */
+    for (; i < 100; ++i)
+    {
+        /* Format string is not a literal (printf) */
+        bstd_printf(format, "Hello");
+
+        /* printf wrong arguments */
+        bstd_printf("%s %d", "Hello", "Hello");
+        bstd_printf("%s %d", 3, 3);
+        bstd_printf("%s %d", "Hello");
+        bstd_printf("%s %d", 3);
+    }
+
+    /* Implicit function declaration */
+    unicode_nchars("Hello", ekUTF8);
+
+    /* Signed/Unsigned comparison */
+    if (k < i)
+    {
+        bstd_printf("%s", "Bye");
+    }
+
+    /* Control reaches end of non-void function */
+    if (i < 200)
+        return 6;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t sewer_warns2(const unicode_t code);
+uint32_t sewer_warns2(const unicode_t code)
+{
+    /* Enumeration value not handled in switch */
+    switch (code)
+    {
+    case ekUTF8:
+        return 1;
+    case ekUTF16:
+        return 2;
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t sewer_warns3(const Str1 *str);
+uint32_t sewer_warns3(const Str1 *str)
+{
+    /* Incompatible pointer types */
+    const Str2 *str2 = str;
+    Str1 *str3 = str;
+    return (uint32_t)str2 + (uint32_t)str3;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* Wrong pointer in function argument */
+uint32_t sewer_warns4(void);
+uint32_t sewer_warns4(void)
+{
+    Str2 str;
+    return sewer_warns3(&str);
+}
+
+#endif

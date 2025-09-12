@@ -80,25 +80,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-/*
-static CGFloat i_slider_with_tickmarks_height(const gui_size_t knob_size)
-{
-    switch(knob_size)
-    {
-        case ekGUI_MINI:
-            return 16.f;
-        case ekREGULAR:
-            return 18.f;
-        case ekGUI_SIZE_LARGE:
-            return 26.f;
-        cassert_default();
-    }
-
-    return 0.f;
-}*/
-
-/*---------------------------------------------------------------------------*/
-
 OSSlider *osslider_create(const uint32_t flags)
 {
     OSXSlider *slider = nil;
@@ -161,36 +142,6 @@ void osslider_tickmarks(OSSlider *slider, const uint32_t num_tickmarks, const bo
     unref(slider);
     unref(num_tickmarks);
     unref(tickmarks_at_left_top);
-    /*
-    switch (((OSXSlider*)slider)->hv)
-    {
-        case ekGUI_VERTICAL:
-
-            size.width = i_slider_with_tickmarks_height(((OSXSlider*)slider)->knob_size);
-            size.height = (CGFloat)((OSXSlider*)slider)->length;
-            break;
-
-        case ekGUI_HORIZONTAL:
-
-            size.width = (CGFloat)((OSXSlider*)slider)->length;
-            size.height = i_slider_with_tickmarks_height(((OSXSlider*)slider)->knob_size);
-            break;
-
-        cassert_default();
-    }
-
-    [(OSXSlider*)slider setFrameSize:size];
-*/
-    /*
-   [(OSXSlider*)slider setNumberOfTickMarks:(NSInteger)num_tickmarks];
-   [(OSXSlider*)slider setAllowsTickMarkValuesOnly:NO];
-
-#if defined (MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
-    [(OSXSlider*)slider setTickMarkPosition:(tickmarks_at_left_top == TRUE) ? NSTickMarkPositionAbove : NSTickMarkPositionBelow];
-#else
-    [(OSXSlider*)slider setTickMarkPosition:(tickmarks_at_left_top == TRUE) ? NSTickMarkAbove : NSTickMarkBelow];
-#endif
-*/
 }
 
 /*---------------------------------------------------------------------------*/
@@ -226,7 +177,8 @@ static real32_t i_slider_without_tickmarks_height(const gui_size_t knob_size)
         return 15.f;
     case ekGUI_SIZE_REGULAR:
         return 25.f;
-        cassert_default();
+    default:
+        cassert_default(knob_size);
     }
 
     return 0.f;
@@ -250,7 +202,8 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
         *width = i_slider_without_tickmarks_height(knob_size);
         *height = length;
         break;
-        cassert_default();
+    default:
+        cassert_default(slider_get_type(lslider->flags));
     }
 }
 

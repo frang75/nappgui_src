@@ -195,7 +195,8 @@ static ___INLINE ellipsis_t i_nellipsis(const PangoEllipsizeMode ellipsis)
         return ekELLIPMIDDLE;
     case PANGO_ELLIPSIZE_END:
         return ekELLIPEND;
-        cassert_default();
+    default:
+        cassert_default(ellipsis);
     }
 
     return ekELLIPNONE;
@@ -265,7 +266,9 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     case ekINDEX2:
     case ekINDEX4:
     case ekINDEX8:
-        cassert_default();
+    case ekFIMAGE:
+    default:
+        cassert_default(format);
     }
 
     ctx->format = format;

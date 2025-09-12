@@ -166,7 +166,8 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
         break;
 
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     if (rgb_pixels != NULL)
@@ -341,8 +342,8 @@ Image *image_rotate(const Image *image, const real32_t angle, const bool_t nsize
 
     cassert_no_null(image);
     osimage_info(image->osimage, &width, &height, NULL, NULL);
-    cx = width / 2.f;
-    cy = height / 2.f;
+    cx = (real32_t)width / 2;
+    cy = (real32_t)height / 2;
     t2d_movef(&t2d, kT2D_IDENTf, cx, cy);
     t2d_rotatef(&t2d, &t2d, angle);
     t2d_movef(&t2d, &t2d, -cx, -cy);

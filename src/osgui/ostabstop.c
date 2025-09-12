@@ -598,7 +598,9 @@ bool_t _ostabstop_mouse_down(OSTabStop *tabstop, OSControl *control)
         case ekGUI_FOCUS_KEEP:
         case ekGUI_FOCUS_NO_NEXT:
             return TRUE;
-            cassert_default();
+
+        default:
+            cassert_default(fstate);
         }
     }
 

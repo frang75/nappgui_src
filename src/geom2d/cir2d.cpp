@@ -96,8 +96,8 @@ static Cir2D< real > i_from_points(const V2D< real > *p, const uint32_t n)
         cir.c.y += p[i].y;
     }
 
-    cir.c.x /= n;
-    cir.c.y /= n;
+    cir.c.x /= (real)n;
+    cir.c.y /= (real)n;
     for (i = 0; i < n; ++i)
     {
         real sqdist = V2D< real >::sqdist(&p[i], &cir.c);
@@ -361,32 +361,29 @@ static Cir2D< real > i_update_support3(uint32_t i, const V2D< real > **p, Suppor
         support->n = 2;
         support->index[1] = i;
         break;
-
     case 1:
         support->n = 2;
         support->index[0] = i;
         break;
-
     case 2:
         support->n = 2;
         support->index[0] = support->index[2];
         support->index[1] = i;
         break;
-
     case 3:
         cassert(support->n == 3);
         support->index[2] = i;
         break;
-
     case 4:
         cassert(support->n == 3);
         support->index[1] = i;
         break;
-
     case 5:
         cassert(support->n == 3);
         support->index[0] = i;
         break;
+    default:
+        cassert_default(idx);
     }
 
     return min;
@@ -427,16 +424,14 @@ static Cir2D< real > i_minimum(const V2D< real > *p, const uint32_t n)
                 case 1:
                     min = i_update_support1< real >(i, perm, &support);
                     break;
-
                 case 2:
                     min = i_update_support2< real >(i, perm, &support);
                     break;
-
                 case 3:
                     min = i_update_support3< real >(i, perm, &support);
                     break;
-
-                    cassert_default();
+                default:
+                    cassert_default(support.n);
                 }
 
                 i = 0;

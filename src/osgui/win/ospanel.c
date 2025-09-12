@@ -11,6 +11,7 @@
 /* Operating System native panel */
 
 #include "osgui_win.inl"
+#include "ospanel_win.inl"
 #include "oscontrol_win.inl"
 #include "osbutton_win.inl"
 #include "oscombo_win.inl"
@@ -168,7 +169,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         case ekGUI_TYPE_HEADER:
         case ekGUI_TYPE_WINDOW:
         case ekGUI_TYPE_TOOLBAR:
-            cassert_default();
+        default:
+            cassert_default(control->type);
         }
 
         return 0;
@@ -292,6 +294,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 event = ekGUI_SCROLL_STEP_RIGHT;
             _osscrolls_event(panel->scroll, ekGUI_VERTICAL, event, TRUE);
         }
+        break;
+
+    default:
         break;
     }
 

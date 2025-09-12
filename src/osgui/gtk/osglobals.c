@@ -80,7 +80,7 @@ const uint32_t kENTRY_VPADDING = 6;
 const uint32_t kENTRY_HPADDING = 8;
 const uint32_t kCOMBO_HPADDING = 6;
 const uint32_t kBUTTON_IMAGE_SEP = 4;
-const uint32_t kCHECKBOX_IMAGE_SEP = 8;
+const real32_t kCHECKBOX_IMAGE_SEP = 8;
 
 /*---------------------------------------------------------------------------*/
 
@@ -89,13 +89,13 @@ Keep 'max_width', 'max_height' as small as possible, depending of widget type */
 static void i_widget_margins(GtkWidget *widget, const uint32_t max_width, const uint32_t max_height, uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height, uint32_t *color)
 {
     uint32_t i, j;
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, max_width, max_height);
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)max_width, (int)max_height);
     cairo_t *cairo = cairo_create(surface);
     GdkPixbuf *bitmap = NULL;
     uint32_t *buffer = NULL;
     uint32_t x0 = max_width, x1 = 0, y0 = max_height, y1 = 0;
     gtk_widget_draw(widget, cairo);
-    bitmap = gdk_pixbuf_get_from_surface(surface, 0, 0, max_width, max_height);
+    bitmap = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)max_width, (gint)max_height);
     cassert(gdk_pixbuf_get_rowstride(bitmap) % 4 == 0);
     buffer = cast(gdk_pixbuf_get_pixels(bitmap), uint32_t);
     *color = 0;
@@ -204,13 +204,13 @@ static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
 static color_t i_frame_color(GtkWidget *widget, const uint32_t size, const bool_t middle_i, const bool_t middle_j)
 {
     uint32_t i = 0, j = 0;
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, size, size);
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)size, (int)size);
     cairo_t *cairo = cairo_create(surface);
     GdkPixbuf *bitmap = NULL;
     uint32_t *buffer = NULL;
     color_t col = 0;
     gtk_widget_draw(widget, cairo);
-    bitmap = gdk_pixbuf_get_from_surface(surface, 0, 0, size, size);
+    bitmap = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)size, (gint)size);
     cassert(gdk_pixbuf_get_rowstride(bitmap) % 4 == 0);
     buffer = cast(gdk_pixbuf_get_pixels(bitmap), uint32_t);
 
@@ -278,8 +278,8 @@ static bool_t i_equal_images(GdkPixbuf *pixbuf1, const uint32_t x1, const uint32
         const guchar *pixels1 = gdk_pixbuf_get_pixels(pixbuf1);
         const guchar *pixels2 = gdk_pixbuf_get_pixels(pixbuf2);
         uint32_t i, j, offset = alpha1 ? 4 : 3;
-        int stride1 = gdk_pixbuf_get_rowstride(pixbuf1);
-        int stride2 = gdk_pixbuf_get_rowstride(pixbuf2);
+        uint32_t stride1 = (uint32_t)gdk_pixbuf_get_rowstride(pixbuf1);
+        uint32_t stride2 = (uint32_t)gdk_pixbuf_get_rowstride(pixbuf2);
         pixels1 += y1 * stride1;
         pixels2 += y2 * stride2;
         for (j = 0; j < height; ++j)
@@ -320,7 +320,7 @@ static void i_precompute_checks(void)
     dheight = (gdouble)mheight;
 
     /* Image with checkbox and radio states for drawing in contexts */
-    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 10 * mwidth, mheight);
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (gint)(10 * mwidth), (gint)mheight);
     cairo = cairo_create(surface);
     cairo_translate(cairo, -(gdouble)mx, -(gdouble)my);
 
@@ -340,7 +340,7 @@ static void i_precompute_checks(void)
 
     kCHECK_WIDTH = mwidth;
     kCHECK_HEIGHT = mheight;
-    kCHECKSBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, 10 * mwidth, mheight);
+    kCHECKSBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)(10 * mwidth), (gint)mheight);
 
     /* Checkbox marks have been not rendered. This happens in some versions of Xubuntu. */
     if (i_equal_images(kCHECKSBITMAP, 0, 0, kCHECKSBITMAP, 5 * mwidth, 0, mwidth, mheight) == TRUE)
@@ -354,7 +354,7 @@ static void i_precompute_checks(void)
             cairo_translate(cairo, dwidth, 0);
         }
 
-        kCHECKSBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, 10 * mwidth, mheight);
+        kCHECKSBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)(10 * mwidth), (gint)mheight);
     }
 
     /*
@@ -378,7 +378,7 @@ static void i_precompute_scroll(void)
     cassert(kSCROLLBAR_HEIGHT == 0);
     cassert(i_IMPOSTOR_MAPPED == TRUE);
     gtk_widget_get_allocation(scrollbar, &alloc);
-    kSCROLLBAR_HEIGHT = alloc.width;
+    kSCROLLBAR_HEIGHT = (uint32_t)alloc.width;
     if (kSCROLLBAR_HEIGHT < 2)
         kSCROLLBAR_HEIGHT = 2;
     else if (kSCROLLBAR_HEIGHT < 12)
@@ -548,29 +548,24 @@ color_t osglobals_color(const syscolor_t *color)
     switch (*color)
     {
     case ekSYSCOLOR_DARKMODE:
-        return kDARK_MODE;
-
+        return (color_t)kDARK_MODE;
     case ekSYSCOLOR_LABEL:
         cassert(kLABEL_COLOR != 0);
         return kLABEL_COLOR;
-
     case ekSYSCOLOR_VIEW:
         cassert(kVIEW_COLOR != 0);
         return kVIEW_COLOR;
-
     case ekSYSCOLOR_LINE:
         cassert(kLINE_COLOR != 0);
         return kLINE_COLOR;
-
     case ekSYSCOLOR_LINK:
         cassert(kLINK_COLOR != 0);
         return kLINK_COLOR;
-
     case ekSYSCOLOR_BORDER:
         cassert(kBORD_COLOR != 0);
         return kBORD_COLOR;
-
-        cassert_default();
+    default:
+        cassert_default(*color);
     }
 
     return 0;
@@ -667,7 +662,8 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(cursor);
     }
 
     heap_auditor_add("GdkCursor");
@@ -698,7 +694,8 @@ void osglobals_value(const uint32_t index, void *value)
     case 1:
         *cast(value, uint32_t) = 0;
         break;
-        cassert_default();
+    default:
+        cassert_default(index);
     }
 }
 
@@ -772,7 +769,7 @@ static const char *i_get_next_section(const char *css_data, char **pcss, int *n)
             ed--;
 
         if (ed > st || *st != '{')
-            *n = ed - st + 1;
+            *n = (int)(ed - st + 1);
         else
             *n = 0;
 
@@ -897,7 +894,7 @@ static void i_parse_gtk_theme(void)
         if (section != NULL)
         {
             uint32_t sect_n = 0;
-            str_copy_cn(csect, sizeof(csect), section, nsection);
+            str_copy_cn(csect, sizeof(csect), section, (uint32_t)nsection);
             csect[nsection] = '\0';
 
             if (kCSS_ENTRY == NULL)

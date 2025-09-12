@@ -44,7 +44,7 @@ static gboolean i_OnMoved(GtkRange *range, GtkScrollType step, double value, OSS
     if (slider->launch_event == TRUE && slider->OnMoved != NULL)
     {
         EvSlider params;
-        params.pos = value;
+        params.pos = (real32_t)value;
         params.incr = 0.f;
         params.step = UINT32_MAX;
 
@@ -187,7 +187,8 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
         *width = (real32_t)s.width;
         *height = length;
         break;
-        cassert_default();
+    default:
+        cassert_default(slider_get_type(slider->flags));
     }
 }
 

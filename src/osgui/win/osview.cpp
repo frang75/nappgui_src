@@ -300,6 +300,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         }
         return 0;
     }
+
+    default:
+        break;
     }
 
     return CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);

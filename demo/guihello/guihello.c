@@ -145,6 +145,8 @@ static void i_set_panel(App *app, const uint32_t index)
     case 31:
         panel = reduce(app->window);
         break;
+    default:
+        cassert_default(index);
     }
 
     layout_panel_replace(app->layout, panel, 1, 0);
@@ -282,7 +284,10 @@ static void i_OnClose(App *app, Event *e)
         break;
 
     case ekGUI_CLOSE_DEACT:
-        cassert_default();
+        break;
+
+    default:
+        cassert_default(p->origin);
     }
 }
 

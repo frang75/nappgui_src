@@ -174,7 +174,8 @@ static void i_OnWindowResize(Window *window, Event *e)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(event_type(e));
     }
 }
 
@@ -216,7 +217,8 @@ static void i_OnWindowClose(Window *window, Event *event)
                 cassert(FALSE);
                 closed = FALSE;
                 break;
-                cassert_default();
+            default:
+                cassert_default(window->role);
             }
         }
 
@@ -257,7 +259,8 @@ static void i_OnWindowClose(Window *window, Event *event)
         closed = *event_result(event, bool_t);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(params->origin);
     }
 
     if (closed == TRUE)

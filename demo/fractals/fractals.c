@@ -223,6 +223,8 @@ static void i_OnThreads(App *app, Event *e)
     case 4:
         app->threads = 8;
         break;
+    default:
+        cassert_default(p->index);
     }
     i_image(app);
 }

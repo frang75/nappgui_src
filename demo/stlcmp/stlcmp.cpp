@@ -134,8 +134,8 @@ int main(int argc, char *argv[])
     pproducts = heap_new_n(n, Product *);
     for (uint32_t i = 0; i < n; ++i)
     {
-        i_init(&products[i], ids[i], 100.f + i);
-        pproducts[i] = i_create(ids[i], 100.f + i);
+        i_init(&products[i], ids[i], 100.f + (real32_t)i);
+        pproducts[i] = i_create(ids[i], 100.f + (real32_t)i);
     }
 
     arrst = arrst_create(Product);

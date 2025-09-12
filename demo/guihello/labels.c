@@ -36,7 +36,8 @@ static void i_OnLayoutWidth(Layout *layout, Event *event)
     case 4:
         width = 400;
         break;
-        cassert_default();
+    default:
+        cassert_default(p->index);
     }
 
     layout_hsize(layout, 0, width);

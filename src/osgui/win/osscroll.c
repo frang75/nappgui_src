@@ -55,7 +55,7 @@ OSScroll *_osscroll_horizontal(OSControl *control)
     else
     {
         scroll->type = SB_CTL;
-        scroll->hwnd = i_create_scroll(scroll->type, control->hwnd, 100, GetSystemMetrics(SM_CXHSCROLL));
+        scroll->hwnd = i_create_scroll((DWORD)scroll->type, control->hwnd, 100, GetSystemMetrics(SM_CXHSCROLL));
     }
 
     return scroll;
@@ -221,7 +221,8 @@ gui_scroll_t _osscroll_event(WPARAM wParam)
         return ekGUI_SCROLL_THUMB;
     case SB_ENDSCROLL:
         break;
-        cassert_default();
+    default:
+        cassert_default(lw);
     }
 
     return ENUM_MAX(gui_scroll_t);

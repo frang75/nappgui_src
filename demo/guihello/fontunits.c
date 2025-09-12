@@ -1,6 +1,6 @@
 /* Font units */
 
-#include "fontx.h"
+#include "fontunits.h"
 #include <gui/guiall.h>
 
 typedef struct _fontunits_t FontUnits;

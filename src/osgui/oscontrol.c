@@ -70,7 +70,8 @@ const char_t *_oscontrol_type_str(const gui_type_t type)
         return "OSToolbar";
     case ekGUI_TYPE_WINDOW:
         return "OSWindow";
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return NULL;
@@ -130,6 +131,7 @@ void _oscontrol_detach_and_destroy(OSControl **control, OSPanel *panel)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 }

@@ -96,7 +96,9 @@ static void i_image_transform(T2Df *t2d, const gui_scale_t scale, const real32_t
             ratio_y = 1.f;
         }
         break;
-        cassert_default();
+
+    default:
+        cassert_default(scale);
     }
 
     {

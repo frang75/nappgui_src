@@ -675,6 +675,8 @@ static void i_OnDraw(App *app, Event *e)
         label_text(app->label, "Drawing images with alignment");
         i_image(p->ctx);
         break;
+    default:
+        cassert_default(app->option);
     }
 }
 

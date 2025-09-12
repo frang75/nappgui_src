@@ -312,7 +312,8 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t idx, const 
             break;
 
         case ekCTRL_OP_DEL:
-            cassert_default();
+        default:
+            cassert_default(op);
         }
 
         [str release];

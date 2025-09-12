@@ -188,7 +188,8 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     case ekINDEX4:
     case ekINDEX8:
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     {
@@ -414,7 +415,8 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
         case PixelFormat8bppIndexed:
             ibpp = 8;
             break;
-            cassert_default();
+        default:
+            cassert_default(pf);
         }
 
         bitmap->LockBits(NULL, Gdiplus::ImageLockModeRead, pf, &data);
@@ -430,13 +432,13 @@ static void i_indexed_info(Gdiplus::Bitmap *bitmap, pixformat_t *format, Pixbuf 
         case ekRGBA32:
             *pixels = _imgutil_indexed_to_rgba((uint32_t)data.Width, (uint32_t)data.Height, cast_const(data.Scan0, byte_t), (uint32_t)data.Stride, ibpp, color);
             break;
-
         case ekINDEX1:
         case ekINDEX2:
         case ekINDEX4:
         case ekINDEX8:
         case ekFIMAGE:
-            cassert_default();
+        default:
+            cassert_default(*format);
         }
 
         bitmap->UnlockBits(&data);
@@ -674,7 +676,6 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 
             if (pixels != NULL)
                 *pixels = i_rgb24_pixels(bitmap, lformat);
-
             break;
 
         case PixelFormat32bppARGB:
@@ -687,10 +688,10 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
 
             if (pixels != NULL)
                 *pixels = i_rgba32_pixels(bitmap, lformat);
-
             break;
 
-            cassert_default();
+        default:
+            cassert_default(pf);
         }
 
         if (format != NULL)
@@ -719,7 +720,8 @@ static bool_t i_get_encoder(const codec_t codec, CLSID *clsid)
     case ekGIF:
         encoder_mime = L"image/gif";
         break;
-        cassert_default();
+    default:
+        cassert_default(codec);
     }
 
     if (encoder_mime != NULL)

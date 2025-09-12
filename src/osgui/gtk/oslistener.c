@@ -51,7 +51,7 @@ void _oslistener_remove(ViewListeners *listeners)
 
 /*---------------------------------------------------------------------------*/
 
-void _oslistener_signal(GtkWidget *widget, bool_t add, gint *signal_id, gint signal_mask, const gchar *signal_name, GCallback callback, gpointer callback_data)
+void _oslistener_signal(GtkWidget *widget, bool_t add, gulong *signal_id, gint signal_mask, const gchar *signal_name, GCallback callback, gpointer callback_data)
 {
     gboolean is_realized = gtk_widget_get_realized(widget);
 #if defined(__DEBUG__)
@@ -329,6 +329,8 @@ gui_mouse_t _oslistener_button(const GdkEventButton *event)
         return ekGUI_MOUSE_MIDDLE;
     case 3:
         return ekGUI_MOUSE_RIGHT;
+    default:
+        break;
     }
 
     return ekGUI_MOUSE_LEFT;
@@ -339,6 +341,11 @@ gui_mouse_t _oslistener_button(const GdkEventButton *event)
 uint32_t _oslistener_click_count(const GdkEventButton *event)
 {
     cassert_no_null(event);
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#endif
     switch (event->type)
     {
     case GDK_BUTTON_PRESS:
@@ -350,4 +357,8 @@ uint32_t _oslistener_click_count(const GdkEventButton *event)
     default:
         return 1;
     }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 }

@@ -163,13 +163,17 @@ static void i_OnClick(Button *button, Event *event)
             case ekGUI_MIXED:
                 v = 2;
                 break;
-                cassert_default();
+            default:
+                cassert_default(params->state);
             }
 
             _cell_update_u32(cell, v);
         }
         break;
     }
+
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 
     if (sender && sender->OnClick)
@@ -282,7 +286,8 @@ static void i_update_text(Button *button)
     case ekBUTTON_FLATGLE:
         button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->text));
         break;
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 }
 
@@ -605,6 +610,7 @@ void _button_uint32(Button *button, const uint32_t value)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 }

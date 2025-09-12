@@ -246,7 +246,8 @@ static void i_remove_data(byte_t *data, const DBind *bind)
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 }
 
@@ -278,7 +279,8 @@ static bool_t i_valid_container_type(const DBind *ebind, const bool_t store_poin
         return FALSE;
 
     case ekDTYPE_UNKNOWN:
-        cassert(FALSE);
+    default:
+        cassert_default(ebind->type);
     }
 
     return FALSE;
@@ -350,7 +352,8 @@ static void i_destroy_data(byte_t **data, const DBind *bind, const DBind *ebind)
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 }
 
@@ -407,7 +410,8 @@ static void i_remove_struct_data(byte_t *data, const StructProps *props)
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(member->bind->type);
         }
 
     arrst_end()
@@ -469,7 +473,8 @@ static void i_remove_member_attr(MemberAttr *attr, const DBind *bind)
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 }
 
@@ -540,7 +545,8 @@ static void i_remove_dbind(DBind *dbind)
     case ekDTYPE_CONTAINER:
         break;
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(dbind->type);
     }
 
     str_destroy(&dbind->name);
@@ -607,8 +613,8 @@ static bool_t i_get_bool(const byte_t *data, const uint16_t size)
         return *cast(data, uint16_t) == 0 ? FALSE : TRUE;
     case 4:
         return *cast(data, uint32_t) == 0 ? FALSE : TRUE;
-        /* Bool types more than 4 bytes are not allowed */
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 
     return FALSE;
@@ -626,13 +632,13 @@ static void i_set_bool(byte_t *data, const uint16_t size, bool_t value)
         *cast(data, bool_t) = value;
         break;
     case 2:
-        *cast(data, uint16_t) = value;
+        *cast(data, uint16_t) = (uint16_t)value;
         break;
     case 4:
-        *cast(data, uint32_t) = value;
+        *cast(data, uint32_t) = (uint32_t)value;
         break;
-        /* Bool types more than 4 bytes are not allowed */
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 }
 
@@ -671,7 +677,8 @@ static int64_t i_get_int(const byte_t *data, const uint16_t size, const bool_t i
             return (int64_t)*cast_const(data, uint64_t);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 
     return 0;
@@ -712,7 +719,8 @@ static void i_set_int(byte_t *data, const uint16_t size, const bool_t is_signed,
             *cast(data, uint64_t) = (uint64_t)value;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 }
 
@@ -727,7 +735,8 @@ static real64_t i_get_real(const byte_t *data, const uint16_t size)
         return (real64_t)*cast(data, real32_t);
     case 8:
         return *cast(data, real64_t);
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 
     return 0;
@@ -755,7 +764,8 @@ static void i_set_real(byte_t *data, const uint16_t size, real64_t value)
     case 8:
         *cast(data, real64_t) = value;
         break;
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 }
 
@@ -847,7 +857,8 @@ static DBind *i_dbind_from_typename(const char_t *name, bool_t *is_pointer, uint
             break;
         }
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(bind->type);
         }
     arrpt_end()
     return NULL;
@@ -1270,7 +1281,8 @@ static byte_t *i_copy_container(const byte_t *src, const DBind *bind, const DBin
                     /* Nested containers are not allowed */
                     case ekDTYPE_CONTAINER:
                     case ekDTYPE_UNKNOWN:
-                        cassert_default();
+                    default:
+                        cassert_default(ebind->type);
                     }
                 }
                 else
@@ -1311,7 +1323,8 @@ static byte_t *i_copy_container(const byte_t *src, const DBind *bind, const DBin
             case ekDTYPE_BINARY:
             case ekDTYPE_CONTAINER:
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(ebind->type);
             }
         }
     }
@@ -1388,7 +1401,8 @@ static void i_copy_struct_data(byte_t *dest, const byte_t *src, const StructProp
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(member->bind->type);
         }
     arrst_end()
 }
@@ -1483,7 +1497,8 @@ static void i_init_struct_data(byte_t *data, const StructProps *props)
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(member->bind->type);
         }
     arrst_end()
 }
@@ -1559,7 +1574,8 @@ static dbindst_t i_add_member(DBind *bind, const char_t *mname, const char_t *mt
                     member->attr.intt.min = mbind->props.intp.is_signed ? INT64_MIN : 0;
                     member->attr.intt.max = mbind->props.intp.is_signed ? INT64_MAX : (int64_t)INT64_MAX;
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(mbind->size);
                 }
                 break;
 
@@ -1612,7 +1628,8 @@ static dbindst_t i_add_member(DBind *bind, const char_t *mname, const char_t *mt
                 break;
 
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(mbind->type);
             }
         }
         else
@@ -1823,7 +1840,8 @@ static void i_stbind_defaults_destroy(const DBind *stbind, const DBind *bind)
         case ekDTYPE_ENUM:
             break;
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(member->bind->type);
         }
     arrst_end()
 }
@@ -1984,7 +2002,8 @@ static void i_init_bind(byte_t *data, const DBind *bind)
     case ekDTYPE_BINARY:
     case ekDTYPE_CONTAINER:
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 }
 
@@ -2016,7 +2035,8 @@ static byte_t *i_create(const DBind *bind, const DBind *ebind)
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return data;
@@ -2085,7 +2105,8 @@ byte_t *dbind_copy_imp(const byte_t *data, const char_t *type)
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(bind->type);
         }
 
         return ndata;
@@ -2281,7 +2302,8 @@ static int i_compare_type(const DBind *bind, const DBind *ebind, const byte_t *d
         }
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return 0;
@@ -2336,7 +2358,8 @@ static int i_cmp_struct_data(const byte_t *data1, const byte_t *data2, const Str
             break;
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(bind->type);
         }
 
         cmp = i_compare_type(bind, ebind, edata1, edata2);
@@ -2408,7 +2431,8 @@ static int64_t i_read_int(Stream *stm, const DBind *bind)
         else
             return (int64_t)stm_read_u64(stm);
 
-        cassert_default();
+    default:
+        cassert_default(bind->size);
     }
 
     return 0;
@@ -2428,7 +2452,8 @@ static real64_t i_read_real(Stream *stm, const DBind *bind)
     case 8:
         return (real64_t)stm_read_r64(stm);
 
-        cassert_default();
+    default:
+        cassert_default(bind->size);
     }
 
     return 0;
@@ -2489,7 +2514,8 @@ static void i_read_bind(Stream *stm, byte_t *data, const DBind *bind, const DBin
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 }
 
@@ -2507,7 +2533,7 @@ static byte_t *i_read_container(Stream *stm, const DBind *bind, const DBind *ebi
         if (bind->props.contp.store_pointers == TRUE)
         {
             uint32_t i;
-            bmem_set_zero(data, n * sizeofptr);
+            bmem_set_zero(data, (uint32_t)(n * sizeofptr));
             for (i = 0; i < n; ++i)
             {
                 byte_t **pdata = dcast(data, byte_t);
@@ -2533,7 +2559,8 @@ static byte_t *i_read_container(Stream *stm, const DBind *bind, const DBind *ebi
                     /* Nested containers are not allowed */
                     case ekDTYPE_CONTAINER:
                     case ekDTYPE_UNKNOWN:
-                        cassert_default();
+                    default:
+                        cassert_default(ebind->type);
                     }
                 }
                 else
@@ -2565,7 +2592,8 @@ static byte_t *i_read_container(Stream *stm, const DBind *bind, const DBind *ebi
                 case ekDTYPE_BINARY:
                 case ekDTYPE_CONTAINER:
                 case ekDTYPE_UNKNOWN:
-                    cassert_default();
+                default:
+                    cassert_default(ebind->type);
                 }
 
                 data += ebind->size;
@@ -2642,7 +2670,8 @@ static void i_read_struct_data(Stream *stm, byte_t *data, const StructProps *pro
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(member->bind->type);
         }
     arrst_end()
 }
@@ -2681,7 +2710,8 @@ byte_t *dbind_read_imp(Stream *stm, const char_t *type)
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(bind->type);
         }
 
         return data;
@@ -2721,7 +2751,8 @@ static void i_write_bool(Stream *stm, const byte_t *data, const DBind *bind)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(bind->size);
     }
 }
 
@@ -2761,7 +2792,8 @@ static void i_write_int(Stream *stm, const byte_t *data, const DBind *bind)
             stm_write_u64(stm, *cast(data, uint64_t));
         break;
 
-        cassert_default();
+    default:
+        cassert_default(bind->size);
     }
 }
 
@@ -2776,12 +2808,11 @@ static void i_write_real(Stream *stm, const byte_t *data, const DBind *bind)
     case 4:
         stm_write_r32(stm, *cast(data, real32_t));
         break;
-
     case 8:
         stm_write_r64(stm, *cast(data, real64_t));
         break;
-
-        cassert_default();
+    default:
+        cassert_default(bind->size);
     }
 }
 
@@ -2844,7 +2875,8 @@ static void i_write_bind(Stream *stm, const byte_t *data, const DBind *bind, con
     }
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 }
 
@@ -2888,7 +2920,8 @@ static void i_write_container(Stream *stm, const byte_t *cont, const DBind *bind
                     /* Nested containers are not allowed */
                     case ekDTYPE_CONTAINER:
                     case ekDTYPE_UNKNOWN:
-                        cassert_default();
+                    default:
+                        cassert_default(ebind->type);
                     }
                 }
                 else
@@ -2918,7 +2951,8 @@ static void i_write_container(Stream *stm, const byte_t *cont, const DBind *bind
                 case ekDTYPE_BINARY:
                 case ekDTYPE_CONTAINER:
                 case ekDTYPE_UNKNOWN:
-                    cassert_default();
+                default:
+                    cassert_default(ebind->type);
                 }
             }
         }
@@ -3008,7 +3042,8 @@ static void i_write_struct_data(Stream *stm, const byte_t *data, const StructPro
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(member->bind->type);
         }
     arrst_end()
 }
@@ -3045,7 +3080,8 @@ void dbind_write_imp(Stream *stm, const void *data, const char_t *type)
         }
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(bind->type);
         }
     }
 }
@@ -3134,7 +3170,8 @@ void dbind_default_imp(const char_t *type, const char_t *mname, const byte_t *va
             }
 
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(member->bind->type);
             }
         }
     }
@@ -3173,7 +3210,8 @@ void dbind_range_imp(const char_t *type, const char_t *mname, const byte_t *min,
             case ekDTYPE_CONTAINER:
                 break;
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(member->bind->type);
             }
         }
     }
@@ -3211,7 +3249,8 @@ void dbind_precision_imp(const char_t *type, const char_t *mname, const byte_t *
             case ekDTYPE_CONTAINER:
                 break;
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(member->bind->type);
             }
         }
     }
@@ -3248,7 +3287,8 @@ void dbind_increment_imp(const char_t *type, const char_t *mname, const byte_t *
             case ekDTYPE_CONTAINER:
                 break;
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(member->bind->type);
             }
         }
     }
@@ -3296,7 +3336,8 @@ void dbind_suffix_imp(const char_t *type, const char_t *mname, const char_t *suf
             case ekDTYPE_CONTAINER:
                 break;
             case ekDTYPE_UNKNOWN:
-                cassert_default();
+            default:
+                cassert_default(member->bind->type);
             }
         }
     }
@@ -3425,7 +3466,8 @@ bool_t dbind_is_basic_type(const dtype_t type)
     case ekDTYPE_CONTAINER:
         return FALSE;
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return FALSE;
@@ -3448,7 +3490,8 @@ bool_t dbind_is_number_type(const dtype_t type)
     case ekDTYPE_CONTAINER:
         return FALSE;
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return FALSE;
@@ -3585,11 +3628,9 @@ bool_t dbind_st_str_filter(const DBind *stbind, const uint32_t member_id, const 
     case ekDTYPE_INT:
         _tfilter_number(src, dest, size, 0, member->bind->props.intp.is_signed);
         return TRUE;
-
     case ekDTYPE_REAL:
         _tfilter_number(src, dest, size, member->attr.realt.dec, (bool_t)(member->attr.realt.min < 0));
         return TRUE;
-
     case ekDTYPE_BOOL:
     case ekDTYPE_ENUM:
     case ekDTYPE_STRING:
@@ -3598,9 +3639,9 @@ bool_t dbind_st_str_filter(const DBind *stbind, const uint32_t member_id, const 
     case ekDTYPE_CONTAINER:
         str_copy_c(dest, size, src);
         return FALSE;
-
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 
     return FALSE;
@@ -3658,7 +3699,6 @@ void dbind_st_store_field(const DBind *stbind, const uint32_t member_id, const b
     {
         const void *src_data = *dcast_const(obj + member->offset, void);
         void **dest_data = dcast(dest, void);
-
         cassert_unref(dest_size >= sizeofptr, dest_size);
 
         if (*dest_data != NULL)
@@ -3680,7 +3720,6 @@ void dbind_st_store_field(const DBind *stbind, const uint32_t member_id, const b
     {
         const void *src_data = *dcast_const(obj + member->offset, void);
         void **dest_data = dcast(dest, void);
-
         cassert_unref(dest_size >= sizeofptr, dest_size);
 
         if (*dest_data != NULL)
@@ -3696,7 +3735,8 @@ void dbind_st_store_field(const DBind *stbind, const uint32_t member_id, const b
     case ekDTYPE_STRUCT:
     case ekDTYPE_CONTAINER:
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 }
 
@@ -3758,7 +3798,8 @@ void dbind_st_restore_field(const DBind *stbind, const uint32_t member_id, byte_
     case ekDTYPE_STRUCT:
     case ekDTYPE_CONTAINER:
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 }
 
@@ -3792,7 +3833,8 @@ void dbind_st_remove_field(const DBind *stbind, const uint32_t member_id, byte_t
     case ekDTYPE_STRUCT:
     case ekDTYPE_CONTAINER:
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 }
 
@@ -3827,7 +3869,8 @@ bool_t dbind_st_overlaps_field(const DBind *stbind, const uint32_t member_id, co
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 
     return bmem_overlaps(stmem, data, stsize, data_size);
@@ -4221,7 +4264,8 @@ bindset_t dbind_set_value_null(const DBind *bind, const DBind *ebind, const bool
         }
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4288,7 +4332,8 @@ bindset_t dbind_st_set_value_null(const DBind *stbind, const uint32_t member_id,
         return ekBINDSET_OK;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4333,7 +4378,8 @@ static bindset_t i_set_value_bool(const DBind *bind, byte_t *data, const bool_t 
         return ekBINDSET_NOT_ALLOWED;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4410,7 +4456,8 @@ static bindset_t i_set_value_int(const DBind *bind, byte_t *data, const int64_t 
         return ekBINDSET_NOT_ALLOWED;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4487,7 +4534,8 @@ static bindset_t i_set_value_real(const DBind *bind, byte_t *data, const real64_
         return ekBINDSET_NOT_ALLOWED;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4559,7 +4607,8 @@ bindset_t dbind_st_set_value_norm(const DBind *stbind, const uint32_t member_id,
         return ekBINDSET_NOT_ALLOWED;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4635,7 +4684,8 @@ bindset_t dbind_st_set_value_incr(const DBind *stbind, const uint32_t member_id,
         return ekBINDSET_NOT_ALLOWED;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(member->bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;
@@ -4716,7 +4766,8 @@ static bindset_t i_set_value_str(const DBind *bind, byte_t *data, const char_t *
         return ekBINDSET_NOT_ALLOWED;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(bind->type);
     }
 
     return ekBINDSET_NOT_ALLOWED;

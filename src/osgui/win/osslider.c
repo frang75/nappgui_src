@@ -57,6 +57,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(slider, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(slider->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -177,7 +180,8 @@ static real32_t i_thickness(const gui_size_t knob_size)
         return 20.f;
     case ekGUI_SIZE_REGULAR:
         return 20.f;
-        cassert_default();
+    default:
+        cassert_default(knob_size);
     }
 
     return 0.f;

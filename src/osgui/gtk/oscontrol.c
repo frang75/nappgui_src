@@ -159,7 +159,8 @@ static GtkAlign i_align(const align_t align)
         return GTK_ALIGN_END;
     case ekJUSTIFY:
         return GTK_ALIGN_FILL;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
     return GTK_ALIGN_START;
 }
@@ -716,7 +717,8 @@ GtkJustification _oscontrol_justification(const align_t align)
         return GTK_JUSTIFY_FILL;
     case ekRIGHT:
         return GTK_JUSTIFY_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     return GTK_JUSTIFY_LEFT;
@@ -735,7 +737,8 @@ PangoAlignment _oscontrol_alignment(const align_t align)
         return PANGO_ALIGN_CENTER;
     case ekRIGHT:
         return PANGO_ALIGN_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     return PANGO_ALIGN_LEFT;
@@ -828,7 +831,8 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(control->type);
     }
 
     return NULL;

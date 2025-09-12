@@ -60,36 +60,13 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(updown, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(updown->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
 }
-
-/*---------------------------------------------------------------------------*/
-/* Height is the same as Edit */
-/*static void i_size(const gui_size_t size, real32_t *width, real32_t *height)
-{
-    switch (size)
-    {
-        case ekGUI_SIZE_SMALL:
-            // Revisar
-            cassert(FALSE);
-            *width = 16.f;
-            *height = 16.f;
-            break;
-        case ekGUI_SIZE_MEDIUM:
-            *width = 20.f;
-            *height = 20.f;
-            break;
-        case ekGUI_SIZE_LARGE:
-            // Revisar
-            cassert(FALSE);
-            *width = 15.f;
-            *height = 22.f;
-            break;
-        cassert_default();
-    }
-}*/
 
 /*---------------------------------------------------------------------------*/
 

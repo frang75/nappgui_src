@@ -75,7 +75,8 @@ static ___INLINE NSTextAlignment i_text_alignment(const align_t halign)
         return NSTextAlignmentJustified;
     case ekRIGHT:
         return NSTextAlignmentRight;
-        cassert_default();
+    default:
+        cassert_default(halign);
     }
     return NSTextAlignmentLeft;
 
@@ -90,7 +91,8 @@ static ___INLINE NSTextAlignment i_text_alignment(const align_t halign)
         return NSJustifiedTextAlignment;
     case ekRIGHT:
         return NSRightTextAlignment;
-        cassert_default();
+    default:
+        cassert_default(halign);
     }
 
     return NSLeftTextAlignment;
@@ -117,7 +119,8 @@ static ___INLINE NSControlSize i_control_size(const gui_size_t size)
         return NSControlSizeSmall;
     case ekGUI_SIZE_REGULAR:
         return NSControlSizeRegular;
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 #else
     switch (size)
@@ -128,7 +131,8 @@ static ___INLINE NSControlSize i_control_size(const gui_size_t size)
         return NSSmallControlSize;
     case ekGUI_SIZE_REGULAR:
         return NSRegularControlSize;
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 #endif
 
@@ -259,7 +263,8 @@ static NSDictionary *i_text_attribs(NSControl *control, const align_t align, con
     case ekCENTER:
         objects[2] = kCENTER_PARAGRAPH_STYLE;
         break;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     objects[3] = _oscontrol_text_color(control, color);
@@ -713,6 +718,7 @@ bool_t _oscontrol_widget_enable(const OSWidget *widget)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 }

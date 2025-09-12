@@ -10,6 +10,7 @@
 
 /* Operating System split view */
 
+#include "ossplit_win.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "oslistener.inl"
@@ -137,6 +138,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         ReleaseCapture();
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(split->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);

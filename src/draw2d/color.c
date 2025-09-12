@@ -100,23 +100,18 @@ color_t color_hsbf(const real32_t hue, const real32_t sat, const real32_t bright
         {
         case 0:
             return i_rgb((uint8_t)(bright * 255.f), (uint8_t)(f3 * 255.f), (uint8_t)(f1 * 255.f));
-
         case 1:
             return i_rgb((uint8_t)(f2 * 255.f), (uint8_t)(bright * 255.f), (uint8_t)(f1 * 255.f));
-
         case 2:
             return i_rgb((uint8_t)(f1 * 255.f), (uint8_t)(bright * 255.f), (uint8_t)(f3 * 255.f));
-
         case 3:
             return i_rgb((uint8_t)(f1 * 255.f), (uint8_t)(f2 * 255.f), (uint8_t)(bright * 255.f));
-
         case 4:
             return i_rgb((uint8_t)(f3 * 255.f), (uint8_t)(f1 * 255.f), (uint8_t)(bright * 255.f));
-
         case 5:
             return i_rgb((uint8_t)(bright * 255.f), (uint8_t)(f1 * 255.f), (uint8_t)(f2 * 255.f));
-
-            cassert_default();
+        default:
+            cassert_default(domain);
         }
     }
 

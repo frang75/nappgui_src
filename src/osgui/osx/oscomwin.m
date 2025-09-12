@@ -275,7 +275,8 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
             case ekRIGHT:
                 origin.x -= size.width;
                 break;
-                cassert_default();
+            default:
+                cassert_default(halign);
             }
 
             switch (valign)
@@ -289,7 +290,8 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
             case ekBOTTOM:
                 origin.x -= size.height;
                 break;
-                cassert_default();
+            default:
+                cassert_default(valign);
             }
         }
 

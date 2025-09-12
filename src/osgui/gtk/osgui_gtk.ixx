@@ -30,14 +30,14 @@ struct _view_listeners_t
 {
     bool_t is_enabled;
     gui_mouse_t button;
-    gint enter_signal;
-    gint leave_signal;
-    gint pressed_signal;
-    gint release_signal;
-    gint moved_signal;
-    gint wheel_signal;
-    gint keypressed_signal;
-    gint keyrelease_signal;
+    gulong enter_signal;
+    gulong leave_signal;
+    gulong pressed_signal;
+    gulong release_signal;
+    gulong moved_signal;
+    gulong wheel_signal;
+    gulong keypressed_signal;
+    gulong keyrelease_signal;
     Listener *OnDraw;
     Listener *OnEnter;
     Listener *OnExit;

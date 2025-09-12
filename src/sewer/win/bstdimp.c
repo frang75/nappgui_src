@@ -95,14 +95,14 @@ uint32_t bstd_printf(const char_t *format, ...)
     }
     else
     {
-        dbuffer = cast(bmem_malloc(length + 1), char);
+        dbuffer = cast(bmem_malloc((uint32_t)(length + 1)), char);
         buffer = dbuffer;
     }
 
     {
         va_list args;
         va_start(args, format);
-        length = vsprintf_s(buffer, length + 1, format, args);
+        length = vsprintf_s(buffer, (size_t)(length + 1), format, args);
         va_end(args);
     }
 
@@ -118,7 +118,7 @@ uint32_t bstd_printf(const char_t *format, ...)
     }
     else
     {
-        WCHAR *wbuffer = cast(bmem_malloc((length + 1) * sizeof(WCHAR)), WCHAR);
+        WCHAR *wbuffer = cast(bmem_malloc((uint32_t)(length + 1) * sizeof(WCHAR)), WCHAR);
         unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
         bmem_free(cast(wbuffer, byte_t));
@@ -163,14 +163,14 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     }
     else
     {
-        dbuffer = cast(bmem_malloc(length + 1), char);
+        dbuffer = cast(bmem_malloc((uint32_t)(length + 1)), char);
         buffer = dbuffer;
     }
 
     {
         va_list args;
         va_start(args, format);
-        length = vsprintf_s(buffer, length + 1, format, args);
+        length = vsprintf_s(buffer, (size_t)(length + 1), format, args);
         va_end(args);
     }
 
@@ -185,8 +185,8 @@ uint32_t bstd_eprintf(const char_t *format, ...)
     }
     else
     {
-        WCHAR *wbuffer = cast(bmem_malloc((length + 1) * sizeof(WCHAR)), WCHAR);
-        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (length + 1) * sizeof(WCHAR));
+        WCHAR *wbuffer = cast(bmem_malloc((uint32_t)(length + 1) * sizeof(WCHAR)), WCHAR);
+        unicode_convers(cast_const(buffer, char_t), cast(wbuffer, char_t), ekUTF8, ekUTF16, (uint32_t)(length + 1) * sizeof(WCHAR));
         OutputDebugString(wbuffer);
         bmem_free(cast(wbuffer, byte_t));
     }

@@ -75,7 +75,9 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         sampes_per_pixel = 4;
         bits_per_pixel = 32;
         break;
-        cassert_default();
+    case ekFIMAGE:
+    default:
+        cassert_default(format);
     }
 
     irep = [[NSBitmapImageRep alloc]
@@ -399,7 +401,8 @@ static NSBitmapImageFileType i_codec(const codec_t codec)
         return NSBitmapImageFileTypeBMP;
     case ekGIF:
         return NSBitmapImageFileTypeGIF;
-        cassert_default();
+    default:
+        cassert_default(codec);
     }
     return NSBitmapImageFileTypeJPEG;
 #else
@@ -413,7 +416,8 @@ static NSBitmapImageFileType i_codec(const codec_t codec)
         return NSBMPFileType;
     case ekGIF:
         return NSGIFFileType;
-        cassert_default();
+    default:
+        cassert_default(codec);
     }
     return NSJPEGFileType;
 #endif

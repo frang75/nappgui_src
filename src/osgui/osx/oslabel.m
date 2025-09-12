@@ -167,7 +167,8 @@ static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t butt
     case ekCENTER:
         origin_x = .5f * self->width;
         break;
-        cassert_default();
+    default:
+        cassert_default(self->align);
     }
 
     switch (label_get_type(self->flags))
@@ -178,7 +179,8 @@ static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t butt
     case ekLABEL_MULTI:
         draw_text(self->ctx, tc(self->text), origin_x, 0);
         break;
-        cassert_default();
+    default:
+        cassert_default(label_get_type(self->flags));
     }
 
     dctx_unset_gcontext(ctx);

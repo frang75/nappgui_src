@@ -111,7 +111,8 @@ static void i_write_tokens(Stream *stm, const ArrSt(NToken) *tokens)
             stm_write_char(stm, token->from);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(token->symbol);
         }
     arrst_end()
 
@@ -424,17 +425,18 @@ static void i_regex_to_infix(ArrSt(NToken) **tokens)
     arrst_foreach(token, *tokens, NToken)
         switch (token->symbol)
         {
-        /* If the token is a number, then:
-            Push it to the output queue. */
+        /* If the token is a number, then: Push it to the output queue. */
         case ekCHAR:
             arrst_append(output, *token, NToken);
             break;
 
-        /* If the token is an operator, then:
-           while (there is an operator at the top of the operator stack with greater precedence)
-              and (the operator at the top of the operator stack is not a left parenthesis):
-            pop operators from the operator stack onto the output queue.
-           Push it onto the operator stack. */
+        /*
+         *  If the token is an operator, then:
+         *  while (there is an operator at the top of the operator stack with greater precedence)
+         *  and (the operator at the top of the operator stack is not a left parenthesis):
+         *  pop operators from the operator stack onto the output queue.
+         *  Push it onto the operator stack.
+         */
         case ekOR:
         case ekCONCAT:
         case ekCLOSURE:
@@ -456,15 +458,16 @@ static void i_regex_to_infix(ArrSt(NToken) **tokens)
             arrst_append(stack, *token, NToken);
             break;
 
-        /* If the token is a left paren (i.e. "("), then:
-           Push it onto the operator stack. */
+        /* If the token is a left paren (i.e. "("), then: Push it onto the operator stack. */
         case ekLEFT_PAR:
             arrst_append(stack, *token, NToken);
             break;
 
-        /* If the token is a right paren (i.e. ")"), then:
-            while the operator at the top of the operator stack is not a left paren:
-                pop the operator from the operator stack onto the output queue. */
+        /*
+         * If the token is a right paren (i.e. ")"), then:
+         *  while the operator at the top of the operator stack is not a left paren:
+         *  pop the operator from the operator stack onto the output queue.
+         */
         case ekRIGH_PAR:
             for (;;)
             {
@@ -482,7 +485,8 @@ static void i_regex_to_infix(ArrSt(NToken) **tokens)
             }
             break;
 
-            cassert_default();
+        default:
+            cassert_default(token->symbol);
         }
     arrst_end()
 
@@ -738,7 +742,8 @@ static NFA *i_infix_to_NFA(const ArrSt(NToken) *tokens)
 
         case ekLEFT_PAR:
         case ekRIGH_PAR:
-            cassert_default();
+        default:
+            cassert_default(token->symbol);
         }
     arrst_end()
 

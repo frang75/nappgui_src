@@ -92,15 +92,15 @@ static real32_t i_device_to_pixels(void)
 
 static ___INLINE gint i_size_pango(const char_t *family, const real32_t size, const uint32_t fstyle, const uint32_t funits)
 {
-    static gint psize = 0;
+    real32_t psize = 0;
     if ((funits & ekFPOINTS) == ekFPOINTS)
     {
-        psize = (gint)(size * (real32_t)PANGO_SCALE);
+        psize = size * (real32_t)PANGO_SCALE;
     }
     else
     {
         /* Pixels */
-        psize = (gint)(size / i_device_to_pixels());
+        psize = size / i_device_to_pixels();
     }
 
     if ((funits & ekFCELL) == ekFCELL && str_empty_c(family) == FALSE)
@@ -113,7 +113,7 @@ static ___INLINE gint i_size_pango(const char_t *family, const real32_t size, co
         font_destroy(&font);
     }
 
-    return psize;
+    return (gint)psize;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -373,7 +373,7 @@ static void i_apply_tag_list(OSText *view, GSList *tags, GtkTextIter *start, Gtk
 static void i_OnBufferInsert(GtkTextBuffer *buffer, GtkTextIter *location, gchar *text, gint lenBytes, OSText *view)
 {
     GtkTextIter start, end;
-    int32_t lenChars = unicode_nchars(text, ekUTF8);
+    int32_t lenChars = (int32_t)unicode_nchars(text, ekUTF8);
     cassert_no_null(view);
     cassert_unref(view->buffer == buffer, buffer);
     unref(lenBytes);
@@ -408,7 +408,8 @@ static void i_OnBufferInsert(GtkTextBuffer *buffer, GtkTextIter *location, gchar
         gtk_text_buffer_get_end_iter(view->buffer, &end);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(view->text_event);
     }
 
     {
@@ -722,7 +723,7 @@ void ostext_ins_text(OSText *view, const char_t *text)
         view->text_event = ekTEXTEV_INS;
         gtk_text_buffer_insert(view->buffer, &start, cast_const(text, gchar), -1);
         view->text_event = ekTEXTEV_USER;
-        view->select_start = stpos + unicode_nchars(text, ekUTF8);
+        view->select_start = (int32_t)(stpos + (gint)unicode_nchars(text, ekUTF8));
         view->select_end = view->select_start;
     }
 }
@@ -897,7 +898,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
             Font *font = font_create(view->ffamily, view->fsize, view->fstyle);
             real32_t cell_size = font_height(font);
             font_destroy(&font);
-            lspacing = (spacing - 1) * cell_size;
+            lspacing = (gint)((spacing - 1) * cell_size);
         }
 
         if (view->lspacing_px != lspacing)
@@ -968,7 +969,9 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         i_set_wrap_mode(view->tview, wrap);
         break;
     }
-        cassert_default();
+
+    default:
+        cassert_default(prop);
     }
 }
 
@@ -1044,7 +1047,8 @@ void ostext_clipboard(OSText *view, const clipboard_t clipboard)
     case ekCLIPBOARD_PASTE:
         gtk_text_buffer_paste_clipboard(view->buffer, system_board, NULL, TRUE);
         break;
-        cassert_default();
+    default:
+        cassert_default(clipboard);
     }
 }
 

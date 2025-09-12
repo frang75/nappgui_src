@@ -509,6 +509,8 @@ vkey_t _osgui_vkey(guint kval)
         case GDK_KEY_KP_Delete:
             kval = GDK_KEY_Delete;
             break;
+        default:
+            cassert_default(kval);
         }
 
     for (i = 0; i < n; ++i)

@@ -221,6 +221,9 @@ static void i_fill_cell(Layout *layout, const uint32_t col, const uint32_t row, 
         layout_popup(layout, popup, col, row);
         break;
     }
+
+    default:
+        cassert_default(col);
     }
 }
 
@@ -262,6 +265,8 @@ static const Image *i_image(const uint32_t row)
         return gui_image(PLUS64_PNG);
     case 5:
         return gui_image(ERROR64_PNG);
+    default:
+        cassert_default(row);
     }
 
     return NULL;
@@ -285,6 +290,8 @@ static const char_t *i_title_text(const uint32_t row)
         return "Title: Plus";
     case 5:
         return "Title: Error";
+    default:
+        cassert_default(row);
     }
 
     return NULL;
@@ -308,6 +315,8 @@ static const char_t *i_desc_text(const uint32_t row)
         return "Desc: This is a plus icon";
     case 5:
         return "Desc: This is a error icon";
+    default:
+        cassert_default(row);
     }
 
     return NULL;
@@ -331,6 +340,8 @@ static const char_t *i_price_text(const uint32_t row)
         return "Price: 99.99€";
     case 5:
         return "Price: 32.56€";
+    default:
+        cassert_default(row);
     }
 
     return NULL;
@@ -354,6 +365,8 @@ static const char_t *i_stock_text(const uint32_t row)
         return "Stock:  7";
     case 5:
         return "Stock:  0";
+    default:
+        cassert_default(row);
     }
 
     return NULL;
@@ -656,18 +669,18 @@ static DynData *i_panel_data(void)
 }
 
 /*---------------------------------------------------------------------------*/
-/* 
-* Dynamic layouts example
-* 
-* The main layout is a stack with three rows: 
-* Control Layout: Buttons to add/remove dynamic layouts cells 
-* Top Layout: Grid layout with simple widgets where we can add/remove columns/rows dynamically 
-* Bottom Layout: A stack where we can add/remove complex sublayouts dynamically
-* 
-* Main layout lives in a scroll panel with fixed size. 
-* When main layout grows, scrollbars will be activated to browse all the content.
-*
-*/
+/*
+ * Dynamic layouts example
+ *
+ * The main layout is a stack with three rows:
+ * Control Layout: Buttons to add/remove dynamic layouts cells
+ * Top Layout: Grid layout with simple widgets where we can add/remove columns/rows dynamically
+ * Bottom Layout: A stack where we can add/remove complex sublayouts dynamically
+ *
+ * Main layout lives in a scroll panel with fixed size.
+ * When main layout grows, scrollbars will be activated to browse all the content.
+ *
+ */
 /*---------------------------------------------------------------------------*/
 Panel *dynlay_panel(void)
 {
@@ -695,15 +708,15 @@ Panel *dynlay_panel(void)
     layout_vmargin(layout, 0, 10);
     layout_vmargin(layout, 1, 10);
 
-    /* 
-    * The main layout vertical expansion is delegated to a fourth empty cell.
-    * This prevents excess pixels from being distributed across all rows, 
-    * keeping the top three rows together.
-    */
+    /*
+     * The main layout vertical expansion is delegated to a fourth empty cell.
+     * This prevents excess pixels from being distributed across all rows,
+     * keeping the top three rows together.
+     */
     layout_vexpand(layout, 3);
 
-    /* 
-     * Main container fixed size 
+    /*
+     * Main container fixed size
      * Scrollbars will be activated when layouts grow
      */
     panel_size(panel, s2df(400, 500));

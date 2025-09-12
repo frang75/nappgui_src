@@ -44,22 +44,18 @@ static void i_set_bool(GuiComponent *component, const bool_t value)
     case ekGUI_TYPE_LABEL:
         _label_text(cast(component, Label), value ? "True" : "False");
         break;
-
     case ekGUI_TYPE_BUTTON:
         _button_bool(cast(component, Button), value);
         break;
-
     case ekGUI_TYPE_SLIDER:
         _slider_real32(cast(component, Slider), value ? 1.f : 0.f);
         break;
-
     case ekGUI_TYPE_POPUP:
     case ekGUI_TYPE_EDITBOX:
     case ekGUI_TYPE_COMBOBOX:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
         break;
-
     case ekGUI_TYPE_TEXTVIEW:
     case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
@@ -71,7 +67,8 @@ static void i_set_bool(GuiComponent *component, const bool_t value)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -134,7 +131,8 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -207,7 +205,8 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -234,7 +233,7 @@ static void i_set_enum(GuiComponent *component, const uint32_t index, const uint
     {
         real32_t vnorm = 0;
         if (count > 1)
-            vnorm = (real32_t)index / (count - 1);
+            vnorm = (real32_t)index / ((real32_t)count - 1);
         _slider_real32(cast(component, Slider), vnorm);
         break;
     }
@@ -259,7 +258,8 @@ static void i_set_enum(GuiComponent *component, const uint32_t index, const uint
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -297,7 +297,8 @@ static void i_set_string(GuiComponent *component, const char_t *str)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -332,7 +333,8 @@ static void i_set_image(GuiComponent *component, const Image *image)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -375,7 +377,8 @@ static void i_set_empty(Cell *cell, const DBind *stbind, const uint32_t member_i
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 
     switch (dbind_type(mbind))
@@ -474,7 +477,8 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
         case ekDTYPE_STRUCT:
         case ekDTYPE_CONTAINER:
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(mtype);
         }
 
         cell_enabled(cell, TRUE);
@@ -520,7 +524,8 @@ void _gbind_update_layout(Layout *layout, const DBind *stbind, const uint32_t me
 
         case ekDTYPE_CONTAINER:
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(mtype);
         }
     }
     else

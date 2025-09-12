@@ -77,6 +77,8 @@ static ___INLINE String *i_pixformat(const pixformat_t format, const uint32_t nc
         return str_c("RGBA32");
     case ekFIMAGE:
         break;
+    default:
+        cassert_default(format);
     }
     return str_c("Unknown");
 }

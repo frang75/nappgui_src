@@ -223,7 +223,8 @@ static UINT i_item_type(const gui_state_t state)
         return MFT_STRING;
     case ekGUI_MIXED:
         return MFT_STRING | MFT_RADIOCHECK;
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     return MFT_STRING;
@@ -249,7 +250,8 @@ static UINT i_item_state(const gui_state_t state, const bool_t enabled)
     case ekGUI_OFF:
         ustate |= MFS_UNCHECKED;
         break;
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     return ustate;

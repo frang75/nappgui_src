@@ -49,21 +49,22 @@ color_t osglobals_color(const syscolor_t *color)
     }
 
     case ekSYSCOLOR_LABEL:
-        return GetSysColor(COLOR_BTNTEXT) | (255 << 24);
+        return GetSysColor(COLOR_BTNTEXT) | (uint32_t)(255 << 24);
 
     case ekSYSCOLOR_VIEW:
-        return GetSysColor(COLOR_3DFACE) | (255 << 24);
+        return GetSysColor(COLOR_3DFACE) | (uint32_t)(255 << 24);
 
     case ekSYSCOLOR_LINE:
-        return GetSysColor(COLOR_SCROLLBAR) | (255 << 24);
+        return GetSysColor(COLOR_SCROLLBAR) | (uint32_t)(255 << 24);
 
     case ekSYSCOLOR_LINK:
-        return GetSysColor(COLOR_HOTLIGHT) | (255 << 24);
+        return GetSysColor(COLOR_HOTLIGHT) | (uint32_t)(255 << 24);
 
     case ekSYSCOLOR_BORDER:
-        return GetSysColor(COLOR_ACTIVEBORDER) | (255 << 24);
+        return GetSysColor(COLOR_ACTIVEBORDER) | (uint32_t)(255 << 24);
 
-        cassert_default();
+    default:
+        cassert_default(*color);
     }
 
     return 0;
@@ -123,7 +124,8 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
     case ekGUI_CURSOR_USER:
         hcursor = _osimg_hcursor(image, (uint32_t)hot_x, (uint32_t)hot_y);
         break;
-        cassert_default();
+    default:
+        cassert_default(cursor);
     }
 
     heap_auditor_add("HCURSOR");
@@ -151,12 +153,13 @@ void osglobals_value(const uint32_t index, void *value)
     switch (index)
     {
     case 0:
-        *cast(value, uint32_t) = GetSystemMetrics(SM_CXVSCROLL);
+        *cast(value, uint32_t) = (uint32_t)GetSystemMetrics(SM_CXVSCROLL);
         break;
     case 1:
-        *cast(value, uint32_t) = GetSystemMetrics(SM_CXHSCROLL);
+        *cast(value, uint32_t) = (uint32_t)GetSystemMetrics(SM_CXHSCROLL);
         break;
-        cassert_default();
+    default:
+        cassert_default(index);
     }
 }
 

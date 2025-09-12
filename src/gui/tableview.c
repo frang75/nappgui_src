@@ -208,7 +208,8 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
         }
         break;
 
-        cassert_default();
+    default:
+        cassert_default(col->type);
     }
 }
 
@@ -430,7 +431,7 @@ static void i_OnDraw(TableView *view, Event *e)
             {
                 focus_x = freeze_width > 0 ? (int32_t)stx : 0;
                 focus_y = (int32_t)y;
-                focus_width = data->fill_width - focus_x;
+                focus_width = data->fill_width - (uint32_t)focus_x;
                 focus_height = data->row_height;
                 focus_state = state;
             }
@@ -592,7 +593,7 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
         arrpt_foreach_const(text, col->head_text, String)
             draw_text_color(ctx, kCOLOR_DEFAULT);
             drawctrl_text(ctx, tc(text), tx, ty, data->focused ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL);
-            ty += data->head_line_height;
+            ty += (int32_t)data->head_line_height;
         arrpt_end()
 
         if (col->indicator != 0)
@@ -633,7 +634,7 @@ static void i_OnOverlay(TableView *view, Event *e)
         for (i = stcol; i < edcol; ++i)
         {
             i_draw_header(p->ctx, data, &cols[i], i, lx);
-            lx += cols[i].width;
+            lx += (int32_t)cols[i].width;
         }
 
         if ((uint32_t)lx < control_width)
@@ -648,7 +649,7 @@ static void i_OnOverlay(TableView *view, Event *e)
             for (i = 0; i <= data->freeze_col_id; ++i)
             {
                 i_draw_header(p->ctx, data, &cols[i], i, fx);
-                fx += cols[i].width;
+                fx += (int32_t)cols[i].width;
             }
         }
     }
@@ -681,7 +682,8 @@ static uint32_t i_col_height(const Column *col)
         return height;
     }
 
-        cassert_default();
+    default:
+        cassert_default(col->type);
     }
 
     return 0;
@@ -704,7 +706,8 @@ static void i_col_y_offset(Column *col, const uint32_t row_height)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(col->type);
     }
 }
 
@@ -868,7 +871,8 @@ static void i_scroll_to_row(TData *data, const uint32_t row, const align_t align
         break;
 
     case ekJUSTIFY:
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     cassert(ypos != UINT32_MAX);

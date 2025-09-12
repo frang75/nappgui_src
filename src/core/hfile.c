@@ -115,7 +115,8 @@ static void i_OnDeleteFile(void *empty, Event *e)
     case ekEEXIT:
         bfile_dir_delete(params->pathname, NULL);
         break;
-        cassert_default();
+    default:
+        cassert_default(event_type(e));
     }
 }
 
@@ -709,7 +710,8 @@ static bool_t i_process_whole_directory(Listener *listener, const char_t *pathna
             case ekOTHERFILE:
                 break;
 
-                cassert_default();
+            default:
+                cassert_default(file_type);
             }
         }
 

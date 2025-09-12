@@ -114,7 +114,8 @@ bool_t _ogl3dimp_check_version(const oglapi_t api)
         return (bool_t)GLEW_VERSION_4_5;
     case ekOGL_4_6:
         return (bool_t)GLEW_VERSION_4_6;
-        cassert_default();
+    default:
+        cassert_default(api);
     }
 
     return FALSE;
@@ -140,7 +141,8 @@ const char_t *ogl3d_err_str(const oglerr_t err)
         return "GLEW fails";
     case ekOGLOK:
         return "OK";
-        cassert_default();
+    default:
+        cassert_default(err);
     }
 
     return "";

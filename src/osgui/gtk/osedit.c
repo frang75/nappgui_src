@@ -204,7 +204,8 @@ OSEdit *osedit_create(const uint32_t flags)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(edit_get_type(flags));
     }
 
     edit->entry = _osentry_from_entry(edit->tview ? edit->tview : widget, cast(edit, OSControl));
@@ -380,7 +381,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     if (edit->tview != NULL)
     {
         GtkRequisition s1, s2;
-        real32_t fheight = bmath_ceilf(edit->vpadding + font_size(font));
+        real32_t fheight = bmath_ceilf((real32_t)edit->vpadding + font_size(font));
         gtk_widget_set_size_request(edit->control.widget, (gint)refwidth, (gint)fheight);
         gtk_widget_set_size_request(edit->tview, (gint)refwidth, (gint)fheight);
         gtk_widget_get_preferred_size(edit->control.widget, &s1, NULL);
@@ -396,7 +397,7 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
         gtk_widget_set_size_request(edit->control.widget, -1, -1);
         gtk_widget_get_preferred_size(edit->control.widget, &s, NULL);
         *width = refwidth;
-        *height = (real32_t)s.height + font_size(font) - edit->fsize_render;
+        *height = (real32_t)s.height + font_size(font) - (real32_t)edit->fsize_render;
     }
 }
 

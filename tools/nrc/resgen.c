@@ -104,7 +104,8 @@ static void i_remove_object(i_Object *object, const i_resource_type_t type)
         if (object->file_data != NULL)
             buffer_destroy(&object->file_data);
         break;
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 }
 
@@ -121,7 +122,8 @@ static bool_t i_object_is_null(const i_Object *object, const i_resource_type_t t
     case i_ekRESOURCE_TYPE_IMAGE:
     case i_ekRESOURCE_TYPE_FILE:
         return (bool_t)(object->file_data == NULL);
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return FALSE;
@@ -457,7 +459,8 @@ static void i_read_file(ResourcePack *pack, const uint32_t local_code, const cha
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     if (*file_data != NULL)
@@ -961,7 +964,9 @@ static void i_object_write(Stream *stream, const i_Object *object, const i_resou
         stm_write(stream, data, size);
         break;
     }
-        cassert_default();
+
+    default:
+        cassert_default(type);
     }
 }
 

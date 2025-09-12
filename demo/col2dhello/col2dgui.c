@@ -575,7 +575,8 @@ static void i_draw_cloud(DCtx *ctx, const Cloud *cloud)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(cloud->type);
     }
 }
 
@@ -719,7 +720,8 @@ static void i_draw_bbox(DCtx *ctx, const Shape *shape)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(shape->type);
     }
 
     draw_line_color(ctx, color_rgb(0, 128, 0));
@@ -775,7 +777,8 @@ static void i_OnDraw(App *app, Event *e)
             i_draw_poly(p->ctx, &shape->body.pol);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(shape->type);
         }
 
         if (app->selshape == shape_i)
@@ -866,7 +869,8 @@ static void i_get_shape_pos(const Shape *shape, V2Df *pos)
         *pos = shape->body.pol.center;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(shape->type);
     }
 }
 
@@ -914,7 +918,8 @@ static void i_set_shape_pos(Shape *shape, const V2Df pos)
         col2dhello_update_pol(&shape->body.pol);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(shape->type);
     }
 }
 
@@ -1061,7 +1066,8 @@ void col2dhello_dbind_shape(App *app)
             panel_visible_layout(app->obj_panel, 8);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(shape->type);
         }
     }
     else

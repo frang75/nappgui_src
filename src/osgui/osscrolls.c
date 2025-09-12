@@ -200,7 +200,8 @@ bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_
         page = scroll->view_height;
         max = scroll->content_height - scroll->view_height;
         break;
-        cassert_default();
+    default:
+        cassert_default(orient);
     }
 
     if (sbar != NULL)
@@ -248,7 +249,8 @@ bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_
             pos = _osscroll_trackpos(sbar);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(event);
         }
 
         if (scroll->OnScroll != NULL)
@@ -290,7 +292,8 @@ bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_
                 case ekGUI_VERTICAL:
                     incr_y = (int32_t)curpos - (int32_t)pos;
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(orient);
                 }
 
                 _osscroll_control_scroll(scroll->control, incr_x, incr_y);

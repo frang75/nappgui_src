@@ -142,12 +142,16 @@ static void i_OnTableData(i_Data *data, Event *e)
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Data (1, %d)", pos->row);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(pos->col);
         }
 
         cell->text = data->temp_string;
         break;
     }
+
+    default:
+        break;
     }
 }
 

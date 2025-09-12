@@ -147,7 +147,8 @@ void osweb_command(OSWeb *view, const gui_web_t cmd, const void *param, void *re
         [lview goForward];
         break;
 
-        cassert_default();
+    default:
+        cassert_default(cmd);
     }
 #else
     unref(view);

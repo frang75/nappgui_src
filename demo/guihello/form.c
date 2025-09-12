@@ -115,6 +115,8 @@ static const char_t *i_action_text(const gui_tab_t action)
         return "TAB_MOVE";
     case ekGUI_TAB_CLICK:
         return "TAB_CLICK";
+    default:
+        cassert_default(action);
     }
 
     return "TAB_UNKNOWN";
@@ -157,7 +159,8 @@ static bool_t i_validate_field(FormData *data, Edit *edit, const char_t *text)
         return FALSE;
     case BUTTON_YES:
         return TRUE;
-        cassert_default();
+    default:
+        cassert_default(modal_value);
     }
 
     return TRUE;

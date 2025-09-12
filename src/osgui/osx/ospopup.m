@@ -205,7 +205,9 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t idx, const 
     case ekCTRL_OP_DEL:
         [cast(popup, OSXPopUp) removeItemAtIndex:(NSInteger)idx];
         break;
-        cassert_default();
+
+    default:
+        cassert_default(op);
     }
 }
 

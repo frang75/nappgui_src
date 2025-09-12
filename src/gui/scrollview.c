@@ -197,7 +197,7 @@ void scrollview_scroll_x_incr(ScrollView *view, const int32_t incr_x, const bool
     {
         if (view->content_width > view->control_width)
         {
-            uint32_t npos = scroll_x + incr_x;
+            uint32_t npos = scroll_x + (uint32_t)incr_x;
             if (npos > view->content_width)
                 npos = view->content_width;
             view_scroll_x(view->view, (real32_t)npos);

@@ -35,7 +35,7 @@ static uint64_t i_filetime_to_micro(const FILETIME *ft)
     t = li.QuadPart;    /* In 100-nanosecond intervals */
     t -= EPOCHFILETIME; /* Offset to the Unix Epoch time */
     t /= 10;            /* In microseconds */
-    return t;
+    return (uint64_t)t;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -45,11 +45,11 @@ static void i_micro_to_filetime(const uint64_t micro, FILETIME *ft)
     LARGE_INTEGER li;
     __int64 t;
     cassert_no_null(ft);
-    t = micro * 10;
+    t = (long long)(micro * 10);
     t += EPOCHFILETIME;
     li.QuadPart = t;
     ft->dwLowDateTime = li.LowPart;
-    ft->dwHighDateTime = li.HighPart;
+    ft->dwHighDateTime = (DWORD)li.HighPart;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -102,7 +102,7 @@ static ___INLINE void i_systime_to_date(const SYSTEMTIME *st, Date *date)
     date->wday = (uint8_t)st->wDayOfWeek;
     date->mday = (uint8_t)st->wDay;
     date->month = (uint8_t)st->wMonth;
-    date->year = (uint16_t)st->wYear;
+    date->year = (int16_t)st->wYear;
     date->hour = (uint8_t)st->wHour;
     date->minute = (uint8_t)st->wMinute;
     date->second = (uint8_t)st->wSecond;
@@ -117,7 +117,7 @@ static ___INLINE void i_date_to_systime(const Date *date, SYSTEMTIME *st)
     st->wDayOfWeek = date->wday;
     st->wDay = date->mday;
     st->wMonth = date->month;
-    st->wYear = date->year;
+    st->wYear = (WORD)date->year;
     st->wHour = date->hour;
     st->wMinute = date->minute;
     st->wSecond = date->second;

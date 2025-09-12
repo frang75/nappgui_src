@@ -1,6 +1,6 @@
 /* Reduce components to limit */
 
-#include "popcom.h"
+#include "reduce.h"
 #include "res_guihello.h"
 #include <gui/guiall.h>
 

@@ -339,7 +339,6 @@ void _draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const 
 
         switch (word_type)
         {
-
         case i_WORD_TYPE_END:
             if (current_width > .01f || num_lines == 0)
                 i_new_line(data, func_word_extents, &current_width, &current_height, &current_width_without_spaces, &num_lines, width, height);
@@ -401,7 +400,8 @@ void _draw2d_extents_imp(void *data, FPtr_word_extents func_word_extents, const 
             break;
         }
 
-            cassert_default();
+        default:
+            cassert_default(word_type);
         }
 
         ctext = next_text;

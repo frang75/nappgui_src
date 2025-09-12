@@ -84,7 +84,7 @@ static void i_draw(DCtx *ctx, real32_t x, real32_t y, real32_t width, real32_t h
 static void i_OnDraw(App *app, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
-    real32_t cwidth = (p->width - 2 * i_HOR_MARGIN) / app->num_cols;
+    real32_t cwidth = (p->width - 2 * i_HOR_MARGIN) / (real32_t)app->num_cols;
     real32_t cheight = i_ITEM_WIDTH + font_height(app->font);
 
     draw_font(p->ctx, app->font);
@@ -93,8 +93,8 @@ static void i_OnDraw(App *app, Event *e)
     arrst_foreach(item, app->items, ViewItem)
         uint32_t row = item_i / app->num_cols;
         uint32_t col = item_i % app->num_cols;
-        real32_t x = i_HOR_MARGIN + col * cwidth;
-        real32_t y = row * cheight + (row + 1) * i_VER_MARGIN;
+        real32_t x = i_HOR_MARGIN + (real32_t)col * cwidth;
+        real32_t y = (real32_t)row * cheight + (real32_t)(row + 1) * i_VER_MARGIN;
         i_draw(p->ctx, x, y, cwidth, cheight, item);
     arrst_end()
 }
@@ -124,7 +124,7 @@ static void i_OnSize(App *app, Event *e)
         if ((n % app->num_cols) > 0)
             num_rows += 1;
 
-        cheight = num_rows * (i_ITEM_WIDTH + font_height(app->font) + i_VER_MARGIN) + i_VER_MARGIN;
+        cheight = (real32_t)num_rows * (i_ITEM_WIDTH + font_height(app->font) + i_VER_MARGIN) + i_VER_MARGIN;
         if (cheight < p->height)
             cheight = p->height;
     }

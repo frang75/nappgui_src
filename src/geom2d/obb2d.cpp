@@ -163,6 +163,7 @@ static OBB2D< real > *i_from_points(const V2D< real > *p, const uint32_t n)
     real angle;
     real width = 0;
     real height = 0;
+    real rn = (real)n;
     V2D< real > m = *V2D< real >::kZERO;
     V2D< real > dir;
 
@@ -178,14 +179,14 @@ static OBB2D< real > *i_from_points(const V2D< real > *p, const uint32_t n)
         sumYi += p[i].y;
     }
 
-    m.x = sumXi / n;
-    m.y = sumYi / n;
+    m.x = sumXi / rn;
+    m.y = sumYi / rn;
 
     // Covariance matrix
-    sigma[0] = sumXiXi / n - m.x * m.x;
-    sigma[1] = sumXiYi / n - m.x * m.y;
+    sigma[0] = sumXiXi / rn - m.x * m.x;
+    sigma[1] = sumXiYi / rn - m.x * m.y;
     sigma[2] = sigma[1];
-    sigma[3] = sumYiYi / n - m.y * m.y;
+    sigma[3] = sumYiYi / rn - m.y * m.y;
 
     // Perfect fit in Y-Axis
     if (BMath< real >::abs(sigma[0]) < i_VARIANCE_TOL)

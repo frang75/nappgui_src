@@ -195,7 +195,9 @@ static void i_remove_cell(Cell *cell)
         cell->type = i_ekEMPTY;
         _layout_destroy(&cell->content.layout);
         break;
-        cassert_default();
+
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -441,7 +443,9 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
         halign = ekCENTER;
         valign = ekCENTER;
         break;
-        cassert_default();
+
+    default:
+        cassert_default(button_get_type(flags));
     }
 
     cell = i_set_component(layout, cast(button, GuiComponent), col, row, halign, valign);
@@ -1288,7 +1292,10 @@ static void i_layout_dbind(Layout *layout, const DBind *stbind, void *obj)
                 break;
 
             case i_ekEMPTY:
-                cassert_default();
+                break;
+
+            default:
+                cassert_default(cell->type);
             }
         }
         else if (cell->type == i_ekLAYOUT)
@@ -1468,7 +1475,8 @@ void _layout_attach_to_panel(Layout *layout, Panel *panel)
             break;
         case i_ekEMPTY:
             break;
-            cassert_default();
+        default:
+            cassert_default(cell->type);
         }
     arrpt_end()
 }
@@ -1569,7 +1577,8 @@ void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components)
             break;
         case i_ekEMPTY:
             break;
-            cassert_default();
+        default:
+            cassert_default(cell->type);
         }
     arrpt_end()
 }
@@ -1590,6 +1599,8 @@ static void i_cell_natural(Cell *cell, const uint32_t di)
     case i_ekEMPTY:
         cell->dim[di].natural_size = 0;
         break;
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -1626,6 +1637,8 @@ static void i_cell_expand(Cell *cell, const uint32_t di, const real32_t required
     case i_ekEMPTY:
         cell->dim[di].final_size = required_net_size;
         break;
+    default:
+        cassert_default(cell->type);
     }
 }
 
@@ -2060,6 +2073,9 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
                     cell_origin.x += bmath_floorf(.5f * cell_diff);
                     break;
                 }
+
+                default:
+                    break;
                 }
 
                 switch (cell->dim[1].align)
@@ -2081,6 +2097,9 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
                     cell_origin.y += bmath_floorf(.5f * cell_diff);
                     break;
                 }
+
+                default:
+                    break;
                 }
 
                 switch (cell->type)
@@ -2089,14 +2108,13 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
                     _component_set_frame(cell->content.component, &cell_origin, &cell_size);
                     _component_locate(cell->content.component);
                     break;
-
                 case i_ekLAYOUT:
                     i_layout_locate(cell->content.layout, &cell_origin, func_area, ospanel);
                     break;
-
                 case i_ekEMPTY:
                     break;
-                    cassert_default();
+                default:
+                    cassert_default(cell->type);
                 }
             }
 
@@ -2131,7 +2149,8 @@ static void i_layout_visible(Layout *layout, const bool_t parent_visible)
                 break;
             case i_ekEMPTY:
                 break;
-                cassert_default();
+            default:
+                cassert_default(cell->type);
             }
             cells += 1;
         arrst_end()
@@ -2155,7 +2174,8 @@ static void i_layout_enabled(Layout *layout, const bool_t parent_enabled)
             break;
         case i_ekEMPTY:
             break;
-            cassert_default();
+        default:
+            cassert_default(cell->type);
         }
     arrpt_end()
 }
@@ -2197,14 +2217,13 @@ static void i_cell_taborder(const i_LineDim *col, const i_LineDim *row, const Ce
         case i_ekLAYOUT:
             _layout_taborder(cell->content.layout, window);
             break;
-
         case i_ekCOMPONENT:
             _component_taborder(cell->content.component, window);
             break;
-
         case i_ekEMPTY:
             break;
-            cassert_default();
+        default:
+            cassert_default(cell->type);
         }
     }
 }
@@ -2267,7 +2286,9 @@ static void i_dbind_update(Layout *layout, const DBind *stbind, const uint32_t m
                 _gbind_update_layout(cell->content.layout, stbind, cell->member_id, obj);
                 break;
             case i_ekEMPTY:
-                cassert_default();
+                break;
+            default:
+                cassert_default(cell->type);
             }
         }
         else if (cell->type == i_ekLAYOUT)
@@ -2496,7 +2517,8 @@ void cell_enabled(Cell *cell, const bool_t enabled)
             break;
         case i_ekEMPTY:
             break;
-            cassert_default();
+        default:
+            cassert_default(cell->type);
         }
     }
 }
@@ -2519,7 +2541,8 @@ void cell_visible(Cell *cell, const bool_t visible)
             break;
         case i_ekEMPTY:
             break;
-            cassert_default();
+        default:
+            cassert_default(cell->type);
         }
     }
 }
@@ -2675,7 +2698,8 @@ static void i_set_dbind(Cell *cell, const DBind *stbind, const uint32_t member_i
         case ekGUI_TYPE_HEADER:
         case ekGUI_TYPE_WINDOW:
         case ekGUI_TYPE_TOOLBAR:
-            cassert_default();
+        default:
+            cassert_default(cell->content.component->type);
         }
     }
     else if (cell->type == i_ekLAYOUT && dbind_is_basic_type(dtype) == TRUE)

@@ -56,8 +56,8 @@ struct _osbutton_t
 
 /*---------------------------------------------------------------------------*/
 
-static const uint32_t i_PUSHBUTTON_EXTRAWIDTH = 2;
-static const uint32_t i_CHECKBOX_EXTRAHEIGHT = 2;
+static const real32_t i_PUSHBUTTON_EXTRAWIDTH = 2;
+static const real32_t i_CHECKBOX_EXTRAHEIGHT = 2;
 
 /*---------------------------------------------------------------------------*/
 
@@ -94,7 +94,8 @@ static gui_state_t i_get_state(const OSButton *button)
         return active == TRUE ? ekGUI_ON : ekGUI_OFF;
     }
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 
     return ekGUI_OFF;
@@ -199,9 +200,9 @@ static gboolean i_OnLabelDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 
         if (button->image != NULL)
         {
-            real32_t imgw = image_width(button->image);
-            cwidth += imgw + kBUTTON_IMAGE_SEP;
-            cairo_translate(cr, imgw + kBUTTON_IMAGE_SEP, 0);
+            real32_t imgw = (real32_t)image_width(button->image);
+            cwidth += imgw + (real32_t)kBUTTON_IMAGE_SEP;
+            cairo_translate(cr, imgw + (real32_t)kBUTTON_IMAGE_SEP, 0);
         }
 
         cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - button->textheight - 4) / 2));
@@ -217,10 +218,10 @@ static gboolean i_OnLabelDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
     if (button->image != NULL)
     {
         GdkPixbuf *pixbuf = cast(image_native(button->image), GdkPixbuf);
-        real32_t imgw = image_width(button->image);
-        real32_t imgh = image_height(button->image);
+        real32_t imgw = (real32_t)image_width(button->image);
+        real32_t imgh = (real32_t)image_height(button->image);
         cassert(button_get_type(button->flags) == ekBUTTON_PUSH);
-        gdk_cairo_set_source_pixbuf(cr, pixbuf, -(imgw + kBUTTON_IMAGE_SEP), (button->textheight - imgh) / 2);
+        gdk_cairo_set_source_pixbuf(cr, pixbuf, -(imgw + (real32_t)kBUTTON_IMAGE_SEP), (button->textheight - imgh) / 2);
         cairo_paint(cr);
     }
 
@@ -282,7 +283,8 @@ static const char_t *i_css_obj(const uint32_t flags)
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
         return _osglobals_css_check();
-        cassert_default();
+    default:
+        cassert_default(button_get_type(flags));
     }
 
     return "";
@@ -333,6 +335,8 @@ OSButton *osbutton_create(const uint32_t flags)
         gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
         focus_widget = widget;
         break;
+    default:
+        cassert_default(button_get_type(flags));
     }
 
     cssobj = i_css_obj(button->flags);
@@ -510,7 +514,8 @@ void osbutton_image(OSButton *button, const Image *image)
     case ekBUTTON_PUSH:
         break;
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 }
 
@@ -547,7 +552,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         case ekGUI_MIXED:
             gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(button->control.widget), TRUE);
             break;
-            cassert_default();
+        default:
+            cassert_default(state);
         }
 
         break;
@@ -555,7 +561,9 @@ void osbutton_state(OSButton *button, const gui_state_t state)
     case ekBUTTON_FLATGLE:
         gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget), (state == ekGUI_ON) ? TRUE : FALSE);
         break;
-        cassert_default();
+
+    default:
+        cassert_default(button_get_type(button->flags));
     }
     button->launch_event = TRUE;
 }
@@ -667,7 +675,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             *height = refheight + (real32_t)button->vpadding;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 }
 
@@ -738,7 +747,8 @@ GtkWidget *_osbutton_focus_widget(OSButton *button)
         /* The button inside the toolbutton */
         return gtk_bin_get_child(GTK_BIN(button->control.widget));
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 
     return NULL;

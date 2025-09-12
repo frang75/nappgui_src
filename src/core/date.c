@@ -210,7 +210,8 @@ static uint8_t i_month_days(const month_t month, const int16_t year)
             return 29;
         else
             return 28;
-        cassert_default();
+    default:
+        cassert_default(month);
     }
 
     return 0;
@@ -247,7 +248,7 @@ week_day_t date_weekday(const Date *date)
     cassert_no_null(date);
     cassert(date->mday >= 1 && date->mday <= i_month_days((month_t)date->month, date->year));
 
-    y = date->year;
+    y = (uint32_t)date->year;
     m = date->month;
     d = date->mday;
 

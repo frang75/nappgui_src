@@ -117,8 +117,8 @@ void _oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real3
         if ((event_wParam & MK_MBUTTON) && listeners->button != ekGUI_MOUSE_MIDDLE)
             return;
 
-        params.x = x + (scroll ? _osscrolls_x_pos(scroll) : 0);
-        params.y = y + (scroll ? _osscrolls_y_pos(scroll) : 0);
+        params.x = x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+        params.y = y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
         params.lx = x;
         params.ly = y;
         params.button = listeners->button;
@@ -177,8 +177,8 @@ void _oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const r
         if (listeners->OnDown != NULL)
         {
             EvMouse params;
-            params.x = x + (scroll ? _osscrolls_x_pos(scroll) : 0);
-            params.y = y + (scroll ? _osscrolls_y_pos(scroll) : 0);
+            params.x = x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+            params.y = y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
             params.lx = x;
             params.ly = y;
             params.button = button;
@@ -199,8 +199,8 @@ void _oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const rea
     if (listeners->enabled == TRUE)
     {
         EvMouse params;
-        params.x = x + (scroll ? _osscrolls_x_pos(scroll) : 0);
-        params.y = y + (scroll ? _osscrolls_y_pos(scroll) : 0);
+        params.x = x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+        params.y = y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
         params.lx = x;
         params.ly = y;
         params.button = button;
@@ -250,8 +250,8 @@ void _oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lPar
             point.y = spoint.y;
             ok = ScreenToClient(sender->hwnd, &point);
             cassert_unref(ok == TRUE, ok);
-            params.x = (real32_t)point.x + (scroll ? _osscrolls_x_pos(scroll) : 0);
-            params.y = (real32_t)point.y + (scroll ? _osscrolls_y_pos(scroll) : 0);
+            params.x = (real32_t)point.x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+            params.y = (real32_t)point.y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
             params.dx = 0;
             params.dy = (real32_t)(GET_WHEEL_DELTA_WPARAM(event_wParam) / WHEEL_DELTA);
             params.dz = 0;

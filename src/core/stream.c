@@ -257,8 +257,8 @@ static void i_close_channel(i_Channel *channel, const type_t type)
     case i_ekFROMSTDIN:
     case i_ekDEVNULL:
         break;
-
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 }
 
@@ -533,7 +533,8 @@ void stm_set_write_utf(Stream *stm, const unicode_t format)
         BIT_CLEAR(stm->state, WRITE_UTF8_BIT);
         BIT_CLEAR(stm->state, WRITE_UTF16_BIT);
         break;
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 }
 
@@ -556,7 +557,8 @@ void stm_set_read_utf(Stream *stm, const unicode_t format)
         BIT_CLEAR(stm->state, READ_UTF8_BIT);
         BIT_CLEAR(stm->state, READ_UTF16_BIT);
         break;
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 }
 

@@ -133,8 +133,8 @@ static void i_draw_flat_button(HWND hwnd, const Image *image)
     {
         uint32_t width = image_width(image);
         uint32_t height = image_height(image);
-        uint32_t offset_x = (rect.right - rect.left - width) / 2;
-        uint32_t offset_y = (rect.bottom - rect.top - height) / 2;
+        uint32_t offset_x = (uint32_t)(rect.right - rect.left - (LONG)width) / 2;
+        uint32_t offset_y = (uint32_t)(rect.bottom - rect.top - (LONG)height) / 2;
         _osimg_draw(image, hdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)width, (real32_t)height, !enabled);
     }
 
@@ -203,6 +203,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(button, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(button->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -226,7 +229,8 @@ static DWORD i_button_skin(const button_flag_t flags)
         return BS_RADIOBUTTON;
 
     case ekBUTTON_TYPE:
-        cassert_default();
+    default:
+        cassert_default(flags);
     }
 
     return UINT32_MAX;
@@ -245,7 +249,8 @@ static DWORD i_button_halign(const align_t text_align)
         return BS_CENTER;
     case ekRIGHT:
         return BS_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(text_align);
     }
 
     return UINT32_MAX;
@@ -421,7 +426,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         case ekGUI_OFF:
             cstate = BST_UNCHECKED;
             break;
-            cassert_default();
+        default:
+            cassert_default(state);
         }
 
         SendMessage(button->control.hwnd, BM_SETCHECK, cstate, (LPARAM)0);
@@ -440,7 +446,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         case ekGUI_MIXED:
             cstate = BST_INDETERMINATE;
             break;
-            cassert_default();
+        default:
+            cassert_default(state);
         }
 
         SendMessage(button->control.hwnd, BM_SETCHECK, cstate, (LPARAM)0);
@@ -478,7 +485,8 @@ static gui_state_t i_get_state(const button_flag_t flags, HWND hwnd)
         }
     }
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(flags));
     }
 
     return ENUM_MAX(gui_state_t);
@@ -598,7 +606,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             *height = refheight + (real32_t)button->vpadding;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(button->flags));
     }
 }
 

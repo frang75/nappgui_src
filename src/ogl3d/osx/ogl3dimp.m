@@ -81,11 +81,12 @@ static NSOpenGLPixelFormat *i_pixel_format(const OGLProps *props)
         attribs[i++] = NSOpenGLProfileVersion3_2Core;
 #endif
         break;
-        cassert_default();
+    default:
+        cassert_default(props->api);
     }
 #endif
 
-    // attribs[i++] = NSOpenGLPFAMinimumPolicy;
+    /* attribs[i++] = NSOpenGLPFAMinimumPolicy; */
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9
     attribs[i++] = NSOpenGLPFAWindow;
 #endif

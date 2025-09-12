@@ -63,7 +63,8 @@ static uint32_t i_incremental_hash(const byte_t *data, const uint32_t size, cons
             break;
         case 0:
             break;
-            cassert_default();
+        default:
+            cassert_default(rem);
         }
     }
 

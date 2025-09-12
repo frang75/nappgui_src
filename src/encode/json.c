@@ -305,7 +305,8 @@ static bool_t i_jump_json_value(i_Parser *parser)
         return i_error(FALSE, TRUE, parser, "Unexpected Json token ':'");
     case i_ekUNKNOWN:
         return i_error(FALSE, TRUE, parser, "Unknown Json token");
-        cassert_default();
+    default:
+        cassert_default(parser->token);
     }
 
     parser->minus = FALSE;
@@ -495,7 +496,9 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
 
     case i_ekUNKNOWN:
         return i_error(FALSE, TRUE, parser, "Unknown Json token");
-        cassert_default();
+
+    default:
+        cassert_default(parser->token);
     }
 
     return i_error(FALSE, TRUE, parser, "Fatal Json parsing error");
@@ -606,7 +609,8 @@ static byte_t *i_create_type(i_Parser *parser, const DBind *bind, const DBind *e
         break;
 
     case ekDTYPE_UNKNOWN:
-        cassert_default();
+    default:
+        cassert_default(dtype);
     }
 
     if (cdata != NULL)
@@ -847,7 +851,8 @@ static void i_write_json_value(Stream *stm, const DBind *bind, const DBind *ebin
             break;
 
         case ekDTYPE_UNKNOWN:
-            cassert_default();
+        default:
+            cassert_default(type);
         }
     }
     else

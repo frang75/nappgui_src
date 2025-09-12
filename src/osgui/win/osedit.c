@@ -65,6 +65,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(edit, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     res = CallWindowProc(edit->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -113,7 +116,7 @@ static void i_update_vpadding(OSEdit *edit)
     else
     {
         real32_t leading = font_leading(edit->font);
-        uint32_t padding = (uint32_t)(edit->vpadding + leading);
+        uint32_t padding = edit->vpadding + (uint32_t)leading;
 
         if (padding % 2 == 1)
             padding += 1;
@@ -122,7 +125,7 @@ static void i_update_vpadding(OSEdit *edit)
             padding = 4;
 
         if (padding > defpadding)
-            edit->wpadding = (padding - defpadding) / 2;
+            edit->wpadding = (INT)((padding - defpadding) / 2);
         else
             edit->wpadding = 0;
 
@@ -219,9 +222,9 @@ void osedit_align(OSEdit *edit, const align_t align)
     DWORD dwStyle = 0;
     cassert_no_null(edit);
     dwStyle = (DWORD)GetWindowLongPtr(edit->control.hwnd, GWL_STYLE);
-    dwStyle &= ~ES_LEFT;
-    dwStyle &= ~ES_CENTER;
-    dwStyle &= ~ES_RIGHT;
+    dwStyle &= ~(DWORD)ES_LEFT;
+    dwStyle &= ~(DWORD)ES_CENTER;
+    dwStyle &= ~(DWORD)ES_RIGHT;
     dwStyle |= _oscontrol_es_halign(align);
     SetWindowLongPtr(edit->control.hwnd, GWL_STYLE, dwStyle);
 }

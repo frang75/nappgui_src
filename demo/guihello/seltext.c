@@ -134,7 +134,7 @@ static void i_filter_event(SelData *data, Event *e, const char_t *type)
         while (cp != 0)
         {
             uint32_t offset = 0;
-            if ((pos >= p->cpos - p->len && pos < p->cpos) || str_equ_c(type, "TextView"))
+            if ((pos >= p->cpos - (uint32_t)p->len && pos < p->cpos) || str_equ_c(type, "TextView"))
             {
                 if (cp >= 'a' && cp <= 'z')
                     cp -= 32;

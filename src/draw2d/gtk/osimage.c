@@ -95,9 +95,9 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
     GdkPixbuf *pixbuf = NULL;
     GdkColorspace colorspace = GDK_COLORSPACE_RGB;
     gboolean has_alpha = FALSE;
-    int bits_per_sample = 8;
-    int rowstride = 0;
-    int offset = 0;
+    uint32_t bits_per_sample = 8;
+    uint32_t rowstride = 0;
+    uint32_t offset = 0;
     uint32_t size = 0;
     guchar *data = NULL;
 
@@ -168,10 +168,16 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         break;
     }
 
-        cassert_default();
+    case ekINDEX1:
+    case ekINDEX2:
+    case ekINDEX4:
+    case ekINDEX8:
+    case ekFIMAGE:
+    default:
+        cassert_default(format);
     }
 
-    pixbuf = gdk_pixbuf_new_from_data((const guchar *)data, colorspace, has_alpha, bits_per_sample, (int)width, (int)height, rowstride, i_destroy_pixbuf_data, (gpointer)(intptr_t)size);
+    pixbuf = gdk_pixbuf_new_from_data(cast_const(data, guchar), colorspace, has_alpha, (int)bits_per_sample, (int)width, (int)height, (int)rowstride, i_destroy_pixbuf_data, (gpointer)(intptr_t)size);
     image = i_osimage(pixbuf);
     return image;
 }
@@ -368,11 +374,11 @@ OSImage *osimage_from_context(DCtx **ctx)
     {
         guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
         gboolean alpha = gdk_pixbuf_get_has_alpha(pixbuf);
-        uint32_t i, j, offset = alpha ? 4 : 3;
+        gint i, j, offset = alpha ? 4 : 3;
         int stride = gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
-        for (j = 0; j < (uint32_t)h; ++j)
+        for (j = 0; j < h; ++j)
         {
-            for (i = 0; i < (uint32_t)w; ++i)
+            for (i = 0; i < w; ++i)
             {
                 guchar gray = (guchar)((77 * pixels[0] + 148 * pixels[1] + 30 * pixels[2]) / 255);
                 pixels[0] = gray;
@@ -550,11 +556,11 @@ static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame
         gboolean next_frame = FALSE;
 
 #if defined(__ASSERTS__)
-        i_time_add_ms(&tval, delay - 1);
+        i_time_add_ms(&tval, (uint32_t)delay - 1);
         cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
         i_time_add_ms(&tval, 1);
 #else
-        i_time_add_ms(&tval, delay);
+        i_time_add_ms(&tval, (uint32_t)delay);
 #endif
 
         next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
@@ -585,11 +591,11 @@ static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const 
         gboolean next_frame = FALSE;
 
 #if defined(__ASSERTS__)
-        i_time_add_ms(&tval, delay - 1);
+        i_time_add_ms(&tval, (uint32_t)delay - 1);
         cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
         i_time_add_ms(&tval, 1);
 #else
-        i_time_add_ms(&tval, delay);
+        i_time_add_ms(&tval, (uint32_t)delay);
 #endif
 
         next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
@@ -624,12 +630,12 @@ static ___INLINE uint32_t i_width(const OSImage *image)
     cassert_no_null(image);
     if (image->pixbuf != NULL)
     {
-        return gdk_pixbuf_get_width(image->pixbuf);
+        return (uint32_t)gdk_pixbuf_get_width(image->pixbuf);
     }
     else
     {
         cassert_no_null(image->animation);
-        return gdk_pixbuf_animation_get_width(image->animation);
+        return (uint32_t)gdk_pixbuf_animation_get_width(image->animation);
     }
 }
 
@@ -640,12 +646,12 @@ static ___INLINE uint32_t i_height(const OSImage *image)
     cassert_no_null(image);
     if (image->pixbuf != NULL)
     {
-        return gdk_pixbuf_get_height(image->pixbuf);
+        return (uint32_t)gdk_pixbuf_get_height(image->pixbuf);
     }
     else
     {
         cassert_no_null(image->animation);
-        return gdk_pixbuf_animation_get_height(image->animation);
+        return (uint32_t)gdk_pixbuf_animation_get_height(image->animation);
     }
 }
 
@@ -666,11 +672,11 @@ void osimage_info(const OSImage *image, uint32_t *width, uint32_t *height, pixfo
         pixformat_t lformat = ENUM_MAX(pixformat_t);
         const GdkPixbuf *pixbuf = i_image_pixbuf(image);
         const byte_t *buffer = cast_const(gdk_pixbuf_get_pixels(pixbuf), byte_t);
-        uint32_t w = gdk_pixbuf_get_width(pixbuf);
-        uint32_t h = gdk_pixbuf_get_height(pixbuf);
-        uint32_t bits_per_pixel = gdk_pixbuf_get_n_channels(pixbuf) * 8;
+        uint32_t w = (uint32_t)gdk_pixbuf_get_width(pixbuf);
+        uint32_t h = (uint32_t)gdk_pixbuf_get_height(pixbuf);
+        uint32_t bits_per_pixel = (uint32_t)gdk_pixbuf_get_n_channels(pixbuf) * 8;
         uint32_t offset = bits_per_pixel / 8;
-        uint32_t stride = gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
+        uint32_t stride = (uint32_t)gdk_pixbuf_get_rowstride(pixbuf) - (offset * w);
 
         cassert(bits_per_pixel == 24 || bits_per_pixel == 32);
         cassert(w == i_width(image));
@@ -729,7 +735,8 @@ static ___INLINE const gchar *i_codec(const codec_t codec)
         return "bmp";
     case ekGIF:
         return "gif";
-        cassert_default();
+    default:
+        cassert_default(codec);
     }
 
     return "";
@@ -759,7 +766,7 @@ bool_t osimage_available_codec(const OSImage *image, const codec_t codec)
 
         if (str_equ_c(name, scodec) == TRUE)
         {
-            ok = writable;
+            ok = (bool_t)writable;
             break;
         }
     }
@@ -805,7 +812,7 @@ void osimage_frame(const OSImage *image, const uint32_t frame_index, real32_t *f
     cassert_no_null(frame_length);
     cassert_no_null(image->animation);
     cassert(frame_index < image->num_frames);
-    *frame_length = .001f * i_animation_delay(image->animation, frame_index);
+    *frame_length = .001f * (real32_t)i_animation_delay(image->animation, frame_index);
 }
 
 /*---------------------------------------------------------------------------*/

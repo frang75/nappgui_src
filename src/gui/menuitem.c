@@ -84,64 +84,11 @@ void _menuitem_destroy(MenuItem **item)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-static void i_synchro_menuitem_mark(
-                        const GuiCtx *context,
-                        const enum gui_menuitem_mode_t edit_mode,
-                        bool_t *edit_value,
-                        void *ositem,
-                        const String *on_text,
-                        const String *off_text)
-{
-    cassert_no_null(context);
-
-    if (edit_value != NULL)
-    {
-        switch (edit_mode)
-        {
-            case ekGUI_MENUITEM_MODE_TOOGLE_MARK:
-                cassert_no_nullf(context->func_menuitem_set_state);
-                context->func_menuitem_set_state(ositem, (enum_t)((*edit_value == TRUE) ? ekGUI_ON : ekGUI_OFF));
-                break;
-            case ekGUI_MENUITEM_MODE_TOOGLE_TEXT:
-                cassert_no_nullf(context->func_menuitem_set_text);
-                context->func_menuitem_set_text(ositem, (*edit_value == TRUE) ? tc(off_text) : tc(on_text));
-                break;
-            case ekGUI_MENUITEM_MODE_PUSH:
-            cassert_default();
-        }
-    }
-}*/
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnMenuItemClick(MenuItem *item, Event *e)
 {
     cassert_no_null(item);
     cassert(item->separator == FALSE);
     cassert(event_sender_imp(e, NULL) == item->ositem);
-
-    /*
-        switch (item->edit_mode)
-        {
-            case ekGUI_MENUITEM_MODE_TOOGLE_MARK:
-            case ekGUI_MENUITEM_MODE_TOOGLE_TEXT:
-
-                if (item->edit_value != NULL)
-                {
-                    if (*item->edit_value == TRUE)
-                        *item->edit_value = FALSE;
-                    else
-                        *item->edit_value = TRUE;
-                }
-
-                i_synchro_menuitem_mark(item->context, item->edit_mode, item->edit_value, item->ositem, item->on_text, item->off_text);
-                break;
-            case ekGUI_MENUITEM_MODE_PUSH:
-                break;
-            cassert_default();
-        }*/
-
     if (item->OnClick != NULL)
     {
         EvMenu *p = event_params(e, EvMenu);

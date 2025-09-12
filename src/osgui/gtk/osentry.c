@@ -347,7 +347,7 @@ void _osentry_text(OSEntry *entry, const char_t *text)
                 GtkTextIter iter;
                 gtk_text_buffer_set_text(entry->buffer, "", -1);
                 gtk_text_buffer_get_start_iter(entry->buffer, &iter);
-                gtk_text_buffer_insert_markup(entry->buffer, &iter, tc(markup), str_len(markup));
+                gtk_text_buffer_insert_markup(entry->buffer, &iter, tc(markup), (gint)str_len(markup));
                 str_destroy(&markup);
             }
             else
@@ -361,7 +361,7 @@ void _osentry_text(OSEntry *entry, const char_t *text)
     }
 
     {
-        uint32_t len = str_len_c(text);
+        int32_t len = (int32_t)str_len_c(text);
         _osentry_select(entry, len, len);
     }
 
@@ -406,7 +406,8 @@ void _osentry_align(OSEntry *entry, const align_t align)
         case ekRIGHT:
             a = .99f;
             break;
-            cassert_default();
+        default:
+            cassert_default(align);
         }
 
         gtk_entry_set_alignment(GTK_ENTRY(entry->widget), a);
@@ -531,7 +532,8 @@ void _osentry_clipboard(OSEntry *entry, const clipboard_t clipboard)
         case ekCLIPBOARD_PASTE:
             gtk_editable_paste_clipboard(GTK_EDITABLE(entry->widget));
             break;
-            cassert_default();
+        default:
+            cassert_default(clipboard);
         }
     }
     else
@@ -549,7 +551,8 @@ void _osentry_clipboard(OSEntry *entry, const clipboard_t clipboard)
         case ekCLIPBOARD_PASTE:
             gtk_text_buffer_paste_clipboard(entry->buffer, system_board, NULL, TRUE);
             break;
-            cassert_default();
+        default:
+            cassert_default(clipboard);
         }
     }
 }
@@ -622,8 +625,8 @@ bool_t _osentry_resign_focus(OSEntry *entry)
         /* The OnChange event can lost focus (p.e: launching a modal window) */
         i_cache_select(entry);
         params.text = cast_const(i_get_text(entry, &allocated, &nchars), char_t);
-        params.cpos = entry->select_start;
-        params.len = (uint32_t)nchars;
+        params.cpos = (uint32_t)entry->select_start;
+        params.len = (int32_t)nchars;
         listener_event_imp(entry->OnChange, ekGUI_EVENT_TXTCHANGE, cast(entry->control, void), cast(&params, void), cast(&lost_focus, void), tc(entry->type), "EvText", "bool_t");
         if (allocated)
             g_free(cast(params.text, gchar));

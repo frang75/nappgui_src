@@ -367,7 +367,8 @@ DWORD _oscontrol_ss_halign(const align_t halign)
         return SS_CENTER;
     case ekRIGHT:
         return SS_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(halign);
     }
 
     return UINT32_MAX;
@@ -386,7 +387,8 @@ DWORD _oscontrol_es_halign(const align_t halign)
         return ES_CENTER;
     case ekRIGHT:
         return ES_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(halign);
     }
 
     return UINT32_MAX;
@@ -407,6 +409,8 @@ DWORD _oscontrol_ellipsis(const ellipsis_t ellipsis)
         return SS_ENDELLIPSIS;
     case ekELLIPMIDDLE:
         return SS_PATHELLIPSIS;
+    default:
+        cassert_default(ellipsis);
     }
 
     return 0;
@@ -493,7 +497,8 @@ void _oscontrol_clipboard(HWND hwnd, const clipboard_t clipboard)
     case ekCLIPBOARD_CUT:
         SendMessage(hwnd, WM_CUT, (WPARAM)0, (LPARAM)0);
         break;
-        cassert_default();
+    default:
+        cassert_default(clipboard);
     }
 }
 
@@ -576,7 +581,8 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(control->type);
     }
 
     return NULL;

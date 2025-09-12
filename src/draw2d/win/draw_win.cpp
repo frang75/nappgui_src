@@ -132,6 +132,8 @@ void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, c
     case ekRIGHT:
         lx -= width;
         break;
+    default:
+        cassert_default(ctx->image_halign);
     }
 
     switch (ctx->image_valign)
@@ -145,26 +147,12 @@ void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, c
     case ekBOTTOM:
         ly -= height;
         break;
+    default:
+        cassert_default(ctx->image_valign);
     }
 
     ctx->graphics->DrawImage(bitmap, lx, ly, width, height);
 }
-
-/*---------------------------------------------------------------------------*/
-
-// Gdiplus::ColorPalette* _dctx_4bpp_grayscale_palette(void)
-//{
-//     if (i_kGRAY4_PALETTE == NULL)
-//     {
-//         uint32_t i = 0;
-//         i_kGRAY4_PALETTE = (Gdiplus::ColorPalette*)heap_malloc(sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
-//         i_kGRAY4_PALETTE->Flags = Gdiplus::PaletteFlagsGrayScale;
-//         i_kGRAY4_PALETTE->Count = 0;
-//         for (i = 0; i < 256; i += 16)
-//             i_kGRAY4_PALETTE->Entries[i] = Gdiplus::Color::MakeARGB(255, (BYTE)i, (BYTE)i, (BYTE)i);
-//     }
-//	return i_kGRAY4_PALETTE;
-// }
 
 /*---------------------------------------------------------------------------*/
 
@@ -317,8 +305,9 @@ static ___INLINE Gdiplus::LineCap i_linecap(const linecap_t cap)
         return Gdiplus::LineCapSquare;
     case ekLCROUND:
         return Gdiplus::LineCapRound;
-        cassert_default();
-    };
+    default:
+        cassert_default(cap);
+    }
 
     return Gdiplus::LineCapFlat;
 }
@@ -343,8 +332,9 @@ static ___INLINE Gdiplus::LineJoin i_linejoin(const linejoin_t join)
         return Gdiplus::LineJoinRound;
     case ekLJBEVEL:
         return Gdiplus::LineJoinBevel;
-        cassert_default();
-    };
+    default:
+        cassert_default(join);
+    }
 
     return Gdiplus::LineJoinMiter;
 }
@@ -405,7 +395,8 @@ static ___INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const 
         ctx->graphics->FillPath(ctx->current_brush, path);
         ctx->graphics->DrawPath(ctx->current_pen, path);
         break;
-        cassert_default();
+    default:
+        cassert_default(op);
     }
 }
 
@@ -622,7 +613,8 @@ static ___INLINE Gdiplus::WrapMode i_wrap(const fillwrap_t wrap)
         return Gdiplus::WrapModeTile;
     case ekFFLIP:
         return Gdiplus::WrapModeTileFlipX;
-        cassert_default();
+    default:
+        cassert_default(wrap);
     }
 
     return Gdiplus::WrapModeClamp;
@@ -730,7 +722,8 @@ static Gdiplus::StringAlignment i_align(const align_t align)
         return Gdiplus::StringAlignmentCenter;
     case ekRIGHT:
         return Gdiplus::StringAlignmentFar;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     return Gdiplus::StringAlignmentNear;
@@ -807,7 +800,8 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekRIGHT:
                 origin.X += out.Width;
                 break;
-                cassert_default();
+            default:
+                cassert_default(ctx->text_intalign);
             }
             break;
 
@@ -825,7 +819,8 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekRIGHT:
                 origin.X += out.Width / 2;
                 break;
-                cassert_default();
+            default:
+                cassert_default(ctx->text_intalign);
             }
             break;
 
@@ -844,11 +839,13 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
                 break;
             case ekRIGHT:
                 break;
-                cassert_default();
+            default:
+                cassert_default(ctx->text_intalign);
             }
             break;
 
-            cassert_default();
+        default:
+            cassert_default(ctx->text_halign);
         }
 
         switch (ctx->text_valign)
@@ -862,7 +859,8 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
         case ekBOTTOM:
             origin.Y -= out.Height;
             break;
-            cassert_default();
+        default:
+            cassert_default(ctx->text_valign);
         }
     }
 
@@ -935,7 +933,8 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
         case ekELLIPMLINE:
             format.SetTrimming(Gdiplus::StringTrimmingNone);
             break;
-            cassert_default();
+        default:
+            cassert_default(ctx->text_ellipsis);
         }
 
         erect.Width /= xscale;
@@ -1067,7 +1066,8 @@ static ___INLINE UINT i_gdi_halign(const align_t align)
         return TA_CENTER;
     case ekRIGHT:
         return TA_RIGHT;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     return TA_LEFT;
@@ -1086,7 +1086,8 @@ static ___INLINE UINT i_gdi_valign(const align_t align)
         return TA_BASELINE;
     case ekBOTTOM:
         return TA_BOTTOM;
-        cassert_default();
+    default:
+        cassert_default(align);
     }
 
     return TA_TOP;

@@ -94,7 +94,8 @@ static uint32_t i_window_flags(const uint32_t type)
         return flags | ekWINDOW_ESC;
     case 3:
         return flags | ekWINDOW_RETURN | ekWINDOW_ESC;
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return 0;
@@ -114,7 +115,8 @@ static const char_t *i_window_title(const uint32_t type)
         return i_MODAL2;
     case 3:
         return i_MODAL3;
-        cassert_default();
+    default:
+        cassert_default(type);
     }
 
     return 0;

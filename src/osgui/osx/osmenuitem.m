@@ -228,7 +228,8 @@ OSMenuItem *osmenuitem_create(const uint32_t flag)
     case ekMENU_SEPARATOR:
         return cast([NSMenuItem separatorItem], OSMenuItem);
 
-        cassert_default();
+    default:
+        cassert_default(flag);
     }
 
     return NULL;

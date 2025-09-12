@@ -357,8 +357,8 @@ void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, cons
     if (imgh < combo->fsize)
         imgh = combo->fsize;
 
-    gtk_cell_renderer_set_fixed_size(combo->imgcell, imgw, imgh);
-    gtk_cell_renderer_set_fixed_size(combo->txtcell, -1, imgh);
+    gtk_cell_renderer_set_fixed_size(combo->imgcell, (gint)imgw, (gint)imgh);
+    gtk_cell_renderer_set_fixed_size(combo->txtcell, -1, (gint)imgh);
 
     if (op == ekCTRL_OP_ADD || op == ekCTRL_OP_INS)
     {
@@ -551,7 +551,8 @@ void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index,
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(op);
     }
 
     {

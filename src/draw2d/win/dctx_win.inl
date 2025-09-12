@@ -14,8 +14,6 @@
 
 __EXTERN_C
 
-/*Gdiplus::ColorPalette* _dctx_4bpp_grayscale_palette(void);*/
-
 Gdiplus::ColorPalette *_dctx_8bpp_grayscale_palette(void);
 
 void _dctx_gradient_transform(DCtx *ctx);

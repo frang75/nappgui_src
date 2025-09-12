@@ -56,6 +56,8 @@ static serror_t i_socket_error(void)
     {
     case WSAETIMEDOUT:
         return ekSTIMEOUT;
+    default:
+        break;
     }
 
     if (bsocket_url_ip(i_WELL_KNOW_URL, NULL) == 0)
@@ -98,7 +100,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
         {
             /* put socked in non-blocking mode... */
             u_long block = 1;
-            ok_connect = ioctlsocket(skID, FIONBIO, &block);
+            ok_connect = ioctlsocket(skID, (long)FIONBIO, &block);
             if (ok_connect != SOCKET_ERROR)
             {
                 if (connect(skID, cast(&server, struct sockaddr), sizeof(server)) == SOCKET_ERROR)
@@ -117,8 +119,8 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
                         FD_SET(skID, &setE);
 #include <sewer/warn.hxx>
 
-                        time_out.tv_sec = timeout_ms / 1000;
-                        time_out.tv_usec = (timeout_ms % 1000) * 1000;
+                        time_out.tv_sec = (long)(timeout_ms / 1000);
+                        time_out.tv_usec = (long)((timeout_ms % 1000) * 1000);
 
                         ret = select(0, NULL, &setW, &setE, &time_out);
                         if (ret > 0)
@@ -159,7 +161,7 @@ Socket *bsocket_connect(const uint32_t ip, const uint16_t port, const uint32_t t
     {
         /* put socked in blocking mode... */
         u_long block = 0;
-        if (ioctlsocket(skID, FIONBIO, &block) == SOCKET_ERROR)
+        if (ioctlsocket(skID, (long)FIONBIO, &block) == SOCKET_ERROR)
         {
             ok_connect = SOCKET_ERROR;
             if (error != NULL)
@@ -264,8 +266,8 @@ Socket *bsocket_accept(Socket *lsocket, const uint32_t timeout_ms, serror_t *err
     if (timeout_ms > 0)
     {
         struct timeval timeout;
-        timeout.tv_sec = timeout_ms / 1000;
-        timeout.tv_usec = (timeout_ms % 1000) * 1000;
+        timeout.tv_sec = (long)(timeout_ms / 1000);
+        timeout.tv_usec = (long)((timeout_ms % 1000) * 1000);
         select_id = select((int)lsockid + 1, &set, NULL, NULL, &timeout);
     }
     else

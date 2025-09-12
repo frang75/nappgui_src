@@ -225,7 +225,7 @@ OSMenuItem *osmenuitem_create(const uint32_t flags)
      * Increase the reference count of object, and remove the floating reference.
      * In other words, if the object is floating, then this call "assumes ownership" of the floating reference.
      * Will be explicitly destroyed in 'osmenuitem_destroy'
-    */
+     */
     g_object_ref_sink(item->widget);
 
     return item;
@@ -435,7 +435,8 @@ void osmenuitem_state(OSMenuItem *item, const gui_state_t state)
         }
         break;
 
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 }
 

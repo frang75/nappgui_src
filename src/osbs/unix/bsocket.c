@@ -58,6 +58,8 @@ static serror_t i_socket_error(void)
     {
     case ETIMEDOUT:
         return ekSTIMEOUT;
+    default:
+        break;
     }
 
     if (bsocket_url_ip(i_WELL_KNOW_URL, NULL) == 0)

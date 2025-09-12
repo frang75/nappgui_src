@@ -275,6 +275,7 @@ static void i_OnNotification(void *sender, Event *e)
 {
     i_App *app = _osapp_listener(i_App);
     uint32_t type = event_type(e);
+    unref(sender);
 
     switch (type)
     {
@@ -302,9 +303,9 @@ static void i_OnNotification(void *sender, Event *e)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(type);
     }
-    unref(sender);
 }
 
 /*---------------------------------------------------------------------------*/

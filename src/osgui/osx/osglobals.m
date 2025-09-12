@@ -304,7 +304,8 @@ color_t osglobals_color(const syscolor_t *color)
     case ekSYSCOLOR_BORDER:
         return i_GRID_COLOR;
 
-        cassert_default();
+    default:
+        cassert_default(*color);
     }
 
     return kCOLOR_BLACK;
@@ -372,8 +373,8 @@ Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const re
         nscursor = [[NSCursor alloc] initWithImage:nsimage hotSpot:NSMakePoint((CGFloat)hot_x, (CGFloat)hot_y)];
         break;
     }
-
-        cassert_default();
+    default:
+        cassert_default(cursor);
     }
 
     heap_auditor_add("NSCursor");
@@ -404,7 +405,8 @@ void osglobals_value(const uint32_t index, void *value)
     case 1:
         *cast(value, uint32_t) = 0;
         break;
-        cassert_default();
+    default:
+        cassert_default(index);
     }
 }
 
@@ -557,15 +559,13 @@ NSImage *_osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t stat
         case ekCTRL_STATE_HOT:
         case ekCTRL_STATE_BKHOT:
             return i_CHECKBOX_NORMAL_IMAGE;
-
         case ekCTRL_STATE_PRESSED:
         case ekCTRL_STATE_BKPRESSED:
             return i_CHECKBOX_PRESSED_IMAGE;
-
         case ekCTRL_STATE_DISABLED:
             return i_CHECKBOX_DISABLE_IMAGE;
-
-            cassert_default();
+        default:
+            cassert_default(state);
         }
     }
     else
@@ -577,15 +577,13 @@ NSImage *_osglobals_checkbox_image(const bool_t pressed, const ctrl_state_t stat
         case ekCTRL_STATE_HOT:
         case ekCTRL_STATE_BKHOT:
             return i_UNCHECKBOX_NORMAL_IMAGE;
-
         case ekCTRL_STATE_PRESSED:
         case ekCTRL_STATE_BKPRESSED:
             return i_UNCHECKBOX_PRESSED_IMAGE;
-
         case ekCTRL_STATE_DISABLED:
             return i_UNCHECKBOX_DISABLE_IMAGE;
-
-            cassert_default();
+        default:
+            cassert_default(state);
         }
     }
 

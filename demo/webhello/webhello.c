@@ -37,7 +37,8 @@ static void i_web_navigate(WebView *view, const uint32_t index)
     case 5:
         webview_navigate(view, "https://twitter.com");
         break;
-        cassert_default();
+    default:
+        cassert_default(index);
     }
 }
 

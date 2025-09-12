@@ -115,7 +115,8 @@ void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32
         flags = GTK_STATE_FLAG_INSENSITIVE;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     /* Preserve cairo context */
@@ -205,7 +206,8 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
         flags = GTK_STATE_FLAG_INSENSITIVE;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     gtk_style_context_save(c);
@@ -273,13 +275,14 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
         case ekCTRL_STATE_DISABLED:
             color = _osglobals_text_color();
             break;
-            cassert_default();
+        default:
+            cassert_default(state);
         }
     }
 
     draw_text_color(ctx, color);
     draw_text_trim(ctx, ekELLIPEND);
-    draw_text_raster(ctx, text, x, y);
+    draw_text_raster(ctx, text, (real32_t)x, (real32_t)y);
     draw_text_trim(ctx, ellipsis);
 }
 
@@ -304,25 +307,21 @@ static void i_draw_check(cairo_t *cairo, const int32_t x, const int32_t y, const
     case ekCTRL_STATE_BKNORMAL:
         offset += 0;
         break;
-
     case ekCTRL_STATE_HOT:
     case ekCTRL_STATE_BKHOT:
         offset += 1;
         break;
-
     case ekCTRL_STATE_PRESSED:
         offset += 2;
         break;
-
     case ekCTRL_STATE_BKPRESSED:
         offset += 3;
         break;
-
     case ekCTRL_STATE_DISABLED:
         offset += 4;
         break;
-
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     cassert(width == _osglobals_check_width());

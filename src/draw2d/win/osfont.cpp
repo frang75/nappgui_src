@@ -268,7 +268,7 @@ void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xsca
         real32_t w = 0, h = 0;
         const char_t *str = _draw2d_str_avg_char_width(&len);
         osfont_extents(font, str, xscale, -1, &w, &h);
-        *avg_width = w / len;
+        *avg_width = w / (real32_t)len;
     }
 
     if (monospace != NULL)
@@ -344,41 +344,43 @@ real32_t font_mini_size(void)
 
 /*---------------------------------------------------------------------------*/
 
-// const char_t *font_register(const byte_t *data, const uint32_t size);
-// const char_t *font_register(const byte_t *data, const uint32_t size)
-//{
-//     DWORD nF = 0;
-//     // Dont work in VS 2005
-//     HANDLE handle = NULL;//AddFontMemResourceEx((PVOID)data, (DWORD)size, NULL, &nF);
-//     const char_t *font_name = NULL;
-//     cassert(FALSE);
-//     if (handle != NULL)
-//     {
-//         /* Use of 'Gdiplus::PrivateFontCollection' to get the font name */
-//         Gdiplus::PrivateFontCollection fonts;
-//         Gdiplus::FontFamily family;
-//         WCHAR wname[64];
-//         char_t name[64];
-//         Gdiplus::Status status = fonts.AddMemoryFont((const void*)data, (INT)size);
-//         cassert(status == Gdiplus::Ok);
-//         int nF2 = fonts.GetFamilyCount();
-//         int found = 0;
-//         UserFont *user_font = NULL;
-//         cassert_unref(nF == (DWORD)nF2, nF2);
-//         status = fonts.GetFamilies(1, &family, &found);
-//         cassert(status == Gdiplus::Ok);
-//         family.GetFamilyName(wname);
-//         unicode_convers((const char_t*)wname, name, ekUTF16, ekUTF8, sizeof(name));
-//         if (kUSER_FONTS == NULL)
-//             kUSER_FONTS = arrst_create(UserFont);
-//         user_font = arrst_new(kUSER_FONTS, UserFont);
-//         user_font->handle = handle;
-//         user_font->name = str_c(name);
-//         font_name = tc(user_font->name);
-//     }
-//
-//     return font_name;
-// }
+/*
+const char_t *font_register(const byte_t *data, const uint32_t size);
+const char_t *font_register(const byte_t *data, const uint32_t size)
+{
+    DWORD nF = 0;
+    // Dont work in VS 2005
+    HANDLE handle = NULL;//AddFontMemResourceEx((PVOID)data, (DWORD)size, NULL, &nF);
+    const char_t *font_name = NULL;
+    cassert(FALSE);
+    if (handle != NULL)
+    {
+        // Use of 'Gdiplus::PrivateFontCollection' to get the font name
+        Gdiplus::PrivateFontCollection fonts;
+        Gdiplus::FontFamily family;
+        WCHAR wname[64];
+        char_t name[64];
+        Gdiplus::Status status = fonts.AddMemoryFont((const void*)data, (INT)size);
+        cassert(status == Gdiplus::Ok);
+        int nF2 = fonts.GetFamilyCount();
+        int found = 0;
+        UserFont *user_font = NULL;
+        cassert_unref(nF == (DWORD)nF2, nF2);
+        status = fonts.GetFamilies(1, &family, &found);
+        cassert(status == Gdiplus::Ok);
+        family.GetFamilyName(wname);
+        unicode_convers((const char_t*)wname, name, ekUTF16, ekUTF8, sizeof(name));
+        if (kUSER_FONTS == NULL)
+            kUSER_FONTS = arrst_create(UserFont);
+        user_font = arrst_new(kUSER_FONTS, UserFont);
+        user_font->handle = handle;
+        user_font->name = str_c(name);
+        font_name = tc(user_font->name);
+    }
+
+    return font_name;
+}
+*/
 
 /*---------------------------------------------------------------------------*/
 

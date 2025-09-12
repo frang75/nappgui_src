@@ -12,8 +12,8 @@ macro(nap_gcc_warns)
     set(CXXFLAGS "")
 
     # Warn about non-ISO looking code, stricter checking for conformance testing
-    # with one of the ANSI/ISO std options above.  Issue all warnings demanded by
-    # strict ISO C for the appropriate standard.  Turns off some gcc extensions
+    # with one of the ANSI/ISO std options above. Issue all warnings demanded by
+    # strict ISO C for the appropriate standard. Turns off some gcc extensions
     # that are left on without it.
     set(FLAGS "${FLAGS} -pedantic")
 
@@ -32,7 +32,7 @@ macro(nap_gcc_warns)
 
     # set(FLAGS "${FLAGS} -Wnonnull")           # included in -Wall
     # set(FLAGS "${FLAGS} -Wimplicit-int")      # included in -Wall
-    # set(FLAGS "${FLAGS} -Wimplicit-function-declaration") # included in -Wall
+    set(CFLAGS "${CFLAGS} -Wimplicit-function-declaration") # included in -Wall
     # set(FLAGS "${FLAGS} -Wimplicit")          # included in -Wall
     # set(FLAGS "${FLAGS} -Wmain")              # included in -Wall
     # set(FLAGS "${FLAGS} -Wmissing-braces")    # included in -Wall
@@ -86,8 +86,7 @@ macro(nap_gcc_warns)
     # Warn if a function is declared or defined w/o specifying the argument types.
     set(CFLAGS "${CFLAGS} -Wstrict-prototypes")
 
-    # Warn for a global function defined without a previous prototype.  Issued even
-    # if the definition itself provides a prototype.
+    # Warn for a global function defined without a previous prototype.
     set(CFLAGS "${CFLAGS} -Wmissing-declarations")
 
     # Warn when a variable is shadowed, or a built-in function is shadowed.
@@ -244,14 +243,20 @@ macro(nap_gcc_warns)
     # Warn about functions that will not be protected against stack smashing
     set(FLAGS "${FLAGS} -Wstack-protector")
 
-    # Disable flags
-    # In future try to adapt NAppGUI to remove these flags, making the code more robust
-    set(CFLAGS "${CFLAGS} -Wno-bad-function-cast -Wno-missing-prototypes -Wno-missing-declarations")
-    set(FLAGS "${FLAGS} -Wno-long-long -Wno-overlength-strings -Wno-aggregate-return -Wno-cast-qual -Wno-padded -Wno-switch-default -Wno-conversion -Wno-float-equal -Wno-format-nonliteral -Wno-switch-enum -Wno-redundant-decls -Wno-shadow -Wno-undef -Wno-missing-noreturn -Wno-stack-protector -Wno-missing-include-dirs -Wno-cast-align")
+    # Warnings disabled
+    set(FLAGS "${FLAGS} -Wno-overlength-strings -Wno-cast-qual -Wno-padded -Wno-aggregate-return -Wno-long-long      -Wno-redundant-decls -Wno-float-equal -Wno-format-nonliteral   -Wno-shadow -Wno-undef -Wno-missing-noreturn -Wno-stack-protector -Wno-missing-include-dirs -Wno-cast-align")
+
+    # Older versions of GCC do not handle -Wconversion well (uint16_t date.year += 1900)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0.0)
+        set(FLAGS "${FLAGS} -Wno-conversion")
+    endif()
+
+    set(CFLAGS "${CFLAGS} -Wno-bad-function-cast")
     set(CXXFLAGS "${CXXFLAGS} -Wnon-virtual-dtor -Woverloaded-virtual")
 
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         set(FLAGS "${FLAGS} -Wno-unreachable-code")
+        set(FLAGS "${FLAGS} -Wno-uninitialized")
     endif()
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS} ${CFLAGS}")

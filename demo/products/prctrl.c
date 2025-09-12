@@ -198,7 +198,9 @@ static void i_status(Ctrl *ctrl)
             label_text(label, ERR_ACCESS);
             break;
         case ekWS_OK:
-            cassert_default();
+            break;
+        default:
+            cassert_default(ctrl->err);
         }
         break;
 
@@ -207,7 +209,8 @@ static void i_status(Ctrl *ctrl)
         label_text(label, OK_LOGIN);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(ctrl->status);
     }
 }
 
@@ -300,7 +303,7 @@ static void i_OnImgDraw(Ctrl *ctrl, Event *e)
     const Image *image = gui_image(EDIT_PNG);
     uint32_t w = image_width(image);
     uint32_t h = image_height(image);
-    draw_image(params->ctx, image, params->width - w - 10, params->height - h - 10);
+    draw_image(params->ctx, image, params->width - (real32_t)w - 10, params->height - (real32_t)h - 10);
     unref(ctrl);
 }
 
@@ -833,7 +836,7 @@ static void i_OnStats(Ctrl *ctrl, Event *e)
     const EvDraw *params = event_params(e, EvDraw);
     uint32_t i, n = sizeof(ctrl->stats) / sizeof(real32_t);
     real32_t p = 10.f, x = p, y0 = params->height - p;
-    real32_t w = (params->width - p * 2) / n;
+    real32_t w = (params->width - p * 2) / (real32_t)n;
     real32_t h = params->height - p * 2;
     real32_t avg = 0, pavg;
     char_t tavg[16];
@@ -853,7 +856,7 @@ static void i_OnStats(Ctrl *ctrl, Event *e)
         x += w;
     }
 
-    avg /= n;
+    avg /= (real32_t)n;
     pavg = h * (avg / i_MAX_STATS);
     pavg = p + h - pavg;
     bstd_sprintf(tavg, sizeof(tavg), "%.2f", avg);

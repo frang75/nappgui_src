@@ -28,7 +28,8 @@ bool_t _osbutton_text_allowed(const uint32_t flags)
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
         return FALSE;
-        cassert_default();
+    default:
+        cassert_default(button_get_type(flags));
     }
     return FALSE;
 }
@@ -47,7 +48,8 @@ bool_t _osbutton_image_allowed(const uint32_t flags)
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
         return TRUE;
-        cassert_default();
+    default:
+        cassert_default(button_get_type(flags));
     }
     return FALSE;
 }

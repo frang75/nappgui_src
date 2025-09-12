@@ -136,9 +136,9 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
     if (file_ext != NULL)
         file_ext[0] = '\0';
     else
-        wcscat_s(file, buffer_size, L".");
+        wcscat_s(file, (rsize_t)buffer_size, L".");
 
-    wcscat_s(file, buffer_size, ext);
+    wcscat_s(file, (rsize_t)buffer_size, ext);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -268,6 +268,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             case ekRIGHT:
                 cdata->x -= rect.right - rect.left;
                 break;
+            default:
+                cassert_default(cdata->halign);
             }
 
             switch (cdata->valign)
@@ -281,6 +283,8 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             case ekRIGHT:
                 cdata->y -= rect.bottom - rect.top;
                 break;
+            default:
+                cassert_default(cdata->valign);
             }
         }
 

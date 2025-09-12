@@ -314,7 +314,9 @@ void _label_natural(Label *label, const uint32_t i, real32_t *dim0, real32_t *di
             label->component.context->func_label_bounds(label->component.ositem, tc(label->text), *dim0, &width, dim1);
             break;
         }
-            cassert_default();
+
+        default:
+            cassert_default(label_get_type(label->flags));
         }
     }
 }

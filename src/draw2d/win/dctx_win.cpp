@@ -277,7 +277,8 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     case ekINDEX4:
     case ekINDEX8:
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     ctx->width = width;

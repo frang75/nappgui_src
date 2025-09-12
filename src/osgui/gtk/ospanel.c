@@ -15,6 +15,7 @@
 #include "oscontrol_gtk.inl"
 #include "ossplit_gtk.inl"
 #include "../ospanel.h"
+#include "../ospanel.inl"
 #include "../osgui.inl"
 #include "../oscontrol.inl"
 #include <draw2d/color.h>
@@ -325,16 +326,6 @@ void ospanel_frame(OSPanel *panel, const real32_t x, const real32_t y, const rea
     _oscontrol_set_frame(cast(panel, OSControl), x, y, width, height);
     panel->width = width;
     panel->height = height;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void ospanel_position(OSPanel *panel, const real32_t x, const real32_t y)
-{
-    unref(panel);
-    unref(x);
-    unref(y);
-    cassert_msg(FALSE, "Not implemented");
 }
 
 /*---------------------------------------------------------------------------*/

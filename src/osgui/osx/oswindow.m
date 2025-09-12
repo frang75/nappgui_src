@@ -1019,7 +1019,8 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
     case ekGUI_PROP_CHILDREN:
         lwindow->destroy_main_view = NO;
         break;
-        cassert_default();
+    default:
+        cassert_default(property);
     }
 }
 

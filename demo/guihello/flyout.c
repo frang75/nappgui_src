@@ -86,6 +86,8 @@ static void i_OnIdleLaunch(FlyOut *flyout, Event *e)
         pos.x -= size.width - frame.size.width;
         pos.y -= size.height;
         break;
+    default:
+        cassert_default(flyout->align);
     }
 
     /* Position in screen coordinates */

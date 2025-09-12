@@ -685,7 +685,8 @@ Palette *_imgutil_def_palette(const pixformat_t format)
     case ekRGBA32:
     case ekGRAY8:
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     return NULL;
@@ -864,7 +865,7 @@ Pixbuf *_imgutil_indexed_to_gray(const uint32_t width, const uint32_t height, co
             {
                 /* 1) Get the pixel value */
                 ibyte = pixdata[i / (8 / ibpp)];
-                ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (i % (8 / (uint8_t)ibpp)));
+                ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (uint8_t)(i % (8 / (uint8_t)ibpp)));
                 value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
                 c = palette[value];
 
@@ -966,7 +967,7 @@ Pixbuf *_imgutil_indexed_to_rgba(const uint32_t width, const uint32_t height, co
             {
                 /* 1) Get the pixel value */
                 ibyte = pixdata[i / (8 / ibpp)];
-                ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (i % (8 / (uint8_t)ibpp)));
+                ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (uint8_t)(i % (8 / (uint8_t)ibpp)));
                 value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
                 c = palette[value];
 
@@ -1069,7 +1070,7 @@ Pixbuf *_imgutil_indexed_to_rgb(const uint32_t width, const uint32_t height, con
             {
                 /* 1) Get the pixel value */
                 ibyte = pixdata[i / (8 / ibpp)];
-                ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (i % (8 / (uint8_t)ibpp)));
+                ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (uint8_t)(i % (8 / (uint8_t)ibpp)));
                 value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
                 c = palette[value];
 
@@ -1149,7 +1150,7 @@ Pixbuf *_imgutil_indexed_to_indexed(const uint32_t width, const uint32_t height,
         {
             /* 1) Get the pixel value */
             ibyte = pixdata[i / (8 / ibpp)];
-            ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (i % (8 / (uint8_t)ibpp)));
+            ipos = (byte_t)((8 / (uint8_t)ibpp) - 1 - (uint8_t)(i % (8 / (uint8_t)ibpp)));
             value = (byte_t)((ibyte & (imask << (ipos * ibpp))) >> (ipos * ibpp));
             value = palette_index[value];
             cassert(value <= omask);
@@ -1157,7 +1158,7 @@ Pixbuf *_imgutil_indexed_to_indexed(const uint32_t width, const uint32_t height,
             /* 2) Write the pixel value leaving intact the other bits */
             obyte = data + ((j * width) + i) / (8 / obpp);
             opos = (byte_t)(((j * width) + i) % (8 / (uint8_t)obpp));
-            *obyte &= ~(omask << (opos * obpp));
+            *obyte &= (byte_t)(~(omask << (opos * obpp)));
             *obyte |= (value << (opos * obpp));
         }
 
@@ -1244,8 +1245,8 @@ static Pixbuf *i_rgb_to_indexed(const byte_t *pixdata, const uint32_t width, con
                 /* Write the pixel value leaving intact the other bits */
                 byte_t *obyte = destdata + i / (8 / bpp);
                 byte_t opos = (byte_t)(i % (8 / (uint8_t)bpp));
-                *obyte &= ~(omask << (opos * bpp));
-                *obyte |= (j << (opos * bpp));
+                *obyte &= (byte_t)(~(omask << (opos * bpp)));
+                *obyte |= (byte_t)(j << (opos * bpp));
                 break;
             }
         }

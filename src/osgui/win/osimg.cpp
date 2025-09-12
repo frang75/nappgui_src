@@ -178,7 +178,7 @@ void _osimg_draw(const Image *image, HDC hdc, const uint32_t frame_index, const 
                 .299f, .299f, .299f, 0, 0,
                 .587f, .587f, .587f, 0, 0,
                 .114f, .114f, .114f, 0, 0,
-                0, 0, 0, .4, 0,
+                0, 0, 0, .4f, 0,
                 0, 0, 0, 0, 1};
         Gdiplus::ImageAttributes attr;
         Gdiplus::RectF rect((Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);

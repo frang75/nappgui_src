@@ -104,7 +104,8 @@ static EGLint i_egl_major(const oglapi_t api)
     case ekOGL_4_5:
     case ekOGL_4_6:
         return 4;
-        cassert_default();
+    default:
+        cassert_default(api);
     }
 
     return 1;
@@ -153,7 +154,8 @@ static EGLint i_egl_minor(const oglapi_t api)
         return 5;
     case ekOGL_4_6:
         return 6;
-        cassert_default();
+    default:
+        cassert_default(api);
     }
 
     return 1;
@@ -186,7 +188,8 @@ static EGLint i_egl_profile(const oglapi_t api)
     case ekOGL_4_5:
     case ekOGL_4_6:
         return EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT;
-        cassert_default();
+    default:
+        cassert_default(api);
     }
 
     return EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT;

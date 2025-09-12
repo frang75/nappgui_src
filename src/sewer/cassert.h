@@ -25,7 +25,7 @@ _sewer_api void cassert_no_null_imp(void *ptr, const char_t *detail, const char_
 
 _sewer_api void cassert_no_nullf_imp(void (*ptr)(void), const char_t *detail, const char_t *file, const uint32_t line);
 
-_sewer_api void cassert_default_imp(const char_t *file, const uint32_t line);
+_sewer_api void cassert_default_imp(const char_t *file, const uint32_t line, const int32_t value);
 
 __END_C
 
@@ -50,9 +50,8 @@ __END_C
     if (fptr == NULL) \
     cassert_no_null_imp(NULL, #fptr, __FILE__, __LINE__)
 
-#define cassert_default() \
-    default: \
-        cassert_default_imp(__FILE__, __LINE__)
+#define cassert_default(value) \
+    cassert_default_imp(__FILE__, __LINE__, (int32_t)value)
 
 #define cassert_unref(cond, v) \
     cassert_imp((bool_t)(cond), #cond, __FILE__, __LINE__)
@@ -63,9 +62,9 @@ __END_C
 #define cassert_msg(cond, msg) (void)(1 == 1)
 #define cassert_fatal(cond) (void)(1 == 1)
 #define cassert_fatal_msg(cond, msg) (void)(1 == 1)
-#define cassert_no_null(ptr) (void)(ptr)
-#define cassert_no_nullf(fptr) (void)(fptr)
-#define cassert_default() default:
+#define cassert_no_null(ptr) unref(ptr)
+#define cassert_no_nullf(fptr) unref(fptr)
+#define cassert_default(value) unref(value)
 #define cassert_unref(cond, v) unref(v)
 
 #endif

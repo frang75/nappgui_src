@@ -14,6 +14,7 @@
 #include "osmenu_gtk.inl"
 #include "osmenuitem_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../osmenu.h"
 #include "../osgui.inl"
 #include <core/arrpt.h>
 #include <core/arrst.h>
@@ -28,7 +29,7 @@
  *  menubar --> GtkBox (vertical) with one or more GtkMenuBar
  *  menupop --> GtkMenu instance
  *  The same GtkMenuItems will be moved from/to menubar/menupop
-*/
+ */
 struct _osmenu_t
 {
     GtkWidget *menubar;
@@ -90,7 +91,7 @@ static void i_OnDestroy(GtkWidget *obj, OSMenu *menu)
 
 /*---------------------------------------------------------------------------*/
 
-OSMenu *osmenu_create(const enum_t flags)
+OSMenu *osmenu_create(const uint32_t flags)
 {
     OSMenu *menu = heap_new0(OSMenu);
     menu->items = arrpt_create(OSMenuItem);

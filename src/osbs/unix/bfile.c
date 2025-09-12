@@ -236,7 +236,8 @@ static int i_file_mode(const file_mode_t mode)
         return O_WRONLY /* | O_CREAT | O_TRUNC*/;
     case ekAPPEND:
         return O_WRONLY;
-        cassert_default();
+    default:
+        cassert_default(mode);
     }
 
     return -1;
@@ -639,7 +640,8 @@ bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, fe
     case ekSEEKEND:
         method = SEEK_END;
         break;
-        cassert_default();
+    default:
+        cassert_default(whence);
     }
 
     res = lseek(fd, (off_t)offset, method);

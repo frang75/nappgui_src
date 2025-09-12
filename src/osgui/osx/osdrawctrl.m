@@ -150,32 +150,26 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
     case ekCTRL_STATE_NORMAL:
         color = _osglobals_back_color();
         break;
-
     case ekCTRL_STATE_HOT:
         color = _osglobals_hotbg_color();
         break;
-
     case ekCTRL_STATE_PRESSED:
         color = _osglobals_selbg_color();
         break;
-
     case ekCTRL_STATE_BKNORMAL:
         color = _osglobals_backbackdrop_color();
         break;
-
     case ekCTRL_STATE_BKHOT:
         color = _osglobals_hotbgbackdrop_color();
         break;
-
     case ekCTRL_STATE_BKPRESSED:
         color = _osglobals_selbgbackdrop_color();
         break;
-
     case ekCTRL_STATE_DISABLED:
         color = _osglobals_backbackdrop_color();
         break;
-
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     rect.origin.x = (CGFloat)x;
@@ -201,32 +195,26 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
         case ekCTRL_STATE_NORMAL:
             color = _osglobals_text_color();
             break;
-
         case ekCTRL_STATE_HOT:
             color = _osglobals_hottx_color();
             break;
-
         case ekCTRL_STATE_PRESSED:
             color = _osglobals_seltx_color();
             break;
-
         case ekCTRL_STATE_BKNORMAL:
             color = _osglobals_textbackdrop_color();
             break;
-
         case ekCTRL_STATE_BKHOT:
             color = _osglobals_hottxbackdrop_color();
             break;
-
         case ekCTRL_STATE_BKPRESSED:
             color = _osglobals_seltxbackdrop_color();
             break;
-
         case ekCTRL_STATE_DISABLED:
             color = _osglobals_textbackdrop_color();
             break;
-
-            cassert_default();
+        default:
+            cassert_default(state);
         }
 
         ncolor = color_rgbaf((real32_t)color[0], (real32_t)color[1], (real32_t)color[2], (real32_t)color[3]);

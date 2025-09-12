@@ -65,17 +65,17 @@ static void i_dbind(void)
 
 static void i_content_size(App *app)
 {
-    real32_t width = i_NUM_COLS * i_CELL_SIZE + (i_NUM_COLS + 1) * app->margin;
-    real32_t height = i_NUM_ROWS * i_CELL_SIZE + (i_NUM_ROWS + 1) * app->margin;
-    view_content_size(app->view, s2df((real32_t)width, (real32_t)height), s2df(10, 10));
+    real32_t width = (real32_t)i_NUM_COLS * i_CELL_SIZE + (real32_t)(i_NUM_COLS + 1) * (real32_t)app->margin;
+    real32_t height = (real32_t)i_NUM_ROWS * i_CELL_SIZE + (real32_t)(i_NUM_ROWS + 1) * (real32_t)app->margin;
+    view_content_size(app->view, s2df(width, height), s2df(10, 10));
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_scroll_to_cell(App *app)
 {
-    real32_t xpos = app->col_id * i_CELL_SIZE + (app->col_id + 1) * app->margin;
-    real32_t ypos = app->row_id * i_CELL_SIZE + (app->row_id + 1) * app->margin;
+    real32_t xpos = (real32_t)app->col_id * i_CELL_SIZE + (real32_t)(app->col_id + 1) * (real32_t)app->margin;
+    real32_t ypos = (real32_t)app->row_id * i_CELL_SIZE + (real32_t)(app->row_id + 1) * (real32_t)app->margin;
     xpos -= 5;
     ypos -= 5;
     view_scroll_x(app->view, xpos);
@@ -106,7 +106,7 @@ static void i_draw_clipped(App *app, DCtx *ctx, const real32_t x, const real32_t
     if (edj > i_NUM_ROWS)
         edj = i_NUM_ROWS;
 
-    posy = (real32_t)app->margin + stj * cellsize;
+    posy = (real32_t)app->margin + (real32_t)stj * cellsize;
 
     {
         char_t text[256];
@@ -124,7 +124,7 @@ static void i_draw_clipped(App *app, DCtx *ctx, const real32_t x, const real32_t
 
     for (j = stj; j < edj; ++j)
     {
-        posx = (real32_t)app->margin + sti * cellsize;
+        posx = (real32_t)app->margin + (real32_t)sti * cellsize;
         for (i = sti; i < edi; ++i)
         {
             char_t text[128];
@@ -195,9 +195,9 @@ static void i_mouse_cell(App *app, const real32_t x, const real32_t y, const uin
     real32_t cellsize = i_CELL_SIZE + (real32_t)app->margin;
     uint32_t mx = (uint32_t)bmath_floorf(x / cellsize);
     uint32_t my = (uint32_t)bmath_floorf(y / cellsize);
-    real32_t xmin = mx * cellsize + (real32_t)app->margin;
+    real32_t xmin = (real32_t)mx * cellsize + (real32_t)app->margin;
     real32_t xmax = xmin + i_CELL_SIZE;
-    real32_t ymin = my * cellsize + (real32_t)app->margin;
+    real32_t ymin = (real32_t)my * cellsize + (real32_t)app->margin;
     real32_t ymax = ymin + i_CELL_SIZE;
 
     if (x >= xmin && x <= xmax && y >= ymin && y <= ymax)
@@ -270,7 +270,7 @@ static void i_OnKeyDown(App *app, Event *e)
 
     if (p->key == ekKEY_DOWN && app->sel_cell_y < i_NUM_ROWS - 1)
     {
-        real32_t ymin = (app->sel_cell_y + 1) * cellsize + margin;
+        real32_t ymin = (real32_t)(app->sel_cell_y + 1) * cellsize + margin;
         ymin += i_CELL_SIZE;
 
         if (scroll.y + size.height <= ymin)
@@ -286,7 +286,7 @@ static void i_OnKeyDown(App *app, Event *e)
 
     if (p->key == ekKEY_UP && app->sel_cell_y > 0)
     {
-        real32_t ymin = (app->sel_cell_y - 1) * cellsize + (real32_t)app->margin;
+        real32_t ymin = (real32_t)(app->sel_cell_y - 1) * cellsize + (real32_t)app->margin;
 
         if (scroll.y >= ymin)
         {
@@ -301,7 +301,7 @@ static void i_OnKeyDown(App *app, Event *e)
 
     if (p->key == ekKEY_RIGHT && app->sel_cell_x < i_NUM_COLS - 1)
     {
-        real32_t xmin = (app->sel_cell_x + 1) * cellsize + margin;
+        real32_t xmin = (real32_t)(app->sel_cell_x + 1) * cellsize + margin;
         xmin += i_CELL_SIZE;
 
         if (scroll.x + size.width <= xmin)
@@ -317,7 +317,7 @@ static void i_OnKeyDown(App *app, Event *e)
 
     if (p->key == ekKEY_LEFT && app->sel_cell_x > 0)
     {
-        real32_t xmin = (app->sel_cell_x - 1) * cellsize + (real32_t)app->margin;
+        real32_t xmin = (real32_t)(app->sel_cell_x - 1) * cellsize + (real32_t)app->margin;
 
         if (scroll.x >= xmin)
         {
@@ -380,6 +380,8 @@ static void i_flyout_over_control(App *app, GuiControl *control, const uint32_t 
         pos.x += (frame.size.width - size.width);
         pos.y += (frame.size.height - size.height);
         break;
+    default:
+        cassert_default(align);
     }
 
     /* Position in screen coordinates */
@@ -431,6 +433,8 @@ static void i_OnIdleLaunch(App *app, Event *e)
     case 6:
         control = guicontrol(app->edit2);
         break;
+    default:
+        cassert_default(selctrl);
     }
 
     i_flyout_over_control(app, control, selalign);
@@ -652,6 +656,9 @@ static void i_OnTable(App *app, Event *e)
         cell->text = app->temptxt;
         break;
     }
+
+    default:
+        break;
     }
 }
 

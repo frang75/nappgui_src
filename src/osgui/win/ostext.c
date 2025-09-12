@@ -16,6 +16,7 @@
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "../ostext.h"
+#include "../ostext.inl"
 #include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
@@ -86,6 +87,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(view, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(view->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -233,11 +237,11 @@ static LONG i_font_yHeight(HWND hwnd, const WCHAR *szFaceName, const real32_t fs
     else if (funits & ekFPOINTS)
     {
         real32_t size = fsize * (real32_t)kLOG_PIXY_GUI / 72.f;
-        return (LONG)(size * kTWIPS_PER_PIXEL_GUI);
+        return (LONG)size * kTWIPS_PER_PIXEL_GUI;
     }
     else
     {
-        return (LONG)(fsize * kTWIPS_PER_PIXEL_GUI);
+        return (LONG)fsize * kTWIPS_PER_PIXEL_GUI;
     }
 }
 
@@ -401,7 +405,7 @@ void ostext_ins_text(OSText *view, const char_t *text)
 static DWORD CALLBACK i_set_rtf(DWORD_PTR dwCookie, LPBYTE lpBuff, LONG cb, PLONG pcb)
 {
     Stream *stm = cast(dwCookie, Stream);
-    *pcb = stm_read(stm, cast(lpBuff, byte_t), (uint32_t)cb);
+    *pcb = (LONG)stm_read(stm, cast(lpBuff, byte_t), (uint32_t)cb);
     return 0;
 }
 
@@ -497,6 +501,8 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         case ekRIGHT:
             view->wAlignment = PFA_RIGHT;
             break;
+        default:
+            cassert_default(*cast(value, align_t));
         }
         break;
 
@@ -565,7 +571,8 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(prop);
     }
 }
 
@@ -743,7 +750,7 @@ static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
 
     cassert_no_null(cr);
     cassert_no_null(size);
-    num_chars = cr->cpMax - cr->cpMin;
+    num_chars = (uint32_t)(cr->cpMax - cr->cpMin);
 
     if (num_chars < WCHAR_BUFFER_SIZE)
     {
@@ -795,7 +802,7 @@ void _ostext_command(OSText *view, WPARAM wParam)
                 EvText params;
                 EvTextFilter result;
                 cr.cpMax = (LONG)i_get_cursor_pos(view->control.hwnd);
-                cr.cpMin = cr.cpMax - inschars;
+                cr.cpMin = cr.cpMax - (LONG)inschars;
 
                 /* Select the inserted text */
                 SendMessage(view->control.hwnd, EM_EXSETSEL, 0, (LPARAM)&cr);

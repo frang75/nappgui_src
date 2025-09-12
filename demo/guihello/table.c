@@ -64,7 +64,7 @@ static void i_OnTableData(AppData *data, Event *e)
 
         case 4:
             cell->align = ekRIGHT;
-            bstd_sprintf(data->temp_string, sizeof(data->temp_string), "%.2f", 10.5f + pos->row);
+            bstd_sprintf(data->temp_string, sizeof(data->temp_string), "%.2f", 10.5f + (real32_t)pos->row);
             break;
 
         case 5:
@@ -87,12 +87,16 @@ static void i_OnTableData(AppData *data, Event *e)
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Extra Data 4 %d", pos->row);
             break;
 
-            cassert_default();
+        default:
+            cassert_default(pos->col);
         }
 
         cell->text = data->temp_string;
         break;
     }
+
+    default:
+        break;
     }
 }
 

@@ -252,6 +252,8 @@ gui_scroll_t _osscroll_wheel_event(const GdkEventScroll *event)
         else if (event->delta_y < 0)
             return ekGUI_SCROLL_STEP_LEFT;
         break;
+    default:
+        cassert_default(event->direction);
     }
 
     return ENUM_MAX(gui_scroll_t);

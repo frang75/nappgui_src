@@ -143,7 +143,8 @@ static void i_OnClick(OSXButton *button)
             case ekGUI_OFF:
                 [[button cell] setShowsBorderOnlyWhileMouseInside:YES];
                 break;
-                cassert_default();
+            default:
+                cassert_default(state);
             }
         }
         else if (button_get_type(button->flags) == ekBUTTON_CHECK3)
@@ -732,7 +733,8 @@ static void i_set_button_action(OSXButton *button, NSUInteger radio_index)
     case 39:
         [button setAction:@selector(onClickRadio39:)];
         break;
-        cassert_default();
+    default:
+        cassert_default(radio_index);
     }
 }
 
@@ -850,7 +852,8 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint
         [button setButtonType:PUSH_IN_BUTTON];
         break;
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(flags));
     }
 }
 
@@ -1039,7 +1042,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
     case ekGUI_MIXED:
         nsstate = NSControlStateValueMixed;
         break;
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 #else
     NSInteger nsstate = NSOnState;
@@ -1054,7 +1058,8 @@ void osbutton_state(OSButton *button, const gui_state_t state)
     case ekGUI_MIXED:
         nsstate = NSMixedState;
         break;
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 #endif
     [cast(button, OSXButton) setState:nsstate];
@@ -1209,7 +1214,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             *height += 4.f;
         break;
 
-        cassert_default();
+    default:
+        cassert_default(button_get_type(lbutton->flags));
     }
 }
 

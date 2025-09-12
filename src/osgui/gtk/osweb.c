@@ -144,7 +144,8 @@ void osweb_command(OSWeb *view, const gui_web_t cmd, const void *param, void *re
         webkit_web_view_go_forward(view->web.webView);
         break;
 
-        cassert_default();
+    default:
+        cassert_default(cmd);
     }
 #else
     unref(view);

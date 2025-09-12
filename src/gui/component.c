@@ -328,7 +328,8 @@ void _component_taborder(GuiComponent *component, Window *window)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 }
 
@@ -493,7 +494,8 @@ const char_t *_component_type(const GuiComponent *component)
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_TOOLBAR:
     case ekGUI_TYPE_WINDOW:
-        cassert_default();
+    default:
+        cassert_default(component->type);
     }
 
     return "";

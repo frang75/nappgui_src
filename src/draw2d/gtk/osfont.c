@@ -209,7 +209,7 @@ static bool_t i_is_monospace(PangoFontMap *fontmap, const PangoFontDescription *
         const char_t *name = cast_const(pango_font_family_get_name(families[i]), char_t);
         if (str_equ_c(name, desc) == TRUE)
         {
-            mono = pango_font_family_is_monospace(families[i]);
+            mono = (bool_t)pango_font_family_is_monospace(families[i]);
             break;
         }
     }
@@ -252,7 +252,7 @@ void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xsca
             *cell_size = height;
 
         if (avg_width != NULL)
-            *avg_width = width / len;
+            *avg_width = width / (real32_t)len;
     }
 
     if (monospace != NULL)
@@ -313,16 +313,6 @@ real32_t font_mini_size(void)
 {
     cassert(i_SYSTEM_FONT_FAMILY != NULL);
     return kFONT_MINI_SIZE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-const char_t *font_register(const byte_t *data, const uint32_t size)
-{
-    unref(data);
-    unref(size);
-    cassert(FALSE);
-    return NULL;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -114,6 +114,9 @@ static void i_set_glcontext(App *app, const uint32_t index)
         case 10:
             err = str_printf("Error creating Metal context\n%s", "Not available");
             break;
+
+        default:
+            cassert_default(index);
         }
 
         if (err == NULL)
@@ -160,21 +163,16 @@ static void i_OnDraw(App *app, Event *e)
         ogl3_draw(app->ogl3, width, height, app->angle, app->scale);
         break;
     case 3:
-        break;
     case 4:
-        break;
     case 5:
-        break;
     case 6:
-        break;
     case 7:
-        break;
     case 8:
-        break;
     case 9:
-        break;
     case 10:
         break;
+    default:
+        cassert_default(app->api);
     }
 }
 
@@ -197,21 +195,16 @@ static void i_OnSize(App *app, Event *e)
         ogl3_resize(app->ogl3, width, height);
         break;
     case 3:
-        break;
     case 4:
-        break;
     case 5:
-        break;
     case 6:
-        break;
     case 7:
-        break;
     case 8:
-        break;
     case 9:
-        break;
     case 10:
         break;
+    default:
+        cassert_default(app->api);
     }
 }
 

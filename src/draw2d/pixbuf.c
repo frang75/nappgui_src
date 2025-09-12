@@ -102,7 +102,8 @@ static uint32_t i_bufsize(const uint32_t width, const uint32_t height, const pix
         return width * height * 4;
 
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     return n;
@@ -165,8 +166,8 @@ static void i_set1(byte_t *data, const uint32_t x, const uint32_t y, const uint3
     byte_t *obyte = data + ((y * width) + x) / 8;
     byte_t opos = (byte_t)(((y * width) + x) % 8);
     cassert(value < 2);
-    *obyte &= ~(1 << opos);
-    *obyte |= (value << opos);
+    *obyte &= (byte_t)(~(1 << opos));
+    *obyte |= (byte_t)(value << opos);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -176,8 +177,8 @@ static void i_set2(byte_t *data, const uint32_t x, const uint32_t y, const uint3
     byte_t *obyte = data + ((y * width) + x) / 4;
     byte_t opos = (byte_t)(((y * width) + x) % 4);
     cassert(value < 4);
-    *obyte &= ~(3 << (opos * 2));
-    *obyte |= (value << (opos * 2));
+    *obyte &= (byte_t)(~(3 << (opos * 2)));
+    *obyte |= (byte_t)(value << (opos * 2));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -187,8 +188,8 @@ static void i_set4(byte_t *data, const uint32_t x, const uint32_t y, const uint3
     byte_t *obyte = data + ((y * width) + x) / 2;
     byte_t opos = (byte_t)(((y * width) + x) % 2);
     cassert(value < 16);
-    *obyte &= ~(15 << (opos * 4));
-    *obyte |= (value << (opos * 4));
+    *obyte &= (byte_t)(~(15 << (opos * 4)));
+    *obyte |= (byte_t)(value << (opos * 4));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -289,7 +290,8 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             case ekINDEX8:
             case ekRGBA32:
             case ekFIMAGE:
-                cassert_default();
+            default:
+                cassert_default(oformat);
             }
             break;
 
@@ -306,7 +308,8 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
             case ekINDEX8:
             case ekRGB24:
             case ekFIMAGE:
-                cassert_default();
+            default:
+                cassert_default(oformat);
             }
             break;
 
@@ -316,7 +319,8 @@ Pixbuf *pixbuf_convert(const Pixbuf *pixbuf, const Palette *palette, const pixfo
         case ekINDEX8:
         case ekGRAY8:
         case ekFIMAGE:
-            cassert_default();
+        default:
+            cassert_default(pixbuf->format);
         }
     }
     else
@@ -416,7 +420,8 @@ uint32_t pixbuf_format_bpp(const pixformat_t format)
     case ekRGBA32:
         return 32;
     case ekFIMAGE:
-        cassert_default();
+    default:
+        cassert_default(format);
     }
 
     return 0;

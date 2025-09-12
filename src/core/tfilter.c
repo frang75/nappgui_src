@@ -10,6 +10,7 @@
 
 /* Text filters */
 
+#include "tfilter.h"
 #include "tfilter.inl"
 #include "date.h"
 #include "strings.h"
@@ -106,7 +107,8 @@ void _tfilter_number(const char_t *src, char_t *dest, const uint32_t size, const
             }
             break;
 
-            cassert_default();
+        default:
+            cassert_default(state);
         }
 
         if (valid == TRUE)

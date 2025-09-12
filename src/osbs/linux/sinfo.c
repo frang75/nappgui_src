@@ -30,9 +30,9 @@ ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 
 uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
 {
-    size_t lsize = readlink("/proc/self/exe", pathname, size);
+    ssize_t lsize = readlink("/proc/self/exe", pathname, size);
     pathname[lsize] = '\0';
-    return lsize;
+    return (uint32_t)lsize;
 }
 
 /*---------------------------------------------------------------------------*/

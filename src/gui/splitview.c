@@ -71,7 +71,8 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return bmath_clampf(bmath_ceilf(divpos * size), 0, size);
         case ekSPLIT_FIXED1:
             return bmath_clampf(bmath_ceilf((1 - divpos) * size), 0, size);
-            cassert_default();
+        default:
+            cassert_default(to_mode);
         }
         break;
 
@@ -86,7 +87,8 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return pos;
         case ekSPLIT_FIXED1:
             return size - pos;
-            cassert_default();
+        default:
+            cassert_default(to_mode);
         }
         break;
     }
@@ -102,12 +104,14 @@ static real32_t i_convert_clamp_divpos(const split_mode_t from_mode, const split
             return size - pos;
         case ekSPLIT_FIXED1:
             return pos;
-            cassert_default();
+        default:
+            cassert_default(to_mode);
         }
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(from_mode);
     }
 
     return 0;

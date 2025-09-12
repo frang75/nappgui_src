@@ -227,8 +227,8 @@ void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, cons
     if (imgh < popup->fsize)
         imgh = popup->fsize;
 
-    gtk_cell_renderer_set_fixed_size(popup->txtcell, -1, imgh);
-    gtk_cell_renderer_set_fixed_size(popup->imgcell, imgw, imgh);
+    gtk_cell_renderer_set_fixed_size(popup->txtcell, -1, (gint)imgh);
+    gtk_cell_renderer_set_fixed_size(popup->imgcell, (gint)imgw, (gint)imgh);
 
     if (current == -1)
         current = 0;

@@ -119,6 +119,8 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         case ekRIGHT:
             data->x -= width;
             break;
+        default:
+            cassert_default(data->halign);
         }
 
         switch (data->valign)
@@ -132,6 +134,8 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         case ekRIGHT:
             data->y -= height;
             break;
+        default:
+            cassert_default(data->valign);
         }
     }
 
@@ -166,7 +170,7 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         GdkRGBA cols[16];
         for (i = 0; i < nm; ++i)
             _oscontrol_to_gdkrgba(colors[i], &cols[i]);
-        gtk_color_chooser_add_palette(chooser, GTK_ORIENTATION_HORIZONTAL, 8, nm, cols);
+        gtk_color_chooser_add_palette(chooser, GTK_ORIENTATION_HORIZONTAL, 8, (gint)nm, cols);
     }
 
     data.x = (gint)x;

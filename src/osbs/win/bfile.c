@@ -239,7 +239,7 @@ static void i_file_date(FILETIME *ftime, Date *date)
     date->wday = (week_day_t)st.wDayOfWeek;
     date->mday = (uint8_t)st.wDay;
     date->month = (month_t)st.wMonth;
-    date->year = (uint16_t)st.wYear;
+    date->year = (int16_t)st.wYear;
     date->hour = (uint8_t)st.wHour;
     date->minute = (uint8_t)st.wMinute;
     date->second = (uint8_t)st.wSecond;
@@ -269,7 +269,7 @@ bool_t bfile_dir_get(Dir *dir, char_t *name, const uint32_t size, file_type_t *t
         {
             LARGE_INTEGER lfsize;
             lfsize.LowPart = dir->find.nFileSizeLow;
-            lfsize.HighPart = dir->find.nFileSizeHigh;
+            lfsize.HighPart = (LONG)dir->find.nFileSizeHigh;
             *fsize = (uint64_t)lfsize.QuadPart;
         }
 
@@ -373,7 +373,8 @@ File *bfile_open(const char_t *pathname, const file_mode_t mode, ferror_t *error
         case ekAPPEND:
             access = GENERIC_READ | GENERIC_WRITE;
             break;
-            cassert_default();
+        default:
+            cassert_default(mode);
         }
 
         file = CreateFile(pathnamew, access, 0 /*dwSharedMode*/, NULL /*lpSecurityAttributes */, OPEN_EXISTING, 0, NULL /*hTemplateFile*/);
@@ -488,7 +489,7 @@ bool_t bfile_lstat(const char_t *pathname, file_type_t *type, uint64_t *size, Da
             {
                 LARGE_INTEGER lsize;
                 lsize.LowPart = attribs.nFileSizeLow;
-                lsize.HighPart = attribs.nFileSizeHigh;
+                lsize.HighPart = (LONG)attribs.nFileSizeHigh;
                 *size = (uint64_t)lsize.QuadPart;
             }
 
@@ -655,10 +656,11 @@ bool_t bfile_seek(File *file, const int64_t offset, const file_seek_t whence, fe
     case ekSEEKEND:
         method = FILE_END;
         break;
-        cassert_default();
+    default:
+        cassert_default(whence);
     }
 
-    ret = SetFilePointer((HANDLE)file, li.LowPart, &li.HighPart, method);
+    ret = SetFilePointer((HANDLE)file, (LONG)li.LowPart, &li.HighPart, method);
 
     if (ret != INVALID_SET_FILE_POINTER)
     {

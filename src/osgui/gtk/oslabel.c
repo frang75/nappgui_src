@@ -42,9 +42,9 @@ struct _oslabel_t
     PangoEllipsizeMode ellipsis;
     bool_t layout_updated;
     PangoLayout *layout;
-    gint enter_signal;
-    gint exit_signal;
-    gint click_signal;
+    gulong enter_signal;
+    gulong exit_signal;
+    gulong click_signal;
     real32_t control_width;
     real32_t control_height;
     real32_t text_width;
@@ -318,7 +318,8 @@ static PangoEllipsizeMode i_ellipsis(const ellipsis_t ellipsis)
         return PANGO_ELLIPSIZE_MIDDLE;
     case ekELLIPEND:
         return PANGO_ELLIPSIZE_END;
-        cassert_default();
+    default:
+        cassert_default(ellipsis);
     }
 
     return PANGO_ELLIPSIZE_NONE;

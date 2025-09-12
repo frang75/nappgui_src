@@ -62,7 +62,7 @@ void osprogress_destroy(OSProgress **progress)
 
 void osprogress_position(OSProgress *progress, const real32_t position)
 {
-    DWORD dwStyle = 0;
+    LONG dwStyle = 0;
     cassert_no_null(progress);
     dwStyle = GetWindowLong(progress->control.hwnd, GWL_STYLE);
 
@@ -113,7 +113,8 @@ real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
         return 15.f;
     case ekGUI_SIZE_MINI:
         return 10.f;
-        cassert_default();
+    default:
+        cassert_default(size);
     }
 
     return 0.f;

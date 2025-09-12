@@ -55,8 +55,8 @@ struct _osview_t
 
 /*---------------------------------------------------------------------------*/
 
-static const gint i_FRAME_HPADDING = 2;
-static const gint i_FRAME_VPADDING = 2;
+static const real32_t i_FRAME_HPADDING = 2;
+static const real32_t i_FRAME_VPADDING = 2;
 
 /*---------------------------------------------------------------------------*/
 
@@ -436,14 +436,6 @@ void osview_destroy(OSView **view)
 
 /*---------------------------------------------------------------------------*/
 
-void *osview_native(OSView *view)
-{
-    cassert_no_null(view);
-    return view->control.widget;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void osview_OnDraw(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
@@ -711,7 +703,7 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
     if (view->control.widget != view->darea)
     {
         cassert(GTK_IS_FRAME(view->control.widget) == TRUE);
-        gtk_widget_set_size_request(view->darea, (gint)width - i_FRAME_HPADDING, (gint)height - i_FRAME_VPADDING);
+        gtk_widget_set_size_request(view->darea, (gint)(width - i_FRAME_HPADDING), (gint)(height - i_FRAME_VPADDING));
         view->clip_width = width - i_FRAME_HPADDING;
         view->clip_height = height - i_FRAME_VPADDING;
     }

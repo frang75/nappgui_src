@@ -95,7 +95,7 @@ static void i_adjust_window_size(HWND hwnd, const LONG width, const LONG height,
         SetRectEmpty(&mrect);
         for (i = 0; i < n; ++i)
         {
-            GetMenuItemRect(hwnd, menubar, i, &irect);
+            GetMenuItemRect(hwnd, menubar, (UINT)i, &irect);
             UnionRect(&mrect, &mrect, &irect);
         }
 
@@ -291,6 +291,8 @@ static ___INLINE bool_t i_sizing_by_dragging(WPARAM wParam)
     case WMSZ_BOTTOMLEFT:
     case WMSZ_BOTTOMRIGHT:
         return TRUE;
+    default:
+        break;
     }
 
     return FALSE;
@@ -353,6 +355,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
                 i_press_defbutton(window);
                 i_close(window, ekGUI_CLOSE_INTRO);
                 return 0;
+
+            default:
+                break;
             }
 
             /* Menu Click */
@@ -462,6 +467,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
     case i_WM_MODAL_STOP:
         PostQuitMessage((int)wParam);
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(window->control.def_wnd_proc, hwnd, msg, wParam, lParam);

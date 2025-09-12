@@ -262,7 +262,8 @@ static void i_stroke_path(DCtx *ctx)
             break;
         }
 
-            cassert_default();
+        default:
+            cassert_default(ctx->fillmode);
         }
     }
     else
@@ -386,7 +387,8 @@ static ___INLINE CGLineCap i_linecap(const linecap_t linecap)
         return kCGLineCapSquare;
     case ekLCROUND:
         return kCGLineCapRound;
-        cassert_default();
+    default:
+        cassert_default(linecap);
     }
     return kCGLineCapButt;
 }
@@ -412,7 +414,8 @@ static ___INLINE CGLineJoin i_linejoin(const linejoin_t join)
         return kCGLineJoinRound;
     case ekLJBEVEL:
         return kCGLineJoinBevel;
-        cassert_default();
+    default:
+        cassert_default(join);
     }
     return kCGLineJoinMiter;
 }
@@ -480,7 +483,8 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
             break;
-            cassert_default();
+        default:
+            cassert_default(ctx->fillmode);
         }
         break;
 
@@ -500,8 +504,8 @@ static void i_draw(DCtx *ctx, const drawop_t op)
             CGContextAddPath(ctx->context, path);
             i_stroke_path(ctx);
             break;
-
-            cassert_default();
+        default:
+            cassert_default(ctx->fillmode);
         }
 
         CGPathRelease(path);
@@ -523,14 +527,16 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
             break;
-            cassert_default();
+        default:
+            cassert_default(ctx->fillmode);
         }
 
         CGPathRelease(path);
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(op);
     }
 }
 
@@ -702,7 +708,8 @@ static void i_gradient_vector(DCtx *ctx)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(ctx->wrap);
     }
 }
 
@@ -868,14 +875,12 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
         MeasureStr data;
         data.dict = ctx->text_dict;
         _draw_word_extents(&data, text, &width, &height);
-
         if (ctx->text_width > 0)
             width = ctx->text_width;
     }
     else
     {
         draw_text_extents(ctx, text, ctx->text_width, &width, &height);
-
         if (ctx->text_width > 0 && width > ctx->text_width)
             width = ctx->text_width;
     }
@@ -894,7 +899,8 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
     case ekCENTER:
         rect->origin.x -= (CGFloat)round(.5 * width);
         break;
-        cassert_default();
+    default:
+        cassert_default(ctx->text_halign);
     }
 
     switch (ctx->text_valign)
@@ -908,7 +914,8 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
     case ekCENTER:
         rect->origin.y -= (CGFloat)round(.5 * height);
         break;
-        cassert_default();
+    default:
+        cassert_default(ctx->text_valign);
     }
 
     return str;
@@ -1048,7 +1055,8 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
         case ekELLIPMLINE:
             mode = NSLineBreakByWordWrapping;
             break;
-            cassert_default();
+        default:
+            cassert_default(ellipsis);
         }
     }
 
@@ -1079,7 +1087,8 @@ static NSTextAlignment i_text_alignment(const align_t halign)
         return NSTextAlignmentJustified;
     case ekRIGHT:
         return NSTextAlignmentRight;
-        cassert_default();
+    default:
+        cassert_default(halign);
     }
     return NSTextAlignmentLeft;
 
@@ -1094,7 +1103,8 @@ static NSTextAlignment i_text_alignment(const align_t halign)
         return NSJustifiedTextAlignment;
     case ekRIGHT:
         return NSRightTextAlignment;
-        cassert_default();
+    default:
+        cassert_default(halign);
     }
 
     return NSLeftTextAlignment;

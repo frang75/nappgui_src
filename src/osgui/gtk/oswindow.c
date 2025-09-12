@@ -43,11 +43,11 @@ struct _oswindow_t
     gui_role_t role;
     GtkAccelGroup *accel;
     OSPanel *main_panel;
-    gint signal_delete;
-    gint signal_config;
-    gint signal_keypre;
-    gint signal_keyrel;
-    gint signal_state;
+    gulong signal_delete;
+    gulong signal_config;
+    gulong signal_keypre;
+    gulong signal_keyrel;
+    gulong signal_state;
     Listener *OnMoved;
     Listener *OnResize;
     Listener *OnClose;
@@ -114,9 +114,9 @@ static uint32_t i_menubar_required_width(const OSWindow *window)
      * the window, allowing for shrinking the size during resizing operations.
      */
     if (window->is_resizable == TRUE)
-        return window->current_width - 5;
+        return (uint32_t)(window->current_width - 5);
     else
-        return window->current_width;
+        return (uint32_t)window->current_width;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -153,7 +153,7 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
             EvSize result;
             uint32_t mheight = i_menubar_current_height(window);
             params.width = (real32_t)event->width;
-            params.height = (real32_t)(event->height - mheight);
+            params.height = (real32_t)(event->height - (gint)mheight);
             listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
             listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &result, NULL, OSWindow, EvSize, void);
 
@@ -169,14 +169,14 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
             if (result.height > params.height)
             {
                 GdkGeometry hints;
-                window->minimun_height = (gint)result.height + mheight;
+                window->minimun_height = (gint)result.height + (gint)mheight;
                 hints.min_width = window->minimun_width;
                 hints.min_height = window->minimun_height;
                 gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
             }
 
             window->current_width = (gint)result.width;
-            window->current_height = (gint)result.height + mheight;
+            window->current_height = (gint)result.height + (gint)mheight;
 
             if (window->menu != NULL)
                 _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
@@ -843,7 +843,8 @@ void oswindow_property(OSWindow *window, const gui_prop_t property, const void *
     case ekGUI_PROP_CHILDREN:
         window->destroy_main_view = FALSE;
         break;
-        cassert_default();
+    default:
+        cassert_default(property);
     }
 }
 

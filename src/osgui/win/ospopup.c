@@ -11,6 +11,7 @@
 /* Operating System native popup button */
 
 #include "osgui_win.inl"
+#include "ospopup_win.inl"
 #include "oscontrol_win.inl"
 #include "oscombo_win.inl"
 #include "ospanel_win.inl"
@@ -57,6 +58,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return CallWindowProc(popup->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
@@ -76,6 +80,9 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
         if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)
             break;
         return 0;
+
+    default:
+        break;
     }
 
     return popup->def_combo_proc(hwnd, uMsg, wParam, lParam);

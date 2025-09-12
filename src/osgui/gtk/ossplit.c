@@ -153,9 +153,9 @@ OSSplit *ossplit_create(const uint32_t flags)
 {
     OSSplit *view = heap_new0(OSSplit);
     GtkWidget *widget = gtk_layout_new(NULL, NULL);
-    gint moved_signal = 0;
-    gint pressed_signal = 0;
-    gint release_signal = 0;
+    gulong moved_signal = 0;
+    gulong pressed_signal = 0;
+    gulong release_signal = 0;
     view->flags = flags;
     _oscontrol_init(&view->control, ekGUI_TYPE_SPLITVIEW, widget, widget, TRUE);
     _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);

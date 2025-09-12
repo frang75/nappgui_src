@@ -637,7 +637,6 @@ static void i_apply_all(OSXTextView *lview)
     else
     {
         NSRange all = NSMakeRange(0, [storage length]);
-        [storage setAttributes:@{} range:all];
         [storage setAttributes:lview->attribs range:all];
     }
 }
@@ -656,7 +655,6 @@ static void i_apply_sel(OSXTextView *lview)
     if (sel.length > 0)
     {
         NSTextStorage *storage = [lview textStorage];
-        [storage setAttributes:@{} range:sel];
         [storage setAttributes:lview->attribs range:sel];
         lview->select_default = NSUIntegerMax;
     }
@@ -845,7 +843,8 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         break;
     }
 
-        cassert_default();
+    default:
+        cassert_default(param);
     }
 }
 

@@ -727,7 +727,8 @@ static Layout *i_icons_layout(const ResPack *pack, const icon_t icon)
         icon_image = image_from_resource(pack, dark ? BOMB_DARK_PNG : BOMB_PNG);
         break;
     case ekICON_SYSTEM:
-        cassert_default();
+    default:
+        cassert_default(icon);
     }
 
     logo_image = image_from_resource(pack, dark ? LOGO_DARK_PNG : LOGO_PNG);
@@ -976,7 +977,8 @@ static void i_assert_handler(void *item, const uint32_t group, const char_t *cap
         case 2:
             blib_abort();
             break;
-            cassert_default();
+        default:
+            cassert_default(assert_ret);
         }
 
         respack_destroy(&pack);

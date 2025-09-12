@@ -396,7 +396,7 @@ real64_t bmath_modfd(const real64_t num, real64_t *intpart)
 template < typename real >
 uint32_t i_precision(const real value)
 {
-    static const real i_PREC_EPSION = 0.00000001;
+    static const real i_PREC_EPSION = (real)0.00000001;
     real e = 1, v = value, frac, intpart;
     uint32_t p = 0;
 

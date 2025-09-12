@@ -142,7 +142,8 @@ static ___INLINE int i_list_state(const ctrl_state_t state)
         return DLISS_SELECTEDNOTFOCUS;
     case ekCTRL_STATE_DISABLED:
         return DLISS_DISABLED;
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     return DLISS_NORMAL;
@@ -165,7 +166,8 @@ static ___INLINE int i_header_state(const ctrl_state_t state)
         return HIS_PRESSED;
     case ekCTRL_STATE_DISABLED:
         return HIS_NORMAL;
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     return HIS_NORMAL;
@@ -311,8 +313,8 @@ void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
     hdc = (HDC)dctx_native(ctx);
-    MoveToEx(hdc, (int)(x0 + offset_x), (int)(y0 + offset_y), NULL);
-    LineTo(hdc, (int)(x1 + offset_x), (int)(y1 + offset_y));
+    MoveToEx(hdc, (int)(x0 + (int32_t)offset_x), (int)(y0 + (int32_t)offset_y), NULL);
+    LineTo(hdc, (int)(x1 + (int32_t)offset_x), (int)(y1 + (int32_t)offset_y));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -353,6 +355,8 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
     case ekRIGHT:
         format |= DT_RIGHT;
         break;
+    default:
+        cassert_default(dctx_text_intalign(ctx));
     }
 
     if (dctx_text_color(ctx) == kCOLOR_DEFAULT)
@@ -414,22 +418,19 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
     case ekCTRL_STATE_BKNORMAL:
         istate = CBS_CHECKEDNORMAL;
         break;
-
     case ekCTRL_STATE_HOT:
     case ekCTRL_STATE_BKHOT:
         istate = CBS_CHECKEDHOT;
         break;
-
     case ekCTRL_STATE_PRESSED:
     case ekCTRL_STATE_BKPRESSED:
         istate = CBS_CHECKEDPRESSED;
         break;
-
     case ekCTRL_STATE_DISABLED:
         istate = CBS_CHECKEDDISABLED;
         break;
-
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
@@ -459,22 +460,19 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
     case ekCTRL_STATE_BKNORMAL:
         istate = CBS_UNCHECKEDNORMAL;
         break;
-
     case ekCTRL_STATE_HOT:
     case ekCTRL_STATE_BKHOT:
         istate = CBS_UNCHECKEDHOT;
         break;
-
     case ekCTRL_STATE_PRESSED:
     case ekCTRL_STATE_BKPRESSED:
         istate = CBS_UNCHECKEDPRESSED;
         break;
-
     case ekCTRL_STATE_DISABLED:
         istate = CBS_UNCHECKEDDISABLED;
         break;
-
-        cassert_default();
+    default:
+        cassert_default(state);
     }
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
