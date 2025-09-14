@@ -668,7 +668,7 @@ static Layout *i_table_layout(App *app)
 {
     Layout *layout = layout_create(1, 1);
     TableView *table = tableview_create();
-    tableview_new_column_text(table);
+    tableview_add_column_text(table);
     tableview_size(table, s2df(150, 200));
     tableview_column_width(table, 0, 120);
     tableview_OnData(table, listener(app, i_OnTable, App));

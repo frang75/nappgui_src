@@ -23,6 +23,7 @@
 #include <draw2d/color.h>
 #include <draw2d/dctx.h>
 #include <draw2d/draw.h>
+#include <draw2d/image.h>
 #include <draw2d/font.h>
 #include <geom2d/s2d.h>
 #include <core/arrst.h>
@@ -32,6 +33,7 @@
 #include <core/strings.h>
 #include <sewer/bmath.h>
 #include <sewer/cassert.h>
+#include <sewer/ptr.h>
 #include <sewer/types.h>
 
 typedef struct _column_t Column;
@@ -49,10 +51,13 @@ struct _column_t
     ArrPt(String) *head_text;
     Font *font;
     uint32_t width;
-    uint32_t yoffset;
+    uint32_t ytext;
+    uint32_t yicon;
     uint32_t indicator;
     uint32_t min_width;
     uint32_t max_width;
+    uint32_t icon_height;
+    uint32_t hmargin;
     align_t align;
     align_t dalign;
     bool_t editable;
@@ -106,8 +111,8 @@ struct _tdata_t
 /*---------------------------------------------------------------------------*/
 
 DeclSt(Column);
-static const uint32_t i_COLUMN_LEFT_PADDING = 5;
-static const uint32_t i_COLUMN_RIGHT_PADDING = 5;
+static const uint32_t i_COLUMN_PADDING = 10;
+static const uint32_t i_ROW_PADDING = 4;
 static const uint32_t i_COLUMN_MIN_DISPLAY = 15;
 static const uint32_t i_BOTTOM_PADDING = 10;
 static const uint32_t i_DOCUMENT_RIGHT_MARGIN = 20;
@@ -176,6 +181,7 @@ static void i_cell_data(TableView *view, const TData *data, const uint32_t col_i
     cassert_no_null(col);
     cassert_no_null(cell);
     cell->text = i_EMPTY_TEXT;
+    cell->icon = NULL;
     cell->align = col->dalign;
 
     if (data->OnData != NULL)
@@ -192,19 +198,57 @@ static void i_cell_data(TableView *view, const TData *data, const uint32_t col_i
 static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, const uint32_t x, const uint32_t y, const uint32_t width, ctrl_state_t state)
 {
     cassert_no_null(col);
+    cassert_no_null(cell);
     switch (col->type)
     {
     case ekCTYPE_TEXT:
-        if (width > i_COLUMN_MIN_DISPLAY)
+        if (width > i_COLUMN_MIN_DISPLAY && width > i_COLUMN_PADDING)
         {
+            uint32_t twidth = width - i_COLUMN_PADDING;
+            uint32_t xpos = x + i_COLUMN_PADDING / 2;
+
             draw_font(ctx, col->font);
 
-            if (cell->align != ekJUSTIFY)
-                draw_text_width(ctx, (real32_t)(width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
+            /* Icon drawing */
+            if (col->icon_height > 0 && cell->icon != NULL)
+            {
+                Image *trimmed_icon = NULL;
+                uint32_t iwidth = image_width(cell->icon);
+                cassert(image_height(cell->icon) == col->icon_height);
 
-            draw_text_halign(ctx, cell->align);
-            draw_text_color(ctx, kCOLOR_DEFAULT);
-            drawctrl_text(ctx, cell->text, (int32_t)(x + i_COLUMN_LEFT_PADDING), (int32_t)(y + col->yoffset), state);
+                if (iwidth > twidth)
+                {
+                    trimmed_icon = image_trim(cell->icon, 0, 0, twidth, image_height(cell->icon));
+                    iwidth = twidth;
+                }
+
+                drawctrl_image(ctx, trimmed_icon ? trimmed_icon : cell->icon, (int32_t)xpos, (int32_t)(y + col->yicon));
+                twidth -= iwidth;
+                xpos += iwidth;
+
+                if (twidth > col->hmargin)
+                {
+                    twidth -= col->hmargin;
+                    xpos += col->hmargin;
+                }
+                else
+                {
+                    twidth = 0;
+                }
+
+                ptr_destopt(image_destroy, &trimmed_icon, Image);
+            }
+
+            /* Text drawing. At least, a few chars to draw */
+            if (twidth > i_COLUMN_MIN_DISPLAY)
+            {
+                if (cell->align != ekJUSTIFY)
+                    draw_text_width(ctx, (real32_t)twidth);
+
+                draw_text_halign(ctx, cell->align);
+                draw_text_color(ctx, kCOLOR_DEFAULT);
+                drawctrl_text(ctx, cell->text, (int32_t)xpos, (int32_t)(y + col->ytext), state);
+            }
         }
         break;
 
@@ -558,7 +602,7 @@ static void i_OnDraw(TableView *view, Event *e)
 static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const uint32_t col_i, const int32_t x)
 {
     ctrl_state_t state = ekCTRL_STATE_NORMAL;
-    int32_t tx = x + (int32_t)i_COLUMN_LEFT_PADDING;
+    int32_t tx = x + (int32_t)i_COLUMN_PADDING / 2;
     int32_t ty = (int32_t)data->head_yoffset;
 
     cassert_no_null(data);
@@ -587,7 +631,7 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
     if (col->width > i_COLUMN_MIN_DISPLAY)
     {
         if (col->align != ekJUSTIFY)
-            draw_text_width(ctx, (real32_t)(col->width - i_COLUMN_LEFT_PADDING - i_COLUMN_RIGHT_PADDING));
+            draw_text_width(ctx, (real32_t)(col->width - i_COLUMN_PADDING));
 
         draw_text_halign(ctx, col->align);
         arrpt_foreach_const(text, col->head_text, String)
@@ -659,13 +703,7 @@ static void i_OnOverlay(TableView *view, Event *e)
 
 static ___INLINE uint32_t i_font_height(const Font *font)
 {
-    uint32_t fheight = (uint32_t)bmath_ceilf(font_size(font));
-    uint32_t height = (uint32_t)bmath_ceilf(font_height(font));
-
-    if ((height - fheight) % 2 == 0)
-        height += 1;
-
-    return height;
+    return (uint32_t)bmath_ceilf(font_height(font));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -678,7 +716,9 @@ static uint32_t i_col_height(const Column *col)
     case ekCTYPE_TEXT:
     {
         uint32_t height = i_font_height(col->font);
-        height += drawctrl_row_padding(NULL);
+        if (height < col->icon_height)
+            height = col->icon_height;
+        height += i_ROW_PADDING;
         return height;
     }
 
@@ -698,11 +738,17 @@ static void i_col_y_offset(Column *col, const uint32_t row_height)
     {
     case ekCTYPE_TEXT:
     {
-        uint32_t height = i_font_height(col->font);
-        if (row_height > height)
-            col->yoffset = (row_height - height) / 2;
-        else
-            col->yoffset = 0;
+        uint32_t fheight = i_font_height(col->font);
+        cassert(row_height > fheight);
+        cassert(row_height > col->icon_height);
+
+        col->ytext = (row_height - fheight) / 2;
+        col->ytext += 1;
+
+        col->yicon = (row_height - col->icon_height) / 2;
+        if ((row_height - col->icon_height) % 2 == 1)
+            col->yicon += 1;
+
         break;
     }
 
@@ -1670,16 +1716,15 @@ static ArrPt(String) *i_default_col_text(const uint32_t col_i)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t tableview_new_column_text(TableView *view)
+static Column *i_add_column(TableView *view, uint32_t *col_i)
 {
     TData *data = view_get_data(cast(view, View), TData);
-    uint32_t col_i = 0;
     Column *column = NULL;
     cassert_no_null(data);
-    col_i = arrst_size(data->columns, Column);
+    cassert_no_null(col_i);
+    *col_i = arrst_size(data->columns, Column);
     column = arrst_new0(data->columns, Column);
-    column->type = ekCTYPE_TEXT;
-    column->head_text = i_default_col_text(col_i);
+    column->head_text = i_default_col_text(*col_i);
     column->font = font_copy(data->font);
     column->width = 150;
     column->min_width = 0;
@@ -1688,11 +1733,63 @@ uint32_t tableview_new_column_text(TableView *view)
     column->dalign = ekLEFT;
     column->editable = FALSE;
     column->resizable = TRUE;
+    return column;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_after_column(TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
     i_row_height(data);
     data->recompute_width = TRUE;
     i_document_size(view, data);
     view_update(cast(view, View));
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t tableview_add_column_text(TableView *view)
+{
+    uint32_t col_i = 0;
+    Column *column = i_add_column(view, &col_i);
+    cassert_no_null(column);
+    column->type = ekCTYPE_TEXT;
+    i_update_after_column(view);
     return col_i;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void tableview_del_column(TableView *view, const uint32_t column_id)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    arrst_delete(data->columns, column_id, i_remove_column, Column);
+    i_update_after_column(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t tableview_column_count(const TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    return arrst_size(data->columns, Column);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void tableview_column_icon(TableView *view, const uint32_t column_id, const real32_t icon_height, const real32_t hmargin)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    Column *column = NULL;
+    cassert_no_null(data);
+    column = arrst_get(data->columns, column_id, Column);
+    column->icon_height = (uint32_t)icon_height;
+    column->hmargin = (uint32_t)hmargin;
+    i_update_after_column(view);
 }
 
 /*---------------------------------------------------------------------------*/

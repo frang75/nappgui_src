@@ -284,12 +284,12 @@ Image *image_copy(const Image *image)
 
 Image *image_trim(const Image *image, const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
 {
-    T2Df t2d;
-    DCtx *ctx = dctx_bitmap(width, height, ekRGB24);
-    t2d_movef(&t2d, kT2D_IDENTf, -(real32_t)x, -(real32_t)y);
-    draw_matrixf(ctx, &t2d);
-    draw_image(ctx, image, 0, 0);
-    return dctx_image(&ctx);
+    Pixbuf *ipixbuf = image_pixels(image, ekFIMAGE);
+    Pixbuf *tpixbuf = pixbuf_trim(ipixbuf, x, y, width, height);
+    Image *nimage = image_from_pixbuf(tpixbuf, NULL);
+    pixbuf_destroy(&ipixbuf);
+    pixbuf_destroy(&tpixbuf);
+    return nimage;
 }
 
 /*---------------------------------------------------------------------------*/

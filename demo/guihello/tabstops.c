@@ -136,12 +136,10 @@ static void i_OnTableData(i_Data *data, Event *e)
             cell->align = ekLEFT;
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Data (0, %d)", pos->row);
             break;
-
         case 1:
             cell->align = ekLEFT;
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Data (1, %d)", pos->row);
             break;
-
         default:
             cassert_default(pos->col);
         }
@@ -186,8 +184,8 @@ static Layout *i_layout(i_Data *data, const uint32_t i)
     textview_writef(text, "Hello text!\n");
     listbox_add_elem(list, "Elem 1", NULL);
     listbox_add_elem(list, "Elem 2", NULL);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
     tableview_column_width(table, 0, 100);
     tableview_header_title(table, 0, "Column 0");
     tableview_column_width(table, 1, 100);

@@ -29,7 +29,13 @@ _gui_api void tableview_font(TableView *view, const Font *font);
 
 _gui_api void tableview_size(TableView *view, S2Df size);
 
-_gui_api uint32_t tableview_new_column_text(TableView *view);
+_gui_api uint32_t tableview_add_column_text(TableView *view);
+
+_gui_api void tableview_del_column(TableView *view, const uint32_t column_id);
+
+_gui_api uint32_t tableview_column_count(const TableView *view);
+
+_gui_api void tableview_column_icon(TableView *view, const uint32_t column_id, const real32_t icon_height, const real32_t hmargin);
 
 _gui_api void tableview_column_width(TableView *view, const uint32_t column_id, const real32_t width);
 

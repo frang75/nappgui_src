@@ -1,6 +1,7 @@
 /* Use of tables */
 
 #include "table.h"
+#include "res_guihello.h"
 #include <gui/guiall.h>
 
 typedef struct _appdata_t AppData;
@@ -49,6 +50,13 @@ static void i_OnTableData(AppData *data, Event *e)
 
         case 1:
             cell->align = ekLEFT;
+            if (pos->row % 3 == 0)
+                cell->icon = gui_image(ERROR16_PNG);
+            else if (pos->row % 3 == 1)
+                cell->icon = gui_image(EDIT16_PNG);
+            else
+                cell->icon = gui_image(DISK16_PNG);
+
             bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Adress %d", pos->row);
             break;
 
@@ -92,6 +100,7 @@ static void i_OnTableData(AppData *data, Event *e)
         }
 
         cell->text = data->temp_string;
+
         break;
     }
 
@@ -244,21 +253,22 @@ Panel *table_view(void)
     tableview_size(table, s2df(500, 300));
     tableview_OnData(table, listener(data, i_OnTableData, AppData));
     tableview_OnHeaderClick(table, listener(data, i_OnHeaderClick, AppData));
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
-    tableview_new_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
+    tableview_add_column_text(table);
     tableview_header_clickable(table, TRUE);
     tableview_header_resizable(table, TRUE);
     tableview_header_indicator(table, 1, ekINDDOWN_ARROW);
     tableview_header_indicator(table, 2, ekINDUP_ARROW);
     tableview_header_title(table, 0, "Name");
     tableview_header_title(table, 1, "Address");
+    tableview_column_icon(table, 1, 16, 5);
     tableview_header_title(table, 2, "City");
     tableview_header_title(table, 3, "Age");
     tableview_header_title(table, 4, "Value");

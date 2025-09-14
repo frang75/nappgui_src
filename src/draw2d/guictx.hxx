@@ -1067,6 +1067,7 @@ struct _evtbsel_t
 struct _evtbcell_t
 {
     const char_t *text;
+    const Image *icon;
     align_t align;
 };
 
