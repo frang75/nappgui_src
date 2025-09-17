@@ -10,6 +10,7 @@
 
 /* Operating System native common windows */
 
+#include "oscomwin_gtk.inl"
 #include "osgui_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "../osgui.inl"
@@ -38,14 +39,12 @@ struct _cdata_t
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
 {
     GtkWidget *dialog = NULL;
     GtkFileChooserAction action;
     bool_t dirmode = FALSE;
     gint res;
-
-    unref(start_dir);
 
     if (size == 1 && str_equ_c(ftypes[0], "..DIR..") == TRUE)
     {
@@ -59,11 +58,14 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     }
 
     dialog = gtk_file_chooser_dialog_new(
-        /*"Open File"*/ NULL,
-        parent ? GTK_WINDOW(cast(parent, OSControl)->widget) : NULL, action,
+        caption,
+        parent ? GTK_WINDOW(cast(parent, OSControl)->widget) : NULL,
+        action,
         "_Cancel", GTK_RESPONSE_CANCEL,
         open ? "_Open" : "_Save", GTK_RESPONSE_ACCEPT,
         NULL);
+
+    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), start_dir);
 
     if (!dirmode && size > 0)
     {
@@ -95,6 +97,21 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
     gtk_widget_destroy(dialog);
     return cast_const(kFILENAME, char_t);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *oscomwin_dir(OSWindow *parent, const char_t *caption, const char_t *start_dir)
+{
+    const char_t *ftypes[] = {"..DIR.."};
+    return i_oscomwin_file(parent, caption, ftypes, 1, start_dir, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+{
+    return i_oscomwin_file(parent, caption, ftypes, size, start_dir, open);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -139,10 +156,6 @@ static void i_OnRealize(GtkWidget *widget, CData *data)
         }
     }
 
-    /* With transient windows is not possible control the global window position.
-    if (data->parent != NULL)
-     gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(data->parent));
-    gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_NONE); */
     gtk_window_move(GTK_WINDOW(widget), data->x, data->y + 5);
 }
 
@@ -158,7 +171,6 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
 
     dialog = gtk_color_chooser_dialog_new(title, NULL);
     chooser = GTK_COLOR_CHOOSER(dialog);
-
     _oscontrol_to_gdkrgba(current, &curcol);
     gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
     gtk_color_chooser_set_use_alpha(chooser, TRUE);
@@ -166,11 +178,11 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
 
     if (n > 0)
     {
-        uint32_t i, nm = MIN(n, 16);
-        GdkRGBA cols[16];
+        uint32_t i, nm = MIN(n, 27);
+        GdkRGBA cols[27];
         for (i = 0; i < nm; ++i)
             _oscontrol_to_gdkrgba(colors[i], &cols[i]);
-        gtk_color_chooser_add_palette(chooser, GTK_ORIENTATION_HORIZONTAL, 8, (gint)nm, cols);
+        gtk_color_chooser_add_palette(chooser, GTK_ORIENTATION_HORIZONTAL, 9, (gint)nm, cols);
     }
 
     data.x = (gint)x;
@@ -196,3 +208,12 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
 }
 
 /*---------------------------------------------------------------------------*/
+
+void _oscomwin_finish(void)
+{
+    if (kFILENAME)
+    {
+        g_free(kFILENAME);
+        kFILENAME = NULL;
+    }
+}

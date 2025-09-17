@@ -739,8 +739,8 @@ static void i_col_y_offset(Column *col, const uint32_t row_height)
     case ekCTYPE_TEXT:
     {
         uint32_t fheight = i_font_height(col->font);
-        cassert(row_height > fheight);
-        cassert(row_height > col->icon_height);
+        cassert(row_height >= fheight);
+        cassert(row_height >= col->icon_height);
 
         col->ytext = (row_height - fheight) / 2;
         col->ytext += 1;

@@ -5,7 +5,6 @@
  * https://nappgui.com/en/legal/license.html
  *
  * File: core.hxx
- * https://nappgui.com/en/core/core.html
  *
  */
 

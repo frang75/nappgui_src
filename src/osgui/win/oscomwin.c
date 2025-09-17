@@ -15,6 +15,7 @@
 #include "../oscomwin.h"
 #include <draw2d/color.h>
 #include <core/event.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 
@@ -29,7 +30,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static char_t i_FILENAME[4 * MAX_PATH];
 typedef struct _cdata_t CData;
 
 struct _cdata_t
@@ -43,55 +43,8 @@ struct _cdata_t
 
 /*---------------------------------------------------------------------------*/
 
-static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCHAR *file_types, const uint32_t bufsize, BOOL *dirselect)
-{
-    uint32_t lbufsize = bufsize;
-    cassert_no_null(file_types);
-    cassert_no_null(dirselect);
-    file_types[0] = '\0';
-
-    if (ftypes != NULL)
-    {
-        if (size == 1 && strcmp(cast_const(ftypes[0], char), "..DIR..") == 0)
-        {
-            *dirselect = TRUE;
-        }
-        else
-        {
-            uint32_t i;
-            for (i = 0; i < size; ++i)
-            {
-                TCHAR type[32];
-                uint32_t tsize;
-                tsize = unicode_convers(ftypes[i], cast(type, char_t), ekUTF8, ekUTF16, sizeof(type));
-                cassert(tsize < sizeof(type));
-                tsize += 4; /* "*." */
-                if (lbufsize > tsize * 2)
-                {
-                    int bytes;
-                    bytes = wsprintf(file_types, L"*.%s", type);
-                    file_types += bytes + 1;
-                    bytes = wsprintf(file_types, L"*.%s", type);
-                    file_types += bytes + 1;
-                    lbufsize -= tsize * 2;
-                }
-            }
-
-            *file_types = '\0';
-            *dirselect = FALSE;
-        }
-    }
-    else
-    {
-        int bytes;
-        bytes = wsprintf(file_types, L"*.*");
-        file_types += bytes + 1;
-        bytes = wsprintf(file_types, L"*.*");
-        file_types += bytes + 1;
-        *file_types = '\0';
-        *dirselect = FALSE;
-    }
-}
+#define CUSTOM_COLOR_SIZE 16
+static char_t i_FILENAME[4 * MAX_PATH];
 
 /*---------------------------------------------------------------------------*/
 
@@ -106,6 +59,102 @@ static int CALLBACK i_folder_browse(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM 
     }
 
     return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *oscomwin_dir(OSWindow *parent, const char_t *caption, const char_t *start_dir)
+{
+    BROWSEINFO bi;
+    TCHAR dir[MAX_PATH];
+    TCHAR lcaption[WCHAR_BUFFER_SIZE];
+    LPITEMIDLIST item;
+    ZeroMemory(&bi, sizeof(bi));
+
+    if (str_empty_c(caption) == FALSE)
+    {
+        unicode_convers(caption, cast(lcaption, char_t), ekUTF8, ekUTF16, sizeof(lcaption));
+        bi.lpszTitle = lcaption;
+    }
+    else
+    {
+        bi.lpszTitle = NULL;
+    }
+
+    bi.hwndOwner = _oswindow_hwnd(parent);
+    bi.pidlRoot = NULL;
+    bi.pszDisplayName = dir;
+    bi.ulFlags = 0;
+
+    if (str_empty_c(start_dir) == FALSE)
+    {
+        uint32_t bytes = unicode_convers(start_dir, i_FILENAME, ekUTF8, ekUTF16, sizeof(i_FILENAME));
+        cassert_unref(bytes < sizeof(i_FILENAME), bytes);
+        bi.lpfn = i_folder_browse;
+    }
+    else
+    {
+        bi.lpfn = NULL;
+    }
+
+    bi.lParam = 0;
+    bi.iImage = -1;
+
+    item = SHBrowseForFolder(&bi);
+    if (item != NULL)
+    {
+        uint32_t bytes;
+        SHGetPathFromIDList(item, dir);
+        bytes = unicode_convers(cast_const(dir, char_t), i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
+        cassert_unref(bytes < MAX_PATH, bytes);
+        return i_FILENAME;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_allowed_file_types(const char_t **ftypes, const uint32_t size, TCHAR *file_types, const uint32_t bufsize)
+{
+    uint32_t lbufsize = bufsize;
+    cassert_no_null(file_types);
+    file_types[0] = '\0';
+
+    if (ftypes != NULL)
+    {
+        uint32_t i;
+        for (i = 0; i < size; ++i)
+        {
+            TCHAR type[32];
+            uint32_t tsize;
+            tsize = unicode_convers(ftypes[i], cast(type, char_t), ekUTF8, ekUTF16, sizeof(type));
+            cassert(tsize < sizeof(type));
+            tsize += 4; /* "*." */
+            if (lbufsize > tsize * 2)
+            {
+                int bytes;
+                bytes = wsprintf(file_types, L"*.%s", type);
+                file_types += bytes + 1;
+                bytes = wsprintf(file_types, L"*.%s", type);
+                file_types += bytes + 1;
+                lbufsize -= tsize * 2;
+            }
+        }
+
+        *file_types = '\0';
+    }
+    else
+    {
+        int bytes;
+        bytes = wsprintf(file_types, L"*.*");
+        file_types += bytes + 1;
+        bytes = wsprintf(file_types, L"*.*");
+        file_types += bytes + 1;
+        *file_types = '\0';
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -143,101 +192,70 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
 {
     TCHAR file_types[256];
-    BOOL dirselect;
-    unref(parent);
-    i_allowed_file_types(ftypes, size, file_types, sizeof(file_types), &dirselect);
-    if (dirselect == TRUE)
+    OPENFILENAME ofn;
+    TCHAR file[MAX_PATH];
+    TCHAR lcaption[WCHAR_BUFFER_SIZE];
+    BOOL ok;
+    i_allowed_file_types(ftypes, size, file_types, sizeof(file_types));
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.hwndOwner = _oswindow_hwnd(parent);
+    ofn.hInstance = NULL;
+    ofn.lpstrFilter = file_types;
+    ofn.lpstrCustomFilter = NULL;
+    ofn.nMaxCustFilter = 0;
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFile = file;
+    ofn.lpstrFile[0] = '\0';
+    ofn.nMaxFile = sizeof(file);
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.lpstrTitle = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+    if (str_empty_c(start_dir) == FALSE)
     {
-        if (open == TRUE)
-        {
-            BROWSEINFO bi;
-            TCHAR dir[MAX_PATH];
-            LPITEMIDLIST item;
-            ZeroMemory(&bi, sizeof(bi));
-            bi.hwndOwner = _oswindow_hwnd(parent);
-            bi.pidlRoot = NULL;
-            bi.pszDisplayName = dir;
-            bi.lpszTitle = NULL;
-            bi.ulFlags = 0;
-
-            if (start_dir != NULL)
-            {
-                uint32_t bytes = unicode_convers(start_dir, i_FILENAME, ekUTF8, ekUTF16, sizeof(i_FILENAME));
-                cassert_unref(bytes < sizeof(i_FILENAME), bytes);
-                bi.lpfn = i_folder_browse;
-            }
-            else
-            {
-                bi.lpfn = NULL;
-            }
-
-            bi.lParam = 0;
-            bi.iImage = -1;
-
-            item = SHBrowseForFolder(&bi);
-            if (item != NULL)
-            {
-                uint32_t bytes;
-                SHGetPathFromIDList(item, dir);
-                bytes = unicode_convers(cast_const(dir, char_t), i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
-                cassert_unref(bytes < MAX_PATH, bytes);
-                return i_FILENAME;
-            }
-            else
-            {
-                return NULL;
-            }
-        }
-        else
-        {
-            cassert(FALSE);
-            return NULL;
-        }
+        uint32_t bytes = unicode_convers(start_dir, i_FILENAME, ekUTF8, ekUTF16, sizeof(i_FILENAME));
+        cassert_unref(bytes < sizeof(i_FILENAME), bytes);
+        ofn.lpstrInitialDir = (LPCWSTR)i_FILENAME;
     }
     else
     {
-        OPENFILENAME ofn;
-        TCHAR file[MAX_PATH];
-        BOOL ok;
-        ZeroMemory(&ofn, sizeof(ofn));
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = NULL;
-        ofn.hInstance = NULL;
-        ofn.lpstrFilter = file_types;
-        ofn.lpstrCustomFilter = NULL;
-        ofn.nMaxCustFilter = 0;
-        ofn.nFilterIndex = 1;
-        ofn.lpstrFile = file;
-        ofn.lpstrFile[0] = '\0';
-        ofn.nMaxFile = sizeof(file);
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
         ofn.lpstrInitialDir = NULL;
+    }
+
+    if (str_empty_c(caption) == FALSE)
+    {
+        unicode_convers(caption, cast(lcaption, char_t), ekUTF8, ekUTF16, sizeof(lcaption));
+        ofn.lpstrTitle = lcaption;
+    }
+    else
+    {
         ofn.lpstrTitle = NULL;
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    }
 
-        if (open == TRUE)
-            ok = GetOpenFileName(&ofn);
-        else
-            ok = GetSaveFileName(&ofn);
+    if (open == TRUE)
+        ok = GetOpenFileName(&ofn);
+    else
+        ok = GetSaveFileName(&ofn);
 
-        if (ok == TRUE)
-        {
-            uint32_t bytes;
-            if (open == FALSE && size == 1)
-                i_force_extension(file, MAX_PATH, ftypes[0]);
+    if (ok == TRUE)
+    {
+        uint32_t bytes;
+        if (open == FALSE && size == 1)
+            i_force_extension(file, MAX_PATH, ftypes[0]);
 
-            bytes = unicode_convers(cast_const(file, char_t), i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
-            cassert_unref(bytes < MAX_PATH, bytes);
-            return i_FILENAME;
-        }
-        else
-        {
-            return NULL;
-        }
+        bytes = unicode_convers(cast_const(file, char_t), i_FILENAME, ekUTF16, ekUTF8, sizeof(i_FILENAME));
+        cassert_unref(bytes < MAX_PATH, bytes);
+        return i_FILENAME;
+    }
+    else
+    {
+        return NULL;
     }
 }
 
@@ -306,23 +324,20 @@ static UINT_PTR CALLBACK i_color_msg(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
 
 /*---------------------------------------------------------------------------*/
 
-void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, const real32_t y, const align_t halign, const align_t valign, const color_t current, color_t *colors, const uint32_t n, Listener *OnChange)
+void oscomwin_color(OSWindow *parent, const char_t *caption, const real32_t x, const real32_t y, const align_t halign, const align_t valign, const color_t current, color_t *colors, const uint32_t n, Listener *OnChange)
 {
     CHOOSECOLOR col;
-    COLORREF cols[16];
+    COLORREF cols[CUSTOM_COLOR_SIZE];
     CData cdata;
     uint32_t i;
 
     col.lStructSize = sizeof(CHOOSECOLOR);
-    col.hwndOwner = NULL;
-
-    if (parent != NULL)
-        col.hwndOwner = cast(parent, OSControl)->hwnd;
-
+    col.hwndOwner = _oswindow_hwnd(parent);
     col.hInstance = NULL;
     col.rgbResult = _oscontrol_colorref(current);
 
-    for (i = 0; i < 16; ++i)
+    /* Custom colors expects 16 color-array */
+    for (i = 0; i < CUSTOM_COLOR_SIZE; ++i)
     {
         if (i < n)
             cols[i] = _oscontrol_colorref(colors[i]);
@@ -335,8 +350,8 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     cdata.halign = halign;
     cdata.valign = valign;
 
-    if (title != NULL)
-        unicode_convers(title, cast(cdata.title, char_t), ekUTF8, ekUTF16, sizeof(cdata.title));
+    if (str_empty_c(caption) == FALSE)
+        unicode_convers(caption, cast(cdata.title, char_t), ekUTF8, ekUTF16, sizeof(cdata.title));
     else
         cdata.title[0] = 0;
 
@@ -352,83 +367,14 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         listener_event(OnChange, ekGUI_EVENT_COLOR, NULL, &c, NULL, void, color_t, void);
     }
 
+    /* Update color table */
+    for (i = 0; i < n; ++i)
+    {
+        if (i < CUSTOM_COLOR_SIZE)
+            colors[i] = _oscontrol_from_colorref(col.lpCustColors[i]);
+        else
+            colors[i] = kCOLOR_WHITE;
+    }
+
     listener_destroy(&OnChange);
 }
-/*
-void oscommon_file(OSWindow *owner_window, const uchar_t **allowed_file_types, const uint32_t num_file_types, const bool_t for_open, Listener *OnAccept_listener);
-void oscommon_file(
-                    OSWindow *owner_window,
-                    const uchar_t **allowed_file_types,
-                    const uint32_t num_file_types,
-                    const bool_t for_open,
-                    Listener *OnAccept_listener)
-{
-    unreferenced(owner_window);
-    unreferenced(allowed_file_types);
-    unreferenced(num_file_types);
-    unreferenced(for_open);
-    unreferenced(OnAccept_listener);
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_close(void);
-void oscommon_colour_close(void)
-{
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_convert_to_hud(void);
-void oscommon_colour_convert_to_hud(void)
-{
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_set_size(const real32_t width, const real32_t height);
-void oscommon_colour_set_size(const real32_t width, const real32_t height)
-{
-    unreferenced(width);
-    unreferenced(height);
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_get_size(real32_t *width, real32_t *height);
-void oscommon_colour_get_size(real32_t *width, real32_t *height)
-{
-    unreferenced(width);
-    unreferenced(height);
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_set_origin(const real32_t x, const real32_t y);
-void oscommon_colour_set_origin(const real32_t x, const real32_t y)
-{
-    unreferenced(x);
-    unreferenced(y);
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_get_origin(real32_t *x, real32_t *y);
-void oscommon_colour_get_origin(real32_t *x, real32_t *y)
-{
-    unreferenced(x);
-    unreferenced(y);
-    cassert(FALSE);
-}*/

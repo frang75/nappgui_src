@@ -408,6 +408,7 @@ GuiCtx *osguictx(void)
 
     guictx_append_comwin_manager(
         context,
+        oscomwin_dir,
         oscomwin_file,
         oscomwin_color,
         OSWindow);

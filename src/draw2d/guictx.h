@@ -1385,18 +1385,22 @@ _draw2d_api void guictx_append_menuitem_manager_imp(
 
 _draw2d_api void guictx_append_comwin_manager_imp(
     GuiCtx *context,
+    FPtr_gctx_win_dir func_comwin_dir,
     FPtr_gctx_win_file func_comwin_file,
     FPtr_gctx_win_color func_comwin_color);
 #define guictx_append_comwin_manager( \
     context, \
+    func_comwin_dir, \
     func_comwin_file, \
     func_comwin_color, \
     window_type) \
     ( \
+        FUNC_CHECK_GCTX_WIN_DIR(func_comwin_dir, window_type), \
         FUNC_CHECK_GCTX_WIN_FILE(func_comwin_file, window_type), \
         FUNC_CHECK_GCTX_WIN_COLOR(func_comwin_color, window_type), \
         guictx_append_comwin_manager_imp( \
             context, \
+            (FPtr_gctx_win_dir)func_comwin_dir, \
             (FPtr_gctx_win_file)func_comwin_file, \
             (FPtr_gctx_win_color)func_comwin_color))
 

@@ -3,6 +3,7 @@
 #include "nappgui.h"
 #include "labels.h"
 #include "buttons.h"
+#include "commons.h"
 #include "sliders.h"
 #include "editor.h"
 #include "fontx.h"
@@ -145,6 +146,9 @@ static void i_set_panel(App *app, const uint32_t index)
     case 31:
         panel = reduce(app->window);
         break;
+    case 32:
+        panel = common_windows(app->window);
+        break;
     default:
         cassert_default(index);
     }
@@ -208,6 +212,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Font x-scale", NULL);
     listbox_add_elem(list, "Font units", NULL);
     listbox_add_elem(list, "Reduce components", NULL);
+    listbox_add_elem(list, "Common windows", NULL);
     listbox_select(list, 0, TRUE);
     listbox_OnSelect(list, listener(app, i_OnSelect, App));
     layout_listbox(layout, list, 0, 0);

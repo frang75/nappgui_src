@@ -34,10 +34,11 @@
 - `font_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 - Support for `ekFCELL` in `textview_units()`. [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
 - `osbs_macos()` and `macos_t`. [Commit](https://github.com/frang75/nappgui_src/commit/d2b98c9cdd0ea04391272cf3490b6e55073978a7).
-- `tableview_del_column()`. [Commit]().
-- `tableview_column_count()`. [Commit]().
-- `tableview_column_icon()`. [Commit]().
-- `EvTbCell` adds a `const Image *icon` member. [Commit]().
+- `tableview_del_column()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
+- `tableview_column_count()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
+- `tableview_column_icon()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
+- `EvTbCell` adds a `const Image *icon` member. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
+- `comwin_select_dir()`. [Commit]().
 
 ### Fixed
 
@@ -45,14 +46,16 @@
 - Issue in `Edit` single-line scroll in macOS. [Issue](https://github.com/frang75/nappgui_src/issues/230). [Commit](https://github.com/frang75/nappgui_src/commit/9f54924b9b0cc1f405a13d47a6b305a8f69f5fc0).
 - Issues in `Combo`. [Issue](https://github.com/frang75/nappgui_src/issues/86). [Issue](https://github.com/frang75/nappgui_src/issues/81). [Issue](https://github.com/frang75/nappgui_src/issues/68). [Commit](https://github.com/frang75/nappgui_src/commit/850954a50d2dfde51cd846dbb306cd9c6345c2dc).
 - Added include guard to `bmath.hpp`. [Issue](https://github.com/frang75/nappgui_src/issues/235). [Commit](https://github.com/frang75/nappgui_src/commit/5d83237eaa6e4918f35f8ee46acf197d7cf4cb78).
-- `image_trim()`. [Issue](https://github.com/frang75/nappgui_src/issues/238). [Commit]().
+- `image_trim()`. [Issue](https://github.com/frang75/nappgui_src/issues/238). [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 
 ### Changed
 
 - `button_vpadding()` also is applied to flat buttons. [Doc](https://nappgui.com/en/gui/button.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/81e47587d356757dabaae565df0ddb54599ccf19).
 - `label_OnClick()` pass `EvMouse` event param, instead `EvText`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `listbox_text()` renamed by `listbox_get_text()` for API coherence. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
-- `tableview_new_column_text()` renamed by `tableview_add_column_text()`. [Commit]().
+- `tableview_new_column_text()` renamed by `tableview_add_column_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
+- `comwin_open_file()` adds a new `caption` parameter. [Commit]().
+- `comwin_save_file()` adds a new `caption` parameter. [Commit]().
 
 ### Removed
 

@@ -1405,14 +1405,18 @@ void guictx_append_window_manager_imp(
 
 void guictx_append_comwin_manager_imp(
     GuiCtx *context,
+    FPtr_gctx_win_dir func_comwin_dir,
     FPtr_gctx_win_file func_comwin_file,
     FPtr_gctx_win_color func_comwin_color)
 {
     cassert_no_null(context);
+    cassert(context->func_comwin_dir == NULL);
     cassert(context->func_comwin_file == NULL);
     cassert(context->func_comwin_color == NULL);
+    cassert_no_nullf(func_comwin_dir);
     cassert_no_nullf(func_comwin_file);
     cassert_no_nullf(func_comwin_color);
+    context->func_comwin_dir = func_comwin_dir;
     context->func_comwin_file = func_comwin_file;
     context->func_comwin_color = func_comwin_color;
 }

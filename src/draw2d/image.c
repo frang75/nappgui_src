@@ -173,7 +173,7 @@ Image *image_from_pixels(const uint32_t width, const uint32_t height, const pixf
     if (rgb_pixels != NULL)
     {
         nformat = pixbuf_format(rgb_pixels);
-        cassert(nformat == ekRGB24 || nformat == ekRGBA32);
+        cassert(nformat == ekRGB24 || nformat == ekRGBA32 || nformat == ekGRAY8);
         osimage = osimage_create_from_pixels(width, height, nformat, pixbuf_data(rgb_pixels));
         pixbuf_destroy(&rgb_pixels);
     }

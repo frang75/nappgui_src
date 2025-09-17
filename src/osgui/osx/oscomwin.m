@@ -76,10 +76,11 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
 
 /*---------------------------------------------------------------------------*/
 
-static NSOpenPanel *i_open_file(const char_t **ftypes, const uint32_t size, const char_t *startdir)
+static NSOpenPanel *i_open_file(const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *startdir)
 {
     NSOpenPanel *open_panel = [NSOpenPanel openPanel];
     BOOL dirsel = NO;
+    unref(caption);
 
 #if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
     if (startdir != NULL)
@@ -156,12 +157,16 @@ static const char_t *i_save_file_selected(NSSavePanel *save_panel)
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t foropen)
+static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t foropen)
 {
     unref(parent);
+
     if (foropen == TRUE)
     {
-        NSOpenPanel *open_panel = i_open_file(ftypes, size, start_dir);
+        NSOpenPanel *open_panel = i_open_file(caption, ftypes, size, start_dir);
+
+        if (str_empty_c(caption) == FALSE)
+            [open_panel setTitle:[NSString stringWithUTF8String:caption]];
 
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
         {
@@ -185,6 +190,9 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
     {
         NSSavePanel *save_panel = i_save_file(ftypes, size);
 
+        if (str_empty_c(caption) == FALSE)
+            [save_panel setTitle:[NSString stringWithUTF8String:caption]];
+
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
         {
             NSModalResponse ret = [save_panel runModal];
@@ -207,6 +215,21 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
 /*---------------------------------------------------------------------------*/
 
+const char_t *oscomwin_dir(OSWindow *parent, const char_t *caption, const char_t *start_dir)
+{
+    const char_t *ftypes[] = {"..DIR.."};
+    return i_oscomwin_file(parent, caption, ftypes, 1, start_dir, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t foropen)
+{
+    return i_oscomwin_file(parent, caption, ftypes, size, start_dir, foropen);
+}
+
+/*---------------------------------------------------------------------------*/
+
 @interface NSColorChoose : NSObject
 {
   @public
@@ -216,12 +239,16 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t **ftypes, const uint3
 
 @implementation NSColorChoose
 
+/*---------------------------------------------------------------------------*/
+
 - (IBAction)onColorChange:(id)sender
 {
     NSColor *color = [sender color];
     color_t c = _oscontrol_from_NSColor(color);
     listener_event(self->OnChange, ekGUI_EVENT_COLOR, NULL, &c, NULL, void, color_t, void);
 }
+
+/*---------------------------------------------------------------------------*/
 
 - (void)dealloc
 {
@@ -235,12 +262,14 @@ static NSColorChoose *i_COLOR_CHOOSE = nil;
 
 /*---------------------------------------------------------------------------*/
 
-void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, const real32_t y, const align_t halign, const align_t valign, const color_t current, color_t *colors, const uint32_t n, Listener *OnChange)
+void oscomwin_color(OSWindow *parent, const char_t *caption, const real32_t x, const real32_t y, const align_t halign, const align_t valign, const color_t current, color_t *colors, const uint32_t n, Listener *OnChange)
 {
     NSColorPanel *panel = [NSColorPanel sharedColorPanel];
+    unref(colors);
+    unref(n);
 
-    if (str_empty_c(title) == FALSE)
-        [panel setTitle:[NSString stringWithUTF8String:title]];
+    if (str_empty_c(caption) == FALSE)
+        [panel setTitle:[NSString stringWithUTF8String:caption]];
 
     if (i_COLOR_CHOOSE != nil)
     {
@@ -299,38 +328,6 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
         [panel setFrameOrigin:origin];
         [panel makeKeyAndOrderFront:(NSWindow *)parent];
     }
-
-    /*
-    //    ret = [NSApp runModalForWindow:panel];
-
-    //#if defined (MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-    //
-    //
-    ////        NSModalResponse ret = [panel runModalForWindow:nil];
-    ////        if (ret == NSModalResponseOK)
-    ////            return i_save_file_selected(save_panel);
-    ////        else
-    ////            return NULL;
-    //    }
-    //    #else
-    //    {
-    //        NSUInteger ret = (NSUInteger)[save_panel runModal];
-    //        if (ret == NSFileHandlingPanelOKButton)
-    //            return i_save_file_selected(save_panel);
-    //        else
-    //            return NULL;
-    //    }
-    //    #endif
-     */
-    unref(parent);
-    unref(title);
-    unref(x);
-    unref(y);
-    unref(halign);
-    unref(valign);
-    unref(current);
-    unref(colors);
-    unref(n);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -343,142 +340,3 @@ void _oscomwin_destroy_globals(void)
         i_COLOR_CHOOSE = nil;
     }
 }
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_file(
-                    OSWindow *owner_window,
-                    const uchar_t **allowed_file_types,
-                    const uint32_t num_file_types,
-                    const bool_t for_open,
-                    Listener *OnAccept_listener)
-{
-    cassert([(NSObject*)owner_window isKindOfClass:[OSXWindow class]] == YES);
-    cassert_no_null(OnAccept_listener);
-    unreferenced(OnAccept_listener);
-    unreferenced(owner_window);
-    if (for_open == TRUE)
-    {
-        NSOpenPanel *open_panel;
-        open_panel = i_open_file_panel(allowed_file_types, num_file_types, NULL);
-        [open_panel setLevel:1000];
-        [open_panel setFloatingPanel:NO];
-
-            // 10.5
-      //  cassert(FALSE);
-
-
-        [open_panel beginSheetModalForWindow:(NSWindow*)owner_window completionHandler:^(NSInteger result)
-        {
-            if (result == NSFileHandlingPanelOKButton)
-            {
-                Event event;
-                EvFile params;
-                event.type = ekGUI_EVENT_OPEN_FILE;
-                event.sender = open_panel;
-                event.params = &params;
-                event.result = NULL;
-                params.pathname = i_open_file_selected(open_panel);
-                listener_launch_event(OnAccept_listener, &event);
-            }
-        }];
-
-    }
-    else
-    {
-        NSSavePanel *save_panel;
-        save_panel = i_save_file_panel(allowed_file_types, num_file_types);
-        [save_panel setLevel:1000];
-        [save_panel setFloatingPanel:NO];
-
-        // 10.5
-    //    cassert(FALSE);
-
-        [save_panel beginSheetModalForWindow:(NSWindow*)owner_window completionHandler:^(NSInteger result)
-        {
-            if (result == NSFileHandlingPanelOKButton)
-            {
-                Event event;
-                EvFile params;
-                event.type = ekGUI_EVENT_SAVE_FILE;
-                event.sender = save_panel;
-                event.params = &params;
-                event.result = NULL;
-                params.pathname = i_save_file_selected(save_panel);
-                listener_launch_event(OnAccept_listener, &event);
-            }
-        }];*/
-/*  }
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_close(void)
-{
-    [[NSColorPanel sharedColorPanel] orderOut:nil];
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_convert_to_hud(void)
-{
-    cassert(FALSE);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_set_size(const real32_t width, const real32_t height)
-{
-    NSRect frame;
-    frame = [NSColorPanel sharedColorPanel].frame;
-    frame.origin.y += frame.size.height - (CGFloat)height;
-    frame.size.width = (CGFloat)width;
-    frame.size.height = (CGFloat)height;
-    [[NSColorPanel sharedColorPanel] setFrame:frame display:YES animate:NO];
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_get_size(real32_t *width, real32_t *height)
-{
-    NSSize size;
-    cassert_no_null(width);
-    cassert_no_null(height);
-    size = [[NSColorPanel sharedColorPanel] frame].size;
-    *width = (real32_t)size.width;
-    *height = (real32_t)size.height;
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_set_origin(const real32_t x, const real32_t y)
-{
-    NSRect window_frame;
-    NSPoint origin;
-    window_frame = [[NSColorPanel sharedColorPanel] frame];
-    window_frame.origin.x = (CGFloat)x;
-    window_frame.origin.y = (CGFloat)y;
-    _oscontrol_origin_in_screen_coordinates(&window_frame, &origin.x, &origin.y);
-    [[NSColorPanel sharedColorPanel] setFrameOrigin:origin];
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void oscommon_colour_get_origin(real32_t *x, real32_t *y)
-{
-    NSRect frame;
-    NSPoint origin;
-    cassert_no_null(x);
-    cassert_no_null(y);
-    frame = [[NSColorPanel sharedColorPanel] frame];
-    _oscontrol_origin_in_screen_coordinates(&frame, &origin.x, &origin.y);
-    *x = (real32_t)origin.x;
-    *y = (real32_t)origin.y;
-}*/

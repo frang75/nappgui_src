@@ -172,6 +172,10 @@ static void i_OnClick(Button *button, Event *event)
         break;
     }
 
+    case ekBUTTON_PUSH:
+    case ekBUTTON_FLAT:
+        break;
+
     default:
         cassert_default(button_get_type(button->flags));
     }
