@@ -253,12 +253,6 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 
 @implementation OSXWindow
 
-- (void)dealloc
-{
-    [super dealloc];
-    heap_auditor_delete("OSXWindow");
-}
-
 /*---------------------------------------------------------------------------*/
 
 - (BOOL)canBecomeKeyWindow
@@ -512,6 +506,7 @@ void oswindow_destroy(OSWindow **window)
     [delegate release];
     [lwindow close];
     [lwindow release];
+    heap_auditor_delete("OSXWindow");
     *window = NULL;
 }
 

@@ -28,8 +28,12 @@
 #------------------------------------------------------------------------------
 
 function(nap_macos_sdk_name sdkVersion _ret)
+    # 26 = "Tahoe"
+    if (sdkVersion VERSION_GREATER "25.9999")
+        set(${_ret} "Tahoe" PARENT_SCOPE)
+
     # 15 = "Sequoia"
-    if (sdkVersion VERSION_GREATER "14.9999")
+    elseif (sdkVersion VERSION_GREATER "14.9999")
         set(${_ret} "Sequoia" PARENT_SCOPE)
 
     # 14 = "Sonoma"

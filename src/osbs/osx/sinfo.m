@@ -65,7 +65,9 @@ uint32_t bfile_dir_exec(char_t *pathname, const uint32_t size)
 
 macos_t osbs_macos(void)
 {
-#if defined(MAC_OS_VERSION_15_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_15_0
+#if defined(MAC_OS_VERSION_26_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_26_0
+    return ekMACOS_TAHOE;
+#elif defined(MAC_OS_VERSION_15_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_15_0
     return ekMACOS_SEQUOIA;
 #elif defined(MAC_OS_VERSION_14_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_14_0
     return ekMACOS_SONOMA;

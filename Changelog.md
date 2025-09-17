@@ -38,7 +38,7 @@
 - `tableview_column_count()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 - `tableview_column_icon()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 - `EvTbCell` adds a `const Image *icon` member. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
-- `comwin_select_dir()`. [Commit]().
+- `comwin_select_dir()`. [Commit](https://github.com/frang75/nappgui_src/commit/88ea5d393dfe9c2e07e8b400e0eff9433f98bead).
 
 ### Fixed
 
@@ -54,8 +54,8 @@
 - `label_OnClick()` pass `EvMouse` event param, instead `EvText`. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `listbox_text()` renamed by `listbox_get_text()` for API coherence. [Commit](https://github.com/frang75/nappgui_src/commit/c57f87ff5916ca624bf5bd93484b68f693c7eb25).
 - `tableview_new_column_text()` renamed by `tableview_add_column_text()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
-- `comwin_open_file()` adds a new `caption` parameter. [Commit]().
-- `comwin_save_file()` adds a new `caption` parameter. [Commit]().
+- `comwin_open_file()` adds a new `caption` parameter. [Commit](https://github.com/frang75/nappgui_src/commit/88ea5d393dfe9c2e07e8b400e0eff9433f98bead).
+- `comwin_save_file()` adds a new `caption` parameter. [Commit](https://github.com/frang75/nappgui_src/commit/88ea5d393dfe9c2e07e8b400e0eff9433f98bead).
 
 ### Removed
 
@@ -67,6 +67,7 @@
 - Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`. [Commit](https://github.com/frang75/nappgui_src/commit/ea1734559c62e21bc8862826074db804e0a129ba).
 - Renamed macros definition files `.def` to `.hdf`, because incompatibility with older MSVC versions. [Commit](https://github.com/frang75/nappgui_src/commit/2e5ea8e89b3ca0ab4d3819016ccc8d823452a0aa).
 - Fix conversions and switch warnings. [Commit](https://github.com/frang75/nappgui_src/commit/03d8004eca22aeada4f3a95386b9a9e6e7e4f68d).
+- Updated to macOS Tahoe. [Commit]().
 
 ## v1.5.2 - June 30, 2025 (r6370)
 

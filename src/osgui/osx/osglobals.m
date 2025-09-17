@@ -165,8 +165,27 @@ static void i_theme_colors(void)
 static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
 {
     NSRect rect = [view frame];
-    NSBitmapImageRep *irep = [view bitmapImageRepForCachingDisplayInRect:rect];
-    NSImage *image = [[NSImage alloc] initWithSize:rect.size];
+    NSBitmapImageRep *irep = nil;
+    NSImage *image = nil;
+
+#if defined(MAC_OS_VERSION_26_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_26_0
+    NSWindow *window = nil;
+
+    /* From Tahoe, the need the view to be attached to Window, if not will not render notihng */
+    {
+        window = [[NSWindow alloc] initWithContentRect:rect styleMask:NSWindowStyleMaskBorderless backing:NSBackingStoreBuffered defer:YES];
+        [window setReleasedWhenClosed:NO];
+        [window orderOut:nil]; /* Offscreen */
+        window.opaque = NO;
+        window.backgroundColor = [NSColor clearColor];
+        [window setContentView:view];
+        [view layoutSubtreeIfNeeded];
+        [view displayIfNeeded];
+    }
+#endif
+
+    irep = [view bitmapImageRepForCachingDisplayInRect:rect];
+    image = [[NSImage alloc] initWithSize:rect.size];
     [irep setSize:rect.size];
     [view cacheDisplayInRect:rect toBitmapImageRep:irep];
     [image addRepresentation:irep];
@@ -207,11 +226,22 @@ static NSImage *i_image_from_view(NSView *view, NSRect *pixrect)
             buffer += line / 4;
         }
 
+        cassert(x0 < x1);
+        cassert(yy0 < yy1);
         pixrect->origin.x = (CGFloat)ceil((CGFloat)x0 / scale);
         pixrect->origin.y = (CGFloat)ceil((CGFloat)yy0 / scale);
         pixrect->size.width = (CGFloat)ceil((CGFloat)(x1 - x0 + 1) / scale);
         pixrect->size.height = (CGFloat)ceil((CGFloat)(yy1 - yy0 + 1) / scale);
     }
+
+#if defined(MAC_OS_VERSION_26_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_26_0
+    /* Detach the view and free the Window */
+    {
+        [view removeFromSuperview];
+        [window setContentView:nil];
+        [window release];
+    }
+#endif
 
     return image;
 }
