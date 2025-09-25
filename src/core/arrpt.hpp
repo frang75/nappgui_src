@@ -90,6 +90,10 @@ struct ArrPt
 template < typename type, typename dtype >
 struct ArrP2
 {
+    static ArrPt< type > *read_ex(Stream *stream, type *(*func_read)(Stream *, const dtype *), const dtype *data);
+
+    static void write_ex(Stream *stream, const ArrPt< type > *array, void (*func_write)(Stream *, const type *, const dtype *), const dtype *data);
+
     static void sort_ex(ArrPt< type > *array, int (*func_compare)(const type *, const type *, const dtype *), const dtype *data);
 
     static type *search(ArrPt< type > *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
@@ -309,6 +313,24 @@ template < typename type >
 uint32_t ArrPt< type >::find(ArrPt< type > *array, const type *elem)
 {
     return array_find_ptr(cast_const(array, Array), cast_const(elem, void));
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type, typename dtype >
+ArrPt< type > *ArrP2< type, dtype >::read_ex(Stream *stream, type *(*func_read)(Stream *, const dtype *), const dtype *data)
+{
+    char_t ntype[64];
+    bstd_sprintf(ntype, sizeof(ntype), "ArrPt<%s>", typeid(type).name());
+    return cast(array_read_ptr_ex(stream, (FPtr_read_ex)func_read, cast(data, void), ntype), ArrPt< type >);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type, typename dtype >
+void ArrP2< type, dtype >::write_ex(Stream *stream, const ArrPt< type > *array, void (*func_write)(Stream *, const type *, const dtype *), const dtype *data)
+{
+    array_write_ptr_ex(stream, cast(array, Array), (FPtr_write_ex)func_write, cast(data, void));
 }
 
 /*---------------------------------------------------------------------------*/

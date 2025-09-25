@@ -39,6 +39,11 @@
 - `tableview_column_icon()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 - `EvTbCell` adds a `const Image *icon` member. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 - `comwin_select_dir()`. [Commit](https://github.com/frang75/nappgui_src/commit/88ea5d393dfe9c2e07e8b400e0eff9433f98bead).
+- Array serialization with user data. [Commit]().
+    - `arrst_read_ex()`.
+    - `arrst_write_ex()`.
+    - `arrpt_read_ex()`.
+    - `arrpt_write_ex()`.
 
 ### Fixed
 
@@ -67,7 +72,7 @@
 - Moved Win32 Web depends to `src/osgui/win/depends` from `prj/depend/web`. [Commit](https://github.com/frang75/nappgui_src/commit/ea1734559c62e21bc8862826074db804e0a129ba).
 - Renamed macros definition files `.def` to `.hdf`, because incompatibility with older MSVC versions. [Commit](https://github.com/frang75/nappgui_src/commit/2e5ea8e89b3ca0ab4d3819016ccc8d823452a0aa).
 - Fix conversions and switch warnings. [Commit](https://github.com/frang75/nappgui_src/commit/03d8004eca22aeada4f3a95386b9a9e6e7e4f68d).
-- Updated to macOS Tahoe. [Commit]().
+- Updated to macOS Tahoe. [Commit](https://github.com/frang75/nappgui_src/commit/7e3a3b03aacdfceec62b6b08c4758f6837497020).
 
 ## v1.5.2 - June 30, 2025 (r6370)
 

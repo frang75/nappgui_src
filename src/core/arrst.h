@@ -20,6 +20,11 @@
 #define arrst_read(stream, func_read, type) \
     arrst_##type##_read(stream, (uint16_t)sizeof(type), func_read)
 
+#define arrst_read_ex(stream, func_read, data, type, dtype) \
+    ((void)((data) == cast(data, dtype)), \
+     FUNC_CHECK_READ_INIT_EX(func_read, type, dtype), \
+     arrst_##type##_read_ex(stream, (uint16_t)sizeof(type), (FPtr_read_init_ex)func_read, cast(data, void)))
+
 #define arrst_destroy(array, func_remove, type) \
     arrst_##type##_destroy(array, func_remove)
 
@@ -31,6 +36,11 @@
 
 #define arrst_write(stream, array, func_write, type) \
     arrst_##type##_write(stream, array, func_write)
+
+#define arrst_write_ex(stream, array, func_write, data, type, dtype) \
+    ((void)((data) == cast(data, dtype)), \
+     FUNC_CHECK_WRITE_EX(func_write, type, dtype), \
+     arrst_##type##_write_ex(stream, array, (FPtr_write_ex)func_write, cast_const(data, void)))
 
 #define arrst_size(array, type) \
     arrst_##type##_size(array)

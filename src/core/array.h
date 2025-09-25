@@ -22,7 +22,11 @@ _core_api Array *array_copy_ptr(const Array *array, FPtr_copy func_copy, const c
 
 _core_api Array *array_read(Stream *stream, const uint16_t esize, FPtr_read_init func_read_init, const char_t *type);
 
+_core_api Array *array_read_ex(Stream *stream, const uint16_t esize, FPtr_read_init_ex func_read_init, void *data, const char_t *type);
+
 _core_api Array *array_read_ptr(Stream *stream, FPtr_read func_read, const char_t *type);
+
+_core_api Array *array_read_ptr_ex(Stream *stream, FPtr_read_ex func_read, void *data, const char_t *type);
 
 _core_api void array_destroy(Array **array, FPtr_remove func_remove, const char_t *type);
 
@@ -38,7 +42,11 @@ _core_api void array_clear_ptr(Array *array, FPtr_destroy func_destroy);
 
 _core_api void array_write(Stream *stream, const Array *array, FPtr_write func_write);
 
+_core_api void array_write_ex(Stream *stream, const Array *array, FPtr_write_ex func_write, const void *data);
+
 _core_api void array_write_ptr(Stream *stream, const Array *array, FPtr_write func_write);
+
+_core_api void array_write_ptr_ex(Stream *stream, const Array *array, FPtr_write_ex func_write, const void *data);
 
 _core_api uint32_t array_size(const Array *array);
 

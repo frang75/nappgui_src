@@ -47,6 +47,8 @@
 #endif
 
 #pragma GCC diagnostic ignored "-Wall"
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+#pragma GCC diagnostic ignored "-Wswitch-default"
 
 #if (__GNUC__ >= 5)
 #pragma GCC diagnostic ignored "-Wpedantic"

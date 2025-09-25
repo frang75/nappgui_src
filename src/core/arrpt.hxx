@@ -46,6 +46,12 @@
         return cast(array_read_ptr(stream, (FPtr_read)func_read, cast_const(ARRPT #type, char_t)), ArrPt(type)); \
     } \
 \
+    static __TYPECHECK ArrPt(type) *arrpt_##type##_read_ex(Stream *stream, FPtr_read_ex func_read, void *data); \
+    static ArrPt(type) *arrpt_##type##_read_ex(Stream *stream, FPtr_read_ex func_read, void *data) \
+    { \
+        return cast(array_read_ptr_ex(stream, func_read, data, cast_const(ARRPT #type, char_t)), ArrPt(type)); \
+    } \
+\
     static __TYPECHECK void arrpt_##type##_destroy(struct Arr##Pt##type **array, void(func_destroy)(type **)); \
     static void arrpt_##type##_destroy(struct Arr##Pt##type **array, void(func_destroy)(type **)) \
     { \
@@ -68,6 +74,12 @@
     static void arrpt_##type##_write(Stream *stream, const struct Arr##Pt##type *array, void(func_write)(Stream *, const type *)) \
     { \
         array_write_ptr(stream, cast_const(array, Array), (FPtr_write)func_write); \
+    } \
+\
+    static __TYPECHECK void arrpt_##type##_write_ex(Stream *stream, const struct Arr##Pt##type *array, FPtr_write_ex func_write, const void *data); \
+    static void arrpt_##type##_write_ex(Stream *stream, const struct Arr##Pt##type *array, FPtr_write_ex func_write, const void *data) \
+    { \
+        array_write_ptr_ex(stream, cast_const(array, Array), func_write, data); \
     } \
 \
     static __TYPECHECK uint32_t arrpt_##type##_size(const struct Arr##Pt##type *array); \

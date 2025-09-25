@@ -180,6 +180,38 @@ static Array *i_read_array(Stream *stream, const uint16_t esize, FPtr_read func_
 
 /*---------------------------------------------------------------------------*/
 
+static Array *i_read_array_ex(Stream *stream, const uint16_t esize, FPtr_read_ex func_read, FPtr_read_init_ex func_read_init, void *data, const char_t *type)
+{
+    uint32_t elems = stm_read_u32(stream);
+    Array *array = i_create_init_array(elems, esize, type);
+
+    if (func_read != NULL)
+    {
+        uint32_t i;
+        cassert(func_read_init == NULL);
+        cassert(esize == sizeofptr);
+        for (i = 0; i < elems; ++i)
+        {
+            bool_t nonull = stm_read_bool(stream);
+            void *elem = NULL;
+            if (nonull == TRUE)
+                elem = func_read(stream, data);
+            *dcast(array->data + i * esize, void) = elem;
+        }
+    }
+    else
+    {
+        uint32_t i;
+        cassert_no_nullf(func_read_init);
+        for (i = 0; i < elems; ++i)
+            func_read_init(stream, cast(array->data + i * esize, void), data);
+    }
+
+    return array;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Array *array_read(Stream *stream, const uint16_t esize, FPtr_read_init func_read_init, const char_t *type)
 {
     return i_read_array(stream, esize, NULL, func_read_init, type);
@@ -187,9 +219,23 @@ Array *array_read(Stream *stream, const uint16_t esize, FPtr_read_init func_read
 
 /*---------------------------------------------------------------------------*/
 
+Array *array_read_ex(Stream *stream, const uint16_t esize, FPtr_read_init_ex func_read_init, void *data, const char_t *type)
+{
+    return i_read_array_ex(stream, esize, NULL, func_read_init, data, type);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Array *array_read_ptr(Stream *stream, FPtr_read func_read, const char_t *type)
 {
     return i_read_array(stream, sizeofptr, func_read, NULL, type);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Array *array_read_ptr_ex(Stream *stream, FPtr_read_ex func_read, void *data, const char_t *type)
+{
+    return i_read_array_ex(stream, sizeofptr, func_read, NULL, data, type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -301,33 +347,72 @@ void array_clear_ptr(Array *array, FPtr_destroy func_destroy)
 
 void array_write(Stream *stream, const Array *array, FPtr_write func_write)
 {
-    const byte_t *data = NULL;
+    const byte_t *elem = NULL;
     uint32_t i = 0;
     cassert_no_null(array);
     cassert_no_nullf(func_write);
-    data = array->data;
+    elem = array->data;
     stm_write_u32(stream, array->elems);
-    for (i = 0; i < array->elems; ++i, data += array->esize)
-        func_write(stream, cast(data, void));
+    for (i = 0; i < array->elems; ++i, elem += array->esize)
+        func_write(stream, cast(elem, void));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void array_write_ex(Stream *stream, const Array *array, FPtr_write_ex func_write, const void *data)
+{
+    const byte_t *elem = NULL;
+    uint32_t i = 0;
+    cassert_no_null(array);
+    cassert_no_nullf(func_write);
+    elem = array->data;
+    stm_write_u32(stream, array->elems);
+    for (i = 0; i < array->elems; ++i, elem += array->esize)
+        func_write(stream, cast(elem, void), data);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void array_write_ptr(Stream *stream, const Array *array, FPtr_write func_write)
 {
-    const byte_t **data = NULL;
+    const byte_t **elem = NULL;
     uint32_t i = 0;
     cassert_no_null(array);
     cassert_no_nullf(func_write);
     cassert(array->esize == sizeofptr);
-    data = dcast_const(array->data, byte_t);
+    elem = dcast_const(array->data, byte_t);
     stm_write_u32(stream, array->elems);
-    for (i = 0; i < array->elems; ++i, ++data)
+    for (i = 0; i < array->elems; ++i, ++elem)
     {
-        if (*data != NULL)
+        if (*elem != NULL)
         {
             stm_write_bool(stream, TRUE);
-            func_write(stream, *dcast_const(data, void));
+            func_write(stream, *dcast_const(elem, void));
+        }
+        else
+        {
+            stm_write_bool(stream, FALSE);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void array_write_ptr_ex(Stream *stream, const Array *array, FPtr_write_ex func_write, const void *data)
+{
+    const byte_t **elem = NULL;
+    uint32_t i = 0;
+    cassert_no_null(array);
+    cassert_no_nullf(func_write);
+    cassert(array->esize == sizeofptr);
+    elem = dcast_const(array->data, byte_t);
+    stm_write_u32(stream, array->elems);
+    for (i = 0; i < array->elems; ++i, ++elem)
+    {
+        if (*elem != NULL)
+        {
+            stm_write_bool(stream, TRUE);
+            func_write(stream, *dcast_const(elem, void), data);
         }
         else
         {

@@ -39,6 +39,8 @@
 #pragma GCC diagnostic pop
 #else
 #pragma GCC diagnostic warning "-Wall"
+#pragma GCC diagnostic warning "-Wswitch-enum"
+#pragma GCC diagnostic warning "-Wswitch-default"
 #endif
 
 #endif

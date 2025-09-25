@@ -545,6 +545,11 @@ static void i_OnClick(OSXButton *button)
 
 static NSRect i_pushbutton_cell_frame(NSRect rect, const gui_size_t size)
 {
+#if defined(MAC_OS_VERSION_26_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_26_0
+    /* Tahoe fits the pushbutton cell to frame */
+    unref(size);
+    return rect;
+#else
     switch (size)
     {
     case ekGUI_SIZE_MINI:
@@ -566,6 +571,7 @@ static NSRect i_pushbutton_cell_frame(NSRect rect, const gui_size_t size)
     }
 
     return rect;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1140,13 +1146,20 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         case ekGUI_SIZE_REGULAR:
             if (imgwidth > 0)
                 *width += (real32_t)imgwidth;
+                /* Tahoe best fit */
+#if defined(MAC_OS_VERSION_26_0) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_26_0
+            *height = 25.f;
+#else
             *height = 22.f;
+#endif
             break;
+
         case ekGUI_SIZE_SMALL:
             if (imgwidth > 0)
                 *width += (real32_t)imgwidth;
             *height = 20.f;
             break;
+
         case ekGUI_SIZE_MINI:
             if (imgwidth > 0)
                 *width += (real32_t)imgwidth;

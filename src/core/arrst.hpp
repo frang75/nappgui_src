@@ -100,6 +100,10 @@ struct ArrSt
 template < typename type, typename dtype >
 struct ArrS2
 {
+    static ArrSt< type > *read_ex(Stream *stream, void (*func_read)(Stream *, type *, const dtype *), const dtype *data);
+
+    static void write_ex(Stream *stream, const ArrSt< type > *array, void (*func_write)(Stream *, const type *, const dtype *), const dtype *data);
+
     static void sort_ex(ArrSt< type > *array, int (*func_compare)(const type *, const type *, const dtype *), const dtype *data);
 
     static type *search(ArrSt< type > *array, int (*func_compare)(const type *, const dtype *), const dtype *key, uint32_t *pos);
@@ -359,6 +363,24 @@ template < typename type >
 void ArrSt< type >::sort(ArrSt< type > *array, int (*func_compare)(const type *, const type *))
 {
     array_sort(cast(array, Array), (FPtr_compare)func_compare);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type, typename dtype >
+ArrSt< type > *ArrS2< type, dtype >::read_ex(Stream *stream, void (*func_read)(Stream *, type *, const dtype *), const dtype *data)
+{
+    char_t ntype[64];
+    bstd_sprintf(ntype, sizeof(ntype), "ArrSt<%s>", typeid(type).name());
+    return cast(array_read_ex(stream, sizeof(type), (FPtr_read_init_ex)func_read, cast(data, void), ntype), ArrSt< type >);
+}
+
+/*---------------------------------------------------------------------------*/
+
+template < typename type, typename dtype >
+void ArrS2< type, dtype >::write_ex(Stream *stream, const ArrSt< type > *array, void (*func_write)(Stream *, const type *, const dtype *), const dtype *data)
+{
+    array_write_ex(stream, cast(array, Array), (FPtr_write_ex)func_write, cast(data, void));
 }
 
 /*---------------------------------------------------------------------------*/

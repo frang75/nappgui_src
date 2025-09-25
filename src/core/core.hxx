@@ -265,13 +265,25 @@ typedef void *(*FPtr_read)(Stream *stream);
 #define FUNC_CHECK_READ(func, type) \
     (void)((type * (*)(Stream *)) func == func)
 
+typedef void *(*FPtr_read_ex)(Stream *stream, const void *data);
+#define FUNC_CHECK_READ_EX(func, type, dtype) \
+    (void)((type * (*)(Stream *, const dtype *)) func == func)
+
 typedef void (*FPtr_read_init)(Stream *stream, void *obj);
 #define FUNC_CHECK_READ_INIT(func, type) \
     (void)((void (*)(Stream *, type *))func == func)
 
+typedef void (*FPtr_read_init_ex)(Stream *stream, void *obj, const void *data);
+#define FUNC_CHECK_READ_INIT_EX(func, type, dtype) \
+    (void)((void (*)(Stream *, type *, const dtype *))func == func)
+
 typedef void (*FPtr_write)(Stream *stream, const void *obj);
 #define FUNC_CHECK_WRITE(func, type) \
     (void)((void (*)(Stream *, const type *))func == func)
+
+typedef void (*FPtr_write_ex)(Stream *stream, const void *obj, const void *data);
+#define FUNC_CHECK_WRITE_EX(func, type, dtype) \
+    (void)((void (*)(Stream *, const type *, const dtype *))func == func)
 
 /* Do not use! only for debugger inspection */
 struct _buffer_t
