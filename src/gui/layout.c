@@ -930,6 +930,13 @@ void layout_remove_col(Layout *layout, const uint32_t col)
 
         /* Remove the column dimensions */
         arrst_delete(layout->lines_dim[0], col, NULL, i_LineDim);
+
+        /* Remove the last-column margin */
+        {
+            i_LineDim *lcol = arrst_last(layout->lines_dim[0], i_LineDim);
+            lcol->margin_after = 0;
+        }
+
         /* Every row has ncols elems */
         ncols -= 1;
         layout->dim_num_elems[1] = ncols;
@@ -968,6 +975,13 @@ void layout_remove_row(Layout *layout, const uint32_t row)
 
         /* Remove the row dimensions */
         arrst_delete(layout->lines_dim[1], row, NULL, i_LineDim);
+
+        /* Remove the last-row margin */
+        {
+            i_LineDim *lcol = arrst_last(layout->lines_dim[1], i_LineDim);
+            lcol->margin_after = 0;
+        }
+
         /* Every column has nrows elems */
         nrows -= 1;
         layout->dim_num_elems[0] = nrows;

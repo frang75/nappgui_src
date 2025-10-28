@@ -1,6 +1,12 @@
 # NAppGUI Changelog
 
-## v1.5.3 - WIP
+## v1.6.0 - WIP
+
+### Fixed
+
+- Minor issue when removing columns or rows dynamically from layouts. [Commit]().
+
+## v1.5.3 - Sep 25, 2025 (r6604)
 
 ### Added
 
