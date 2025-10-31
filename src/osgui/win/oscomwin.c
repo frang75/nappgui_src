@@ -67,7 +67,7 @@ const char_t *oscomwin_dir(OSWindow *parent, const char_t *caption, const char_t
 {
     BROWSEINFO bi;
     TCHAR dir[MAX_PATH];
-    TCHAR lcaption[WCHAR_BUFFER_SIZE];
+    TCHAR lcaption[STATIC_TEXT_SIZE];
     LPITEMIDLIST item;
     ZeroMemory(&bi, sizeof(bi));
 
@@ -197,7 +197,7 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_
     TCHAR file_types[256];
     OPENFILENAME ofn;
     TCHAR file[MAX_PATH];
-    TCHAR lcaption[WCHAR_BUFFER_SIZE];
+    TCHAR lcaption[STATIC_TEXT_SIZE];
     BOOL ok;
     i_allowed_file_types(ftypes, size, file_types, sizeof(file_types));
     ZeroMemory(&ofn, sizeof(ofn));

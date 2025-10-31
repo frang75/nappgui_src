@@ -613,28 +613,10 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
 {
     if (op != ekCTRL_OP_DEL)
     {
-        uint32_t num_bytes = 0;
-        WCHAR *wtext = NULL;
-        WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-        WCHAR *wtext_alloc = NULL;
+        WString str;
+        const WCHAR *wtext = _osgui_wstr_init(text, &str);
         UINT msg = 0;
         COMBOBOXEXITEM cbbi = {0};
-
-        num_bytes = unicode_convers_nbytes(text, ekUTF8, kWINDOWS_UNICODE);
-        if (num_bytes < sizeof(wtext_static))
-        {
-            wtext = wtext_static;
-        }
-        else
-        {
-            wtext_alloc = cast(heap_malloc(num_bytes, "OSComboSetElem"), WCHAR);
-            wtext = wtext_alloc;
-        }
-
-        {
-            uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
-            cassert_unref(bytes == num_bytes, bytes);
-        }
 
         switch (op)
         {
@@ -656,13 +638,11 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
         }
 
         cbbi.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
-        cbbi.pszText = wtext;
+        cbbi.pszText = (LPWSTR)wtext;
         cbbi.iImage = i_img_index(hwnd, imglist, image);
         cbbi.iSelectedImage = cbbi.iImage;
         SendMessage(hwnd, msg, (WPARAM)0, (LPARAM)&cbbi);
-
-        if (wtext_alloc != NULL)
-            heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSComboSetElem");
+        _osgui_wstr_remove(&str);
     }
     else
     {

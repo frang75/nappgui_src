@@ -18,7 +18,7 @@ void _view_add_transition(View *view, Listener *listener);
 
 void _view_delete_transition(View *view);
 
-View *_view_create(const uint32_t flags);
+_gui_api View *_view_create(const uint32_t flags);
 
 void _view_destroy(View **view);
 

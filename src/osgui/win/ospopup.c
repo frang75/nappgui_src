@@ -200,7 +200,7 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
     cassert_no_null(height);
     font_extents(popup->font, text, -1.f, width, height);
     *width += 40.f;
-    *height += 8.f;
+    *height += 10.f;
     imgwidth = _osimglist_width(popup->image_list);
     if (imgwidth != UINT32_MAX)
         *width += (real32_t)(imgwidth + 5);

@@ -61,8 +61,10 @@ struct _dctx_t
     CGFloat line_dash[16];
     uint32_t dash_count;
     real32_t text_width;
+    ellipsis_t ellipsis;
     align_t text_halign;
     align_t text_valign;
+    align_t text_intalign;
     align_t image_halign;
     align_t image_valign;
     NSMutableParagraphStyle *text_parag;

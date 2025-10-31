@@ -850,10 +850,10 @@ void draw_text_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const bool_t raster, const bool_t single_line, NSRect *rect)
+static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const bool_t raster, NSRect *rect)
 {
     NSString *str = nil;
-    real32_t width, height;
+    real32_t width = 1e8f, height = 1e8f;
 
     cassert_no_null(ctx);
     cassert_no_null(rect);
@@ -870,54 +870,57 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
     rect->origin.y = (CGFloat)y;
     str = [NSString stringWithUTF8String:cast_const(text, char)];
 
-    if (single_line == TRUE)
+    if (ctx->text_halign != ekLEFT || ctx->text_valign != ekTOP || ctx->text_intalign != ekLEFT)
     {
-        MeasureStr data;
-        data.dict = ctx->text_dict;
-        _draw_word_extents(&data, text, &width, &height);
-        if (ctx->text_width > 0)
+        /* Single-line trimmed text */
+        if (ctx->text_width >= 0 && ctx->ellipsis != ekELLIPMLINE)
+        {
             width = ctx->text_width;
+            height = font_height(ctx->font);
+        }
+        else
+        {
+            draw_text_extents(ctx, text, ctx->text_width, &width, &height);
+        }
+
+        switch (ctx->text_halign)
+        {
+        case ekLEFT:
+        case ekJUSTIFY:
+            break;
+        case ekRIGHT:
+            rect->origin.x -= (CGFloat)width;
+            break;
+        case ekCENTER:
+            rect->origin.x -= (CGFloat)round(.5 * width);
+            break;
+        default:
+            cassert_default(ctx->text_halign);
+        }
+
+        switch (ctx->text_valign)
+        {
+        case ekTOP:
+        case ekJUSTIFY:
+            break;
+        case ekBOTTOM:
+            rect->origin.y -= (CGFloat)height;
+            break;
+        case ekCENTER:
+            rect->origin.y -= (CGFloat)round(.5 * height);
+            break;
+        default:
+            cassert_default(ctx->text_valign);
+        }
     }
     else
     {
-        draw_text_extents(ctx, text, ctx->text_width, &width, &height);
-        if (ctx->text_width > 0 && width > ctx->text_width)
+        if (ctx->text_width >= 0)
             width = ctx->text_width;
     }
 
     rect->size.width = (CGFloat)width;
     rect->size.height = (CGFloat)height;
-
-    switch (ctx->text_halign)
-    {
-    case ekLEFT:
-    case ekJUSTIFY:
-        break;
-    case ekRIGHT:
-        rect->origin.x -= (CGFloat)width;
-        break;
-    case ekCENTER:
-        rect->origin.x -= (CGFloat)round(.5 * width);
-        break;
-    default:
-        cassert_default(ctx->text_halign);
-    }
-
-    switch (ctx->text_valign)
-    {
-    case ekTOP:
-    case ekJUSTIFY:
-        break;
-    case ekBOTTOM:
-        rect->origin.y -= (CGFloat)height;
-        break;
-    case ekCENTER:
-        rect->origin.y -= (CGFloat)round(.5 * height);
-        break;
-    default:
-        cassert_default(ctx->text_valign);
-    }
-
     return str;
 }
 
@@ -926,16 +929,7 @@ static NSString *i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, c
 void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, FALSE, &rect);
-    [str drawInRect:rect withAttributes:ctx->text_dict];
-}
-
-/*---------------------------------------------------------------------------*/
-
-void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
-{
-    NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, TRUE, &rect);
+    NSString *str = i_begin_text(ctx, text, x, y, FALSE, &rect);
     [str drawInRect:rect withAttributes:ctx->text_dict];
 }
 
@@ -989,7 +983,7 @@ static CGPathRef i_CGPathCreateSingleLineStringWithAttributedString(NSAttributed
 void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real32_t x, const real32_t y)
 {
     NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, FALSE, FALSE, &rect);
+    NSString *str = i_begin_text(ctx, text, x, y, FALSE, &rect);
 
     if (op == ekFILL && ctx->fillmode == ekFILL_SOLID)
     {
@@ -1060,6 +1054,7 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
         }
     }
 
+    ctx->ellipsis = ellipsis;
     [ctx->text_parag setLineBreakMode:mode];
 }
 
@@ -1125,6 +1120,7 @@ void draw_text_halign(DCtx *ctx, const align_t halign)
         [ctx->text_parag setLineBreakMode:lb];
         [ctx->text_parag setAlignment:i_text_alignment(halign)];
         [ctx->text_dict setObject:ctx->text_parag forKey:NSParagraphStyleAttributeName];
+        ctx->text_intalign = halign;
     }
 
     /*
@@ -1174,7 +1170,7 @@ void draw_set_raster_mode(DCtx *ctx)
 void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     NSRect rect;
-    NSString *str = i_begin_text(ctx, text, x, y, TRUE, TRUE, &rect);
+    NSString *str = i_begin_text(ctx, text, x, y, TRUE, &rect);
     [str drawInRect:rect withAttributes:ctx->text_dict];
 }
 

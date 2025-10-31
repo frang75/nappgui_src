@@ -174,6 +174,14 @@ void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size)
 
 /*---------------------------------------------------------------------------*/
 
+const Font *dctx_font(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->font;
+}
+
+/*---------------------------------------------------------------------------*/
+
 real32_t dctx_text_width(const DCtx *ctx)
 {
     cassert_no_null(ctx);
@@ -217,9 +225,8 @@ color_t dctx_background_color(const DCtx *ctx)
 
 ellipsis_t dctx_text_trim(const DCtx *ctx)
 {
-    unref(ctx);
-    cassert(FALSE);
-    return ekELLIPNONE;
+    cassert_no_null(ctx);
+    return ctx->text_ellipsis;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -12,11 +12,14 @@
 
 #include "osimg.inl"
 #include "osstyleXP.inl"
+#include "osgui_win.inl"
 #include "../osdrawctrl.h"
 #include <draw2d/color.h>
 #include <draw2d/dctxh.h>
 #include <draw2d/font.h>
+#include <core/heap.h>
 #include <osbs/osbs.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 
@@ -40,6 +43,8 @@
 
 static LONG kCHECKBOX_WIDTH = 0;
 static LONG kCHECKBOX_HEIGHT = 0;
+#define UNDEF_WIDTH 10000
+#define UNDEF_HEIGHT 10000
 
 /*---------------------------------------------------------------------------*/
 
@@ -319,31 +324,88 @@ void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_
 
 /*---------------------------------------------------------------------------*/
 
+/* GDI does not handle ellipses well */
+static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const uint32_t width, const ellipsis_t ellipsis)
+{
+    RECT rect = {0, 0, 0, 0};
+    cassert_no_null(text);
+    DrawTextW(hdc, *text, -1, &rect, DT_SINGLELINE | DT_CALCRECT);
+    if ((uint32_t)rect.right > width)
+    {
+        const WCHAR *ellipchar = L"…";
+        uint32_t vchars = (uint32_t)bmath_floorf(((real32_t)width * (real32_t)num_chars) / (real32_t)rect.right);
+        if (vchars > 2)
+        {
+            vchars -= 1;
+            switch (ellipsis)
+            {
+            case ekELLIPBEGIN:
+                *text = *text + (num_chars - vchars);
+                (*text)[0] = ellipchar[0];
+                break;
+
+            case ekELLIPMIDDLE:
+            {
+                uint32_t mchar = vchars / 2;
+                uint32_t i, n = vchars - mchar;
+                (*text)[mchar] = ellipchar[0];
+                for (i = 1; i <= n; ++i)
+                    (*text)[mchar + i] = (*text)[num_chars - n + i];
+                (*text)[vchars] = '\0';
+                break;
+            }
+
+            case ekELLIPEND:
+                (*text)[vchars - 1] = ellipchar[0];
+                (*text)[vchars] = '\0';
+                break;
+
+            case ekELLIPMLINE:
+            case ekELLIPNONE:
+            default:
+                cassert_default(ellipsis);
+            }
+        }
+        else if (vchars == 2)
+        {
+            (*text)[0] = ellipchar[0];
+            (*text)[1] = '\0';
+        }
+        else
+        {
+            (*text)[0] = '\0';
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
     RECT rect;
+    WString str;
+    const WCHAR *wtext = _osgui_wstr_init(text, &str);
     real32_t offset_x = 0, offset_y = 0;
+    align_t align = dctx_text_intalign(ctx);
+    ellipsis_t trim = dctx_text_trim(ctx);
     real32_t text_width = dctx_text_width(ctx);
     HDC hdc = (HDC)dctx_native(ctx);
-    uint32_t num_bytes = 0;
-    WCHAR wtext[1024];
-    UINT format = DT_SINGLELINE | DT_END_ELLIPSIS;
+    UINT format = DT_TOP;
 
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
 
-    // For GDI-based raster text in bitmap context, we have to 'delete' the GDI object
-    // Check 'Using GDI+ on a GDI HDC'
+    /*
+     * For GDI-based raster text in bitmap context, we have to 'delete' the GDI object
+     * Check 'Using GDI+ on a GDI HDC'
+     */
     cassert(dctx_internal_bitmap(ctx) == NULL);
-
     rect.left = (LONG)x + (LONG)offset_x;
-    rect.right = text_width > 0 ? rect.left + (LONG)text_width : 10000;
     rect.top = (LONG)y + (LONG)offset_y;
-    rect.bottom = rect.top + 10000;
-    num_bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, sizeof(wtext));
-    unref(num_bytes);
+    rect.right = text_width >= 0 ? rect.left + (LONG)text_width : UNDEF_WIDTH;
+    rect.bottom = rect.top + UNDEF_HEIGHT;
 
-    switch (dctx_text_intalign(ctx))
+    switch (align)
     {
     case ekLEFT:
     case ekJUSTIFY:
@@ -356,7 +418,37 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
         format |= DT_RIGHT;
         break;
     default:
-        cassert_default(dctx_text_intalign(ctx));
+        cassert_default(align);
+    }
+
+    if (text_width >= 0)
+    {
+        switch (trim)
+        {
+        case ekELLIPNONE:
+            format |= DT_SINGLELINE;
+            break;
+        case ekELLIPBEGIN:
+        case ekELLIPMIDDLE:
+        case ekELLIPEND:
+            format |= DT_SINGLELINE;
+            i_ellipsis(hdc, dcast(&wtext, WCHAR), str.nchars - 1, (uint32_t)text_width, trim);
+            break;
+        case ekELLIPMLINE:
+            format |= DT_WORDBREAK;
+            break;
+        default:
+            cassert_default(trim);
+        }
+    }
+
+    /* Text alignment. DrawText need the real text width */
+    if (text_width < 0 && !(format & DT_SINGLELINE) && ((format & DT_CENTER) || (format & DT_RIGHT)))
+    {
+        RECT nrect = {0, 0, 0, 0};
+        DrawTextW(hdc, wtext, -1, &nrect, format | DT_CALCRECT);
+        rect.right = rect.left + (nrect.right - nrect.left);
+        rect.bottom = rect.top + (nrect.bottom - nrect.top);
     }
 
     if (dctx_text_color(ctx) == kCOLOR_DEFAULT)
@@ -380,6 +472,8 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
     {
         DrawTextW(hdc, wtext, -1, &rect, format);
     }
+
+    _osgui_wstr_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/

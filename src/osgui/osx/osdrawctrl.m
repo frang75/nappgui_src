@@ -184,46 +184,45 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
 
 void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
-    color_t ncolor = dctx_text_color(ctx);
-    ellipsis_t ellipsis = dctx_text_trim(ctx);
+    color_t color = dctx_text_color(ctx);
+    color_t ncolor = color;
 
     if (ncolor == kCOLOR_DEFAULT)
     {
-        const CGFloat *color = _osglobals_text_color();
+        const CGFloat *fcolor = _osglobals_text_color();
         switch (state)
         {
         case ekCTRL_STATE_NORMAL:
-            color = _osglobals_text_color();
+            fcolor = _osglobals_text_color();
             break;
         case ekCTRL_STATE_HOT:
-            color = _osglobals_hottx_color();
+            fcolor = _osglobals_hottx_color();
             break;
         case ekCTRL_STATE_PRESSED:
-            color = _osglobals_seltx_color();
+            fcolor = _osglobals_seltx_color();
             break;
         case ekCTRL_STATE_BKNORMAL:
-            color = _osglobals_textbackdrop_color();
+            fcolor = _osglobals_textbackdrop_color();
             break;
         case ekCTRL_STATE_BKHOT:
-            color = _osglobals_hottxbackdrop_color();
+            fcolor = _osglobals_hottxbackdrop_color();
             break;
         case ekCTRL_STATE_BKPRESSED:
-            color = _osglobals_seltxbackdrop_color();
+            fcolor = _osglobals_seltxbackdrop_color();
             break;
         case ekCTRL_STATE_DISABLED:
-            color = _osglobals_textbackdrop_color();
+            fcolor = _osglobals_textbackdrop_color();
             break;
         default:
             cassert_default(state);
         }
 
-        ncolor = color_rgbaf((real32_t)color[0], (real32_t)color[1], (real32_t)color[2], (real32_t)color[3]);
+        ncolor = color_rgbaf((real32_t)fcolor[0], (real32_t)fcolor[1], (real32_t)fcolor[2], (real32_t)fcolor[3]);
     }
 
     draw_text_color(ctx, ncolor);
-    draw_text_trim(ctx, ekELLIPEND);
     draw_text_raster(ctx, text, (real32_t)x, (real32_t)y);
-    draw_text_trim(ctx, ellipsis);
+    draw_text_color(ctx, color);
 }
 
 /*---------------------------------------------------------------------------*/

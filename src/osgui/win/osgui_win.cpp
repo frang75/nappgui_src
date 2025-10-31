@@ -463,6 +463,42 @@ uint32_t _osgui_modifiers(void)
 
 /*---------------------------------------------------------------------------*/
 
+const WCHAR *_osgui_wstr_init(const char_t *text, WString *str)
+{
+    WCHAR *wtext = NULL;
+    cassert_no_null(str);
+    str->nchars = 1 + unicode_nchars(text, ekUTF8);
+
+    if (str->nchars < STATIC_TEXT_SIZE)
+    {
+        str->alloctext = NULL;
+        wtext = str->statictext;
+    }
+    else
+    {
+        str->alloctext = cast(heap_malloc(str->nchars * sizeof(WCHAR), "WString_osgui"), WCHAR);
+        wtext = str->alloctext;
+    }
+
+    {
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, str->nchars * sizeof(WCHAR));
+        cassert_unref(bytes == str->nchars * sizeof(WCHAR), bytes);
+    }
+
+    return wtext;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osgui_wstr_remove(WString *str)
+{
+    cassert_no_null(str);
+    if (str->alloctext != NULL)
+        heap_free(dcast(&str->alloctext, byte_t), str->nchars * sizeof(WCHAR), "WString_osgui");
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _osgui_start_imp(void)
 {
     /* Application instance */

@@ -305,35 +305,13 @@ static void i_apply_format(OSText *view, WPARAM char_sel)
 
 static void i_add_text(OSText *view, CHARRANGE *cr, const char_t *text)
 {
-    uint32_t num_bytes = 0;
-    WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-    WCHAR *wtext;
-
+    WString str;
+    const WCHAR *wtext = _osgui_wstr_init(text, &str);
     view->launch_event = FALSE;
-    num_bytes = unicode_convers_nbytes(text, ekUTF8, kWINDOWS_UNICODE);
-    if (num_bytes < sizeof(wtext_static))
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_bytes, "OSTextAddText"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
-        cassert_unref(bytes == num_bytes, bytes);
-    }
-
     SendMessage(view->control.hwnd, EM_EXSETSEL, 0, (LPARAM)cr);
     i_apply_format(view, SCF_SELECTION);
     SendMessage(view->control.hwnd, EM_REPLACESEL, 0, (LPARAM)wtext);
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSTextAddText");
-
+    _osgui_wstr_remove(&str);
     view->launch_event = TRUE;
 }
 
@@ -363,33 +341,12 @@ void ostext_add_text(OSText *view, const char_t *text)
 
 static void i_replace_seltext(OSText *view, const char_t *text)
 {
-    uint32_t num_bytes = 0;
-    WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-    WCHAR *wtext;
+    WString str;
+    const WCHAR *wtext = _osgui_wstr_init(text, &str);
     cassert_no_null(view);
     view->launch_event = FALSE;
-    num_bytes = unicode_convers_nbytes(text, ekUTF8, kWINDOWS_UNICODE);
-    if (num_bytes < sizeof(wtext_static))
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_bytes, "OSTextReplaceText"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
-        cassert_unref(bytes == num_bytes, bytes);
-    }
-
     SendMessage(view->control.hwnd, EM_REPLACESEL, 0, (LPARAM)wtext);
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSTextReplaceText");
-
+    _osgui_wstr_remove(&str);
     view->launch_event = TRUE;
 }
 
@@ -591,7 +548,7 @@ static char_t *i_get_text(HWND hwnd, uint32_t *size, uint32_t *nchars)
 {
     uint32_t num_chars = 0;
     WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
+    WCHAR wtext_static[STATIC_TEXT_SIZE];
     WCHAR *wtext = NULL;
     char_t *text = NULL;
 
@@ -606,7 +563,7 @@ static char_t *i_get_text(HWND hwnd, uint32_t *size, uint32_t *nchars)
             *nchars = num_chars - 1;
     }
 
-    if (num_chars < WCHAR_BUFFER_SIZE)
+    if (num_chars < STATIC_TEXT_SIZE)
     {
         wtext = wtext_static;
     }
@@ -744,7 +701,7 @@ static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
 {
     uint32_t num_chars = 0;
     WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
+    WCHAR wtext_static[STATIC_TEXT_SIZE];
     WCHAR *wtext = NULL;
     char_t *text = NULL;
 
@@ -752,7 +709,7 @@ static char_t *i_get_seltext(HWND hwnd, const CHARRANGE *cr, uint32_t *size)
     cassert_no_null(size);
     num_chars = (uint32_t)(cr->cpMax - cr->cpMin);
 
-    if (num_chars < WCHAR_BUFFER_SIZE)
+    if (num_chars < STATIC_TEXT_SIZE)
     {
         wtext = wtext_static;
     }

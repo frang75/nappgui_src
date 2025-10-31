@@ -2,6 +2,8 @@
 
 #include "res_drawhello.h"
 #include <nappgui.h>
+#include <gui/view.inl>
+#include <gui/drawctrl.inl>
 
 typedef struct _app_t App;
 
@@ -10,9 +12,11 @@ struct _app_t
     Window *window;
     View *view;
     Label *label;
-    Cell *slider;
+    Cell *slider1;
+    Cell *slider2;
+    Cell *popup_trim;
+    Cell *popup_align;
     uint32_t option;
-    real32_t slider_pos;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -337,200 +341,193 @@ static void i_draw_wrap_gradient(DCtx *ctx)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_text_single(DCtx *ctx, const real32_t xscale)
+static void i_draw_text_rect(DCtx *ctx, const real32_t x, const real32_t y, const real32_t w, const real32_t h, const align_t halign, const align_t valign)
+{
+    real32_t rx = x, ry = y;
+    switch (halign)
+    {
+    case ekLEFT:
+    case ekJUSTIFY:
+        break;
+    case ekCENTER:
+        rx -= w / 2;
+        break;
+    case ekRIGHT:
+        rx -= w;
+        break;
+    default:
+        cassert_default(halign);
+    }
+
+    switch (valign)
+    {
+    case ekTOP:
+    case ekJUSTIFY:
+        break;
+    case ekCENTER:
+        ry -= h / 2;
+        break;
+    case ekBOTTOM:
+        ry -= h;
+        break;
+    default:
+        cassert_default(valign);
+    }
+
+    draw_rect(ctx, ekSTROKE, rx, ry, w, h);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const real32_t w, const real32_t h, const align_t halign, const align_t valign)
+{
+    draw_text_align(ctx, halign, valign);
+
+    if (w > 20)
+        draw_text(ctx, text, x, y);
+
+    draw_circle(ctx, ekFILL, x, y, 3);
+    i_draw_text_rect(ctx, x, y, w, h, halign, valign);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_text_single(DCtx *ctx, const real32_t xscale, const real32_t text_width, const uint32_t text_trim, const uint32_t text_align)
 {
     Font *bfont = font_system(20, 0);
     Font *font = font_with_xscale(bfont, xscale);
     const char_t *text = "Text 文本 Κείμενο";
-    real32_t width, height;
+    real32_t w, h;
     T2Df matrix;
     draw_font(ctx, font);
-    draw_text_extents(ctx, text, -1, &width, &height);
+    draw_text_extents(ctx, text, -1, &w, &h);
     draw_text_color(ctx, kCOLOR_BLUE);
-    draw_text_align(ctx, ekLEFT, ekTOP);
-    draw_text(ctx, text, 25, 25);
-    draw_text_align(ctx, ekCENTER, ekTOP);
-    draw_text(ctx, text, 300, 25);
-    draw_text_align(ctx, ekRIGHT, ekTOP);
-    draw_text(ctx, text, 575, 25);
-    draw_text_align(ctx, ekLEFT, ekCENTER);
-    draw_text(ctx, text, 25, 100);
-    draw_text_align(ctx, ekCENTER, ekCENTER);
-    draw_text(ctx, text, 300, 100);
-    draw_text_align(ctx, ekRIGHT, ekCENTER);
-    draw_text(ctx, text, 575, 100);
-    draw_text_align(ctx, ekLEFT, ekBOTTOM);
-    draw_text(ctx, text, 25, 175);
-    draw_text_align(ctx, ekCENTER, ekBOTTOM);
-    draw_text(ctx, text, 300, 175);
-    draw_text_align(ctx, ekRIGHT, ekBOTTOM);
-    draw_text(ctx, text, 575, 175);
     draw_line_color(ctx, kCOLOR_RED);
     draw_fill_color(ctx, kCOLOR_RED);
-    draw_circle(ctx, ekFILL, 25, 25, 3);
-    draw_circle(ctx, ekFILL, 300, 25, 3);
-    draw_circle(ctx, ekFILL, 575, 25, 3);
-    draw_circle(ctx, ekFILL, 25, 100, 3);
-    draw_circle(ctx, ekFILL, 300, 100, 3);
-    draw_circle(ctx, ekFILL, 575, 100, 3);
-    draw_circle(ctx, ekFILL, 25, 175, 3);
-    draw_circle(ctx, ekFILL, 300, 175, 3);
-    draw_circle(ctx, ekFILL, 575, 175, 3);
-    draw_circle(ctx, ekFILL, 25, 200, 3);
-    draw_circle(ctx, ekFILL, 300, 250, 3);
-    draw_circle(ctx, ekFILL, 25, 325, 3);
-    draw_circle(ctx, ekFILL, 575, 200, 3);
-    draw_circle(ctx, ekFILL, 575, 230, 3);
-    draw_circle(ctx, ekFILL, 575, 260, 3);
-    draw_rect(ctx, ekSTROKE, 25, 25, width, height);
-    draw_rect(ctx, ekSTROKE, 300 - (width / 2), 25, width, height);
-    draw_rect(ctx, ekSTROKE, 575 - width, 25, width, height);
-    draw_rect(ctx, ekSTROKE, 25, 100 - (height / 2), width, height);
-    draw_rect(ctx, ekSTROKE, 300 - (width / 2), 100 - (height / 2), width, height);
-    draw_rect(ctx, ekSTROKE, 575 - width, 100 - (height / 2), width, height);
-    draw_rect(ctx, ekSTROKE, 25, 175 - height, width, height);
-    draw_rect(ctx, ekSTROKE, 300 - (width / 2), 175 - height, width, height);
-    draw_rect(ctx, ekSTROKE, 575 - width, 175 - height, width, height);
-    draw_fill_color(ctx, kCOLOR_BLUE);
+    draw_text_halign(ctx, (align_t)(text_align + 1));
+
+    if (text_trim > 0)
+    {
+        draw_text_width(ctx, text_width);
+        if (text_trim == 1)
+            draw_text_trim(ctx, ekELLIPBEGIN);
+        else if (text_trim == 2)
+            draw_text_trim(ctx, ekELLIPMIDDLE);
+        else
+            draw_text_trim(ctx, ekELLIPEND);
+        w = text_width;
+    }
+    else
+    {
+        draw_text_width(ctx, -1);
+    }
+
+    i_draw_text(ctx, text, 25, 25, w, h, ekLEFT, ekTOP);
+    i_draw_text(ctx, text, 300, 25, w, h, ekCENTER, ekTOP);
+    i_draw_text(ctx, text, 575, 25, w, h, ekRIGHT, ekTOP);
+    i_draw_text(ctx, text, 25, 100, w, h, ekLEFT, ekCENTER);
+    i_draw_text(ctx, text, 300, 100, w, h, ekCENTER, ekCENTER);
+    i_draw_text(ctx, text, 575, 100, w, h, ekRIGHT, ekCENTER);
+    i_draw_text(ctx, text, 25, 175, w, h, ekLEFT, ekBOTTOM);
+    i_draw_text(ctx, text, 300, 175, w, h, ekCENTER, ekBOTTOM);
+    i_draw_text(ctx, text, 575, 175, w, h, ekRIGHT, ekBOTTOM);
+
     t2d_movef(&matrix, kT2D_IDENTf, 25, 200);
     t2d_rotatef(&matrix, &matrix, kBMATH_PIf / 8);
     draw_matrixf(ctx, &matrix);
-    draw_text_align(ctx, ekLEFT, ekTOP);
-    draw_text(ctx, text, 0, 0);
+    i_draw_text(ctx, text, 0, 0, w, h, ekLEFT, ekTOP);
+
     t2d_movef(&matrix, kT2D_IDENTf, 300, 250);
     t2d_rotatef(&matrix, &matrix, -kBMATH_PIf / 8);
     draw_matrixf(ctx, &matrix);
-    draw_text_align(ctx, ekCENTER, ekCENTER);
-    draw_text(ctx, text, 0, 0);
+    i_draw_text(ctx, text, 0, 0, w, h, ekCENTER, ekCENTER);
+
     t2d_movef(&matrix, kT2D_IDENTf, 25, 325);
     t2d_scalef(&matrix, &matrix, 3, 1);
     draw_matrixf(ctx, &matrix);
-    draw_text_align(ctx, ekLEFT, ekTOP);
-    draw_text(ctx, text, 0, 0);
+    i_draw_text(ctx, text, 0, 0, w, h, ekLEFT, ekTOP);
+
     t2d_movef(&matrix, kT2D_IDENTf, 575, 200);
     t2d_scalef(&matrix, &matrix, .5f, 1);
     draw_matrixf(ctx, &matrix);
-    draw_text_align(ctx, ekRIGHT, ekTOP);
-    draw_text(ctx, text, 0, 0);
+    i_draw_text(ctx, text, 0, 0, w, h, ekRIGHT, ekTOP);
+
     t2d_movef(&matrix, kT2D_IDENTf, 575, 230);
     t2d_scalef(&matrix, &matrix, .75f, 1);
     draw_matrixf(ctx, &matrix);
-    draw_text_align(ctx, ekRIGHT, ekTOP);
-    draw_text(ctx, text, 0, 0);
+    i_draw_text(ctx, text, 0, 0, w, h, ekRIGHT, ekTOP);
+
     t2d_movef(&matrix, kT2D_IDENTf, 575, 260);
     t2d_scalef(&matrix, &matrix, 1.25f, 1);
     draw_matrixf(ctx, &matrix);
-    draw_text_align(ctx, ekRIGHT, ekTOP);
-    draw_text(ctx, text, 0, 0);
+    i_draw_text(ctx, text, 0, 0, w, h, ekRIGHT, ekTOP);
+
     font_destroy(&bfont);
     font_destroy(&font);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_text_newline(DCtx *ctx, const real32_t xscale)
+static void i_text_newline(DCtx *ctx, const real32_t xscale, const uint32_t align)
 {
     Font *bfont = font_system(20, 0);
     Font *font = font_with_xscale(bfont, xscale);
     const char_t *text = "Text new line\n文字换行\nΓραμμή κειμένου";
-    real32_t width, height;
+    const char_t *stext = "Text single line";
+    real32_t w1, h1, w2, h2;
     draw_font(ctx, font);
-    draw_text_extents(ctx, text, -1, &width, &height);
+    draw_text_extents(ctx, text, -1, &w1, &h1);
+    draw_text_extents(ctx, stext, -1, &w2, &h2);
     draw_text_color(ctx, kCOLOR_BLUE);
-    draw_text_align(ctx, ekLEFT, ekTOP);
-    draw_text_halign(ctx, ekLEFT);
-    draw_text(ctx, text, 25, 25);
-    draw_text_align(ctx, ekCENTER, ekTOP);
-    draw_text_halign(ctx, ekCENTER);
-    draw_text(ctx, text, 300, 25);
-    draw_text_align(ctx, ekRIGHT, ekTOP);
-    draw_text_halign(ctx, ekRIGHT);
-    draw_text(ctx, text, 575, 25);
-    draw_text_align(ctx, ekLEFT, ekCENTER);
-    draw_text_halign(ctx, ekLEFT);
-    draw_text(ctx, text, 25, 175);
-    draw_text_align(ctx, ekCENTER, ekCENTER);
-    draw_text_halign(ctx, ekCENTER);
-    draw_text(ctx, text, 300, 175);
-    draw_text_align(ctx, ekRIGHT, ekCENTER);
-    draw_text_halign(ctx, ekRIGHT);
-    draw_text(ctx, text, 575, 175);
-    draw_text_align(ctx, ekLEFT, ekBOTTOM);
-    draw_text_halign(ctx, ekLEFT);
-    draw_text(ctx, text, 25, 325);
-    draw_text_align(ctx, ekCENTER, ekBOTTOM);
-    draw_text_halign(ctx, ekCENTER);
-    draw_text(ctx, text, 300, 325);
-    draw_text_align(ctx, ekRIGHT, ekBOTTOM);
-    draw_text_halign(ctx, ekRIGHT);
-    draw_text(ctx, text, 575, 325);
     draw_line_color(ctx, kCOLOR_RED);
     draw_fill_color(ctx, kCOLOR_RED);
-    draw_circle(ctx, ekFILL, 25, 25, 3);
-    draw_circle(ctx, ekFILL, 300, 25, 3);
-    draw_circle(ctx, ekFILL, 575, 25, 3);
-    draw_circle(ctx, ekFILL, 25, 175, 3);
-    draw_circle(ctx, ekFILL, 300, 175, 3);
-    draw_circle(ctx, ekFILL, 575, 175, 3);
-    draw_circle(ctx, ekFILL, 25, 325, 3);
-    draw_circle(ctx, ekFILL, 300, 325, 3);
-    draw_circle(ctx, ekFILL, 575, 325, 3);
-    draw_rect(ctx, ekSTROKE, 25, 25, width, height);
-    draw_rect(ctx, ekSTROKE, 300 - (width / 2), 25, width, height);
-    draw_rect(ctx, ekSTROKE, 575 - width, 25, width, height);
-    draw_rect(ctx, ekSTROKE, 25, 175 - (height / 2), width, height);
-    draw_rect(ctx, ekSTROKE, 300 - (width / 2), 175 - (height / 2), width, height);
-    draw_rect(ctx, ekSTROKE, 575 - width, 175 - (height / 2), width, height);
-    draw_rect(ctx, ekSTROKE, 25, 325 - height, width, height);
-    draw_rect(ctx, ekSTROKE, 300 - (width / 2), 325 - height, width, height);
-    draw_rect(ctx, ekSTROKE, 575 - width, 325 - height, width, height);
+    draw_text_width(ctx, -1);
+    draw_text_halign(ctx, (align_t)(align + 1));
+    i_draw_text(ctx, text, 25, 25, w1, h1, ekLEFT, ekTOP);
+    i_draw_text(ctx, text, 300, 25, w1, h1, ekCENTER, ekTOP);
+    i_draw_text(ctx, text, 575, 25, w1, h1, ekRIGHT, ekTOP);
+    i_draw_text(ctx, text, 25, 175, w1, h1, ekLEFT, ekCENTER);
+    i_draw_text(ctx, text, 300, 175, w1, h1, ekCENTER, ekCENTER);
+    i_draw_text(ctx, text, 575, 175, w1, h1, ekRIGHT, ekCENTER);
+    i_draw_text(ctx, text, 25, 325, w1, h1, ekLEFT, ekBOTTOM);
+    i_draw_text(ctx, text, 300, 325, w1, h1, ekCENTER, ekBOTTOM);
+    i_draw_text(ctx, text, 575, 325, w1, h1, ekRIGHT, ekBOTTOM);
+    i_draw_text(ctx, stext, 25, 350, w2, h2, ekLEFT, ekTOP);
+    i_draw_text(ctx, stext, 300, 350, w2, h2, ekCENTER, ekTOP);
+    i_draw_text(ctx, stext, 575, 350, w2, h2, ekRIGHT, ekTOP);
     font_destroy(&bfont);
     font_destroy(&font);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_text_block(DCtx *ctx, const real32_t xscale)
+static void i_draw_text_block(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const real32_t max_width, const real32_t w, const real32_t h, const align_t halign, const align_t valign)
+{
+    real32_t dash[2] = {1, 1};
+    i_draw_text(ctx, text, x, y, max_width, h, halign, valign);
+    draw_line_dash(ctx, dash, 2);
+    i_draw_text_rect(ctx, x, y, w, h, halign, valign);
+    draw_line_dash(ctx, NULL, 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_text_block(DCtx *ctx, const real32_t xscale, const real32_t text_width, const uint32_t align)
 {
     const char_t *text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
     Font *bfont = font_system(font_regular_size(), 0);
     Font *font = font_with_xscale(bfont, xscale);
-    real32_t dash[2] = {1, 1};
-    real32_t width1, height1;
-    real32_t width2, height2;
-    real32_t width3, height3;
-    real32_t width4, height4;
+    real32_t w, h;
     draw_font(ctx, font);
     draw_text_color(ctx, kCOLOR_BLUE);
-    draw_text_align(ctx, ekLEFT, ekTOP);
-    draw_text_halign(ctx, ekLEFT);
-    draw_text_width(ctx, 200);
-    draw_text_extents(ctx, text, 200, &width1, &height1);
-    draw_text(ctx, text, 25, 25);
-    draw_text_width(ctx, 300);
-    draw_text_extents(ctx, text, 300, &width2, &height2);
-    draw_text(ctx, text, 250, 25);
-    draw_text_width(ctx, 400);
-    draw_text_extents(ctx, text, 400, &width3, &height3);
-    draw_text(ctx, text, 25, 200);
-    draw_text_width(ctx, 500);
-    draw_text_extents(ctx, text, 500, &width4, &height4);
-    draw_text(ctx, text, 25, 315);
     draw_line_color(ctx, kCOLOR_RED);
     draw_fill_color(ctx, kCOLOR_RED);
-    draw_circle(ctx, ekFILL, 25, 25, 3);
-    draw_circle(ctx, ekFILL, 250, 25, 3);
-    draw_circle(ctx, ekFILL, 25, 200, 3);
-    draw_circle(ctx, ekFILL, 25, 315, 3);
-    draw_rect(ctx, ekSTROKE, 25, 25, 200, height1);
-    draw_rect(ctx, ekSTROKE, 250, 25, 300, height2);
-    draw_rect(ctx, ekSTROKE, 25, 200, 400, height3);
-    draw_rect(ctx, ekSTROKE, 25, 315, 500, height4);
-    draw_line_dash(ctx, dash, 2);
-    draw_rect(ctx, ekSTROKE, 25, 25, width1, height1);
-    draw_rect(ctx, ekSTROKE, 250, 25, width2, height2);
-    draw_rect(ctx, ekSTROKE, 25, 200, width3, height3);
-    draw_rect(ctx, ekSTROKE, 25, 315, width4, height4);
+    draw_text_halign(ctx, (align_t)(align + 1));
+    draw_text_width(ctx, text_width);
+    draw_text_extents(ctx, text, text_width, &w, &h);
+    i_draw_text_block(ctx, text, 25, 25, text_width, w, h, ekLEFT, ekTOP);
+    i_draw_text_block(ctx, text, 400, 25, text_width, w, h, ekCENTER, ekTOP);
+    i_draw_text_block(ctx, text, 500, 200, text_width, w, h, ekRIGHT, ekTOP);
     font_destroy(&bfont);
     font_destroy(&font);
 }
@@ -547,25 +544,103 @@ static void i_text_art(DCtx *ctx)
     c[0] = kCOLOR_BLUE;
     c[1] = kCOLOR_RED;
     draw_font(ctx, font);
+
     draw_line_width(ctx, 2);
     draw_line_color(ctx, kCOLOR_WHITE);
     draw_fill_color(ctx, kCOLOR_BLUE);
     draw_text_path(ctx, ekFILLSK, "Fill and Stoke text", 25, 25);
+
     draw_text_extents(ctx, "Gradient fill text", -1, &width, &height);
     draw_fill_linear(ctx, c, stop, 2, 25, 0, 25 + width, 0);
     draw_fill_matrix(ctx, kT2D_IDENTf);
     draw_text_path(ctx, ekFILL, "Gradient fill text", 25, 100);
+
     draw_line_color(ctx, kCOLOR_BLACK);
     draw_line_dash(ctx, dash, 2);
     draw_text_path(ctx, ekSTROKE, "Dashed stroke text", 25, 175);
+
     draw_line_color(ctx, kCOLOR_GREEN);
     draw_text_extents(ctx, "Gradient dashed text", -1, &width, &height);
     draw_fill_linear(ctx, c, stop, 2, 25, 0, 25 + width, 0);
     draw_text_path(ctx, ekFILLSK, "Gradient dashed text", 25, 250);
+
     draw_line_color(ctx, kCOLOR_BLACK);
     draw_line_width(ctx, .5f);
     draw_line_dash(ctx, NULL, 0);
     draw_text_path(ctx, ekSTROKE, "Thin stroke text", 25, 325);
+
+    font_destroy(&font);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const real32_t w, const real32_t h, const align_t halign)
+{
+    draw_text_halign(ctx, halign);
+    drawctrl_text(ctx, text, (int32_t)x, (int32_t)y, ekCTRL_STATE_NORMAL);
+    draw_circle(ctx, ekFILL, x, y, 3);
+    draw_rect(ctx, ekSTROKE, x, y, w, h);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_text_raster(DCtx *ctx, const real32_t xscale, const real32_t text_width, const uint32_t text_trim, const uint32_t align)
+{
+    Font *bfont = font_system(20, 0);
+    Font *font = font_with_xscale(bfont, xscale);
+    align_t halign = (align_t)(align + 1);
+
+    draw_font(ctx, font);
+    draw_line_color(ctx, kCOLOR_RED);
+    draw_fill_color(ctx, kCOLOR_RED);
+
+    /* Single line with text width and trim (ellipsis) */
+    {
+        const char_t *text = "This is a text line";
+        real32_t w, h;
+        draw_text_color(ctx, kCOLOR_DEFAULT);
+        font_extents(font, text, -1, &w, &h);
+
+        if (text_trim > 0)
+        {
+            draw_text_width(ctx, text_width);
+            if (text_trim == 1)
+                draw_text_trim(ctx, ekELLIPBEGIN);
+            else if (text_trim == 2)
+                draw_text_trim(ctx, ekELLIPMIDDLE);
+            else
+                draw_text_trim(ctx, ekELLIPEND);
+            w = text_width;
+        }
+        else
+        {
+            draw_text_width(ctx, -1);
+        }
+
+        i_draw_text_raster(ctx, text, 25, 25, w, h, halign);
+    }
+
+    /* Text block with newlines */
+    {
+        const char_t *text = "Text new line\n文字换行\nΓραμμή κειμένου";
+        real32_t w, h;
+        draw_text_width(ctx, -1);
+        draw_text_color(ctx, kCOLOR_BLUE);
+        font_extents(font, text, -1, &w, &h);
+        i_draw_text_raster(ctx, text, 200, 25, w, h, halign);
+    }
+
+    /* Text block with fixed width */
+    {
+        const char_t *text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+        real32_t w, h, tw = 200 + text_width;
+        draw_text_width(ctx, tw);
+        draw_text_trim(ctx, ekELLIPMLINE);
+        font_extents(font, text, tw, &w, &h);
+        i_draw_text_raster(ctx, text, 25, 125, tw, h, halign);
+    }
+
+    font_destroy(&bfont);
     font_destroy(&font);
 }
 
@@ -606,73 +681,60 @@ static void i_image(DCtx *ctx)
 static void i_OnDraw(App *app, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
+    Slider *slider1 = cell_slider(app->slider1);
+    Slider *slider2 = cell_slider(app->slider2);
+    PopUp *popup1 = cell_popup(app->popup_trim);
+    PopUp *popup2 = cell_popup(app->popup_align);
+    real32_t slider1_pos = slider_get_value(slider1);
+    real32_t slider2_pos = slider_get_value(slider2);
+    uint32_t text_trim = popup_get_selected(popup1);
+    uint32_t text_align = popup_get_selected(popup2);
+
     draw_clear(p->ctx, color_rgb(200, 200, 200));
+
     switch (app->option)
     {
     case 0:
-        cell_enabled(app->slider, FALSE);
-        label_text(app->label, "Different line styles: width, join, cap, dash...");
         i_draw_lines(p->ctx);
         break;
     case 1:
-        cell_enabled(app->slider, FALSE);
-        label_text(app->label, "Basic shapes filled and stroke.");
         draw_fill_color(p->ctx, kCOLOR_BLUE);
         i_draw_shapes(p->ctx, FALSE);
         break;
     case 2:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Global linear gradient.");
-        i_draw_gradient(p->ctx, app->slider_pos, TRUE, FALSE);
+        i_draw_gradient(p->ctx, slider1_pos, TRUE, FALSE);
         break;
     case 3:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Shapes filled with global (identity) linear gradient.");
-        i_draw_gradient(p->ctx, app->slider_pos, TRUE, TRUE);
+        i_draw_gradient(p->ctx, slider1_pos, TRUE, TRUE);
         break;
     case 4:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Shapes filled with global (identity) linear gradient.");
-        i_draw_gradient(p->ctx, app->slider_pos, FALSE, TRUE);
+        i_draw_gradient(p->ctx, slider1_pos, FALSE, TRUE);
         break;
     case 5:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Lines with global (identity) linear gradient.");
-        i_draw_lines_gradient(p->ctx, app->slider_pos);
+        i_draw_lines_gradient(p->ctx, slider1_pos);
         break;
     case 6:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Shapes filled with local (transformed) gradient.");
-        i_draw_local_gradient(p->ctx, app->slider_pos);
+        i_draw_local_gradient(p->ctx, slider1_pos);
         break;
     case 7:
-        cell_enabled(app->slider, FALSE);
-        label_text(app->label, "Gradient wrap modes.");
         i_draw_wrap_gradient(p->ctx);
         break;
     case 8:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Single line text with alignment and transforms");
-        i_text_single(p->ctx, app->slider_pos + .5f);
+        i_text_single(p->ctx, slider1_pos + .5f, 100 + 200 * (-.5f + slider2_pos), text_trim, text_align);
         break;
     case 9:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Text with newline '\\n' character and internal alignment");
-        i_text_newline(p->ctx, app->slider_pos + .5f);
+        i_text_newline(p->ctx, slider1_pos + .5f, text_align);
         break;
     case 10:
-        cell_enabled(app->slider, TRUE);
-        label_text(app->label, "Text block in a constrained width area");
-        i_text_block(p->ctx, app->slider_pos + .5f);
+        i_text_block(p->ctx, slider1_pos + .5f, 200 + 200 * (-.5f + slider2_pos), text_align);
         break;
     case 11:
-        cell_enabled(app->slider, FALSE);
-        label_text(app->label, "Artistic text filled and stroke");
         i_text_art(p->ctx);
         break;
     case 12:
-        cell_enabled(app->slider, FALSE);
-        label_text(app->label, "Drawing images with alignment");
+        i_text_raster(p->ctx, slider1_pos + .5f, 100 + 200 * (-.5f + slider2_pos), text_trim, text_align);
+        break;
+    case 13:
         i_image(p->ctx);
         break;
     default:
@@ -691,13 +753,101 @@ static void i_OnAcceptFocus(App *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnSelect(App *app, Event *e)
+static void i_set_demo(App *app, const uint32_t option)
+{
+    Slider *slider1 = cell_slider(app->slider1);
+    Slider *slider2 = cell_slider(app->slider2);
+    cassert_no_null(app);
+    app->option = option;
+    slider_value(slider1, 0.5f);
+    slider_value(slider2, 0.5f);
+    cell_enabled(app->slider1, FALSE);
+    cell_enabled(app->slider2, FALSE);
+    cell_enabled(app->popup_trim, FALSE);
+    cell_enabled(app->popup_align, FALSE);
+
+    switch (app->option)
+    {
+    case 0:
+        label_text(app->label, "Different line styles: width, join, cap, dash...");
+        break;
+    case 1:
+        label_text(app->label, "Basic shapes filled and stroke.");
+        break;
+    case 2:
+        cell_enabled(app->slider1, TRUE);
+        label_text(app->label, "Global linear gradient.");
+        break;
+    case 3:
+        cell_enabled(app->slider1, TRUE);
+        label_text(app->label, "Shapes filled with global (identity) linear gradient (with background).");
+        break;
+    case 4:
+        cell_enabled(app->slider1, TRUE);
+        label_text(app->label, "Shapes filled with global (identity) linear gradient.");
+        break;
+    case 5:
+        cell_enabled(app->slider1, TRUE);
+        label_text(app->label, "Lines with global (identity) linear gradient.");
+        break;
+    case 6:
+        cell_enabled(app->slider1, TRUE);
+        label_text(app->label, "Shapes filled with local (transformed) gradient.");
+        break;
+    case 7:
+        label_text(app->label, "Gradient wrap modes.");
+        break;
+    case 8:
+        label_text(app->label, "Single line text with alignment, transforms and trimming");
+        cell_enabled(app->slider1, TRUE);
+        cell_enabled(app->slider2, TRUE);
+        cell_enabled(app->popup_trim, TRUE);
+        cell_enabled(app->popup_align, TRUE);
+        break;
+    case 9:
+        label_text(app->label, "Text with newline '\\n' character and internal alignment");
+        cell_enabled(app->slider1, TRUE);
+        cell_enabled(app->popup_align, TRUE);
+        break;
+    case 10:
+        label_text(app->label, "Text block in a constrained width area");
+        cell_enabled(app->slider1, TRUE);
+        cell_enabled(app->slider2, TRUE);
+        cell_enabled(app->popup_align, TRUE);
+        break;
+    case 11:
+        label_text(app->label, "Artistic text filled and stroke");
+        break;
+    case 12:
+        label_text(app->label, "Rasterized text with alignment and trimming");
+        cell_enabled(app->slider1, TRUE);
+        cell_enabled(app->slider2, TRUE);
+        cell_enabled(app->popup_trim, TRUE);
+        cell_enabled(app->popup_align, TRUE);
+        break;
+    case 13:
+        label_text(app->label, "Drawing images with alignment");
+        break;
+    default:
+        cassert_default(app->option);
+    }
+
+    view_update(app->view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSelect1(App *app, Event *e)
 {
     const EvButton *p = event_params(e, EvButton);
-    Slider *slider = cell_slider(app->slider);
-    app->option = p->index;
-    app->slider_pos = 0.5f;
-    slider_value(slider, app->slider_pos);
+    i_set_demo(app, p->index);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnSelect2(App *app, Event *e)
+{
+    unref(e);
     view_update(app->view);
 }
 
@@ -705,8 +855,7 @@ static void i_OnSelect(App *app, Event *e)
 
 static void i_OnSlider(App *app, Event *e)
 {
-    const EvSlider *p = event_params(e, EvSlider);
-    app->slider_pos = p->pos;
+    unref(e);
     view_update(app->view);
 }
 
@@ -716,41 +865,67 @@ static Panel *i_panel(App *app)
 {
     Panel *panel = panel_create();
     Layout *layout1 = layout_create(1, 3);
-    Layout *layout2 = layout_create(4, 1);
+    Layout *layout2 = layout_create(4, 3);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
-    PopUp *popup = popup_create();
-    Slider *slider = slider_create();
-    View *view = view_create();
+    Label *label4 = label_create();
+    Label *label5 = label_create();
+    Label *label6 = label_create();
+    PopUp *popup1 = popup_create();
+    PopUp *popup2 = popup_create();
+    PopUp *popup3 = popup_create();
+    Slider *slider1 = slider_create();
+    Slider *slider2 = slider_create();
+    View *view = _view_create(ekVIEW_CONTROL);
     label_text(label1, "Select primitives:");
-    label_text(label2, "Gradient/scale");
-    label_multiline(label3, TRUE);
-    popup_add_elem(popup, "Lines", NULL);
-    popup_add_elem(popup, "Shapes", NULL);
-    popup_add_elem(popup, "Gradient-1", NULL);
-    popup_add_elem(popup, "Gradient-2", NULL);
-    popup_add_elem(popup, "Gradient-3", NULL);
-    popup_add_elem(popup, "Gradient-4", NULL);
-    popup_add_elem(popup, "Gradient-5", NULL);
-    popup_add_elem(popup, "Gradient-6", NULL);
-    popup_add_elem(popup, "Text-1", NULL);
-    popup_add_elem(popup, "Text-2", NULL);
-    popup_add_elem(popup, "Text-3", NULL);
-    popup_add_elem(popup, "Text-4", NULL);
-    popup_add_elem(popup, "Image", NULL);
-    popup_list_height(popup, 6);
-    popup_OnSelect(popup, listener(app, i_OnSelect, App));
-    slider_OnMoved(slider, listener(app, i_OnSlider, App));
+    label_text(label2, "Gradient/scale:");
+    label_text(label3, "Text trim:");
+    label_text(label4, "Text width:");
+    label_text(label5, "Text halign:");
+    label_multiline(label6, TRUE);
+    popup_add_elem(popup1, "Lines", NULL);
+    popup_add_elem(popup1, "Shapes", NULL);
+    popup_add_elem(popup1, "Gradient-1", NULL);
+    popup_add_elem(popup1, "Gradient-2", NULL);
+    popup_add_elem(popup1, "Gradient-3", NULL);
+    popup_add_elem(popup1, "Gradient-4", NULL);
+    popup_add_elem(popup1, "Gradient-5", NULL);
+    popup_add_elem(popup1, "Gradient-6", NULL);
+    popup_add_elem(popup1, "Text-1", NULL);
+    popup_add_elem(popup1, "Text-2", NULL);
+    popup_add_elem(popup1, "Text-3", NULL);
+    popup_add_elem(popup1, "Text-4", NULL);
+    popup_add_elem(popup1, "Text-5", NULL);
+    popup_add_elem(popup1, "Image", NULL);
+    popup_list_height(popup1, 6);
+    popup_add_elem(popup2, "No trim", NULL);
+    popup_add_elem(popup2, "Ellip begin", NULL);
+    popup_add_elem(popup2, "Ellip middle", NULL);
+    popup_add_elem(popup2, "Ellip end", NULL);
+    popup_add_elem(popup3, "Left", NULL);
+    popup_add_elem(popup3, "Center", NULL);
+    popup_add_elem(popup3, "Right", NULL);
+    popup_OnSelect(popup1, listener(app, i_OnSelect1, App));
+    popup_OnSelect(popup2, listener(app, i_OnSelect2, App));
+    popup_OnSelect(popup3, listener(app, i_OnSelect2, App));
+    slider_OnMoved(slider1, listener(app, i_OnSlider, App));
+    slider_OnMoved(slider2, listener(app, i_OnSlider, App));
     view_size(view, s2df(600, 400));
     view_OnDraw(view, listener(app, i_OnDraw, App));
     view_OnAcceptFocus(view, listener(app, i_OnAcceptFocus, App));
     layout_label(layout2, label1, 0, 0);
-    layout_popup(layout2, popup, 1, 0);
     layout_label(layout2, label2, 2, 0);
-    layout_slider(layout2, slider, 3, 0);
+    layout_label(layout2, label3, 0, 1);
+    layout_label(layout2, label4, 2, 1);
+    layout_label(layout2, label5, 0, 2);
+    layout_popup(layout2, popup1, 1, 0);
+    layout_popup(layout2, popup2, 1, 1);
+    layout_popup(layout2, popup3, 1, 2);
+    layout_slider(layout2, slider1, 3, 0);
+    layout_slider(layout2, slider2, 3, 1);
     layout_layout(layout1, layout2, 0, 0);
-    layout_label(layout1, label3, 0, 1);
+    layout_label(layout1, label6, 0, 1);
     layout_view(layout1, view, 0, 2);
     layout_margin(layout1, 5);
     layout_hmargin(layout2, 0, 10);
@@ -761,9 +936,12 @@ static Panel *i_panel(App *app)
     layout_halign(layout1, 0, 1, ekJUSTIFY);
     layout_hexpand(layout2, 3);
     panel_layout(panel, layout1);
-    app->slider = layout_cell(layout2, 3, 0);
+    app->slider1 = layout_cell(layout2, 3, 0);
+    app->slider2 = layout_cell(layout2, 3, 1);
+    app->popup_trim = layout_cell(layout2, 1, 1);
+    app->popup_align = layout_cell(layout2, 1, 2);
     app->view = view;
-    app->label = label3;
+    app->label = label6;
     return panel;
 }
 
@@ -783,8 +961,7 @@ static App *i_create(void)
     App *app = heap_new0(App);
     Panel *panel = i_panel(app);
     app->window = window_create(ekWINDOW_STD);
-    app->slider_pos = 0;
-    app->option = 0;
+    i_set_demo(app, 0);
     window_panel(app->window, panel);
     window_title(app->window, "Drawing primitives");
     window_origin(app->window, v2df(500, 200));

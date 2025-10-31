@@ -30,12 +30,13 @@
 #endif
 #include <sewer/warn.hxx>
 
-#define WCHAR_BUFFER_SIZE 512
+#define STATIC_TEXT_SIZE 1024
 
 typedef struct _view_listeners_t ViewListeners;
 typedef struct _osimgdata_t OSImgData;
 typedef struct _osimglist_t OSImgList;
 typedef struct _osdraw_t OSDraw;
+typedef struct _wstring WString;
 
 struct _view_listeners_t
 {
@@ -79,6 +80,13 @@ struct _osdraw_t
     HTHEME list_theme;
     HTHEME header_theme;
     SIZE sort_size;
+};
+
+struct _wstring
+{
+    uint32_t nchars;
+    WCHAR statictext[STATIC_TEXT_SIZE];
+    WCHAR *alloctext;
 };
 
 #endif

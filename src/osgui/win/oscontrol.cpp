@@ -115,14 +115,14 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t 
 {
     uint32_t num_chars = 0;
     WCHAR *wtext = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
+    WCHAR wtext_static[STATIC_TEXT_SIZE];
     WCHAR *wtext_alloc = NULL;
     char_t *control_text = NULL;
     cassert_no_null(control);
     cassert_no_null(tsize);
     /* WM_GETTEXTLENGTH: The return value is the length of the text in characters, not including the terminating null character. */
     num_chars = 1 + (uint32_t)SendMessage(control->hwnd, WM_GETTEXTLENGTH, (WPARAM)0, (LPARAM)0);
-    if (num_chars < WCHAR_BUFFER_SIZE)
+    if (num_chars < STATIC_TEXT_SIZE)
     {
         wtext = wtext_static;
     }
@@ -158,34 +158,13 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t 
 
 void _oscontrol_set_text(OSControl *control, const char_t *text)
 {
-    uint32_t num_chars = 0;
-    WCHAR *wtext = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-    WCHAR *wtext_alloc = NULL;
+    WString str;
+    const WCHAR *wtext = _osgui_wstr_init(text, &str);
+    BOOL ok;
     cassert_no_null(control);
-    num_chars = 1 + unicode_nchars(text, ekUTF8);
-    if (num_chars < WCHAR_BUFFER_SIZE)
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSControlSetText"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_chars * sizeof(WCHAR));
-        cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
-    }
-
-    {
-        BOOL ok = SetWindowText(control->hwnd, wtext);
-        cassert_unref(ok != 0, ok);
-    }
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSControlSetText");
+    ok = SetWindowText(control->hwnd, wtext);
+    cassert_unref(ok != 0, ok);
+    _osgui_wstr_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -588,11 +588,13 @@ void draw_text_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+static bool_t i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     double nx = (double)x;
     double ny = (double)y;
     real32_t xscale = 1.f;
+    bool_t draw_text = TRUE;
+    bool_t trimmed = FALSE;
     cassert_no_null(ctx);
 
     if (ctx->layout == NULL)
@@ -622,7 +624,14 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
     pango_layout_set_width(ctx->layout, ctx->text_width < 0 ? -1 : (int)((ctx->text_width / xscale) * PANGO_SCALE));
     pango_layout_set_ellipsize(ctx->layout, ctx->ellipsis);
 
-    if (ctx->text_halign != ekLEFT || ctx->text_valign != ekTOP)
+    if (ctx->text_width >= 0)
+    {
+        trimmed = TRUE;
+        if (ctx->text_width < font_height(ctx->font))
+            draw_text = FALSE;
+    }
+
+    if (draw_text == TRUE && (ctx->text_halign != ekLEFT || ctx->text_valign != ekTOP))
     {
         int w, h;
         pango_layout_get_pixel_size(ctx->layout, &w, &h);
@@ -632,12 +641,19 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
         case ekLEFT:
         case ekJUSTIFY:
             break;
-        case ekRIGHT:
-            nx = (double)((int)x - w);
-            break;
+
         case ekCENTER:
             nx = (double)((int)x - (w / 2));
+            if (trimmed == TRUE && ctx->text_width > w)
+                nx -= (double)((ctx->text_width - (real32_t)w) / 2);
             break;
+
+        case ekRIGHT:
+            nx = (double)((int)x - w);
+            if (trimmed == TRUE && ctx->text_width > w)
+                nx -= (double)(ctx->text_width - (real32_t)w);
+            break;
+
         default:
             cassert_default(ctx->text_halign);
         }
@@ -676,6 +692,7 @@ static void i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const 
     cairo_translate(ctx->cairo, nx, ny);
     cairo_scale(ctx->cairo, xscale, 1);
     cairo_translate(ctx->cairo, -nx, -ny);
+    return draw_text;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -685,21 +702,13 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
     if (ctx->raster_mode == TRUE)
         i_set_real2d_mode(ctx);
 
-    i_begin_text(ctx, text, x, y);
-    i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
-    pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    if (i_begin_text(ctx, text, x, y) == TRUE)
+    {
+        i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
+        pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    }
+
     cairo_restore(ctx->cairo);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
-{
-    unref(ctx);
-    unref(text);
-    unref(x);
-    unref(y);
-    cassert(FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -709,18 +718,19 @@ void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real
     if (ctx->raster_mode == TRUE)
         i_set_real2d_mode(ctx);
 
-    i_begin_text(ctx, text, x, y);
-
-    if (op == ekFILL && ctx->fillmode == ekFILL_SOLID)
+    if (i_begin_text(ctx, text, x, y) == TRUE)
     {
-        i_color(ctx->cairo, ctx->fill_color, &ctx->source_color);
-        pango_cairo_show_layout(ctx->cairo, ctx->layout);
-    }
-    else
-    {
-        cassert(ctx->text_width <= 0);
-        pango_cairo_layout_path(ctx->cairo, ctx->layout);
-        i_draw(ctx, op);
+        if (op == ekFILL && ctx->fillmode == ekFILL_SOLID)
+        {
+            i_color(ctx->cairo, ctx->fill_color, &ctx->source_color);
+            pango_cairo_show_layout(ctx->cairo, ctx->layout);
+        }
+        else
+        {
+            cassert(ctx->text_width <= 0);
+            pango_cairo_layout_path(ctx->cairo, ctx->layout);
+            i_draw(ctx, op);
+        }
     }
 
     cairo_restore(ctx->cairo);
@@ -837,9 +847,12 @@ void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const rea
     if (ctx->raster_mode == FALSE)
         i_set_raster_mode(ctx);
 
-    i_begin_text(ctx, text, x, y);
-    i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
-    pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    if (i_begin_text(ctx, text, x, y) == TRUE)
+    {
+        i_color(ctx->cairo, ctx->text_color, &ctx->source_color);
+        pango_cairo_show_layout(ctx->cairo, ctx->layout);
+    }
+
     cairo_restore(ctx->cairo);
 }
 

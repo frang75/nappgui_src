@@ -18,9 +18,19 @@
 #include <Windows.h>
 #include <sewer/warn.hxx>
 
+#define STATIC_TEXT_SIZE 1024
+typedef struct _wstring WString;
+
 struct _measurestr_t
 {
     HDC hdc;
+};
+
+struct _wstring
+{
+    uint32_t nchars;
+    WCHAR statictext[STATIC_TEXT_SIZE];
+    WCHAR *alloctext;
 };
 
 #endif

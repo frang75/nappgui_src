@@ -31,7 +31,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-static Gdiplus::ColorPalette *i_kGRAY4_PALETTE = NULL;
 static Gdiplus::ColorPalette *i_kGRAY8_PALETTE = NULL;
 int kLOG_PIXY = 0;
 LONG kTWIPS_PER_PIXEL = 0;
@@ -40,15 +39,13 @@ LONG kTWIPS_PER_PIXEL = 0;
 
 void _draw_alloc_globals(void)
 {
-    i_kGRAY4_PALETTE = NULL;
     i_kGRAY8_PALETTE = NULL;
 
     /* TWIPS for Font Size */
     {
-        HWND hwnd = GetDesktopWindow();
-        HDC hdc = GetDC(hwnd);
+        HDC hdc = GetDC(NULL);
         kLOG_PIXY = GetDeviceCaps(hdc, LOGPIXELSY);
-        int ret = ReleaseDC(hwnd, hdc);
+        int ret = ReleaseDC(NULL, hdc);
         cassert_unref(ret == 1, ret);
         kTWIPS_PER_PIXEL = 1440 / kLOG_PIXY;
     }
@@ -58,11 +55,6 @@ void _draw_alloc_globals(void)
 
 void _draw_dealloc_globals(void)
 {
-    cassert(i_kGRAY4_PALETTE == NULL);
-
-    // if (i_kGRAY4_PALETTE != NULL)
-    //     heap_free((byte_t**)&i_kGRAY4_PALETTE, sizeof(Gdiplus::ColorPalette) + 16 * sizeof(Gdiplus::ARGB), "Gray4Palette");
-
     if (i_kGRAY8_PALETTE != NULL)
         heap_free(dcast(&i_kGRAY8_PALETTE, byte_t), sizeof(Gdiplus::ColorPalette) + 256 * sizeof(Gdiplus::ARGB), "Gray8Palette");
 }
@@ -71,20 +63,47 @@ void _draw_dealloc_globals(void)
 
 void _draw_word_extents(MeasureStr *data, const char_t *word, real32_t *width, real32_t *height)
 {
-    SIZE word_size;
-    uint32_t num_chars = 0, num_bytes = 0;
-    WCHAR wword[256];
-    BOOL ret = 0;
-    cassert_no_null(data);
-    cassert_no_null(width);
-    cassert_no_null(height);
-    num_chars = unicode_nchars(word, ekUTF8);
-    num_bytes = unicode_convers(word, cast(wword, char_t), ekUTF8, ekUTF16, sizeof(wword));
-    cassert_unref(num_bytes < sizeof(wword), num_bytes);
-    ret = GetTextExtentPoint32(data->hdc, wword, (int)num_chars, &word_size);
-    cassert_unref(ret != 0, ret);
-    *width = (real32_t)word_size.cx;
-    *height = (real32_t)word_size.cy;
+    unref(data);
+    unref(word);
+    unref(width);
+    unref(height);
+    cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const WCHAR *wstring_init(const char_t *text, WString *str)
+{
+    WCHAR *wtext = NULL;
+    cassert_no_null(str);
+    str->nchars = 1 + unicode_nchars(text, ekUTF8);
+
+    if (str->nchars < STATIC_TEXT_SIZE)
+    {
+        str->alloctext = NULL;
+        wtext = str->statictext;
+    }
+    else
+    {
+        str->alloctext = cast(heap_malloc(str->nchars * sizeof(WCHAR), "WString_osdraw"), WCHAR);
+        wtext = str->alloctext;
+    }
+
+    {
+        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, str->nchars * sizeof(WCHAR));
+        cassert_unref(bytes == str->nchars * sizeof(WCHAR), bytes);
+    }
+
+    return wtext;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void wstring_remove(WString *str)
+{
+    cassert_no_null(str);
+    if (str->alloctext != NULL)
+        heap_free(dcast(&str->alloctext, byte_t), str->nchars * sizeof(WCHAR), "WString_osdraw");
 }
 
 /*---------------------------------------------------------------------------*/
@@ -751,39 +770,45 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
     origin.X = (Gdiplus::REAL)x;
     origin.Y = (Gdiplus::REAL)y;
 
-    if (ctx->text_width > 0)
-    {
+    if (ctx->text_width >= 0)
         size.Width = ctx->text_width;
-        size.Height = 1000;
-    }
     else
-    {
         size.Width = 1e8f;
-        size.Height = 1e8f;
-    }
 
-    if (ctx->text_halign != ekLEFT || ctx->text_valign != ekTOP || ctx->text_intalign != ekLEFT)
+    size.Height = 1e8f;
+
+    if (ctx->text_halign != ekLEFT || ctx->text_valign != ekTOP || ctx->text_intalign != ekLEFT || ctx->text_width >= 0)
     {
         Gdiplus::RectF layout;
         Gdiplus::RectF out;
         real32_t xscale = font_xscale(ctx->font);
+        bool_t trimmed = FALSE;
         layout.X = 0;
         layout.Y = 0;
-        layout.Width = (Gdiplus::REAL)(ctx->text_width > 0 ? ctx->text_width / xscale : 1e8);
-        layout.Height = 1e8;
+        layout.Height = 1e8f;
+
+        if (ctx->text_width >= 0 && ctx->text_ellipsis == ekELLIPMLINE)
+            layout.Width = (Gdiplus::REAL)(ctx->text_width / xscale);
+        else
+            layout.Width = 1e8f;
+
         ctx->graphics->MeasureString(wtext, -1, ctx->ffont, layout, &out);
+
+        if (ctx->text_width >= 0 && ctx->text_ellipsis != ekELLIPMLINE)
+            out.Width = ctx->text_width / xscale;
+
         out.Width *= xscale;
-
-        if (ctx->text_width > 0 && ctx->text_ellipsis != ekELLIPMLINE)
-        {
-            Gdiplus::REAL fheight = font_height(ctx->font);
-            if (out.Height > 1.3 * fheight)
-                out.Height = fheight;
-        }
-
         size.Width = out.Width;
         size.Height = out.Height;
 
+        if (ctx->text_width >= 0)
+            trimmed = TRUE;
+
+        /*
+         * Don 't try to make sense of it. This has been set up by testing all cases of trimmed,
+         * single-line, and multi-line text with all possible internal alignments.
+         * Don' t touch it !
+         */
         switch (ctx->text_halign)
         {
         case ekLEFT:
@@ -793,13 +818,17 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekLEFT:
             case ekJUSTIFY:
                 break;
+
             case ekCENTER:
-                if (ctx->text_width < 0)
+                if (trimmed == FALSE)
                     origin.X += out.Width / 2;
                 break;
+
             case ekRIGHT:
-                origin.X += out.Width;
+                if (trimmed == FALSE)
+                    origin.X += out.Width;
                 break;
+
             default:
                 cassert_default(ctx->text_intalign);
             }
@@ -812,13 +841,19 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekJUSTIFY:
                 origin.X -= out.Width / 2;
                 break;
+
             case ekCENTER:
-                if (ctx->text_width > 0)
+                if (trimmed == TRUE)
                     origin.X -= out.Width / 2;
                 break;
+
             case ekRIGHT:
-                origin.X += out.Width / 2;
+                if (trimmed == TRUE)
+                    origin.X -= out.Width / 2;
+                else
+                    origin.X += out.Width / 2;
                 break;
+
             default:
                 cassert_default(ctx->text_intalign);
             }
@@ -831,14 +866,19 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
             case ekJUSTIFY:
                 origin.X -= out.Width;
                 break;
+
             case ekCENTER:
-                if (ctx->text_width > 0)
+                if (trimmed == TRUE)
                     origin.X -= out.Width;
                 else
                     origin.X -= out.Width / 2;
                 break;
+
             case ekRIGHT:
+                if (trimmed == TRUE)
+                    origin.X -= out.Width;
                 break;
+
             default:
                 cassert_default(ctx->text_intalign);
             }
@@ -869,38 +909,19 @@ static Gdiplus::RectF i_text_origin(DCtx *ctx, const WCHAR *wtext, const real32_
 
 /*---------------------------------------------------------------------------*/
 
-void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+static void i_draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y, const drawop_t op, Gdiplus::Brush *brush)
 {
-    uint32_t num_chars = 0;
-    WCHAR *wtext = NULL;
-    WCHAR wtext_static[1024];
-    WCHAR *wtext_alloc = NULL;
-    Gdiplus::StringFormat format;
+    WString str;
+    const WCHAR *wtext = wstring_init(text, &str);
     Gdiplus::RectF rect;
     Gdiplus::Matrix matrix;
-    real32_t xscale = 1.f;
+    real32_t xscale = 1;
+    Gdiplus::StringFormat format;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     i_set_gdiplus_mode(ctx);
-    num_chars = 1 + unicode_nchars(text, ekUTF8);
-
-    if (num_chars < 1024)
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
-        cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
-    }
 
     rect = i_text_origin(ctx, wtext, x, y);
-    format.SetAlignment(i_align(ctx->text_intalign));
     xscale = font_xscale(ctx->font);
 
     if (bmath_absf(xscale - 1) > 0.01f)
@@ -911,25 +932,22 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
         ctx->graphics->TranslateTransform(-rect.X, -rect.Y);
     }
 
-    if (ctx->text_width < 0)
-    {
-        ctx->graphics->DrawString(wtext, -1, ctx->ffont, Gdiplus::PointF(rect.X, rect.Y), &format, ctx->tbrush);
-    }
-    else
+    format.SetAlignment(i_align(ctx->text_intalign));
+
+    if (ctx->text_width >= 0)
     {
         Gdiplus::RectF erect = rect;
+        erect.Width /= xscale;
         switch (ctx->text_ellipsis)
         {
-        case ekELLIPNONE:
         case ekELLIPBEGIN:
-            format.SetTrimming(Gdiplus::StringTrimmingCharacter);
-            break;
         case ekELLIPMIDDLE:
             format.SetTrimming(Gdiplus::StringTrimmingEllipsisPath);
             break;
         case ekELLIPEND:
             format.SetTrimming(Gdiplus::StringTrimmingEllipsisCharacter);
             break;
+        case ekELLIPNONE:
         case ekELLIPMLINE:
             format.SetTrimming(Gdiplus::StringTrimmingNone);
             break;
@@ -937,104 +955,58 @@ void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y
             cassert_default(ctx->text_ellipsis);
         }
 
-        erect.Width /= xscale;
-        ctx->graphics->DrawString(wtext, -1, ctx->ffont, erect, &format, ctx->tbrush);
+        if (brush != NULL)
+        {
+            cassert(op == ekFILL);
+            ctx->graphics->DrawString(wtext, -1, ctx->ffont, erect, &format, brush);
+        }
+        else
+        {
+            /* If we have stroke text --> Use a path */
+            Gdiplus::GraphicsPath path;
+            Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
+            cassert(op != ekFILL);
+            path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, erect, &format);
+            i_draw_path(ctx, &path, op);
+        }
+    }
+    else
+    {
+        if (brush != NULL)
+        {
+            ctx->graphics->DrawString(wtext, -1, ctx->ffont, Gdiplus::PointF(rect.X, rect.Y), &format, brush);
+        }
+        else
+        {
+            /* If we have stroke text --> Use a path */
+            Gdiplus::GraphicsPath path;
+            Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
+            cassert(op != ekFILL);
+            path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, Gdiplus::PointF(rect.X, rect.Y), &format);
+            i_draw_path(ctx, &path, op);
+        }
     }
 
     if (bmath_absf(xscale - 1) > 0.01f)
-    {
         ctx->graphics->SetTransform(&matrix);
-    }
 
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSDrawText");
+    wstring_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void draw_text_single_line(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
+void draw_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
-    unref(ctx);
-    unref(text);
-    unref(x);
-    unref(y);
-    cassert(FALSE);
+    cassert_no_null(ctx);
+    i_draw_text(ctx, text, x, y, ekFILL, ctx->tbrush);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void draw_text_path(DCtx *ctx, const drawop_t op, const char_t *text, const real32_t x, const real32_t y)
 {
-    uint32_t num_chars = 0;
-    WCHAR *wtext = NULL;
-    WCHAR wtext_static[1024];
-    WCHAR *wtext_alloc = NULL;
-    Gdiplus::StringFormat format;
-    Gdiplus::RectF rect;
-    Gdiplus::Matrix matrix;
-    real32_t xscale = 1.f;
     cassert_no_null(ctx);
-    cassert_no_null(ctx->graphics);
-    i_set_gdiplus_mode(ctx);
-    num_chars = 1 + unicode_nchars(text, ekUTF8);
-    if (num_chars < 1024)
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSDrawText"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
-        cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
-    }
-
-    rect = i_text_origin(ctx, wtext, x, y);
-    format.SetAlignment(i_align(ctx->text_intalign));
-    format.SetLineAlignment(i_align(ctx->text_valign));
-
-    xscale = font_xscale(ctx->font);
-    if (bmath_absf(xscale - 1) > 0.01f)
-    {
-        ctx->graphics->GetTransform(&matrix);
-        ctx->graphics->TranslateTransform(rect.X, rect.Y);
-        ctx->graphics->ScaleTransform((Gdiplus::REAL)xscale, 1);
-        ctx->graphics->TranslateTransform(-rect.X, -rect.Y);
-    }
-
-    // Text just solid filled --> Use DrawString
-    if (op == ekFILL && ctx->current_brush == ctx->sbrush)
-    {
-        if (ctx->text_width < 0)
-        {
-            ctx->graphics->DrawString(wtext, -1, ctx->ffont, Gdiplus::PointF(rect.X, rect.Y), &format, ctx->sbrush);
-        }
-        else
-        {
-            Gdiplus::RectF erect = rect;
-            erect.Width /= xscale;
-            ctx->graphics->DrawString(wtext, -1, ctx->ffont, erect, &format, ctx->sbrush);
-        }
-    }
-    // Fancy Text --> Use Path
-    else
-    {
-        Gdiplus::GraphicsPath path;
-        Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
-        path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, Gdiplus::PointF(rect.X, rect.Y), &format);
-        i_draw_path(ctx, &path, op);
-    }
-
-    if (bmath_absf(xscale - 1) > 0.01f)
-    {
-        ctx->graphics->SetTransform(&matrix);
-    }
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSDrawText");
+    i_draw_text(ctx, text, x, y, op, op == ekFILL ? ctx->current_brush : NULL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1055,62 +1027,11 @@ void draw_text_trim(DCtx *ctx, const ellipsis_t ellipsis)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE UINT i_gdi_halign(const align_t align)
-{
-    switch (align)
-    {
-    case ekLEFT:
-    case ekJUSTIFY:
-        return TA_LEFT;
-    case ekCENTER:
-        return TA_CENTER;
-    case ekRIGHT:
-        return TA_RIGHT;
-    default:
-        cassert_default(align);
-    }
-
-    return TA_LEFT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static ___INLINE UINT i_gdi_valign(const align_t align)
-{
-    switch (align)
-    {
-    case ekTOP:
-    case ekJUSTIFY:
-        return TA_TOP;
-    case ekCENTER:
-        return TA_BASELINE;
-    case ekBOTTOM:
-        return TA_BOTTOM;
-    default:
-        cassert_default(align);
-    }
-
-    return TA_TOP;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void draw_text_align(DCtx *ctx, const align_t halign, const align_t valign)
 {
     cassert_no_null(ctx);
     ctx->text_halign = halign;
     ctx->text_valign = valign;
-
-    if (ctx->gdi_mode == TRUE)
-    {
-        UINT align = 0;
-        cassert_no_null(ctx);
-        cassert_no_null(ctx->hdc);
-        align |= i_gdi_halign(ctx->text_halign);
-        align |= i_gdi_valign(ctx->text_valign);
-        align |= TA_NOUPDATECP;
-        SetTextAlign(ctx->hdc, align);
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1127,35 +1048,17 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
 {
     /*
      * GDI+ render text slightly different than GDI, event using the same font.
-     * For this reason, we can't use font_extents() in Windows (based on GDI 'GetTextExtentPoint32').
+     * For this reason, we can't use font_extents() in Windows (based on GDI 'DrawText(DT_CALCRECT)').
      * We must use 'MeasureString' that is the correct way to do it in GDI+.
      */
-    uint32_t num_chars = 0;
-    WCHAR *wtext = NULL;
-    WCHAR wtext_static[1024];
-    WCHAR *wtext_alloc = NULL;
+    WString str;
+    const WCHAR *wtext = wstring_init(text, &str);
     real32_t xscale = 1.f;
     Gdiplus::RectF layout;
     Gdiplus::RectF out;
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     i_set_gdiplus_mode(ctx);
-    num_chars = 1 + unicode_nchars(text, ekUTF8);
-    if (num_chars < 1024)
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_chars * sizeof(WCHAR), "OSDrawExtents"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, num_chars * sizeof(WCHAR));
-        cassert_unref(bytes == num_chars * sizeof(WCHAR), bytes);
-    }
-
     xscale = font_xscale(ctx->font);
     layout.X = 0;
     layout.Y = 0;
@@ -1164,9 +1067,7 @@ void draw_text_extents(DCtx *ctx, const char_t *text, const real32_t refwidth, r
     ctx->graphics->MeasureString(wtext, -1, ctx->ffont, layout, &out);
     *width = bmath_ceilf((real32_t)out.Width * xscale);
     *height = bmath_ceilf((real32_t)out.Height);
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_chars * sizeof(WCHAR), "OSDrawExtents");
+    wstring_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1185,16 +1086,11 @@ static void i_set_gdi_mode(DCtx *ctx)
     cassert_no_null(ctx);
     if (ctx->gdi_mode == FALSE)
     {
-        UINT align = 0;
         cassert_no_null(ctx->hdc);
         cassert_no_null(ctx->gdi_pen);
         SetBkMode(ctx->hdc, TRANSPARENT);
         SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
         SelectObject(ctx->hdc, ctx->gdi_pen);
-        align |= i_gdi_halign(ctx->text_halign);
-        align |= i_gdi_valign(ctx->text_valign);
-        align |= TA_NOUPDATECP;
-        SetTextAlign(ctx->hdc, align);
         ctx->gdi_mode = TRUE;
     }
 }

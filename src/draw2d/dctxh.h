@@ -30,6 +30,8 @@ _draw2d_api void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offs
 
 _draw2d_api void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size);
 
+_draw2d_api const Font *dctx_font(const DCtx *ctx);
+
 _draw2d_api real32_t dctx_text_width(const DCtx *ctx);
 
 _draw2d_api align_t dctx_text_intalign(const DCtx *ctx);

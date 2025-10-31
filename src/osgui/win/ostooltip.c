@@ -31,7 +31,7 @@ static HWND i_create_tooltip(HWND control_hwnd, const char_t *text)
     HINSTANCE instance = NULL;
     HWND tooltip_hwnd = NULL;
     TOOLINFO ti = {0};
-    WCHAR wtext[WCHAR_BUFFER_SIZE];
+    WCHAR wtext[STATIC_TEXT_SIZE];
 
     parent_hwnd = NULL;
     instance = _osgui_instance();
@@ -63,7 +63,7 @@ static void i_update_tooltip(HWND control_hwnd, HWND tooltip_hwnd, const char_t 
 {
     HWND parent_hwnd = NULL;
     TOOLINFO ti = {0};
-    WCHAR wtext[WCHAR_BUFFER_SIZE];
+    WCHAR wtext[STATIC_TEXT_SIZE];
     parent_hwnd = NULL;
     ti.cbSize = sizeof(ti);
     ti.hwnd = parent_hwnd;

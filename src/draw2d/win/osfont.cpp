@@ -41,6 +41,8 @@ struct _user_font_t
 DeclSt(UserFont);
 static ArrSt(UserFont) *kUSER_FONTS = NULL;
 static String *i_SYSTEM_FONT_FAMILY = NULL;
+#define UNDEF_WIDTH 10000
+#define UNDEF_HEIGHT 10000
 
 /*---------------------------------------------------------------------------*/
 
@@ -243,8 +245,7 @@ font_family_t osfont_system(const char_t *family)
 
 void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xscale, real32_t *ascent, real32_t *descent, real32_t *leading, real32_t *cell_size, real32_t *avg_width, bool_t *monospace)
 {
-    HWND hwnd = GetDesktopWindow();
-    HDC hdc = GetDC(hwnd);
+    HDC hdc = GetDC(NULL);
     HGDIOBJ cfont = SelectObject(hdc, (HFONT)font);
     TEXTMETRIC lptm;
     unref(size);
@@ -285,23 +286,35 @@ void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xsca
     }
 
     SelectObject(hdc, cfont);
-    ReleaseDC(hwnd, hdc);
+    ReleaseDC(NULL, hdc);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscale, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    MeasureStr data;
+    WString str;
+    const WCHAR *wtext = wstring_init(str_empty_c(text) ? " " : text, &str);
+    HDC hdc = NULL;
     HGDIOBJ cfont = NULL;
+    RECT rect;
     int ret = 0;
     unref(xscale);
-    data.hdc = GetDC(NULL);
-    cfont = SelectObject(data.hdc, (HFONT)font);
-    _draw2d_extents(&data, _draw_word_extents, TRUE, text, refwidth, width, height, MeasureStr);
-    SelectObject(data.hdc, cfont);
-    ret = ReleaseDC(NULL, data.hdc);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    hdc = GetDC(NULL);
+    cfont = SelectObject(hdc, (HFONT)font);
+    rect.left = 0;
+    rect.right = refwidth > 0 ? (LONG)refwidth : UNDEF_WIDTH;
+    rect.top = 0;
+    rect.bottom = UNDEF_HEIGHT;
+    DrawTextW(hdc, wtext, -1, &rect, DT_CALCRECT | DT_WORDBREAK);
+    *width = (real32_t)(rect.right - rect.left);
+    *height = (real32_t)(rect.bottom - rect.top);
+    SelectObject(hdc, cfont);
+    ret = ReleaseDC(NULL, hdc);
     cassert_unref(ret == 1, ret);
+    wstring_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -417,14 +430,13 @@ static int CALLBACK i_exists_font(const LOGFONT *lpelf, const TEXTMETRIC *lpntm,
 
 bool_t font_exists_family(const char_t *family)
 {
-    HWND hwnd = GetDesktopWindow();
-    HDC hdc = GetDC(hwnd);
+    HDC hdc = GetDC(NULL);
     i_FontExists font_callback;
     int ret = 0;
     font_callback.font_family = family;
     font_callback.exists = FALSE;
     EnumFontFamilies(hdc, NULL, i_exists_font, (LPARAM)&font_callback);
-    ret = ReleaseDC(hwnd, hdc);
+    ret = ReleaseDC(NULL, hdc);
     cassert_unref(ret == 1, ret);
 
     if (font_callback.exists == FALSE && kUSER_FONTS != NULL)
@@ -474,14 +486,13 @@ static int CALLBACK i_font_families(const LOGFONT *lpelf, const TEXTMETRIC *lpnt
 
 static ArrPt(String) *i_installed_families(const bool_t only_monospace)
 {
-    HWND hwnd = GetDesktopWindow();
-    HDC hdc = GetDC(hwnd);
+    HDC hdc = GetDC(NULL);
     i_FontInstalled font_callback;
     int ret = 0;
     font_callback.font_families = arrpt_create(String);
     font_callback.only_monospace = only_monospace;
     EnumFontFamilies(hdc, NULL, i_font_families, (LPARAM)&font_callback);
-    ret = ReleaseDC(hwnd, hdc);
+    ret = ReleaseDC(NULL, hdc);
     cassert_unref(ret == 1, ret);
     arrpt_sort(font_callback.font_families, str_scmp, String);
     return font_callback.font_families;

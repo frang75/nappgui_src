@@ -154,7 +154,6 @@ static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t butt
         draw_text_color(self->ctx, ekSYSCOLOR_LABEL);
 
     cassert(self->width > 0);
-
     switch (self->align)
     {
     case ekLEFT:
@@ -174,15 +173,16 @@ static void i_OnClick(OSXLabel *label, NSEvent *theEvent, const gui_mouse_t butt
     switch (label_get_type(self->flags))
     {
     case ekLABEL_SINGLE:
-        draw_text_single_line(self->ctx, tc(self->text), origin_x, 0);
+        draw_text_trim(self->ctx, ekELLIPEND);
         break;
     case ekLABEL_MULTI:
-        draw_text(self->ctx, tc(self->text), origin_x, 0);
+        draw_text_trim(self->ctx, ekELLIPMLINE);
         break;
     default:
         cassert_default(label_get_type(self->flags));
     }
 
+    draw_text(self->ctx, tc(self->text), origin_x, 0);
     dctx_unset_gcontext(ctx);
 }
 

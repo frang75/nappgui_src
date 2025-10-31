@@ -59,33 +59,12 @@ struct _webimpt_t
 
 static void i_web_navigate(WebImp *web, const char_t *url)
 {
-    uint32_t num_bytes = 0;
-    WCHAR *wtext_alloc = NULL;
-    WCHAR wtext_static[WCHAR_BUFFER_SIZE];
-    WCHAR *wtext = NULL;
+    WString str;
+    const WCHAR *wtext = _osgui_wstr_init(url, &str);
     cassert_no_null(web);
     cassert_no_null(web->webView);
-
-    num_bytes = unicode_convers_nbytes(url, ekUTF8, kWINDOWS_UNICODE);
-    if (num_bytes < sizeof(wtext_static))
-    {
-        wtext = wtext_static;
-    }
-    else
-    {
-        wtext_alloc = cast(heap_malloc(num_bytes, "OSWebViewNavigate"), WCHAR);
-        wtext = wtext_alloc;
-    }
-
-    {
-        uint32_t bytes = unicode_convers(url, cast(wtext, char_t), ekUTF8, kWINDOWS_UNICODE, num_bytes);
-        cassert_unref(bytes == num_bytes, bytes);
-    }
-
     web->webView->Navigate(wtext);
-
-    if (wtext_alloc != NULL)
-        heap_free(dcast(&wtext_alloc, byte_t), num_bytes, "OSWebViewNavigate");
+    _osgui_wstr_remove(&str);
 }
 
 /*---------------------------------------------------------------------------*/

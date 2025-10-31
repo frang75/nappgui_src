@@ -2,9 +2,13 @@
 
 ## v1.6.0 - WIP
 
+### Improved
+
+- Text rendering backend. Refactor and full tests. [Commit]().
+
 ### Fixed
 
-- Minor issue when removing columns or rows dynamically from layouts. [Commit]().
+- Minor issue when removing columns or rows dynamically from layouts. [Commit](https://github.com/frang75/nappgui_src/commit/db6de0df4a7453182376f9f54cddceae98a716e9).
 
 ## v1.5.3 - Sep 25, 2025 (r6604)
 

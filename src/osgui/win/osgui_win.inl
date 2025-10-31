@@ -40,6 +40,10 @@ vkey_t _osgui_vkey(const WORD key);
 
 uint32_t _osgui_modifiers(void);
 
+const WCHAR *_osgui_wstr_init(const char_t *text, WString *str);
+
+void _osgui_wstr_remove(WString *str);
+
 extern const WORD kVIRTUAL_KEY[];
 extern uint32_t kNUM_VKEYS;
 extern HWND kDEFAULT_PARENT_WINDOW;

@@ -18,4 +18,8 @@ extern int kLOG_PIXY;
 
 extern LONG kTWIPS_PER_PIXEL;
 
+const WCHAR *wstring_init(const char_t *text, WString *str);
+
+void wstring_remove(WString *str);
+
 __END_C
