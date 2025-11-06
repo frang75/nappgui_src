@@ -257,7 +257,7 @@ typedef void (*FPtr_remove)(void *obj);
 #define FUNC_CHECK_REMOVE(func, type) \
     (void)((void (*)(type *))func == func)
 
-typedef void (*FPtr_event_handler)(void *obj, Event *event);
+typedef void (*FPtr_event_handler)(void *obj, Event *e);
 #define FUNC_CHECK_EVENT_HANDLER(func, type) \
     (void)((void (*)(type *, Event *))func == func)
 

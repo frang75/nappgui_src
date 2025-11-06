@@ -83,7 +83,6 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     cairo_translate(ctx->cairo, -(double)offset_x, -(double)offset_y);
     cairo_get_matrix(ctx->cairo, &ctx->origin);
     ctx->raster_mode = FALSE;
-
     if (reset == TRUE)
         _dctx_init(ctx);
 }

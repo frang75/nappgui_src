@@ -332,7 +332,7 @@ static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const ui
     DrawTextW(hdc, *text, -1, &rect, DT_SINGLELINE | DT_CALCRECT);
     if ((uint32_t)rect.right > width)
     {
-        const WCHAR *ellipchar = L"…";
+        WCHAR ellipchar = 0x2026;
         uint32_t vchars = (uint32_t)bmath_floorf(((real32_t)width * (real32_t)num_chars) / (real32_t)rect.right);
         if (vchars > 2)
         {
@@ -341,14 +341,14 @@ static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const ui
             {
             case ekELLIPBEGIN:
                 *text = *text + (num_chars - vchars);
-                (*text)[0] = ellipchar[0];
+                (*text)[0] = ellipchar;
                 break;
 
             case ekELLIPMIDDLE:
             {
                 uint32_t mchar = vchars / 2;
                 uint32_t i, n = vchars - mchar;
-                (*text)[mchar] = ellipchar[0];
+                (*text)[mchar] = ellipchar;
                 for (i = 1; i <= n; ++i)
                     (*text)[mchar + i] = (*text)[num_chars - n + i];
                 (*text)[vchars] = '\0';
@@ -356,7 +356,7 @@ static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const ui
             }
 
             case ekELLIPEND:
-                (*text)[vchars - 1] = ellipchar[0];
+                (*text)[vchars - 1] = ellipchar;
                 (*text)[vchars] = '\0';
                 break;
 
@@ -368,7 +368,7 @@ static void i_ellipsis(HDC hdc, WCHAR **text, const uint32_t num_chars, const ui
         }
         else if (vchars == 2)
         {
-            (*text)[0] = ellipchar[0];
+            (*text)[0] = ellipchar;
             (*text)[1] = '\0';
         }
         else

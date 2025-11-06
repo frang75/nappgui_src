@@ -16,7 +16,6 @@
 #include "osbutton_win.inl"
 #include "oscombo_win.inl"
 #include "osedit_win.inl"
-#include "oslabel_win.inl"
 #include "ospopup_win.inl"
 #include "osslider_win.inl"
 #include "osscroll_win.inl"
@@ -155,7 +154,6 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             _oscombo_command(cast(control, OSCombo), wParam);
             break;
 
-        case ekGUI_TYPE_LABEL:
         case ekGUI_TYPE_SLIDER:
         case ekGUI_TYPE_UPDOWN:
         case ekGUI_TYPE_PROGRESS:
@@ -227,25 +225,8 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
         HBRUSH defbrush = (HBRUSH)CallWindowProc(panel->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
         OSControl *control = cast(GetWindowLongPtr((HWND)lParam, GWLP_USERDATA), OSControl);
-        if (control != NULL)
+        if (control != NULL && control->type != ekGUI_TYPE_CUSTOMVIEW)
         {
-            if (control->type == ekGUI_TYPE_LABEL)
-            {
-                COLORREF color, bgcolor;
-                HBRUSH bgbrush;
-                color = _oslabel_color(cast_const(control, OSLabel));
-                bgbrush = _oslabel_background_color(cast_const(control, OSLabel), &bgcolor);
-
-                if (color != 0)
-                    SetTextColor((HDC)wParam, color);
-
-                if (bgbrush != NULL)
-                {
-                    SetBkColor((HDC)wParam, bgcolor);
-                    return (LRESULT)bgbrush;
-                }
-            }
-
             if (panel->areas != NULL)
             {
                 COLORREF bgcolor;

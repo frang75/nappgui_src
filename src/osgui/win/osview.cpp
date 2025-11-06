@@ -160,7 +160,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             void *ctx[2];
             ctx[0] = graphics;
             ctx[1] = memHdc;
-            dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, -(real32_t)vx, -(real32_t)vy, background, TRUE /*(view->flags & ekCONTROL) ? FALSE : TRUE*/);
+            dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, -(real32_t)vx, -(real32_t)vy, background, TRUE);
             _oslistener_draw(cast(view, OSControl), view->ctx, (real32_t)twidth, (real32_t)theight, (real32_t)vx, (real32_t)vy, (real32_t)vwidth, (real32_t)vheight, &view->listeners);
             dctx_unset_gcontext(view->ctx);
 

@@ -17,7 +17,6 @@
 #include "osgui.hdf"
 
 typedef struct _oscontrol_t OSControl;
-typedef struct _oslabel_t OSLabel;
 typedef struct _osbutton_t OSButton;
 typedef struct _ospopup_t OSPopUp;
 typedef struct _osedit_t OSEdit;

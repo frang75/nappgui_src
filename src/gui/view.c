@@ -51,6 +51,8 @@ struct _view_t
     KeyBuf *keybuf;
     void *data;
     FPtr_destroy func_destroy_data;
+    FPtr_gctx_call func_locale;
+    FPtr_natural func_natural;
     FPtr_gctx_call func_empty;
     FPtr_gctx_set_uint32 func_uint32;
     FPtr_set_image func_image;
@@ -508,18 +510,41 @@ const char_t *_view_subtype(const View *view)
 
 /*---------------------------------------------------------------------------*/
 
-void _view_natural(View *view, const uint32_t i, real32_t *dim0, real32_t *dim1)
+void _view_locale(View *view)
+{
+    cassert_no_null(view);
+    if (view->func_locale != NULL)
+        view->func_locale(cast(view, void));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _view_natural(View *view, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(view);
     cassert_no_null(dim0);
     cassert_no_null(dim1);
-    if (i == 0)
+    if (view->func_natural != NULL)
+    {
+        view->func_natural(cast(view, void), di, dim0, dim1);
+        if (di == 0)
+        {
+            view->size.width = *dim0;
+        }
+        else
+        {
+            cassert(di == 1);
+            view->size.height = *dim1;
+        }
+    }
+
+    if (di == 0)
     {
         *dim0 = view->size.width;
     }
     else
     {
-        cassert(i == 1);
+        cassert(di == 1);
         *dim1 = view->size.height;
     }
 }
@@ -555,6 +580,22 @@ void *_view_get_native_imp(View *view)
 {
     cassert_no_null(view);
     return view->component.ositem;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _view_OnLocale(View *view, FPtr_gctx_call func_locale)
+{
+    cassert_no_null(view);
+    view->func_locale = func_locale;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _view_OnNatural(View *view, FPtr_natural func_natural)
+{
+    cassert_no_null(view);
+    view->func_natural = func_natural;
 }
 
 /*---------------------------------------------------------------------------*/

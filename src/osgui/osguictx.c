@@ -11,7 +11,6 @@
 /* Native Gui Context */
 
 #include "osguictx.h"
-#include "oslabel.h"
 #include "osbutton.h"
 #include "ospopup.h"
 #include "osedit.h"
@@ -38,30 +37,6 @@
 GuiCtx *osguictx(void)
 {
     GuiCtx *context = guictx_create();
-
-    guictx_append_label_manager(
-        context,
-        oslabel_create,
-        oslabel_destroy,
-        oslabel_OnClick,
-        oslabel_OnEnter,
-        oslabel_OnExit,
-        oslabel_text,
-        oslabel_font,
-        oslabel_flags,
-        oslabel_align,
-        oslabel_ellipsis,
-        oslabel_color,
-        oslabel_bgcolor,
-        oslabel_bounds,
-        oslabel_attach,
-        oslabel_detach,
-        oslabel_visible,
-        oslabel_enabled,
-        oslabel_size,
-        oslabel_origin,
-        oslabel_frame,
-        OSLabel, OSPanel, Font);
 
     guictx_append_button_manager(
         context,

@@ -21,8 +21,11 @@
 Label *guicontrol_label(GuiControl *control)
 {
     GuiComponent *component = cast(control, GuiComponent);
-    if (component != NULL && component->type == ekGUI_TYPE_LABEL)
-        return cast(component, Label);
+    if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
+    {
+        if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
+            return cast(component, Label);
+    }
     return NULL;
 }
 

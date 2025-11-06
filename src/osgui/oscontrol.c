@@ -14,7 +14,6 @@
 #include "osbutton.inl"
 #include "oscombo.inl"
 #include "osedit.inl"
-#include "oslabel.inl"
 #include "ospanel.inl"
 #include "ospopup.inl"
 #include "osprogress.inl"
@@ -32,8 +31,6 @@ const char_t *_oscontrol_type_str(const gui_type_t type)
 {
     switch (type)
     {
-    case ekGUI_TYPE_LABEL:
-        return "OSLabel";
     case ekGUI_TYPE_BUTTON:
         return "OSButton";
     case ekGUI_TYPE_POPUP:
@@ -86,9 +83,6 @@ void _oscontrol_detach_and_destroy(OSControl **control, OSPanel *panel)
     type = _oscontrol_type(*control);
     switch (type)
     {
-    case ekGUI_TYPE_LABEL:
-        _oslabel_detach_and_destroy(dcast(control, OSLabel), panel);
-        break;
     case ekGUI_TYPE_BUTTON:
         _osbutton_detach_and_destroy(dcast(control, OSButton), panel);
         break;

@@ -13,7 +13,6 @@
 #include "oscontrol_osx.inl"
 #include "osgui_osx.inl"
 #include "oscolor.inl"
-#include "oslabel_osx.inl"
 #include "osbutton_osx.inl"
 #include "oscombo_osx.inl"
 #include "osedit_osx.inl"
@@ -561,9 +560,6 @@ void _oscontrol_set_frame(NSView *object, const real32_t x, const real32_t y, co
 static gui_type_t i_oscontrol_type(NSView *object)
 {
     cassert_no_null(object);
-    if (_oslabel_is(object) == YES)
-        return ekGUI_TYPE_LABEL;
-
     if (_osbutton_is(object) == YES)
         return ekGUI_TYPE_BUTTON;
 
@@ -686,7 +682,6 @@ bool_t _oscontrol_widget_enable(const OSWidget *widget)
     cassert_no_null(widget);
     switch (type)
     {
-    case ekGUI_TYPE_LABEL:
     case ekGUI_TYPE_PROGRESS:
         return TRUE;
 

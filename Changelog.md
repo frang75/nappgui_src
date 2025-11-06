@@ -2,9 +2,14 @@
 
 ## v1.6.0 - WIP
 
+### Added
+
+- `label_trim()`. [Commit]().
+
 ### Improved
 
-- Text rendering backend. Refactor and full tests. [Commit]().
+- Text rendering backend. Refactor and full tests. [Commit](https://github.com/frang75/nappgui_src/commit/749332c36d2a3c3ad989a057a859ef5da73d3550).
+- `Label` implementation as custom control. Removed `OSLabel` and all platform-specific code. [Commit]().
 
 ### Fixed
 

@@ -408,8 +408,6 @@ void layout_label(Layout *layout, Label *label, const uint32_t col, const uint32
 {
     Cell *cell = NULL;
     align_t align = ekLEFT;
-    /* if (_label_is_multiline(label) == TRUE)
-       align = ekJUSTIFY; */
     cell = i_set_component(layout, cast(label, GuiComponent), col, row, align, ekCENTER);
     cassert_no_null(cell);
     cassert(cell->tabstop == TRUE);
@@ -2694,7 +2692,6 @@ static void i_set_dbind(Cell *cell, const DBind *stbind, const uint32_t member_i
             }
             break;
 
-        case ekGUI_TYPE_LABEL:
         case ekGUI_TYPE_BUTTON:
         case ekGUI_TYPE_COMBOBOX:
         case ekGUI_TYPE_SLIDER:

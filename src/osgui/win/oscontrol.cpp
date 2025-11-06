@@ -531,7 +531,6 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     cassert_no_null(control);
     switch (control->type)
     {
-    case ekGUI_TYPE_LABEL:
     case ekGUI_TYPE_PROGRESS:
         return NULL;
 

@@ -17,6 +17,7 @@
 #include "../draw.inl"
 #include "../color.h"
 #include "../font.h"
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -588,6 +589,31 @@ void draw_text_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_set_text(PangoLayout *layout, const Font *font, const char_t *text)
+{
+    uint32_t fstyle = font_style(font);
+    if ((fstyle & ekFUNDERLINE) || (fstyle & ekFSTRIKEOUT))
+    {
+        String *format = NULL;
+        if ((fstyle & ekFUNDERLINE) && (fstyle & ekFSTRIKEOUT))
+            format = str_printf("<span underline=\"single\" strikethrough=\"true\">%s</span>", text);
+        else if (fstyle & ekFUNDERLINE)
+            format = str_printf("<span underline=\"single\">%s</span>", text);
+        else
+            format = str_printf("<span strikethrough=\"true\">%s</span>", text);
+
+        pango_layout_set_markup(layout, tc(format), -1);
+        str_destroy(&format);
+    }
+    else
+    {
+        pango_layout_set_markup(layout, "<span></span>", -1);
+        pango_layout_set_text(layout, cast_const(text, char), -1);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static bool_t i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, const real32_t y)
 {
     double nx = (double)x;
@@ -619,7 +645,7 @@ static bool_t i_begin_text(DCtx *ctx, const char_t *text, const real32_t x, cons
     }
 
     xscale = font_xscale(ctx->font);
-    pango_layout_set_text(ctx->layout, cast_const(text, char), -1);
+    i_set_text(ctx->layout, ctx->font, text);
     pango_layout_set_alignment(ctx->layout, ctx->text_intalign);
     pango_layout_set_width(ctx->layout, ctx->text_width < 0 ? -1 : (int)((ctx->text_width / xscale) * PANGO_SCALE));
     pango_layout_set_ellipsize(ctx->layout, ctx->ellipsis);

@@ -186,34 +186,33 @@ typedef enum _gui_event_t
 typedef enum _gui_type_t
 {
     /* Basic controls */
-    ekGUI_TYPE_LABEL = 0,
-    ekGUI_TYPE_BUTTON = 1,
-    ekGUI_TYPE_POPUP = 2,
-    ekGUI_TYPE_EDITBOX = 3,
-    ekGUI_TYPE_COMBOBOX = 4,
-    ekGUI_TYPE_SLIDER = 5,
-    ekGUI_TYPE_UPDOWN = 6,
-    ekGUI_TYPE_PROGRESS = 7,
+    ekGUI_TYPE_BUTTON = 0,
+    ekGUI_TYPE_POPUP = 1,
+    ekGUI_TYPE_EDITBOX = 2,
+    ekGUI_TYPE_COMBOBOX = 3,
+    ekGUI_TYPE_SLIDER = 4,
+    ekGUI_TYPE_UPDOWN = 5,
+    ekGUI_TYPE_PROGRESS = 6,
 
     /* View Controls */
-    ekGUI_TYPE_TEXTVIEW = 8,
-    ekGUI_TYPE_WEBVIEW = 9,
-    ekGUI_TYPE_TREEVIEW = 10,
-    ekGUI_TYPE_BOXVIEW = 11,
-    ekGUI_TYPE_SPLITVIEW = 12,
-    ekGUI_TYPE_CUSTOMVIEW = 13,
+    ekGUI_TYPE_TEXTVIEW = 7,
+    ekGUI_TYPE_WEBVIEW = 8,
+    ekGUI_TYPE_TREEVIEW = 9,
+    ekGUI_TYPE_BOXVIEW = 10,
+    ekGUI_TYPE_SPLITVIEW = 11,
+    ekGUI_TYPE_CUSTOMVIEW = 12,
 
     /* Others */
-    ekGUI_TYPE_PANEL = 14,
-    ekGUI_TYPE_LINE = 15,
-    ekGUI_TYPE_HEADER = 16,
+    ekGUI_TYPE_PANEL = 13,
+    ekGUI_TYPE_LINE = 14,
+    ekGUI_TYPE_HEADER = 15,
 
     /* Non-Components */
-    ekGUI_TYPE_WINDOW = 17,
-    ekGUI_TYPE_TOOLBAR = 18
+    ekGUI_TYPE_WINDOW = 16,
+    ekGUI_TYPE_TOOLBAR = 17
 } gui_type_t;
 
-#define GUI_CONTEXT_NUM_COMPONENTS 17
+#define GUI_CONTEXT_NUM_COMPONENTS 16
 
 typedef enum _gui_size_t
 {
@@ -700,19 +699,6 @@ struct _guictx_t
     FPtr_gctx_get2_real32 func_get_size[GUI_CONTEXT_NUM_COMPONENTS];
     FPtr_gctx_get2_real32 func_get_origin[GUI_CONTEXT_NUM_COMPONENTS];
     FPtr_gctx_set4_real32 func_set_frame[GUI_CONTEXT_NUM_COMPONENTS];
-
-    /*! <Label> */
-    FPtr_gctx_set_listener func_label_OnClick;
-    FPtr_gctx_set_listener func_label_OnMouseEnter;
-    FPtr_gctx_set_listener func_label_OnMouseExit;
-    FPtr_gctx_set_text func_label_set_text;
-    FPtr_gctx_set_cptr func_label_set_font;
-    FPtr_gctx_set_uint32 func_label_set_flags;
-    FPtr_gctx_set_enum func_label_set_align;
-    FPtr_gctx_set_enum func_label_set_ellipsis;
-    FPtr_gctx_set_uint32 func_label_set_text_color;
-    FPtr_gctx_set_uint32 func_label_set_bg_color;
-    FPtr_gctx_bounds1 func_label_bounds;
 
     /*! <Button> */
     FPtr_gctx_set_listener func_button_OnClick;

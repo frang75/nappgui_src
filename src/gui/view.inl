@@ -26,13 +26,19 @@ void _view_set_subtype(View *view, const char_t *subtype);
 
 const char_t *_view_subtype(const View *view);
 
-void _view_natural(View *view, const uint32_t i, real32_t *dim0, real32_t *dim1);
+void _view_locale(View *view);
+
+void _view_natural(View *view, const uint32_t di, real32_t *dim0, real32_t *dim1);
 
 void _view_OnResize(View *view, const S2Df *size);
 
 Cell *_view_cell(View *view);
 
 void *_view_get_native_imp(View *view);
+
+void _view_OnLocale(View *view, FPtr_gctx_call func_locale);
+
+void _view_OnNatural(View *view, FPtr_natural func_natural);
 
 void _view_OnEmpty(View *view, FPtr_gctx_call func_empty);
 

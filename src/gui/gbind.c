@@ -41,9 +41,6 @@ static void i_set_bool(GuiComponent *component, const bool_t value)
     cassert_no_null(component);
     switch (component->type)
     {
-    case ekGUI_TYPE_LABEL:
-        _label_text(cast(component, Label), value ? "True" : "False");
-        break;
     case ekGUI_TYPE_BUTTON:
         _button_bool(cast(component, Button), value);
         break;
@@ -56,12 +53,17 @@ static void i_set_bool(GuiComponent *component, const bool_t value)
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
         break;
+
+    case ekGUI_TYPE_CUSTOMVIEW:
+        cassert(str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE);
+        _label_text(cast(component, Label), value ? "True" : "False");
+        break;
+
     case ekGUI_TYPE_TEXTVIEW:
     case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
-    case ekGUI_TYPE_CUSTOMVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
     case ekGUI_TYPE_HEADER:
@@ -79,14 +81,6 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
     cassert_no_null(component);
     switch (component->type)
     {
-    case ekGUI_TYPE_LABEL:
-    {
-        char_t msg[64];
-        bstd_sprintf(msg, 64, "%" PRId64, value);
-        _label_text(cast(component, Label), msg);
-        break;
-    }
-
     case ekGUI_TYPE_BUTTON:
         _button_uint32(cast(component, Button), value >= 0 ? (uint32_t)value : 0);
         break;
@@ -96,7 +90,16 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
         break;
 
     case ekGUI_TYPE_CUSTOMVIEW:
-        _view_uint32(cast(component, View), (uint32_t)value);
+        if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
+        {
+            char_t msg[64];
+            bstd_sprintf(msg, 64, "%" PRId64, value);
+            _label_text(cast(component, Label), msg);
+        }
+        else
+        {
+            _view_uint32(cast(component, View), (uint32_t)value);
+        }
         break;
 
     case ekGUI_TYPE_SLIDER:
@@ -143,21 +146,6 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
     cassert_no_null(component);
     switch (component->type)
     {
-    case ekGUI_TYPE_LABEL:
-    {
-        if (value != REAL32_MAX && value != REAL64_MAX)
-        {
-            char_t msg[64];
-            bstd_sprintf(msg, 64, format, value);
-            _label_text(cast(component, Label), msg);
-        }
-        else
-        {
-            _label_text(cast(component, Label), "");
-        }
-        break;
-    }
-
     case ekGUI_TYPE_EDITBOX:
     {
         if (value != REAL32_MAX && value != REAL64_MAX)
@@ -187,12 +175,25 @@ static void i_set_real(GuiComponent *component, const real64_t value, const real
         break;
     }
 
+    case ekGUI_TYPE_CUSTOMVIEW:
+        cassert(str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE);
+        if (value != REAL32_MAX && value != REAL64_MAX)
+        {
+            char_t msg[64];
+            bstd_sprintf(msg, 64, format, value);
+            _label_text(cast(component, Label), msg);
+        }
+        else
+        {
+            _label_text(cast(component, Label), "");
+        }
+        break;
+
     case ekGUI_TYPE_BUTTON:
     case ekGUI_TYPE_POPUP:
     case ekGUI_TYPE_COMBOBOX:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
-    case ekGUI_TYPE_CUSTOMVIEW:
         break;
 
     case ekGUI_TYPE_TEXTVIEW:
@@ -217,10 +218,6 @@ static void i_set_enum(GuiComponent *component, const uint32_t index, const uint
     cassert_no_null(component);
     switch (component->type)
     {
-    case ekGUI_TYPE_LABEL:
-        _label_text(cast(component, Label), alias);
-        break;
-
     case ekGUI_TYPE_BUTTON:
         _button_uint32(cast(component, Button), index);
         break;
@@ -239,7 +236,10 @@ static void i_set_enum(GuiComponent *component, const uint32_t index, const uint
     }
 
     case ekGUI_TYPE_CUSTOMVIEW:
-        _view_uint32(cast(component, View), index);
+        if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
+            _label_text(cast(component, Label), alias);
+        else
+            _view_uint32(cast(component, View), index);
         break;
 
     case ekGUI_TYPE_EDITBOX:
@@ -270,10 +270,6 @@ static void i_set_string(GuiComponent *component, const char_t *str)
     cassert_no_null(component);
     switch (component->type)
     {
-    case ekGUI_TYPE_LABEL:
-        _label_text(cast(component, Label), str);
-        break;
-
     case ekGUI_TYPE_EDITBOX:
         _edit_text(cast(component, Edit), str);
         break;
@@ -286,12 +282,16 @@ static void i_set_string(GuiComponent *component, const char_t *str)
     case ekGUI_TYPE_PROGRESS:
         break;
 
+    case ekGUI_TYPE_CUSTOMVIEW:
+        cassert(str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE);
+        _label_text(cast(component, Label), str);
+        break;
+
     case ekGUI_TYPE_TEXTVIEW:
     case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
-    case ekGUI_TYPE_CUSTOMVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
     case ekGUI_TYPE_HEADER:
@@ -313,7 +313,6 @@ static void i_set_image(GuiComponent *component, const Image *image)
         _view_image(cast(component, View), image);
         break;
 
-    case ekGUI_TYPE_LABEL:
     case ekGUI_TYPE_BUTTON:
     case ekGUI_TYPE_POPUP:
     case ekGUI_TYPE_EDITBOX:
@@ -352,11 +351,10 @@ static void i_set_empty(Cell *cell, const DBind *stbind, const uint32_t member_i
         break;
 
     case ekGUI_TYPE_CUSTOMVIEW:
-        _view_empty(cast(component, View));
-        break;
-
-    case ekGUI_TYPE_LABEL:
-        _label_text(cast(component, Label), "");
+        if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
+            _label_text(cast(component, Label), "");
+        else
+            _view_empty(cast(component, View));
         break;
 
     case ekGUI_TYPE_BUTTON:

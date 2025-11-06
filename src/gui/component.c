@@ -38,7 +38,6 @@
 /*---------------------------------------------------------------------------*/
 
 static const FPtr_gctx_set_bool i_FUNC_SET_VISIBLE[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_LABEL */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_BUTTON */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_POPUP */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_EDITBOX */
@@ -56,7 +55,6 @@ static const FPtr_gctx_set_bool i_FUNC_SET_VISIBLE[GUI_CONTEXT_NUM_COMPONENTS] =
     (FPtr_gctx_set_bool)NULL}; /* ekGUI_TYPE_LINE */
 
 static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_panels)NULL,              /* ekGUI_TYPE_LABEL */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_BUTTON */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_POPUP */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_EDITBOX */
@@ -74,7 +72,6 @@ static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_panels)NULL};             /* ekGUI_TYPE_LINE */
 
 static const FPtr_natural i_FUNC_NATURAL[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_natural)_label_natural,     /* ekGUI_TYPE_LABEL */
     (FPtr_natural)_button_natural,    /* ekGUI_TYPE_BUTTON */
     (FPtr_natural)_popup_natural,     /* ekGUI_TYPE_POPUP */
     (FPtr_natural)_edit_natural,      /* ekGUI_TYPE_EDITBOX */
@@ -92,7 +89,6 @@ static const FPtr_natural i_FUNC_NATURAL[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_natural)NULL};              /* ekGUI_TYPE_LINE */
 
 static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_expand)NULL,              /* ekGUI_TYPE_LABEL */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_BUTTON */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_POPUP */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_EDITBOX */
@@ -110,7 +106,6 @@ static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL};             /* ekGUI_TYPE_LINE */
 
 static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_set_size)NULL,                /* ekGUI_TYPE_LABEL */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_BUTTON */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_POPUP */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_EDITBOX */
@@ -128,7 +123,6 @@ static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_set_size)NULL};               /* ekGUI_TYPE_LINE */
 
 static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_gctx_call)_label_locale,  /* ekGUI_TYPE_LABEL */
     (FPtr_gctx_call)_button_locale, /* ekGUI_TYPE_BUTTON */
     (FPtr_gctx_call)_popup_locale,  /* ekGUI_TYPE_POPUP */
     (FPtr_gctx_call)_edit_locale,   /* ekGUI_TYPE_EDITBOX */
@@ -141,12 +135,11 @@ static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_TREEVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_BOXVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_SPLITVIEW */
-    (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_gctx_call)_view_locale,   /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_gctx_call)_panel_locale,  /* ekGUI_TYPE_PANEL */
     (FPtr_gctx_call)NULL};          /* ekGUI_TYPE_LINE */
 
 static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
-    (FPtr_destroy)_label_destroy,     /* ekGUI_TYPE_LABEL */
     (FPtr_destroy)_button_destroy,    /* ekGUI_TYPE_BUTTON */
     (FPtr_destroy)_popup_destroy,     /* ekGUI_TYPE_POPUP */
     (FPtr_destroy)_edit_destroy,      /* ekGUI_TYPE_EDITBOX */
@@ -308,7 +301,6 @@ void _component_taborder(GuiComponent *component, Window *window)
         _splitview_taborder((SplitView *)component, window);
         break;
 
-    case ekGUI_TYPE_LABEL:
     case ekGUI_TYPE_BUTTON:
     case ekGUI_TYPE_POPUP:
     case ekGUI_TYPE_EDITBOX:
@@ -460,8 +452,6 @@ const char_t *_component_type(const GuiComponent *component)
     cassert_no_null(component);
     switch (component->type)
     {
-    case ekGUI_TYPE_LABEL:
-        return "Label";
     case ekGUI_TYPE_BUTTON:
         return "Button";
     case ekGUI_TYPE_POPUP:
