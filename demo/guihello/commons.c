@@ -47,7 +47,7 @@ static void i_OnOpenFile(WCommons *coms, Event *e)
     const char_t *file = NULL;
     cassert_no_null(coms);
     unref(e);
-    file = comwin_open_file(coms->parent, "This is a caption text for open file dialog", NULL, 0, tc(coms->folder));
+    file = comwin_open_file(coms->parent, "This is a caption text for open file dialog", NULL, 0, tc(coms->folder), "myfile.png");
     i_write(coms, file);
 }
 
@@ -55,10 +55,11 @@ static void i_OnOpenFile(WCommons *coms, Event *e)
 
 static void i_OnSaveFile(WCommons *coms, Event *e)
 {
+    const char_t *ftypes[] = {"png"};
     const char_t *file = NULL;
     cassert_no_null(coms);
     unref(e);
-    file = comwin_save_file(coms->parent, "This is a caption text for save file dialog", NULL, 0, tc(coms->folder));
+    file = comwin_save_file(coms->parent, "This is a caption text for save file dialog", ftypes, 1, tc(coms->folder), "myfile.png");
     i_write(coms, file);
 }
 

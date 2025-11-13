@@ -39,7 +39,7 @@ struct _cdata_t
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename, const bool_t open)
 {
     GtkWidget *dialog = NULL;
     GtkFileChooserAction action;
@@ -65,7 +65,13 @@ static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, co
         open ? "_Open" : "_Save", GTK_RESPONSE_ACCEPT,
         NULL);
 
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), start_dir);
+    if (str_empty_c(start_dir) == FALSE)
+        gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), cast_const(start_dir, gchar));
+
+    if (str_empty_c(filename) == FALSE)
+        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), cast_const(filename, gchar));
+    else
+        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "");
 
     if (!dirmode && size > 0)
     {
@@ -104,14 +110,14 @@ static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, co
 const char_t *oscomwin_dir(OSWindow *parent, const char_t *caption, const char_t *start_dir)
 {
     const char_t *ftypes[] = {"..DIR.."};
-    return i_oscomwin_file(parent, caption, ftypes, 1, start_dir, TRUE);
+    return i_oscomwin_file(parent, caption, ftypes, 1, start_dir, NULL, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename, const bool_t open)
 {
-    return i_oscomwin_file(parent, caption, ftypes, size, start_dir, open);
+    return i_oscomwin_file(parent, caption, ftypes, size, start_dir, filename, open);
 }
 
 /*---------------------------------------------------------------------------*/

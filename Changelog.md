@@ -4,12 +4,17 @@
 
 ### Added
 
-- `label_trim()`. [Commit]().
+- `label_trim()`. [Commit](https://github.com/frang75/nappgui_src/commit/09a008fef1b66acca91f36a241ef189d81c217cd).
+
+### Changed
+
+- `comwin_open_file()` adds a new parameter `const char_t *filename`. [Commit]().
+- `comwin_save_file()` adds a new parameter `const char_t *filename`. [Commit]().
 
 ### Improved
 
 - Text rendering backend. Refactor and full tests. [Commit](https://github.com/frang75/nappgui_src/commit/749332c36d2a3c3ad989a057a859ef5da73d3550).
-- `Label` implementation as custom control. Removed `OSLabel` and all platform-specific code. [Commit]().
+- `Label` implementation as custom control. Removed `OSLabel` and all platform-specific code. [Commit](https://github.com/frang75/nappgui_src/commit/09a008fef1b66acca91f36a241ef189d81c217cd).
 
 ### Fixed
 

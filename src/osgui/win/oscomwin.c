@@ -192,7 +192,7 @@ static void i_force_extension(WCHAR *file, INT buffer_size, const char_t *extens
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t open)
+const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename, const bool_t open)
 {
     TCHAR file_types[256];
     OPENFILENAME ofn;
@@ -209,7 +209,6 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_
     ofn.nMaxCustFilter = 0;
     ofn.nFilterIndex = 1;
     ofn.lpstrFile = file;
-    ofn.lpstrFile[0] = '\0';
     ofn.nMaxFile = sizeof(file);
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
@@ -226,6 +225,16 @@ const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_
     else
     {
         ofn.lpstrInitialDir = NULL;
+    }
+
+    if (str_empty_c(filename) == FALSE)
+    {
+        uint32_t bytes = unicode_convers(filename, cast(file, char_t), ekUTF8, ekUTF16, sizeof(file));
+        cassert_unref(bytes < sizeof(file), bytes);
+    }
+    else
+    {
+        file[0] = '\0';
     }
 
     if (str_empty_c(caption) == FALSE)

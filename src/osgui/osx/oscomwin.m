@@ -76,30 +76,51 @@ static void i_set_ftypes(NSSavePanel *panel, const char_t **ftypes, const uint32
 
 /*---------------------------------------------------------------------------*/
 
-static NSOpenPanel *i_open_file(const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *startdir)
+static void i_panel_info(NSSavePanel *panel, const char_t *caption, const char_t *start_dir, const char_t *filename)
 {
-    NSOpenPanel *open_panel = [NSOpenPanel openPanel];
-    BOOL dirsel = NO;
-    unref(caption);
-
 #if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-    if (startdir != NULL)
+    if (str_empty_c(caption) == FALSE)
     {
-        NSString *str = [[NSString alloc] initWithUTF8String:startdir];
+        NSString *str = [[NSString alloc] initWithUTF8String:caption];
+        [panel setTitle:str];
+        [str release];
+    }
+
+    if (str_empty_c(start_dir) == FALSE)
+    {
+        NSString *str = [[NSString alloc] initWithUTF8String:start_dir];
         NSURL *url = [[NSURL alloc] initWithString:str];
-        [open_panel setDirectoryURL:url];
+        [panel setDirectoryURL:url];
         [url release];
         [str release];
     }
     else
     {
-        [open_panel setDirectoryURL:nil];
+        [panel setDirectoryURL:nil];
+    }
+
+    if (str_empty_c(filename) == FALSE)
+    {
+        NSString *str = [[NSString alloc] initWithUTF8String:filename];
+        [panel setNameFieldStringValue:str];
+        [str release];
     }
 
 #else
-    unref(startdir);
+    unref(caption);
+    unref(start_dir);
+    unref(filename);
 #endif
+}
 
+/*---------------------------------------------------------------------------*/
+
+static NSOpenPanel *i_open_file(const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename)
+{
+    NSOpenPanel *open_panel = [NSOpenPanel openPanel];
+    BOOL dirsel = NO;
+
+    i_panel_info(open_panel, caption, start_dir, filename);
     [open_panel setAllowsMultipleSelection:FALSE];
     if (ftypes != NULL)
     {
@@ -116,15 +137,10 @@ static NSOpenPanel *i_open_file(const char_t *caption, const char_t **ftypes, co
 
 /*---------------------------------------------------------------------------*/
 
-static NSSavePanel *i_save_file(const char_t **ftypes, const uint32_t size)
+static NSSavePanel *i_save_file(const char_t **ftypes, const uint32_t size, const char_t *caption, const char_t *start_dir, const char_t *filename)
 {
     NSSavePanel *save_panel = [NSSavePanel savePanel];
-
-    /* 10.5
-       [save_panel setDirectoryURL:nil];
-       cassert(FALSE);
-     */
-
+    i_panel_info(save_panel, caption, start_dir, filename);
     [save_panel setCanCreateDirectories:YES];
     i_set_ftypes(save_panel, ftypes, size);
     return save_panel;
@@ -157,13 +173,13 @@ static const char_t *i_save_file_selected(NSSavePanel *save_panel)
 
 /*---------------------------------------------------------------------------*/
 
-static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t foropen)
+static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename, const bool_t foropen)
 {
     unref(parent);
 
     if (foropen == TRUE)
     {
-        NSOpenPanel *open_panel = i_open_file(caption, ftypes, size, start_dir);
+        NSOpenPanel *open_panel = i_open_file(caption, ftypes, size, start_dir, filename);
 
         if (str_empty_c(caption) == FALSE)
             [open_panel setTitle:[NSString stringWithUTF8String:caption]];
@@ -188,7 +204,7 @@ static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, co
     }
     else
     {
-        NSSavePanel *save_panel = i_save_file(ftypes, size);
+        NSSavePanel *save_panel = i_save_file(ftypes, size, caption, start_dir, filename);
 
         if (str_empty_c(caption) == FALSE)
             [save_panel setTitle:[NSString stringWithUTF8String:caption]];
@@ -218,14 +234,14 @@ static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, co
 const char_t *oscomwin_dir(OSWindow *parent, const char_t *caption, const char_t *start_dir)
 {
     const char_t *ftypes[] = {"..DIR.."};
-    return i_oscomwin_file(parent, caption, ftypes, 1, start_dir, TRUE);
+    return i_oscomwin_file(parent, caption, ftypes, 1, start_dir, NULL, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const bool_t foropen)
+const char_t *oscomwin_file(OSWindow *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename, const bool_t foropen)
 {
-    return i_oscomwin_file(parent, caption, ftypes, size, start_dir, foropen);
+    return i_oscomwin_file(parent, caption, ftypes, size, start_dir, filename, foropen);
 }
 
 /*---------------------------------------------------------------------------*/

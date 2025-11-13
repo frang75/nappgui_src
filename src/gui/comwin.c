@@ -27,22 +27,22 @@ const char_t *comwin_select_dir(Window *parent, const char_t *caption, const cha
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *comwin_open_file(Window *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir)
+const char_t *comwin_open_file(Window *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename)
 {
     const GuiCtx *context = guictx_get_current();
     void *ositem = parent ? _window_ositem(parent) : NULL;
     cassert_no_null(context);
-    return context->func_comwin_file(ositem, caption, ftypes, size, start_dir, TRUE);
+    return context->func_comwin_file(ositem, caption, ftypes, size, start_dir, filename, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-const char_t *comwin_save_file(Window *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir)
+const char_t *comwin_save_file(Window *parent, const char_t *caption, const char_t **ftypes, const uint32_t size, const char_t *start_dir, const char_t *filename)
 {
     const GuiCtx *context = guictx_get_current();
     void *ositem = parent ? _window_ositem(parent) : NULL;
     cassert_no_null(context);
-    return context->func_comwin_file(ositem, caption, ftypes, size, start_dir, FALSE);
+    return context->func_comwin_file(ositem, caption, ftypes, size, start_dir, filename, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

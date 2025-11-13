@@ -255,7 +255,7 @@ static void i_OnFirst(Ctrl *ctrl, Event *e)
 static void i_OnImport(Ctrl *ctrl, Event *e)
 {
     const char_t *type[] = {"dbp"};
-    const char_t *file = comwin_open_file(ctrl->window, NULL, type, 1, NULL);
+    const char_t *file = comwin_open_file(ctrl->window, NULL, type, 1, NULL, NULL);
     if (file != NULL)
     {
         ferror_t err;
@@ -278,7 +278,7 @@ void ctrl_import_item(Ctrl *ctrl, MenuItem *item)
 static void i_OnExport(Ctrl *ctrl, Event *e)
 {
     const char_t *type[] = {"dbp"};
-    const char_t *file = comwin_save_file(ctrl->window, NULL, type, 1, NULL);
+    const char_t *file = comwin_save_file(ctrl->window, NULL, type, 1, NULL, NULL);
     if (file != NULL)
     {
         ferror_t err;
@@ -312,7 +312,7 @@ static void i_OnImgDraw(Ctrl *ctrl, Event *e)
 static void i_OnImgClick(Ctrl *ctrl, Event *e)
 {
     const char_t *type[] = {"png", "jpg"};
-    const char_t *file = comwin_open_file(ctrl->window, NULL, type, 2, NULL);
+    const char_t *file = comwin_open_file(ctrl->window, NULL, type, 2, NULL, NULL);
     if (file != NULL)
     {
         Image *image = image_from_file(file, NULL);
