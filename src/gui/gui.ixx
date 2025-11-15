@@ -24,6 +24,7 @@ enum _gievent_t
 typedef struct _line_t Line;
 typedef union _tag_t Tag;
 typedef struct _gui_component_t GuiComponent;
+typedef struct _vctrltbl_t VCtrlTbl;
 typedef struct _editimp_t EditImp;
 typedef struct _items_t Items;
 typedef struct _scrollview_t ScrollView;
@@ -68,10 +69,33 @@ struct _gui_component_t
     void *ositem;
 };
 
-DeclPt(Cell);
-DeclPt(Layout);
-DeclPt(GuiComponent);
-DeclPt(MenuItem);
+struct _vctrltbl_t
+{
+    const char_t *type;
+    FPtr_event_handler OnDraw;
+    FPtr_event_handler OnOverlay;
+    FPtr_event_handler OnResize;
+    FPtr_event_handler OnEnter;
+    FPtr_event_handler OnExit;
+    FPtr_event_handler OnMoved;
+    FPtr_event_handler OnDown;
+    FPtr_event_handler OnUp;
+    FPtr_event_handler OnClick;
+    FPtr_event_handler OnDrag;
+    FPtr_event_handler OnWheel;
+    FPtr_event_handler OnKeyDown;
+    FPtr_event_handler OnKeyUp;
+    FPtr_event_handler OnFocus;
+    FPtr_event_handler OnResignFocus;
+    FPtr_event_handler OnAcceptFocus;
+    FPtr_event_handler OnScroll;
+    FPtr_destroy func_destroy_data;
+    FPtr_gctx_call func_locale;
+    FPtr_natural func_natural;
+    FPtr_gctx_call func_empty;
+    FPtr_gctx_set_uint32 func_uint32;
+    FPtr_set_image func_image;
+};
 
 struct _colitem_t
 {
@@ -100,5 +124,10 @@ struct _evbind_t
     uint16_t size_main;
     uint16_t size_edit;
 };
+
+DeclPt(Cell);
+DeclPt(Layout);
+DeclPt(GuiComponent);
+DeclPt(MenuItem);
 
 #endif

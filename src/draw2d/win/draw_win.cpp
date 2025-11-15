@@ -1087,10 +1087,11 @@ static void i_set_gdi_mode(DCtx *ctx)
     if (ctx->gdi_mode == FALSE)
     {
         cassert_no_null(ctx->hdc);
-        cassert_no_null(ctx->gdi_pen);
         SetBkMode(ctx->hdc, TRANSPARENT);
-        SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
-        SelectObject(ctx->hdc, ctx->gdi_pen);
+        if (ctx->font != NULL)
+            SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
+        if (ctx->gdi_pen != NULL)
+            SelectObject(ctx->hdc, ctx->gdi_pen);
         ctx->gdi_mode = TRUE;
     }
 }

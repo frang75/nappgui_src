@@ -8,13 +8,14 @@
 
 ### Changed
 
-- `comwin_open_file()` adds a new parameter `const char_t *filename`. [Commit]().
-- `comwin_save_file()` adds a new parameter `const char_t *filename`. [Commit]().
+- `comwin_open_file()` adds a new parameter `const char_t *filename`. [Commit](https://github.com/frang75/nappgui_src/commit/5e6cc6b509cbb8e16824086abb4de59634e3b87d).
+- `comwin_save_file()` adds a new parameter `const char_t *filename`. [Commit](https://github.com/frang75/nappgui_src/commit/5e6cc6b509cbb8e16824086abb4de59634e3b87d).
 
 ### Improved
 
 - Text rendering backend. Refactor and full tests. [Commit](https://github.com/frang75/nappgui_src/commit/749332c36d2a3c3ad989a057a859ef5da73d3550).
 - `Label` implementation as custom control. Removed `OSLabel` and all platform-specific code. [Commit](https://github.com/frang75/nappgui_src/commit/09a008fef1b66acca91f36a241ef189d81c217cd).
+- Custom controls use an optimized `View` API `vctrl.inl`. No changes in public API. [Commit]().
 
 ### Fixed
 

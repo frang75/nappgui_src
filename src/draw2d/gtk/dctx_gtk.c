@@ -83,8 +83,7 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     cairo_translate(ctx->cairo, -(double)offset_x, -(double)offset_y);
     cairo_get_matrix(ctx->cairo, &ctx->origin);
     ctx->raster_mode = FALSE;
-    if (reset == TRUE)
-        _dctx_init(ctx);
+    _dctx_init(ctx, reset);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -280,7 +279,7 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     cairo_matrix_init_identity(&ctx->origin);
     cairo_matrix_init_identity(&ctx->transform);
     cairo_matrix_init_identity(&ctx->pattern_matrix);
-    _dctx_init(ctx);
+    _dctx_init(ctx, TRUE);
     return ctx;
 }
 

@@ -14,15 +14,9 @@
 
 __EXTERN_C
 
-void _view_add_transition(View *view, Listener *listener);
-
-void _view_delete_transition(View *view);
-
 _gui_api View *_view_create(const uint32_t flags);
 
 void _view_destroy(View **view);
-
-void _view_set_subtype(View *view, const char_t *subtype);
 
 const char_t *_view_subtype(const View *view);
 
@@ -31,20 +25,6 @@ void _view_locale(View *view);
 void _view_natural(View *view, const uint32_t di, real32_t *dim0, real32_t *dim1);
 
 void _view_OnResize(View *view, const S2Df *size);
-
-Cell *_view_cell(View *view);
-
-void *_view_get_native_imp(View *view);
-
-void _view_OnLocale(View *view, FPtr_gctx_call func_locale);
-
-void _view_OnNatural(View *view, FPtr_natural func_natural);
-
-void _view_OnEmpty(View *view, FPtr_gctx_call func_empty);
-
-void _view_OnUInt32(View *view, FPtr_gctx_set_uint32 func_uint32);
-
-void _view_OnImage(View *view, FPtr_set_image func_image);
 
 void _view_empty(View *view);
 

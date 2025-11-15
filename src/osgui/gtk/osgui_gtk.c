@@ -512,7 +512,7 @@ vkey_t _osgui_vkey(guint kval)
             kval = GDK_KEY_Delete;
             break;
         default:
-            cassert_default(kval);
+            break;
         }
 
     for (i = 0; i < n; ++i)

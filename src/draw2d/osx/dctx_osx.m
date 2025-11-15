@@ -117,8 +117,7 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     CGContextTranslateCTM(ctx->context, -(CGFloat)offset_x, -(CGFloat)offset_y);
     ctx->origin = CGContextGetCTM(ctx->context);
     ctx->raster_mode = FALSE;
-    if (reset == TRUE)
-        _dctx_init(ctx);
+    _dctx_init(ctx, reset);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -309,7 +308,7 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     ctx->gradient_matrix = CGAffineTransformIdentity;
     CGContextConcatCTM(ctx->context, ctx->origin);
     i_init_text_attr(ctx);
-    _dctx_init(ctx);
+    _dctx_init(ctx, TRUE);
     return ctx;
 }
 

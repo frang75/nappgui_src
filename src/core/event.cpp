@@ -138,6 +138,29 @@ void listener_event_imp(Listener *listener, const uint32_t type, void *sender, v
 
 /*---------------------------------------------------------------------------*/
 
+void listener_handler_imp(FPtr_event_handler func_event_handler, void *object, const uint32_t type, void *sender, void *params, void *result, const char_t *sender_type, const char_t *params_type, const char_t *result_type)
+{
+    Event e;
+    cassert_no_nullf(func_event_handler);
+    e.type = type;
+    e.sender = sender;
+    e.params = params;
+    e.result = result;
+    e.member_event_handler = NULL;
+#if defined(__ASSERTS__)
+    e.sender_type = sender_type;
+    e.params_type = params_type;
+    e.result_type = result_type;
+#else
+    unref(sender_type);
+    unref(params_type);
+    unref(result_type);
+#endif
+    func_event_handler(object, &e);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void listener_pass_event_imp(Listener *listener, Event *event, void *sender, const char_t *sender_type)
 {
     void *previous_sender = NULL;
@@ -161,6 +184,38 @@ void listener_pass_event_imp(Listener *listener, Event *event, void *sender, con
 #endif
 
     listener->func_event_handler(listener->object, event);
+
+    event->sender = previous_sender;
+    event->member_event_handler = previous_member_event_handler;
+#if defined(__ASSERTS__)
+    event->sender_type = previous_sender_type;
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+void listener_pass_handler_imp(FPtr_event_handler func_event_handler, void *object, Event *event, void *sender, const char_t *sender_type)
+{
+    void *previous_sender = NULL;
+    EventHandler previous_member_event_handler = NULL;
+#if defined(__ASSERTS__)
+    const char_t *previous_sender_type = NULL;
+#endif
+
+    cassert_no_nullf(func_event_handler);
+    cassert_no_null(event);
+    previous_sender = event->sender;
+    previous_member_event_handler = event->member_event_handler;
+    event->sender = sender;
+    event->member_event_handler = NULL;
+#if defined(__ASSERTS__)
+    previous_sender_type = event->sender_type;
+    event->sender_type = sender_type;
+#else
+    unref(sender_type);
+#endif
+
+    func_event_handler(object, event);
 
     event->sender = previous_sender;
     event->member_event_handler = previous_member_event_handler;

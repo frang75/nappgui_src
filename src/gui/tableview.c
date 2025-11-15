@@ -16,7 +16,7 @@
 #include "scrollview.inl"
 #include "component.inl"
 #include "view.h"
-#include "view.inl"
+#include "vctrl.inl"
 #include "gui.h"
 #include "gui.inl"
 #include "window.h"
@@ -110,6 +110,50 @@ struct _tdata_t
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnDraw(TData *data, Event *e);
+static void i_OnOverlay(TData *data, Event *e);
+static void i_OnSize(TData *data, Event *e);
+static void i_OnExit(TData *data, Event *e);
+static void i_OnMove(TData *data, Event *e);
+static void i_OnDown(TData *data, Event *e);
+static void i_OnUp(TData *data, Event *e);
+static void i_OnDrag(TData *data, Event *e);
+static void i_OnKeyDown(TData *data, Event *e);
+static void i_OnKeyUp(TData *data, Event *e);
+static void i_OnFocus(TData *data, Event *e);
+static void i_OnScroll(TData *data, Event *e);
+static void i_destroy_data(TData **data);
+
+/*---------------------------------------------------------------------------*/
+
+static VCtrlTbl i_TABLEVIEW_TLB = {
+    "TableView",
+    (FPtr_event_handler)i_OnDraw,
+    (FPtr_event_handler)i_OnOverlay,
+    (FPtr_event_handler)i_OnSize,
+    NULL, /* OnEnter */
+    (FPtr_event_handler)i_OnExit,
+    (FPtr_event_handler)i_OnMove,
+    (FPtr_event_handler)i_OnDown,
+    (FPtr_event_handler)i_OnUp,
+    NULL, /* OnClick */
+    (FPtr_event_handler)i_OnDrag,
+    NULL, /* OnWheel */
+    (FPtr_event_handler)i_OnKeyDown,
+    (FPtr_event_handler)i_OnKeyUp,
+    (FPtr_event_handler)i_OnFocus,
+    NULL, /* OnResignFocus */
+    NULL, /* OnAcceptFocus */
+    (FPtr_event_handler)i_OnScroll,
+    (FPtr_destroy)i_destroy_data,
+    NULL, /* func_locale */
+    NULL, /* func_natural */
+    NULL, /* func_empty */
+    NULL, /* func_uint32 */
+    NULL /* func_image*/};
+
+/*---------------------------------------------------------------------------*/
+
 DeclSt(Column);
 static const uint32_t i_COLUMN_PADDING = 10;
 static const uint32_t i_ROW_PADDING = 4;
@@ -122,10 +166,9 @@ static const char_t *i_EMPTY_TEXT = "";
 
 /*---------------------------------------------------------------------------*/
 
-static TData *i_create_data(View *view)
+static TData *i_create_data(void)
 {
     TData *data = heap_new0(TData);
-    data->sview = scrollview_create(view);
     data->font = font_system(font_regular_size(), 0);
     data->head_font = font_copy(data->font);
     data->columns = arrst_create(Column);
@@ -243,7 +286,10 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
             if (twidth > i_COLUMN_MIN_DISPLAY)
             {
                 if (cell->align != ekJUSTIFY)
+                {
                     draw_text_width(ctx, (real32_t)twidth);
+                    draw_text_trim(ctx, ekELLIPEND);
+                }
 
                 draw_text_halign(ctx, cell->align);
                 draw_text_color(ctx, kCOLOR_DEFAULT);
@@ -366,10 +412,9 @@ static bool_t i_row_is_selected(const ArrSt(uint32_t) *selected, const uint32_t 
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDraw(TableView *view, Event *e)
+static void i_OnDraw(TData *data, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
-    TData *data = view_get_data(cast(view, View), TData);
     uint32_t freeze_width = UINT32_MAX;
     uint32_t nc = 0, nr = 0;
     cassert_no_null(data);
@@ -382,6 +427,7 @@ static void i_OnDraw(TableView *view, Event *e)
 
     if (nc > 0 && nr > 0)
     {
+        TableView *view = cast(event_sender(e, View), TableView);
         uint32_t stx = (uint32_t)p->x;
         uint32_t sty = (uint32_t)p->y;
         uint32_t head_height = 0;
@@ -647,11 +693,9 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnOverlay(TableView *view, Event *e)
+static void i_OnOverlay(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     cassert_no_null(data);
-
     if (data->head_visible == TRUE)
     {
         const EvDraw *p = event_params(e, EvDraw);
@@ -667,7 +711,8 @@ static void i_OnOverlay(TableView *view, Event *e)
 
         {
             V2Df pos;
-            view_viewport(cast(view, View), &pos, NULL);
+            View *view = event_sender(e, View);
+            view_viewport(view, &pos, NULL);
             stx = (uint32_t)pos.x;
         }
 
@@ -818,7 +863,7 @@ static void i_row_height(TData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_document_size(TableView *view, TData *data)
+static void i_document_size(View *view, TData *data)
 {
     uint32_t twidth = 0;
     uint32_t theight = 0;
@@ -927,10 +972,10 @@ static void i_scroll_to_row(TData *data, const uint32_t row, const align_t align
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnSize(TableView *view, Event *e)
+static void i_OnSize(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     const EvSize *p = event_params(e, EvSize);
+    View *view = event_sender(e, View);
     cassert_no_null(data);
     scrollview_control_size(data->sview, (uint32_t)p->width, (uint32_t)p->height);
     data->recompute_width = TRUE;
@@ -947,7 +992,7 @@ static void i_OnSize(TableView *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_set_cursor(TableView *view, TData *data, const gui_cursor_t cursor)
+static ___INLINE void i_set_cursor(View *view, TData *data, const gui_cursor_t cursor)
 {
     if (data->cursor != cursor)
     {
@@ -994,10 +1039,10 @@ static void i_mouse_in_header(TData *data, const Column *cols, const uint32_t st
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnMove(TableView *view, Event *e)
+static void i_OnMove(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     const EvMouse *p = event_params(e, EvMouse);
+    View *view = event_sender(e, View);
     uint32_t mouse_x = (uint32_t)p->x;
     uint32_t mouse_y = (uint32_t)p->y;
     uint32_t mouse_ly = (uint32_t)p->ly;
@@ -1040,7 +1085,7 @@ static void i_OnMove(TableView *view, Event *e)
 
             {
                 V2Df pos;
-                view_viewport(cast(view, View), &pos, NULL);
+                view_viewport(view, &pos, NULL);
                 stx = (uint32_t)pos.x;
             }
 
@@ -1068,20 +1113,20 @@ static void i_OnMove(TableView *view, Event *e)
         }
     }
 
-    view_update(cast(view, View));
+    view_update(view);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDrag(TableView *view, Event *e)
+static void i_OnDrag(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
     cassert(data->mouse_down == TRUE);
-
     if (data->mouse_sep != UINT32_MAX)
     {
         /* Column resizing */
         const EvMouse *p = event_params(e, EvMouse);
+        View *view = event_sender(e, View);
         int32_t col_width = (int32_t)data->resize_col_width + (int32_t)p->x - (int32_t)data->resize_mouse_x;
         Column *col = arrst_get(data->columns, data->mouse_sep, Column);
 
@@ -1094,35 +1139,36 @@ static void i_OnDrag(TableView *view, Event *e)
 
         data->recompute_width = TRUE;
         i_document_size(view, data);
-        view_update(cast(view, View));
+        view_update(view);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnExit(TableView *view, Event *e)
+static void i_OnExit(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
+    View *view = event_sender(e, View);
     cassert_no_null(data);
     data->mouse_row = UINT32_MAX;
     data->mouse_head = UINT32_MAX;
     data->mouse_sep = UINT32_MAX;
     if (data->mouse_down == FALSE)
         i_set_cursor(view, data, ekGUI_CURSOR_ARROW);
-    view_update(cast(view, View));
+    view_update(view);
     unref(e);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFocus(TableView *view, Event *e)
+static void i_OnFocus(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
+    View *view = event_sender(e, View);
     const bool_t *p = event_params(e, bool_t);
+    cassert_no_null(data);
     data->focused = *p;
     if (data->focused == TRUE && data->focus_row == UINT32_MAX && data->num_rows > 0)
         data->focus_row = 0;
-    view_update(cast(view, View));
+    view_update(view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1211,14 +1257,15 @@ static bool_t i_select(TableView *view, TData *data, const uint32_t row, const u
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDown(TableView *view, Event *e)
+static void i_OnDown(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     const EvMouse *p = event_params(e, EvMouse);
-    uint32_t n = data->num_rows;
-
+    uint32_t n;
+    cassert_no_null(data);
+    n = data->num_rows;
     if (p->button == ekGUI_MOUSE_LEFT)
     {
+        View *view = event_sender(e, View);
         data->mouse_down = TRUE;
 
         if (data->mouse_sep != UINT32_MAX)
@@ -1239,7 +1286,7 @@ static void i_OnDown(TableView *view, Event *e)
                     params.index = data->mouse_head;
                     params.state = ekGUI_ON;
                     params.text = "";
-                    listener_event(data->OnHeaderClick, ekGUI_EVENT_TBL_HEADCLICK, view, &params, NULL, TableView, EvButton, void);
+                    listener_event(data->OnHeaderClick, ekGUI_EVENT_TBL_HEADCLICK, cast(view, TableView), &params, NULL, TableView, EvButton, void);
                 }
             }
         }
@@ -1253,7 +1300,7 @@ static void i_OnDown(TableView *view, Event *e)
 
             if (data->mouse_row < n)
             {
-                changed |= i_select(view, data, data->mouse_row, UINT32_MAX, TRUE);
+                changed |= i_select(cast(view, TableView), data, data->mouse_row, UINT32_MAX, TRUE);
                 if (data->focus_row != data->mouse_row)
                 {
                     data->focus_row = data->mouse_row;
@@ -1275,26 +1322,26 @@ static void i_OnDown(TableView *view, Event *e)
                 bool_t cur_sel = i_row_is_selected(data->selected, data->mouse_row);
                 row.sel = (bool_t) !(previous_sel == cur_sel);
                 row.row = data->mouse_row;
-                listener_event(data->OnRowClick, ekGUI_EVENT_TBL_ROWCLICK, view, &row, NULL, TableView, EvTbRow, void);
+                listener_event(data->OnRowClick, ekGUI_EVENT_TBL_ROWCLICK, cast(view, TableView), &row, NULL, TableView, EvTbRow, void);
             }
 
             if (changed == TRUE)
-                view_update(cast(view, View));
+                view_update(view);
         }
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnUp(TableView *view, Event *e)
+static void i_OnUp(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
+    View *view = event_sender(e, View);
     cassert_no_null(data);
     data->mouse_down = FALSE;
     data->resize_mouse_x = UINT32_MAX;
     data->resize_col_width = UINT32_MAX;
     i_set_cursor(view, data, ekGUI_CURSOR_ARROW);
-    view_update(cast(view, View));
+    view_update(view);
     unref(e);
 }
 
@@ -1384,14 +1431,15 @@ static void i_right_scroll(TData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnKeyDown(TableView *view, Event *e)
+static void i_OnKeyDown(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     const EvKey *p = event_params(e, EvKey);
-    uint32_t n = data->num_rows;
-
+    uint32_t n;
+    cassert_no_null(data);
+    n = data->num_rows;
     if (n > 0)
     {
+        TableView *view = cast(event_sender(e, View), TableView);
         if (p->key == ekKEY_UP)
         {
             bool_t update = FALSE;
@@ -1581,11 +1629,11 @@ static void i_OnKeyDown(TableView *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnKeyUp(TableView *view, Event *e)
+static void i_OnKeyUp(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     const EvKey *p = event_params(e, EvKey);
     ctrl_msel_t msel = drawctrl_multisel(NULL, p->key);
+    cassert_no_null(data);
     /* Released a key that activate multiselect (p.e. Ctrl) */
     if (msel != ekCTRL_MSEL_NO)
         data->multisel_mode = ekCTRL_MSEL_NO;
@@ -1593,10 +1641,10 @@ static void i_OnKeyUp(TableView *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnScroll(TableView *view, Event *e)
+static void i_OnScroll(TData *data, Event *e)
 {
-    TData *data = view_get_data(cast(view, View), TData);
     const EvScroll *p = event_params(e, EvScroll);
+    cassert_no_null(data);
     if (p->orient == ekGUI_HORIZONTAL)
     {
         if (p->scroll == ekGUI_SCROLL_STEP_LEFT)
@@ -1610,26 +1658,13 @@ static void i_OnScroll(TableView *view, Event *e)
 
 TableView *tableview_create(void)
 {
-    View *view = _view_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE);
-    TData *data = i_create_data(view);
-    view_OnDraw(view, listener(cast(view, TableView), i_OnDraw, TableView));
-    view_OnOverlay(view, listener(cast(view, TableView), i_OnOverlay, TableView));
-    view_OnSize(view, listener(cast(view, TableView), i_OnSize, TableView));
-    view_OnMove(view, listener(cast(view, TableView), i_OnMove, TableView));
-    view_OnDrag(view, listener(cast(view, TableView), i_OnDrag, TableView));
-    view_OnExit(view, listener(cast(view, TableView), i_OnExit, TableView));
-    view_OnFocus(view, listener(cast(view, TableView), i_OnFocus, TableView));
-    view_OnDown(view, listener(cast(view, TableView), i_OnDown, TableView));
-    view_OnUp(view, listener(cast(view, TableView), i_OnUp, TableView));
-    view_OnKeyDown(view, listener(cast(view, TableView), i_OnKeyDown, TableView));
-    view_OnKeyUp(view, listener(cast(view, TableView), i_OnKeyUp, TableView));
-    view_OnScroll(view, listener(cast(view, TableView), i_OnScroll, TableView));
-    _view_set_subtype(view, "TableView");
+    TData *data = i_create_data();
+    View *view = _vctrl_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE, &i_TABLEVIEW_TLB, data, TData);
+    data->sview = scrollview_create(view);
     view_size(view, s2df(256, 128));
     i_head_height(data);
     i_row_height(data);
-    i_document_size(cast(view, TableView), data);
-    view_data(view, &data, i_destroy_data, TData);
+    i_document_size(view, data);
     return cast(view, TableView);
 }
 
@@ -1692,7 +1727,7 @@ void tableview_font(TableView *view, const Font *font)
         data->recompute_width = TRUE;
         data->recompute_height = TRUE;
         i_row_height(data);
-        i_document_size(view, data);
+        i_document_size(cast(view, View), data);
         view_update(cast(view, View));
     }
 }
@@ -1744,7 +1779,7 @@ static void i_update_after_column(TableView *view)
     cassert_no_null(data);
     i_row_height(data);
     data->recompute_width = TRUE;
-    i_document_size(view, data);
+    i_document_size(cast(view, View), data);
     view_update(cast(view, View));
 }
 
@@ -1810,7 +1845,7 @@ void tableview_column_width(TableView *view, const uint32_t column_id, const rea
             column->width = column->max_width;
 
         data->recompute_width = TRUE;
-        i_document_size(view, data);
+        i_document_size(cast(view, View), data);
         view_update(cast(view, View));
     }
 }
@@ -1833,14 +1868,14 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
         {
             column->width = column->min_width;
             data->recompute_width = TRUE;
-            i_document_size(view, data);
+            i_document_size(cast(view, View), data);
             view_update(cast(view, View));
         }
         else if (column->width > column->max_width)
         {
             column->width = column->max_width;
             data->recompute_width = TRUE;
-            i_document_size(view, data);
+            i_document_size(cast(view, View), data);
             view_update(cast(view, View));
         }
     }
@@ -2026,7 +2061,7 @@ void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines)
         data->hlines = hlines;
         data->recompute_height = TRUE;
         i_row_height(data);
-        i_document_size(view, data);
+        i_document_size(cast(view, View), data);
         update = TRUE;
     }
 
@@ -2090,7 +2125,7 @@ void tableview_update(TableView *view)
     cassert_no_null(data);
     i_num_rows(view, data);
     data->recompute_height = TRUE;
-    i_document_size(view, data);
+    i_document_size(cast(view, View), data);
     view_update(cast(view, View));
 }
 

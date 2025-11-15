@@ -23,7 +23,11 @@ _core_api void listener_update(Listener **listener, Listener *new_listener);
 
 _core_api void listener_event_imp(Listener *listener, const uint32_t type, void *sender, void *params, void *result, const char_t *sender_type, const char_t *params_type, const char_t *result_type);
 
+_core_api void listener_handler_imp(FPtr_event_handler func_event_handler, void *object, const uint32_t type, void *sender, void *params, void *result, const char_t *sender_type, const char_t *params_type, const char_t *result_type);
+
 _core_api void listener_pass_event_imp(Listener *listener, Event *event, void *sender, const char_t *sender_type);
+
+_core_api void listener_pass_handler_imp(FPtr_event_handler func_event_handler, void *object, Event *event, void *sender, const char_t *sender_type);
 
 _core_api uint32_t event_type(const Event *event);
 
@@ -57,10 +61,22 @@ __END_C
         (void)(cast(result, result_type) == result), \
         listener_event_imp((listener), type, cast(sender, void), cast(params, void), cast(result, void), cast_const(#sender_type, char_t), cast_const(#params_type, char_t), cast_const(#result_type, char_t)))
 
+#define listener_handler(func_event_handler, data, type, sender, params, result, sender_type, params_type, result_type) \
+    ( \
+        (void)(cast(sender, sender_type) == sender), \
+        (void)(cast(params, params_type) == params), \
+        (void)(cast(result, result_type) == result), \
+        listener_handler_imp(func_event_handler, data, type, cast(sender, void), cast(params, void), cast(result, void), cast_const(#sender_type, char_t), cast_const(#params_type, char_t), cast_const(#result_type, char_t)))
+
 #define listener_pass_event(listener, event, sender, sender_type) \
     ( \
         (void)(cast(sender, sender_type) == sender), \
         listener_pass_event_imp((listener), (event), cast(sender, void), cast_const(#sender_type, char_t)))
+
+#define listener_pass_handler(func_event_handler, data, event, sender, sender_type) \
+    ( \
+        (void)(cast(sender, sender_type) == sender), \
+        listener_pass_handler_imp(func_event_handler, data, (event), cast(sender, void), cast_const(#sender_type, char_t)))
 
 #define event_sender(event, type) \
     cast(event_sender_imp((event), cast_const(#type, char_t)), type)

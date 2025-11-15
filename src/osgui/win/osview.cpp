@@ -160,7 +160,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             void *ctx[2];
             ctx[0] = graphics;
             ctx[1] = memHdc;
-            dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, -(real32_t)vx, -(real32_t)vy, background, TRUE);
+            dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, -(real32_t)vx, -(real32_t)vy, background, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
             _oslistener_draw(cast(view, OSControl), view->ctx, (real32_t)twidth, (real32_t)theight, (real32_t)vx, (real32_t)vy, (real32_t)vwidth, (real32_t)vheight, &view->listeners);
             dctx_unset_gcontext(view->ctx);
 
@@ -172,7 +172,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 params.y = 0;
                 params.width = (real32_t)vwidth;
                 params.height = (real32_t)vheight;
-                dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, 0, 0, 0, TRUE);
+                dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, 0, 0, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
                 listener_event(view->OnOverlay, ekGUI_EVENT_OVERLAY, cast(view, OSControl), &params, NULL, OSControl, EvDraw, void);
                 dctx_unset_gcontext(view->ctx);
             }

@@ -16,7 +16,7 @@
 #include "drawctrl.inl"
 #include "scrollview.inl"
 #include "view.h"
-#include "view.inl"
+#include "vctrl.inl"
 #include "gui.inl"
 #include <draw2d/color.h>
 #include <draw2d/draw.h>
@@ -73,6 +73,50 @@ struct _ldata_t
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnDraw(LData *data, Event *e);
+static void i_OnSize(LData *data, Event *e);
+static void i_OnEnter(LData *data, Event *e);
+static void i_OnExit(LData *data, Event *e);
+static void i_OnMoved(LData *data, Event *e);
+static void i_OnFocus(LData *data, Event *e);
+static void i_OnDown(LData *data, Event *e);
+static void i_OnUp(LData *data, Event *e);
+static void i_OnKeyDown(LData *data, Event *e);
+static void i_OnKeyUp(LData *data, Event *e);
+static void i_destroy_data(LData **data);
+static void i_set_empty(ListBox *listbox);
+static void i_set_uint32(ListBox *listbox, const uint32_t value);
+
+/*---------------------------------------------------------------------------*/
+
+static VCtrlTbl i_LISTBOX_TLB = {
+    "ListBox",
+    (FPtr_event_handler)i_OnDraw,
+    NULL, /* OnOverlay */
+    (FPtr_event_handler)i_OnSize,
+    (FPtr_event_handler)i_OnEnter,
+    (FPtr_event_handler)i_OnExit,
+    (FPtr_event_handler)i_OnMoved,
+    (FPtr_event_handler)i_OnDown,
+    (FPtr_event_handler)i_OnUp,
+    NULL, /* OnClick */
+    NULL, /* OnDrag */
+    NULL, /* OnWheel */
+    (FPtr_event_handler)i_OnKeyDown,
+    (FPtr_event_handler)i_OnKeyUp,
+    (FPtr_event_handler)i_OnFocus,
+    NULL, /* OnResignFocus */
+    NULL, /* OnAcceptFocus */
+    NULL, /* OnScroll */
+    (FPtr_destroy)i_destroy_data,
+    NULL, /* func_locale */
+    NULL, /* func_natural */
+    (FPtr_gctx_call)i_set_empty,
+    (FPtr_gctx_set_uint32)i_set_uint32,
+    NULL /* func_image*/};
+
+/*---------------------------------------------------------------------------*/
+
 DeclSt(PElem);
 static const uint32_t i_LEFT_PADDING = 4;
 static const uint32_t i_RIGHT_PADDING = 4;
@@ -81,10 +125,9 @@ static const uint32_t i_HORIZONTAL_SCROLL = 10;
 
 /*---------------------------------------------------------------------------*/
 
-static LData *i_create_data(View *view)
+static LData *i_create_data(void)
 {
     LData *data = heap_new0(LData);
-    data->sview = scrollview_create(view);
     data->font = drawctrl_font(NULL);
     data->elems = arrst_create(PElem);
     data->mouse_ypos = UINT32_MAX;
@@ -121,10 +164,9 @@ static void i_destroy_data(LData **data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDraw(ListBox *listbox, Event *e)
+static void i_OnDraw(LData *data, Event *e)
 {
     const EvDraw *p = event_params(e, EvDraw);
-    LData *data = view_get_data(cast(listbox, View), LData);
     uint32_t n = 0;
     cassert_no_null(data);
     drawctrl_clear(p->ctx, (int32_t)p->x, (int32_t)p->y, (uint32_t)p->width, (uint32_t)p->height);
@@ -265,10 +307,10 @@ static void i_document_size(LData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnSize(ListBox *listbox, Event *e)
+static void i_OnSize(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const EvSize *p = event_params(e, EvSize);
+    cassert_no_null(data);
     scrollview_control_size(data->sview, (uint32_t)p->width, (uint32_t)p->height);
     i_document_size(data);
 }
@@ -293,53 +335,66 @@ static bool_t i_mouse_in_check(const LData *data, const uint32_t x, uint32_t y)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnMove(ListBox *listbox, Event *e)
+static void i_OnMoved(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const EvMouse *p = event_params(e, EvMouse);
     uint32_t y = (uint32_t)p->y;
+    cassert_no_null(data);
     data->mouse_ypos = y;
     data->mouse_incheck = FALSE;
 
     if (arrst_size(data->elems, PElem) > 0)
     {
+        View *view = event_sender(e, View);
+
         if (data->checks == TRUE)
             data->mouse_incheck = i_mouse_in_check(data, (uint32_t)p->x, y);
 
-        view_update(cast(listbox, View));
+        view_update(view);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnEnter(ListBox *listbox, Event *e)
+static void i_OnEnter(LData *data, Event *e)
 {
-    unref(listbox);
+    unref(data);
     unref(e);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnExit(ListBox *listbox, Event *e)
+static void i_OnExit(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
+    cassert_no_null(data);
+    unref(e);
     data->mouse_ypos = UINT32_MAX;
 
     if (arrst_size(data->elems, PElem) > 0)
-        view_update(cast(listbox, View));
-
-    unref(e);
+    {
+        View *view = event_sender(e, View);
+        view_update(view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFocus(ListBox *listbox, Event *e)
+static void i_OnFocus(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const bool_t *p = event_params(e, bool_t);
+    cassert_no_null(data);
     data->focused = *p;
+    if (data->focused == FALSE)
+    {
+        if (data->multisel == TRUE)
+            data->multisel_mode = ekCTRL_MSEL_NO;
+    }
+
     if (data->selected != UINT32_MAX)
-        view_update(cast(listbox, View));
+    {
+        View *view = event_sender(e, View);
+        view_update(view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -369,7 +424,7 @@ static void i_select(ListBox *listbox, LData *data, const bool_t bymouse)
         text = tc(elem->text);
     }
 
-    _cell_update_u32(_view_cell(cast(listbox, View)), data->selected);
+    _cell_update_u32(_vctrl_cell(cast(listbox, View)), data->selected);
 
     if (data->OnSelect != NULL)
     {
@@ -383,14 +438,16 @@ static void i_select(ListBox *listbox, LData *data, const bool_t bymouse)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDown(ListBox *listbox, Event *e)
+static void i_OnDown(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const EvMouse *p = event_params(e, EvMouse);
-    uint32_t n = arrst_size(data->elems, PElem);
+    View *view = event_sender(e, View);
     uint32_t y = (uint32_t)p->y;
-    uint32_t sel = y / data->row_height;
+    uint32_t n, sel;
     bool_t process_OnSelect = TRUE;
+    cassert_no_null(data);
+    n = arrst_size(data->elems, PElem);
+    sel = y / data->row_height;
 
     if (sel >= n)
         sel = UINT32_MAX;
@@ -399,7 +456,7 @@ static void i_OnDown(ListBox *listbox, Event *e)
     {
         cassert(p->tag == 0);
         ((EvMouse *)p)->tag = sel;
-        listener_event(data->OnDown, ekGUI_EVENT_DOWN, listbox, p, &process_OnSelect, ListBox, EvMouse, bool_t);
+        listener_event(data->OnDown, ekGUI_EVENT_DOWN, cast(view, ListBox), p, &process_OnSelect, ListBox, EvMouse, bool_t);
     }
 
     if (n > 0 && p->button == ekGUI_MOUSE_LEFT && process_OnSelect == TRUE)
@@ -411,7 +468,7 @@ static void i_OnDown(ListBox *listbox, Event *e)
                 PElem *elem = arrst_get(data->elems, sel, PElem);
                 elem->check = !elem->check;
                 data->check_pressed = TRUE;
-                view_update(cast(listbox, View));
+                view_update(view);
             }
         }
 
@@ -422,26 +479,28 @@ static void i_OnDown(ListBox *listbox, Event *e)
             if (data->multisel == FALSE || data->multisel_mode == ekCTRL_MSEL_NO)
                 i_clean_select(data->elems);
 
-            i_select(listbox, data, TRUE);
-            view_update(cast(listbox, View));
+            i_select(cast(view, ListBox), data, TRUE);
+            view_update(view);
         }
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnUp(ListBox *listbox, Event *e)
+static void i_OnUp(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const EvMouse *p = event_params(e, EvMouse);
-    uint32_t n = arrst_size(data->elems, PElem);
+    uint32_t n;
+    cassert_no_null(data);
+    n = arrst_size(data->elems, PElem);
 
     if (n > 0 && p->button == ekGUI_MOUSE_LEFT)
     {
         if (data->check_pressed == TRUE)
         {
+            View *view = event_sender(e, View);
             data->check_pressed = FALSE;
-            view_update(cast(listbox, View));
+            view_update(view);
         }
     }
 }
@@ -479,12 +538,13 @@ static void i_update_sel_bottom(ListBox *listbox, LData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnKeyDown(ListBox *listbox, Event *e)
+static void i_OnKeyDown(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const EvKey *p = event_params(e, EvKey);
-    uint32_t n = arrst_size(data->elems, PElem);
-
+    View *view = event_sender(e, View);
+    uint32_t n;
+    cassert_no_null(data);
+    n = arrst_size(data->elems, PElem);
     if (n > 0)
     {
         if (p->key == ekKEY_UP)
@@ -502,7 +562,7 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
             }
 
             if (update == TRUE)
-                i_update_sel_top(listbox, data);
+                i_update_sel_top(cast(view, ListBox), data);
         }
         else if (p->key == ekKEY_DOWN)
         {
@@ -519,14 +579,14 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
             }
 
             if (update == TRUE)
-                i_update_sel_bottom(listbox, data);
+                i_update_sel_bottom(cast(view, ListBox), data);
         }
         else if (p->key == ekKEY_HOME)
         {
             if (data->selected != 0)
             {
                 data->selected = 0;
-                i_update_sel_top(listbox, data);
+                i_update_sel_top(cast(view, ListBox), data);
             }
         }
         else if (p->key == ekKEY_END)
@@ -534,7 +594,7 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
             if (data->selected != n - 1)
             {
                 data->selected = n - 1;
-                i_update_sel_bottom(listbox, data);
+                i_update_sel_bottom(cast(view, ListBox), data);
             }
         }
         else if (p->key == ekKEY_PAGEUP)
@@ -554,7 +614,7 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
                         data->selected = 0;
                 }
 
-                i_update_sel_top(listbox, data);
+                i_update_sel_top(cast(view, ListBox), data);
             }
         }
         else if (p->key == ekKEY_PAGEDOWN)
@@ -574,7 +634,7 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
                         data->selected = n - 1;
                 }
 
-                i_update_sel_bottom(listbox, data);
+                i_update_sel_bottom(cast(view, ListBox), data);
             }
         }
         else if (p->key == ekKEY_LEFT)
@@ -591,7 +651,7 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
             {
                 PElem *elem = arrst_get(data->elems, data->selected, PElem);
                 elem->check = !elem->check;
-                view_update(cast(listbox, View));
+                view_update(view);
             }
         }
         else if (data->multisel == TRUE)
@@ -605,11 +665,12 @@ static void i_OnKeyDown(ListBox *listbox, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnKeyUp(ListBox *listbox, Event *e)
+static void i_OnKeyUp(LData *data, Event *e)
 {
-    LData *data = view_get_data(cast(listbox, View), LData);
     const EvKey *p = event_params(e, EvKey);
-    uint32_t n = arrst_size(data->elems, PElem);
+    uint32_t n;
+    cassert_no_null(data);
+    n = arrst_size(data->elems, PElem);
 
     if (n > 0)
     {
@@ -656,22 +717,9 @@ static void i_set_uint32(ListBox *listbox, const uint32_t value)
 
 ListBox *listbox_create(void)
 {
-    View *view = _view_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE);
-    LData *data = i_create_data(view);
-    view_data(view, &data, i_destroy_data, LData);
-    view_OnDraw(view, listener(cast(view, ListBox), i_OnDraw, ListBox));
-    view_OnSize(view, listener(cast(view, ListBox), i_OnSize, ListBox));
-    view_OnMove(view, listener(cast(view, ListBox), i_OnMove, ListBox));
-    view_OnEnter(view, listener(cast(view, ListBox), i_OnEnter, ListBox));
-    view_OnExit(view, listener(cast(view, ListBox), i_OnExit, ListBox));
-    view_OnFocus(view, listener(cast(view, ListBox), i_OnFocus, ListBox));
-    view_OnDown(view, listener(cast(view, ListBox), i_OnDown, ListBox));
-    view_OnUp(view, listener(cast(view, ListBox), i_OnUp, ListBox));
-    view_OnKeyDown(view, listener(cast(view, ListBox), i_OnKeyDown, ListBox));
-    view_OnKeyUp(view, listener(cast(view, ListBox), i_OnKeyUp, ListBox));
-    _view_set_subtype(view, "ListBox");
-    _view_OnUInt32(view, (FPtr_gctx_set_uint32)i_set_uint32);
-    _view_OnEmpty(view, (FPtr_gctx_call)i_set_empty);
+    LData *data = i_create_data();
+    View *view = _vctrl_create(ekVIEW_HSCROLL | ekVIEW_VSCROLL | ekVIEW_BORDER | ekVIEW_CONTROL | ekVIEW_NOERASE, &i_LISTBOX_TLB, data, LData);
+    data->sview = scrollview_create(view);
     i_document_size(view_get_data(view, LData));
     return cast(view, ListBox);
 }

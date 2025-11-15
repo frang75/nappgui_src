@@ -22,27 +22,31 @@
 
 /*---------------------------------------------------------------------------*/
 
-void _dctx_init(DCtx *ctx)
+void _dctx_init(DCtx *ctx, const bool_t reset)
 {
-    Font *font = font_system(font_regular_size(), 0);
-    draw_matrixf(ctx, kT2D_IDENTf);
-    draw_antialias(ctx, TRUE);
-    draw_line_color(ctx, kCOLOR_BLACK);
-    draw_line_width(ctx, 1);
-    draw_line_cap(ctx, ekLCFLAT);
-    draw_line_join(ctx, ekLJMITER);
-    draw_line_dash(ctx, NULL, 0);
-    draw_fill_color(ctx, kCOLOR_BLACK);
-    draw_fill_matrix(ctx, kT2D_IDENTf);
-    draw_fill_wrap(ctx, ekFCLAMP);
-    draw_font(ctx, font);
-    draw_text_color(ctx, kCOLOR_BLACK);
+    /* Fast initialization for custom controls, not 2D affine context */
+    if (reset == TRUE)
+    {
+        Font *font = font_system(font_regular_size(), 0);
+        draw_antialias(ctx, TRUE);
+        draw_matrixf(ctx, kT2D_IDENTf);
+        draw_line_width(ctx, 1);
+        draw_line_cap(ctx, ekLCFLAT);
+        draw_line_join(ctx, ekLJMITER);
+        draw_line_dash(ctx, NULL, 0);
+        draw_fill_color(ctx, kCOLOR_BLACK);
+        draw_fill_matrix(ctx, kT2D_IDENTf);
+        draw_fill_wrap(ctx, ekFCLAMP);
+        draw_font(ctx, font);
+        draw_text_color(ctx, kCOLOR_BLACK);
+        font_destroy(&font);
+    }
+
     draw_text_width(ctx, -1);
     draw_text_trim(ctx, ekELLIPMLINE);
     draw_text_align(ctx, ekLEFT, ekTOP);
     draw_text_halign(ctx, ekLEFT);
     draw_image_align(ctx, ekLEFT, ekTOP);
-    font_destroy(&font);
 }
 
 /*---------------------------------------------------------------------------*/

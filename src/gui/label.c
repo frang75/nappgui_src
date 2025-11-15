@@ -16,7 +16,7 @@
 #include "gui.inl"
 #include "drawctrl.inl"
 #include "view.h"
-#include "view.inl"
+#include "vctrl.inl"
 #include "cell.inl"
 #include "layout.inl"
 #include <draw2d/color.h>
@@ -53,6 +53,46 @@ struct _lbdata_t
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnDraw(LbData *data, Event *e);
+static void i_OnEnter(LbData *data, Event *e);
+static void i_OnExit(LbData *data, Event *e);
+static void i_OnClick(LbData *data, Event *e);
+static void i_OnAcceptFocus(LbData *data, Event *e);
+static void i_destroy_data(LbData **data);
+static void i_locale(Label *label);
+static void i_natural(Label *label, const uint32_t di, real32_t *dim0, real32_t *dim1);
+
+/*---------------------------------------------------------------------------*/
+
+static VCtrlTbl i_LABEL_TLB = {
+    "Label",
+    (FPtr_event_handler)i_OnDraw,
+    NULL, /* OnOverlay */
+    NULL, /* OnResize*/
+    (FPtr_event_handler)i_OnEnter,
+    (FPtr_event_handler)i_OnExit,
+    NULL, /* OnMoved */
+    NULL, /* OnDown */
+    NULL, /* OnUp */
+    (FPtr_event_handler)i_OnClick,
+    NULL, /* OnDrag */
+    NULL, /* OnWheel */
+    NULL, /* OnKeyDown */
+    NULL, /* OnKeyUp */
+    NULL, /* OnFocus */
+    NULL, /* OnResignFocus */
+    (FPtr_event_handler)i_OnAcceptFocus,
+    NULL, /* OnScroll */
+    (FPtr_destroy)i_destroy_data,
+    (FPtr_gctx_call)i_locale,
+    (FPtr_natural)i_natural,
+    NULL, /* func_empty */
+    NULL, /* func_uint32 */
+    NULL, /* func_image */
+};
+
+/*---------------------------------------------------------------------------*/
+
 static void i_destroy_data(LbData **data)
 {
     cassert_no_null(data);
@@ -83,18 +123,17 @@ static LbData *i_create_data(const uint32_t flags, const align_t halign, const e
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnAcceptFocus(Label *label, Event *e)
+static void i_OnAcceptFocus(LbData *data, Event *e)
 {
     bool_t *r = event_result(e, bool_t);
-    unref(label);
+    unref(data);
     *r = FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnDraw(Label *label, Event *e)
+static void i_OnDraw(LbData *data, Event *e)
 {
-    LbData *data = view_get_data(cast(label, View), LbData);
     const EvDraw *p = event_params(e, EvDraw);
     color_t color = kCOLOR_TRANSPARENT;
     color_t bgcolor = kCOLOR_TRANSPARENT;
@@ -143,36 +182,42 @@ static void i_OnDraw(Label *label, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnEnter(Label *label, Event *e)
+static void i_OnEnter(LbData *data, Event *e)
 {
-    LbData *data = view_get_data(cast(label, View), LbData);
     cassert_no_null(data);
     unref(e);
     data->hover = data->mouse_sensitive;
     if (data->mouse_sensitive == TRUE)
-        view_update(cast(label, View));
+    {
+        View *view = event_sender(e, View);
+        view_update(view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnExit(Label *label, Event *e)
+static void i_OnExit(LbData *data, Event *e)
 {
-    LbData *data = view_get_data(cast(label, View), LbData);
     cassert_no_null(data);
     unref(e);
     data->hover = FALSE;
     if (data->mouse_sensitive == TRUE)
-        view_update(cast(label, View));
+    {
+        View *view = event_sender(e, View);
+        view_update(view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnClick(Label *label, Event *e)
+static void i_OnClick(LbData *data, Event *e)
 {
-    LbData *data = view_get_data(cast(label, View), LbData);
     cassert_no_null(data);
     if (data->OnClick != NULL)
-        listener_pass_event(data->OnClick, e, label, Label);
+    {
+        View *view = event_sender(e, View);
+        listener_pass_event(data->OnClick, e, cast(view, Label), Label);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -233,17 +278,8 @@ static void i_natural(Label *label, const uint32_t di, real32_t *dim0, real32_t 
 
 Label *label_create(void)
 {
-    View *view = _view_create(ekVIEW_CONTROL);
     LbData *data = i_create_data(ekLABEL_SINGLE, ekLEFT, ekELLIPEND);
-    view_data(view, &data, i_destroy_data, LbData);
-    view_OnAcceptFocus(view, listener(cast(view, Label), i_OnAcceptFocus, Label));
-    view_OnDraw(view, listener(cast(view, Label), i_OnDraw, Label));
-    view_OnEnter(view, listener(cast(view, Label), i_OnEnter, Label));
-    view_OnExit(view, listener(cast(view, Label), i_OnExit, Label));
-    view_OnClick(view, listener(cast(view, Label), i_OnClick, Label));
-    _view_OnLocale(view, (FPtr_gctx_call)i_locale);
-    _view_OnNatural(view, (FPtr_natural)i_natural);
-    _view_set_subtype(view, "Label");
+    View *view = _vctrl_create(ekVIEW_CONTROL, &i_LABEL_TLB, data, LbData);
     return cast(view, Label);
 }
 

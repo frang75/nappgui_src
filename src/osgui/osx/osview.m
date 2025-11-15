@@ -102,7 +102,7 @@
                 }
 
                 params.ctx = self->ctx;
-                dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, params.x, params.y, 0, TRUE);
+                dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, params.x, params.y, 0, (self->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
                 listener_event(self->listeners.OnDraw, ekGUI_EVENT_DRAW, cast(self, OSView), &params, NULL, OSView, EvDraw, void);
                 dctx_unset_gcontext(self->ctx);
 
@@ -110,7 +110,7 @@
                 {
                     params.x = 0;
                     params.y = 0;
-                    dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, TRUE);
+                    dctx_set_gcontext(self->ctx, nscontext, (uint32_t)rect.size.width, (uint32_t)rect.size.height, 0, 0, 0, (self->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
                     listener_event(self->OnOverlay, ekGUI_EVENT_OVERLAY, cast(self, OSView), &params, NULL, OSView, EvDraw, void);
                     dctx_unset_gcontext(self->ctx);
                 }
