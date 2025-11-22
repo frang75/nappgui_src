@@ -566,9 +566,15 @@ void view_keybuf(View *view, KeyBuf *buffer)
 const char_t *_view_subtype(const View *view)
 {
     cassert_no_null(view);
-    cassert_no_null(view->vtbl);
-    cassert(str_empty_c(view->vtbl->type) == FALSE);
-    return view->vtbl->type;
+    if (view->vtbl != NULL)
+    {
+        cassert(str_empty_c(view->vtbl->type) == FALSE);
+        return view->vtbl->type;
+    }
+    else
+    {
+        return "View";
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -922,52 +928,52 @@ View *_vctrl_create_imp(const uint32_t flags, const VCtrlTbl *tbl, void *data, c
     view->data = data;
 
     if (tbl->OnDraw != NULL)
-        view->component.context->func_view_OnDraw(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlDraw));
+        view->component.context->func_view_OnDraw(view->component.ositem, listener(view, i_OnCtrlDraw, View));
 
     if (tbl->OnOverlay != NULL)
-        view->component.context->func_view_OnOverlay(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlOverlay));
+        view->component.context->func_view_OnOverlay(view->component.ositem, listener(view, i_OnCtrlOverlay, View));
 
     if (tbl->OnEnter != NULL)
-        view->component.context->func_view_OnEnter(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlEnter));
+        view->component.context->func_view_OnEnter(view->component.ositem, listener(view, i_OnCtrlEnter, View));
 
     if (tbl->OnExit != NULL)
-        view->component.context->func_view_OnExit(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlExit));
+        view->component.context->func_view_OnExit(view->component.ositem, listener(view, i_OnCtrlExit, View));
 
     if (tbl->OnMoved != NULL)
-        view->component.context->func_view_OnMoved(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlMoved));
+        view->component.context->func_view_OnMoved(view->component.ositem, listener(view, i_OnCtrlMoved, View));
 
     if (tbl->OnDown != NULL)
-        view->component.context->func_view_OnDown(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlDown));
+        view->component.context->func_view_OnDown(view->component.ositem, listener(view, i_OnCtrlDown, View));
 
     if (tbl->OnUp != NULL)
-        view->component.context->func_view_OnUp(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlUp));
+        view->component.context->func_view_OnUp(view->component.ositem, listener(view, i_OnCtrlUp, View));
 
     if (tbl->OnClick != NULL)
-        view->component.context->func_view_OnClick(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlClick));
+        view->component.context->func_view_OnClick(view->component.ositem, listener(view, i_OnCtrlClick, View));
 
     if (tbl->OnDrag != NULL)
-        view->component.context->func_view_OnDrag(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlDrag));
+        view->component.context->func_view_OnDrag(view->component.ositem, listener(view, i_OnCtrlDrag, View));
 
     if (tbl->OnWheel != NULL)
-        view->component.context->func_view_OnWheel(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlWheel));
+        view->component.context->func_view_OnWheel(view->component.ositem, listener(view, i_OnCtrlWheel, View));
 
     if (tbl->OnKeyDown != NULL)
-        view->component.context->func_view_OnKeyDown(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlKeyDown));
+        view->component.context->func_view_OnKeyDown(view->component.ositem, listener(view, i_OnCtrlKeyDown, View));
 
     if (tbl->OnKeyUp != NULL)
-        view->component.context->func_view_OnKeyUp(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlKeyUp));
+        view->component.context->func_view_OnKeyUp(view->component.ositem, listener(view, i_OnCtrlKeyUp, View));
 
     if (tbl->OnFocus != NULL)
-        view->component.context->func_view_OnFocus(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlFocus));
+        view->component.context->func_view_OnFocus(view->component.ositem, listener(view, i_OnCtrlFocus, View));
 
     if (tbl->OnResignFocus != NULL)
-        view->component.context->func_view_OnResignFocus(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlResignFocus));
+        view->component.context->func_view_OnResignFocus(view->component.ositem, listener(view, i_OnCtrlResignFocus, View));
 
     if (tbl->OnAcceptFocus != NULL)
-        view->component.context->func_view_OnAcceptFocus(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlAcceptFocus));
+        view->component.context->func_view_OnAcceptFocus(view->component.ositem, listener(view, i_OnCtrlAcceptFocus, View));
 
     if (tbl->OnScroll != NULL)
-        view->component.context->func_view_OnScroll(view->component.ositem, listener_imp(view, (FPtr_event_handler)i_OnCtrlScroll));
+        view->component.context->func_view_OnScroll(view->component.ositem, listener(view, i_OnCtrlScroll, View));
 
     return view;
 }
