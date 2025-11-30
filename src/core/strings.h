@@ -64,6 +64,8 @@ _core_api void str_destroy(String **str);
 
 _core_api void str_destopt(String **str);
 
+_core_api uint32_t str_mem(const String *str);
+
 _core_api uint32_t str_len(const String *str);
 
 _core_api uint32_t str_len_c(const char_t *str);

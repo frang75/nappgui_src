@@ -5,11 +5,15 @@
 ### Added
 
 - `label_trim()`. [Commit](https://github.com/frang75/nappgui_src/commit/09a008fef1b66acca91f36a241ef189d81c217cd).
+- `dbind_sizeof()`. [Commit]().
+- `str_mem()`. [Commit]().
+- `image_mem()`. [Commit]().
 
 ### Changed
 
 - `comwin_open_file()` adds a new parameter `const char_t *filename`. [Commit](https://github.com/frang75/nappgui_src/commit/5e6cc6b509cbb8e16824086abb4de59634e3b87d).
 - `comwin_save_file()` adds a new parameter `const char_t *filename`. [Commit](https://github.com/frang75/nappgui_src/commit/5e6cc6b509cbb8e16824086abb4de59634e3b87d).
+- `dbind_binary()` adds a new parameter `FPtr_size`. [Commit]().
 
 ### Improved
 
@@ -20,7 +24,7 @@
 ### Fixed
 
 - Minor issue when removing columns or rows dynamically from layouts. [Commit](https://github.com/frang75/nappgui_src/commit/db6de0df4a7453182376f9f54cddceae98a716e9).
-- Flickering in toolbutton (Win32). [Commit]().
+- Flickering in toolbutton (Win32). [Commit](https://github.com/frang75/nappgui_src/commit/0975bd1846369d3ebe56a34138221e7fcaae8a44).
 
 ## v1.5.3 - Sep 25, 2025 (r6604)
 

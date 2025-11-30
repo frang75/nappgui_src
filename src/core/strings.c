@@ -618,6 +618,14 @@ void str_stm_printf(const String *str, Stream *stream)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t str_mem(const String *str)
+{
+    cassert_no_null(str);
+    return i_SIZE(str) + sizeof32(uint32_t);
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t str_len(const String *str)
 {
     cassert_no_null(str);

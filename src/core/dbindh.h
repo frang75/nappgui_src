@@ -27,9 +27,9 @@ _core_api dbindst_t dbind_int_imp(const char_t *type, const uint16_t size, const
 
 _core_api dbindst_t dbind_real_imp(const char_t *type, const uint16_t size);
 
-_core_api dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr_destroy func_destroy, FPtr_str_get func_get, FPtr_read func_read, FPtr_write func_write, const char_t *def);
+_core_api dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr_destroy func_destroy, FPtr_str_get func_get, FPtr_size func_mem, FPtr_read func_read, FPtr_write func_write, const char_t *def);
 
-_core_api dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, FPtr_container_create func_create, FPtr_container_size func_size, FPtr_container_get func_get, FPtr_container_insert func_insert, FPtr_container_delete func_delete, FPtr_container_destroy func_destroy);
+_core_api dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, FPtr_container_create func_create, FPtr_size func_size, FPtr_size func_mem, FPtr_container_get func_get, FPtr_container_insert func_insert, FPtr_container_delete func_delete, FPtr_container_destroy func_destroy);
 
 /* DBind info for registered types */
 
@@ -210,11 +210,12 @@ __END_C
             cast_const(#type, char_t), \
             sizeof(type)))
 
-#define dbind_string(type, func_create, func_destroy, func_get, func_read, func_write, def) \
+#define dbind_string(type, func_create, func_destroy, func_get, func_mem, func_read, func_write, def) \
     ( \
         FUNC_CHECK_STR_CREATE(func_create, type), \
         FUNC_CHECK_DESTROY(func_destroy, type), \
         FUNC_CHECK_STR_GET(func_get, type), \
+        FUNC_CHECK_SIZE(func_mem, type), \
         FUNC_CHECK_READ(func_read, type), \
         FUNC_CHECK_WRITE(func_write, type), \
         dbind_string_imp( \
@@ -222,14 +223,16 @@ __END_C
             (FPtr_str_create)func_create, \
             (FPtr_destroy)func_destroy, \
             (FPtr_str_get)func_get, \
+            (FPtr_size)func_mem, \
             (FPtr_read)func_read, \
             (FPtr_write)func_write, \
             def))
 
-#define dbind_container(type, store_pointers, func_create, func_size, func_get, func_insert, func_delete, func_destroy) \
+#define dbind_container(type, store_pointers, func_create, func_size, func_mem, func_get, func_insert, func_delete, func_destroy) \
     ( \
         FUNC_CHECK_CONTAINER_CREATE(func_create), \
-        FUNC_CHECK_CONTAINER_SIZE(func_size), \
+        FUNC_CHECK_SIZE(func_size, byte_t), \
+        FUNC_CHECK_SIZE(func_mem, byte_t), \
         FUNC_CHECK_CONTAINER_GET(func_get), \
         FUNC_CHECK_CONTAINER_INSERT(func_insert), \
         FUNC_CHECK_CONTAINER_DELETE(func_delete), \
@@ -237,7 +240,8 @@ __END_C
         dbind_container_imp( \
             type, store_pointers, \
             (FPtr_container_create)func_create, \
-            (FPtr_container_size)func_size, \
+            (FPtr_size)func_size, \
+            (FPtr_size)func_mem, \
             (FPtr_container_get)func_get, \
             (FPtr_container_insert)func_insert, \
             (FPtr_container_delete)func_delete, \

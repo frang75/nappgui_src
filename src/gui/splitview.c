@@ -814,9 +814,9 @@ static void i_accum_child_panels(const GuiComponent *component, uint32_t *num_pa
 static void i_accum_panels(const SplitView *split, uint32_t *num_panels, Panel **panels)
 {
     cassert_no_null(split);
-    if (i_child0_displayed(split) == TRUE)
+    if (split->child0 != NULL)
         i_accum_child_panels(split->child0, num_panels, panels);
-    if (i_child1_displayed(split) == TRUE)
+    if (split->child1 != NULL)
         i_accum_child_panels(split->child1, num_panels, panels);
 }
 

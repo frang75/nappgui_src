@@ -47,6 +47,8 @@ _draw2d_api uint32_t image_width(const Image *image);
 
 _draw2d_api uint32_t image_height(const Image *image);
 
+_draw2d_api uint32_t image_mem(const Image *image);
+
 _draw2d_api Pixbuf *image_pixels(const Image *image, const pixformat_t format);
 
 _draw2d_api bool_t image_codec(const Image *image, const codec_t codec);

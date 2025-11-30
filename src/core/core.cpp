@@ -69,6 +69,13 @@ static uint32_t i_arrpt_size(const byte_t *arrpt)
 
 /*---------------------------------------------------------------------------*/
 
+static uint32_t i_arrpt_mem(const byte_t *arrpt)
+{
+    return array_mem(cast(arrpt, Array));
+}
+
+/*---------------------------------------------------------------------------*/
+
 static byte_t *i_arrpt_get(byte_t *arrpt, const uint32_t pos, const char_t *type, const uint16_t esize)
 {
     unref(type);
@@ -117,6 +124,13 @@ static byte_t *i_arrst_create(const char_t *type, const uint16_t esize)
 static uint32_t i_arrst_size(const byte_t *arrst)
 {
     return array_size(cast(arrst, Array));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_arrst_mem(const byte_t *arrst)
+{
+    return array_mem(cast(arrst, Array));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -180,9 +194,9 @@ void core_start(void)
         dbind_int(uint64_t, FALSE);
         dbind_real(real32_t);
         dbind_real(real64_t);
-        dbind_string(String, str_c, str_destroy, tc, str_read, str_write, "");
-        dbind_container("ArrPt", TRUE, i_arrpt_create, i_arrpt_size, i_arrpt_get, i_arrpt_insert, i_arrpt_delete, i_arrpt_destroy);
-        dbind_container("ArrSt", FALSE, i_arrst_create, i_arrst_size, i_arrst_get, i_arrst_insert, i_arrst_delete, i_arrst_destroy);
+        dbind_string(String, str_c, str_destroy, tc, str_mem, str_read, str_write, "");
+        dbind_container("ArrPt", TRUE, i_arrpt_create, i_arrpt_size, i_arrpt_mem, i_arrpt_get, i_arrpt_insert, i_arrpt_delete, i_arrpt_destroy);
+        dbind_container("ArrSt", FALSE, i_arrst_create, i_arrst_size, i_arrst_mem, i_arrst_get, i_arrst_insert, i_arrst_delete, i_arrst_destroy);
         i_NUM_USERS = 1;
 #if defined(_MSC_VER)
         cassert(sizeof(EventHandler) == sizeofptr);

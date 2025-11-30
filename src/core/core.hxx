@@ -285,6 +285,10 @@ typedef void (*FPtr_write_ex)(Stream *stream, const void *obj, const void *data)
 #define FUNC_CHECK_WRITE_EX(func, type, dtype) \
     (void)((void (*)(Stream *, const type *, const dtype *))func == func)
 
+typedef uint32_t (*FPtr_size)(const void *);
+#define FUNC_CHECK_SIZE(func, type) \
+    (void)((uint32_t(*)(const type *))func == func)
+
 /* Do not use! only for debugger inspection */
 struct _buffer_t
 {

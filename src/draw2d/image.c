@@ -502,6 +502,37 @@ uint32_t image_height(const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t image_mem(const Image *image)
+{
+    uint32_t w, h;
+    pixformat_t format;
+    cassert_no_null(image);
+    osimage_info(image->osimage, &w, &h, &format, NULL);
+    switch (format)
+    {
+    case ekINDEX1:
+        return w * h;
+    case ekINDEX2:
+        return w * h * 3;
+    case ekINDEX4:
+        return w * h * 3;
+    case ekINDEX8:
+    case ekGRAY8:
+        return w * h;
+    case ekRGB24:
+        return w * h * 3;
+    case ekRGBA32:
+        return w * h * 4;
+    case ekFIMAGE:
+    default:
+        cassert_default(format);
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 Pixbuf *image_pixels(const Image *image, const pixformat_t format)
 {
     Pixbuf *pixels = NULL;

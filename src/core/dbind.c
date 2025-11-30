@@ -139,6 +139,7 @@ struct _stringprops_t
     FPtr_str_create func_create;
     FPtr_destroy func_destroy;
     FPtr_str_get func_get;
+    FPtr_size func_mem;
     FPtr_read func_read;
     FPtr_write func_write;
     void *def;
@@ -156,7 +157,8 @@ struct _containerprops_t
     char_t sep_ed[16];
     bool_t store_pointers;
     FPtr_container_create func_create;
-    FPtr_container_size func_size;
+    FPtr_size func_size;
+    FPtr_size func_mem;
     FPtr_container_get func_get;
     FPtr_container_insert func_insert;
     FPtr_container_delete func_delete;
@@ -165,6 +167,7 @@ struct _containerprops_t
 
 struct _binaryprops_t
 {
+    FPtr_size func_mem;
     FPtr_copy func_copy;
     FPtr_read func_read;
     FPtr_write func_write;
@@ -219,6 +222,7 @@ static void i_destroy_struct_data(byte_t **data, const StructProps *props, const
 static void i_copy_struct_data(byte_t *dest, const byte_t *src, const StructProps *props);
 static void i_remove_struct_data(byte_t *data, const StructProps *props);
 static int i_cmp_struct_data(const byte_t *data1, const byte_t *data2, const StructProps *props);
+static uint32_t i_struct_mem(const byte_t *data, const DBind *bind);
 static void i_read_struct_data(Stream *stm, byte_t *data, const StructProps *props);
 static byte_t *i_read_container(Stream *stm, const DBind *bind, const DBind *ebind);
 static void i_write_struct_data(Stream *stm, const byte_t *data, const StructProps *props);
@@ -951,7 +955,7 @@ dbindst_t dbind_real_imp(const char_t *type, const uint16_t size)
 
 /*---------------------------------------------------------------------------*/
 
-dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr_destroy func_destroy, FPtr_str_get func_get, FPtr_read func_read, FPtr_write func_write, const char_t *def)
+dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr_destroy func_destroy, FPtr_str_get func_get, FPtr_size func_mem, FPtr_read func_read, FPtr_write func_write, const char_t *def)
 {
     dbindst_t st = ekDBIND_OK;
     bool_t is_pointer = FALSE;
@@ -962,6 +966,7 @@ dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr
     cassert_no_nullf(func_create);
     cassert_no_nullf(func_destroy);
     cassert_no_nullf(func_get);
+    cassert_no_nullf(func_mem);
     cassert_no_nullf(func_read);
     cassert_no_nullf(func_write);
     if (bind == NULL)
@@ -974,6 +979,7 @@ dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr
         bind->props.stringp.func_create = func_create;
         bind->props.stringp.func_destroy = func_destroy;
         bind->props.stringp.func_get = func_get;
+        bind->props.stringp.func_mem = func_mem;
         bind->props.stringp.func_read = func_read;
         bind->props.stringp.func_write = func_write;
         bind->props.stringp.def = func_create(def);
@@ -989,7 +995,7 @@ dbindst_t dbind_string_imp(const char_t *type, FPtr_str_create func_create, FPtr
 
 /*---------------------------------------------------------------------------*/
 
-dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, FPtr_container_create func_create, FPtr_container_size func_size, FPtr_container_get func_get, FPtr_container_insert func_insert, FPtr_container_delete func_delete, FPtr_container_destroy func_destroy)
+dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, FPtr_container_create func_create, FPtr_size func_size, FPtr_size func_mem, FPtr_container_get func_get, FPtr_container_insert func_insert, FPtr_container_delete func_delete, FPtr_container_destroy func_destroy)
 {
     dbindst_t st = ekDBIND_OK;
     bool_t is_pointer = FALSE;
@@ -999,6 +1005,7 @@ dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, F
     cassert_unref(alias_id == UINT32_MAX, alias_id);
     cassert_no_nullf(func_create);
     cassert_no_nullf(func_size);
+    cassert_no_nullf(func_mem);
     cassert_no_nullf(func_get);
     cassert_no_nullf(func_insert);
     cassert_no_nullf(func_delete);
@@ -1015,6 +1022,7 @@ dbindst_t dbind_container_imp(const char_t *type, const bool_t store_pointers, F
         str_copy_c(bind->props.contp.sep_ed, sizeof(bind->props.contp.sep_ed), ")");
         bind->props.contp.func_create = func_create;
         bind->props.contp.func_size = func_size;
+        bind->props.contp.func_mem = func_mem;
         bind->props.contp.func_get = func_get;
         bind->props.contp.func_insert = func_insert;
         bind->props.contp.func_delete = func_delete;
@@ -1680,6 +1688,7 @@ dbindst_t dbind_imp(
 
 dbindst_t dbind_binary_imp(
     const char_t *type,
+    FPtr_size func_mem,
     FPtr_copy func_copy,
     FPtr_read func_read,
     FPtr_write func_write,
@@ -1698,6 +1707,7 @@ dbindst_t dbind_binary_imp(
         bind->name = str_c(type);
         bind->type = ekDTYPE_BINARY;
         bind->size = sizeofptr;
+        bind->props.binaryp.func_mem = func_mem;
         bind->props.binaryp.func_copy = func_copy;
         bind->props.binaryp.func_read = func_read;
         bind->props.binaryp.func_write = func_write;
@@ -2062,45 +2072,45 @@ byte_t *dbind_create_imp(const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-byte_t *dbind_copy_imp(const byte_t *data, const char_t *type)
+byte_t *dbind_copy_imp(const byte_t *obj, const char_t *type)
 {
     bool_t is_pointer = FALSE;
     DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
     cassert_unref(is_pointer == FALSE, is_pointer);
-    cassert_no_null(data);
+    cassert_no_null(obj);
     if (bind != NULL)
     {
-        byte_t *ndata = NULL;
+        byte_t *nobj = NULL;
         switch (bind->type)
         {
         case ekDTYPE_BOOL:
         case ekDTYPE_INT:
         case ekDTYPE_REAL:
         case ekDTYPE_ENUM:
-            ndata = i_dbind_calloc(bind);
-            bmem_copy(ndata, data, bind->size);
+            nobj = i_dbind_calloc(bind);
+            bmem_copy(nobj, obj, bind->size);
             break;
 
         case ekDTYPE_STRING:
         {
-            const char_t *str = bind->props.stringp.func_get(cast_const(data, void));
-            ndata = cast(bind->props.stringp.func_create(str), byte_t);
+            const char_t *str = bind->props.stringp.func_get(cast_const(obj, void));
+            nobj = cast(bind->props.stringp.func_create(str), byte_t);
             break;
         }
 
         case ekDTYPE_STRUCT:
-            ndata = i_dbind_calloc(bind);
-            i_copy_struct_data(ndata, data, &bind->props.structp);
+            nobj = i_dbind_calloc(bind);
+            i_copy_struct_data(nobj, obj, &bind->props.structp);
             break;
 
         case ekDTYPE_BINARY:
-            ndata = bind->props.binaryp.func_copy(cast_const(data, void));
+            nobj = bind->props.binaryp.func_copy(cast_const(obj, void));
             break;
 
         case ekDTYPE_CONTAINER:
         {
             DBind *ebind = i_inner_elem_bind(bind, type);
-            ndata = i_copy_container(data, bind, ebind);
+            nobj = i_copy_container(obj, bind, ebind);
             break;
         }
 
@@ -2109,7 +2119,7 @@ byte_t *dbind_copy_imp(const byte_t *data, const char_t *type)
             cassert_default(bind->type);
         }
 
-        return ndata;
+        return nobj;
     }
     else
     {
@@ -2119,32 +2129,32 @@ byte_t *dbind_copy_imp(const byte_t *data, const char_t *type)
 
 /*---------------------------------------------------------------------------*/
 
-void dbind_init_imp(byte_t *data, const char_t *type)
+void dbind_init_imp(byte_t *obj, const char_t *type)
 {
     bool_t is_pointer = FALSE;
     DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
     cassert_unref(is_pointer == FALSE, is_pointer);
     if (bind != NULL)
     {
-        bmem_set_zero(data, bind->size);
-        i_init_bind(data, bind);
+        bmem_set_zero(obj, bind->size);
+        i_init_bind(obj, bind);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dbind_remove_imp(byte_t *data, const char_t *type)
+void dbind_remove_imp(byte_t *obj, const char_t *type)
 {
     bool_t is_pointer = FALSE;
     DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
     cassert_unref(is_pointer == FALSE, is_pointer);
     if (bind != NULL)
-        i_remove_data(data, bind);
+        i_remove_data(obj, bind);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dbind_destroy_imp(byte_t **data, const char_t *type)
+void dbind_destroy_imp(byte_t **obj, const char_t *type)
 {
     bool_t is_pointer = FALSE;
     DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
@@ -2152,17 +2162,17 @@ void dbind_destroy_imp(byte_t **data, const char_t *type)
     if (bind != NULL)
     {
         DBind *ebind = i_inner_elem_bind(bind, type);
-        i_destroy_data(data, bind, ebind);
+        i_destroy_data(obj, bind, ebind);
     }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void dbind_destopt_imp(byte_t **data, const char_t *type)
+void dbind_destopt_imp(byte_t **obj, const char_t *type)
 {
-    cassert_no_null(data);
-    if (*data != NULL)
-        dbind_destroy_imp(data, type);
+    cassert_no_null(obj);
+    if (*obj != NULL)
+        dbind_destroy_imp(obj, type);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2372,22 +2382,222 @@ static int i_cmp_struct_data(const byte_t *data1, const byte_t *data2, const Str
 
 /*---------------------------------------------------------------------------*/
 
-int dbind_cmp_imp(const byte_t *data1, const byte_t *data2, const char_t *type)
+int dbind_cmp_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type)
 {
     bool_t is_pointer = FALSE;
     DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
     DBind *ebind = i_inner_elem_bind(bind, type);
     cassert_unref(is_pointer == FALSE, is_pointer);
-    cassert_no_null(data1);
-    cassert_no_null(data2);
-    return i_compare_type(bind, ebind, data1, data2);
+    cassert_no_null(obj1);
+    cassert_no_null(obj2);
+    return i_compare_type(bind, ebind, obj1, obj2);
 }
 
 /*---------------------------------------------------------------------------*/
 
-bool_t dbind_equ_imp(const byte_t *data1, const byte_t *data2, const char_t *type)
+bool_t dbind_equ_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type)
 {
-    return dbind_cmp_imp(data1, data2, type) == 0;
+    return dbind_cmp_imp(obj1, obj2, type) == 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_container_mem(const byte_t *data, const DBind *bind, const DBind *ebind)
+{
+    uint32_t mem = 0;
+    uint32_t i, n = 0;
+    cassert_no_null(bind);
+    cassert_no_null(ebind);
+    cassert(bind->type == ekDTYPE_CONTAINER);
+    mem = bind->props.contp.func_mem(data);
+    n = bind->props.contp.func_size(data);
+    if (n > 0)
+    {
+        if (bind->props.contp.store_pointers == TRUE)
+        {
+            switch (ebind->type)
+            {
+            case ekDTYPE_BOOL:
+            case ekDTYPE_INT:
+            case ekDTYPE_REAL:
+            case ekDTYPE_ENUM:
+                mem += n * ebind->size;
+                break;
+
+            case ekDTYPE_STRUCT:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    if (elem != NULL)
+                        mem += i_struct_mem(elem, ebind);
+                }
+                break;
+
+            case ekDTYPE_STRING:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    if (elem != NULL)
+                        mem += ebind->props.stringp.func_mem(elem);
+                }
+                break;
+
+            case ekDTYPE_BINARY:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    if (elem != NULL)
+                        mem += ebind->props.binaryp.func_mem(elem);
+                }
+                break;
+
+            /* Nested containers are not allowed */
+            case ekDTYPE_CONTAINER:
+            case ekDTYPE_UNKNOWN:
+            default:
+                cassert_default(ebind->type);
+            }
+        }
+        else
+        {
+            switch (ebind->type)
+            {
+            case ekDTYPE_BOOL:
+            case ekDTYPE_INT:
+            case ekDTYPE_REAL:
+            case ekDTYPE_ENUM:
+                break;
+
+            case ekDTYPE_STRUCT:
+                for (i = 0; i < n; ++i)
+                {
+                    const byte_t *elem = bind->props.contp.func_get(cast(data, byte_t), i, tc(ebind->name), ebind->size);
+                    mem += i_struct_mem(elem, ebind);
+                }
+                break;
+
+            /* Not allowed for non-pointer cointainers */
+            case ekDTYPE_STRING:
+            case ekDTYPE_BINARY:
+            case ekDTYPE_CONTAINER:
+            case ekDTYPE_UNKNOWN:
+            default:
+                cassert_default(ebind->type);
+            }
+        }
+    }
+
+    return mem;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_struct_mem(const byte_t *data, const DBind *bind)
+{
+    uint32_t mem = 0;
+    cassert_no_null(data);
+    cassert_no_null(bind);
+    cassert(bind->type == ekDTYPE_STRUCT);
+    mem += bind->size;
+
+    arrst_foreach_const(member, bind->props.structp.members, StructMember)
+        const DBind *mbind = member->bind;
+
+        switch (mbind->type)
+        {
+        case ekDTYPE_BOOL:
+        case ekDTYPE_INT:
+        case ekDTYPE_REAL:
+        case ekDTYPE_ENUM:
+            /* Basic types, its mem is computed as part of struct size */
+            break;
+
+        case ekDTYPE_STRING:
+        {
+            void **str = dcast(data + member->offset, void);
+            if (*str != NULL)
+                mem += mbind->props.stringp.func_mem(*str);
+            break;
+        }
+
+        case ekDTYPE_BINARY:
+        {
+            void **obj = dcast(data + member->offset, void);
+            if (*obj != NULL)
+                mem += mbind->props.binaryp.func_mem(*obj);
+            break;
+        }
+
+        case ekDTYPE_STRUCT:
+            if (member->attr.structt.is_pointer == TRUE)
+            {
+                byte_t **obj = dcast(data + member->offset, byte_t);
+                if (*obj != NULL)
+                    mem += i_struct_mem(*obj, mbind);
+            }
+            else
+            {
+                mem += i_struct_mem(data + member->offset, mbind);
+            }
+            break;
+
+        case ekDTYPE_CONTAINER:
+        {
+            byte_t **obj = dcast(data + member->offset, byte_t);
+            if (*obj != NULL)
+                mem += i_container_mem(*obj, mbind, member->attr.containert.bind);
+            break;
+        }
+
+        case ekDTYPE_UNKNOWN:
+        default:
+            cassert_default(bind->type);
+        }
+    arrst_end()
+
+    return mem;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t dbind_sizeof_imp(const byte_t *obj, const char_t *type)
+{
+    bool_t is_pointer = FALSE;
+    DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
+    cassert_unref(is_pointer == FALSE, is_pointer);
+    cassert_no_null(obj);
+    if (bind != NULL)
+    {
+        switch (bind->type)
+        {
+        case ekDTYPE_BOOL:
+        case ekDTYPE_INT:
+        case ekDTYPE_REAL:
+        case ekDTYPE_ENUM:
+            return bind->size;
+
+        case ekDTYPE_STRING:
+            return bind->props.stringp.func_mem(cast_const(obj, void));
+
+        case ekDTYPE_STRUCT:
+            return i_struct_mem(obj, bind);
+
+        case ekDTYPE_BINARY:
+            return bind->props.binaryp.func_mem(cast_const(obj, void));
+
+        case ekDTYPE_CONTAINER:
+        {
+            DBind *ebind = i_inner_elem_bind(bind, type);
+            return i_container_mem(obj, bind, ebind);
+        }
+
+        case ekDTYPE_UNKNOWN:
+        default:
+            cassert_default(bind->type);
+        }
+    }
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -3050,7 +3260,7 @@ static void i_write_struct_data(Stream *stm, const byte_t *data, const StructPro
 
 /*---------------------------------------------------------------------------*/
 
-void dbind_write_imp(Stream *stm, const void *data, const char_t *type)
+void dbind_write_imp(Stream *stm, const void *obj, const char_t *type)
 {
     bool_t is_pointer = FALSE;
     DBind *bind = i_dbind_from_typename(type, &is_pointer, NULL);
@@ -3064,18 +3274,18 @@ void dbind_write_imp(Stream *stm, const void *data, const char_t *type)
         case ekDTYPE_REAL:
         case ekDTYPE_ENUM:
         case ekDTYPE_STRUCT:
-            i_write_bind(stm, cast_const(data, byte_t), bind, NULL);
+            i_write_bind(stm, cast_const(obj, byte_t), bind, NULL);
             break;
 
         case ekDTYPE_STRING:
         case ekDTYPE_BINARY:
-            i_write_bind(stm, cast_const(&data, byte_t), bind, NULL);
+            i_write_bind(stm, cast_const(&obj, byte_t), bind, NULL);
             break;
 
         case ekDTYPE_CONTAINER:
         {
             DBind *ebind = i_inner_elem_bind(bind, type);
-            i_write_bind(stm, cast_const(&data, byte_t), bind, ebind);
+            i_write_bind(stm, cast_const(&obj, byte_t), bind, ebind);
             break;
         }
 

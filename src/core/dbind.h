@@ -19,7 +19,7 @@ _core_api dbindst_t dbind_imp(const char_t *type, const uint16_t size, const cha
 
 _core_api dbindst_t dbind_enum_imp(const char_t *type, const char_t *name, const enum_t value, const char_t *alias);
 
-_core_api dbindst_t dbind_binary_imp(const char_t *type, FPtr_copy func_copy, FPtr_read func_read, FPtr_write func_write, FPtr_destroy func_destroy);
+_core_api dbindst_t dbind_binary_imp(const char_t *type, FPtr_size func_mem, FPtr_copy func_copy, FPtr_read func_read, FPtr_write func_write, FPtr_destroy func_destroy);
 
 _core_api dbindst_t dbind_alias_imp(const char_t *type, const char_t *alias, const uint16_t type_size, const uint16_t alias_size);
 
@@ -40,6 +40,8 @@ _core_api void dbind_destopt_imp(byte_t **obj, const char_t *type);
 _core_api int dbind_cmp_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type);
 
 _core_api bool_t dbind_equ_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type);
+
+_core_api uint32_t dbind_sizeof_imp(const byte_t *obj, const char_t *type);
 
 _core_api byte_t *dbind_read_imp(Stream *stm, const char_t *type);
 
@@ -77,14 +79,16 @@ __END_C
             (enum_t)value, \
             alias))
 
-#define dbind_binary(type, func_copy, func_read, func_write, func_destroy) \
+#define dbind_binary(type, func_mem, func_copy, func_read, func_write, func_destroy) \
     ( \
+        FUNC_CHECK_SIZE(func_mem, type), \
         FUNC_CHECK_COPY(func_copy, type), \
         FUNC_CHECK_READ(func_read, type), \
         FUNC_CHECK_WRITE(func_write, type), \
         FUNC_CHECK_DESTROY(func_destroy, type), \
         dbind_binary_imp( \
             (const char_t *)#type, \
+            (FPtr_size)func_mem, \
             (FPtr_copy)func_copy, \
             (FPtr_read)func_read, \
             (FPtr_write)func_write, \
@@ -135,6 +139,10 @@ __END_C
     ((void)(cast_const(obj1, type) == obj1), \
      (void)(cast_const(obj2, type) == obj2), \
      dbind_equ_imp(cast_const(obj1, byte_t), cast_const(obj2, byte_t), cast_const(#type, char_t)))
+
+#define dbind_sizeof(obj, type) \
+    ((void)(cast_const(obj, type) == obj), \
+     dbind_sizeof_imp(cast_const(obj, byte_t), cast_const(#type, char_t)))
 
 #define dbind_read(stm, type) \
     cast(dbind_read_imp(stm, cast_const(#type, char_t)), type)

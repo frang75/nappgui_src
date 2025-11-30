@@ -49,10 +49,6 @@ typedef byte_t *(*FPtr_container_create)(const char_t *type, const uint16_t esiz
 #define FUNC_CHECK_CONTAINER_CREATE(func) \
     (void)((byte_t * (*)(const char_t *, const uint16_t)) func == func)
 
-typedef uint32_t (*FPtr_container_size)(const byte_t *cont);
-#define FUNC_CHECK_CONTAINER_SIZE(func) \
-    (void)((uint32_t(*)(const byte_t *))func == func)
-
 typedef byte_t *(*FPtr_container_get)(byte_t *cont, const uint32_t pos, const char_t *type, const uint16_t esize);
 #define FUNC_CHECK_CONTAINER_GET(func) \
     (void)((byte_t * (*)(byte_t *, const uint32_t, const char_t *, const uint16_t)) func == func)

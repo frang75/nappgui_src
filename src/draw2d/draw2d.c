@@ -88,7 +88,7 @@ void draw2d_start(void)
 
         i_INDEXED_COLORS = arrst_create(IColor);
         i_AVG_CHAR_WIDTH_LEN = str_len_c(i_AVG_CHAR_WIDTH);
-        dbind_binary(Image, image_copy, image_read, image_write, image_destroy);
+        dbind_binary(Image, image_mem, image_copy, image_read, image_write, image_destroy);
     }
 
     i_NUM_USERS += 1;

@@ -52,6 +52,8 @@ _core_api uint32_t array_size(const Array *array);
 
 _core_api uint32_t array_esize(const Array *array);
 
+_core_api uint32_t array_mem(const Array *array);
+
 _core_api byte_t *array_get(const Array *array, const uint32_t pos);
 
 _core_api byte_t *array_get_last(const Array *array);

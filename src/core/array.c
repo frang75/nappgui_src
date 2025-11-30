@@ -439,6 +439,14 @@ uint32_t array_esize(const Array *array)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t array_mem(const Array *array)
+{
+    cassert_no_null(array);
+    return sizeof32(Array) + (array->nallocs * array->esize);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_grow_array(
     uint32_t *nallocs,
     uint32_t *elems,
