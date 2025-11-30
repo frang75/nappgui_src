@@ -15,11 +15,12 @@
 
 - Text rendering backend. Refactor and full tests. [Commit](https://github.com/frang75/nappgui_src/commit/749332c36d2a3c3ad989a057a859ef5da73d3550).
 - `Label` implementation as custom control. Removed `OSLabel` and all platform-specific code. [Commit](https://github.com/frang75/nappgui_src/commit/09a008fef1b66acca91f36a241ef189d81c217cd).
-- Custom controls use an optimized `View` API `vctrl.inl`. No changes in public API. [Commit]().
+- Custom controls use an optimized `View` API `vctrl.inl`. No changes in public API. [Commit](https://github.com/frang75/nappgui_src/commit/08d76bad19e94ce016889e2843e51c4a0612fc95).
 
 ### Fixed
 
 - Minor issue when removing columns or rows dynamically from layouts. [Commit](https://github.com/frang75/nappgui_src/commit/db6de0df4a7453182376f9f54cddceae98a716e9).
+- Flickering in toolbutton (Win32). [Commit]().
 
 ## v1.5.3 - Sep 25, 2025 (r6604)
 

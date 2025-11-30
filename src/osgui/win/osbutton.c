@@ -44,6 +44,9 @@ struct _osbutton_t
     vkey_t key;
     Font *font;
     Image *image;
+    HBITMAP dbuffer;
+    LONG width;
+    LONG height;
     uint32_t hpadding;
     uint32_t vpadding;
     Listener *OnClick;
@@ -57,19 +60,32 @@ static double i_LAST_FOCUS_TIME = 0.;
 
 /*---------------------------------------------------------------------------*/
 
-static void i_draw_flat_button(HWND hwnd, const Image *image)
+static void i_draw_flat_button(OSButton *button, const Image *image)
 {
+    HWND hwnd = NULL;
     HDC hdc = NULL;
+    HDC memHdc = NULL;
     PAINTSTRUCT ps;
     RECT rect;
     RECT border;
     BOOL withXP_style = FALSE;
     BOOL enabled;
-    cassert_no_null(hwnd);
+
+    cassert_no_null(button);
+
+    hwnd = button->control.hwnd;
     hdc = BeginPaint(hwnd, &ps);
-    GetClientRect(hwnd, &rect);
+    memHdc = CreateCompatibleDC(hdc);
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = button->width;
+    rect.bottom = button->height;
     border = rect;
 
+    if (button->dbuffer == NULL)
+        button->dbuffer = CreateCompatibleBitmap(hdc, button->width, button->height);
+
+    SelectObject(memHdc, button->dbuffer);
     withXP_style = _osstyleXP_OpenThemeData(hwnd, L"TOOLBAR");
     enabled = IsWindowEnabled(hwnd);
 
@@ -96,15 +112,14 @@ static void i_draw_flat_button(HWND hwnd, const Image *image)
             state = TS_NORMAL;
         }
 
-        /* WindowsXP draws nothing in TS_NORMAL (doesn't erase background) */
-        if (osbs_windows() > ekWIN_XP3 || state != TS_NORMAL)
+        if (osbs_windows() > ekWIN_XP3)
         {
-            _osstyleXP_DrawThemeBackground(hwnd, hdc, TP_BUTTON, state, TRUE, &rect, &border);
+            _osstyleXP_DrawThemeBackground(hwnd, memHdc, TP_BUTTON, state, TRUE, &rect, &border);
         }
         else
         {
             HBRUSH brush = GetSysColorBrush(COLOR_BTNFACE);
-            FillRect(hdc, &rect, brush);
+            FillRect(memHdc, &rect, brush);
         }
     }
     else
@@ -126,20 +141,23 @@ static void i_draw_flat_button(HWND hwnd, const Image *image)
                 state |= DFCS_HOT;
         }
 
-        _osstyleXP_DrawNonThemedButtonBackground(hwnd, hdc, FALSE, state, &rect, &border);
+        _osstyleXP_DrawNonThemedButtonBackground(hwnd, memHdc, FALSE, state, &rect, &border);
     }
 
     if (image != NULL)
     {
-        uint32_t width = image_width(image);
-        uint32_t height = image_height(image);
-        uint32_t offset_x = (uint32_t)(rect.right - rect.left - (LONG)width) / 2;
-        uint32_t offset_y = (uint32_t)(rect.bottom - rect.top - (LONG)height) / 2;
-        _osimg_draw(image, hdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)width, (real32_t)height, !enabled);
+        uint32_t img_w = image_width(image);
+        uint32_t img_h = image_height(image);
+        uint32_t offset_x = (uint32_t)(button->width - (LONG)img_w) / 2;
+        uint32_t offset_y = (uint32_t)(button->height - (LONG)img_h) / 2;
+        _osimg_draw(image, memHdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)img_w, (real32_t)img_h, !enabled);
     }
 
     if (withXP_style == TRUE)
         _osstyleXP_CloseThemeData();
+
+    BitBlt(hdc, 0, 0, button->width, button->height, memHdc, 0, 0, SRCCOPY);
+    DeleteDC(memHdc);
 
     {
         BOOL ok = EndPaint(hwnd, &ps);
@@ -159,36 +177,44 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_ERASEBKGND:
         return 1;
 
+    case WM_ENABLE:
+        /* Avoid flickering in flatbuttons when enabled/disabled */
+        if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
+        {
+
+            LRESULT res = 0;
+            SendMessage(hwnd, WM_SETREDRAW, FALSE, 0);
+            res = CallWindowProc(button->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
+            SendMessage(hwnd, WM_SETREDRAW, TRUE, 0);
+            RedrawWindow(hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
+            return res;
+        }
+        break;
+
     case WM_PAINT:
         if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
         {
-            i_draw_flat_button(button->control.hwnd, button->image);
+            i_draw_flat_button(button, button->image);
             if (GetFocus() == button->control.hwnd)
                 _oscontrol_draw_focus(hwnd, 3, 3, 3, 3);
+            return 0;
         }
-        else
-        {
-            CallWindowProc(button->control.def_wnd_proc, hwnd, uMsg, wParam, lParam);
-        }
-
-        return 0;
+        break;
 
     case WM_SETFOCUS:
         if (button->can_focus == FALSE)
             return 0;
 
+        if (button_get_type(button->flags) == ekBUTTON_RADIO)
         {
-            if (button_get_type(button->flags) == ekBUTTON_RADIO)
-            {
-                uint64_t microseconds;
-                microseconds = btime_now();
-                i_LAST_FOCUS = button->control.hwnd;
-                i_LAST_FOCUS_TIME = i_TIME_SEC(microseconds);
-            }
-            else
-            {
-                i_LAST_FOCUS = NULL;
-            }
+            uint64_t microseconds;
+            microseconds = btime_now();
+            i_LAST_FOCUS = button->control.hwnd;
+            i_LAST_FOCUS_TIME = i_TIME_SEC(microseconds);
+        }
+        else
+        {
+            i_LAST_FOCUS = NULL;
         }
         break;
 
@@ -302,6 +328,13 @@ void osbutton_destroy(OSButton **button)
     cassert_no_null(*button);
     ptr_destopt(font_destroy, &(*button)->font, Font);
     ptr_destopt(image_destroy, &(*button)->image, Image);
+
+    if ((*button)->dbuffer != NULL)
+    {
+        DeleteObject((*button)->dbuffer);
+        (*button)->dbuffer = NULL;
+    }
+
     listener_destroy(&(*button)->OnClick);
     _oscontrol_destroy(&(*button)->control);
     heap_delete(button, OSButton);
@@ -659,7 +692,24 @@ void osbutton_origin(const OSButton *button, real32_t *x, real32_t *y)
 
 void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
+    cassert_no_null(button);
     _oscontrol_set_frame(cast(button, OSControl), x, y, width, height);
+
+    if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
+    {
+        LONG lwidth = (LONG)width;
+        LONG lheight = (LONG)height;
+        if (lwidth != button->width || lheight != button->height)
+        {
+            button->width = lwidth;
+            button->height = lheight;
+            if (button->dbuffer != NULL)
+            {
+                DeleteObject(button->dbuffer);
+                button->dbuffer = NULL;
+            }
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
