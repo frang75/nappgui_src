@@ -24,8 +24,6 @@ char_t *_oscontrol_get_text(const OSControl *control, uint32_t *tsize, uint32_t 
 
 void _oscontrol_set_text(OSControl *control, const char_t *text);
 
-void _oscontrol_set_tooltip(OSControl *control, const char_t *text);
-
 void _oscontrol_set_font(OSControl *control, const Font *font);
 
 void _oscontrol_update_font(OSControl *control, Font **current_font, const Font *font);
@@ -45,6 +43,10 @@ void _oscontrol_attach_to_parent(OSControl *control, OSControl *parent_control);
 void _oscontrol_detach_from_parent(OSControl *control, OSControl *parent_control);
 
 uint32_t _oscontrol_num_children(const OSControl *control);
+
+void _oscontrol_tooltip(OSControl *control, const char_t *text);
+
+void _oscontrol_apply_tooltip(OSControl *control);
 
 void _oscontrol_draw_focus(HWND hwnd, const INT left_offset, const INT right_offset, const INT top_offset, const INT bottom_offset);
 

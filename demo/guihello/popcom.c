@@ -52,6 +52,8 @@ static void i_popups(Layout *layout, PopUpData *data)
     popup_add_elem(popup2, "Yellow", gui_image(YELLOW_PNG));
     popup_add_elem(popup2, "Black", gui_image(BLACK_PNG));
     popup_add_elem(popup2, "White", gui_image(WHITE_PNG));
+    popup_tooltip(popup1, "Languages");
+    popup_tooltip(popup2, "Colors");
     popup_OnSelect(popup1, listener(data, i_OnPopUpSelect, PopUpData));
     popup_list_height(popup1, 10);
     popup_list_height(popup2, 10);
@@ -91,6 +93,8 @@ static void i_combos(Layout *layout, PopUpData *data)
     combo_OnSelect(combo1, listener(data, i_OnComboSelect, PopUpData));
     combo_list_height(combo1, 10);
     combo_list_height(combo2, 3);
+    combo_tooltip(combo1, "This is a tooltip over Combo-1");
+    combo_tooltip(combo2, "This is a tooltip over Combo-2");
     layout_label(layout, label1, 2, 0);
     layout_label(layout, label2, 2, 1);
     layout_combo(layout, combo1, 3, 0);

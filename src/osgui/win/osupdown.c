@@ -32,16 +32,8 @@
 struct _osupdown_t
 {
     OSControl control;
-    Listener *OnClick_listener;
+    Listener *OnClick;
 };
-
-/*---------------------------------------------------------------------------*/
-
-static void i_init_updown(OSUpDown *updown, Listener **OnClick_listener)
-{
-    cassert_no_null(updown);
-    updown->OnClick_listener = ptr_dget(OnClick_listener, Listener);
-}
 
 /*---------------------------------------------------------------------------*/
 
@@ -74,13 +66,12 @@ OSUpDown *osupdown_create(const uint32_t flags)
 {
     OSUpDown *updown = NULL;
     DWORD dwStyle = 0;
-    Listener *OnClick_listener = NULL;
     unref(flags);
-    updown = heap_new(OSUpDown);
+    updown = heap_new0(OSUpDown);
     updown->control.type = ekGUI_TYPE_UPDOWN;
     dwStyle = WS_CHILD | WS_CLIPSIBLINGS | UDS_ARROWKEYS;
     _oscontrol_init(cast(updown, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, UPDOWN_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
-    i_init_updown(updown, &OnClick_listener);
+    updown->control.tooltip_hwnd1 = updown->control.hwnd;
     _oscontrol_set_frame(cast(updown, OSControl), 0, 0, 20, 20);
     return updown;
 }
@@ -91,7 +82,7 @@ void osupdown_destroy(OSUpDown **updown)
 {
     cassert_no_null(updown);
     cassert_no_null(*updown);
-    listener_destroy(&(*updown)->OnClick_listener);
+    listener_destroy(&(*updown)->OnClick);
     _oscontrol_destroy(&(*updown)->control);
     heap_delete(updown, OSUpDown);
 }
@@ -101,14 +92,14 @@ void osupdown_destroy(OSUpDown **updown)
 void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 {
     cassert_no_null(updown);
-    listener_update(&updown->OnClick_listener, listener);
+    listener_update(&updown->OnClick, listener);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
-    _oscontrol_set_tooltip(cast(updown, OSControl), text);
+    _oscontrol_tooltip(cast(updown, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -168,7 +159,7 @@ void _osupdown_OnNotification(OSUpDown *updown, const NMHDR *nmhdr, LPARAM lPara
     cassert_no_null(nmhdr);
     if (nmhdr->code == UDN_DELTAPOS)
     {
-        if (IsWindowEnabled(updown->control.hwnd) && updown->OnClick_listener != NULL)
+        if (IsWindowEnabled(updown->control.hwnd) && updown->OnClick != NULL)
         {
             NMUPDOWN *lpnmud = cast(lParam, NMUPDOWN);
             EvButton params;
@@ -178,7 +169,7 @@ void _osupdown_OnNotification(OSUpDown *updown, const NMHDR *nmhdr, LPARAM lPara
                 params.index = 0;
             else
                 params.index = 1;
-            listener_event(updown->OnClick_listener, ekGUI_EVENT_UPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
+            listener_event(updown->OnClick, ekGUI_EVENT_UPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
         }
     }
 }

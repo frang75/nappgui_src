@@ -142,6 +142,7 @@ OSEdit *osedit_create(const uint32_t flags)
     edit->control.type = ekGUI_TYPE_EDITBOX;
     edit->flags = flags;
     _oscontrol_init(cast(edit, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY | WS_EX_CLIENTEDGE), dwStyle, WC_EDIT, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    edit->control.tooltip_hwnd1 = edit->control.hwnd;
     edit->font = _osgui_create_default_font();
     edit->launch_event = TRUE;
     edit->vpadding = UINT32_MAX;
@@ -212,7 +213,7 @@ void osedit_font(OSEdit *edit, const Font *font)
 
 void osedit_tooltip(OSEdit *edit, const char_t *text)
 {
-    _oscontrol_set_tooltip(cast(edit, OSControl), text);
+    _oscontrol_tooltip(cast(edit, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/

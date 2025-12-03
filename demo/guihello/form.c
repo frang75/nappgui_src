@@ -263,6 +263,11 @@ static Layout *i_edits(FormData *data)
     edit_text(edit3, "35, Tuam Road");
     edit_text(edit4, "Galway - Ireland");
     edit_text(edit5, "+35 654 333 000");
+    edit_tooltip(edit1, "User name");
+    edit_tooltip(edit2, "Password");
+    edit_tooltip(edit3, "Address");
+    edit_tooltip(edit4, "City - Country");
+    edit_tooltip(edit5, "Phone number");
     edit_OnChange(edit1, listener(data, i_OnEditChange, FormData));
     edit_OnChange(edit2, listener(data, i_OnEditChange, FormData));
     edit_OnChange(edit3, listener(data, i_OnEditChange, FormData));

@@ -16,7 +16,6 @@
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "osimglist.inl"
-#include "ostooltip.inl"
 #include "../oscombo.h"
 #include "../oscombo.inl"
 #include "../osgui.inl"
@@ -38,11 +37,8 @@ struct _oscombo_t
     bool_t launch_event;
     bool_t with_initial_size;
     uint32_t list_num_elems;
-
     HWND combo_hwnd;
     HWND edit_hwnd;
-    HWND tooltip_combo;
-    HWND tooltip_edit;
     WNDPROC def_combo_proc;
     WNDPROC def_edit_proc;
     OSImgList *image_list;
@@ -185,6 +181,8 @@ OSCombo *oscombo_create(const uint32_t flags)
     combo->edit_hwnd = (HWND)SendMessage(combo->control.hwnd, CBEM_GETEDITCONTROL, (WPARAM)0, (LPARAM)0);
     combo->def_combo_proc = (WNDPROC)SetWindowLongPtr(combo->combo_hwnd, GWLP_WNDPROC, (LONG_PTR)i_ComboWndProc);
     combo->def_edit_proc = (WNDPROC)SetWindowLongPtr(combo->edit_hwnd, GWLP_WNDPROC, (LONG_PTR)i_EditWndProc);
+    combo->control.tooltip_hwnd1 = combo->combo_hwnd;
+    combo->control.tooltip_hwnd2 = combo->edit_hwnd;
     SetWindowLongPtr(combo->combo_hwnd, GWLP_USERDATA, (LONG_PTR)combo);
     SetWindowLongPtr(combo->edit_hwnd, GWLP_USERDATA, (LONG_PTR)combo);
     combo->image_list = _osimglist_create(16);
@@ -198,14 +196,11 @@ void oscombo_destroy(OSCombo **combo)
 {
     cassert_no_null(combo);
     cassert_no_null(*combo);
-    cassert((*combo)->control.tooltip_hwnd == NULL);
     font_destroy(&(*combo)->font);
     listener_destroy(&(*combo)->OnFilter);
     listener_destroy(&(*combo)->OnChange);
     listener_destroy(&(*combo)->OnFocus);
     listener_destroy(&(*combo)->OnSelect);
-    _ostooltip_destroy_optional(&(*combo)->tooltip_combo, (*combo)->combo_hwnd);
-    _ostooltip_destroy_optional(&(*combo)->tooltip_edit, (*combo)->edit_hwnd);
     _oscontrol_destroy_brush(&(*combo)->bgbrush);
     _osimglist_destroy(&(*combo)->image_list);
     _oscontrol_destroy(&(*combo)->control);
@@ -259,9 +254,7 @@ void oscombo_text(OSCombo *combo, const char_t *text)
 
 void oscombo_tooltip(OSCombo *combo, const char_t *text)
 {
-    cassert_no_null(combo);
-    _ostooltip_set_text(&combo->tooltip_combo, combo->combo_hwnd, text);
-    _ostooltip_set_text(&combo->tooltip_edit, combo->edit_hwnd, text);
+    _oscontrol_tooltip(cast(combo, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/

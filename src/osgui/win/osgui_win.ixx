@@ -64,8 +64,11 @@ struct _oscontrol_t
 {
     gui_type_t type;
     HWND hwnd;
-    HWND tooltip_hwnd;
     WNDPROC def_wnd_proc;
+    OSWindow *window;
+    String *tooltip;
+    HWND tooltip_hwnd1;
+    HWND tooltip_hwnd2;
 
     /* HWND does not save the coordinates of the child with respect to the parent.
        They can be calculated with 'MapWindowPoints', but it does not work correctly

@@ -34,4 +34,8 @@ bool_t _oswindow_mouse_down(OSControl *control);
 
 void _oswindow_release_transient_focus(OSControl *control);
 
+void _oswindow_set_tooltip(OSWindow *window, HWND control_hwnd, const char_t *text);
+
+void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd);
+
 __END_C

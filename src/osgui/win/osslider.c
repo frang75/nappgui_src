@@ -95,6 +95,7 @@ OSSlider *osslider_create(const uint32_t flags)
     slider->OnMoved = NULL;
     dwStyle = i_slider_style(flags);
     _oscontrol_init(cast(slider, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, TRACKBAR_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    slider->control.tooltip_hwnd1 = slider->control.hwnd;
     SendMessage(slider->control.hwnd, TBM_SETRANGE, (WPARAM)TRUE, (LPARAM)MAKELONG(0, i_SLIDER_MAX));
     SendMessage(slider->control.hwnd, TBM_SETPAGESIZE, (WPARAM)0, (LPARAM)(i_SLIDER_MAX / 10));
     SendMessage(slider->control.hwnd, TBM_SETPOS, (WPARAM)TRUE, (LPARAM)0);
@@ -124,7 +125,7 @@ void osslider_OnMoved(OSSlider *slider, Listener *listener)
 
 void osslider_tooltip(OSSlider *slider, const char_t *text)
 {
-    _oscontrol_set_tooltip(cast(slider, OSControl), text);
+    _oscontrol_tooltip(cast(slider, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/

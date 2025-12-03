@@ -25,6 +25,7 @@
 #include <core/arrst.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <osbs/osbs.h>
 #include <osbs/bthread.h>
 #include <sewer/bmath.h>
@@ -43,6 +44,7 @@ typedef enum _wstate_t
 struct _oswindow_t
 {
     OSControl control;
+    HWND tooltip_hwnd;
     DWORD dwStyle;
     DWORD dwExStyle;
     HMENU current_popup_menu;
@@ -564,6 +566,15 @@ void oswindow_destroy(OSWindow **window)
         _ospanel_destroy(&panel);
     }
 
+    if ((*window)->tooltip_hwnd != NULL)
+    {
+        BOOL ret = 0;
+        cassert(SendMessage((*window)->tooltip_hwnd, TTM_GETTOOLCOUNT, 0, 0) == 0);
+        ret = DestroyWindow((*window)->tooltip_hwnd);
+        cassert_unref(ret != 0, ret);
+        (*window)->tooltip_hwnd = NULL;
+    }
+
     cassert((*window)->main_panel == NULL);
     cassert(_oscontrol_num_children(cast(*window, OSControl)) == 0);
     listener_destroy(&(*window)->OnMoved);
@@ -688,6 +699,8 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
         /* Force to show the focus rectangle in all controls */
         /* https://stackoverflow.com/questions/46489537/focus-rectangle-not-showing-even-if-control-has-focus */
         SendMessage(window->control.hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS | UISF_HIDEACCEL), (LPARAM)NULL);
+
+        /* Apply tooltips */
     }
 }
 
@@ -996,14 +1009,14 @@ void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_get_controls(OSControl *control, ArrPt(OSControl) *controls)
+static void i_get_controls(OSWindow *window, OSControl *control, ArrPt(OSControl) *controls)
 {
     cassert_no_null(control);
     if (control->type == ekGUI_TYPE_PANEL)
     {
         ArrPt(OSControl) *children = _ospanel_children(cast(control, OSPanel));
         arrpt_foreach(child, children, OSControl)
-            i_get_controls(child, controls);
+            i_get_controls(window, child, controls);
         arrpt_end()
     }
     else if (control->type == ekGUI_TYPE_SPLITVIEW)
@@ -1011,14 +1024,18 @@ static void i_get_controls(OSControl *control, ArrPt(OSControl) *controls)
         OSControl *child1 = NULL, *child2 = NULL;
         _ossplit_children(cast(control, OSSplit), &child1, &child2);
         if (child1 != NULL)
-            i_get_controls(child1, controls);
+            i_get_controls(window, child1, controls);
         if (child2 != NULL)
-            i_get_controls(child2, controls);
+            i_get_controls(window, child2, controls);
     }
     else
     {
+        cassert_no_null(window);
+        cassert(control->window == NULL || control->window == window);
         cassert(arrpt_find(controls, control, OSControl) == UINT32_MAX);
+        control->window = window;
         arrpt_append(controls, control, OSControl);
+        _oscontrol_apply_tooltip(control);
     }
 }
 
@@ -1028,7 +1045,7 @@ void _oswindow_find_all_controls(OSWindow *window, ArrPt(OSControl) *controls)
 {
     cassert_no_null(window);
     cassert(arrpt_size(controls, OSControl) == 0);
-    i_get_controls(cast(window->main_panel, OSControl), controls);
+    i_get_controls(window, cast(window->main_panel, OSControl), controls);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1338,33 +1355,88 @@ uint32_t _oswindow_message_loop(OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE OSWindow *i_root(HWND hwnd)
-{
-    HWND root_hwnd = NULL;
-    cassert_no_null(hwnd);
-    root_hwnd = GetAncestor(hwnd, GA_ROOT);
-    cassert_no_null(root_hwnd);
-    return cast(GetWindowLongPtr(root_hwnd, GWLP_USERDATA), OSWindow);
-}
-
-/*---------------------------------------------------------------------------*/
-
 bool_t _oswindow_mouse_down(OSControl *control)
 {
-    OSWindow *window = NULL;
     cassert_no_null(control);
-    window = i_root(control->hwnd);
-    cassert_no_null(window);
-    return _ostabstop_mouse_down(&window->tabstop, control);
+    cassert_no_null(control->window);
+    return _ostabstop_mouse_down(&control->window->tabstop, control);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_release_transient_focus(OSControl *control)
 {
-    OSWindow *window = NULL;
     cassert_no_null(control);
-    window = i_root(control->hwnd);
+    cassert_no_null(control->window);
+    _ostabstop_release_transient(&control->window->tabstop, control);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_set_tooltip(OSWindow *window, HWND control_hwnd, const char_t *text)
+{
+    if (str_empty_c(text) == FALSE)
+    {
+        TOOLINFO ti;
+        WString str;
+        const WCHAR *wstr = _osgui_wstr_init(text, &str);
+        cassert_no_null(window);
+        ZeroMemory(&ti, sizeof(TOOLINFO));
+
+        if (window->tooltip_hwnd == NULL)
+        {
+            HINSTANCE instance = _osgui_instance();
+            window->tooltip_hwnd = CreateWindowEx(
+                0, TOOLTIPS_CLASS, NULL,
+                WS_POPUP | TTS_ALWAYSTIP /*| TTS_BALLOON*/,
+                CW_USEDEFAULT, CW_USEDEFAULT,
+                CW_USEDEFAULT, CW_USEDEFAULT,
+                window->control.hwnd,
+                (HMENU)NULL,
+                instance, NULL);
+        }
+
+        cassert_no_null(window->tooltip_hwnd);
+
+        ti.cbSize = sizeof(ti);
+        ti.hwnd = window->control.hwnd;
+        ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+        ti.uId = (UINT_PTR)control_hwnd;
+        ti.lpszText = (LPWSTR)wstr;
+
+        /* Tooltip already exists --> Update the text */
+        if (SendMessage(window->tooltip_hwnd, TTM_GETTOOLINFO, 0, (LPARAM)&ti) == TRUE)
+        {
+            SendMessage(window->tooltip_hwnd, TTM_UPDATETIPTEXT, 0, (LPARAM)&ti);
+        }
+        else
+        {
+            LRESULT res = SendMessage(window->tooltip_hwnd, TTM_ADDTOOL, 0, (LPARAM)&ti);
+            cassert_unref(res == TRUE, res);
+        }
+
+        _osgui_wstr_remove(&str);
+    }
+    else
+    {
+        _oswindow_delete_tooltip(window, control_hwnd);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd)
+{
     cassert_no_null(window);
-    _ostabstop_release_transient(&window->tabstop, control);
+    cassert_no_null(control_hwnd);
+    if (window->tooltip_hwnd != NULL)
+    {
+        TOOLINFO ti;
+        ZeroMemory(&ti, sizeof(TOOLINFO));
+        ti.cbSize = sizeof(ti);
+        ti.uFlags = TTF_IDISHWND;
+        ti.hwnd = window->control.hwnd;
+        ti.uId = (UINT_PTR)control_hwnd;
+        SendMessage(window->tooltip_hwnd, TTM_DELTOOL, 0, (LPARAM)&ti);
+    }
 }

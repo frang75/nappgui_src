@@ -17,12 +17,13 @@
 #include "ospanel_win.inl"
 #include "ospopup_win.inl"
 #include "osweb_win.inl"
-#include "ostooltip.inl"
+#include "oswindow_win.inl"
 #include "../oscontrol.inl"
 #include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
@@ -52,9 +53,8 @@ static const unicode_t i_SYSTEM_FORMAT = ekUTF16;
 
 static void i_init(OSControl *control, const DWORD dwExStyle, const DWORD dwStyle, const LPCWSTR lpClassName, int nWidth, int nHeight, WNDPROC wndProc, HWND parent_window)
 {
-    HINSTANCE instance = NULL;
+    HINSTANCE instance = _osgui_instance();
     cassert_no_null(control);
-    instance = _osgui_instance();
     cassert_no_null(instance);
 
     control->hwnd = CreateWindowEx(
@@ -71,7 +71,10 @@ static void i_init(OSControl *control, const DWORD dwExStyle, const DWORD dwStyl
         PARAM(lpParam, NULL));
 
     cassert_no_null(control->hwnd);
-    control->tooltip_hwnd = NULL;
+    control->window = NULL;
+    control->tooltip = NULL;
+    control->tooltip_hwnd1 = NULL;
+    control->tooltip_hwnd2 = NULL;
 
     if (wndProc != NULL)
         control->def_wnd_proc = (WNDPROC)SetWindowLongPtr(control->hwnd, GWLP_WNDPROC, (LONG_PTR)wndProc);
@@ -100,13 +103,36 @@ void _oscontrol_init_hidden(OSControl *control, const DWORD dwExStyle, const DWO
 
 /*---------------------------------------------------------------------------*/
 
+static void i_tooltip_destopt(OSControl *control)
+{
+    cassert_no_null(control);
+    str_destopt(&control->tooltip);
+    if (control->window != NULL)
+    {
+        if (control->tooltip_hwnd1 != NULL)
+        {
+            _oswindow_delete_tooltip(control->window, control->tooltip_hwnd1);
+            control->tooltip_hwnd1 = NULL;
+        }
+
+        if (control->tooltip_hwnd2 != NULL)
+        {
+            _oswindow_delete_tooltip(control->window, control->tooltip_hwnd2);
+            control->tooltip_hwnd2 = NULL;
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _oscontrol_destroy(OSControl *control)
 {
     BOOL ret = 0;
     cassert_no_null(control);
-    _ostooltip_destroy_optional(&control->tooltip_hwnd, control->hwnd);
+    i_tooltip_destopt(control);
     ret = DestroyWindow(control->hwnd);
     cassert_unref(ret != 0, ret);
+    control->window = NULL;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -165,14 +191,6 @@ void _oscontrol_set_text(OSControl *control, const char_t *text)
     ok = SetWindowText(control->hwnd, wtext);
     cassert_unref(ok != 0, ok);
     _osgui_wstr_remove(&str);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _oscontrol_set_tooltip(OSControl *control, const char_t *text)
-{
-    cassert_no_null(control);
-    _ostooltip_set_text(&control->tooltip_hwnd, control->hwnd, text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -313,6 +331,47 @@ uint32_t _oscontrol_num_children(const OSControl *control)
     cassert_no_null(control);
     EnumChildWindows(control->hwnd, i_children_count, (LPARAM)&children_str);
     return children_str.num_children;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscontrol_tooltip(OSControl *control, const char_t *text)
+{
+    cassert_no_null(control);
+    cassert_no_null(text);
+    if (control->window != NULL)
+    {
+        str_destopt(&control->tooltip);
+        if (control->tooltip_hwnd1 != NULL)
+            _oswindow_set_tooltip(control->window, control->tooltip_hwnd1, text);
+        if (control->tooltip_hwnd2 != NULL)
+            _oswindow_set_tooltip(control->window, control->tooltip_hwnd2, text);
+    }
+    else
+    {
+        /* The control still is not linked to a window --> Text caching */
+        if (str_empty_c(text) == TRUE)
+            str_destopt(&control->tooltip);
+        else if (str_equ(control->tooltip, text) == FALSE)
+            str_upd(&control->tooltip, text);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscontrol_apply_tooltip(OSControl *control)
+{
+    cassert_no_null(control);
+    cassert_no_null(control->window);
+    if (str_empty(control->tooltip) == FALSE)
+    {
+        if (control->tooltip_hwnd1 != NULL)
+            _oswindow_set_tooltip(control->window, control->tooltip_hwnd1, tc(control->tooltip));
+        if (control->tooltip_hwnd2 != NULL)
+            _oswindow_set_tooltip(control->window, control->tooltip_hwnd2, tc(control->tooltip));
+    }
+
+    str_destopt(&control->tooltip);
 }
 
 /*---------------------------------------------------------------------------*/
