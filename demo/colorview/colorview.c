@@ -169,7 +169,7 @@ static App *i_create(void)
     window_panel(app->window, panel);
     window_title(app->window, "Color View");
     window_origin(app->window, v2df(500, 200));
-    window_size(app->window, s2df(500, 300));
+    window_client_size(app->window, s2df(500, 300));
     window_OnClose(app->window, listener(app, i_OnClose, App));
     window_show(app->window);
     return app;

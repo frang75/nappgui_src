@@ -68,13 +68,21 @@ _osgui_api uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_win
 
 _osgui_api void oswindow_stop_modal(OSWindow *window, const uint32_t return_value);
 
+_osgui_api bool_t oswindow_get_maximize(const OSWindow *window);
+
+_osgui_api void oswindow_maximize(OSWindow *window);
+
+_osgui_api bool_t oswindow_get_minimize(const OSWindow *window);
+
+_osgui_api void oswindow_minimize(OSWindow *window);
+
 _osgui_api void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y);
 
 _osgui_api void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y);
 
 _osgui_api void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height);
 
-_osgui_api void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height);
+_osgui_api void oswindow_client_size(OSWindow *window, const real32_t content_width, const real32_t content_height);
 
 _osgui_api void oswindow_set_default_pushbutton(OSWindow *window, OSButton *button);
 

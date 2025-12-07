@@ -5,15 +5,22 @@
 ### Added
 
 - `label_trim()`. [Commit](https://github.com/frang75/nappgui_src/commit/09a008fef1b66acca91f36a241ef189d81c217cd).
-- `dbind_sizeof()`. [Commit]().
-- `str_mem()`. [Commit]().
-- `image_mem()`. [Commit]().
+- `dbind_sizeof()`. [Commit](https://github.com/frang75/nappgui_src/commit/f82f076aab6cbacf31a83589c29af42f81051e0e).
+- `str_mem()`. [Commit](https://github.com/frang75/nappgui_src/commit/f82f076aab6cbacf31a83589c29af42f81051e0e).
+- `image_mem()`. [Commit](https://github.com/frang75/nappgui_src/commit/f82f076aab6cbacf31a83589c29af42f81051e0e).
+- Support for maximize/minimize windows. [Doc](). [Commit]().
+    - `window_maximize()`.
+    - `window_minimize()`.
+    - `window_get_maximize()`.
+    - `window_get_minimize()`.
 
 ### Changed
 
 - `comwin_open_file()` adds a new parameter `const char_t *filename`. [Commit](https://github.com/frang75/nappgui_src/commit/5e6cc6b509cbb8e16824086abb4de59634e3b87d).
 - `comwin_save_file()` adds a new parameter `const char_t *filename`. [Commit](https://github.com/frang75/nappgui_src/commit/5e6cc6b509cbb8e16824086abb4de59634e3b87d).
-- `dbind_binary()` adds a new parameter `FPtr_size`. [Commit]().
+- `dbind_binary()` adds a new parameter `FPtr_size`. [Commit](https://github.com/frang75/nappgui_src/commit/f82f076aab6cbacf31a83589c29af42f81051e0e).
+- `window_size()` renamed by `window_client_size()`. [Commit]().
+- `window_is_visible()` renamed by `window_get_visible()`. [Commit]().
 
 ### Improved
 
@@ -25,6 +32,7 @@
 
 - Minor issue when removing columns or rows dynamically from layouts. [Commit](https://github.com/frang75/nappgui_src/commit/db6de0df4a7453182376f9f54cddceae98a716e9).
 - Flickering in toolbutton (Win32). [Commit](https://github.com/frang75/nappgui_src/commit/0975bd1846369d3ebe56a34138221e7fcaae8a44).
+- Win32 multiple tooltips in same window. [Commit](https://github.com/frang75/nappgui_src/commit/582457afb98db79e3be08df810ebdb1467ff008a).
 
 ## v1.5.3 - Sep 25, 2025 (r6604)
 

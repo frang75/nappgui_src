@@ -1200,8 +1200,12 @@ void guictx_append_window_manager_imp(
     FPtr_gctx_set_ptr func_window_hide,
     FPtr_gctx_set_ptr2 func_window_launch_modal,
     FPtr_gctx_set_uint32 func_window_stop_modal,
-    FPtr_gctx_get2_real32 func_window_get_origin_in_screen_coordinates,
-    FPtr_gctx_set2_real32 func_window_set_origin_in_screen_coordinates,
+    FPtr_gctx_get_bool func_window_get_maximize,
+    FPtr_gctx_call func_window_maximize,
+    FPtr_gctx_get_bool func_window_get_minimize,
+    FPtr_gctx_call func_window_minimize,
+    FPtr_gctx_get2_real32 func_window_get_origin,
+    FPtr_gctx_set2_real32 func_window_set_origin,
     FPtr_gctx_get2_real32 func_window_get_size,
     FPtr_gctx_set2_real32 func_window_set_size,
     FPtr_gctx_set_ptr func_window_set_default_pushbutton,
@@ -1236,8 +1240,12 @@ void guictx_append_window_manager_imp(
     cassert(context->func_window_hide == NULL);
     cassert(context->func_window_launch_modal == NULL);
     cassert(context->func_window_stop_modal == NULL);
-    cassert(context->func_window_get_origin_in_screen_coordinates == NULL);
-    cassert(context->func_window_set_origin_in_screen_coordinates == NULL);
+    cassert(context->func_window_get_maximize == NULL);
+    cassert(context->func_window_maximize == NULL);
+    cassert(context->func_window_get_minimize == NULL);
+    cassert(context->func_window_minimize == NULL);
+    cassert(context->func_window_get_origin == NULL);
+    cassert(context->func_window_set_origin == NULL);
     cassert(context->func_window_get_size == NULL);
     cassert(context->func_window_set_size == NULL);
     cassert(context->func_window_set_default_pushbutton == NULL);
@@ -1270,8 +1278,12 @@ void guictx_append_window_manager_imp(
     cassert_no_nullf(func_window_hide);
     cassert_no_nullf(func_window_launch_modal);
     cassert_no_nullf(func_window_stop_modal);
-    cassert_no_nullf(func_window_get_origin_in_screen_coordinates);
-    cassert_no_nullf(func_window_set_origin_in_screen_coordinates);
+    cassert_no_nullf(func_window_get_maximize);
+    cassert_no_nullf(func_window_maximize);
+    cassert_no_nullf(func_window_get_minimize);
+    cassert_no_nullf(func_window_minimize);
+    cassert_no_nullf(func_window_get_origin);
+    cassert_no_nullf(func_window_set_origin);
     cassert_no_nullf(func_window_get_size);
     cassert_no_nullf(func_window_set_size);
     cassert_no_nullf(func_window_set_default_pushbutton);
@@ -1304,8 +1316,12 @@ void guictx_append_window_manager_imp(
     context->func_window_hide = func_window_hide;
     context->func_window_launch_modal = func_window_launch_modal;
     context->func_window_stop_modal = func_window_stop_modal;
-    context->func_window_get_origin_in_screen_coordinates = func_window_get_origin_in_screen_coordinates;
-    context->func_window_set_origin_in_screen_coordinates = func_window_set_origin_in_screen_coordinates;
+    context->func_window_get_maximize = func_window_get_maximize;
+    context->func_window_maximize = func_window_maximize;
+    context->func_window_get_minimize = func_window_get_minimize;
+    context->func_window_minimize = func_window_minimize;
+    context->func_window_get_origin = func_window_get_origin;
+    context->func_window_set_origin = func_window_set_origin;
     context->func_window_get_size = func_window_get_size;
     context->func_window_set_size = func_window_set_size;
     context->func_window_set_default_pushbutton = func_window_set_default_pushbutton;

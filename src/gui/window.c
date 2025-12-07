@@ -144,7 +144,6 @@ static void i_OnWindowResize(Window *window, Event *e)
 {
     const EvSize *params = NULL;
     cassert_no_null(window);
-    cassert(window->visible == TRUE);
     cassert_no_null(window->context);
     cassert(event_sender_imp(e, NULL) == window->ositem);
     params = event_params(e, EvSize);
@@ -546,7 +545,7 @@ void window_stop_modal(Window *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t window_is_visible(const Window *window)
+bool_t window_get_visible(const Window *window)
 {
     cassert_no_null(window);
     return window->visible;
@@ -662,95 +661,43 @@ void window_update(Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-void window_launch_sheet(Window *window, Window *owner_window);
-void window_launch_sheet(Window *window, Window *owner_window)
+bool_t window_get_maximize(const Window *window)
 {
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_null(owner_window);
-    cassert_no_nullf(window->context->func_window_launch_sheet);
-    cassert_no_nullf(window->context->func_window_set_z_order);
-    cassert(FALSE);
-    window->context->func_window_launch_sheet(window->ositem, owner_window->ositem);
-    window->context->func_window_set_z_order(window->ositem, NULL);
-}*/
-
-/*---------------------------------------------------------------------------*/
-
-/*
-void window_stop_sheet(Window *window, Window *owner_window);
-void window_stop_sheet(Window *window, Window *owner_window)
-{
-    cassert_no_null(window);
-    cassert_no_null(owner_window);
-    cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_window_stop_sheet);
-    cassert(FALSE);
-    window->context->func_window_stop_sheet(window->ositem, owner_window->ositem);
+    cassert_no_nullf(window->context->func_window_get_maximize);
+    return window->context->func_window_get_maximize(window->ositem);
 }
-*/
 
 /*---------------------------------------------------------------------------*/
 
-/*
-void window_set_origin_in_screen_center(Window *window);
-void window_set_origin_in_screen_center(Window *window)
+void window_maximize(Window *window)
 {
-    real32_t screen_width, screen_height;
-    real32_t window_width, window_height;
-    real32_t x, y;
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_globals_resolution);
-    cassert_no_nullf(window->context->func_window_get_size);
-    cassert_no_nullf(window->context->func_window_set_origin_in_screen_coordinates);
-    window->context->func_globals_resolution(NULL, &screen_width, &screen_height);
-    window->context->func_window_get_size(window->ositem, &window_width, &window_height);
-    x = .5f * (screen_width - window_width);
-    y = .5f * (screen_height - window_height);
-    window->context->func_window_set_origin_in_screen_coordinates(window->ositem, x, y);
-}*/
+    cassert_no_nullf(window->context->func_window_maximize);
+    window->context->func_window_maximize(window->ositem);
+}
 
 /*---------------------------------------------------------------------------*/
 
-/*
-void window_set_origin_in_screen_width_center(Window *window, const real32_t y);
-void window_set_origin_in_screen_width_center(Window *window, const real32_t y)
+bool_t window_get_minimize(const Window *window)
 {
-    real32_t screen_width, screen_height;
-    real32_t window_width, window_height;
-    real32_t x;
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_globals_resolution);
-    cassert_no_nullf(window->context->func_window_get_size);
-    cassert_no_nullf(window->context->func_window_set_origin_in_screen_coordinates);
-    window->context->func_globals_resolution(NULL, &screen_width, &screen_height);
-    window->context->func_window_get_size(window->ositem, &window_width, &window_height);
-    x = .5f * (screen_width - window_width);
-    window->context->func_window_set_origin_in_screen_coordinates(window->ositem, x, y);
-}*/
+    cassert_no_nullf(window->context->func_window_get_minimize);
+    return window->context->func_window_get_minimize(window->ositem);
+}
 
 /*---------------------------------------------------------------------------*/
 
-/*
-void window_set_origin_in_screen_width_right(Window *window, const real32_t offset_x, const real32_t y);
-void window_set_origin_in_screen_width_right(Window *window, const real32_t offset_x, const real32_t y)
+void window_minimize(Window *window)
 {
-    real32_t screen_width, screen_height;
-    real32_t window_width, window_height;
-    real32_t x;
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_globals_resolution);
-    cassert_no_nullf(window->context->func_window_get_size);
-    cassert_no_nullf(window->context->func_window_set_origin_in_screen_coordinates);
-    window->context->func_globals_resolution(NULL, &screen_width, &screen_height);
-    window->context->func_window_get_size(window->ositem, &window_width, &window_height);
-    x = screen_width - window_width - offset_x;
-    window->context->func_window_set_origin_in_screen_coordinates(window->ositem, x, y);
-}*/
+    cassert_no_nullf(window->context->func_window_minimize);
+    window->context->func_window_minimize(window->ositem);
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -758,16 +705,15 @@ void window_origin(Window *window, const V2Df origin)
 {
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_window_set_origin_in_screen_coordinates);
-    window->context->func_window_set_origin_in_screen_coordinates(window->ositem, origin.x, origin.y);
+    cassert_no_nullf(window->context->func_window_set_origin);
+    window->context->func_window_set_origin(window->ositem, origin.x, origin.y);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void window_size(Window *window, const S2Df size)
+void window_client_size(Window *window, const S2Df size)
 {
     cassert_no_null(window);
-    cassert(window->flags & ekWINDOW_RESIZE);
     i_main_layout_compose(window, &size);
 }
 
@@ -780,8 +726,8 @@ V2Df window_get_origin(const Window *window)
     origin.y = REAL32_MAX;
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_window_get_origin_in_screen_coordinates);
-    window->context->func_window_get_origin_in_screen_coordinates(window->ositem, &origin.x, &origin.y);
+    cassert_no_nullf(window->context->func_window_get_origin);
+    window->context->func_window_get_origin(window->ositem, &origin.x, &origin.y);
     return origin;
 }
 
@@ -864,8 +810,8 @@ V2Df window_client_to_screen(const Window *window, const V2Df point)
     V2Df origin = point;
     cassert_no_null(window);
     cassert_no_null(window->context);
-    cassert_no_nullf(window->context->func_window_get_origin_in_screen_coordinates);
-    window->context->func_window_get_origin_in_screen_coordinates(window->ositem, &origin.x, &origin.y);
+    cassert_no_nullf(window->context->func_window_get_origin);
+    window->context->func_window_get_origin(window->ositem, &origin.x, &origin.y);
     return origin;
 }
 

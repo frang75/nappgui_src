@@ -48,8 +48,8 @@
     NSPoint origin;
     BOOL in_window_destroy;
     BOOL destroy_main_view;
-    BOOL last_moved_by_interface;
-    BOOL launch_resize_event;
+    BOOL move_event;
+    BOOL resize_event;
     uint32_t flags;
     gui_role_t role;
     CGFloat alpha;
@@ -115,23 +115,54 @@
 
 /*---------------------------------------------------------------------------*/
 
+static void i_launch_onmoved(OSXWindow *window, Listener *OnMoved)
+{
+    cassert_no_null(window);
+    if (OnMoved != NULL && window->move_event == YES)
+    {
+        CGFloat origin_x, origin_y;
+        NSRect frame = [window frame];
+        _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
+        if ((int)origin_x != (int)window->origin.x || (int)origin_y != window->origin.y)
+        {
+            EvPos params;
+            params.x = (real32_t)origin_x;
+            params.y = (real32_t)origin_y;
+            listener_event(OnMoved, ekGUI_EVENT_WND_MOVED, cast(window, OSWindow), &params, NULL, OSWindow, EvPos, void);
+        }
+
+        window->origin.x = origin_x;
+        window->origin.y = origin_y;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void)windowDidMove:(NSNotification *)notification
 {
     OSXWindow *window = [notification object];
-    cassert_no_null(window);
-    if (self->OnMoved != NULL && window->last_moved_by_interface == NO)
-    {
-        NSRect frame;
-        EvPos params;
-        CGFloat origin_x, origin_y;
-        frame = [window frame];
-        _oscontrol_origin_in_screen_coordinates(&frame, &origin_x, &origin_y);
-        params.x = (real32_t)origin_x;
-        params.y = (real32_t)origin_y;
-        listener_event(self->OnMoved, ekGUI_EVENT_WND_MOVED, cast(window, OSWindow), &params, NULL, OSWindow, EvPos, void);
-    }
+    i_launch_onmoved(window, self->OnMoved);
+}
 
-    window->last_moved_by_interface = NO;
+/*---------------------------------------------------------------------------*/
+
+- (void)windowDidResize:(NSNotification *)notification
+{
+    OSXWindow *window = [notification object];
+    i_launch_onmoved(window, self->OnMoved);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_is_maximized(OSXWindow *window)
+{
+    /* I don't know why, but isZoomed launch a resize event ¿? */
+    bool_t maximized = FALSE;
+    cassert_no_null(window);
+    window->resize_event = NO;
+    maximized = (bool_t)[window isZoomed];
+    window->resize_event = YES;
+    return maximized;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -139,7 +170,7 @@
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)frameSize
 {
     OSXWindow *window = cast(sender, OSXWindow);
-    if (self->OnResize != NULL && window->launch_resize_event == YES)
+    if (self->OnResize != NULL && window->resize_event == YES)
     {
         NSRect frame, content_frame;
         EvSize params;
@@ -203,6 +234,45 @@ static bool_t i_close(OSXWindowDelegate *delegate, OSXWindow *window, const gui_
 - (BOOL)windowShouldClose:(id)sender
 {
     return (BOOL)i_close(self, sender, ekGUI_CLOSE_BUTTON);
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)windowDidMiniaturize:(NSNotification *)notification
+{
+    OSXWindow *window = [notification object];
+    if (self->OnMoved != NULL)
+    {
+        EvPos params;
+        params.x = 0;
+        params.y = 0;
+        listener_event(self->OnMoved, ekGUI_EVENT_WND_MOVED, cast(window, OSWindow), &params, NULL, OSWindow, EvPos, void);
+    }
+
+    if (self->OnResize != NULL)
+    {
+        EvSize params;
+        params.width = 0;
+        params.height = 0;
+        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZE, cast(window, OSWindow), &params, NULL, OSWindow, EvSize, void);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)windowDidDeminiaturize:(NSNotification *)notification
+{
+    OSXWindow *window = [notification object];
+    i_launch_onmoved(window, self->OnMoved);
+
+    if (self->OnResize != NULL)
+    {
+        NSSize size = [[window contentView] frame].size;
+        EvSize params;
+        params.width = (real32_t)size.width;
+        params.height = (real32_t)size.height;
+        listener_event(self->OnResize, ekGUI_EVENT_WND_SIZE, cast(window, OSWindow), &params, NULL, OSWindow, EvSize, void);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -427,12 +497,12 @@ OSWindow *oswindow_create(const uint32_t flags)
     heap_auditor_add("OSXWindow");
     window = [[OSXWindow alloc] initWithContentRect:NSZeroRect styleMask:stylemask backing:NSBackingStoreBuffered defer:NO];
     [window setAutorecalculatesKeyViewLoop:NO];
-    window->origin.x = 0.f;
-    window->origin.y = 0.f;
+    window->origin.x = 0;
+    window->origin.y = 0;
     window->in_window_destroy = NO;
     window->destroy_main_view = YES;
-    window->last_moved_by_interface = NO;
-    window->launch_resize_event = YES;
+    window->move_event = YES;
+    window->resize_event = YES;
     window->flags = flags;
     window->role = ENUM_MAX(gui_role_t);
     window->alpha = .5f;
@@ -597,7 +667,7 @@ void oswindow_z_order(OSWindow *window, OSWindow *below_window)
     cassert_no_null(lwindow);
     cassert_no_null(below_window);
     cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
-    below_level = [(OSXWindow *)below_window level];
+    below_level = [cast(below_window, OSXWindow) level];
     [lwindow setLevel:below_level + 10];
 }
 
@@ -875,30 +945,44 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
-/*
-//void oswindow_launch_sheet(OSWindow *window, OSWindow *parent)
-//{
-//    cassert_no_null(window);
-//#if defined (MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-//    cassert(FALSE);
-//    [(OSXWindow*)parent beginSheet:(OSXWindow*)window completionHandler:nil];
-//#else
-//    [NSApp beginSheet:(OSXWindow*)window modalForWindow:(OSXWindow*)parent modalDelegate:nil didEndSelector:nil contextInfo:nil];
-//#endif
-//}
-*/
+bool_t oswindow_get_maximize(const OSWindow *window)
+{
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    return i_is_maximized(lwindow);
+}
 
 /*---------------------------------------------------------------------------*/
 
-/*
-//void oswindow_stop_sheet(OSWindow *window, OSWindow *parent)
-//{
-//    cassert_no_null(window);
-//    [(OSXWindow*)window orderOut:(OSXWindow*)window];
-//    [NSApp endSheet:(OSXWindow*)window];
-//    [(OSXWindow*)parent makeKeyAndOrderFront:nil];
-//}
-*/
+void oswindow_maximize(OSWindow *window)
+{
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    if (lwindow->flags & ekWINDOW_RESIZE)
+        [lwindow zoom:nil];
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t oswindow_get_minimize(const OSWindow *window)
+{
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    return (bool_t)[lwindow isMiniaturized];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_minimize(OSWindow *window)
+{
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    cassert_no_null(lwindow);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    [lwindow miniaturize:nil];
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -946,8 +1030,9 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
     window_frame.origin.x = (CGFloat)x;
     window_frame.origin.y = (CGFloat)y;
     _oscontrol_origin_in_screen_coordinates(&window_frame, &origin.x, &origin.y);
-    lwindow->last_moved_by_interface = YES;
-    [(OSXWindow *)lwindow setFrameOrigin:origin];
+    lwindow->move_event = NO;
+    [lwindow setFrameOrigin:origin];
+    lwindow->move_event = YES;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -967,7 +1052,7 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
+void oswindow_client_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
     OSXWindow *lwindow = cast(window, OSXWindow);
     NSSize size;
@@ -975,9 +1060,9 @@ void oswindow_size(OSWindow *window, const real32_t content_width, const real32_
     cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
     size.width = (CGFloat)content_width;
     size.height = (CGFloat)content_height;
-    lwindow->launch_resize_event = NO;
+    lwindow->resize_event = NO;
     [lwindow setContentSize:size];
-    lwindow->launch_resize_event = YES;
+    lwindow->resize_event = YES;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -72,7 +72,7 @@ OSApp *_osapp_init_imp(
     cassert(i_APP.listener == NULL);
     cassert(i_APP.func_OnFinishLaunching == NULL);
     cassert(i_APP.func_OnTimerSignal == NULL);
-    str_copy_c(GDK_BACKEND, sizeof(GDK_BACKEND), "GDK_BACKEND=x11");
+    str_copy_c(GDK_BACKEND, sizeof(GDK_BACKEND), "GDK_BACKEND=x11"); /* wayland */
     putenv(GDK_BACKEND);
     cassert(g_application_id_is_valid("com.nappgui.app") == TRUE);
     i_APP.gtk_app = gtk_application_new("com.nappgui.app", G_APPLICATION_NON_UNIQUE);
@@ -124,6 +124,7 @@ static void i_terminate(OSApp *app)
     cassert_no_nullf(app->func_destroy);
     cassert_no_nullf(app->func_OnExecutionEnd);
     cassert(app->terminate == TRUE);
+    osgui_terminate();
 
     if (app->abnormal_termination == FALSE)
     {
@@ -136,8 +137,6 @@ static void i_terminate(OSApp *app)
         g_object_unref(app->icon);
 
     listener_destroy(&app->OnTheme);
-    osgui_terminate();
-
     g_application_quit(G_APPLICATION(app->gtk_app));
 }
 
@@ -251,6 +250,14 @@ static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
     app->timer_init_id = g_timeout_add(10, i_OnTimerInit, (gpointer)app);
     cassert(app->timer_loop_id > 0);
     cassert(app->timer_init_id > 0);
+
+    /* Get the current backend */
+    /*
+    {
+        GdkDisplay *display = gdk_display_get_default();
+        const gchar *name = g_type_name(G_TYPE_FROM_INSTANCE(display));
+    }
+    */
 }
 
 /*---------------------------------------------------------------------------*/

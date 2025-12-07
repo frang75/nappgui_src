@@ -27,6 +27,7 @@
 #include <core/arrst.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <osbs/bthread.h>
 #include <sewer/cassert.h>
 
 #if !defined(__GTK3__)
@@ -55,7 +56,9 @@ struct _oswindow_t
     ArrSt(OSHotKey) *hotkeys;
     bool_t destroy_main_view;
     bool_t is_resizable;
-    bool_t resize_event;
+    gint configure_event;
+    gint current_x;
+    gint current_y;
     gint current_width;
     gint current_height;
     gint minimun_width;
@@ -139,69 +142,80 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
 
     cassert_no_null(window);
     cassert_unref(window->control.widget == widget, widget);
-    if (window->resize_event == FALSE)
-    {
-        window->resize_event = TRUE;
-        return FALSE;
-    }
+    cassert_no_null(event);
 
-    if (window->current_width > 0 && (window->current_width != event->width || window->current_height != event->height))
+    /*
+     * Avoid to launch events from explict GTK move/resize functions.
+     * We want launch event ONLY in user actions: Move title bar, drag borders, etc
+     */
+    if (window->configure_event == 0)
     {
-        if (window->is_resizable == TRUE && window->OnResize != NULL)
+        if (window->current_x != event->x || window->current_y != event->y)
         {
-            EvSize params;
-            EvSize result;
-            uint32_t mheight = i_menubar_current_height(window);
-            params.width = (real32_t)event->width;
-            params.height = (real32_t)(event->height - (gint)mheight);
-            listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
-            listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &result, NULL, OSWindow, EvSize, void);
-
-            if (result.width > params.width)
+            /* When window is moved dragging the titlebar */
+            if (window->OnMoved != NULL)
             {
-                GdkGeometry hints;
-                window->minimun_width = (gint)result.width;
-                hints.min_width = window->minimun_width;
-                hints.min_height = window->minimun_height;
-                gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+                gint x, y;
+                EvPos p;
+                gtk_window_get_position(GTK_WINDOW(window->control.widget), &x, &y);
+                p.x = (real32_t)x;
+                p.y = (real32_t)y;
+                listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &p, NULL, OSWindow, EvPos, void);
             }
 
-            if (result.height > params.height)
+            /* When window is moved dragging the titlebar, the focus is lost */
+            _ostabstop_restore(&window->tabstop);
+        }
+
+        if (window->current_width != event->width || window->current_height != event->height)
+        {
+            if (window->is_resizable == TRUE && window->OnResize != NULL)
             {
-                GdkGeometry hints;
-                window->minimun_height = (gint)result.height + (gint)mheight;
-                hints.min_width = window->minimun_width;
-                hints.min_height = window->minimun_height;
-                gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+                EvSize params;
+                EvSize result;
+                uint32_t mheight = i_menubar_current_height(window);
+                params.width = (real32_t)event->width;
+                params.height = (real32_t)(event->height - (gint)mheight);
+                listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
+                listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &result, NULL, OSWindow, EvSize, void);
+
+                if (result.width > params.width)
+                {
+                    GdkGeometry hints;
+                    window->minimun_width = (gint)result.width;
+                    hints.min_width = window->minimun_width;
+                    hints.min_height = window->minimun_height;
+                    gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+                }
+
+                if (result.height > params.height)
+                {
+                    GdkGeometry hints;
+                    window->minimun_height = (gint)result.height + (gint)mheight;
+                    hints.min_width = window->minimun_width;
+                    hints.min_height = window->minimun_height;
+                    gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+                }
+
+                window->current_width = (gint)result.width;
+                window->current_height = (gint)result.height + (gint)mheight;
+
+                if (window->menu != NULL)
+                    _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
             }
-
-            window->current_width = (gint)result.width;
-            window->current_height = (gint)result.height + (gint)mheight;
-
-            if (window->menu != NULL)
-                _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
-        }
-        else
-        {
-            window->current_width = event->width;
-            window->current_height = event->height;
+            else
+            {
+                window->current_width = event->width;
+                window->current_height = event->height;
+            }
         }
     }
-    /* Window dimensions have not changed */
-    else
-    {
-        /* When window is moved dragging the titlebar */
-        if (window->OnMoved != NULL)
-        {
-            EvPos p;
-            p.x = (real32_t)event->x;
-            p.y = (real32_t)event->y;
-            listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &p, NULL, OSWindow, EvPos, void);
-        }
 
-        /* When window is moved dragging the titlebar, the focus is lost */
-        _ostabstop_restore(&window->tabstop);
-    }
+    window->current_x = event->x;
+    window->current_y = event->y;
+
+    if (window->configure_event > 0)
+        window->configure_event -= 1;
 
     return FALSE;
 }
@@ -331,6 +345,48 @@ static gboolean i_OnWindowState(GtkWindow *widget, GdkEventWindowState *event, O
     cassert_no_null(widget);
     if (event->new_window_state & GDK_WINDOW_STATE_FOCUSED)
         _ostabstop_restore(&window->tabstop);
+
+    /* Maximized */
+    if ((event->changed_mask & GDK_WINDOW_STATE_MAXIMIZED) && (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED))
+    {
+        /* Force the resize events */
+        window->configure_event = 0;
+    }
+
+    /* Minimized */
+    if ((event->changed_mask & GDK_WINDOW_STATE_ICONIFIED) && (event->new_window_state & GDK_WINDOW_STATE_ICONIFIED))
+    {
+        if (window->OnMoved != NULL)
+        {
+            EvPos p;
+            p.x = 0;
+            p.y = 0;
+            listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &p, NULL, OSWindow, EvPos, void);
+        }
+
+        if (window->OnResize != NULL)
+        {
+            EvSize p;
+            p.width = 0;
+            p.height = 0;
+            listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &p, NULL, OSWindow, EvSize, void);
+        }
+    }
+
+    /* Restored from minimized */
+    if ((event->changed_mask & GDK_WINDOW_STATE_ICONIFIED) && !(event->new_window_state & GDK_WINDOW_STATE_ICONIFIED))
+    {
+        /* Force new configure events (moved, resized) */
+        gint x, y;
+        window->current_x = -1;
+        window->current_y = -1;
+        window->current_width = -1;
+        window->current_height = -1;
+        window->configure_event = 0;
+        gtk_window_get_position(GTK_WINDOW(window->control.widget), &x, &y);
+        gtk_window_move(GTK_WINDOW(window->control.widget), x, y);
+    }
+
     return FALSE;
 }
 
@@ -347,8 +403,12 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->flags = flags;
     window->role = ENUM_MAX(gui_role_t);
     window->destroy_main_view = TRUE;
-    window->is_resizable = (flags & ekWINDOW_RESIZE) == ekWINDOW_RESIZE ? TRUE : FALSE;
-    window->resize_event = TRUE;
+    window->is_resizable = (flags & ekWINDOW_RESIZE) ? TRUE : FALSE;
+    window->configure_event = 0;
+    window->current_x = -1;
+    window->current_y = -1;
+    window->current_width = -1;
+    window->current_height = -1;
     _ostabstop_init(&window->tabstop, window);
     gtk_window_set_resizable(GTK_WINDOW(window->control.widget), (gboolean)window->is_resizable);
 
@@ -648,7 +708,7 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
-    window->resize_event = FALSE;
+    window->configure_event += 1;
     if (parent_window != NULL)
     {
         gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), GTK_WINDOW(parent_window->control.widget));
@@ -682,7 +742,7 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
     cassert(window->runloop == NULL);
     _ostabstop_restore(&window->tabstop);
     gtk_window_set_modal(GTK_WINDOW(window->control.widget), TRUE);
-    window->resize_event = FALSE;
+    window->configure_event += 1;
     window->role = ekGUI_ROLE_MODAL;
     window->runloop = g_main_loop_new(NULL, FALSE);
 
@@ -718,26 +778,73 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t oswindow_get_maximize(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return (bool_t)gtk_window_is_maximized(GTK_WINDOW(window->control.widget));
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnMaximize(OSWindow *window)
+{
+    cassert_no_null(window);
+    bthread_sleep(10);
+    gtk_window_maximize(GTK_WINDOW(window->control.widget));
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_maximize(OSWindow *window)
+{
+    cassert_no_null(window);
+    if (window->is_resizable == TRUE)
+        g_idle_add((GSourceFunc)i_OnMaximize, window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t oswindow_get_minimize(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return (bool_t)!gtk_window_is_active(GTK_WINDOW(window->control.widget));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_minimize(OSWindow *window)
+{
+    cassert_no_null(window);
+    gtk_window_iconify(GTK_WINDOW(window->control.widget));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 {
-    gint wx, wy;
     cassert_no_null(window);
     cassert_no_null(x);
     cassert_no_null(y);
-    gtk_window_get_position(GTK_WINDOW(window->control.widget), &wx, &wy);
-
-    if (*x == REAL32_MAX && *y == REAL32_MAX)
+    if (oswindow_get_minimize(window) == TRUE)
     {
-        *x = (real32_t)wx;
-        *y = (real32_t)wy;
+        *x = 0;
+        *y = 0;
     }
     else
     {
-        gint gx, gy;
-        GdkWindow *gdkwindow = gtk_widget_get_window(window->control.widget);
-        gdk_window_get_geometry(gdkwindow, &gx, &gy, NULL, NULL);
-        *x = (real32_t)wx + (real32_t)gx + *x;
-        *y = (real32_t)wy + (real32_t)gy + *y;
+        if (*x == REAL32_MAX && *y == REAL32_MAX)
+        {
+            gint wx, wy;
+            gtk_window_get_position(GTK_WINDOW(window->control.widget), &wx, &wy);
+            *x = (real32_t)wx;
+            *y = (real32_t)wy;
+        }
+        else
+        {
+            *x = (real32_t)window->current_x + *x;
+            *y = (real32_t)window->current_y + *y;
+        }
     }
 }
 
@@ -746,7 +853,7 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 {
     cassert_no_null(window);
-    window->resize_event = FALSE;
+    window->configure_event += 1;
     gtk_window_move(GTK_WINDOW(window->control.widget), (gint)x, (gint)y);
 }
 
@@ -754,13 +861,32 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 
 void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height)
 {
-    gint w, h;
     cassert_no_null(window);
     cassert_no_null(width);
     cassert_no_null(height);
-    gtk_window_get_size(GTK_WINDOW(window->control.widget), &w, &h);
-    *width = (real32_t)w;
-    *height = (real32_t)h;
+    if (oswindow_get_minimize(window) == TRUE)
+    {
+        *width = 0;
+        *height = 0;
+    }
+    else
+    {
+        GdkWindow *gdk_window = gtk_widget_get_window(window->control.widget);
+        if (gdk_window != NULL)
+        {
+            GdkRectangle rect;
+            gdk_window_get_frame_extents(gdk_window, &rect);
+            *width = (real32_t)rect.width;
+            *height = (real32_t)rect.height;
+        }
+        else
+        {
+            gint w, h;
+            gtk_window_get_size(GTK_WINDOW(window->control.widget), &w, &h);
+            *width = (real32_t)w;
+            *height = (real32_t)h;
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -782,7 +908,7 @@ static void i_update_menu_size(OSWindow *window)
 
     if (window->is_resizable == TRUE)
     {
-        window->resize_event = FALSE;
+        window->configure_event += 1;
         gtk_widget_set_size_request(window->control.widget, -1, -1);
         gtk_window_resize(GTK_WINDOW(window->control.widget), window->current_width, window->current_height + msize.height);
     }
@@ -794,12 +920,12 @@ static void i_update_menu_size(OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_size(OSWindow *window, const real32_t width, const real32_t height)
+void oswindow_client_size(OSWindow *window, const real32_t width, const real32_t height)
 {
     cassert_no_null(window);
     if (window->is_resizable == TRUE)
     {
-        window->resize_event = FALSE;
+        window->configure_event += 1;
         gtk_window_resize(GTK_WINDOW(window->control.widget), (gint)width, (gint)height);
         window->minimun_width = -1;
         window->minimun_height = -1;

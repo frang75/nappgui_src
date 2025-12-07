@@ -1088,8 +1088,12 @@ _draw2d_api void guictx_append_window_manager_imp(
     FPtr_gctx_set_ptr func_window_hide,
     FPtr_gctx_set_ptr2 func_window_launch_modal,
     FPtr_gctx_set_uint32 func_window_stop_modal,
-    FPtr_gctx_get2_real32 func_window_get_origin_in_screen_coordinates,
-    FPtr_gctx_set2_real32 func_window_set_origin_in_screen_coordinates,
+    FPtr_gctx_get_bool func_window_get_maximize,
+    FPtr_gctx_call func_window_maximize,
+    FPtr_gctx_get_bool func_window_get_minimize,
+    FPtr_gctx_call func_window_minimize,
+    FPtr_gctx_get2_real32 func_window_get_origin,
+    FPtr_gctx_set2_real32 func_window_set_origin,
     FPtr_gctx_get2_real32 func_window_get_size,
     FPtr_gctx_set2_real32 func_window_set_size,
     FPtr_gctx_set_ptr func_window_set_default_pushbutton,
@@ -1124,8 +1128,12 @@ _draw2d_api void guictx_append_window_manager_imp(
     func_window_hide, \
     func_window_launch_modal, \
     func_window_stop_modal, \
-    func_window_get_origin_in_screen_coordinates, \
-    func_window_set_origin_in_screen_coordinates, \
+    func_window_get_maximize, \
+    func_window_maximize, \
+    func_window_get_minimize, \
+    func_window_minimize, \
+    func_window_get_origin, \
+    func_window_set_origin, \
     func_window_get_size, \
     func_window_set_size, \
     func_window_set_default_pushbutton, \
@@ -1160,8 +1168,12 @@ _draw2d_api void guictx_append_window_manager_imp(
         FUNC_CHECK_GCTX_SET_PTR(func_window_hide, window_type, window_type), \
         FUNC_CHECK_GCTX_SET_PTR2(func_window_launch_modal, window_type, window_type), \
         FUNC_CHECK_GCTX_SET_UINT32(func_window_stop_modal, window_type), \
-        FUNC_CHECK_GCTX_GET2_REAL32(func_window_get_origin_in_screen_coordinates, window_type), \
-        FUNC_CHECK_GCTX_SET2_REAL32(func_window_set_origin_in_screen_coordinates, window_type), \
+        FUNC_CHECK_GCTX_GET_BOOL(func_window_get_maximize, window_type), \
+        FUNC_CHECK_GCTX_CALL(func_window_maximize, window_type), \
+        FUNC_CHECK_GCTX_GET_BOOL(func_window_get_minimize, window_type), \
+        FUNC_CHECK_GCTX_CALL(func_window_minimize, window_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_window_get_origin, window_type), \
+        FUNC_CHECK_GCTX_SET2_REAL32(func_window_set_origin, window_type), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_window_get_size, window_type), \
         FUNC_CHECK_GCTX_SET2_REAL32(func_window_set_size, window_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_window_set_default_pushbutton, window_type, button_type), \
@@ -1196,8 +1208,12 @@ _draw2d_api void guictx_append_window_manager_imp(
             (FPtr_gctx_set_ptr)func_window_hide, \
             (FPtr_gctx_set_ptr2)func_window_launch_modal, \
             (FPtr_gctx_set_uint32)func_window_stop_modal, \
-            (FPtr_gctx_get2_real32)func_window_get_origin_in_screen_coordinates, \
-            (FPtr_gctx_set2_real32)func_window_set_origin_in_screen_coordinates, \
+            (FPtr_gctx_get_bool)func_window_get_maximize, \
+            (FPtr_gctx_call)func_window_maximize, \
+            (FPtr_gctx_get_bool)func_window_get_minimize, \
+            (FPtr_gctx_call)func_window_minimize, \
+            (FPtr_gctx_get2_real32)func_window_get_origin, \
+            (FPtr_gctx_set2_real32)func_window_set_origin, \
             (FPtr_gctx_get2_real32)func_window_get_size, \
             (FPtr_gctx_set2_real32)func_window_set_size, \
             (FPtr_gctx_set_ptr)func_window_set_default_pushbutton, \

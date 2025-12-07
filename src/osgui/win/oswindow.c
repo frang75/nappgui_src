@@ -172,15 +172,24 @@ static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_resize(OSWindow *window, LONG client_width, LONG client_height)
+static void i_resize(OSWindow *window, LONG client_width, LONG client_height, WPARAM state)
 {
     cassert_no_null(window);
     if (window->launch_resize_event == TRUE && window->OnResize != NULL)
     {
-        EvSize params;
-        params.width = (real32_t)client_width;
-        params.height = (real32_t)client_height;
-        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &params, NULL, OSWindow, EvSize, void);
+        EvSize p;
+        if (state == SIZE_MINIMIZED)
+        {
+            p.width = 0;
+            p.height = 0;
+        }
+        else
+        {
+            p.width = (real32_t)client_width;
+            p.height = (real32_t)client_height;
+        }
+
+        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &p, NULL, OSWindow, EvSize, void);
     }
 }
 
@@ -191,12 +200,21 @@ static void i_moved(OSWindow *window)
     cassert_no_null(window);
     if (window->OnMoved != NULL)
     {
-        RECT rect;
-        EvPos params;
-        _osgui_frame_without_shadows(window->control.hwnd, &rect);
-        params.x = (real32_t)(rect.left);
-        params.y = (real32_t)(rect.top);
-        listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &params, NULL, OSWindow, EvPos, void);
+        EvPos p;
+        if (IsIconic(window->control.hwnd) == TRUE)
+        {
+            p.x = 0;
+            p.y = 0;
+        }
+        else
+        {
+            RECT rect;
+            _osgui_frame_without_shadows(window->control.hwnd, &rect);
+            p.x = (real32_t)(rect.left);
+            p.y = (real32_t)(rect.top);
+        }
+
+        listener_event(window->OnMoved, ekGUI_EVENT_WND_MOVED, window, &p, NULL, OSWindow, EvPos, void);
     }
 }
 
@@ -432,20 +450,24 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
          * https://support.microsoft.com/en-us/windows/snap-your-windows-885a9b1e-a983-a3b1-16cd-c531795e6241
          * It these cases, i_resizing() step must be done, to correcly resize the window.
          */
-        if (IsWindowVisible(window->control.hwnd) == TRUE && wParam != SIZE_MINIMIZED)
+        if (IsWindowVisible(window->control.hwnd) == TRUE)
         {
             if (window->wm_sizing == FALSE)
             {
-                LONG client_width = LOWORD(lParam);
-                LONG client_height = HIWORD(lParam);
-                RECT rect;
-                rect.left = 0;
-                rect.top = 0;
-                i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, &rect.right, &rect.bottom);
-                /* i_resizing() uses full window size and not client area size */
-                i_resizing(window, 1, &rect);
+                if (wParam != SIZE_MINIMIZED)
+                {
+                    LONG client_width = LOWORD(lParam);
+                    LONG client_height = HIWORD(lParam);
+                    RECT rect;
+                    rect.left = 0;
+                    rect.top = 0;
+                    i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, &rect.right, &rect.bottom);
+                    /* i_resizing() uses full window size and not client area size */
+                    i_resizing(window, 1, &rect);
+                }
             }
-            i_resize(window, LOWORD(lParam), HIWORD(lParam));
+
+            i_resize(window, LOWORD(lParam), HIWORD(lParam), wParam);
         }
         window->wm_sizing = FALSE;
         return 0;
@@ -896,6 +918,39 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t oswindow_get_maximize(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return (bool_t)IsZoomed(window->control.hwnd);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_maximize(OSWindow *window)
+{
+    cassert_no_null(window);
+    if (window->flags & ekWINDOW_RESIZE)
+        ShowWindow(window->control.hwnd, SW_SHOWMAXIMIZED);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t oswindow_get_minimize(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return (bool_t)IsIconic(window->control.hwnd);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_minimize(OSWindow *window)
+{
+    cassert_no_null(window);
+    ShowWindow(window->control.hwnd, SW_SHOWMINIMIZED);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
 {
     cassert_no_null(window);
@@ -904,10 +959,18 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
     /* The window top-left corner */
     if (*x == REAL32_MAX && *y == REAL32_MAX)
     {
-        RECT rect;
-        _osgui_frame_without_shadows(window->control.hwnd, &rect);
-        *x = (real32_t)rect.left;
-        *y = (real32_t)rect.top;
+        if (IsIconic(window->control.hwnd) == TRUE)
+        {
+            *x = 0;
+            *y = 0;
+        }
+        else
+        {
+            RECT rect;
+            _osgui_frame_without_shadows(window->control.hwnd, &rect);
+            *x = (real32_t)rect.left;
+            *y = (real32_t)rect.top;
+        }
     }
     /* A window inner point (in client area coordinates) */
     else
@@ -946,18 +1009,26 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 
 void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height)
 {
-    RECT rect;
     cassert_no_null(window);
     cassert_no_null(width);
     cassert_no_null(height);
-    _osgui_frame_without_shadows(window->control.hwnd, &rect);
-    *width = (real32_t)(rect.right - rect.left);
-    *height = (real32_t)(rect.bottom - rect.top);
+    if (IsIconic(window->control.hwnd) == TRUE)
+    {
+        *width = 0;
+        *height = 0;
+    }
+    else
+    {
+        RECT rect;
+        _osgui_frame_without_shadows(window->control.hwnd, &rect);
+        *width = (real32_t)(rect.right - rect.left);
+        *height = (real32_t)(rect.bottom - rect.top);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
-void oswindow_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
+void oswindow_client_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
     BOOL ok = FALSE;
     LONG nwidth, nheight;

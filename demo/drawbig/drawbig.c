@@ -829,10 +829,33 @@ static void i_OnMoved(App *app, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnSize(App *app, Event *e)
+{
+    const EvSize *p = event_params(e, EvSize);
+    bstd_printf("Window resized: (%d, %d)\n", (uint32_t)p->width, (uint32_t)p->height);
+    unref(app);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnClose(App *app, Event *e)
 {
+    V2Df pos;
+    S2Df size, csize;
+    cassert_no_null(app);
+    pos = window_get_origin(app->window);
+    size = window_get_size(app->window);
+    csize = window_get_client_size(app->window);
+
+    if (window_get_maximize(app->window) == TRUE)
+        bstd_printf("OnClose: Window is maximized\n");
+    else if (window_get_minimize(app->window) == TRUE)
+        bstd_printf("OnClose: Window is minimized\n");
+    else
+        bstd_printf("OnClose: Window with normal frame\n");
+
+    bstd_printf("OnClose: Window origin: (%g, %g) size: %gx%g content size: %gx%g\n", pos.x, pos.y, size.width, size.height, csize.width, csize.height);
     osapp_finish();
-    unref(app);
     unref(e);
 }
 
@@ -918,6 +941,7 @@ static App *i_create(void)
     window_title(app->window, "Big drawing area");
     window_origin(app->window, v2df(500, 200));
     window_OnMoved(app->window, listener(app, i_OnMoved, App));
+    window_OnResize(app->window, listener(app, i_OnSize, App));
     window_OnClose(app->window, listener(app, i_OnClose, App));
     window_show(app->window);
     /* The keyboard focus initially into the view */

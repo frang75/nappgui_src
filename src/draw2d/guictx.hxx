@@ -891,8 +891,12 @@ struct _guictx_t
     FPtr_gctx_set_ptr func_window_hide;
     FPtr_gctx_set_ptr2 func_window_launch_modal;
     FPtr_gctx_set_uint32 func_window_stop_modal;
-    FPtr_gctx_get2_real32 func_window_get_origin_in_screen_coordinates;
-    FPtr_gctx_set2_real32 func_window_set_origin_in_screen_coordinates;
+    FPtr_gctx_get_bool func_window_get_maximize;
+    FPtr_gctx_call func_window_maximize;
+    FPtr_gctx_get_bool func_window_get_minimize;
+    FPtr_gctx_call func_window_minimize;
+    FPtr_gctx_get2_real32 func_window_get_origin;
+    FPtr_gctx_set2_real32 func_window_set_origin;
     FPtr_gctx_get2_real32 func_window_get_size;
     FPtr_gctx_set2_real32 func_window_set_size;
     FPtr_gctx_set_ptr func_window_set_default_pushbutton;
