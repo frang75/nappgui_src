@@ -121,11 +121,15 @@ _gui_api void layout_hexpand2(Layout *layout, const uint32_t col1, const uint32_
 
 _gui_api void layout_hexpand3(Layout *layout, const uint32_t col1, const uint32_t col2, const uint32_t col3, const real32_t exp1, const real32_t exp2);
 
+_gui_api void layout_hexpandn(Layout *layout, const uint32_t n, const uint32_t *index, const real32_t *exp);
+
 _gui_api void layout_vexpand(Layout *layout, const uint32_t row);
 
 _gui_api void layout_vexpand2(Layout *layout, const uint32_t row1, const uint32_t row2, const real32_t exp);
 
 _gui_api void layout_vexpand3(Layout *layout, const uint32_t row1, const uint32_t row2, const uint32_t row3, const real32_t exp1, const real32_t exp2);
+
+_gui_api void layout_vexpandn(Layout *layout, const uint32_t n, const uint32_t *index, const real32_t *exp);
 
 _gui_api void layout_halign(Layout *layout, const uint32_t col, const uint32_t row, const align_t align);
 

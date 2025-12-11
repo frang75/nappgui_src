@@ -1473,16 +1473,20 @@ void _oswindow_set_tooltip(OSWindow *window, HWND control_hwnd, const char_t *te
         ti.hwnd = window->control.hwnd;
         ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
         ti.uId = (UINT_PTR)control_hwnd;
-        ti.lpszText = (LPWSTR)wstr;
+        ti.lpszText = NULL;
 
         /* Tooltip already exists --> Update the text */
         if (SendMessage(window->tooltip_hwnd, TTM_GETTOOLINFO, 0, (LPARAM)&ti) == TRUE)
         {
+            /* TTM_GETTOOLINFO overwrites ti.lpszText */
+            ti.lpszText = (LPWSTR)wstr;
             SendMessage(window->tooltip_hwnd, TTM_UPDATETIPTEXT, 0, (LPARAM)&ti);
         }
         else
         {
-            LRESULT res = SendMessage(window->tooltip_hwnd, TTM_ADDTOOL, 0, (LPARAM)&ti);
+            LRESULT res;
+            ti.lpszText = (LPWSTR)wstr;
+            res = SendMessage(window->tooltip_hwnd, TTM_ADDTOOL, 0, (LPARAM)&ti);
             cassert_unref(res == TRUE, res);
         }
 

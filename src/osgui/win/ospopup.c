@@ -74,6 +74,11 @@ static LRESULT CALLBACK i_ComboWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
     switch (uMsg)
     {
+    case WM_MOUSEWHEEL:
+        /* Avoid change popup selection with wheel */
+        SendMessage(GetParent(popup->control.hwnd), WM_MOUSEWHEEL, wParam, lParam);
+        return 1;
+
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK:
         if (_oswindow_mouse_down(cast(popup, OSControl)) == TRUE)

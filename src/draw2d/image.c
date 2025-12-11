@@ -210,26 +210,15 @@ static codec_t i_codec(const byte_t first)
         BMP; 'BM' 'BA' 'CI' 'CP' 'IC' 'PT'
      */
     if (first == 0x89)
-    {
         return ekPNG;
-    }
     else if (first == 0xFF)
-    {
         return ekJPG;
-    }
     else if (first == 'G')
-    {
         return ekGIF;
-    }
     else if (first == 'B' || first == 'C' || first == 'I' || first == 'P')
-    {
         return ekBMP;
-    }
     else
-    {
-        cassert_msg(FALSE, "Unknown image encoding");
         return ENUM_MAX(codec_t);
-    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -677,7 +677,10 @@ static void i_draw_header(DCtx *ctx, const TData *data, const Column *col, const
     if (col->width > i_COLUMN_MIN_DISPLAY)
     {
         if (col->align != ekJUSTIFY)
+        {
             draw_text_width(ctx, (real32_t)(col->width - i_COLUMN_PADDING));
+            draw_text_trim(ctx, ekELLIPEND);
+        }
 
         draw_text_halign(ctx, col->align);
         arrpt_foreach_const(text, col->head_text, String)

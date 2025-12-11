@@ -999,7 +999,7 @@ void layout_remove_row(Layout *layout, const uint32_t row)
 void layout_taborder(Layout *layout, const gui_orient_t order)
 {
     cassert_no_null(layout);
-    layout->is_row_major_tab = (order == ekGUI_HORIZONTAL) ? FALSE : TRUE;
+    layout->is_row_major_tab = (order == ekGUI_HORIZONTAL) ? TRUE : FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1115,6 +1115,53 @@ static void i_expand3(ArrSt(i_LineDim) *dim, const uint32_t index1, const uint32
 
 /*---------------------------------------------------------------------------*/
 
+static void i_expandn(ArrSt(i_LineDim) *dim, const uint32_t n, const uint32_t *index, const real32_t *exp)
+{
+    cassert(n > 0);
+    cassert_no_null(index);
+    cassert_no_null(exp);
+
+#if defined(__ASSERTS__)
+    {
+        real32_t total = 0;
+        uint32_t i = 0;
+        for (i = 0; i < n; ++i)
+        {
+            cassert(index[i] < arrst_size(dim, i_LineDim));
+            cassert(exp[i] >= 0);
+            total += exp[i];
+        }
+
+        cassert(bmath_absf(1 - total) < i_EPSILON);
+    }
+#endif
+
+    arrst_foreach(edim, dim, i_LineDim)
+        edim->resize_perc = 0;
+    arrst_end()
+
+    {
+        i_LineDim *edim = arrst_all(dim, i_LineDim);
+        real32_t total = 0;
+        uint32_t i = 0;
+
+        for (i = 0; i < n; ++i)
+        {
+            if (i == n - 1)
+            {
+                edim[index[i]].resize_perc = 1 - total;
+            }
+            else
+            {
+                edim[index[i]].resize_perc = exp[i];
+                total += exp[i];
+            }
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_hexpand(Layout *layout, const uint32_t col)
 {
     cassert_no_null(layout);
@@ -1139,6 +1186,14 @@ void layout_hexpand3(Layout *layout, const uint32_t col1, const uint32_t col2, c
 
 /*---------------------------------------------------------------------------*/
 
+void layout_hexpandn(Layout *layout, const uint32_t n, const uint32_t *index, const real32_t *exp)
+{
+    cassert_no_null(layout);
+    i_expandn(layout->lines_dim[0], n, index, exp);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_vexpand(Layout *layout, const uint32_t row)
 {
     cassert_no_null(layout);
@@ -1159,6 +1214,14 @@ void layout_vexpand3(Layout *layout, const uint32_t row1, const uint32_t row2, c
 {
     cassert_no_null(layout);
     i_expand3(layout->lines_dim[1], row1, row2, row3, exp1, exp2);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void layout_vexpandn(Layout *layout, const uint32_t n, const uint32_t *index, const real32_t *exp)
+{
+    cassert_no_null(layout);
+    i_expandn(layout->lines_dim[1], n, index, exp);
 }
 
 /*---------------------------------------------------------------------------*/
