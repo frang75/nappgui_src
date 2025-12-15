@@ -24,6 +24,7 @@
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <osbs/osbs.h>
 #include <osbs/btime.h>
 #include <sewer/bmath.h>
@@ -40,6 +41,7 @@ struct _osbutton_t
     uint32_t flags;
     bool_t is_default;
     bool_t can_focus;
+    bool_t empty_text;
     uint16_t id;
     vkey_t key;
     Font *font;
@@ -167,6 +169,21 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_update_focus_show(const OSButton *button)
+{
+    cassert_no_null(button);
+    if ((button_get_type(button->flags) == ekBUTTON_CHECK2 || button_get_type(button->flags) == ekBUTTON_CHECK3 || button_get_type(button->flags) == ekBUTTON_RADIO) && button->empty_text == TRUE)
+    {
+        SendMessage(button->control.hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
+    }
+    else
+    {
+        SendMessage(button->control.hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_CLEAR, UISF_HIDEFOCUS), 0);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     OSButton *button = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSButton);
@@ -216,6 +233,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         {
             i_LAST_FOCUS = NULL;
         }
+        i_update_focus_show(button);
         break;
 
     case WM_KILLFOCUS:
@@ -304,6 +322,7 @@ OSButton *osbutton_create(const uint32_t flags)
     button->flags = flags;
     button->is_default = FALSE;
     button->can_focus = TRUE;
+    button->empty_text = TRUE;
     button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->key = ENUM_MAX(vkey_t);
@@ -356,6 +375,7 @@ void osbutton_text(OSButton *button, const char_t *text)
     cassert_no_null(button);
     cassert(_osbutton_text_allowed(button->flags) == TRUE);
     _oscontrol_set_text(cast(button, OSControl), text);
+    button->empty_text = str_empty_c(text);
 
     /* Update key accelerator from text */
     {

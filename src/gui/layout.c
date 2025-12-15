@@ -410,7 +410,6 @@ void layout_label(Layout *layout, Label *label, const uint32_t col, const uint32
     align_t align = ekLEFT;
     cell = i_set_component(layout, cast(label, GuiComponent), col, row, align, ekCENTER);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
 
@@ -447,8 +446,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
     }
 
     cell = i_set_component(layout, cast(button, GuiComponent), col, row, halign, valign);
-    cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -456,8 +454,7 @@ void layout_button(Layout *layout, Button *button, const uint32_t col, const uin
 void layout_popup(Layout *layout, PopUp *popup, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, cast(popup, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
-    cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -469,8 +466,7 @@ void layout_edit(Layout *layout, Edit *edit, const uint32_t col, const uint32_t 
     if (_edit_is_multiline(edit) == TRUE)
         valign = ekJUSTIFY;
     cell = i_set_component(layout, cast(edit, GuiComponent), col, row, ekJUSTIFY, valign);
-    cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -479,7 +475,7 @@ void layout_combo(Layout *layout, Combo *combo, const uint32_t col, const uint32
 {
     Cell *cell = i_set_component(layout, cast(combo, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
     cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -488,7 +484,7 @@ void layout_listbox(Layout *layout, ListBox *list, const uint32_t col, const uin
 {
     Cell *cell = i_set_component(layout, cast(list, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -497,7 +493,6 @@ void layout_updown(Layout *layout, UpDown *updown, const uint32_t col, const uin
 {
     Cell *cell = i_set_component(layout, cast(updown, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
 
@@ -515,8 +510,7 @@ void layout_slider(Layout *layout, Slider *slider, const uint32_t col, const uin
     }
 
     cell = i_set_component(layout, cast(slider, GuiComponent), col, row, halig, valign);
-    cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -525,7 +519,6 @@ void layout_progress(Layout *layout, Progress *progress, const uint32_t col, con
 {
     Cell *cell = i_set_component(layout, cast(progress, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
 
@@ -535,7 +528,6 @@ void layout_view(Layout *layout, View *view, const uint32_t col, const uint32_t 
 {
     Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
 
@@ -545,7 +537,6 @@ void layout_textview(Layout *layout, TextView *view, const uint32_t col, const u
 {
     Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
 
@@ -556,7 +547,7 @@ void layout_webview(Layout *layout, WebView *view, const uint32_t col, const uin
     Cell *cell = NULL;
     cassert_no_null(view);
     cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
-    cassert(cell->tabstop == TRUE);
+    cassert_no_null(cell);
     cell->tabstop = FALSE;
 }
 
@@ -566,7 +557,6 @@ void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const
 {
     Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = FALSE;
 }
 
@@ -575,8 +565,7 @@ void layout_imageview(Layout *layout, ImageView *view, const uint32_t col, const
 void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
-    cassert_no_null(cell);
-    cassert_unref(cell->tabstop == TRUE, cell);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -585,7 +574,6 @@ void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const
 {
     Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
     cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
     cell->tabstop = TRUE;
 }
 
@@ -594,8 +582,7 @@ void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const
 void layout_panel(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, cast(panel, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
-    cassert_no_null(cell);
-    cassert(cell->tabstop == TRUE);
+    cassert_unref(cell != NULL, cell);
 }
 
 /*---------------------------------------------------------------------------*/
