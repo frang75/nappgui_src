@@ -1784,7 +1784,7 @@ static void i_line_natural(i_LineDim *dim, const uint32_t di, Cell **cell, const
             }
         }
 
-        recompute = i < n_cells;
+        recompute = (bool_t)(i < n_cells);
     }
 
     /* The natural size have been successfully computed */
@@ -1916,7 +1916,7 @@ static bool_t i_dimension_resize(ArrSt(i_LineDim) *dim, const uint32_t di, Cell 
                 edim->must_resize = FALSE;
             }
         arrst_end()
-        can_resize = bmath_absf(norm) > i_EPSILON;
+        can_resize = (bool_t)(bmath_absf(norm) > i_EPSILON);
     }
 
     /* At least, one partition can be resized */

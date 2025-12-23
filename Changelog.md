@@ -13,7 +13,7 @@
     - `window_minimize()`.
     - `window_get_maximize()`.
     - `window_get_minimize()`.
-- `layout_hexpandn()`, `layout_vexpandn()`. [Commit]().
+- `layout_hexpandn()`, `layout_vexpandn()`. [Commit](https://github.com/frang75/nappgui_src/commit/5e1caadc4f5c288dc9a5be42b39551e88a0524fb).
 
 ### Changed
 
@@ -34,7 +34,12 @@
 - Minor issue when removing columns or rows dynamically from layouts. [Commit](https://github.com/frang75/nappgui_src/commit/db6de0df4a7453182376f9f54cddceae98a716e9).
 - Flickering in toolbutton (Win32). [Commit](https://github.com/frang75/nappgui_src/commit/0975bd1846369d3ebe56a34138221e7fcaae8a44).
 - Win32 multiple tooltips in same window. [Commit](https://github.com/frang75/nappgui_src/commit/582457afb98db79e3be08df810ebdb1467ff008a).
-- Win32 popup avoid change selection with mouse wheel. [Commit]().
+- Win32 popup avoid change selection with mouse wheel. [Commit](https://github.com/frang75/nappgui_src/commit/5e1caadc4f5c288dc9a5be42b39551e88a0524fb).
+
+### Build System
+
+- Support for Visual Studio 2026. [Commit]().
+- Support for Windows ARM. [Issue](https://github.com/frang75/nappgui_src/issues/141). [Commit]().
 
 ## v1.5.3 - Sep 25, 2025 (r6604)
 
@@ -75,7 +80,7 @@
 - `tableview_column_icon()`. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 - `EvTbCell` adds a `const Image *icon` member. [Commit](https://github.com/frang75/nappgui_src/commit/e63b52b4376e47613fceec0da60829640a9a398c).
 - `comwin_select_dir()`. [Commit](https://github.com/frang75/nappgui_src/commit/88ea5d393dfe9c2e07e8b400e0eff9433f98bead).
-- Array serialization with user data. [Commit]().
+- Array serialization with user data. [Commit](https://github.com/frang75/nappgui_src/commit/8b83f3700788998794a6b790237c844fe34ebb3e).
     - `arrst_read_ex()`.
     - `arrst_write_ex()`.
     - `arrpt_read_ex()`.

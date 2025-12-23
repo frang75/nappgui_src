@@ -399,7 +399,6 @@ void _oscontrol_attach_to_parent(NSView *control, NSView *parent)
 
 void _oscontrol_detach_from_parent(NSView *control, NSView *parent)
 {
-    NSView *sup = [control superview];
     cassert_no_null(control);
     cassert_no_null(parent);
     cassert([control superview] == parent);
@@ -715,5 +714,6 @@ bool_t _oscontrol_widget_enable(const OSWidget *widget)
     case ekGUI_TYPE_TOOLBAR:
     default:
         cassert_default(type);
+        return FALSE;
     }
 }

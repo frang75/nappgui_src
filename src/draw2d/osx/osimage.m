@@ -76,6 +76,10 @@ OSImage *osimage_create_from_pixels(const uint32_t width, const uint32_t height,
         bits_per_pixel = 32;
         break;
     case ekFIMAGE:
+    case ekINDEX1:
+    case ekINDEX2:
+    case ekINDEX4:
+    case ekINDEX8:
     default:
         cassert_default(format);
     }

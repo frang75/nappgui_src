@@ -17,6 +17,7 @@
 #include "oswindow_osx.inl"
 #include "oscolor.inl"
 #include "../ostext.h"
+#include "../ostext.inl"
 #include "../osgui.inl"
 #include <draw2d/color.h>
 #include <draw2d/font.h>
@@ -912,6 +913,8 @@ void ostext_clipboard(OSText *view, const clipboard_t clipboard)
     case ekCLIPBOARD_PASTE:
         [lview paste:lview];
         break;
+    default:
+        cassert_default(clipboard);
     }
 }
 

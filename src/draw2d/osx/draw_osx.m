@@ -133,6 +133,8 @@ void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, c
         case ekRIGHT:
             rect.origin.x -= rect.size.width;
             break;
+        default:
+            break;
         }
 
         switch (ctx->image_valign)
@@ -145,6 +147,8 @@ void _draw_imgimp(DCtx *ctx, const OSImage *image, const uint32_t frame_index, c
             break;
         case ekRIGHT:
             rect.origin.y -= rect.size.height;
+            break;
+        default:
             break;
         }
 

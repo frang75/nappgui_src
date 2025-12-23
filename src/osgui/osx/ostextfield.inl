@@ -18,6 +18,8 @@ OSTextField *_ostextfield_from_edit(NSView *control, const bool_t single_line);
 
 OSTextField *_ostextfield_from_combo(NSView *control);
 
+void _ostextfield_destroy(OSTextField **field);
+
 BOOL _ostextfield_becomeFirstResponder(OSTextField *field);
 
 BOOL _ostextfield_resignFirstResponder(OSTextField *field);
@@ -59,6 +61,8 @@ void _ostextfield_clipboard(OSTextField *field, const clipboard_t clipboard);
 void _ostextfield_enabled(OSTextField *field, const bool_t enabled);
 
 bool_t _ostextfield_resign_focus(const OSTextField *field);
+
+void _ostextfield_focus(OSTextField *field, const bool_t focus);
 
 const char_t *_ostextfield_get_text(const OSTextField *field);
 

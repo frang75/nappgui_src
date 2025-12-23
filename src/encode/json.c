@@ -403,16 +403,16 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
     {
     case i_ekTRUE:
         rset = dbind_set_value_bool(bind, data, TRUE);
-        return i_error(rset != ekBINDSET_NOT_ALLOWED, TRUE, parser, "Unexpected JSON 'true'");
+        return i_error((bool_t)(rset != ekBINDSET_NOT_ALLOWED), TRUE, parser, "Unexpected JSON 'true'");
 
     case i_ekFALSE:
         rset = dbind_set_value_bool(bind, data, FALSE);
-        return i_error(rset != ekBINDSET_NOT_ALLOWED, TRUE, parser, "Unexpected JSON 'false'");
+        return i_error((bool_t)(rset != ekBINDSET_NOT_ALLOWED), TRUE, parser, "Unexpected JSON 'false'");
 
     case i_ekNULL:
         ptr_assign(null_readed, TRUE);
         rset = dbind_set_value_null(bind, ebind, is_str_dptr, data);
-        return i_error(rset != ekBINDSET_NOT_ALLOWED, TRUE, parser, "Unexpected JSON 'null'");
+        return i_error((bool_t)(rset != ekBINDSET_NOT_ALLOWED), TRUE, parser, "Unexpected JSON 'null'");
 
     case i_ekNUMBER:
     {
@@ -441,7 +441,7 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
         {
             rset = dbind_set_value_str(bind, data, parser->lexeme);
         }
-        return i_error(rset != ekBINDSET_NOT_ALLOWED, TRUE, parser, "Unexpected JSON 'string'");
+        return i_error((bool_t)(rset != ekBINDSET_NOT_ALLOWED), TRUE, parser, "Unexpected JSON 'string'");
 
     case i_ekOPEN_ARRAY:
         if (type == ekDTYPE_CONTAINER)

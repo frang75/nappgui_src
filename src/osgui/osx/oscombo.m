@@ -18,7 +18,9 @@
 #include "../oscombo.h"
 #include "../oscombo.inl"
 #include "../osgui.inl"
+#include <draw2d/font.h>
 #include <core/event.h>
+#include <core/heap.h>
 #include <core/strings.h>
 #include <sewer/cassert.h>
 

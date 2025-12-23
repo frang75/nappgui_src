@@ -2397,7 +2397,7 @@ int dbind_cmp_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type)
 
 bool_t dbind_equ_imp(const byte_t *obj1, const byte_t *obj2, const char_t *type)
 {
-    return dbind_cmp_imp(obj1, obj2, type) == 0;
+    return (bool_t)dbind_cmp_imp(obj1, obj2, type) == 0;
 }
 
 /*---------------------------------------------------------------------------*/

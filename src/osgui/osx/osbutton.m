@@ -143,6 +143,7 @@ static void i_OnClick(OSXButton *button)
             case ekGUI_OFF:
                 [[button cell] setShowsBorderOnlyWhileMouseInside:YES];
                 break;
+            case ekGUI_MIXED:
             default:
                 cassert_default(state);
             }
@@ -1118,7 +1119,6 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         char_t tbuff[256];
         real32_t woff, hoff;
         OSXButtonCell *cell = [lbutton cell];
-        real32_t xscale = font_xscale(lbutton->attrs.font);
         uint32_t imgwidth = 0;
         _osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
         font_extents(lbutton->attrs.font, tbuff, -1.f, width, height);
@@ -1167,6 +1167,9 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
                 *width += 2.f;
             *height = 16.f;
             break;
+
+        default:
+            break;
         }
 
         if (lbutton->vpadding != UINT32_MAX)
@@ -1203,6 +1206,8 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         case ekGUI_SIZE_MINI:
             *width += (real32_t)_osglobals_check_width() + i_CHECK_TEXT_SEP;
             *height = 12.f;
+            break;
+        default:
             break;
         }
         break;

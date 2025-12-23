@@ -18,6 +18,7 @@
 #include "../osedit.h"
 #include "../osedit.inl"
 #include <draw2d/font.h>
+#include <core/heap.h>
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)

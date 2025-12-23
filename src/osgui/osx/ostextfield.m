@@ -672,6 +672,8 @@ void _ostextfield_clipboard(OSTextField *field, const clipboard_t clipboard)
         case ekCLIPBOARD_PASTE:
             [field->editor paste:field->editor];
             break;
+        default:
+            cassert_default(clipboard);
         }
     }
 }

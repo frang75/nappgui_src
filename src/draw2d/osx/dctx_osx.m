@@ -233,6 +233,8 @@ static ellipsis_t i_ellipsis(NSLineBreakMode mode)
         return ekELLIPMIDDLE;
     case NSLineBreakByCharWrapping:
         break;
+    default:
+        break;
     }
     return ENUM_MAX(ellipsis_t);
 }

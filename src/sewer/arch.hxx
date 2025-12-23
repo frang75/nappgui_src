@@ -26,6 +26,8 @@
         #define __x64__
     #elif defined (_M_IX86)
         #define __x86__
+    #elif defined (_M_ARM64)
+        #define __ARM64__
     #else
         #error Unknown processor
     #endif

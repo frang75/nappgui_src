@@ -16,6 +16,7 @@
 #include "oswindow_osx.inl"
 #include "../ospopup.h"
 #include "../osgui.inl"
+#include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/event.h>
 #include <core/heap.h>

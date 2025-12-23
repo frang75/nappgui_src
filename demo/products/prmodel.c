@@ -148,7 +148,7 @@ bool_t model_export(Model *model, const char_t *pathname, ferror_t *err)
 bool_t model_with_data(const Model *model)
 {
     cassert_no_null(model);
-    return arrpt_size(model->products, Product) > 0;
+    return (bool_t)(arrpt_size(model->products, Product) > 0);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -220,7 +220,7 @@ bool_t model_filter(Model *model, const char_t *filter)
         arrpt_end()
     }
 
-    return model->filter != NULL && arrst_size(model->filter, uint32_t) > 0;
+    return (bool_t)(model->filter != NULL && arrst_size(model->filter, uint32_t) > 0);
 }
 
 /*---------------------------------------------------------------------------*/

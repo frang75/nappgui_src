@@ -48,7 +48,10 @@ struct _osimage_t
 
 static IStream *i_SHCreateMemStream(const BYTE *pInit, UINT cbInit)
 {
-    /* TODO: Use i_kSHCreateMemStream in WindowsXP */
+#if defined(_MSC_VER) && _MSC_VER <= 1400
+    return i_kSHCreateMemStream(pInit, cbInit);
+#endif
+
     return SHCreateMemStream(pInit, cbInit);
 }
 

@@ -12,6 +12,7 @@
 
 #include "../glew.h"
 #include <Cocoa/Cocoa.h>
+#include "../ogl3d.h"
 #include "../ogl3d.inl"
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
@@ -108,7 +109,12 @@ static NSOpenGLPixelFormat *i_pixel_format(const OGLProps *props)
 
 /*---------------------------------------------------------------------------*/
 
-#include <sewer/nowarn.hxx>
+@interface NSView (OSXView)
+- (void)NAppGUIOSX_setOpenGL;
+- (void)NAppGUIOSX_unsetOpenGL;
+@end
+
+/*---------------------------------------------------------------------------*/
 
 static ___INLINE void i_set_opengl(NSView *view)
 {
@@ -123,8 +129,6 @@ static ___INLINE void i_unset_opengl(NSView *view)
     if (view != NULL)
         [view NAppGUIOSX_unsetOpenGL];
 }
-
-#include <sewer/warn.hxx>
 
 /*---------------------------------------------------------------------------*/
 

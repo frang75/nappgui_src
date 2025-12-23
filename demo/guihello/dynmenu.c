@@ -155,7 +155,7 @@ static void i_OnHideClick(DynMenu *dmenu, Event *e)
         const EvButton *p = event_params(e, EvButton);
         uint32_t index = popup_get_selected(dmenu->popup);
         MenuItem *item = menu_get_item(dmenu->menu, index);
-        bool_t visible = p->state == ekGUI_OFF;
+        bool_t visible = (bool_t)(p->state == ekGUI_OFF);
         menuitem_visible(item, visible);
         window_update(dmenu->window);
     }
@@ -171,7 +171,7 @@ static void i_OnEnableClick(DynMenu *dmenu, Event *e)
         const EvButton *p = event_params(e, EvButton);
         uint32_t index = popup_get_selected(dmenu->popup);
         MenuItem *item = menu_get_item(dmenu->menu, index);
-        bool_t enabled = p->state == ekGUI_ON;
+        bool_t enabled = (bool_t)(p->state == ekGUI_ON);
         menuitem_enabled(item, enabled);
     }
 }

@@ -781,7 +781,22 @@ void oswindow_stop_modal(OSWindow *window, const uint32_t return_value)
 bool_t oswindow_get_maximize(const OSWindow *window)
 {
     cassert_no_null(window);
+#if GTK_CHECK_VERSION(3, 12, 0)
     return (bool_t)gtk_window_is_maximized(GTK_WINDOW(window->control.widget));
+#else
+    {
+        GdkWindow *gdk_window = gtk_widget_get_window(window->control.widget);
+        if (gdk_window != NULL)
+        {
+            GdkWindowState state = gdk_window_get_state(gdk_window);
+            return (bool_t)((state & GDK_WINDOW_STATE_MAXIMIZED) != 0);
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

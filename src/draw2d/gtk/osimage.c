@@ -228,7 +228,10 @@ static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint3
 {
 #if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 28))
     GInputStream *stream = g_memory_input_stream_new_from_data(cast_const(data, void), (gssize)size, NULL);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     GdkPixbufAnimation *animation = gdk_pixbuf_animation_new_from_stream(stream, NULL, NULL);
+#pragma GCC diagnostic pop
     gboolean ok = g_input_stream_close(stream, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
     return animation;
@@ -545,8 +548,6 @@ static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     GTimeVal tval = i_time_init();
-#pragma GCC diagnostic pop
-
     GdkPixbufAnimationIter *iter = gdk_pixbuf_animation_get_iter(animation, &tval);
     int delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
     uint32_t i = 0;
@@ -570,6 +571,7 @@ static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame
 
     g_object_unref(iter);
     return delay;
+#pragma GCC diagnostic pop
 }
 
 /*---------------------------------------------------------------------------*/
@@ -579,8 +581,6 @@ static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     GTimeVal tval = i_time_init();
-#pragma GCC diagnostic pop
-
     GdkPixbufAnimationIter *iter = gdk_pixbuf_animation_get_iter(animation, &tval);
     GdkPixbuf *pixbuf = NULL;
     uint32_t i = 0;
@@ -605,6 +605,7 @@ static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const 
     pixbuf = gdk_pixbuf_animation_iter_get_pixbuf(iter);
     g_object_unref(iter);
     return pixbuf;
+#pragma GCC diagnostic pop
 }
 
 /*---------------------------------------------------------------------------*/
@@ -634,8 +635,11 @@ static ___INLINE uint32_t i_width(const OSImage *image)
     }
     else
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         cassert_no_null(image->animation);
         return (uint32_t)gdk_pixbuf_animation_get_width(image->animation);
+#pragma GCC diagnostic pop
     }
 }
 
@@ -650,8 +654,11 @@ static ___INLINE uint32_t i_height(const OSImage *image)
     }
     else
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         cassert_no_null(image->animation);
         return (uint32_t)gdk_pixbuf_animation_get_height(image->animation);
+#pragma GCC diagnostic pop
     }
 }
 
@@ -789,7 +796,10 @@ void osimage_write(const OSImage *image, const codec_t codec, Stream *stream)
     {
         GdkPixbuf *pixbuf = NULL;
         cassert_no_null(image->animation);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         pixbuf = gdk_pixbuf_animation_get_static_image(image->animation);
+#pragma GCC diagnostic pop
         i_pixbuf_save(pixbuf, type, stream);
     }
 }

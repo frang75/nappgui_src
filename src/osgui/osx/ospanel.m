@@ -13,6 +13,7 @@
 #include "ospanel_osx.inl"
 #include "oscontrol_osx.inl"
 #include "../ospanel.h"
+#include "../ospanel.inl"
 #include "../oscontrol.inl"
 #include "../osgui.inl"
 #include <core/arrst.h>

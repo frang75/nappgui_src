@@ -127,7 +127,7 @@ void _bmem_finish(void)
 void _bmem_atexit(void)
 {
 #if defined(__MEMORY_AUDITOR__)
-#if _WITH_CRTDBG
+#if defined(_WITH_CRTDBG)
     _CrtDumpMemoryLeaks();
 #endif
 #else
@@ -143,7 +143,7 @@ byte_t *bmem_aligned_malloc(const uint32_t size, const uint32_t align)
     void *mem = NULL;
 
 #if defined(__MEMORY_AUDITOR__)
-#if _WITH_CRTDBG
+#if defined(_WITH_CRTDBG)
     mem = _aligned_malloc_dbg((size_t)size, (size_t)align, __FILE__, __LINE__);
 #else
     mem = _aligned_malloc((size_t)size, (size_t)align);
@@ -173,7 +173,7 @@ byte_t *bmem_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t ne
 #endif
 
 #if defined(__MEMORY_AUDITOR__)
-#if _WITH_CRTDBG
+#if defined(_WITH_CRTDBG)
     new_mem = _aligned_realloc_dbg(mem, (size_t)new_size, (size_t)align, __FILE__, __LINE__);
 #else
     new_mem = _aligned_realloc(mem, (size_t)new_size, (size_t)align);
@@ -200,7 +200,7 @@ void bmem_free(byte_t *mem)
 #endif
 
 #if defined(__MEMORY_AUDITOR__)
-#if _WITH_CRTDBG
+#if defined(_WITH_CRTDBG)
     _aligned_free_dbg(mem);
 #else
     _aligned_free(mem);

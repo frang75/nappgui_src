@@ -204,7 +204,7 @@ static void i_OnSize(App *app, Event *e)
     case 10:
         break;
     default:
-        cassert_default(app->api);
+        break;
     }
 }
 

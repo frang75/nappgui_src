@@ -628,10 +628,12 @@ function(nap_web_libs _weblibs)
                 set(WEB_LIB_PATH "${NAPPGUI_ROOT_PATH}/src/osgui/win/depend")
             endif()
 
-            if (${CMAKE_SIZEOF_VOID_P} STREQUAL 4)
+            if (${CMAKE_ARCHITECTURE} STREQUAL "x86")
                 set(WEBVIEW_LIBPATH "${WEB_LIB_PATH}/x86/WebView2LoaderStatic.lib")
-            elseif (${CMAKE_SIZEOF_VOID_P} STREQUAL 8)
+            elseif (${CMAKE_ARCHITECTURE} STREQUAL "x64")
                 set(WEBVIEW_LIBPATH "${WEB_LIB_PATH}/x64/WebView2LoaderStatic.lib")
+            elseif (${CMAKE_ARCHITECTURE} STREQUAL "arm64")
+                set(WEBVIEW_LIBPATH "${WEB_LIB_PATH}/arm64/WebView2LoaderStatic.lib")
             endif()
 
             # 'version' is required by WebView2Loader
