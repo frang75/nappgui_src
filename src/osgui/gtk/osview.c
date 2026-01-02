@@ -41,7 +41,6 @@ struct _osview_t
     GtkWidget *darea;
     OSScrolls *scroll;
     OSControl *capture;
-    OSSplit *split;
     real32_t clip_width;
     real32_t clip_height;
     ViewListeners listeners;
@@ -171,16 +170,9 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSView *view)
             real32_t scroll_y = view->scroll ? (real32_t)_osscrolls_y_pos(view->scroll) : 0;
             _oslistener_mouse_moved(cast(view, OSControl), event, scroll_x, scroll_y, &view->listeners);
         }
-
-        if (view->split != NULL)
-            _ossplit_OnMove(view->split, event);
-    }
-    else
-    {
-        if (view->capture->type == ekGUI_TYPE_SPLITVIEW)
-            _ossplit_OnMove(cast(view->capture, OSSplit), event);
     }
 
+    _ossplit_OnMove(view->darea, event);
     return TRUE;
 }
 
@@ -415,7 +407,6 @@ void osview_destroy(OSView **view)
     cassert_no_null(view);
     cassert_no_null(*view);
     (*view)->capture = NULL;
-    (*view)->split = NULL;
     _oslistener_remove(&(*view)->listeners);
     listener_destroy(&(*view)->OnFocus);
     listener_destroy(&(*view)->OnResignFocus);
@@ -730,14 +721,6 @@ void _osview_release_capture(OSView *view)
 {
     cassert_no_null(view);
     view->capture = NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void _osview_set_parent_split(OSView *view, OSSplit *split)
-{
-    cassert_no_null(view);
-    view->split = split;
 }
 
 /*---------------------------------------------------------------------------*/

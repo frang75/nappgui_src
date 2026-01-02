@@ -970,7 +970,8 @@ void oswindow_set_cursor(OSWindow *window, Cursor *cursor)
     GdkWindow *gdkwindow = NULL;
     cassert_no_null(window);
     gdkwindow = gtk_widget_get_window(window->control.widget);
-    gdk_window_set_cursor(gdkwindow, cast(cursor, GdkCursor));
+    if (gdkwindow != NULL)
+        gdk_window_set_cursor(gdkwindow, cast(cursor, GdkCursor));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1192,4 +1193,17 @@ void _oswindow_release_transient_focus(OSControl *control)
     window = i_root(control->widget);
     if (window != NULL)
         _ostabstop_release_transient(&window->tabstop, control);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_cursor_from_child(GtkWidget *widget, GdkCursor *cursor)
+{
+    OSWindow *window = i_root(widget);
+    if (window != NULL)
+    {
+        GdkWindow *gdkwindow = gtk_widget_get_window(window->control.widget);
+        if (gdkwindow != NULL)
+            gdk_window_set_cursor(gdkwindow, cursor);
+    }
 }

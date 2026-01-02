@@ -438,6 +438,8 @@ void _osmenu_widget_recompute(OSMenu *menu)
     i_remove_all_items(menu);
     if (menu->is_popup == TRUE && menu->menupop != NULL)
         i_add_all_items_to_popup(menu);
+    else if (menu->is_popup == FALSE && menu->parent != NULL)
+        i_add_all_items_to_popup(menu);
     else if (menu->is_popup == FALSE && menu->menubar != NULL)
         i_add_all_items_to_menubar(menu);
 }

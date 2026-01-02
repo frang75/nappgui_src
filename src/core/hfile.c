@@ -516,22 +516,30 @@ Buffer *hfile_buffer(const char_t *pathname, ferror_t *error)
     uint64_t file_size;
     if (bfile_lstat(pathname, &file_type, &file_size, NULL, error) == TRUE)
     {
-        if (file_size < 0xFFFFFFFF)
+        if (file_type == ekARCHIVE)
         {
-            Buffer *buffer = buffer_create((uint32_t)file_size);
-            if (i_read_entire_file(pathname, buffer_data(buffer), (uint32_t)file_size, error) == TRUE)
+            if (file_size < 0xFFFFFFFF)
             {
-                return buffer;
+                Buffer *buffer = buffer_create((uint32_t)file_size);
+                if (i_read_entire_file(pathname, buffer_data(buffer), (uint32_t)file_size, error) == TRUE)
+                {
+                    return buffer;
+                }
+                else
+                {
+                    buffer_destroy(&buffer);
+                    return NULL;
+                }
             }
             else
             {
-                buffer_destroy(&buffer);
+                ptr_assign(error, ekFBIG);
                 return NULL;
             }
         }
         else
         {
-            ptr_assign(error, ekFBIG);
+            ptr_assign(error, ekFNOFILE);
             return NULL;
         }
     }
@@ -549,23 +557,31 @@ String *hfile_string(const char_t *pathname, ferror_t *error)
     uint64_t file_size;
     if (bfile_lstat(pathname, &file_type, &file_size, NULL, error) == TRUE)
     {
-        if (file_size < 0xFFFFFFFF)
+        if (file_type == ekARCHIVE)
         {
-            String *str = str_reserve((uint32_t)file_size);
-            if (i_read_entire_file(pathname, cast(tc(str), byte_t), (uint32_t)file_size, error) == TRUE)
+            if (file_size < 0xFFFFFFFF)
             {
-                tcc(str)[(uint32_t)file_size] = '\0';
-                return str;
+                String *str = str_reserve((uint32_t)file_size);
+                if (i_read_entire_file(pathname, cast(tc(str), byte_t), (uint32_t)file_size, error) == TRUE)
+                {
+                    tcc(str)[(uint32_t)file_size] = '\0';
+                    return str;
+                }
+                else
+                {
+                    str_destroy(&str);
+                    return NULL;
+                }
             }
             else
             {
-                str_destroy(&str);
+                ptr_assign(error, ekFBIG);
                 return NULL;
             }
         }
         else
         {
-            ptr_assign(error, ekFBIG);
+            ptr_assign(error, ekFNOFILE);
             return NULL;
         }
     }
@@ -583,20 +599,28 @@ Stream *hfile_stream(const char_t *pathname, ferror_t *error)
     uint64_t file_size;
     if (bfile_lstat(pathname, &file_type, &file_size, NULL, error) == TRUE)
     {
-        if (file_size < 0xFFFFFFFF)
+        if (file_type == ekARCHIVE)
         {
-            Stream *stm_in = stm_from_file(pathname, error);
-            if (stm_in != NULL)
+            if (file_size < 0xFFFFFFFF)
             {
-                Stream *stm_out = stm_memory((uint32_t)file_size);
-                stm_pipe(stm_in, stm_out, (uint32_t)file_size);
-                stm_close(&stm_in);
-                return stm_out;
+                Stream *stm_in = stm_from_file(pathname, error);
+                if (stm_in != NULL)
+                {
+                    Stream *stm_out = stm_memory((uint32_t)file_size);
+                    stm_pipe(stm_in, stm_out, (uint32_t)file_size);
+                    stm_close(&stm_in);
+                    return stm_out;
+                }
+            }
+            else
+            {
+                ptr_assign(error, ekFBIG);
             }
         }
         else
         {
-            ptr_assign(error, ekFBIG);
+            ptr_assign(error, ekFNOFILE);
+            return NULL;
         }
     }
 

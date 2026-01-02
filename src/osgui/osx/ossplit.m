@@ -123,23 +123,9 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 - (NSView *)hitTest:(NSPoint)aPoint
 {
     if (i_SPLIT_TRACKS.captured != nil)
-    {
         return i_SPLIT_TRACKS.captured;
-    }
     else
-    {
-        NSArray *children = [self subviews];
-        NSUInteger i, count = [children count];
-        cassert(count <= 2);
-        for (i = 0; i < count; ++i)
-        {
-            NSView *child = cast([children objectAtIndex:i], NSView);
-            NSView *hit = [child hitTest:aPoint];
-            if (hit != nil)
-                return hit;
-        }
-        return nil;
-    }
+        return [super hitTest:aPoint];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -204,6 +190,14 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 
     i_SPLIT_TRACKS.pressed = nil;
     i_SPLIT_TRACKS.captured = nil;
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)mouseExited:(NSEvent *)event
+{
+    unref(event);
+    [[NSCursor arrowCursor] set];
 }
 
 /*---------------------------------------------------------------------------*/

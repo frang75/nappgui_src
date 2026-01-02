@@ -194,9 +194,10 @@ OSMenuItem *osmenuitem_create(const uint32_t flags)
     if ((menu_flag_t)flags == ekMENU_ITEM)
     {
         GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+        const char_t checkUTF8[] = {(char_t)0xE2, (char_t)0x9C, (char_t)0x93, 0};
         item->widget = gtk_menu_item_new();
         item->label = gtk_accel_label_new("");
-        item->check = gtk_label_new("✓");
+        item->check = gtk_label_new(checkUTF8);
         item->icon = gtk_image_new_from_icon_name("document-save", GTK_ICON_SIZE_MENU);
         item->key = ENUM_MAX(vkey_t);
         item->visible = TRUE;
@@ -341,14 +342,16 @@ static void i_update_icons(OSMenuItem *item)
         cassert(_oscontrol_find_child(box, item->check) == UINT32_MAX);
     }
 
-    if (item->show_icon == TRUE)
-        gtk_box_pack_start(GTK_BOX(box), item->icon, FALSE, FALSE, 0);
-
     if (item->show_check == TRUE)
         gtk_box_pack_start(GTK_BOX(box), item->check, FALSE, FALSE, 0);
 
+    if (item->show_icon == TRUE)
+        gtk_box_pack_start(GTK_BOX(box), item->icon, FALSE, FALSE, 0);
+
     if (item->menu != NULL)
         _osmenu_widget_recompute(item->menu);
+
+    gtk_widget_show_all(item->widget);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -29,7 +29,6 @@ void _dctx_init(DCtx *ctx, const bool_t reset)
     {
         Font *font = font_system(font_regular_size(), 0);
         draw_antialias(ctx, TRUE);
-        draw_matrixf(ctx, kT2D_IDENTf);
         draw_line_width(ctx, 1);
         draw_line_cap(ctx, ekLCFLAT);
         draw_line_join(ctx, ekLJMITER);
@@ -42,6 +41,7 @@ void _dctx_init(DCtx *ctx, const bool_t reset)
         font_destroy(&font);
     }
 
+    draw_matrixf(ctx, kT2D_IDENTf);
     draw_text_width(ctx, -1);
     draw_text_trim(ctx, ekELLIPMLINE);
     draw_text_align(ctx, ekLEFT, ekTOP);

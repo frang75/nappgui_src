@@ -45,13 +45,14 @@ struct _ossplittrack_t
     ArrPt(OSSplit) *splits;
     OSSplit *pressed;
     OSSplit *captured;
+    bool_t restored;
 };
 
 DeclPt(OSSplit);
 
 /*---------------------------------------------------------------------------*/
 
-static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL};
+static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL, FALSE};
 
 /*---------------------------------------------------------------------------*/
 
@@ -123,7 +124,7 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSSplit *view
 {
     cassert_no_null(view);
     cassert_unref(widget == view->control.widget, widget);
-    _ossplit_OnMove(view, event);
+    _ossplit_OnMove(view->control.widget, event);
     return FALSE;
 }
 
@@ -149,6 +150,26 @@ static gboolean i_OnRelease(GtkWidget *widget, GdkEventButton *event, OSSplit *v
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnExit(GtkWidget *widget, GdkEventCrossing *event, OSSplit *view)
+{
+    cassert_no_null(event);
+    cassert_no_null(view);
+    cassert(event->type == GDK_LEAVE_NOTIFY);
+    unref(widget);
+    if (event->mode == GDK_CROSSING_NORMAL)
+    {
+        if (i_SPLIT_TRACKS.restored == FALSE)
+        {
+            _osgui_default_cursor(view->control.widget);
+            i_SPLIT_TRACKS.restored = TRUE;
+        }
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSSplit *ossplit_create(const uint32_t flags)
 {
     OSSplit *view = heap_new0(OSSplit);
@@ -156,11 +177,13 @@ OSSplit *ossplit_create(const uint32_t flags)
     gulong moved_signal = 0;
     gulong pressed_signal = 0;
     gulong release_signal = 0;
+    gulong leave_signal = 0;
     view->flags = flags;
     _oscontrol_init(&view->control, ekGUI_TYPE_SPLITVIEW, widget, widget, TRUE);
     _oslistener_signal(view->control.widget, TRUE, &moved_signal, GDK_POINTER_MOTION_MASK, "motion-notify-event", G_CALLBACK(i_OnMove), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &pressed_signal, GDK_BUTTON_PRESS_MASK, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)view);
     _oslistener_signal(view->control.widget, TRUE, &release_signal, GDK_BUTTON_RELEASE_MASK, "button-release-event", G_CALLBACK(i_OnRelease), (gpointer)view);
+    _oslistener_signal(view->control.widget, TRUE, &leave_signal, GDK_LEAVE_NOTIFY_MASK, "leave-notify-event", G_CALLBACK(i_OnExit), (gpointer)view);
     arrpt_append(i_SPLIT_TRACKS.splits, view, OSSplit);
     return view;
 }
@@ -192,8 +215,6 @@ void ossplit_attach_control(OSSplit *view, OSControl *control)
 {
     cassert_no_null(view);
     _oscontrol_attach_to_parent(control, view->control.widget);
-    if (control->type == ekGUI_TYPE_CUSTOMVIEW)
-        _osview_set_parent_split(cast(control, OSView), view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -341,10 +362,10 @@ void _ossplit_OnRelease(OSSplit *view, GdkEventButton *event)
 
 /*---------------------------------------------------------------------------*/
 
-void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
+void _ossplit_OnMove(GtkWidget *sender, GdkEventMotion *event)
 {
     cassert_no_null(event);
-    unref(view);
+    cassert_no_null(sender);
     if (i_SPLIT_TRACKS.pressed != NULL)
     {
         if (i_SPLIT_TRACKS.pressed->OnDrag != NULL)
@@ -386,9 +407,11 @@ void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
             }
 
             if (split_get_type(i_SPLIT_TRACKS.captured->flags) == ekSPLIT_HORZ)
-                _osgui_ns_resize_cursor(view->control.widget);
+                _osgui_ns_resize_cursor(sender);
             else
-                _osgui_ew_resize_cursor(view->control.widget);
+                _osgui_ew_resize_cursor(sender);
+
+            i_SPLIT_TRACKS.restored = FALSE;
         }
         else
         {
@@ -398,7 +421,11 @@ void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event)
                 i_SPLIT_TRACKS.captured = NULL;
             }
 
-            _osgui_default_cursor(view->control.widget);
+            if (i_SPLIT_TRACKS.restored == FALSE)
+            {
+                _osgui_default_cursor(sender);
+                i_SPLIT_TRACKS.restored = TRUE;
+            }
         }
     }
 }

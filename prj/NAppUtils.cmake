@@ -18,7 +18,7 @@ endmacro()
 
 function(nap_build_opt optName opt)
     if(NOT NAPPGUI_IS_PACKAGE)
-        message(STATUS "* ${optName}: ${opt}")
+        message(STATUS "* ${optName}: ${opt} ${ARGV2}")
         if (NAPPGUI_INSTALL_OPTIONS)
             if(EXISTS "${NAPPGUI_INSTALL_OPTIONS}")
                 file(APPEND "${NAPPGUI_INSTALL_OPTIONS}" "${optName}:${opt}\n")

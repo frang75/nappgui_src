@@ -68,10 +68,13 @@ static const char_t *i_oscomwin_file(OSWindow *parent, const char_t *caption, co
     if (str_empty_c(start_dir) == FALSE)
         gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), cast_const(start_dir, gchar));
 
-    if (str_empty_c(filename) == FALSE)
-        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), cast_const(filename, gchar));
-    else
-        gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "");
+    if (open == FALSE)
+    {
+        if (str_empty_c(filename) == FALSE)
+            gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), cast_const(filename, gchar));
+        else
+            gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "");
+    }
 
     if (!dirmode && size > 0)
     {

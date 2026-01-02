@@ -856,7 +856,7 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint
         [cell setBordered:YES];
         [cell setShowsBorderOnlyWhileMouseInside:YES];
         [cell setImageScaling:NSImageScaleNone];
-        [button setButtonType:PUSH_IN_BUTTON];
+        [button setButtonType:ON_OFF_BUTTON];
         break;
 
     default:

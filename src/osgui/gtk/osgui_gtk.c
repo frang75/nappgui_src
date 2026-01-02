@@ -272,36 +272,27 @@ static void i_cursors(GtkWidget *widget)
 
 void _osgui_ns_resize_cursor(GtkWidget *widget)
 {
-    GdkWindow *window = gtk_widget_get_window(widget);
-
     if (kNS_RESIZE_CURSOR == NULL)
         i_cursors(widget);
-
-    gdk_window_set_cursor(window, kNS_RESIZE_CURSOR);
+    _oswindow_cursor_from_child(widget, kNS_RESIZE_CURSOR);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _osgui_ew_resize_cursor(GtkWidget *widget)
 {
-    GdkWindow *window = gtk_widget_get_window(widget);
-
     if (kEW_RESIZE_CURSOR == NULL)
         i_cursors(widget);
-
-    gdk_window_set_cursor(window, kEW_RESIZE_CURSOR);
+    _oswindow_cursor_from_child(widget, kEW_RESIZE_CURSOR);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _osgui_default_cursor(GtkWidget *widget)
 {
-    GdkWindow *window = gtk_widget_get_window(widget);
-
     if (kDEFAULT_CURSOR == NULL)
         i_cursors(widget);
-
-    gdk_window_set_cursor(window, kDEFAULT_CURSOR);
+    _oswindow_cursor_from_child(widget, kDEFAULT_CURSOR);
 }
 
 /*---------------------------------------------------------------------------*/

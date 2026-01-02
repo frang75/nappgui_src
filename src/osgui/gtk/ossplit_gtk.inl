@@ -22,6 +22,6 @@ void _ossplit_OnPress(OSSplit *view, GdkEventButton *event);
 
 void _ossplit_OnRelease(OSSplit *view, GdkEventButton *event);
 
-void _ossplit_OnMove(OSSplit *view, GdkEventMotion *event);
+void _ossplit_OnMove(GtkWidget *sender, GdkEventMotion *event);
 
 __END_C

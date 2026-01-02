@@ -364,7 +364,9 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         nap_build_opt("TOOLKIT" "None")
 
     elseif (${CMAKE_TOOLKIT} STREQUAL "GTK3")
-        nap_build_opt("TOOLKIT" "GTK3")
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+        nap_build_opt("TOOLKIT" "GTK3" "(${GTK3_VERSION})")
         set(CMAKE_COMPILER_TOOLSET ${CMAKE_COMPILER_TOOLSET}_gtk3)
 
     else()

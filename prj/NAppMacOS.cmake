@@ -8,6 +8,7 @@
 
 #
 # Values for 'CMAKE_OSX_DEPLOYMENT_TARGET'
+# 26.0      # Tahoe
 # 15.0      # Sequoia
 # 14.0      # Sonoma
 # 13.0      # Ventura

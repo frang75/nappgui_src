@@ -290,6 +290,11 @@ static void i_draw_cell(const EvTbCell *cell, DCtx *ctx, const Column *col, cons
                     draw_text_width(ctx, (real32_t)twidth);
                     draw_text_trim(ctx, ekELLIPEND);
                 }
+                else
+                {
+                    draw_text_width(ctx, (real32_t)width);
+                    draw_text_trim(ctx, ekELLIPNONE);
+                }
 
                 draw_text_halign(ctx, cell->align);
                 draw_text_color(ctx, kCOLOR_DEFAULT);

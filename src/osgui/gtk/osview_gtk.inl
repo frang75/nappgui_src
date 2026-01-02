@@ -18,8 +18,6 @@ void _osview_set_capture(OSView *view, OSControl *control);
 
 void _osview_release_capture(OSView *view);
 
-void _osview_set_parent_split(OSView *view, OSSplit *split);
-
 GtkWidget *_osview_focus_widget(OSView *view);
 
 GtkWidget *_osview_area_widget(OSView *view);
