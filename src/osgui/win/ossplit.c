@@ -87,7 +87,10 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 params.count = 0;
                 params.modifiers = 0;
                 params.tag = 0;
+                SendMessage(split->control.hwnd, WM_SETREDRAW, FALSE, 0);
                 listener_event(split->OnDrag, ekGUI_EVENT_DRAG, split, &params, NULL, OSSplit, EvMouse, void);
+                SendMessage(split->control.hwnd, WM_SETREDRAW, TRUE, 0);
+                RedrawWindow(split->control.hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
             }
         }
         else

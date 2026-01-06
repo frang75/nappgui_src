@@ -2,6 +2,10 @@
 
 ## v1.6.1 - WIP
 
+### Fixed
+
+- Avoid flickering in Win32 when `SplitView` divider moves. [Commit]().
+
 ## v1.6.0 - Dec 31, 2025 (r6721)
 
 ### Added

@@ -480,19 +480,8 @@ void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32
 
 void osdrawctrl_image(DCtx *ctx, const Image *image, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
-    HBITMAP hbitmap;
-    real32_t offset_x = 0, offset_y = 0;
-    HDC hdc = (HDC)dctx_native(ctx);
-    HDC memhdc = NULL;
-    LONG width, height;
     unref(state);
-    draw_set_raster_mode(ctx);
-    dctx_offset(ctx, &offset_x, &offset_y);
-    hbitmap = _osimg_hbitmap_cache(image, (COLORREF)dctx_background_color(ctx), &width, &height);
-    memhdc = CreateCompatibleDC(hdc);
-    SelectObject(memhdc, hbitmap);
-    BitBlt(hdc, (int)x + (int)offset_x, (int)y + (int)offset_y, width, height, memhdc, 0, 0, SRCCOPY);
-    DeleteDC(memhdc);
+    draw_image_raster(ctx, image, (real32_t)x, (real32_t)y);
 }
 
 /*---------------------------------------------------------------------------*/

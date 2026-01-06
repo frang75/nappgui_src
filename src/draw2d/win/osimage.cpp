@@ -50,9 +50,9 @@ static IStream *i_SHCreateMemStream(const BYTE *pInit, UINT cbInit)
 {
 #if defined(_MSC_VER) && _MSC_VER <= 1400
     return i_kSHCreateMemStream(pInit, cbInit);
-#endif
-
+#else
     return SHCreateMemStream(pInit, cbInit);
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

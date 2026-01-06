@@ -1116,13 +1116,16 @@ void draw_text_raster(DCtx *ctx, const char_t *text, const real32_t x, const rea
 
 /*---------------------------------------------------------------------------*/
 
-void draw_image_raster(DCtx *ctx, const Image *image, const uint32_t x, const uint32_t y)
+void draw_image_raster(DCtx *ctx, const Image *image, const real32_t x, const real32_t y)
 {
-    unref(ctx);
-    unref(image);
-    unref(x);
-    unref(y);
-    cassert(FALSE);
+    const OSImage *osimage = NULL;
+    Gdiplus::Bitmap *bitmap = NULL;
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->graphics);
+    osimage = osimage_from_image(image);
+    bitmap = cast(osimage_native(osimage), Gdiplus::Bitmap);
+    i_set_gdiplus_mode(ctx);
+    ctx->graphics->DrawImage(bitmap, (Gdiplus::REAL)x, (Gdiplus::REAL)y);
 }
 
 /*---------------------------------------------------------------------------*/

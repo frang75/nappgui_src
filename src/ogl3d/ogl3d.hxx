@@ -11,8 +11,8 @@
 
 /* OpenGL */
 
-#ifndef __OPENGL_HXX__
-#define __OPENGL_HXX__
+#ifndef __OGL3D_HXX__
+#define __OGL3D_HXX__
 
 #include <sewer/sewer.hxx>
 #include "ogl3d.hdf"

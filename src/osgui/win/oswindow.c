@@ -189,7 +189,10 @@ static void i_resize(OSWindow *window, LONG client_width, LONG client_height, WP
             p.height = (real32_t)client_height;
         }
 
+        SendMessage(window->control.hwnd, WM_SETREDRAW, FALSE, 0);
         listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &p, NULL, OSWindow, EvSize, void);
+        SendMessage(window->control.hwnd, WM_SETREDRAW, TRUE, 0);
+        RedrawWindow(window->control.hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
     }
 }
 
