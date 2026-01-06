@@ -1,6 +1,8 @@
 # NAppGUI Changelog
 
-## v1.6.0 - WIP
+## v1.6.1 - WIP
+
+## v1.6.0 - Dec 31, 2025 (r6721)
 
 ### Added
 
@@ -35,8 +37,8 @@
 - Flickering in toolbutton (Win32). [Commit](https://github.com/frang75/nappgui_src/commit/0975bd1846369d3ebe56a34138221e7fcaae8a44).
 - Win32 multiple tooltips in same window. [Commit](https://github.com/frang75/nappgui_src/commit/582457afb98db79e3be08df810ebdb1467ff008a).
 - Win32 popup avoid change selection with mouse wheel. [Commit](https://github.com/frang75/nappgui_src/commit/5e1caadc4f5c288dc9a5be42b39551e88a0524fb).
-- `ekGUI_OFF` issue in Gtk menu. [Issue](https://github.com/frang75/nappgui_src/issues/202). [Commit]().
-- `SplitView` minor fix macOS/Linux. [Commit]().
+- `ekGUI_OFF` issue in Gtk menu. [Issue](https://github.com/frang75/nappgui_src/issues/202). [Commit](https://github.com/frang75/nappgui_src/commit/5c113a422114f03ef97883b85aed83ed98a98cbd).
+- `SplitView` minor fix macOS/Linux. [Commit](https://github.com/frang75/nappgui_src/commit/5c113a422114f03ef97883b85aed83ed98a98cbd).
 
 ### Build System
 
