@@ -49,6 +49,7 @@ struct _ossplittrack_t
     ArrPt(OSXSplitView) *splits;
     OSXSplitView *pressed;
     OSXSplitView *captured;
+    bool_t restored;
 };
 
 #include <sewer/nowarn.hxx>
@@ -57,7 +58,7 @@ DeclPt(OSXSplitView);
 
 /*---------------------------------------------------------------------------*/
 
-static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL};
+static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL, FALSE};
 
 /*---------------------------------------------------------------------------*/
 
@@ -65,67 +66,42 @@ static OSSplitTrack i_SPLIT_TRACKS = {NULL, NULL, NULL};
 
 /*---------------------------------------------------------------------------*/
 
-static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
-{
-    if (view != nil)
-    {
-        NSPoint pt = [view convertPoint:*pt_window fromView:nil];
-
-        if ([view isKindOfClass:[OSXSplitView class]])
-        {
-            OSXSplitView *split = cast(view, OSXSplitView);
-            if (NSPointInRect(pt, split->divrect) == YES)
-            {
-                if (split_get_type(split->flags) == ekSPLIT_HORZ)
-                    return [NSCursor resizeUpDownCursor];
-                else
-                    return [NSCursor resizeLeftRightCursor];
-            }
-        }
-
-        for (NSView *child in [view subviews])
-        {
-            NSRect rect = [child frame];
-            if (NSPointInRect(pt, rect) == YES)
-                return i_cursor(child, pt_window);
-        }
-    }
-
-    return [NSCursor arrowCursor];
-}
-
-/*---------------------------------------------------------------------------*/
-
 - (void)mouseMoved:(NSEvent *)event
 {
     NSPoint pt;
+    OSXSplitView *inside = NULL;
     cassert_no_null(event);
     pt = [event locationInWindow];
-    i_SPLIT_TRACKS.captured = nil;
     arrpt_foreach(split, i_SPLIT_TRACKS.splits, OSXSplitView)
         NSPoint local_point = [split convertPoint:pt fromView:nil];
         if (NSPointInRect(local_point, split->divrect) == YES)
         {
-            i_SPLIT_TRACKS.captured = split;
+            inside = split;
             break;
         }
     arrpt_end()
 
+    if (inside != NULL)
     {
-        NSCursor *cursor = i_cursor(i_SPLIT_TRACKS.captured, &pt);
-        cassert(cursor != nil);
-        [cursor set];
+        if (i_SPLIT_TRACKS.captured != inside)
+            i_SPLIT_TRACKS.captured = inside;
+
+        if (split_get_type(i_SPLIT_TRACKS.captured->flags) == ekSPLIT_HORZ)
+            [[NSCursor resizeUpDownCursor] set];
+        else
+            [[NSCursor resizeLeftRightCursor] set];
+
+        i_SPLIT_TRACKS.restored = FALSE;
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-- (NSView *)hitTest:(NSPoint)aPoint
-{
-    if (i_SPLIT_TRACKS.captured != nil)
-        return i_SPLIT_TRACKS.captured;
     else
-        return [super hitTest:aPoint];
+    {
+        i_SPLIT_TRACKS.captured = nil;
+        if (i_SPLIT_TRACKS.restored == FALSE)
+        {
+            [[NSCursor arrowCursor] set];
+            i_SPLIT_TRACKS.restored = TRUE;
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -151,7 +127,6 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
     if (i_SPLIT_TRACKS.pressed != nil)
     {
         _oslistener_mouse_dragged2(i_SPLIT_TRACKS.pressed, theEvent, ekGUI_MOUSE_LEFT, NULL, &i_SPLIT_TRACKS.pressed->mouse_st, i_SPLIT_TRACKS.pressed->OnDrag);
-        [window disableCursorRects];
         if (split_get_type(i_SPLIT_TRACKS.pressed->flags) == ekSPLIT_HORZ)
             [[NSCursor resizeUpDownCursor] set];
         else
@@ -181,15 +156,12 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 {
     unref(theEvent);
     if (i_SPLIT_TRACKS.pressed != nil)
-    {
-        NSWindow *window = [i_SPLIT_TRACKS.pressed window];
         _oslistener_mouse_up2(i_SPLIT_TRACKS.pressed, theEvent, ekGUI_MOUSE_LEFT, NULL, &i_SPLIT_TRACKS.pressed->mouse_st, i_SPLIT_TRACKS.pressed->OnDrag);
-        [window enableCursorRects];
-        [window resetCursorRects];
-    }
 
     i_SPLIT_TRACKS.pressed = nil;
     i_SPLIT_TRACKS.captured = nil;
+    i_SPLIT_TRACKS.restored = TRUE;
+    [[NSCursor arrowCursor] set];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -197,7 +169,21 @@ static NSCursor *i_cursor(NSView *view, NSPoint *pt_window)
 - (void)mouseExited:(NSEvent *)event
 {
     unref(event);
-    [[NSCursor arrowCursor] set];
+    if (i_SPLIT_TRACKS.restored == FALSE)
+    {
+        [[NSCursor arrowCursor] set];
+        i_SPLIT_TRACKS.restored = TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (NSView *)hitTest:(NSPoint)aPoint
+{
+    if (i_SPLIT_TRACKS.captured != nil)
+        return i_SPLIT_TRACKS.captured;
+    else
+        return [super hitTest:aPoint];
 }
 
 /*---------------------------------------------------------------------------*/

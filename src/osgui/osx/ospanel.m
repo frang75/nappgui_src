@@ -35,6 +35,12 @@ struct _area_t
 
 DeclSt(Area);
 
+#if (defined MAC_OS_X_VERSION_10_12 && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12)
+static NSEventMask kWHEEL_EVENT = NSEventMaskScrollWheel;
+#else
+static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 @interface OSXPanel : NSView
@@ -42,6 +48,7 @@ DeclSt(Area);
   @public
     NSScrollView *scroll;
     CGSize content_size;
+    id evmonitor;
     ArrSt(Area) *areas;
 }
 @end
@@ -87,6 +94,21 @@ DeclSt(Area);
     return YES;
 }
 
+/*---------------------------------------------------------------------------*/
+
+- (BOOL)eventIsInside:(NSEvent *)theEvent
+{
+    NSPoint locationInView = [self convertPoint:theEvent.locationInWindow fromView:nil];
+    return NSPointInRect(locationInView, [self bounds]);
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)handleScroll:(NSEvent *)theEvent
+{
+    [self->scroll scrollWheel:theEvent];
+}
+
 @end
 
 /*---------------------------------------------------------------------------*/
@@ -110,11 +132,24 @@ OSPanel *ospanel_create(const uint32_t flags)
         [scroll setAutohidesScrollers:YES];
         [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
         panel->scroll = scroll;
+
+        panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT
+                                                                 handler:^NSEvent *(NSEvent *event) {
+                                                                   if ([panel eventIsInside:event])
+                                                                   {
+                                                                       [panel handleScroll:event];
+                                                                       return nil;
+                                                                   }
+
+                                                                   return cast(event, void);
+                                                                 }];
+
         return cast(scroll, OSPanel);
     }
     else
     {
         panel->scroll = nil;
+        panel->evmonitor = nil;
         return cast(panel, OSPanel);
     }
 }
@@ -156,6 +191,12 @@ void ospanel_destroy(OSPanel **panel)
     lpanel = i_get_panel(*panel);
     cassert_no_null(lpanel);
     cassert([[lpanel subviews] count] == 0);
+
+    if (lpanel->evmonitor != nil)
+    {
+        [NSEvent removeMonitor:lpanel->evmonitor];
+        lpanel->evmonitor = nil;
+    }
 
     if (lpanel->areas != NULL)
         arrst_destroy(&lpanel->areas, i_remove_area, Area);
@@ -338,14 +379,16 @@ void ospanel_display(OSPanel *panel)
 
 void ospanel_attach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _oscontrol_attach_to_parent(cast(panel, NSView), cast(parent_panel, NSView));
+    OSXPanel *lparent = i_get_panel(parent_panel);
+    _oscontrol_attach_to_parent(cast(panel, NSView), lparent);
 }
 
 /*---------------------------------------------------------------------------*/
 
 void ospanel_detach(OSPanel *panel, OSPanel *parent_panel)
 {
-    _oscontrol_detach_from_parent(cast(panel, NSView), cast(parent_panel, NSView));
+    OSXPanel *lparent = i_get_panel(parent_panel);
+    _oscontrol_detach_from_parent(cast(panel, NSView), lparent);
 }
 
 /*---------------------------------------------------------------------------*/

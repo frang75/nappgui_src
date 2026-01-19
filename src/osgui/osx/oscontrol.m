@@ -439,49 +439,13 @@ void _oscontrol_get_size(const NSView *object, real32_t *width, real32_t *height
 
 void _oscontrol_get_origin(const NSView *object, real32_t *x, real32_t *y)
 {
-    NSRect rect;
+    NSPoint origin;
     cassert_no_null(object);
     cassert_no_null(x);
     cassert_no_null(y);
-
-    rect = [object frame];
-
-    /* This block must be removed */
-    if (*x < 0.f)
-    {
-        NSView *parent = [object superview];
-        cassert(*y < 0.f);
-        cassert(FALSE);
-        /* Control origin in MainView coordinates */
-        while (parent != nil)
-        {
-            NSRect parent_rect = [parent frame];
-            rect.origin.x += parent_rect.origin.x;
-            rect.origin.y += parent_rect.origin.y;
-            parent = [parent superview];
-        }
-
-        /* MainView coordinates in Window Coordinates */
-        {
-            NSRect wframe = NSMakeRect(0.f, 0.f, 100.f, 100.f);
-            wframe = [object.window frameRectForContentRect:wframe];
-            rect.origin.y += wframe.size.height - 100.f;
-        }
-
-        /* Window Coordinates in Screen */
-        {
-            NSRect window_rect = [object.window frame];
-            CGFloat origin_x, origin_y;
-            _oscontrol_origin_in_screen_coordinates(&window_rect, &origin_x, &origin_y);
-            *x = (real32_t)(origin_x + rect.origin.x);
-            *y = (real32_t)(origin_y + rect.origin.y);
-        }
-    }
-    else
-    {
-        *x = (real32_t)rect.origin.x;
-        *y = (real32_t)rect.origin.y;
-    }
+    origin = [object frame].origin;
+    *x = (real32_t)origin.x;
+    *y = (real32_t)origin.y;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -625,9 +589,12 @@ gui_type_t _oscontrol_type(const OSControl *control)
 
 OSControl *_oscontrol_parent(const OSControl *control)
 {
+    NSView *parent = nil;
     cassert_no_null(control);
     cassert([cast(control, NSObject) isKindOfClass:[NSView class]] == YES);
-    return cast([cast(control, NSView) superview], OSControl);
+    cassert(i_oscontrol_type(cast(control, NSView)) != ENUM_MAX(gui_type_t));
+    parent = [cast(control, NSView) superview];
+    return cast(parent, OSControl);
 }
 
 /*---------------------------------------------------------------------------*/

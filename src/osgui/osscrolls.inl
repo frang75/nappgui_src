@@ -16,6 +16,10 @@ __EXTERN_C
 
 OSScrolls *_osscrolls_create(OSControl *control, const bool_t horizontal, const bool_t vertical);
 
+OSScroll *_osscrolls_horizontal(OSScrolls *scroll);
+
+OSScroll *_osscrolls_vertical(OSScrolls *scroll);
+
 void _osscrolls_destroy(OSScrolls **scroll);
 
 void _osscrolls_OnScroll(OSScrolls *scroll, Listener *listener);

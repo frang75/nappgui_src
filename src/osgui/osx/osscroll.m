@@ -118,17 +118,20 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 - (void)mouseDown:(NSEvent *)theEvent
 {
     NSView *parent = i_parent(self);
+    NSPoint origin;
     NSPoint pt;
     NSScrollerPart hit_part;
     double hitval;
     cassert_no_null(self);
+    cassert_no_null(parent);
     cassert_no_null(theEvent);
+    origin = [parent bounds].origin;
     pt = [parent convertPoint:[theEvent locationInWindow] fromView:nil];
 
     if (self->orient == ekGUI_HORIZONTAL)
-        self->mouse_click = pt.x;
+        self->mouse_click = pt.x - origin.x;
     else
-        self->mouse_click = pt.y;
+        self->mouse_click = pt.y - origin.y;
 
     hit_part = i_hit_pos(self, (uint32_t)self->mouse_click, &hitval);
 
@@ -161,16 +164,20 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
     if (self->click_pos != UINT32_MAX)
     {
         NSView *parent = cast(self->control, NSView);
-        NSPoint pt = [parent convertPoint:[theEvent locationInWindow] fromView:nil];
+        NSPoint origin;
+        NSPoint pt;
         CGFloat diff = 0;
         double npos = 0;
         double nvalue = 0;
         cassert_no_null(theEvent);
+        cassert_no_null(parent);
         cassert(self->max > 0);
+        origin = [parent bounds].origin;
+        pt = [parent convertPoint:[theEvent locationInWindow] fromView:nil];
         if (self->orient == ekGUI_HORIZONTAL)
-            diff = pt.x - self->mouse_click;
+            diff = (pt.x - origin.x) - self->mouse_click;
         else
-            diff = pt.y - self->mouse_click;
+            diff = (pt.y - origin.y) - self->mouse_click;
 
         npos = (self->click_pos + (diff * self->px_scroll));
         nvalue = npos / i_max_val(self);
@@ -272,6 +279,7 @@ void _osscroll_destroy(OSScroll **scroll, OSControl *control)
     cassert_no_null(*scroll);
     scroller = i_scroller(*scroll);
     cassert_unref(scroller->control == control, control);
+    [scroller removeFromSuperviewWithoutNeedingDisplay];
     [scroller release];
     heap_auditor_delete("OSXScroller");
     *scroll = NULL;
@@ -300,7 +308,8 @@ uint32_t _osscroll_trackpos(const OSScroll *scroll)
 uint32_t _osscroll_bar_width(const OSScroll *scroll)
 {
     const OSXScroller *scroller = i_cscroller(scroll);
-    unref(scroller);
+    cassert_no_null(scroller);
+    cassert(scroller->orient == ekGUI_VERTICAL);
     return scroller->bar_width;
 }
 
@@ -309,7 +318,8 @@ uint32_t _osscroll_bar_width(const OSScroll *scroll)
 uint32_t _osscroll_bar_height(const OSScroll *scroll)
 {
     const OSXScroller *scroller = i_cscroller(scroll);
-    unref(scroller);
+    cassert_no_null(scroller);
+    cassert(scroller->orient == ekGUI_HORIZONTAL);
     return scroller->bar_width;
 }
 
@@ -320,7 +330,10 @@ void _osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
     OSXScroller *scroller = i_scroller(scroll);
     cassert_no_null(scroller);
     scroller->pos = pos;
-    [scroller setDoubleValue:(double)pos / i_max_val(scroller)];
+    if (scroller->pos == 0 || scroller->page == 0)
+        [scroller setDoubleValue:0];
+    else
+        [scroller setDoubleValue:(double)pos / i_max_val(scroller)];
 }
 
 /*---------------------------------------------------------------------------*/

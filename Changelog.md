@@ -4,7 +4,8 @@
 
 ### Fixed
 
-- Avoid flickering in Win32 when `SplitView` divider moves. [Commit]().
+- Avoid flickering in Win32 when `SplitView` divider moves. [Commit](https://github.com/frang75/nappgui_src/commit/5f75ca09943e18eba72334435253fffbf80f8d50).
+- Fix scrolling in macOS when `Panel` has scrollbars. [Commit]().
 
 ## v1.6.0 - Dec 31, 2025 (r6721)
 

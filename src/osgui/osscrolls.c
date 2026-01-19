@@ -56,6 +56,22 @@ OSScrolls *_osscrolls_create(OSControl *control, const bool_t horizontal, const 
 
 /*---------------------------------------------------------------------------*/
 
+OSScroll *_osscrolls_horizontal(OSScrolls *scroll)
+{
+    cassert_no_null(scroll);
+    return scroll->hscroll;
+}
+
+/*---------------------------------------------------------------------------*/
+
+OSScroll *_osscrolls_vertical(OSScrolls *scroll)
+{
+    cassert_no_null(scroll);
+    return scroll->vscroll;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _osscrolls_destroy(OSScrolls **scroll)
 {
     cassert_no_null(scroll);
@@ -192,19 +208,19 @@ bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_
         sbar = scroll->hscroll;
         step = scroll->line_width;
         page = scroll->view_width;
-        max = scroll->content_width - scroll->view_width;
+        max = (scroll->content_width > scroll->view_width) ? (scroll->content_width - scroll->view_width) : 0;
         break;
     case ekGUI_VERTICAL:
         sbar = scroll->vscroll;
         step = scroll->line_height;
         page = scroll->view_height;
-        max = scroll->content_height - scroll->view_height;
+        max = (scroll->content_height > scroll->view_height) ? (scroll->content_height - scroll->view_height) : 0;
         break;
     default:
         cassert_default(orient);
     }
 
-    if (sbar != NULL)
+    if (max > 0 && sbar != NULL)
     {
         uint32_t curpos = _osscroll_pos(sbar);
         uint32_t pos = curpos;
@@ -278,7 +294,6 @@ bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_
         if (curpos != pos)
         {
             _osscroll_set_pos(sbar, pos);
-
             if (update_children == TRUE)
             {
                 int32_t incr_x = 0;
@@ -378,6 +393,7 @@ static bool_t i_limits(OSScroll *scroll, const bool_t visible, const uint32_t vi
     /* Scrollbar is not necessary */
     else
     {
+        _osscroll_set_pos(scroll, 0);
         return FALSE;
     }
 }
