@@ -23,6 +23,10 @@
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
+#if defined(__ASSERTS__)
+#include <sewer/bstd.h>
+#endif
+
 typedef struct i_resource_t i_Resource;
 
 enum i_type_t
@@ -33,6 +37,9 @@ enum i_type_t
 
 struct i_resource_t
 {
+#if defined(__ASSERTS__)
+    const char_t *id;
+#endif
     uint32_t type;
     const byte_t *data;
     uint32_t size;
@@ -93,10 +100,28 @@ static ResPack *i_create_respack(const enum i_type_t type, String **name, Buffer
 
 /*---------------------------------------------------------------------------*/
 
+#if defined(__ASSERTS__)
+static bool_t i_dump_resources(const ArrSt(i_Resource) *resources, const bool_t dump)
+{
+    if (dump == TRUE)
+    {
+        arrst_foreach_const(res, resources, i_Resource)
+            if (res->type == 1)
+                bstd_printf("ResType: %d, ID: %s, Object:%p, Size:%d\n", res->type, res->id, res->object, res->size);
+        arrst_end()
+    }
+
+    return TRUE;
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 void respack_destroy(ResPack **pack)
 {
     cassert_no_null(pack);
     cassert_no_null(*pack);
+    cassert(i_dump_resources((*pack)->resources, FALSE) == TRUE);
     str_destroy(&(*pack)->name);
     arrst_destroy(&(*pack)->resources, i_remove_resource, i_Resource);
     if ((*pack)->type == i_ekTYPE_PACKED)
@@ -407,6 +432,9 @@ void *respack_aobj_imp(const ArrPt(ResPack) *packs, const ResId id, FPtr_from_da
             cassert_no_nullf(func_create);
             cassert_no_nullf(func_destroy);
             cassert(resource->func_destroy == NULL);
+#if defined(__ASSERTS__)
+            resource->id = id;
+#endif
             resource->object = func_create(resource->data, resource->size);
             resource->func_destroy = func_destroy;
         }

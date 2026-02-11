@@ -281,7 +281,8 @@ static void i_OnWindowClose(Window *window, Event *event)
         window->in_will_close_event = FALSE;
     }
 
-    *event_result(event, bool_t) = closed;
+    if (window != NULL)
+        *event_result(event, bool_t) = closed;
 }
 
 /*---------------------------------------------------------------------------*/
