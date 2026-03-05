@@ -15,7 +15,6 @@
 #include "combo.h"
 #include "comwin.h"
 #include "edit.h"
-#include "globals.h"
 #include "gui.h"
 #include "guicontrol.h"
 #include "imageview.h"

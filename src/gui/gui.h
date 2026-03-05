@@ -43,7 +43,11 @@ _gui_api color_t gui_link_color(void);
 
 _gui_api color_t gui_border_color(void);
 
+_gui_api device_t gui_device(void);
+
 _gui_api S2Df gui_resolution(void);
+
+_gui_api R2Df gui_workarea(void);
 
 _gui_api V2Df gui_mouse_pos(void);
 

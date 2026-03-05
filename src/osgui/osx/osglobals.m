@@ -357,6 +357,24 @@ void osglobals_resolution(const void *non_used, real32_t *width, real32_t *heigh
 
 /*---------------------------------------------------------------------------*/
 
+void osglobals_workarea(const void *non_used, real32_t *x, real32_t *y, real32_t *width, real32_t *height)
+{
+    NSRect frame;
+    cassert(non_used == NULL);
+    unref(non_used);
+    cassert_no_null(x);
+    cassert_no_null(y);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    frame = [[NSScreen mainScreen] visibleFrame];
+    *x = (real32_t)frame.origin.x;
+    *y = (real32_t)frame.origin.y;
+    *width = (real32_t)frame.size.width;
+    *height = (real32_t)frame.size.height;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 {
     NSRect mouse_frame;

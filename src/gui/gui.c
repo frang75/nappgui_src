@@ -331,6 +331,16 @@ color_t gui_border_color(void)
 
 /*---------------------------------------------------------------------------*/
 
+device_t gui_device(void)
+{
+    const GuiCtx *context = guictx_get_current();
+    cassert_no_null(context);
+    cassert_no_nullf(context->func_globals_device);
+    return (device_t)context->func_globals_device(NULL);
+}
+
+/*---------------------------------------------------------------------------*/
+
 S2Df gui_resolution(void)
 {
     S2Df res = {0, 0};
@@ -339,6 +349,18 @@ S2Df gui_resolution(void)
     cassert_no_nullf(context->func_globals_resolution);
     context->func_globals_resolution(NULL, &res.width, &res.height);
     return res;
+}
+
+/*---------------------------------------------------------------------------*/
+
+R2Df gui_workarea(void)
+{
+    R2Df area = {{0, 0}, {0, 0}};
+    const GuiCtx *context = guictx_get_current();
+    cassert_no_null(context);
+    cassert_no_nullf(context->func_globals_workarea);
+    context->func_globals_workarea(NULL, &area.pos.x, &area.pos.y, &area.size.width, &area.size.height);
+    return area;
 }
 
 /*---------------------------------------------------------------------------*/

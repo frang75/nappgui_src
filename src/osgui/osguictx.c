@@ -397,6 +397,7 @@ GuiCtx *osguictx(void)
         osglobals_device,
         osglobals_color,
         osglobals_resolution,
+        osglobals_workarea,
         osglobals_mouse_position,
         osglobals_cursor,
         osglobals_cursor_destroy,

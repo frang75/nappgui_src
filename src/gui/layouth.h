@@ -20,6 +20,18 @@ _gui_api real32_t cell_get_hsize(const Cell *cell);
 
 _gui_api real32_t cell_get_vsize(const Cell *cell);
 
+_gui_api real32_t cell_get_origin_x(const Cell *cell);
+
+_gui_api real32_t cell_get_origin_y(const Cell *cell);
+
+_gui_api real32_t cell_get_padding_top(const Cell *cell);
+
+_gui_api real32_t cell_get_padding_left(const Cell *cell);
+
+_gui_api real32_t cell_get_padding_bottom(const Cell *cell);
+
+_gui_api real32_t cell_get_padding_right(const Cell *cell);
+
 _gui_api align_t cell_get_halign(const Cell *cell);
 
 _gui_api align_t cell_get_valign(const Cell *cell);

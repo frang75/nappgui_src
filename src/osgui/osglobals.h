@@ -20,6 +20,8 @@ _osgui_api color_t osglobals_color(const syscolor_t *color);
 
 _osgui_api void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height);
 
+_osgui_api void osglobals_workarea(const void *non_used, real32_t *x, real32_t *y, real32_t *width, real32_t *height);
+
 _osgui_api void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y);
 
 _osgui_api Cursor *osglobals_cursor(const gui_cursor_t cursor, const Image *image, const real32_t hot_x, const real32_t hot_y);

@@ -2,10 +2,16 @@
 
 ## v1.6.1 - WIP
 
+### Added
+
+- `gui_device()`. [Commit]().
+- `gui_workarea()`. [Commit]().
+
 ### Fixed
 
 - Avoid flickering in Win32 when `SplitView` divider moves. [Commit](https://github.com/frang75/nappgui_src/commit/5f75ca09943e18eba72334435253fffbf80f8d50).
-- Fix scrolling in macOS when `Panel` has scrollbars. [Commit]().
+- Fix scrolling in macOS when `Panel` has scrollbars. [Commit](https://github.com/frang75/nappgui_src/commit/0acdbc2f9aa63fac8d6c140b7aa35ec577f6dc5b).
+- Fix crash in `window.c`. [Commit](https://github.com/frang75/nappgui_src/commit/385971c00d805f1c4e7d4068ad55110e1c5ee9a7).
 
 ## v1.6.0 - Dec 31, 2025 (r6721)
 

@@ -93,33 +93,52 @@ static void i_OnColorSel(WCommons *coms, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnWorkArea(WCommons *coms, Event *e)
+{
+    R2Df area;
+    String *text = NULL;
+    cassert_no_null(coms);
+    unref(e);
+    area = gui_workarea();
+    text = str_printf("Display Workarea: (%g, %g) [%gx%g]", area.pos.x, area.pos.y, area.size.width, area.size.height);
+    i_write(coms, tc(text));
+    str_destroy(&text);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Layout *i_layout(WCommons *coms)
 {
-    Layout *layout = layout_create(1, 5);
+    Layout *layout = layout_create(1, 6);
     Button *button1 = button_push();
     Button *button2 = button_push();
     Button *button3 = button_push();
     Button *button4 = button_push();
+    Button *button5 = button_push();
     TextView *view = textview_create();
     cassert_no_null(coms);
     button_text(button1, "Select folder");
     button_text(button2, "Open file");
     button_text(button3, "Save file");
     button_text(button4, "Color selector");
+    button_text(button5, "Working area");
     textview_size(view, s2df(300, 100));
     button_OnClick(button1, listener(coms, i_OnSelectFolder, WCommons));
     button_OnClick(button2, listener(coms, i_OnOpenFile, WCommons));
     button_OnClick(button3, listener(coms, i_OnSaveFile, WCommons));
     button_OnClick(button4, listener(coms, i_OnColorSel, WCommons));
+    button_OnClick(button5, listener(coms, i_OnWorkArea, WCommons));
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 0, 1);
     layout_button(layout, button3, 0, 2);
     layout_button(layout, button4, 0, 3);
-    layout_textview(layout, view, 0, 4);
+    layout_button(layout, button5, 0, 4);
+    layout_textview(layout, view, 0, 5);
     layout_vmargin(layout, 0, 5);
     layout_vmargin(layout, 1, 5);
     layout_vmargin(layout, 2, 5);
     layout_vmargin(layout, 3, 5);
+    layout_vmargin(layout, 4, 5);
     coms->view = view;
     return layout;
 }

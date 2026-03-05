@@ -1336,6 +1336,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
     FPtr_gctx_get_enum func_globals_device,
     FPtr_gctx_get_enum func_globals_color,
     FPtr_gctx_get2_real32 func_globals_resolution,
+    FPtr_gctx_get4_real32 func_globals_workarea,
     FPtr_gctx_get2_real32 func_globals_mouse_position,
     FPtr_gctx_cursor func_globals_cursor,
     FPtr_gctx_destroy func_globals_cursor_destroy,
@@ -1347,6 +1348,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
     func_globals_device, \
     func_globals_color, \
     func_globals_resolution, \
+    func_globals_workarea, \
     func_globals_mouse_position, \
     func_globals_cursor, \
     func_globals_cursor_destroy, \
@@ -1358,6 +1360,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
         FUNC_CHECK_GCTX_GET_ENUM(func_globals_device, void, device_t), \
         FUNC_CHECK_GCTX_GET_ENUM(func_globals_color, syscolor_t, color_t), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_globals_resolution, void), \
+        FUNC_CHECK_GCTX_GET4_REAL32(func_globals_workarea, void), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_globals_mouse_position, void), \
         FUNC_CHECK_GCTX_CURSOR(func_globals_cursor), \
         FUNC_CHECK_GCTX_DESTROY(func_globals_cursor_destroy, Cursor), \
@@ -1369,6 +1372,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
             (FPtr_gctx_get_enum)func_globals_device, \
             cast_func(func_globals_color, FPtr_gctx_get_enum), \
             (FPtr_gctx_get2_real32)func_globals_resolution, \
+            (FPtr_gctx_get4_real32)func_globals_workarea, \
             (FPtr_gctx_get2_real32)func_globals_mouse_position, \
             (FPtr_gctx_cursor)func_globals_cursor, \
             (FPtr_gctx_destroy)func_globals_cursor_destroy, \

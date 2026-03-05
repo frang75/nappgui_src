@@ -595,6 +595,34 @@ void osglobals_resolution(const void *non_used, real32_t *width, real32_t *heigh
 
 /*---------------------------------------------------------------------------*/
 
+void osglobals_workarea(const void *non_used, real32_t *x, real32_t *y, real32_t *width, real32_t *height)
+{
+    unref(non_used);
+    cassert_no_null(x);
+    cassert_no_null(y);
+    cassert_no_null(width);
+    cassert_no_null(height);
+#if GTK_CHECK_VERSION(3, 22, 0)
+    {
+        GdkDisplay *display = gdk_display_get_default();
+        GdkMonitor *primary_monitor = gdk_display_get_primary_monitor(display);
+        GdkRectangle workarea;
+        gdk_monitor_get_workarea(primary_monitor, &workarea);
+        *x = (real32_t)workarea.x;
+        *y = (real32_t)workarea.y;
+        *width = (real32_t)workarea.width;
+        *height = (real32_t)workarea.height;
+    }
+#else
+    *x = 0;
+    *y = 0;
+    *width = (real32_t)gdk_screen_width();
+    *height = (real32_t)gdk_screen_height();
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 {
     /* https://stackoverflow.com/questions/55213291/query-cursor-position-with-gtk */

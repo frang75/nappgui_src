@@ -89,11 +89,7 @@ const WCHAR *wstring_init(const char_t *text, WString *str)
         wtext = str->alloctext;
     }
 
-    {
-        uint32_t bytes = unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, str->nchars * sizeof(WCHAR));
-        cassert_unref(bytes == str->nchars * sizeof(WCHAR), bytes);
-    }
-
+    unicode_convers(text, cast(wtext, char_t), ekUTF8, ekUTF16, str->nchars * sizeof(WCHAR));
     return wtext;
 }
 

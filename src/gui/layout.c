@@ -74,6 +74,7 @@ struct i_cell_dim_t
     real32_t forced_size;    /* Fixed: Specific size by user */
     real32_t padding_before; /* Fixed: Internal space before content */
     real32_t padding_after;  /* Fixed: Internal space after content */
+    real32_t final_origin;   /* Computed: Final component location coordinate */
     real32_t natural_size;   /* Computed: Natural size of dimension */
     real32_t final_size;     /* Computed: Final size after expansion */
 };
@@ -2076,7 +2077,7 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
 {
     uint32_t i = 0, j = 0, ncols = 0, nrows = 0;
     const i_LineDim *cols = NULL, *rows = NULL;
-    const Cell **cells = NULL;
+    Cell **cells = NULL;
     V2Df lorigin = *origin;
     real32_t xorigin = lorigin.x;
 
@@ -2092,7 +2093,7 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
     nrows = i_NUM_ROWS(layout);
     cols = arrst_all(layout->lines_dim[0], i_LineDim);
     rows = arrst_all(layout->lines_dim[1], i_LineDim);
-    cells = arrpt_all_const(layout->cells, Cell);
+    cells = arrpt_all(layout->cells, Cell);
 
     lorigin.y += layout->dim_margin_before[1];
 
@@ -2104,13 +2105,12 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
         for (j = 0; j < ncols; ++j)
         {
             uint32_t p = i * ncols + j;
-            const Cell *cell = cells[p];
+            Cell *cell = cells[p];
 
             if (cell->displayed == TRUE)
             {
                 V2Df cell_origin;
                 S2Df cell_size;
-
                 cell_origin.x = lorigin.x + cell->dim[0].padding_after;
                 cell_origin.y = lorigin.y + cell->dim[1].padding_after;
                 cell_size.width = cell->dim[0].final_size;
@@ -2163,6 +2163,9 @@ static void i_layout_locate(Layout *layout, const V2Df *origin, FPtr_gctx_set_ar
                 default:
                     break;
                 }
+
+                cell->dim[0].final_origin = cell_origin.x;
+                cell->dim[1].final_origin = cell_origin.y;
 
                 switch (cell->type)
                 {
@@ -2665,6 +2668,54 @@ real32_t cell_get_vsize(const Cell *cell)
 {
     cassert_no_null(cell);
     return cell->dim[1].final_size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t cell_get_origin_x(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return cell->dim[0].final_origin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t cell_get_origin_y(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return cell->dim[1].final_origin;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t cell_get_padding_top(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return cell->dim[1].padding_after;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t cell_get_padding_left(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return cell->dim[0].padding_after;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t cell_get_padding_bottom(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return cell->dim[1].padding_before;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t cell_get_padding_right(const Cell *cell)
+{
+    cassert_no_null(cell);
+    return cell->dim[0].padding_before;
 }
 
 /*---------------------------------------------------------------------------*/

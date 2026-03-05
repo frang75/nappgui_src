@@ -600,6 +600,10 @@ typedef void (*FPtr_gctx_get2_real32)(const void *item, real32_t *value1, real32
 #define FUNC_CHECK_GCTX_GET2_REAL32(func, type) \
     (void)((void (*)(const type *, real32_t *, real32_t *))func == func)
 
+typedef void (*FPtr_gctx_get4_real32)(const void *item, real32_t *value1, real32_t *value2, real32_t *value3, real32_t *value4);
+#define FUNC_CHECK_GCTX_GET4_REAL32(func, type) \
+    (void)((void (*)(const type *, real32_t *, real32_t *, real32_t *, real32_t *))func == func)
+
 typedef void (*FPtr_gctx_get_indexed)(const uint32_t, void *);
 #define FUNC_CHECK_GCTX_GET_INDEXED(func) \
     (void)((void (*)(const uint32_t, void *))func == func)
@@ -912,6 +916,7 @@ struct _guictx_t
     FPtr_gctx_get_enum func_globals_device;
     FPtr_gctx_get_enum func_globals_color;
     FPtr_gctx_get2_real32 func_globals_resolution;
+    FPtr_gctx_get4_real32 func_globals_workarea;
     FPtr_gctx_get2_real32 func_globals_mouse_position;
     FPtr_gctx_cursor func_globals_cursor;
     FPtr_gctx_destroy func_globals_cursor_destroy;

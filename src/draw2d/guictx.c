@@ -1356,6 +1356,7 @@ void guictx_append_globals_manager_imp(
     FPtr_gctx_get_enum func_globals_device,
     FPtr_gctx_get_enum func_globals_color,
     FPtr_gctx_get2_real32 func_globals_resolution,
+    FPtr_gctx_get4_real32 func_globals_workarea,
     FPtr_gctx_get2_real32 func_globals_mouse_position,
     FPtr_gctx_cursor func_globals_cursor,
     FPtr_gctx_destroy func_globals_cursor_destroy,
@@ -1367,6 +1368,7 @@ void guictx_append_globals_manager_imp(
     cassert(context->func_globals_device == NULL);
     cassert(context->func_globals_color == NULL);
     cassert(context->func_globals_resolution == NULL);
+    cassert(context->func_globals_workarea == NULL);
     cassert(context->func_globals_mouse_position == NULL);
     cassert(context->func_globals_cursor == NULL);
     cassert(context->func_globals_cursor_destroy == NULL);
@@ -1376,6 +1378,7 @@ void guictx_append_globals_manager_imp(
     cassert_no_nullf(func_globals_device);
     cassert_no_nullf(func_globals_color);
     cassert_no_nullf(func_globals_resolution);
+    cassert_no_nullf(func_globals_workarea);
     cassert_no_nullf(func_globals_mouse_position);
     cassert_no_nullf(func_globals_cursor);
     cassert_no_nullf(func_globals_cursor_destroy);
@@ -1385,6 +1388,7 @@ void guictx_append_globals_manager_imp(
     context->func_globals_device = func_globals_device;
     context->func_globals_color = func_globals_color;
     context->func_globals_resolution = func_globals_resolution;
+    context->func_globals_workarea = func_globals_workarea;
     context->func_globals_mouse_position = func_globals_mouse_position;
     context->func_globals_cursor = func_globals_cursor;
     context->func_globals_cursor_destroy = func_globals_cursor_destroy;
