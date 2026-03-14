@@ -1166,6 +1166,7 @@ function(nap_desktop_app appName dependList nrcMode)
                 string(TOUPPER ${config} configUpper)
                 set_target_properties(${appName} PROPERTIES LINK_FLAGS_${configUpper} "/SUBSYSTEM:WINDOWS")
             endforeach()
+            target_sources(${appName} PRIVATE ${CMAKE_SOURCE_DIR}/prj/dpi-aware.manifest)
         endif()
         set(macOSBundle NO)
 
