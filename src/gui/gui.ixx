@@ -21,7 +21,6 @@ enum _gievent_t
     ekGUI_EVENT_ANIMATION
 };
 
-typedef struct _line_t Line;
 typedef union _tag_t Tag;
 typedef struct _gui_component_t GuiComponent;
 typedef struct _vctrltbl_t VCtrlTbl;

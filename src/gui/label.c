@@ -294,7 +294,7 @@ void label_OnClick(Label *label, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void label_min_width(Label *label, const real32_t width)
+void label_width(Label *label, const real32_t width)
 {
     LbData *data = view_get_data(cast(label, View), LbData);
     cassert_no_null(data);

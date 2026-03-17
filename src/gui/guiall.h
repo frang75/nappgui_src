@@ -20,6 +20,7 @@
 #include "imageview.h"
 #include "label.h"
 #include "layout.h"
+#include "line.h"
 #include "listbox.h"
 #include "menu.h"
 #include "menuitem.h"

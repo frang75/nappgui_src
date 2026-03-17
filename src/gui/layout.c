@@ -21,6 +21,7 @@
 #include "guicontrol.h"
 #include "gui.inl"
 #include "label.inl"
+#include "line.inl"
 #include "edit.h"
 #include "edit.inl"
 #include "panel.inl"
@@ -615,6 +616,24 @@ void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, cons
 
 /*---------------------------------------------------------------------------*/
 
+void layout_line(Layout *layout, Line *line, const uint32_t col, const uint32_t row)
+{
+    Cell *cell = NULL;
+    align_t halig = ekJUSTIFY;
+    align_t valign = ekCENTER;
+    if (_line_is_horizontal(line) == FALSE)
+    {
+        halig = ekCENTER;
+        valign = ekJUSTIFY;
+    }
+
+    cell = i_set_component(layout, cast(line, GuiComponent), col, row, halig, valign);
+    cassert_no_null(cell);
+    cell->tabstop = FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_layout(Layout *layout, Layout *sublayout, const uint32_t col, const uint32_t row)
 {
     i_CellContent content;
@@ -752,6 +771,13 @@ SplitView *layout_get_splitview(Layout *layout, const uint32_t col, const uint32
 Panel *layout_get_panel(Layout *layout, const uint32_t col, const uint32_t row)
 {
     return guicontrol_panel(layout_control(layout, col, row));
+}
+
+/*---------------------------------------------------------------------------*/
+
+Line *layout_get_line(Layout *layout, const uint32_t col, const uint32_t row)
+{
+    return guicontrol_line(layout_control(layout, col, row));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2551,6 +2577,13 @@ SplitView *cell_splitview(Cell *cell)
 Panel *cell_panel(Cell *cell)
 {
     return guicontrol_panel(cell_control(cell));
+}
+
+/*---------------------------------------------------------------------------*/
+
+Line *cell_line(Cell *cell)
+{
+    return guicontrol_line(cell_control(cell));
 }
 
 /*---------------------------------------------------------------------------*/

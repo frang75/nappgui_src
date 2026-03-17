@@ -4,8 +4,24 @@
 
 ### Added
 
-- `gui_device()`. [Commit]().
-- `gui_workarea()`. [Commit]().
+- `gui_device()`. [Commit](https://github.com/frang75/nappgui_src/commit/6b83033f585fa3d12fee07a121ab3f2a6516d427).
+- `gui_workarea()`. [Commit](https://github.com/frang75/nappgui_src/commit/6b83033f585fa3d12fee07a121ab3f2a6516d427).
+- Support for gui lines. [Commit]().
+    * New `Line` widget `line.h`. [Doc]().
+    * `guicontrol_line()`.
+    * `cell_line()`.
+    * `layout_line()`.
+    * `layout_get_line()`.
+
+### Changed
+
+- `label_min_width()` renamed by `label_width()`. [Commit]().
+- `button_min_width()` renamed by `button_width()`. [Commit]().
+- `edit_min_width()` renamed by `edit_width()`. [Commit]().
+- `edit_min_height()` renamed by `edit_height()`. [Commit]().
+- `combo_min_width()` renamed by `combo_width()`. [Commit]().
+- `slider_min_width()` renamed by `slider_length()`. [Commit]().
+- `progress_min_width()` renamed by `progress_width()`. [Commit]().
 
 ### Fixed
 

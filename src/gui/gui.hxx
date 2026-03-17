@@ -43,6 +43,7 @@ typedef struct _splitview_t SplitView;
 typedef struct _layout_t Layout;
 typedef struct _cell_t Cell;
 typedef struct _panel_t Panel;
+typedef struct _line_t Line;
 typedef struct _window_t Window;
 typedef struct _menu_t Menu;
 typedef struct _menu_item_t MenuItem;

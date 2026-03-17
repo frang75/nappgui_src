@@ -87,14 +87,18 @@ static Layout *i_left_layout(void)
 
 static Layout *i_top_layout(LPData *data)
 {
-    Layout *layout1 = layout_create(2, 1);
+    Layout *layout1 = layout_create(3, 1);
     Layout *layout2 = i_left_layout();
     TextView *view = textview_create();
+    Line *line = line_vertical();
     cassert_no_null(data);
     layout_layout(layout1, layout2, 0, 0);
-    layout_textview(layout1, view, 1, 0);
-    layout_hsize(layout1, 1, 230);
+    layout_line(layout1, line, 1, 0);
+    layout_textview(layout1, view, 2, 0);
+    layout_hsize(layout1, 2, 230);
     layout_hmargin(layout1, 0, 5);
+    layout_hmargin(layout1, 1, 5);
+    layout_valign(layout1, 2, 0, ekJUSTIFY);
     data->view = view;
     return layout1;
 }
@@ -152,13 +156,17 @@ static Layout *i_bottom_layout(LPData *data)
 
 static Layout *i_main_layout(LPData *data)
 {
-    Layout *layout1 = layout_create(1, 2);
+    Layout *layout1 = layout_create(1, 4);
     Layout *layout2 = i_top_layout(data);
     Layout *layout3 = i_bottom_layout(data);
+    Line *line = line_horizontal();
     layout_layout(layout1, layout2, 0, 0);
-    layout_layout(layout1, layout3, 0, 1);
+    layout_layout(layout1, layout3, 0, 2);
+    layout_line(layout1, line, 0, 1);
     layout_margin(layout1, 5);
     layout_vmargin(layout1, 0, 5);
+    layout_vmargin(layout1, 1, 5);
+    layout_vexpand(layout1, 3);
     return layout1;
 }
 

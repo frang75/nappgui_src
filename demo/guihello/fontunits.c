@@ -92,9 +92,9 @@ static Layout *i_layout(FontUnits *funits)
     label_font(label4, funits->font_px);
     label_font(label5, funits->font_pt);
     label_font(label6, funits->font_cell);
-    label_min_width(label4, i_WIDTH);
-    label_min_width(label5, i_WIDTH);
-    label_min_width(label6, i_WIDTH);
+    label_width(label4, i_WIDTH);
+    label_width(label5, i_WIDTH);
+    label_width(label6, i_WIDTH);
     textview_family(text1, font_family(funits->font_px));
     textview_family(text2, font_family(funits->font_pt));
     textview_family(text3, font_family(funits->font_cell));

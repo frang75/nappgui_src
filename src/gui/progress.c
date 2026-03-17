@@ -60,7 +60,7 @@ Progress *progress_create(void)
 
 /*---------------------------------------------------------------------------*/
 
-void progress_min_width(Progress *progress, const real32_t width)
+void progress_width(Progress *progress, const real32_t width)
 {
     cassert_no_null(progress);
     cassert(width > 0);

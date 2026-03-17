@@ -267,7 +267,7 @@ void button_OnClick(Button *button, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void button_min_width(Button *button, const real32_t width)
+void button_width(Button *button, const real32_t width)
 {
     cassert_no_null(button);
     cassert(width >= 0);

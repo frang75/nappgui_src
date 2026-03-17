@@ -51,6 +51,8 @@ _gui_api SplitView *cell_splitview(Cell *cell);
 
 _gui_api Panel *cell_panel(Cell *cell);
 
+_gui_api Line *cell_line(Cell *cell);
+
 _gui_api Layout *cell_layout(Cell *cell);
 
 _gui_api void cell_enabled(Cell *cell, const bool_t enabled);

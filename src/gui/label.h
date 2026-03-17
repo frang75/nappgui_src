@@ -19,7 +19,7 @@ _gui_api Label *label_create(void);
 
 _gui_api void label_OnClick(Label *label, Listener *listener);
 
-_gui_api void label_min_width(Label *label, const real32_t width);
+_gui_api void label_width(Label *label, const real32_t width);
 
 _gui_api void label_text(Label *label, const char_t *text);
 

@@ -14,6 +14,7 @@
 #include "osbutton.inl"
 #include "oscombo.inl"
 #include "osedit.inl"
+#include "osline.inl"
 #include "ospanel.inl"
 #include "ospopup.inl"
 #include "osprogress.inl"
@@ -119,9 +120,11 @@ void _oscontrol_detach_and_destroy(OSControl **control, OSPanel *panel)
     case ekGUI_TYPE_WEBVIEW:
         _osweb_detach_and_destroy(dcast(control, OSWeb), panel);
         break;
+    case ekGUI_TYPE_LINE:
+        _osline_detach_and_destroy(dcast(control, OSLine), panel);
+        break;
     case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_BOXVIEW:
-    case ekGUI_TYPE_LINE:
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:

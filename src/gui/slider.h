@@ -21,7 +21,7 @@ _gui_api Slider *slider_vertical(void);
 
 _gui_api void slider_OnMoved(Slider *slider, Listener *listener);
 
-_gui_api void slider_min_width(Slider *slider, const real32_t width);
+_gui_api void slider_length(Slider *slider, const real32_t length);
 
 _gui_api void slider_tooltip(Slider *slider, const char_t *text);
 

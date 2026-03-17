@@ -333,7 +333,7 @@ static Layout *i_layout(SelData *data)
     combo_add_elem(combo, "Other text 2", NULL);
     combo_add_elem(combo, "Other text 3", NULL);
     combo_add_elem(combo, "Other text 4", NULL);
-    edit_min_height(edit3, 100);
+    edit_height(edit3, 100);
     edit_OnFilter(edit1, listener(data, i_OnEditFilter, SelData));
     edit_OnFilter(edit2, listener(data, i_OnEditFilter, SelData));
     edit_OnFilter(edit3, listener(data, i_OnEditFilter, SelData));

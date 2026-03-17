@@ -55,6 +55,8 @@ _gui_api void layout_panel(Layout *layout, Panel *panel, const uint32_t col, con
 
 _gui_api void layout_panel_replace(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row);
 
+_gui_api void layout_line(Layout *layout, Line *line, const uint32_t col, const uint32_t row);
+
 _gui_api void layout_layout(Layout *layout, Layout *sublayout, const uint32_t col, const uint32_t row);
 
 _gui_api Label *layout_get_label(Layout *layout, const uint32_t col, const uint32_t row);
@@ -88,6 +90,8 @@ _gui_api TableView *layout_get_tableview(Layout *layout, const uint32_t col, con
 _gui_api SplitView *layout_get_splitview(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api Panel *layout_get_panel(Layout *layout, const uint32_t col, const uint32_t row);
+
+_gui_api Line *layout_get_line(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api Layout *layout_get_layout(Layout *layout, const uint32_t col, const uint32_t row);
 

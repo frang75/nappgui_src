@@ -48,6 +48,8 @@ static void i_set_panel(App *app, const uint32_t index)
 {
     Panel *panel = NULL;
     Button *defbutton = NULL;
+    align_t valign = ekTOP;
+
     switch (index)
     {
     case 0:
@@ -118,6 +120,7 @@ static void i_set_panel(App *app, const uint32_t index)
         break;
     case 22:
         panel = sublayouts();
+        valign = ekJUSTIFY;
         break;
     case 23:
         panel = subpanels();
@@ -154,6 +157,7 @@ static void i_set_panel(App *app, const uint32_t index)
     }
 
     layout_panel_replace(app->layout, panel, 1, 0);
+    layout_valign(app->layout, 1, 0, valign);
 
     if (app->window != NULL)
         window_defbutton(app->window, defbutton);

@@ -132,7 +132,7 @@ void edit_OnFocus(Edit *edit, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void edit_min_width(Edit *edit, const real32_t width)
+void edit_width(Edit *edit, const real32_t width)
 {
     cassert_no_null(edit);
     cassert(width > 0);
@@ -141,7 +141,7 @@ void edit_min_width(Edit *edit, const real32_t width)
 
 /*---------------------------------------------------------------------------*/
 
-void edit_min_height(Edit *edit, const real32_t height)
+void edit_height(Edit *edit, const real32_t height)
 {
     cassert_no_null(edit);
     cassert(height > 0);

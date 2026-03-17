@@ -109,13 +109,17 @@ static void i_OnWorkArea(WCommons *coms, Event *e)
 
 static Layout *i_layout(WCommons *coms)
 {
-    Layout *layout = layout_create(1, 6);
+    Layout *layout = layout_create(1, 10);
     Button *button1 = button_push();
     Button *button2 = button_push();
     Button *button3 = button_push();
     Button *button4 = button_push();
     Button *button5 = button_push();
     TextView *view = textview_create();
+    Line *line1 = line_horizontal();
+    Line *line2 = line_horizontal();
+    Line *line3 = line_horizontal();
+    Line *line4 = line_horizontal();
     cassert_no_null(coms);
     button_text(button1, "Select folder");
     button_text(button2, "Open file");
@@ -129,16 +133,24 @@ static Layout *i_layout(WCommons *coms)
     button_OnClick(button4, listener(coms, i_OnColorSel, WCommons));
     button_OnClick(button5, listener(coms, i_OnWorkArea, WCommons));
     layout_button(layout, button1, 0, 0);
-    layout_button(layout, button2, 0, 1);
-    layout_button(layout, button3, 0, 2);
-    layout_button(layout, button4, 0, 3);
-    layout_button(layout, button5, 0, 4);
-    layout_textview(layout, view, 0, 5);
-    layout_vmargin(layout, 0, 5);
-    layout_vmargin(layout, 1, 5);
-    layout_vmargin(layout, 2, 5);
-    layout_vmargin(layout, 3, 5);
-    layout_vmargin(layout, 4, 5);
+    layout_button(layout, button2, 0, 2);
+    layout_button(layout, button3, 0, 4);
+    layout_button(layout, button4, 0, 6);
+    layout_button(layout, button5, 0, 8);
+    layout_textview(layout, view, 0, 9);
+    layout_line(layout, line1, 0, 1);
+    layout_line(layout, line2, 0, 3);
+    layout_line(layout, line3, 0, 5);
+    layout_line(layout, line4, 0, 7);
+    layout_vmargin(layout, 0, 3);
+    layout_vmargin(layout, 1, 3);
+    layout_vmargin(layout, 2, 3);
+    layout_vmargin(layout, 3, 3);
+    layout_vmargin(layout, 4, 3);
+    layout_vmargin(layout, 5, 3);
+    layout_vmargin(layout, 6, 3);
+    layout_vmargin(layout, 7, 3);
+    layout_vmargin(layout, 8, 5);
     coms->view = view;
     return layout;
 }

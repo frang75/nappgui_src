@@ -26,7 +26,7 @@ struct _slider_t
 {
     GuiComponent component;
     real32_t current_pos;
-    real32_t width;
+    real32_t length;
     S2Df size;
     ResId ttipid;
     uint32_t flags;
@@ -85,7 +85,7 @@ static Slider *i_create(const uint32_t flags, const gui_size_t knob_size)
     ositem = context->func_create[ekGUI_TYPE_SLIDER](flags);
     _component_init(&slider->component, context, ekGUI_TYPE_SLIDER, &ositem);
     slider->current_pos = 0;
-    slider->width = 100;
+    slider->length = 100;
     slider->flags = flags;
     slider->knob_size = knob_size;
     slider->OnMoved = NULL;
@@ -117,11 +117,11 @@ void slider_OnMoved(Slider *slider, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void slider_min_width(Slider *slider, const real32_t width)
+void slider_length(Slider *slider, const real32_t length)
 {
     cassert_no_null(slider);
-    cassert(width > 0);
-    slider->width = width;
+    cassert(length > 0);
+    slider->length = length;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -180,7 +180,7 @@ void _slider_natural(Slider *slider, const uint32_t i, real32_t *dim0, real32_t 
     if (i == 0)
     {
         cassert_no_nullf(slider->component.context->func_slider_bounds);
-        slider->component.context->func_slider_bounds(slider->component.ositem, slider->width, slider->knob_size, &slider->size.width, &slider->size.height);
+        slider->component.context->func_slider_bounds(slider->component.ositem, slider->length, slider->knob_size, &slider->size.width, &slider->size.height);
         *dim0 = slider->size.width;
     }
     else

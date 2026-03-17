@@ -19,6 +19,7 @@
 #include "gui.inl"
 #include "label.inl"
 #include "layout.inl"
+#include "line.inl"
 #include "panel.inl"
 #include "popup.inl"
 #include "progress.inl"
@@ -86,7 +87,7 @@ static const FPtr_natural i_FUNC_NATURAL[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_natural)_splitview_natural, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_natural)_view_natural,      /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_natural)_panel_natural,     /* ekGUI_TYPE_PANEL */
-    (FPtr_natural)NULL};              /* ekGUI_TYPE_LINE */
+    (FPtr_natural)_line_natural};     /* ekGUI_TYPE_LINE */
 
 static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL,              /* ekGUI_TYPE_BUTTON */
@@ -154,7 +155,7 @@ static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_destroy)_splitview_destroy, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_destroy)_view_destroy,      /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_destroy)_panel_destroy_all, /* ekGUI_TYPE_PANEL */
-    (FPtr_destroy)NULL};              /* ekGUI_TYPE_LINE */
+    (FPtr_destroy)_line_destroy};     /* ekGUI_TYPE_LINE */
 
 /*---------------------------------------------------------------------------*/
 
@@ -315,8 +316,10 @@ void _component_taborder(GuiComponent *component, Window *window)
         _window_taborder(window, component->ositem);
         break;
 
-    case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_LINE:
+        break;
+
+    case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
     case ekGUI_TYPE_TOOLBAR:
@@ -481,6 +484,7 @@ const char_t *_component_type(const GuiComponent *component)
     case ekGUI_TYPE_PANEL:
         return "Panel";
     case ekGUI_TYPE_LINE:
+        return "Line";
     case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_TOOLBAR:
     case ekGUI_TYPE_WINDOW:

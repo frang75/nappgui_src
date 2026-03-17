@@ -340,6 +340,14 @@ typedef enum _view_flag_t
     ekVIEW_CONTROL = 0x40
 } view_flag_t;
 
+typedef enum _line_flag_t
+{
+    ekLINE_FLAG = 0,
+    ekLINE_HORZ = 0,
+    ekLINE_VERT = 1,
+    ekLINE_TYPE = 1
+} line_flag_t;
+
 typedef enum _text_flag_t
 {
     ekTEXT_FLAG = 0
@@ -463,6 +471,7 @@ typedef struct _evtbcell_t EvTbCell;
 #define slider_get_type(flags) ((flags)&ekSLIDER_TYPE)
 #define progress_get_type(flags) ((flags)&ekPROGRESS_TYPE)
 #define split_get_type(flags) ((flags)&ekSPLIT_TYPE)
+#define line_get_type(flags) ((flags)&ekLINE_TYPE)
 
 typedef void *(*FPtr_gctx_create)(const uint32_t flags);
 #define FUNC_CHECK_GCTX_CREATE(func, type) \
@@ -844,6 +853,9 @@ struct _guictx_t
     FPtr_gctx_get2_real32 func_panel_scroller_size;
     FPtr_gctx_set4_real32 func_panel_content_size;
     FPtr_gctx_call func_panel_set_need_display;
+
+    /*! <Lines> */
+    FPtr_gctx_bounds5 func_line_bounds;
 
     /*! <Menus> */
     FPtr_gctx_create func_menu_create;

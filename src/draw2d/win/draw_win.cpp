@@ -16,6 +16,7 @@
 #include "../draw.inl"
 #include "../dctxh.h"
 #include "../font.inl"
+#include "../image.h"
 #include "../image.inl"
 #include "../color.h"
 #include "../font.h"
@@ -1116,12 +1117,14 @@ void draw_image_raster(DCtx *ctx, const Image *image, const real32_t x, const re
 {
     const OSImage *osimage = NULL;
     Gdiplus::Bitmap *bitmap = NULL;
+    uint32_t width = image_width(image);
+    uint32_t height = image_height(image);
     cassert_no_null(ctx);
     cassert_no_null(ctx->graphics);
     osimage = osimage_from_image(image);
     bitmap = cast(osimage_native(osimage), Gdiplus::Bitmap);
     i_set_gdiplus_mode(ctx);
-    ctx->graphics->DrawImage(bitmap, (Gdiplus::REAL)x, (Gdiplus::REAL)y);
+    ctx->graphics->DrawImage(bitmap, (Gdiplus::REAL)x, (Gdiplus::REAL)y, (Gdiplus::REAL)width, (Gdiplus::REAL)height);
 }
 
 /*---------------------------------------------------------------------------*/

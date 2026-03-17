@@ -193,6 +193,16 @@ Panel *guicontrol_panel(GuiControl *control)
 
 /*---------------------------------------------------------------------------*/
 
+Line *guicontrol_line(GuiControl *control)
+{
+    GuiComponent *component = cast(control, GuiComponent);
+    if (component != NULL && component->type == ekGUI_TYPE_LINE)
+        return cast(component, Line);
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void guicontrol_tag(GuiControl *control, const uint32_t tag)
 {
     GuiComponent *component = cast(control, GuiComponent);

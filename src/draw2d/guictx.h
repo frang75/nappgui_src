@@ -1059,6 +1059,55 @@ _draw2d_api void guictx_append_panel_manager_imp(
             (FPtr_gctx_get2_real32)func_panel_get_origin, \
             (FPtr_gctx_set4_real32)func_panel_set_frame))
 
+_draw2d_api void guictx_append_line_manager_imp(
+    GuiCtx *context,
+    FPtr_gctx_create func_line_create,
+    FPtr_gctx_destroy func_line_destroy,
+    FPtr_gctx_bounds5 func_line_bounds,
+    FPtr_gctx_set_ptr func_attach_line_to_panel,
+    FPtr_gctx_set_ptr func_detach_line_from_panel,
+    FPtr_gctx_set_bool func_line_set_visible,
+    FPtr_gctx_set_bool func_line_set_enabled,
+    FPtr_gctx_get2_real32 func_line_get_size,
+    FPtr_gctx_get2_real32 func_line_get_origin,
+    FPtr_gctx_set4_real32 func_line_set_frame);
+#define guictx_append_line_manager( \
+    context, \
+    func_line_create, \
+    func_line_destroy, \
+    func_line_bounds, \
+    func_attach_line_to_panel, \
+    func_detach_line_from_panel, \
+    func_line_set_visible, \
+    func_line_set_enabled, \
+    func_line_get_size, \
+    func_line_get_origin, \
+    func_line_set_frame, \
+    line_type, panel_type) \
+    ( \
+        FUNC_CHECK_GCTX_CREATE(func_line_create, line_type), \
+        FUNC_CHECK_GCTX_DESTROY(func_line_destroy, line_type), \
+        FUNC_CHECK_GCTX_BOUNDS5(func_line_bounds, line_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_attach_line_to_panel, line_type, panel_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_detach_line_from_panel, line_type, panel_type), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_line_set_visible, line_type), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_line_set_enabled, line_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_line_get_size, line_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_line_get_origin, line_type), \
+        FUNC_CHECK_GCTX_SET4_REAL32(func_line_set_frame, line_type), \
+        guictx_append_line_manager_imp( \
+            context, \
+            (FPtr_gctx_create)func_line_create, \
+            (FPtr_gctx_destroy)func_line_destroy, \
+            (FPtr_gctx_bounds5)func_line_bounds, \
+            (FPtr_gctx_set_ptr)func_attach_line_to_panel, \
+            (FPtr_gctx_set_ptr)func_detach_line_from_panel, \
+            (FPtr_gctx_set_bool)func_line_set_visible, \
+            (FPtr_gctx_set_bool)func_line_set_enabled, \
+            (FPtr_gctx_get2_real32)func_line_get_size, \
+            (FPtr_gctx_get2_real32)func_line_get_origin, \
+            (FPtr_gctx_set4_real32)func_line_set_frame))
+
 _draw2d_api void guictx_append_window_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_window_create,

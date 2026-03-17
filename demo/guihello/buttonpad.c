@@ -48,7 +48,7 @@ static Layout *i_hpadding_layout(void)
     button_text(button5, "Expand");
     button_hpadding(button2, 0);
     button_hpadding(button3, 50);
-    button_min_width(button4, 150);
+    button_width(button4, 150);
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 0, 1);
     layout_button(layout, button3, 0, 2);

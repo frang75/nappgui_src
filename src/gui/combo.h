@@ -25,7 +25,7 @@ _gui_api void combo_OnFocus(Combo *combo, Listener *listener);
 
 _gui_api void combo_OnSelect(Combo *combo, Listener *listener);
 
-_gui_api void combo_min_width(Combo *combo, const real32_t width);
+_gui_api void combo_width(Combo *combo, const real32_t width);
 
 _gui_api void combo_text(Combo *combo, const char_t *text);
 
