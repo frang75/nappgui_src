@@ -30,6 +30,8 @@ _osgui_api void osbutton_align(OSButton *button, const align_t align);
 
 _osgui_api void osbutton_image(OSButton *button, const Image *image);
 
+_osgui_api void osbutton_image_pos(OSButton *button, const enum_t pos);
+
 _osgui_api void osbutton_state(OSButton *button, const gui_state_t state);
 
 _osgui_api gui_state_t osbutton_get_state(const OSButton *button);

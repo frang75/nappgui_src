@@ -16,6 +16,7 @@
 #include "oswindow_osx.inl"
 #include "osgui_osx.inl"
 #include "osglobals.inl"
+#include "../../gui/button.h"
 #include "../osbutton.h"
 #include "../osbutton.inl"
 #include "../osgui.inl"
@@ -40,6 +41,7 @@
     uint32_t flags;
     gui_size_t size;
     real32_t text_width;
+    button_image_pos_t image_pos;
     Image *image;
 }
 @end
@@ -811,6 +813,52 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
 #define KEY_MODIFIER_OPTION NSCommandKeyMask
 #endif
 
+static const real32_t i_BUTTON_IMAGE_SEP = 4.f;
+
+/*---------------------------------------------------------------------------*/
+
+static NSCellImagePosition i_flat_image_pos(OSXButton *button, OSXButtonCell *cell)
+{
+    BOOL has_image = [cell image] != nil ? YES : NO;
+    BOOL has_text = [[button title] length] > 0 ? YES : NO;
+
+    if (cell->image_pos == ekBUTTON_IMAGE_ONLY || has_text == NO)
+        return NSImageOnly;
+
+    if (has_image == NO)
+        return NSNoImage;
+
+    switch (cell->image_pos)
+    {
+    case ekBUTTON_IMAGE_LEFT:
+        return NSImageLeft;
+    case ekBUTTON_IMAGE_TOP:
+        return NSImageAbove;
+    case ekBUTTON_IMAGE_RIGHT:
+        return NSImageRight;
+    case ekBUTTON_IMAGE_BOTTOM:
+        return NSImageBelow;
+    case ekBUTTON_IMAGE_ONLY:
+        return NSImageOnly;
+    default:
+        cassert_default(cell->image_pos);
+    }
+
+    return NSNoImage;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_apply_flat_image_pos(OSXButton *button)
+{
+    OSXButtonCell *cell = [button cell];
+    cassert_no_null(button);
+    if (button_get_type(cell->flags) == ekBUTTON_FLAT || button_get_type(cell->flags) == ekBUTTON_FLATGLE)
+        [cell setImagePosition:i_flat_image_pos(button, cell)];
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint32_t flags)
 {
     switch (button_get_type(flags))
@@ -880,6 +928,7 @@ OSButton *osbutton_create(const uint32_t flags)
     _oscontrol_init(button);
     cell = [[OSXButtonCell alloc] init];
     cell->flags = button->flags;
+    cell->image_pos = (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE) ? ekBUTTON_IMAGE_ONLY : ekBUTTON_IMAGE_LEFT;
     cell->image = NULL;
     [button setCell:cell];
     [button setTarget:button];
@@ -901,6 +950,8 @@ OSButton *osbutton_create(const uint32_t flags)
         bmem_zero(&button->attrs, OSTextAttr);
         cell->size = ENUM_MAX(gui_size_t);
     }
+
+    i_apply_flat_image_pos(button);
 
     return cast(button, OSButton);
 }
@@ -945,6 +996,8 @@ void osbutton_text(OSButton *button, const char_t *text)
     char_t tbuff[256];
     cassert_no_null(lbutton);
     cassert(_osbutton_text_allowed(lbutton->flags) == TRUE);
+    if (text == NULL)
+        text = "";
     lbutton->attrs.mark = _osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
     _oscontrol_set_text(lbutton, &lbutton->attrs, tbuff);
 
@@ -963,6 +1016,8 @@ void osbutton_text(OSButton *button, const char_t *text)
         [lbutton setKeyEquivalent:lbutton->keyEquivalent];
         [lbutton setKeyEquivalentModifierMask:KEY_MODIFIER_OPTION];
     }
+
+    i_apply_flat_image_pos(lbutton);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1024,11 +1079,24 @@ void osbutton_image(OSButton *button, const Image *image)
     else if (button_get_type(cell->flags) == ekBUTTON_FLAT || button_get_type(cell->flags) == ekBUTTON_FLATGLE)
     {
         _oscontrol_cell_set_image(cell, image);
+        i_apply_flat_image_pos(lbutton);
     }
     else
     {
         cassert_msg(FALSE, "Button doesn't accept images.");
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osbutton_image_pos(OSButton *button, const enum_t pos)
+{
+    OSXButton *lbutton = cast(button, OSXButton);
+    OSXButtonCell *cell = [lbutton cell];
+    cassert_no_null(lbutton);
+    cassert(button_get_type(cell->flags) == ekBUTTON_FLAT || button_get_type(cell->flags) == ekBUTTON_FLATGLE);
+    cell->image_pos = (button_image_pos_t)pos;
+    i_apply_flat_image_pos(lbutton);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1215,22 +1283,73 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        if (lbutton->hpadding == UINT32_MAX)
-            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+    {
+        OSXButtonCell *cell = [lbutton cell];
+        const bool_t draw_text = (bool_t)(text != NULL && text[0] != '\0' && cell->image_pos != ekBUTTON_IMAGE_ONLY);
+
+        if (draw_text == TRUE)
+        {
+            real32_t twidth = 0.f;
+            real32_t theight = 0.f;
+            font_extents(lbutton->attrs.font, text, -1.f, &twidth, &theight);
+
+            if (refwidth > 0.f)
+            {
+                switch (cell->image_pos)
+                {
+                case ekBUTTON_IMAGE_LEFT:
+                case ekBUTTON_IMAGE_RIGHT:
+                    *width = refwidth + i_BUTTON_IMAGE_SEP + twidth;
+                    *height = refheight > theight ? refheight : theight;
+                    break;
+
+                case ekBUTTON_IMAGE_TOP:
+                case ekBUTTON_IMAGE_BOTTOM:
+                    *width = refwidth > twidth ? refwidth : twidth;
+                    *height = refheight + i_BUTTON_IMAGE_SEP + theight;
+                    break;
+
+                case ekBUTTON_IMAGE_ONLY:
+                default:
+                    cassert_default(cell->image_pos);
+                }
+            }
+            else
+            {
+                *width = twidth;
+                *height = theight;
+            }
+
+            if (lbutton->hpadding == UINT32_MAX)
+                *width += 8.f;
+            else
+                *width += (real32_t)lbutton->hpadding;
+
+            if (lbutton->vpadding == UINT32_MAX)
+                *height += 8.f;
+            else
+                *height += (real32_t)lbutton->vpadding;
+        }
         else
-            *width = refwidth + (real32_t)lbutton->hpadding;
+        {
+            if (lbutton->hpadding == UINT32_MAX)
+                *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+            else
+                *width = refwidth + (real32_t)lbutton->hpadding;
 
-        if (lbutton->vpadding == UINT32_MAX)
-            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
-        else
-            *height = refheight + (real32_t)lbutton->vpadding;
+            if (lbutton->vpadding == UINT32_MAX)
+                *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+            else
+                *height = refheight + (real32_t)lbutton->vpadding;
 
-        if (refwidth <= 16.f)
-            *width += 4.f;
+            if (refwidth <= 16.f)
+                *width += 4.f;
 
-        if (refheight <= 16.f)
-            *height += 4.f;
+            if (refheight <= 16.f)
+                *height += 4.f;
+        }
         break;
+    }
 
     default:
         cassert_default(button_get_type(lbutton->flags));

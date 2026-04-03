@@ -36,6 +36,7 @@ _draw2d_api void guictx_append_button_manager_imp(
     FPtr_gctx_set_cptr func_button_set_font,
     FPtr_gctx_set_enum func_button_set_align,
     FPtr_gctx_set_cptr func_button_set_image,
+    FPtr_gctx_set_enum func_button_set_image_pos,
     FPtr_gctx_set_enum func_button_set_state,
     FPtr_gctx_get_enum func_button_get_state,
     FPtr_gctx_set_real32 func_button_set_hpadding,
@@ -58,6 +59,7 @@ _draw2d_api void guictx_append_button_manager_imp(
     func_button_set_font, \
     func_button_set_align, \
     func_button_set_image, \
+    func_button_set_image_pos, \
     func_button_set_state, \
     func_button_get_state, \
     func_button_set_hpadding, \
@@ -80,6 +82,7 @@ _draw2d_api void guictx_append_button_manager_imp(
         FUNC_CHECK_GCTX_SET_CPTR(func_button_set_font, button_type, font_type), \
         FUNC_CHECK_GCTX_SET_ENUM(func_button_set_align, button_type, align_t), \
         FUNC_CHECK_GCTX_SET_CPTR(func_button_set_image, button_type, image_type), \
+        FUNC_CHECK_GCTX_SET_ENUM(func_button_set_image_pos, button_type, enum_t), \
         FUNC_CHECK_GCTX_SET_ENUM(func_button_set_state, button_type, gui_state_t), \
         FUNC_CHECK_GCTX_GET_ENUM(func_button_get_state, button_type, gui_state_t), \
         FUNC_CHECK_GCTX_SET_REAL32(func_button_set_hpadding, button_type), \
@@ -102,6 +105,7 @@ _draw2d_api void guictx_append_button_manager_imp(
             (FPtr_gctx_set_cptr)func_button_set_font, \
             (FPtr_gctx_set_enum)func_button_set_align, \
             (FPtr_gctx_set_cptr)func_button_set_image, \
+            (FPtr_gctx_set_enum)func_button_set_image_pos, \
             (FPtr_gctx_set_enum)func_button_set_state, \
             (FPtr_gctx_get_enum)func_button_get_state, \
             (FPtr_gctx_set_real32)func_button_set_hpadding, \

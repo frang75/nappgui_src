@@ -24,10 +24,9 @@ bool_t _osbutton_text_allowed(const uint32_t flags)
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
-        return TRUE;
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        return FALSE;
+        return TRUE;
     default:
         cassert_default(button_get_type(flags));
     }

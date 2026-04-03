@@ -16,6 +16,7 @@
 #include "oscontrol_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
+#include "../../gui/button.h"
 #include "../osbutton.h"
 #include "../osbutton.inl"
 #include "../osgui.inl"
@@ -43,6 +44,7 @@ struct _osbutton_t
     uint32_t hpadding;
     real32_t textwidth;
     real32_t textheight;
+    button_image_pos_t image_pos;
     GtkWidget *radio;
     Font *fake_font;
     Font *font;
@@ -58,6 +60,64 @@ struct _osbutton_t
 
 static const real32_t i_PUSHBUTTON_EXTRAWIDTH = 2;
 static const real32_t i_CHECKBOX_EXTRAHEIGHT = 2;
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_has_text(const OSButton *button)
+{
+    cassert_no_null(button);
+    return (bool_t)(button->text != NULL && tc(button->text)[0] != '\0');
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_draw_flat_text(const OSButton *button)
+{
+    cassert_no_null(button);
+    return (bool_t)(i_has_text(button) == TRUE && button->image_pos != ekBUTTON_IMAGE_ONLY);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_flat_content_size(const OSButton *button, const real32_t imgw, const real32_t imgh, real32_t *cwidth, real32_t *cheight)
+{
+    const bool_t draw_text = i_draw_flat_text(button);
+    cassert_no_null(button);
+    cassert_no_null(cwidth);
+    cassert_no_null(cheight);
+
+    if (imgw > 0.f && draw_text == TRUE)
+    {
+        switch (button->image_pos)
+        {
+        case ekBUTTON_IMAGE_LEFT:
+        case ekBUTTON_IMAGE_RIGHT:
+            *cwidth = imgw + (real32_t)kBUTTON_IMAGE_SEP + button->textwidth;
+            *cheight = imgh > button->textheight ? imgh : button->textheight;
+            break;
+
+        case ekBUTTON_IMAGE_TOP:
+        case ekBUTTON_IMAGE_BOTTOM:
+            *cwidth = imgw > button->textwidth ? imgw : button->textwidth;
+            *cheight = imgh + (real32_t)kBUTTON_IMAGE_SEP + button->textheight;
+            break;
+
+        case ekBUTTON_IMAGE_ONLY:
+        default:
+            cassert_default(button->image_pos);
+        }
+    }
+    else if (imgw > 0.f)
+    {
+        *cwidth = imgw;
+        *cheight = imgh;
+    }
+    else
+    {
+        *cwidth = button->textwidth;
+        *cheight = button->textheight;
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -90,7 +150,7 @@ static gui_state_t i_get_state(const OSButton *button)
 
     case ekBUTTON_FLATGLE:
     {
-        gboolean active = gtk_toggle_tool_button_get_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget));
+        gboolean active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button->control.widget));
         return active == TRUE ? ekGUI_ON : ekGUI_OFF;
     }
 
@@ -167,23 +227,20 @@ static gboolean i_OnPushDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-static gboolean i_OnLabelDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
+static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 {
     PangoLayout *layout = NULL;
     real32_t bwidth = 0, bheight = 0;
+    const bool_t draw_text = (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE) ? i_draw_flat_text(button) : i_has_text(button);
     cassert_no_null(button);
-    cassert(GTK_IS_LABEL(widget) == TRUE);
     cassert(_osbutton_text_allowed(button->flags) == TRUE);
 
     _oscontrol_widget_get_size(button->control.widget, &bwidth, &bheight);
 
-    /*
-     * Prepare the PangoLayout to render the button text.
-     * Overwrite the 'fake' font by font we want.
-     */
+    if (draw_text == TRUE)
     {
         GdkRGBA color;
-        layout = gtk_label_get_layout(GTK_LABEL(widget));
+        layout = gtk_widget_create_pango_layout(widget, NULL);
         pango_layout_set_font_description(layout, cast(font_native(button->font), PangoFontDescription));
         _oscontrol_to_gdkrgba(ekSYSCOLOR_LABEL, &color);
         cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
@@ -196,75 +253,146 @@ static gboolean i_OnLabelDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
     if (button_get_type(button->flags) == ekBUTTON_PUSH)
     {
         /* In pushbuttons, we have to center the content */
-        real32_t cwidth = button->textwidth + i_PUSHBUTTON_EXTRAWIDTH;
+        real32_t cwidth = draw_text == TRUE ? button->textwidth + i_PUSHBUTTON_EXTRAWIDTH : 0.f;
 
         if (button->image != NULL)
         {
             real32_t imgw = (real32_t)image_width(button->image);
-            cwidth += imgw + (real32_t)kBUTTON_IMAGE_SEP;
-            cairo_translate(cr, imgw + (real32_t)kBUTTON_IMAGE_SEP, 0);
+            if (draw_text == TRUE)
+            {
+                cwidth += imgw + (real32_t)kBUTTON_IMAGE_SEP;
+                cairo_translate(cr, imgw + (real32_t)kBUTTON_IMAGE_SEP, 0);
+            }
+            else
+            {
+                cwidth = imgw;
+            }
         }
 
-        cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - button->textheight - 4) / 2));
+        cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->textheight : 0.f) - 4) / 2));
     }
 
     /* Font scaling */
-    cairo_scale(cr, font_xscale(button->font), 1);
-
-    /* Draw the text */
-    pango_cairo_show_layout(cr, layout);
-
-    /* Draw the image. I don't know why, if I render the image first, text is not shown */
-    if (button->image != NULL)
+    if (draw_text == TRUE && button_get_type(button->flags) != ekBUTTON_FLAT && button_get_type(button->flags) != ekBUTTON_FLATGLE)
     {
-        GdkPixbuf *pixbuf = cast(image_native(button->image), GdkPixbuf);
-        real32_t imgw = (real32_t)image_width(button->image);
-        real32_t imgh = (real32_t)image_height(button->image);
-        cassert(button_get_type(button->flags) == ekBUTTON_PUSH);
-        gdk_cairo_set_source_pixbuf(cr, pixbuf, -(imgw + (real32_t)kBUTTON_IMAGE_SEP), (button->textheight - imgh) / 2);
-        cairo_paint(cr);
+        cairo_scale(cr, font_xscale(button->font), 1);
+        cairo_move_to(cr, 0, 0);
+        pango_cairo_show_layout(cr, layout);
     }
 
-    /*
-     * All is done. Restore Cairo and the fake font.
-     * If Gtk detects the 'real' font will change the button dimensions.
-     */
-    cairo_restore(cr);
-    pango_layout_set_font_description(layout, (PangoFontDescription *)font_native(button->fake_font));
-
-    /* Stop other handlers from being invoked for the event */
-    return TRUE;
-}
-
-/*---------------------------------------------------------------------------*/
-
-static GtkWidget *i_get_gtk_label(GtkWidget *widget)
-{
-    if (GTK_IS_LABEL(widget))
+    if (button_get_type(button->flags) == ekBUTTON_PUSH)
     {
-        return widget;
-    }
-    else if (GTK_IS_CONTAINER(widget))
-    {
-        uint32_t i, n = _oscontrol_num_children(widget);
-        for (i = 0; i < n; ++i)
+        /* Draw the image. I don't know why, if I render the image first, text is not shown */
+        if (button->image != NULL)
         {
-            GtkWidget *child = _oscontrol_get_child(widget, i);
-            GtkWidget *label = i_get_gtk_label(child);
-            if (label != NULL)
-                return label;
+            GdkPixbuf *pixbuf = cast(image_native(button->image), GdkPixbuf);
+            real32_t imgw = (real32_t)image_width(button->image);
+            real32_t imgh = (real32_t)image_height(button->image);
+            real32_t xpos = (draw_text == TRUE) ? -(imgw + (real32_t)kBUTTON_IMAGE_SEP) : 0.f;
+            real32_t ypos = (draw_text == TRUE) ? (button->textheight - imgh) / 2 : 0.f;
+            gdk_cairo_set_source_pixbuf(cr, pixbuf, xpos, ypos);
+            cairo_paint(cr);
+        }
+    }
+    else if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
+    {
+        real32_t imgw = 0.f;
+        real32_t imgh = 0.f;
+        real32_t cwidth = 0.f;
+        real32_t cheight = 0.f;
+        real32_t origin_x = 0.f;
+        real32_t origin_y = 0.f;
+        real32_t image_x = 0.f;
+        real32_t image_y = 0.f;
+        real32_t text_x = 0.f;
+        real32_t text_y = 0.f;
+        const bool_t flat_text = i_draw_flat_text(button);
+
+        if (button->image != NULL)
+        {
+            imgw = (real32_t)image_width(button->image);
+            imgh = (real32_t)image_height(button->image);
         }
 
-        return NULL;
+        i_flat_content_size(button, imgw, imgh, &cwidth, &cheight);
+        origin_x = (bwidth - cwidth) / 2.f;
+        origin_y = (bheight - cheight) / 2.f;
+
+        if (imgw > 0.f && flat_text == TRUE)
+        {
+            switch (button->image_pos)
+            {
+            case ekBUTTON_IMAGE_LEFT:
+                image_x = origin_x;
+                image_y = origin_y + (cheight - imgh) / 2.f;
+                text_x = origin_x + imgw + (real32_t)kBUTTON_IMAGE_SEP;
+                text_y = origin_y + (cheight - button->textheight) / 2.f;
+                break;
+
+            case ekBUTTON_IMAGE_RIGHT:
+                text_x = origin_x;
+                text_y = origin_y + (cheight - button->textheight) / 2.f;
+                image_x = origin_x + button->textwidth + (real32_t)kBUTTON_IMAGE_SEP;
+                image_y = origin_y + (cheight - imgh) / 2.f;
+                break;
+
+            case ekBUTTON_IMAGE_TOP:
+                image_x = origin_x + (cwidth - imgw) / 2.f;
+                image_y = origin_y;
+                text_x = origin_x + (cwidth - button->textwidth) / 2.f;
+                text_y = origin_y + imgh + (real32_t)kBUTTON_IMAGE_SEP;
+                break;
+
+            case ekBUTTON_IMAGE_BOTTOM:
+                text_x = origin_x + (cwidth - button->textwidth) / 2.f;
+                text_y = origin_y;
+                image_x = origin_x + (cwidth - imgw) / 2.f;
+                image_y = origin_y + button->textheight + (real32_t)kBUTTON_IMAGE_SEP;
+                break;
+
+            case ekBUTTON_IMAGE_ONLY:
+            default:
+                cassert_default(button->image_pos);
+            }
+        }
+        else if (imgw > 0.f)
+        {
+            image_x = origin_x;
+            image_y = origin_y;
+        }
+        else
+        {
+            text_x = origin_x;
+            text_y = origin_y;
+        }
+
+        cairo_restore(cr);
+        cairo_save(cr);
+
+        if (flat_text == TRUE)
+        {
+            cairo_translate(cr, text_x, text_y);
+            cairo_scale(cr, font_xscale(button->font), 1);
+            cairo_move_to(cr, 0, 0);
+            pango_cairo_show_layout(cr, layout);
+            cairo_restore(cr);
+            cairo_save(cr);
+        }
+
+        if (button->image != NULL)
+        {
+            GdkPixbuf *pixbuf = cast(image_native(button->image), GdkPixbuf);
+            gdk_cairo_set_source_pixbuf(cr, pixbuf, image_x, image_y);
+            cairo_paint(cr);
+        }
     }
-    else
-    {
-        /*
-        const gchar *ptype = G_OBJECT_TYPE_NAME(widget);
-        printf("TYPE: %s\n", ptype);
-        */
-        return NULL;
-    }
+
+    cairo_restore(cr);
+
+    if (layout != NULL)
+        g_object_unref(layout);
+
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -308,17 +436,29 @@ OSButton *osbutton_create(const uint32_t flags)
         widget = gtk_button_new_with_label("");
         gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
         g_signal_connect(widget, "draw", G_CALLBACK(i_OnPushDraw), button);
+        g_signal_connect_after(widget, "draw", G_CALLBACK(i_OnButtonDraw), button);
+        button->image_pos = ekBUTTON_IMAGE_LEFT;
         focus_widget = widget;
         break;
 
     case ekBUTTON_FLAT:
-        widget = cast(gtk_tool_button_new(NULL, NULL), GtkWidget);
-        focus_widget = gtk_bin_get_child(GTK_BIN(widget));
+        widget = gtk_button_new_with_label("");
+        gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
+        gtk_style_context_add_class(gtk_widget_get_style_context(widget), GTK_STYLE_CLASS_FLAT);
+        g_signal_connect_after(widget, "draw", G_CALLBACK(i_OnButtonDraw), button);
+        button->image_pos = ekBUTTON_IMAGE_ONLY;
+        focus_widget = widget;
         break;
 
     case ekBUTTON_FLATGLE:
-        widget = cast(gtk_toggle_tool_button_new(), GtkWidget);
-        focus_widget = gtk_bin_get_child(GTK_BIN(widget));
+        widget = gtk_toggle_button_new_with_label("");
+        gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
+        gtk_style_context_add_class(gtk_widget_get_style_context(widget), GTK_STYLE_CLASS_FLAT);
+        g_signal_connect_after(widget, "draw", G_CALLBACK(i_OnButtonDraw), button);
+        button->image_pos = ekBUTTON_IMAGE_ONLY;
+        focus_widget = widget;
         break;
 
     case ekBUTTON_RADIO:
@@ -437,6 +577,8 @@ void osbutton_text(OSButton *button, const char_t *text)
     uint32_t pos = UINT32_MAX;
     cassert_no_null(button);
     cassert(_osbutton_text_allowed(button->flags) == TRUE);
+    if (text == NULL)
+        text = "";
     pos = _osgui_underline_gtk_text(text, shortcut, sizeof(shortcut));
     _osgui_underline_markup(shortcut, pos, markup, sizeof(markup));
     _osgui_underline_plain(shortcut, pos, plain, sizeof(plain));
@@ -448,15 +590,10 @@ void osbutton_text(OSButton *button, const char_t *text)
      * The use it just for GTK automatic manage of shortcuts.
      * The button 'real' text will be rendered in 'i_OnLabelDraw'
      */
-    {
-        GtkWidget *label = NULL;
-        gtk_button_set_label(GTK_BUTTON(button->control.widget), shortcut);
-        label = i_get_gtk_label(button->control.widget);
-        if (label != NULL)
-            g_signal_connect(G_OBJECT(label), "draw", G_CALLBACK(i_OnLabelDraw), button);
-    }
+    gtk_button_set_label(GTK_BUTTON(button->control.widget), shortcut);
 
     i_update_text_extents(button);
+    gtk_widget_queue_draw(button->control.widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -494,29 +631,21 @@ void osbutton_align(OSButton *button, const align_t align)
 void osbutton_image(OSButton *button, const Image *image)
 {
     cassert_no_null(button);
-    cassert_no_null(image);
     cassert(_osbutton_image_allowed(button->flags) == TRUE);
     if (button->image != NULL)
         image_destroy(&button->image);
-    button->image = image_copy(image);
+    button->image = ptr_copyopt(image_copy, image, Image);
+    gtk_widget_queue_draw(button->control.widget);
+}
 
-    switch (button_get_type(button->flags))
-    {
-    case ekBUTTON_FLAT:
-    case ekBUTTON_FLATGLE:
-    {
-        const char_t *icon_name = _osgui_register_icon(button->image);
-        gtk_tool_button_set_icon_name(GTK_TOOL_BUTTON(button->control.widget), icon_name);
-        break;
-    }
+/*---------------------------------------------------------------------------*/
 
-    /* In push buttons, image will be rendered in custom 'i_OnLabelDraw()' */
-    case ekBUTTON_PUSH:
-        break;
-
-    default:
-        cassert_default(button_get_type(button->flags));
-    }
+void osbutton_image_pos(OSButton *button, const enum_t pos)
+{
+    cassert_no_null(button);
+    cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
+    button->image_pos = (button_image_pos_t)pos;
+    gtk_widget_queue_draw(button->control.widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -559,7 +688,7 @@ void osbutton_state(OSButton *button, const gui_state_t state)
         break;
 
     case ekBUTTON_FLATGLE:
-        gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(button->control.widget), (state == ekGUI_ON) ? TRUE : FALSE);
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->control.widget), (state == ekGUI_ON) ? TRUE : FALSE);
         break;
 
     default:
@@ -664,16 +793,14 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        if (button->hpadding == UINT32_MAX)
-            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
-        else
-            *width = refwidth + (real32_t)button->hpadding;
-
-        if (button->vpadding == UINT32_MAX)
-            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
-        else
-            *height = refheight + (real32_t)button->vpadding;
+    {
+        real32_t cwidth = 0.f;
+        real32_t cheight = 0.f;
+        i_flat_content_size(button, refwidth, refheight, &cwidth, &cheight);
+        *width = cwidth + (real32_t)button->hpadding;
+        *height = cheight + (real32_t)button->vpadding;
         break;
+    }
 
     default:
         cassert_default(button_get_type(button->flags));
@@ -740,12 +867,9 @@ GtkWidget *_osbutton_focus_widget(OSButton *button)
     case ekBUTTON_RADIO:
     case ekBUTTON_CHECK2:
     case ekBUTTON_CHECK3:
-        return button->control.widget;
-
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        /* The button inside the toolbutton */
-        return gtk_bin_get_child(GTK_BIN(button->control.widget));
+        return button->control.widget;
 
     default:
         cassert_default(button_get_type(button->flags));

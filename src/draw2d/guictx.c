@@ -81,6 +81,7 @@ void guictx_append_button_manager_imp(
     FPtr_gctx_set_cptr func_button_set_font,
     FPtr_gctx_set_enum func_button_set_align,
     FPtr_gctx_set_cptr func_button_set_image,
+    FPtr_gctx_set_enum func_button_set_image_pos,
     FPtr_gctx_set_enum func_button_set_state,
     FPtr_gctx_get_enum func_button_get_state,
     FPtr_gctx_set_real32 func_button_set_hpadding,
@@ -103,6 +104,7 @@ void guictx_append_button_manager_imp(
     cassert(context->func_button_set_font == NULL);
     cassert(context->func_button_set_align == NULL);
     cassert(context->func_button_set_image == NULL);
+    cassert(context->func_button_set_image_pos == NULL);
     cassert(context->func_button_set_state == NULL);
     cassert(context->func_button_get_state == NULL);
     cassert(context->func_button_set_hpadding == NULL);
@@ -123,6 +125,7 @@ void guictx_append_button_manager_imp(
     cassert_no_nullf(func_button_set_font);
     cassert_no_nullf(func_button_set_align);
     cassert_no_nullf(func_button_set_image);
+    cassert_no_nullf(func_button_set_image_pos);
     cassert_no_nullf(func_button_set_state);
     cassert_no_nullf(func_button_get_state);
     cassert_no_nullf(func_button_set_hpadding);
@@ -143,6 +146,7 @@ void guictx_append_button_manager_imp(
     context->func_button_set_font = func_button_set_font;
     context->func_button_set_align = func_button_set_align;
     context->func_button_set_image = func_button_set_image;
+    context->func_button_set_image_pos = func_button_set_image_pos;
     context->func_button_set_state = func_button_set_state;
     context->func_button_get_state = func_button_get_state;
     context->func_button_set_hpadding = func_button_set_hpadding;

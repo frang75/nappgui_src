@@ -27,6 +27,12 @@ static Layout *i_flatbuttons(void)
     button_image(button4, gui_image(EDIT24_PNG));
     button_image(button5, gui_image(PLUS24_PNG));
     button_image(button6, gui_image(ERROR24_PNG));
+    button_image_pos(button1, ekBUTTON_IMAGE_TOP);
+    button_image_pos(button2, ekBUTTON_IMAGE_TOP);
+    button_image_pos(button3, ekBUTTON_IMAGE_TOP);
+    button_image_pos(button4, ekBUTTON_IMAGE_TOP);
+    button_image_pos(button5, ekBUTTON_IMAGE_TOP);
+    button_image_pos(button6, ekBUTTON_IMAGE_TOP);
     layout_button(layout, button1, 0, 0);
     layout_button(layout, button2, 1, 0);
     layout_button(layout, button3, 2, 0);

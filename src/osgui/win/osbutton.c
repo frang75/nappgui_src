@@ -17,6 +17,7 @@
 #include "oswindow_win.inl"
 #include "osimg.inl"
 #include "osstyleXP.inl"
+#include "../../gui/button.h"
 #include "../osbutton.h"
 #include "../osbutton.inl"
 #include "../osgui.inl"
@@ -42,6 +43,7 @@ struct _osbutton_t
     bool_t is_default;
     bool_t can_focus;
     bool_t empty_text;
+    button_image_pos_t image_pos;
     uint16_t id;
     vkey_t key;
     Font *font;
@@ -62,6 +64,56 @@ static double i_LAST_FOCUS_TIME = 0.;
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_draw_flat_text(const OSButton *button)
+{
+    cassert_no_null(button);
+    return (bool_t)(button->empty_text == FALSE && button->image_pos != ekBUTTON_IMAGE_ONLY);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_flat_content_size(const OSButton *button, const real32_t imgw, const real32_t imgh, const real32_t textw, const real32_t texth, real32_t *cwidth, real32_t *cheight)
+{
+    const bool_t draw_text = i_draw_flat_text(button);
+    cassert_no_null(button);
+    cassert_no_null(cwidth);
+    cassert_no_null(cheight);
+
+    if (imgw > 0.f && draw_text == TRUE)
+    {
+        switch (button->image_pos)
+        {
+        case ekBUTTON_IMAGE_LEFT:
+        case ekBUTTON_IMAGE_RIGHT:
+            *cwidth = imgw + 4.f + textw;
+            *cheight = imgh > texth ? imgh : texth;
+            break;
+
+        case ekBUTTON_IMAGE_TOP:
+        case ekBUTTON_IMAGE_BOTTOM:
+            *cwidth = imgw > textw ? imgw : textw;
+            *cheight = imgh + 4.f + texth;
+            break;
+
+        case ekBUTTON_IMAGE_ONLY:
+        default:
+            cassert_default(button->image_pos);
+        }
+    }
+    else if (imgw > 0.f)
+    {
+        *cwidth = imgw;
+        *cheight = imgh;
+    }
+    else
+    {
+        *cwidth = textw;
+        *cheight = texth;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_draw_flat_button(OSButton *button, const Image *image)
 {
     HWND hwnd = NULL;
@@ -72,6 +124,9 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
     RECT border;
     BOOL withXP_style = FALSE;
     BOOL enabled;
+    char_t *text = NULL;
+    uint32_t tsize = 0;
+    real32_t textw = 0.f, texth = 0.f;
 
     cassert_no_null(button);
 
@@ -150,9 +205,105 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
     {
         uint32_t img_w = image_width(image);
         uint32_t img_h = image_height(image);
-        uint32_t offset_x = (uint32_t)(button->width - (LONG)img_w) / 2;
-        uint32_t offset_y = (uint32_t)(button->height - (LONG)img_h) / 2;
-        _osimg_draw(image, memHdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)img_w, (real32_t)img_h, !enabled);
+        real32_t imgw = (real32_t)img_w;
+        real32_t imgh = (real32_t)img_h;
+
+        if (i_draw_flat_text(button) == TRUE)
+        {
+            real32_t cwidth, cheight;
+            real32_t origin_x, origin_y;
+            real32_t image_x = 0.f, image_y = 0.f;
+            real32_t text_x = 0.f, text_y = 0.f;
+            WString wtext;
+            RECT text_rect;
+            UINT flags = DT_LEFT | DT_TOP | DT_SINGLELINE;
+            HGDIOBJ old_font = NULL;
+
+            text = _oscontrol_get_text(cast_const(button, OSControl), &tsize, NULL);
+            font_extents(button->font, text, -1.f, &textw, &texth);
+            i_flat_content_size(button, imgw, imgh, textw, texth, &cwidth, &cheight);
+            origin_x = ((real32_t)button->width - cwidth) / 2.f;
+            origin_y = ((real32_t)button->height - cheight) / 2.f;
+
+            switch (button->image_pos)
+            {
+            case ekBUTTON_IMAGE_LEFT:
+                image_x = origin_x;
+                image_y = origin_y + (cheight - imgh) / 2.f;
+                text_x = origin_x + imgw + 4.f;
+                text_y = origin_y + (cheight - texth) / 2.f;
+                break;
+
+            case ekBUTTON_IMAGE_RIGHT:
+                text_x = origin_x;
+                text_y = origin_y + (cheight - texth) / 2.f;
+                image_x = origin_x + textw + 4.f;
+                image_y = origin_y + (cheight - imgh) / 2.f;
+                break;
+
+            case ekBUTTON_IMAGE_TOP:
+                image_x = origin_x + (cwidth - imgw) / 2.f;
+                image_y = origin_y;
+                text_x = origin_x + (cwidth - textw) / 2.f;
+                text_y = origin_y + imgh + 4.f;
+                break;
+
+            case ekBUTTON_IMAGE_BOTTOM:
+                text_x = origin_x + (cwidth - textw) / 2.f;
+                text_y = origin_y;
+                image_x = origin_x + (cwidth - imgw) / 2.f;
+                image_y = origin_y + texth + 4.f;
+                break;
+
+            case ekBUTTON_IMAGE_ONLY:
+            default:
+                cassert_default(button->image_pos);
+            }
+
+            _osimg_draw(image, memHdc, UINT32_MAX, image_x, image_y, imgw, imgh, !enabled);
+
+            old_font = SelectObject(memHdc, (HFONT)font_native(button->font));
+            SetBkMode(memHdc, TRANSPARENT);
+            SetTextColor(memHdc, GetSysColor(enabled ? COLOR_BTNTEXT : COLOR_GRAYTEXT));
+            if ((SendMessage(hwnd, WM_QUERYUISTATE, (WPARAM)0, (LPARAM)0) & UISF_HIDEACCEL) != 0)
+                flags |= DT_HIDEPREFIX;
+            text_rect.left = (LONG)text_x;
+            text_rect.top = (LONG)text_y;
+            text_rect.right = text_rect.left + (LONG)bmath_ceilf(textw);
+            text_rect.bottom = text_rect.top + (LONG)bmath_ceilf(texth);
+            DrawText(memHdc, _osgui_wstr_init(text, &wtext), -1, &text_rect, flags);
+            _osgui_wstr_remove(&wtext);
+            SelectObject(memHdc, old_font);
+            heap_free(dcast(&text, byte_t), tsize, "OSControlGetText");
+        }
+        else
+        {
+            uint32_t offset_x = (uint32_t)(button->width - (LONG)img_w) / 2;
+            uint32_t offset_y = (uint32_t)(button->height - (LONG)img_h) / 2;
+            _osimg_draw(image, memHdc, UINT32_MAX, (real32_t)offset_x, (real32_t)offset_y, (real32_t)img_w, (real32_t)img_h, !enabled);
+        }
+    }
+    else if (i_draw_flat_text(button) == TRUE)
+    {
+        WString wtext;
+        RECT text_rect;
+        UINT flags = DT_CENTER | DT_VCENTER | DT_SINGLELINE;
+        HGDIOBJ old_font = NULL;
+        text = _oscontrol_get_text(cast_const(button, OSControl), &tsize, NULL);
+        font_extents(button->font, text, -1.f, &textw, &texth);
+        old_font = SelectObject(memHdc, (HFONT)font_native(button->font));
+        SetBkMode(memHdc, TRANSPARENT);
+        SetTextColor(memHdc, GetSysColor(enabled ? COLOR_BTNTEXT : COLOR_GRAYTEXT));
+        if ((SendMessage(hwnd, WM_QUERYUISTATE, (WPARAM)0, (LPARAM)0) & UISF_HIDEACCEL) != 0)
+            flags |= DT_HIDEPREFIX;
+        text_rect.left = 0;
+        text_rect.top = 0;
+        text_rect.right = button->width;
+        text_rect.bottom = button->height;
+        DrawText(memHdc, _osgui_wstr_init(text, &wtext), -1, &text_rect, flags);
+        _osgui_wstr_remove(&wtext);
+        SelectObject(memHdc, old_font);
+        heap_free(dcast(&text, byte_t), tsize, "OSControlGetText");
     }
 
     if (withXP_style == TRUE)
@@ -323,6 +474,10 @@ OSButton *osbutton_create(const uint32_t flags)
     button->is_default = FALSE;
     button->can_focus = TRUE;
     button->empty_text = TRUE;
+    if (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
+        button->image_pos = ekBUTTON_IMAGE_ONLY;
+    else
+        button->image_pos = ekBUTTON_IMAGE_LEFT;
     button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->key = ENUM_MAX(vkey_t);
@@ -374,6 +529,8 @@ void osbutton_text(OSButton *button, const char_t *text)
 {
     cassert_no_null(button);
     cassert(_osbutton_text_allowed(button->flags) == TRUE);
+    if (text == NULL)
+        text = "";
     _oscontrol_set_text(cast(button, OSControl), text);
     button->empty_text = str_empty_c(text);
 
@@ -396,6 +553,9 @@ void osbutton_text(OSButton *button, const char_t *text)
 
         button->key = key;
     }
+
+    if (button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE)
+        InvalidateRect(button->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -458,8 +618,19 @@ void osbutton_image(OSButton *button, const Image *image)
     else
     {
         cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
-        button->image = image_copy(image);
+        button->image = ptr_copyopt(image_copy, image, Image);
+        InvalidateRect(button->control.hwnd, NULL, FALSE);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osbutton_image_pos(OSButton *button, const enum_t pos)
+{
+    cassert_no_null(button);
+    cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
+    button->image_pos = (button_image_pos_t)pos;
+    InvalidateRect(button->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -506,6 +677,9 @@ void osbutton_state(OSButton *button, const gui_state_t state)
 
         SendMessage(button->control.hwnd, BM_SETCHECK, cstate, (LPARAM)0);
     }
+
+    if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
+        InvalidateRect(button->control.hwnd, NULL, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -649,16 +823,42 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        if (button->hpadding == UINT32_MAX)
-            *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
-        else
-            *width = refwidth + (real32_t)button->hpadding;
+    {
+        const bool_t draw_text = (bool_t)(text != NULL && text[0] != '\0' && button->image_pos != ekBUTTON_IMAGE_ONLY);
 
-        if (button->vpadding == UINT32_MAX)
-            *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+        if (draw_text == TRUE)
+        {
+            real32_t textw = 0.f;
+            real32_t texth = 0.f;
+            real32_t cwidth = 0.f;
+            real32_t cheight = 0.f;
+            font_extents(button->font, text, -1.f, &textw, &texth);
+            i_flat_content_size(button, refwidth, refheight, textw, texth, &cwidth, &cheight);
+
+            if (button->hpadding == UINT32_MAX)
+                *width = cwidth + 8.f;
+            else
+                *width = cwidth + (real32_t)button->hpadding;
+
+            if (button->vpadding == UINT32_MAX)
+                *height = cheight + 8.f;
+            else
+                *height = cheight + (real32_t)button->vpadding;
+        }
         else
-            *height = refheight + (real32_t)button->vpadding;
+        {
+            if (button->hpadding == UINT32_MAX)
+                *width = (real32_t)(uint32_t)((refwidth * 1.5f) + .5f);
+            else
+                *width = refwidth + (real32_t)button->hpadding;
+
+            if (button->vpadding == UINT32_MAX)
+                *height = (real32_t)(uint32_t)((refheight * 1.5f) + .5f);
+            else
+                *height = refheight + (real32_t)button->vpadding;
+        }
         break;
+    }
 
     default:
         cassert_default(button_get_type(button->flags));

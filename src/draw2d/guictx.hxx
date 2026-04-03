@@ -719,6 +719,7 @@ struct _guictx_t
     FPtr_gctx_set_cptr func_button_set_font;
     FPtr_gctx_set_enum func_button_set_align;
     FPtr_gctx_set_cptr func_button_set_image;
+    FPtr_gctx_set_enum func_button_set_image_pos;
     FPtr_gctx_set_enum func_button_set_state;
     FPtr_gctx_get_enum func_button_get_state;
     FPtr_gctx_set_real32 func_button_set_hpadding;
