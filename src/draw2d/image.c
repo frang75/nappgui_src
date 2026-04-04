@@ -13,6 +13,7 @@
 #include "image.h"
 #include "image.inl"
 #include "imgutil.inl"
+#include "svg.inl"
 #include "dctx.h"
 #include "draw.h"
 #include "draw.inl"
@@ -38,8 +39,21 @@ struct _image_t
     real32_t *frame_length;
     codec_t codec;
     OSImage *osimage;
+    void *internal_data;
+    FPtr_destroy func_destroy_internal_data;
     void *data;
     FPtr_destroy func_destroy_data;
+};
+
+/*---------------------------------------------------------------------------*/
+
+typedef struct _svg_source_t SvgSource;
+
+struct _svg_source_t
+{
+    Buffer *data;
+    real32_t width;
+    real32_t height;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -52,8 +66,62 @@ static Image *i_create_image(const uint32_t num_instances, const uint32_t num_fr
     image->frame_length = ptr_dget(frame_length, real32_t);
     image->codec = codec;
     image->osimage = ptr_dget_no_null(osimage, OSImage);
+    image->internal_data = NULL;
+    image->func_destroy_internal_data = NULL;
     image->data = NULL;
     image->func_destroy_data = NULL;
+    return image;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_svg_source(void **data)
+{
+    SvgSource *source = cast(*data, SvgSource);
+    cassert_no_null(source);
+    buffer_destroy(&source->data);
+    heap_delete(dcast(data, SvgSource), SvgSource);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_attach_svg_source(Image *image, const byte_t *data, const uint32_t size, const real32_t width, const real32_t height)
+{
+    SvgSource *source = NULL;
+    cassert_no_null(image);
+    cassert_no_null(data);
+    cassert(image->internal_data == NULL);
+    cassert(image->func_destroy_internal_data == NULL);
+    source = heap_new(SvgSource);
+    source->data = buffer_with_data(data, size);
+    source->width = width;
+    source->height = height;
+    image->internal_data = source;
+    image->func_destroy_internal_data = i_destroy_svg_source;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Image *i_image_from_svg(const byte_t *data, const uint32_t size, const uint32_t width, const uint32_t height, const codec_t codec)
+{
+    Image *image = NULL;
+    Pixbuf *pixbuf = NULL;
+    real32_t svg_width = 0.f;
+    real32_t svg_height = 0.f;
+
+    pixbuf = _svg_render(data, size, width, height, &svg_width, &svg_height);
+    if (pixbuf == NULL)
+        return NULL;
+
+    image = image_from_pixbuf(pixbuf, NULL);
+    pixbuf_destroy(&pixbuf);
+
+    if (image != NULL)
+    {
+        i_attach_svg_source(image, data, size, svg_width, svg_height);
+        image_codec(image, codec);
+    }
+
     return image;
 }
 
@@ -69,6 +137,12 @@ void image_destroy(Image **image)
 
         if ((*image)->frame_length != NULL)
             heap_free(dcast(&(*image)->frame_length, byte_t), (*image)->num_frames * sizeof32(real32_t), "ImageFrames");
+
+        if ((*image)->internal_data != NULL)
+        {
+            cassert((*image)->func_destroy_internal_data != NULL);
+            (*image)->func_destroy_internal_data(&(*image)->internal_data);
+        }
 
         if ((*image)->data != NULL)
         {
@@ -241,13 +315,19 @@ Image *image_from_file(const char_t *pathname, ferror_t *error)
 
 Image *image_from_data(const byte_t *data, const uint32_t size)
 {
-    codec_t codec = i_codec(data[0]);
-    if (codec != ENUM_MAX(codec_t))
+    if (size > 0)
     {
-        OSImage *osimage = NULL;
-        real32_t *frame_length = NULL;
-        osimage = osimage_create_from_data(data, size);
-        return i_create_image(1, PARAM(num_frames, 0), &frame_length, codec, &osimage);
+        codec_t codec = i_codec(data[0]);
+        if (codec != ENUM_MAX(codec_t))
+        {
+            OSImage *osimage = NULL;
+            real32_t *frame_length = NULL;
+            osimage = osimage_create_from_data(data, size);
+            return i_create_image(1, PARAM(num_frames, 0), &frame_length, codec, &osimage);
+        }
+
+        if (_svg_is_data(data, size) == TRUE)
+            return i_image_from_svg(data, size, UINT32_MAX, UINT32_MAX, ekPNG);
     }
 
     return NULL;
@@ -320,6 +400,20 @@ static void i_rotated_image_size(const T2Df *t2d, const uint32_t width, const ui
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_same_aspect(const real32_t width1, const real32_t height1, const uint32_t width2, const uint32_t height2)
+{
+    real32_t v1, v2, diff, maxv;
+    if (width1 <= 0.f || height1 <= 0.f || width2 == 0 || height2 == 0)
+        return FALSE;
+    v1 = width1 * (real32_t)height2;
+    v2 = height1 * (real32_t)width2;
+    diff = v1 > v2 ? v1 - v2 : v2 - v1;
+    maxv = v1 > v2 ? v1 : v2;
+    return (bool_t)((diff / maxv) < .001f);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Image *image_rotate(const Image *image, const real32_t angle, const bool_t nsize, const color_t background, T2Df *t2dc)
 {
     uint32_t width, height;
@@ -388,8 +482,20 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
 
     if (current_width != width || current_height != height)
     {
+        SvgSource *source = cast(image->internal_data, SvgSource);
         OSImage *osimage = NULL;
         real32_t *frame_length = NULL;
+
+        if (source != NULL)
+        {
+            if (nwidth == UINT32_MAX || nheight == UINT32_MAX || i_same_aspect(source->width, source->height, width, height) == TRUE)
+            {
+                Image *svg_image = i_image_from_svg(buffer_const(source->data), buffer_size(source->data), width, height, image->codec);
+                if (svg_image != NULL)
+                    return svg_image;
+            }
+        }
+
         cassert_no_null(image);
         osimage = osimage_create_scaled(image->osimage, width, height);
         return i_create_image(1, PARAM(num_frames, 0), &frame_length, image->codec, &osimage);
@@ -405,35 +511,36 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
 
 Image *image_read(Stream *stm)
 {
-    if (stm_is_memory(stm) == TRUE)
-    {
-        const byte_t *data = stm_buffer(stm);
-        uint64_t st = stm_bytes_readed(stm);
+    byte_t block[4096];
+    Stream *stm_out = NULL;
+    Image *image = NULL;
+    cassert_no_null(stm);
+    stm_out = stm_memory(4096);
 
-        if (_imgutil_parse(stm, NULL) == TRUE)
+    for (;;)
+    {
+        uint32_t n = stm_read(stm, block, sizeof32(block));
+        if (n > 0)
+            stm_write(stm_out, block, n);
+
+        if (n < sizeof32(block))
         {
-            uint64_t ed = stm_bytes_readed(stm);
-            return image_from_data(data, (uint32_t)(ed - st));
-        }
-        else
-        {
-            return NULL;
+            sstate_t state = stm_state(stm);
+            if (state != ekSTOK && state != ekSTEND)
+            {
+                stm_close(&stm_out);
+                return NULL;
+            }
+
+            break;
         }
     }
-    else
-    {
-        Image *image = NULL;
-        Stream *stm_out = stm_memory(4096);
-        if (_imgutil_parse(stm, stm_out) == TRUE)
-        {
-            const byte_t *data = stm_buffer(stm_out);
-            uint32_t size = stm_buffer_size(stm_out);
-            image = image_from_data(data, size);
-        }
 
-        stm_close(&stm_out);
-        return image;
-    }
+    if (stm_buffer_size(stm_out) > 0)
+        image = image_from_data(stm_buffer(stm_out), stm_buffer_size(stm_out));
+
+    stm_close(&stm_out);
+    return image;
 }
 
 /*---------------------------------------------------------------------------*/

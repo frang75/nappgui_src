@@ -646,33 +646,62 @@ static void i_text_raster(DCtx *ctx, const real32_t xscale, const real32_t text_
 
 /*---------------------------------------------------------------------------*/
 
-static void i_image(DCtx *ctx)
+static void i_image_box(DCtx *ctx, const Font *title_font, const Font *meta_font, const Image *image, const char_t *title, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+{
+    const real32_t title_height = 40;
+    String *caption = str_printf("%u x %u", image_width(image), image_height(image));
+    cassert_no_null(ctx);
+    cassert_no_null(title_font);
+    cassert_no_null(meta_font);
+    cassert_no_null(image);
+    cassert_no_null(caption);
+    draw_fill_color(ctx, color_rgb(240, 243, 246));
+    draw_line_color(ctx, color_rgb(188, 196, 205));
+    draw_line_width(ctx, 1);
+    draw_rect(ctx, ekSKFILL, x, y, width, height);
+    draw_text_width(ctx, width - 20);
+    draw_text_trim(ctx, ekELLIPEND);
+    draw_font(ctx, title_font);
+    draw_text_color(ctx, color_rgb(52, 63, 72));
+    draw_text(ctx, title, x + 10, y + 7);
+    draw_font(ctx, meta_font);
+    draw_text_color(ctx, color_rgb(106, 117, 126));
+    draw_text(ctx, tc(caption), x + 10, y + 22);
+    draw_text_width(ctx, -1);
+    draw_text_trim(ctx, ekELLIPNONE);
+    draw_image_align(ctx, ekCENTER, ekCENTER);
+    draw_image(ctx, image, x + width / 2, y + title_height + (height - title_height) / 2);
+    draw_image_align(ctx, ekLEFT, ekTOP);
+    str_destroy(&caption);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_image(DCtx *ctx, const real32_t slider)
 {
     ResPack *pack = res_drawhello_respack("");
-    const Image *image = image_from_resource(pack, IMAGE_PNG);
-    T2Df matrix;
+    const Image *png = image_from_resource(pack, IMAGE_PNG);
+    const Image *svg = image_from_resource(pack, IMAGE_SVG);
+    uint32_t dynamic_width = 40 + (uint32_t)(slider * 120.f + .5f);
+    Image *png_scaled = image_scale(png, 180, UINT32_MAX);
+    Image *svg_small = image_scale(svg, 32, UINT32_MAX);
+    Image *svg_slider = image_scale(svg, dynamic_width, UINT32_MAX);
+    Image *svg_large = image_scale(svg, 160, UINT32_MAX);
+    Font *title_font = font_system(13.f, 0);
+    Font *meta_font = font_system(11.f, 0);
 
-    draw_image_align(ctx, ekLEFT, ekTOP);
-    draw_image(ctx, image, 25, 25);
-    t2d_movef(&matrix, kT2D_IDENTf, 300, 200);
-    t2d_rotatef(&matrix, &matrix, kBMATH_PIf / 8);
-    draw_image_align(ctx, ekCENTER, ekCENTER);
-    draw_matrixf(ctx, &matrix);
-    draw_image(ctx, image, 0, 0);
-    draw_matrixf(ctx, kT2D_IDENTf);
-    draw_image_align(ctx, ekRIGHT, ekTOP);
-    draw_image(ctx, image, 575, 25);
-    draw_image_align(ctx, ekLEFT, ekBOTTOM);
-    draw_image(ctx, image, 25, 375);
-    draw_image_align(ctx, ekRIGHT, ekBOTTOM);
-    draw_image(ctx, image, 575, 375);
+    i_image_box(ctx, title_font, meta_font, png_scaled, "PNG resource", 20, 20, 270, 150);
+    i_image_box(ctx, title_font, meta_font, svg, "SVG resource", 310, 20, 270, 150);
+    i_image_box(ctx, title_font, meta_font, svg_small, "SVG 32 px", 20, 190, 170, 190);
+    i_image_box(ctx, title_font, meta_font, svg_slider, "SVG slider", 215, 190, 170, 190);
+    i_image_box(ctx, title_font, meta_font, svg_large, "SVG 160 px", 410, 190, 170, 190);
 
-    draw_fill_color(ctx, kCOLOR_BLUE);
-    draw_circle(ctx, ekFILL, 25, 25, 3);
-    draw_circle(ctx, ekFILL, 300, 200, 3);
-    draw_circle(ctx, ekFILL, 575, 25, 3);
-    draw_circle(ctx, ekFILL, 25, 375, 3);
-    draw_circle(ctx, ekFILL, 575, 375, 3);
+    font_destroy(&title_font);
+    font_destroy(&meta_font);
+    image_destroy(&svg_large);
+    image_destroy(&svg_slider);
+    image_destroy(&svg_small);
+    image_destroy(&png_scaled);
     respack_destroy(&pack);
 }
 
@@ -735,7 +764,7 @@ static void i_OnDraw(App *app, Event *e)
         i_text_raster(p->ctx, slider1_pos + .5f, 100 + 200 * (-.5f + slider2_pos), text_trim, text_align);
         break;
     case 13:
-        i_image(p->ctx);
+        i_image(p->ctx, slider1_pos);
         break;
     default:
         cassert_default(app->option);
@@ -826,7 +855,8 @@ static void i_set_demo(App *app, const uint32_t option)
         cell_enabled(app->popup_align, TRUE);
         break;
     case 13:
-        label_text(app->label, "Drawing images with alignment");
+        label_text(app->label, "PNG and SVG resources. The slider changes the SVG target width and rerasterizes it with image_scale().");
+        cell_enabled(app->slider1, TRUE);
         break;
     default:
         cassert_default(app->option);
@@ -897,7 +927,7 @@ static Panel *i_panel(App *app)
     popup_add_elem(popup1, "Text-3", NULL);
     popup_add_elem(popup1, "Text-4", NULL);
     popup_add_elem(popup1, "Text-5", NULL);
-    popup_add_elem(popup1, "Image", NULL);
+    popup_add_elem(popup1, "Image/SVG", NULL);
     popup_list_height(popup1, 6);
     popup_add_elem(popup2, "No trim", NULL);
     popup_add_elem(popup2, "Ellip begin", NULL);
