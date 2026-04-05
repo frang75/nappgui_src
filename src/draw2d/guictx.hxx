@@ -65,6 +65,15 @@ typedef enum _gui_orient_t
     ekGUI_VERTICAL
 } gui_orient_t;
 
+typedef enum _gui_pos_t
+{
+    ekGUI_POS_NONE = 1,
+    ekGUI_POS_LEFT,
+    ekGUI_POS_TOP,
+    ekGUI_POS_RIGHT,
+    ekGUI_POS_BOTTOM
+} gui_pos_t;
+
 typedef enum _gui_state_t
 {
     ekGUI_OFF = 0,

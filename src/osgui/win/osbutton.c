@@ -17,7 +17,6 @@
 #include "oswindow_win.inl"
 #include "osimg.inl"
 #include "osstyleXP.inl"
-#include "../../gui/button.h"
 #include "../osbutton.h"
 #include "../osbutton.inl"
 #include "../osgui.inl"
@@ -43,7 +42,7 @@ struct _osbutton_t
     bool_t is_default;
     bool_t can_focus;
     bool_t empty_text;
-    button_image_pos_t image_pos;
+    gui_pos_t image_pos;
     uint16_t id;
     vkey_t key;
     Font *font;
@@ -67,7 +66,7 @@ static double i_LAST_FOCUS_TIME = 0.;
 static bool_t i_draw_flat_text(const OSButton *button)
 {
     cassert_no_null(button);
-    return (bool_t)(button->empty_text == FALSE && button->image_pos != ekBUTTON_IMAGE_ONLY);
+    return (bool_t)(button->empty_text == FALSE && button->image_pos != ekGUI_POS_NONE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -83,19 +82,19 @@ static void i_flat_content_size(const OSButton *button, const real32_t imgw, con
     {
         switch (button->image_pos)
         {
-        case ekBUTTON_IMAGE_LEFT:
-        case ekBUTTON_IMAGE_RIGHT:
+        case ekGUI_POS_LEFT:
+        case ekGUI_POS_RIGHT:
             *cwidth = imgw + 4.f + textw;
             *cheight = imgh > texth ? imgh : texth;
             break;
 
-        case ekBUTTON_IMAGE_TOP:
-        case ekBUTTON_IMAGE_BOTTOM:
+        case ekGUI_POS_TOP:
+        case ekGUI_POS_BOTTOM:
             *cwidth = imgw > textw ? imgw : textw;
             *cheight = imgh + 4.f + texth;
             break;
 
-        case ekBUTTON_IMAGE_ONLY:
+        case ekGUI_POS_NONE:
         default:
             cassert_default(button->image_pos);
         }
@@ -227,35 +226,35 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
 
             switch (button->image_pos)
             {
-            case ekBUTTON_IMAGE_LEFT:
+            case ekGUI_POS_LEFT:
                 image_x = origin_x;
                 image_y = origin_y + (cheight - imgh) / 2.f;
                 text_x = origin_x + imgw + 4.f;
                 text_y = origin_y + (cheight - texth) / 2.f;
                 break;
 
-            case ekBUTTON_IMAGE_RIGHT:
+            case ekGUI_POS_RIGHT:
                 text_x = origin_x;
                 text_y = origin_y + (cheight - texth) / 2.f;
                 image_x = origin_x + textw + 4.f;
                 image_y = origin_y + (cheight - imgh) / 2.f;
                 break;
 
-            case ekBUTTON_IMAGE_TOP:
+            case ekGUI_POS_TOP:
                 image_x = origin_x + (cwidth - imgw) / 2.f;
                 image_y = origin_y;
                 text_x = origin_x + (cwidth - textw) / 2.f;
                 text_y = origin_y + imgh + 4.f;
                 break;
 
-            case ekBUTTON_IMAGE_BOTTOM:
+            case ekGUI_POS_BOTTOM:
                 text_x = origin_x + (cwidth - textw) / 2.f;
                 text_y = origin_y;
                 image_x = origin_x + (cwidth - imgw) / 2.f;
                 image_y = origin_y + texth + 4.f;
                 break;
 
-            case ekBUTTON_IMAGE_ONLY:
+            case ekGUI_POS_NONE:
             default:
                 cassert_default(button->image_pos);
             }
@@ -475,9 +474,9 @@ OSButton *osbutton_create(const uint32_t flags)
     button->can_focus = TRUE;
     button->empty_text = TRUE;
     if (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
-        button->image_pos = ekBUTTON_IMAGE_ONLY;
+        button->image_pos = ekGUI_POS_NONE;
     else
-        button->image_pos = ekBUTTON_IMAGE_LEFT;
+        button->image_pos = ekGUI_POS_LEFT;
     button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->key = ENUM_MAX(vkey_t);
@@ -625,11 +624,11 @@ void osbutton_image(OSButton *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_image_pos(OSButton *button, const enum_t pos)
+void osbutton_image_pos(OSButton *button, const gui_pos_t pos)
 {
     cassert_no_null(button);
     cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
-    button->image_pos = (button_image_pos_t)pos;
+    button->image_pos = pos;
     InvalidateRect(button->control.hwnd, NULL, FALSE);
 }
 
@@ -824,7 +823,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
     {
-        const bool_t draw_text = (bool_t)(text != NULL && text[0] != '\0' && button->image_pos != ekBUTTON_IMAGE_ONLY);
+        const bool_t draw_text = (bool_t)(text != NULL && text[0] != '\0' && button->image_pos != ekGUI_POS_NONE);
 
         if (draw_text == TRUE)
         {

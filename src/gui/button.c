@@ -42,7 +42,7 @@ struct _button_t
     String *talt;
     Image *image;
     Image *imalt;
-    button_image_pos_t image_pos;
+    gui_pos_t image_pos;
     Listener *OnClick;
 };
 
@@ -91,7 +91,7 @@ static void i_update_flat_text(Button *button, const gui_state_t state)
     cassert_no_null(button);
     cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
 
-    if (button->image_pos == ekBUTTON_IMAGE_ONLY)
+    if (button->image_pos == ekGUI_POS_NONE)
     {
         button->component.context->func_button_set_text(button->component.ositem, NULL);
         tooltip = text;
@@ -258,9 +258,9 @@ static Button *i_create(const uint32_t flags, const align_t halign)
     button->text = str_c("");
     button->min_width = 0;
     if (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
-        button->image_pos = ekBUTTON_IMAGE_ONLY;
+        button->image_pos = ekGUI_POS_NONE;
     else
-        button->image_pos = ekBUTTON_IMAGE_LEFT;
+        button->image_pos = ekGUI_POS_LEFT;
 
     if (button_get_type(flags) != ekBUTTON_FLAT && button_get_type(flags) != ekBUTTON_FLATGLE)
     {
@@ -422,11 +422,11 @@ void button_image_alt(Button *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-void button_image_pos(Button *button, const button_image_pos_t pos)
+void button_image_pos(Button *button, const gui_pos_t pos)
 {
     cassert_no_null(button);
     cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
-    cassert(pos >= ekBUTTON_IMAGE_ONLY && pos <= ekBUTTON_IMAGE_BOTTOM);
+    cassert(pos >= ekGUI_POS_NONE && pos <= ekGUI_POS_BOTTOM);
     button->image_pos = pos;
     button->component.context->func_button_set_image_pos(button->component.ositem, (enum_t)pos);
     i_update_text(button);
@@ -568,7 +568,7 @@ void _button_natural(Button *button, const uint32_t i, real32_t *dim0, real32_t 
         }
         else
         {
-            const char_t *text = button->image_pos == ekBUTTON_IMAGE_ONLY ? NULL : tc(button->text);
+            const char_t *text = button->image_pos == ekGUI_POS_NONE ? NULL : tc(button->text);
             i_flat_natural_bounds(button, text, button->image, &button->size.width, &button->size.height);
 
             if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
@@ -578,7 +578,7 @@ void _button_natural(Button *button, const uint32_t i, real32_t *dim0, real32_t 
                 real32_t alt_width = 0;
                 real32_t alt_height = 0;
 
-                if (button->image_pos != ekBUTTON_IMAGE_ONLY && button->talt != NULL)
+                if (button->image_pos != ekGUI_POS_NONE && button->talt != NULL)
                     alt_text = tc(button->talt);
 
                 if (button->imalt != NULL)

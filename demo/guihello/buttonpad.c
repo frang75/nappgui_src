@@ -88,9 +88,9 @@ static Layout *i_flatpadding_layout(void)
     button_image_alt(button2, gui_image(SEARCH24_PNG));
     button_image(button3, gui_image(FOLDER24_PNG));
     button_image_alt(button3, gui_image(ERROR24_PNG));
-    button_image_pos(button1, ekBUTTON_IMAGE_TOP);
-    button_image_pos(button2, ekBUTTON_IMAGE_TOP);
-    button_image_pos(button3, ekBUTTON_IMAGE_TOP);
+    button_image_pos(button1, ekGUI_POS_TOP);
+    button_image_pos(button2, ekGUI_POS_TOP);
+    button_image_pos(button3, ekGUI_POS_TOP);
     button_hpadding(button2, 0);
     button_vpadding(button2, 0);
     button_hpadding(button3, 30);

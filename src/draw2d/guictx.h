@@ -82,7 +82,7 @@ _draw2d_api void guictx_append_button_manager_imp(
         FUNC_CHECK_GCTX_SET_CPTR(func_button_set_font, button_type, font_type), \
         FUNC_CHECK_GCTX_SET_ENUM(func_button_set_align, button_type, align_t), \
         FUNC_CHECK_GCTX_SET_CPTR(func_button_set_image, button_type, image_type), \
-        FUNC_CHECK_GCTX_SET_ENUM(func_button_set_image_pos, button_type, enum_t), \
+        FUNC_CHECK_GCTX_SET_ENUM(func_button_set_image_pos, button_type, gui_pos_t), \
         FUNC_CHECK_GCTX_SET_ENUM(func_button_set_state, button_type, gui_state_t), \
         FUNC_CHECK_GCTX_GET_ENUM(func_button_get_state, button_type, gui_state_t), \
         FUNC_CHECK_GCTX_SET_REAL32(func_button_set_hpadding, button_type), \

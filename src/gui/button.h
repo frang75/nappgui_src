@@ -15,15 +15,6 @@
 
 __EXTERN_C
 
-typedef enum _button_image_pos_t
-{
-    ekBUTTON_IMAGE_ONLY = 1,
-    ekBUTTON_IMAGE_LEFT,
-    ekBUTTON_IMAGE_TOP,
-    ekBUTTON_IMAGE_RIGHT,
-    ekBUTTON_IMAGE_BOTTOM
-} button_image_pos_t;
-
 _gui_api Button *button_push(void);
 
 _gui_api Button *button_check(void);
@@ -52,7 +43,7 @@ _gui_api void button_image(Button *button, const Image *image);
 
 _gui_api void button_image_alt(Button *button, const Image *image);
 
-_gui_api void button_image_pos(Button *button, const button_image_pos_t pos);
+_gui_api void button_image_pos(Button *button, const gui_pos_t pos);
 
 _gui_api void button_state(Button *button, const gui_state_t state);
 

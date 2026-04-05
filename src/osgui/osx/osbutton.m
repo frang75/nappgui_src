@@ -16,7 +16,6 @@
 #include "oswindow_osx.inl"
 #include "osgui_osx.inl"
 #include "osglobals.inl"
-#include "../../gui/button.h"
 #include "../osbutton.h"
 #include "../osbutton.inl"
 #include "../osgui.inl"
@@ -41,7 +40,7 @@
     uint32_t flags;
     gui_size_t size;
     real32_t text_width;
-    button_image_pos_t image_pos;
+    gui_pos_t image_pos;
     Image *image;
 }
 @end
@@ -822,7 +821,7 @@ static NSCellImagePosition i_flat_image_pos(OSXButton *button, OSXButtonCell *ce
     BOOL has_image = [cell image] != nil ? YES : NO;
     BOOL has_text = [[button title] length] > 0 ? YES : NO;
 
-    if (cell->image_pos == ekBUTTON_IMAGE_ONLY || has_text == NO)
+    if (cell->image_pos == ekGUI_POS_NONE || has_text == NO)
         return NSImageOnly;
 
     if (has_image == NO)
@@ -830,15 +829,15 @@ static NSCellImagePosition i_flat_image_pos(OSXButton *button, OSXButtonCell *ce
 
     switch (cell->image_pos)
     {
-    case ekBUTTON_IMAGE_LEFT:
+    case ekGUI_POS_LEFT:
         return NSImageLeft;
-    case ekBUTTON_IMAGE_TOP:
+    case ekGUI_POS_TOP:
         return NSImageAbove;
-    case ekBUTTON_IMAGE_RIGHT:
+    case ekGUI_POS_RIGHT:
         return NSImageRight;
-    case ekBUTTON_IMAGE_BOTTOM:
+    case ekGUI_POS_BOTTOM:
         return NSImageBelow;
-    case ekBUTTON_IMAGE_ONLY:
+    case ekGUI_POS_NONE:
         return NSImageOnly;
     default:
         cassert_default(cell->image_pos);
@@ -928,7 +927,7 @@ OSButton *osbutton_create(const uint32_t flags)
     _oscontrol_init(button);
     cell = [[OSXButtonCell alloc] init];
     cell->flags = button->flags;
-    cell->image_pos = (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE) ? ekBUTTON_IMAGE_ONLY : ekBUTTON_IMAGE_LEFT;
+    cell->image_pos = (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE) ? ekGUI_POS_NONE : ekGUI_POS_LEFT;
     cell->image = NULL;
     [button setCell:cell];
     [button setTarget:button];
@@ -1089,13 +1088,13 @@ void osbutton_image(OSButton *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
-void osbutton_image_pos(OSButton *button, const enum_t pos)
+void osbutton_image_pos(OSButton *button, const gui_pos_t pos)
 {
     OSXButton *lbutton = cast(button, OSXButton);
     OSXButtonCell *cell = [lbutton cell];
     cassert_no_null(lbutton);
     cassert(button_get_type(cell->flags) == ekBUTTON_FLAT || button_get_type(cell->flags) == ekBUTTON_FLATGLE);
-    cell->image_pos = (button_image_pos_t)pos;
+    cell->image_pos = pos;
     i_apply_flat_image_pos(lbutton);
 }
 
@@ -1285,7 +1284,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_FLATGLE:
     {
         OSXButtonCell *cell = [lbutton cell];
-        const bool_t draw_text = (bool_t)(text != NULL && text[0] != '\0' && cell->image_pos != ekBUTTON_IMAGE_ONLY);
+        const bool_t draw_text = (bool_t)(text != NULL && text[0] != '\0' && cell->image_pos != ekGUI_POS_NONE);
 
         if (draw_text == TRUE)
         {
@@ -1297,19 +1296,19 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
             {
                 switch (cell->image_pos)
                 {
-                case ekBUTTON_IMAGE_LEFT:
-                case ekBUTTON_IMAGE_RIGHT:
+                case ekGUI_POS_LEFT:
+                case ekGUI_POS_RIGHT:
                     *width = refwidth + i_BUTTON_IMAGE_SEP + twidth;
                     *height = refheight > theight ? refheight : theight;
                     break;
 
-                case ekBUTTON_IMAGE_TOP:
-                case ekBUTTON_IMAGE_BOTTOM:
+                case ekGUI_POS_TOP:
+                case ekGUI_POS_BOTTOM:
                     *width = refwidth > twidth ? refwidth : twidth;
                     *height = refheight + i_BUTTON_IMAGE_SEP + theight;
                     break;
 
-                case ekBUTTON_IMAGE_ONLY:
+                case ekGUI_POS_NONE:
                 default:
                     cassert_default(cell->image_pos);
                 }
