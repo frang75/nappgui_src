@@ -32,8 +32,11 @@ void _dctx_init(DCtx *ctx, const bool_t reset)
         draw_line_width(ctx, 1);
         draw_line_cap(ctx, ekLCFLAT);
         draw_line_join(ctx, ekLJMITER);
+        draw_line_miter_limit(ctx, 10);
         draw_line_dash(ctx, NULL, 0);
+        draw_line_dash_offset(ctx, 0);
         draw_fill_color(ctx, kCOLOR_BLACK);
+        draw_fill_rule(ctx, ekFILLNONZERO);
         draw_fill_matrix(ctx, kT2D_IDENTf);
         draw_fill_wrap(ctx, ekFCLAMP);
         draw_font(ctx, font);

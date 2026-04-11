@@ -24,7 +24,8 @@
 typedef enum _fillmode_t
 {
     ekFILL_SOLID,
-    ekFILL_LINEAR
+    ekFILL_LINEAR,
+    ekFILL_RADIAL
 } fillmode_t;
 
 struct _dctx_t
@@ -49,17 +50,24 @@ struct _dctx_t
     real32_t gradient_y0;
     real32_t gradient_x1;
     real32_t gradient_y1;
+    real32_t gradient_r0;
+    real32_t gradient_r1;
     CGFloat gradient_rx0;
     CGFloat gradient_ry0;
     CGFloat gradient_rx1;
     CGFloat gradient_ry1;
+    CGFloat gradient_rr0;
+    CGFloat gradient_rr1;
     fillwrap_t wrap;
     fillmode_t fillmode;
+    fillrule_t fill_rule;
     CGFloat line_width;
     CGLineCap linecap;
     CGLineJoin linejoin;
+    CGFloat miter_limit;
     CGFloat line_dash[16];
     uint32_t dash_count;
+    CGFloat dash_offset;
     real32_t text_width;
     ellipsis_t ellipsis;
     align_t text_halign;
