@@ -41,8 +41,8 @@ struct _osbutton_t
     bool_t is_default;
     uint32_t vpadding;
     uint32_t hpadding;
-    real32_t textwidth;
-    real32_t textheight;
+    real32_t twidth;
+    real32_t theight;
     gui_pos_t image_pos;
     GtkWidget *radio;
     Font *fake_font;
@@ -65,7 +65,7 @@ static const real32_t i_CHECKBOX_EXTRAHEIGHT = 2;
 static bool_t i_has_text(const OSButton *button)
 {
     cassert_no_null(button);
-    return (bool_t)(button->text != NULL && tc(button->text)[0] != '\0');
+    return !str_empty(button->text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -78,27 +78,27 @@ static bool_t i_draw_flat_text(const OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_flat_content_size(const OSButton *button, const real32_t imgw, const real32_t imgh, real32_t *cwidth, real32_t *cheight)
+static void i_flat_content_size(const OSButton *button, const real32_t imgw, const real32_t imgh, const real32_t twidth, const real32_t theight, real32_t *cwidth, real32_t *cheight)
 {
     const bool_t draw_text = i_draw_flat_text(button);
     cassert_no_null(button);
     cassert_no_null(cwidth);
     cassert_no_null(cheight);
 
-    if (imgw > 0.f && draw_text == TRUE)
+    if (imgw > 0 && draw_text == TRUE)
     {
         switch (button->image_pos)
         {
         case ekGUI_POS_LEFT:
         case ekGUI_POS_RIGHT:
-            *cwidth = imgw + (real32_t)kBUTTON_IMAGE_SEP + button->textwidth;
-            *cheight = imgh > button->textheight ? imgh : button->textheight;
+            *cwidth = imgw + (real32_t)kBUTTON_IMAGE_SEP + twidth;
+            *cheight = imgh > button->theight ? imgh : theight;
             break;
 
         case ekGUI_POS_TOP:
         case ekGUI_POS_BOTTOM:
-            *cwidth = imgw > button->textwidth ? imgw : button->textwidth;
-            *cheight = imgh + (real32_t)kBUTTON_IMAGE_SEP + button->textheight;
+            *cwidth = imgw > button->twidth ? imgw : twidth;
+            *cheight = imgh + (real32_t)kBUTTON_IMAGE_SEP + theight;
             break;
 
         case ekGUI_POS_NONE:
@@ -106,15 +106,15 @@ static void i_flat_content_size(const OSButton *button, const real32_t imgw, con
             cassert_default(button->image_pos);
         }
     }
-    else if (imgw > 0.f)
+    else if (imgw > 0)
     {
         *cwidth = imgw;
         *cheight = imgh;
     }
     else
     {
-        *cwidth = button->textwidth;
-        *cheight = button->textheight;
+        *cwidth = twidth;
+        *cheight = theight;
     }
 }
 
@@ -252,7 +252,7 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
     if (button_get_type(button->flags) == ekBUTTON_PUSH)
     {
         /* In pushbuttons, we have to center the content */
-        real32_t cwidth = draw_text == TRUE ? button->textwidth + i_PUSHBUTTON_EXTRAWIDTH : 0.f;
+        real32_t cwidth = draw_text == TRUE ? button->twidth + i_PUSHBUTTON_EXTRAWIDTH : 0.f;
 
         if (button->image != NULL)
         {
@@ -268,7 +268,7 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
             }
         }
 
-        cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->textheight : 0.f) - 4) / 2));
+        cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->theight : 0.f) - 4) / 2));
     }
 
     /* Font scaling */
@@ -288,7 +288,7 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
             real32_t imgw = (real32_t)image_width(button->image);
             real32_t imgh = (real32_t)image_height(button->image);
             real32_t xpos = (draw_text == TRUE) ? -(imgw + (real32_t)kBUTTON_IMAGE_SEP) : 0.f;
-            real32_t ypos = (draw_text == TRUE) ? (button->textheight - imgh) / 2 : 0.f;
+            real32_t ypos = (draw_text == TRUE) ? (button->theight - imgh) / 2 : 0.f;
             gdk_cairo_set_source_pixbuf(cr, pixbuf, xpos, ypos);
             cairo_paint(cr);
         }
@@ -305,7 +305,6 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
         real32_t image_y = 0.f;
         real32_t text_x = 0.f;
         real32_t text_y = 0.f;
-        const bool_t flat_text = i_draw_flat_text(button);
 
         if (button->image != NULL)
         {
@@ -313,40 +312,40 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
             imgh = (real32_t)image_height(button->image);
         }
 
-        i_flat_content_size(button, imgw, imgh, &cwidth, &cheight);
+        i_flat_content_size(button, imgw, imgh, button->twidth, button->theight, &cwidth, &cheight);
         origin_x = (bwidth - cwidth) / 2.f;
         origin_y = (bheight - cheight) / 2.f;
 
-        if (imgw > 0.f && flat_text == TRUE)
+        if (imgw > 0 && draw_text == TRUE)
         {
             switch (button->image_pos)
             {
             case ekGUI_POS_LEFT:
                 image_x = origin_x;
-                image_y = origin_y + (cheight - imgh) / 2.f;
+                image_y = origin_y + (cheight - imgh) / 2;
                 text_x = origin_x + imgw + (real32_t)kBUTTON_IMAGE_SEP;
-                text_y = origin_y + (cheight - button->textheight) / 2.f;
+                text_y = origin_y + (cheight - button->theight) / 2;
                 break;
 
             case ekGUI_POS_RIGHT:
                 text_x = origin_x;
-                text_y = origin_y + (cheight - button->textheight) / 2.f;
-                image_x = origin_x + button->textwidth + (real32_t)kBUTTON_IMAGE_SEP;
-                image_y = origin_y + (cheight - imgh) / 2.f;
+                text_y = origin_y + (cheight - button->theight) / 2;
+                image_x = origin_x + button->twidth + (real32_t)kBUTTON_IMAGE_SEP;
+                image_y = origin_y + (cheight - imgh) / 2;
                 break;
 
             case ekGUI_POS_TOP:
-                image_x = origin_x + (cwidth - imgw) / 2.f;
+                image_x = origin_x + (cwidth - imgw) / 2;
                 image_y = origin_y;
-                text_x = origin_x + (cwidth - button->textwidth) / 2.f;
+                text_x = origin_x + (cwidth - button->twidth) / 2;
                 text_y = origin_y + imgh + (real32_t)kBUTTON_IMAGE_SEP;
                 break;
 
             case ekGUI_POS_BOTTOM:
-                text_x = origin_x + (cwidth - button->textwidth) / 2.f;
+                text_x = origin_x + (cwidth - button->twidth) / 2;
                 text_y = origin_y;
-                image_x = origin_x + (cwidth - imgw) / 2.f;
-                image_y = origin_y + button->textheight + (real32_t)kBUTTON_IMAGE_SEP;
+                image_x = origin_x + (cwidth - imgw) / 2;
+                image_y = origin_y + button->theight + (real32_t)kBUTTON_IMAGE_SEP;
                 break;
 
             case ekGUI_POS_NONE:
@@ -354,7 +353,7 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
                 cassert_default(button->image_pos);
             }
         }
-        else if (imgw > 0.f)
+        else if (imgw > 0)
         {
             image_x = origin_x;
             image_y = origin_y;
@@ -368,7 +367,7 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
         cairo_restore(cr);
         cairo_save(cr);
 
-        if (flat_text == TRUE)
+        if (draw_text == TRUE)
         {
             cairo_translate(cr, text_x, text_y);
             cairo_scale(cr, font_xscale(button->font), 1);
@@ -426,8 +425,8 @@ OSButton *osbutton_create(const uint32_t flags)
     GtkWidget *focus_widget = NULL;
     const char_t *cssobj = NULL;
     button->flags = flags;
-    button->textwidth = 0;
-    button->textheight = 0;
+    button->twidth = 0;
+    button->theight = 0;
 
     switch (button_get_type(flags))
     {
@@ -557,9 +556,9 @@ static void i_update_text_extents(OSButton *button)
 {
     /* Text measure for future bounds and positioning */
     cassert_no_null(button);
-    font_extents(button->font, tc(button->text), -1.f, &button->textwidth, &button->textheight);
-    button->textwidth = bmath_ceilf(button->textwidth);
-    button->textheight = bmath_ceilf(button->textheight);
+    font_extents(button->font, tc(button->text), -1.f, &button->twidth, &button->theight);
+    button->twidth = bmath_ceilf(button->twidth);
+    button->theight = bmath_ceilf(button->theight);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -752,7 +751,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         cassert(button->vpadding != UINT32_MAX);
         cassert(button->hpadding != UINT32_MAX);
 
-        *width = button->textwidth + i_PUSHBUTTON_EXTRAWIDTH;
+        *width = button->twidth + i_PUSHBUTTON_EXTRAWIDTH;
 
         /* Image width  */
         if (refwidth > 0.f)
@@ -764,10 +763,10 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         *width += (real32_t)button->hpadding;
 
         /* Image height */
-        if (refheight > button->textheight)
+        if (refheight > button->theight)
             *height = refheight;
         else
-            *height = button->textheight;
+            *height = button->theight;
 
         *height += (real32_t)button->vpadding;
         break;
@@ -780,12 +779,12 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         cassert_unref(i_equal_button_text(button, text) == TRUE, text);
         cassert(button->vpadding != UINT32_MAX);
         cassert(button->hpadding != UINT32_MAX);
-        *width = button->textwidth + i_PUSHBUTTON_EXTRAWIDTH;
+        *width = button->twidth + i_PUSHBUTTON_EXTRAWIDTH;
         *width += (real32_t)_osglobals_check_width();
         *width += kCHECKBOX_IMAGE_SEP;
         *height = (real32_t)_osglobals_check_height();
-        if (button->textheight > *height)
-            *height = button->textheight;
+        if (button->theight > *height)
+            *height = button->theight;
         *height += i_CHECKBOX_EXTRAHEIGHT;
         break;
     }
@@ -793,9 +792,15 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
     {
-        real32_t cwidth = 0.f;
-        real32_t cheight = 0.f;
-        i_flat_content_size(button, refwidth, refheight, &cwidth, &cheight);
+        real32_t twidth = 0;
+        real32_t theight = 0;
+        real32_t cwidth = 0;
+        real32_t cheight = 0;
+
+        if (str_empty_c(text) == FALSE && button->image_pos != ekGUI_POS_NONE)
+            font_extents(button->font, text, -1.f, &twidth, &theight);
+
+        i_flat_content_size(button, refwidth, refheight, twidth, theight, &cwidth, &cheight);
         *width = cwidth + (real32_t)button->hpadding;
         *height = cheight + (real32_t)button->vpadding;
         break;
