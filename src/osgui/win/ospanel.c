@@ -15,20 +15,25 @@
 #include "oscontrol_win.inl"
 #include "osbutton_win.inl"
 #include "oscombo_win.inl"
+#include "osdrawctrl_win.inl"
 #include "osedit_win.inl"
 #include "ospopup_win.inl"
 #include "osslider_win.inl"
 #include "osscroll_win.inl"
 #include "ostext_win.inl"
 #include "osupdown_win.inl"
+#include "osstyleXP.inl"
+#include "../osgui.inl"
 #include "../ospanel.h"
 #include "../ospanel.inl"
 #include "../oscontrol.inl"
 #include "../osscrolls.inl"
 #include <draw2d/color.h>
+#include <draw2d/font.h>
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -45,6 +50,8 @@ struct _area_t
     HBRUSH bgbrush;
     COLORREF bgcolor;
     HBRUSH skbrush;
+    INT twidth;
+    String *text;
 };
 
 struct _ospanel_t
@@ -63,16 +70,54 @@ DeclSt(Area);
 
 /*---------------------------------------------------------------------------*/
 
+static int32_t i_GROUP_TITLE_OFFSET = 8;
+static int32_t i_GROUP_TITLE_CLEAN = 3;
+
+/*---------------------------------------------------------------------------*/
+
 static void i_remove_area(Area *area)
 {
     cassert_no_null(area);
     _oscontrol_destroy_brush(&area->bgbrush);
     _oscontrol_destroy_brush(&area->skbrush);
+    str_destopt(&area->text);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE void i_area(HDC hdc, const Area *area)
+static HBRUSH i_brush_from_rect(const RECT *rect, const ArrSt(Area) *areas, COLORREF *c)
+{
+    arrst_forback_const(area, areas, Area)
+        RECT inter;
+        if (IntersectRect(&inter, &area->rect, rect) == TRUE)
+        {
+            if (area->bgbrush != NULL)
+            {
+                ptr_assign(c, area->bgcolor);
+                return area->bgbrush;
+            }
+        }
+    arrst_end()
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
+{
+    OSFrame rect;
+    RECT rc;
+    _oscontrol_frame(control, &rect);
+    rc.left = rect.left;
+    rc.right = rect.right;
+    rc.top = rect.top;
+    rc.bottom = rect.bottom;
+    return i_brush_from_rect(&rc, areas, c);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_area(HWND hwnd, HDC hdc, Area *area)
 {
     cassert_no_null(area);
     if (area->bgbrush != NULL)
@@ -89,34 +134,58 @@ static ___INLINE void i_area(HDC hdc, const Area *area)
     {
         FrameRect(hdc, &area->rect, area->skbrush);
     }
-}
 
-/*---------------------------------------------------------------------------*/
+    /* GroupBox drawing */
+    if (area->text != NULL)
+    {
+        HTHEME theme = _osstyleXP_OpenTheme(hwnd, L"BUTTON");
 
-static HBRUSH i_brush(OSControl *control, const ArrSt(Area) *areas, COLORREF *c)
-{
-    OSFrame rect;
-    RECT rc;
-    _oscontrol_frame(control, &rect);
-    rc.left = rect.left;
-    rc.right = rect.right;
-    rc.top = rect.top;
-    rc.bottom = rect.bottom;
-
-    arrst_forback_const(area, areas, Area)
+        if (theme)
         {
-            RECT inter;
-            if (IntersectRect(&inter, &area->rect, &rc) == TRUE)
+            _osstyleXP_DrawThemeBackground2(theme, BP_GROUPBOX, GBS_NORMAL, hdc, &area->rect);
+
+            if (str_empty(area->text) == FALSE)
             {
-                if (area->bgbrush != NULL)
+                int32_t mwidth = (area->rect.right - area->rect.left) - 2 * i_GROUP_TITLE_OFFSET;
+                Font *font = _osgui_create_default_font();
+
+                /* Set the font */
+                SelectObject(hdc, (HFONT)font_native(font));
+
+                if (area->twidth < 0)
+                    _osdrawctrl_gdi_measuse(hdc, tc(area->text), &area->twidth, NULL);
+
+                /* Erase the border line */
                 {
-                    ptr_assign(c, area->bgcolor);
-                    return area->bgbrush;
+                    HBRUSH bgbrush = area->bgbrush != NULL ? area->bgbrush : GetSysColorBrush(COLOR_3DFACE);
+                    int32_t ewidth = mwidth;
+                    RECT erect;
+
+                    if (area->twidth < ewidth)
+                        ewidth = area->twidth;
+
+                    erect.left = area->rect.left + i_GROUP_TITLE_OFFSET - i_GROUP_TITLE_CLEAN;
+                    erect.right = erect.left + ewidth + i_GROUP_TITLE_CLEAN * 2;
+                    erect.top = area->rect.top;
+                    erect.bottom = erect.top + 1;
+                    FillRect(hdc, &erect, bgbrush);
                 }
+
+                /* Draw the text */
+                {
+                    real32_t height = font_height(font);
+                    int32_t tx = area->rect.left + i_GROUP_TITLE_OFFSET;
+                    int32_t ty = area->rect.top;
+                    ty -= (int32_t)height / 2;
+                    _osdrawctrl_gdi_text(hdc, theme, tc(area->text), tx, ty, ekLEFT, ekELLIPEND, mwidth, kCOLOR_DEFAULT, ekCTRL_STATE_NORMAL);
+                }
+
+                font_destroy(&font);
             }
+
+            _osstyleXP_CloseTheme(theme);
         }
-    arrst_end()
-    return NULL;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -298,16 +367,16 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
             if (n == 1)
             {
-                const Area *area = arrst_get(panel->areas, 0, Area);
+                Area *area = arrst_get(panel->areas, 0, Area);
                 if (EqualRect(&rc, &area->rect) == TRUE)
                 {
-                    i_area((HDC)wParam, area);
+                    i_area(hwnd, (HDC)wParam, area);
                 }
                 else
                 {
                     HBRUSH defbrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
                     FillRect((HDC)wParam, &rc, defbrush);
-                    i_area((HDC)wParam, area);
+                    i_area(hwnd, (HDC)wParam, area);
                 }
             }
             else
@@ -315,7 +384,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 HBRUSH defbrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
                 FillRect((HDC)wParam, &rc, defbrush);
                 arrst_foreach(area, panel->areas, Area)
-                    i_area((HDC)wParam, area);
+                    i_area(hwnd, (HDC)wParam, area);
                 arrst_end()
             }
 
@@ -392,7 +461,7 @@ void ospanel_destroy(OSPanel **panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(panel);
     if (obj != NULL)
@@ -412,10 +481,8 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
         if (area == NULL)
         {
-            area = arrst_new(panel->areas, Area);
+            area = arrst_new0(panel->areas, Area);
             area->obj = obj;
-            area->bgbrush = NULL;
-            area->skbrush = NULL;
         }
 
         area->rect.left = (LONG)x;
@@ -424,11 +491,35 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
         area->rect.bottom = (LONG)(y + height);
         _oscontrol_update_brush(bgcolor, &area->bgbrush, &area->bgcolor);
         _oscontrol_update_brush(skcolor, &area->skbrush, NULL);
+        str_upd(&area->text, group);
+        area->twidth = -1;
     }
     else
     {
         if (panel->areas != NULL)
             arrst_clear(panel->areas, i_remove_area, Area);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
+{
+    cassert_no_null(panel);
+    if (x != NULL)
+    {
+        if (panel->scroll != NULL)
+            *x = (real32_t)_osscrolls_x_pos(panel->scroll);
+        else
+            *x = 0;
+    }
+
+    if (y != NULL)
+    {
+        if (panel->scroll != NULL)
+            *y = (real32_t)_osscrolls_y_pos(panel->scroll);
+        else
+            *y = 0;
     }
 }
 

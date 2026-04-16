@@ -17,6 +17,7 @@
 #include "osglobals.inl"
 #include "oscomwin.inl"
 #include "../osgui.inl"
+#include <draw2d/font.h>
 #include <sewer/cassert.h>
 
 #if !defined(__MACOS__)
@@ -29,6 +30,8 @@ NSMutableParagraphStyle *kLEFT_PARAGRAPH_STYLE = nil;
 NSMutableParagraphStyle *kCENTER_PARAGRAPH_STYLE = nil;
 NSMutableParagraphStyle *kRIGHT_PARAGRAPH_STYLE = nil;
 static NSMenu *kEMPTY_MENUBAR = nil;
+static NSBox *kGROUP_BOX = nil;
+static NSMutableDictionary *kGROUP_BOX_ATTRS = nil;
 
 /*---------------------------------------------------------------------------*/
 
@@ -185,6 +188,13 @@ void _osgui_finish_imp(void)
     [kUNDERLINE_STYLE_SINGLE release];
     [kUNDERLINE_STYLE_NONE release];
     [kEMPTY_MENUBAR release];
+
+    if (kGROUP_BOX != nil)
+        [kGROUP_BOX release];
+
+    if (kGROUP_BOX_ATTRS != nil)
+        [kGROUP_BOX_ATTRS release];
+
     _osglobals_finish();
     _ossplit_destroy_tracks();
     _oscomwin_destroy_globals();
@@ -367,4 +377,58 @@ uint32_t _osgui_key_equivalent_text(const char_t *text, char_t *buff, const uint
     buff[i] = 0;
 
     return key_equivalent;
+}
+
+/*---------------------------------------------------------------------------*/
+
+NSBox *_osgui_groupbox(const NSRect *frame, NSPoint *origin)
+{
+    static const CGFloat kBOX_OFFSET = 5;
+    cassert_no_null(frame);
+    cassert_no_null(origin);
+    if (kGROUP_BOX == nil)
+    {
+        kGROUP_BOX = [[NSBox alloc] initWithFrame:NSMakeRect(0, 0, 100, 100)];
+        [kGROUP_BOX setBoxType:NSBoxPrimary];
+#if defined(MAC_OS_X_VERSION_10_15) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_15
+#else
+        [kGROUP_BOX setBorderType:NSLineBorder];
+#endif
+        [kGROUP_BOX setTitlePosition:NSNoTitle];
+    }
+
+    [kGROUP_BOX setFrame:NSMakeRect(0, 0, frame->size.width + 2 * kBOX_OFFSET, frame->size.height + 2 * kBOX_OFFSET)];
+    *origin = NSMakePoint(frame->origin.x - kBOX_OFFSET, frame->origin.y - kBOX_OFFSET);
+    return kGROUP_BOX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osgui_groupbox_text(const NSRect *frame, const char_t *text)
+{
+    static const CGFloat kBOX_TEXT_OFFSET = 10;
+    static real32_t fheight = 0;
+    NSString *str = nil;
+    NSRect textRect;
+    cassert_no_null(frame);
+    cassert_no_null(text);
+    if (kGROUP_BOX_ATTRS == nil)
+    {
+        Font *font = _osgui_create_default_font();
+        NSMutableParagraphStyle *pstyle = [[NSMutableParagraphStyle alloc] init];
+        [pstyle setLineBreakMode:NSLineBreakByTruncatingTail];
+        [pstyle setAlignment:NSTextAlignmentLeft];
+        kGROUP_BOX_ATTRS = [[NSMutableDictionary alloc] init];
+        [kGROUP_BOX_ATTRS setValue:cast(font_native(font), NSFont) forKey:NSFontAttributeName];
+        [kGROUP_BOX_ATTRS setValue:[NSColor labelColor] forKey:NSForegroundColorAttributeName];
+        [kGROUP_BOX_ATTRS setValue:pstyle forKey:NSParagraphStyleAttributeName];
+        fheight = font_height(font);
+        font_destroy(&font);
+        [pstyle release];
+    }
+
+    /* Text drawing */
+    str = [NSString stringWithUTF8String:cast_const(text, char)];
+    textRect = NSMakeRect(frame->origin.x + kBOX_TEXT_OFFSET, frame->origin.y - (fheight + kBOX_TEXT_OFFSET / 2) / 2, frame->size.width - 2 * kBOX_TEXT_OFFSET, fheight);
+    [str drawWithRect:textRect options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingTruncatesLastVisibleLine attributes:kGROUP_BOX_ATTRS];
 }

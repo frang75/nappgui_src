@@ -11,8 +11,9 @@ Panel *scrollpanel(void)
 {
     Panel *panel = panel_scroll(FALSE, TRUE);
     Layout *layout = layout_create(3, i_ROWS);
-    real32_t margin = panel_scroll_width(panel);
+    real32_t margin = 0;
     uint32_t i = 0;
+    panel_scroll_size(panel, &margin, NULL);
     panel_size(panel, s2df(-1, 400));
     for (i = 0; i < i_ROWS; ++i)
     {

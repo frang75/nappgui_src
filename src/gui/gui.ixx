@@ -62,8 +62,8 @@ struct _gui_component_t
 {
     Object object;
     GuiCtx *context;
+    GuiComponent *parent;
     gui_type_t type;
-    Panel *panel;
     Tag tag;
     void *ositem;
 };

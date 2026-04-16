@@ -345,6 +345,7 @@ OSView *osview_create(const uint32_t flags)
     else
         [view setFocusRingType:NSFocusRingTypeNone];
 
+    cassert([[view trackingAreas] count] == 0);
     return cast(view, OSView);
 }
 
@@ -453,6 +454,7 @@ static void i_update_tracking_area(OSXView *view)
             {
                 [view removeTrackingArea:view->tracking_area];
                 [view->tracking_area release];
+                cassert([[view trackingAreas] count] == 0);
                 view->tracking_area = [[NSTrackingArea alloc] initWithRect:NSMakeRect(0, 0, track_size.width, track_size.height) options:(NSTrackingAreaOptions)options owner:view userInfo:nil];
                 [view addTrackingArea:view->tracking_area];
                 cassert([[view trackingAreas] count] == 1);
@@ -465,14 +467,27 @@ static void i_update_tracking_area(OSXView *view)
             [view removeTrackingArea:view->tracking_area];
             [view->tracking_area release];
             view->tracking_area = nil;
+            cassert([[view trackingAreas] count] == 0);
         }
         /* Create one area */
         else if (with_area == TRUE)
         {
+            NSUInteger n = [[view trackingAreas] count];
+            while (n > 0)
+            {
+                [view removeTrackingArea:[[view trackingAreas] objectAtIndex:0]];
+                n = [[view trackingAreas] count];
+            }
+
             cassert(view->tracking_area == nil);
             view->tracking_area = [[NSTrackingArea alloc] initWithRect:NSMakeRect(0, 0, track_size.width, track_size.height) options:(NSTrackingAreaOptions)options owner:view userInfo:nil];
             [view addTrackingArea:view->tracking_area];
             cassert([[view trackingAreas] count] == 1);
+        }
+        else
+        {
+            cassert(view->tracking_area == nil && with_area == FALSE);
+            cassert([[view trackingAreas] count] == 0);
         }
     }
 }
@@ -605,6 +620,14 @@ void osview_OnScroll(OSView *view, Listener *listener)
     OSXView *lview = i_get_view(view);
     cassert_no_null(lview);
     _osscrolls_OnScroll(lview->scroll, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osview_tooltip(OSView *view, const char_t *text)
+{
+    cassert_no_null(view);
+    _oscontrol_tooltip_set(cast(view, OSXView), text);
 }
 
 /*---------------------------------------------------------------------------*/

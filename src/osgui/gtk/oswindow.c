@@ -876,31 +876,24 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 
 void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height)
 {
+    GdkWindow *gdk_window = NULL;
     cassert_no_null(window);
     cassert_no_null(width);
     cassert_no_null(height);
-    if (oswindow_get_minimize(window) == TRUE)
+    gdk_window = gtk_widget_get_window(window->control.widget);
+    if (gdk_window != NULL)
     {
-        *width = 0;
-        *height = 0;
+        GdkRectangle rect;
+        gdk_window_get_frame_extents(gdk_window, &rect);
+        *width = (real32_t)rect.width;
+        *height = (real32_t)rect.height;
     }
     else
     {
-        GdkWindow *gdk_window = gtk_widget_get_window(window->control.widget);
-        if (gdk_window != NULL)
-        {
-            GdkRectangle rect;
-            gdk_window_get_frame_extents(gdk_window, &rect);
-            *width = (real32_t)rect.width;
-            *height = (real32_t)rect.height;
-        }
-        else
-        {
-            gint w, h;
-            gtk_window_get_size(GTK_WINDOW(window->control.widget), &w, &h);
-            *width = (real32_t)w;
-            *height = (real32_t)h;
-        }
+        gint w, h;
+        gtk_window_get_size(GTK_WINDOW(window->control.widget), &w, &h);
+        *width = (real32_t)w;
+        *height = (real32_t)h;
     }
 }
 

@@ -153,6 +153,8 @@ _gui_api void layout_bgcolor(Layout *layout, const color_t color);
 
 _gui_api void layout_skcolor(Layout *layout, const color_t color);
 
+_gui_api void layout_group(Layout *layout, const bool_t group, const char_t *text);
+
 _gui_api void layout_update(const Layout *layout);
 
 _gui_api void layout_dbind_imp(Layout *layout, Listener *listener, const char_t *type, const uint16_t size);

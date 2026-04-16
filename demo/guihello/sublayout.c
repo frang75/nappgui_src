@@ -80,6 +80,8 @@ static Layout *i_left_layout(void)
     layout_layout(layout1, layout2, 0, 0);
     layout_button(layout1, button, 0, 1);
     layout_vmargin(layout1, 0, 5);
+    layout_margin(layout1, 10);
+    layout_group(layout1, TRUE, "GroupBox");
     return layout1;
 }
 
@@ -149,6 +151,8 @@ static Layout *i_bottom_layout(LPData *data)
     layout_label(layout, label4, 3, 0);
     layout_label(layout, label5, 4, 0);
     layout_label(layout, label6, 5, 0);
+    layout_margin(layout, 3);
+    layout_skcolor(layout, kCOLOR_RED);
     return layout;
 }
 
