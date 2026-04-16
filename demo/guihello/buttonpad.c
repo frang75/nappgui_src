@@ -4,6 +4,24 @@
 #include "res_guihello.h"
 #include <gui/guiall.h>
 
+typedef struct _pdata_t PData;
+
+struct _pdata_t
+{
+    Button *button1;
+    Button *button2;
+    Button *button3;
+    Layout *layout;
+    gui_pos_t pos;
+};
+
+/*---------------------------------------------------------------------------*/
+
+static void i_destroy_pdata(PData **data)
+{
+    heap_delete(data, PData);
+}
+
 /*---------------------------------------------------------------------------*/
 
 static Layout *i_vpadding_layout(void)
@@ -64,7 +82,7 @@ static Layout *i_hpadding_layout(void)
 
 /*---------------------------------------------------------------------------*/
 
-static Layout *i_flatpadding_layout(void)
+static Layout *i_flatpadding_layout(PData *data)
 {
     Layout *layout = layout_create(3, 2);
     Label *label1 = label_create();
@@ -73,6 +91,7 @@ static Layout *i_flatpadding_layout(void)
     Button *button1 = button_flatgle();
     Button *button2 = button_flatgle();
     Button *button3 = button_flatgle();
+    cassert_no_null(data);
     label_text(label1, "Default padding");
     label_text(label2, "Zero padding");
     label_text(label3, "High padding");
@@ -88,9 +107,9 @@ static Layout *i_flatpadding_layout(void)
     button_image_alt(button2, gui_image(SEARCH24_PNG));
     button_image(button3, gui_image(FOLDER24_PNG));
     button_image_alt(button3, gui_image(ERROR24_PNG));
-    button_image_pos(button1, ekGUI_POS_TOP);
-    button_image_pos(button2, ekGUI_POS_TOP);
-    button_image_pos(button3, ekGUI_POS_TOP);
+    button_image_pos(button1, data->pos);
+    button_image_pos(button2, data->pos);
+    button_image_pos(button3, data->pos);
     button_hpadding(button2, 0);
     button_vpadding(button2, 0);
     button_hpadding(button3, 30);
@@ -106,6 +125,68 @@ static Layout *i_flatpadding_layout(void)
     layout_halign(layout, 2, 1, ekCENTER);
     layout_hmargin(layout, 0, 10);
     layout_hmargin(layout, 1, 10);
+    data->button1 = button1;
+    data->button2 = button2;
+    data->button3 = button3;
+    data->layout = layout;
+    return layout;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static PData *i_create_pdata(void)
+{
+    PData *data = heap_new(PData);
+    data->pos = ekGUI_POS_TOP;
+    return data;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnImagePos(PData *data, Event *e)
+{
+    const EvButton *p = event_params(e, EvButton);
+    gui_pos_t npos;
+    cassert_no_null(data);
+    cassert_no_null(p);
+    npos = (gui_pos_t)(p->index + 1);
+    button_image_pos(data->button1, npos);
+    button_image_pos(data->button2, npos);
+    button_image_pos(data->button3, npos);
+    layout_update(data->layout);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Layout *i_imagepos_layout(PData *data)
+{
+    Layout *layout = layout_create(5, 1);
+    Button *radio1 = button_radio();
+    Button *radio2 = button_radio();
+    Button *radio3 = button_radio();
+    Button *radio4 = button_radio();
+    Button *radio5 = button_radio();
+    cassert_no_null(data);
+    button_text(radio1, "None");
+    button_text(radio2, "Left");
+    button_text(radio3, "Top");
+    button_text(radio4, "Right");
+    button_text(radio5, "Bottom");
+    button_state(radio1, data->pos == ekGUI_POS_NONE ? ekGUI_ON : ekGUI_OFF);
+    button_state(radio2, data->pos == ekGUI_POS_LEFT ? ekGUI_ON : ekGUI_OFF);
+    button_state(radio3, data->pos == ekGUI_POS_TOP ? ekGUI_ON : ekGUI_OFF);
+    button_state(radio4, data->pos == ekGUI_POS_RIGHT ? ekGUI_ON : ekGUI_OFF);
+    button_state(radio5, data->pos == ekGUI_POS_BOTTOM ? ekGUI_ON : ekGUI_OFF);
+    button_OnClick(radio1, listener(data, i_OnImagePos, PData));
+    layout_button(layout, radio1, 0, 0);
+    layout_button(layout, radio2, 1, 0);
+    layout_button(layout, radio3, 2, 0);
+    layout_button(layout, radio4, 3, 0);
+    layout_button(layout, radio5, 4, 0);
+    layout_hmargin(layout, 0, 5);
+    layout_hmargin(layout, 1, 5);
+    layout_hmargin(layout, 2, 5);
+    layout_hmargin(layout, 3, 5);
     return layout;
 }
 
@@ -113,10 +194,12 @@ static Layout *i_flatpadding_layout(void)
 
 Panel *buttonpad(void)
 {
-    Layout *layout1 = layout_create(1, 6);
+    PData *data = i_create_pdata();
+    Layout *layout1 = layout_create(1, 7);
     Layout *layout2 = i_vpadding_layout();
     Layout *layout3 = i_hpadding_layout();
-    Layout *layout4 = i_flatpadding_layout();
+    Layout *layout4 = i_imagepos_layout(data);
+    Layout *layout5 = i_flatpadding_layout(data);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();
@@ -130,6 +213,7 @@ Panel *buttonpad(void)
     layout_layout(layout1, layout2, 0, 1);
     layout_layout(layout1, layout3, 0, 3);
     layout_layout(layout1, layout4, 0, 5);
+    layout_layout(layout1, layout5, 0, 6);
     layout_halign(layout1, 0, 1, ekLEFT);
     layout_halign(layout1, 0, 5, ekLEFT);
     layout_vmargin(layout1, 0, 5);
@@ -137,6 +221,8 @@ Panel *buttonpad(void)
     layout_vmargin(layout1, 2, 5);
     layout_vmargin(layout1, 3, 5);
     layout_vmargin(layout1, 4, 5);
+    layout_vmargin(layout1, 5, 5);
     panel_layout(panel, layout1);
+    panel_data(panel, &data, i_destroy_pdata, PData);
     return panel;
 }
