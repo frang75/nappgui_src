@@ -20,9 +20,9 @@ void _layout_attach_to_panel(Layout *layout, Panel *panel);
 
 Panel *_layout_panel(const Layout *layout);
 
-Layout *_layout_search_component(const Layout *layout, const GuiComponent *component, Cell **in_cell, const bool_t in_subpanels);
+Cell *_layout_search_component(const Layout *layout, const GuiComponent *component);
 
-bool_t _layout_search_layout(const Layout *layout, Layout *sublayout);
+bool_t _layout_exists(const Layout *layout, Layout *sublayout);
 
 void _layout_components(const Layout *layout, ArrPt(GuiComponent) *components);
 

@@ -1,13 +1,33 @@
 # NAppGUI Changelog
 
-## v1.6.1 - WIP
+## v1.6.2 - WIP
+
+### Added
+
+- GroupBox `layout_group()`. [Commit]().
+- `view_tooltip()`. [Commit]().
+- `panel_scroll_size()`. [Commit]().
+- `panel_viewport()`. [Commit]().
+
+### Fixed
+
+- Issue in `label_color()`. [Commit]().
+- Issue in `window_control_frame()` with SplitViews. [Commit]().
+- Issue in `comwin_color()` position in macOS. [Commit]().
+
+### Removed
+
+- `panel_scroll_width()`. [Commit]().
+- `panel_scroll_height()`. [Commit]().
+
+## v1.6.1 - Apr 02, 2026 (r6787)
 
 ### Added
 
 - `gui_device()`. [Commit](https://github.com/frang75/nappgui_src/commit/6b83033f585fa3d12fee07a121ab3f2a6516d427).
 - `gui_workarea()`. [Commit](https://github.com/frang75/nappgui_src/commit/6b83033f585fa3d12fee07a121ab3f2a6516d427).
-- Support for gui lines. [Commit]().
-    * New `Line` widget `line.h`. [Doc]().
+- Support for gui lines. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+    * New `Line` widget `line.h`. [Doc](https://nappgui.com/en/gui/line.html).
     * `guicontrol_line()`.
     * `cell_line()`.
     * `layout_line()`.
@@ -15,13 +35,13 @@
 
 ### Changed
 
-- `label_min_width()` renamed by `label_width()`. [Commit]().
-- `button_min_width()` renamed by `button_width()`. [Commit]().
-- `edit_min_width()` renamed by `edit_width()`. [Commit]().
-- `edit_min_height()` renamed by `edit_height()`. [Commit]().
-- `combo_min_width()` renamed by `combo_width()`. [Commit]().
-- `slider_min_width()` renamed by `slider_length()`. [Commit]().
-- `progress_min_width()` renamed by `progress_width()`. [Commit]().
+- `label_min_width()` renamed by `label_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+- `button_min_width()` renamed by `button_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+- `edit_min_width()` renamed by `edit_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+- `edit_min_height()` renamed by `edit_height()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+- `combo_min_width()` renamed by `combo_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+- `slider_min_width()` renamed by `slider_length()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
+- `progress_min_width()` renamed by `progress_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/2b0099603323ae7a35b8ee6998d35af94f5b16c8).
 
 ### Fixed
 

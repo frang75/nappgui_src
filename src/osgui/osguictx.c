@@ -222,6 +222,7 @@ GuiCtx *osguictx(void)
         NULL, /* osview_OnTouchStartPinch, */
         NULL, /* osview_OnTouchPinching, */
         NULL, /* osview_OnTouchEndPinch, */
+        osview_tooltip,
         osview_allow_key,
         osview_scroll,
         osview_scroll_get,
@@ -306,6 +307,7 @@ GuiCtx *osguictx(void)
         ospanel_create,
         ospanel_destroy,
         ospanel_area,
+        ospanel_scroll_get,
         ospanel_scroller_size,
         ospanel_content_size,
         ospanel_display,

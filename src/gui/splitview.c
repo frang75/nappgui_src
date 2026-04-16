@@ -29,6 +29,7 @@
 struct _splitview_t
 {
     GuiComponent component;
+    Window *window;
     S2Df size;
     uint32_t flags;
     split_mode_t divider_mode;
@@ -526,6 +527,8 @@ static void i_add_child(SplitView *split, GuiComponent *component, const bool_t 
 {
     cassert_no_null(split);
     cassert_no_null(component);
+    cassert(component->parent == NULL);
+    component->parent = &split->component;
     if (split->child0 == NULL)
     {
         split->child0 = component;
@@ -667,12 +670,16 @@ void _splitview_destroy(SplitView **split)
     cassert_no_null(*split);
     if ((*split)->child0 != NULL)
     {
+        cassert((*split)->child0->parent == &(*split)->component);
+        (*split)->child0->parent = NULL;
         (*split)->component.context->func_split_detach_control((*split)->component.ositem, (*split)->child0->ositem);
         _component_destroy(&(*split)->child0);
     }
 
     if ((*split)->child1 != NULL)
     {
+        cassert((*split)->child1->parent == &(*split)->component);
+        (*split)->child1->parent = NULL;
         (*split)->component.context->func_split_detach_control((*split)->component.ositem, (*split)->child1->ositem);
         _component_destroy(&(*split)->child1);
     }
@@ -826,4 +833,35 @@ void _splitview_panels(const SplitView *split, uint32_t *num_panels, Panel **pan
 {
     *num_panels = 0;
     i_accum_panels(split, num_panels, panels);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _splitview_window(SplitView *split, Window *window)
+{
+    cassert_no_null(split);
+    if (window != NULL)
+    {
+        cassert(split->window == NULL);
+        split->window = obj_retain(window, Window);
+    }
+    else
+    {
+        if (split->window != NULL)
+            obj_release(&split->window, Window);
+    }
+
+    if (split->child0 != NULL)
+        _component_window(split->child0, window);
+
+    if (split->child1 != NULL)
+        _component_window(split->child1, window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Window *_splitview_get_window(SplitView *split)
+{
+    cassert_no_null(split);
+    return split->window;
 }

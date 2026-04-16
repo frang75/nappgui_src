@@ -58,6 +58,7 @@ struct _view_t
     GuiComponent component;
     S2Df size;
     void *data;
+    ResId ttipid;
     const VCtrlTbl *vtbl;
     VListeners *listeners;
 };
@@ -539,6 +540,17 @@ void view_OnScroll(View *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void view_tooltip(View *view, const char_t *text)
+{
+    const char_t *ltext = NULL;
+    cassert_no_null(view);
+    if (text != NULL)
+        ltext = _gui_respack_text(text, &view->ttipid);
+    view->component.context->func_set_tooltip[ekGUI_TYPE_CUSTOMVIEW](view->component.ositem, ltext);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void view_allow_tab(View *view, const bool_t allow)
 {
     cassert_no_null(view);
@@ -584,6 +596,12 @@ void _view_locale(View *view)
     cassert_no_null(view);
     if (view->vtbl != NULL && view->vtbl->func_locale != NULL)
         view->vtbl->func_locale(cast(view, void));
+
+    if (view->ttipid != NULL)
+    {
+        const char_t *text = _gui_respack_text(view->ttipid, NULL);
+        view->component.context->func_set_tooltip[ekGUI_TYPE_CUSTOMVIEW](view->component.ositem, text);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -708,6 +726,8 @@ void view_scroll_y(View *view, const real32_t pos)
 void view_scroll_size(const View *view, real32_t *width, real32_t *height)
 {
     cassert_no_null(view);
+    cassert_no_null(view->component.context);
+    cassert_no_nullf(view->component.context->func_view_scroller_size);
     view->component.context->func_view_scroller_size(view->component.ositem, width, height);
 }
 

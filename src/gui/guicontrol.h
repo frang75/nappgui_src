@@ -53,6 +53,8 @@ _gui_api void guicontrol_tag(GuiControl *control, const uint32_t tag);
 
 _gui_api uint32_t guicontrol_get_tag(const GuiControl *control);
 
+_gui_api Window *guicontrol_get_window(const GuiControl *control);
+
 __END_C
 
 #define guicontrol(control) cast(control, GuiControl)

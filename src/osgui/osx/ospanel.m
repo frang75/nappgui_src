@@ -10,6 +10,7 @@
 
 /* Operating System native panel */
 
+#include "osgui_osx.inl"
 #include "ospanel_osx.inl"
 #include "oscontrol_osx.inl"
 #include "../ospanel.h"
@@ -18,7 +19,9 @@
 #include "../osgui.inl"
 #include <core/arrst.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
+#include <sewer/ptr.h>
 
 #if !defined(__MACOS__)
 #error This file is only for OSX
@@ -31,6 +34,7 @@ struct _area_t
     NSRect rect;
     NSColor *bgcolor;
     NSColor *skcolor;
+    String *text;
 };
 
 DeclSt(Area);
@@ -78,10 +82,26 @@ static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
                 [area->bgcolor set];
                 NSRectFill(area->rect);
             }
+
             if (area->skcolor != NULL)
             {
                 [area->skcolor set];
                 NSFrameRect(area->rect);
+            }
+
+            if (area->text != NULL)
+            {
+                NSPoint origin;
+                NSBox *box = _osgui_groupbox(&area->rect, &origin);
+                NSAffineTransform *tr = [NSAffineTransform transform];
+                [NSGraphicsContext saveGraphicsState];
+                [tr translateXBy:origin.x yBy:origin.y];
+                [tr concat];
+                [box displayRectIgnoringOpacity:[box bounds] inContext:[NSGraphicsContext currentContext]];
+                [NSGraphicsContext restoreGraphicsState];
+
+                if (str_empty(area->text) == FALSE)
+                    _osgui_groupbox_text(&area->rect, tc(area->text));
             }
         arrst_end()
     }
@@ -162,6 +182,7 @@ static void i_remove_area(Area *area)
         [area->bgcolor release];
     if (area->skcolor != nil)
         [area->skcolor release];
+    str_destopt(&area->text);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -241,7 +262,7 @@ void _ospanel_destroy(OSPanel **panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     OSXPanel *lpanel = i_get_panel(panel);
     cassert_no_null(lpanel);
@@ -262,10 +283,8 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
         if (area == NULL)
         {
-            area = arrst_new(lpanel->areas, Area);
+            area = arrst_new0(lpanel->areas, Area);
             area->obj = obj;
-            area->bgcolor = nil;
-            area->skcolor = nil;
         }
 
         area->rect.origin.x = (CGFloat)x;
@@ -290,11 +309,43 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
         if (skcolor != 0)
             area->skcolor = [_oscontrol_color(skcolor) retain];
+
+        str_upd(&area->text, group);
     }
     else
     {
         if (lpanel->areas != NULL)
             arrst_clear(lpanel->areas, i_remove_area, Area);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
+{
+    if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
+    {
+        NSScrollView *scroll = cast(panel, NSScrollView);
+        if (x)
+        {
+            NSScroller *scroller = [scroll verticalScroller];
+            *x = 0;
+            if (scroller != nil)
+                *x = (real32_t)[scroller doubleValue];
+        }
+
+        if (y)
+        {
+            NSScroller *scroller = [scroll horizontalScroller];
+            *y = 0;
+            if (scroller != nil)
+                *y = (real32_t)[scroller doubleValue];
+        }
+    }
+    else
+    {
+        ptr_assign(x, 0);
+        ptr_assign(y, 0);
     }
 }
 

@@ -1234,6 +1234,14 @@ const char_t *_osglobals_css_progressbar(void)
 
 /*---------------------------------------------------------------------------*/
 
+color_t _osglobals_label_color(void)
+{
+    cassert(kLABEL_COLOR != 0);
+    return kLABEL_COLOR;
+}
+
+/*---------------------------------------------------------------------------*/
+
 color_t _osglobals_text_color(void)
 {
     cassert(kTEXT_COLOR != 0);

@@ -218,3 +218,11 @@ uint32_t guicontrol_get_tag(const GuiControl *control)
     cassert_no_null(component);
     return component->tag.tag_uint32;
 }
+
+/*---------------------------------------------------------------------------*/
+
+Window *guicontrol_get_window(const GuiControl *control)
+{
+    const GuiComponent *component = cast_const(control, GuiComponent);
+    return _component_get_window(cast(component, GuiComponent));
+}

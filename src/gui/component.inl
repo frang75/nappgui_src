@@ -24,7 +24,9 @@ void _component_attach_to_panel(GuiComponent *panel_component, GuiComponent *chi
 
 void _component_detach_from_panel(GuiComponent *panel_component, GuiComponent *child_component);
 
-void _component_set_parent_window(GuiComponent *component, Window *parent_window);
+void _component_window(GuiComponent *component, Window *window);
+
+Window *_component_get_window(GuiComponent *component);
 
 void _component_panels(GuiComponent *component, uint32_t *num_panels, Panel **panels);
 
@@ -64,8 +66,6 @@ const char_t *_component_type(const GuiComponent *component);
 void *_component_ositem(const GuiComponent *component);
 
 Cell *_component_cell(const GuiComponent *component);
-
-Window *_component_window(const GuiComponent *component);
 
 __END_C
 

@@ -31,4 +31,6 @@ uint32_t _osgui_modifiers(NSUInteger flags);
 
 uint32_t _osgui_key_equivalent_text(const char_t *text, char_t *buff, const uint32_t size);
 
+NSBox *_osgui_groupbox(const NSRect *frame, NSPoint *origin);
+
 __END_C
