@@ -299,51 +299,63 @@ void _osgui_default_cursor(GtkWidget *widget)
 
 uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint32_t size)
 {
-    uint32_t i = 0;
+    uint32_t i = 0, offset = 0;
     uint32_t last_underline = UINT32_MAX;
+    uint32_t last_underline_offset = UINT32_MAX;
     cassert_no_null(text);
     cassert_no_null(buff);
-    while (*text != 0 && i < size - 1)
+    while (*text != 0 && offset < size - 1)
     {
-        if (*text == '&')
+        uint32_t nbytes = 0;
+        uint32_t cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+
+        if (cp == '&')
         {
             /* Double '&' just write one */
-            if (*(text + 1) == '&')
+            if (*(text + nbytes) == '&')
             {
-                buff[i] = '&';
-                text += 2;
+                buff[offset] = '&';
+                text += nbytes + 1;
+                offset += 1;
                 i += 1;
             }
             /* Last '&' in the string is not taken into account */
-            else if (*(text + 1) == 0)
+            else if (*(text + nbytes) == 0)
             {
-                text += 1;
+                text += nbytes;
             }
             /* Single '&' store the position */
             else
             {
+                /* Display index for callers, byte offset for GTK text insert */
                 last_underline = i;
-                text += 1;
+                last_underline_offset = offset;
+                text += nbytes;
             }
         }
         /* We need to write double '_'_' for GTK interpret a single '_' */
-        else if (*text == '_')
+        else if (cp == '_')
         {
-            if (i < size - 2)
+            if (offset < size - 2)
             {
-                buff[i] = '_';
-                buff[i + 1] = '_';
-                i += 2;
+                buff[offset] = '_';
+                buff[offset + 1] = '_';
+                offset += 2;
+                i += 1;
             }
 
-            text += 1;
+            text += nbytes;
         }
         /* Other character */
         else
         {
-            buff[i] = *text;
-            i += 1;
-            text += 1;
+            if (size - offset > nbytes)
+            {
+                offset += unicode_to_char(cp, buff + offset, ekUTF8);
+                i += 1;
+            }
+
+            text += nbytes;
         }
     }
 
@@ -351,18 +363,19 @@ uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint3
     if (last_underline != UINT32_MAX)
     {
         uint32_t j;
-        for (j = i; j > last_underline; --j)
+        cassert(last_underline_offset != UINT32_MAX);
+        for (j = offset; j > last_underline_offset; --j)
             buff[j] = buff[j - 1];
 
-        buff[last_underline] = '_';
+        buff[last_underline_offset] = '_';
 
-        if (i < size - 2)
-            i += 1;
+        if (offset < size - 1)
+            offset += 1;
     }
 
     /* There is plenty of space for copy (these are texts on buttons). */
-    cassert(i < size - 1);
-    buff[i] = 0;
+    cassert(offset < size - 1);
+    buff[offset] = 0;
 
     return last_underline;
 }
@@ -376,9 +389,26 @@ void _osgui_underline_markup(const char_t *text, const uint32_t pos, char_t *buf
     {
         uint32_t nbytes = 0;
         uint32_t cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+        bool_t underline = FALSE;
+
+        /* Skip GTK mnemonic marker, treating escaped "__" as a literal underscore */
+        if (cp == '_')
+        {
+            if (*(text + nbytes) == '_')
+            {
+                text += nbytes;
+                cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+            }
+            else
+            {
+                text += nbytes;
+                continue;
+            }
+        }
 
         /* This is the character to be underlined */
-        if (i == pos)
+        underline = (bool_t)(i == pos);
+        if (underline == TRUE)
         {
             const char_t *span = "<span underline=\"single\">";
             uint32_t len = str_len_c(span);
@@ -387,10 +417,6 @@ void _osgui_underline_markup(const char_t *text, const uint32_t pos, char_t *buf
                 str_copy_c(buff + offset, size - offset, span);
                 offset += len;
             }
-
-            /* Jump the underscore */
-            text += nbytes;
-            cp = unicode_to_u32b(text, ekUTF8, &nbytes);
         }
 
         /* Copy the character to buffer */
@@ -401,7 +427,7 @@ void _osgui_underline_markup(const char_t *text, const uint32_t pos, char_t *buf
         }
 
         /* Close the underlined markup */
-        if (i == pos)
+        if (underline == TRUE)
         {
             const char_t *span = "</span>";
             uint32_t len = str_len_c(span);
@@ -424,18 +450,28 @@ void _osgui_underline_markup(const char_t *text, const uint32_t pos, char_t *buf
 
 void _osgui_underline_plain(const char_t *text, const uint32_t pos, char_t *buff, const uint32_t size)
 {
-    uint32_t i = 0, offset = 0;
+    uint32_t offset = 0;
+    /* Keep the shared helper signature because plain text is derived from GTK escaping */
+    unref(pos);
+
     while (*text != 0 && offset < size)
     {
         uint32_t nbytes = 0;
         uint32_t cp = unicode_to_u32b(text, ekUTF8, &nbytes);
 
-        /* This is the character to be underlined */
-        if (i == pos)
+        /* Skip GTK mnemonic marker, treating escaped "__" as a literal underscore */
+        if (cp == '_')
         {
-            /* Jump the underscore */
-            text += nbytes;
-            cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+            if (*(text + nbytes) == '_')
+            {
+                text += nbytes;
+                cp = unicode_to_u32b(text, ekUTF8, &nbytes);
+            }
+            else
+            {
+                text += nbytes;
+                continue;
+            }
         }
 
         /* Copy the character to buffer */
@@ -445,8 +481,6 @@ void _osgui_underline_plain(const char_t *text, const uint32_t pos, char_t *buff
             offset += nbytes;
         }
 
-        /* Next char */
-        i += 1;
         text += nbytes;
     }
 

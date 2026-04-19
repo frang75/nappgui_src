@@ -563,6 +563,42 @@ static void i_update_text_extents(OSButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_update_mnemonic_underline(OSButton *button, const char_t *text, const uint32_t pos)
+{
+    cassert_no_null(button);
+
+    /* Push/flat buttons already render underlines through the custom Pango markup path */
+    if (button_get_type(button->flags) == ekBUTTON_CHECK2 || button_get_type(button->flags) == ekBUTTON_CHECK3 || button_get_type(button->flags) == ekBUTTON_RADIO)
+    {
+        GtkWidget *label = gtk_bin_get_child(GTK_BIN(button->control.widget));
+
+        if (label != NULL && GTK_IS_LABEL(label))
+        {
+            const gchar *ltext = cast_const(text, gchar);
+            glong nchars = g_utf8_strlen(ltext, -1);
+
+            if (pos != UINT32_MAX && pos < (uint32_t)nchars)
+            {
+                const gchar *start = g_utf8_offset_to_pointer(ltext, (glong)pos);
+                const gchar *end = g_utf8_next_char(start);
+                PangoAttrList *attrs = pango_attr_list_new();
+                PangoAttribute *attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+                attr->start_index = (guint)(start - ltext);
+                attr->end_index = (guint)(end - ltext);
+                pango_attr_list_insert(attrs, attr);
+                gtk_label_set_attributes(GTK_LABEL(label), attrs);
+                pango_attr_list_unref(attrs);
+            }
+            else
+            {
+                gtk_label_set_attributes(GTK_LABEL(label), NULL);
+            }
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osbutton_text(OSButton *button, const char_t *text)
 {
     /*
@@ -589,6 +625,7 @@ void osbutton_text(OSButton *button, const char_t *text)
      * The button 'real' text will be rendered in 'i_OnLabelDraw'
      */
     gtk_button_set_label(GTK_BUTTON(button->control.widget), shortcut);
+    i_update_mnemonic_underline(button, plain, pos);
 
     i_update_text_extents(button);
     gtk_widget_queue_draw(button->control.widget);
