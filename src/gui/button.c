@@ -93,7 +93,7 @@ static void i_update_flat_text(Button *button, const gui_state_t state)
 
     if (button->image_pos == ekGUI_POS_NONE)
     {
-        button->component.context->func_button_set_text(button->component.ositem, NULL);
+        button->component.context->func_button_set_text(button->component.ositem, "");
         tooltip = text;
     }
     else

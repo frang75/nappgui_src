@@ -110,6 +110,9 @@ static Layout *i_flatpadding_layout(PData *data)
     button_image_pos(button1, data->pos);
     button_image_pos(button2, data->pos);
     button_image_pos(button3, data->pos);
+    button_tooltip(button1, "Default padding");
+    button_tooltip(button2, "Zero padding");
+    button_tooltip(button3, "High padding");
     button_hpadding(button2, 0);
     button_vpadding(button2, 0);
     button_hpadding(button3, 30);
