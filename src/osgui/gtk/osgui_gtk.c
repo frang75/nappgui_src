@@ -19,6 +19,7 @@
 #include "ossplit_gtk.inl"
 #include "oswindow_gtk.inl"
 #include "../osgui.inl"
+#include "../osglobals.h"
 #include <draw2d/dctxh.h>
 #include <draw2d/image.h>
 #include <core/arrpt.h>
@@ -382,72 +383,6 @@ uint32_t _osgui_underline_gtk_text(const char_t *text, char_t *buff, const uint3
 
 /*---------------------------------------------------------------------------*/
 
-void _osgui_underline_markup(const char_t *text, const uint32_t pos, char_t *buff, const uint32_t size)
-{
-    uint32_t i = 0, offset = 0;
-    while (*text != 0 && offset < size)
-    {
-        uint32_t nbytes = 0;
-        uint32_t cp = unicode_to_u32b(text, ekUTF8, &nbytes);
-        bool_t underline = FALSE;
-
-        /* Skip GTK mnemonic marker, treating escaped "__" as a literal underscore */
-        if (cp == '_')
-        {
-            if (*(text + nbytes) == '_')
-            {
-                text += nbytes;
-                cp = unicode_to_u32b(text, ekUTF8, &nbytes);
-            }
-            else
-            {
-                text += nbytes;
-                continue;
-            }
-        }
-
-        /* This is the character to be underlined */
-        underline = (bool_t)(i == pos);
-        if (underline == TRUE)
-        {
-            const char_t *span = "<span underline=\"single\">";
-            uint32_t len = str_len_c(span);
-            if (size - offset > len)
-            {
-                str_copy_c(buff + offset, size - offset, span);
-                offset += len;
-            }
-        }
-
-        /* Copy the character to buffer */
-        if (size - offset > nbytes)
-        {
-            unicode_to_char(cp, buff + offset, ekUTF8);
-            offset += nbytes;
-        }
-
-        /* Close the underlined markup */
-        if (underline == TRUE)
-        {
-            const char_t *span = "</span>";
-            uint32_t len = str_len_c(span);
-            if (size - offset > len)
-            {
-                str_copy_c(buff + offset, size - offset, span);
-                offset += len;
-            }
-        }
-
-        /* Next char */
-        i += 1;
-        text += nbytes;
-    }
-
-    buff[offset] = 0;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void _osgui_underline_plain(const char_t *text, const uint32_t pos, char_t *buff, const uint32_t size)
 {
     uint32_t offset = 0;
@@ -571,6 +506,14 @@ uint32_t _osgui_modifiers(const guint state)
         modifiers |= ekMKEY_COMMAND;
 
     return modifiers;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osgui_darkmode(void)
+{
+    syscolor_t scolor = ekSYSCOLOR_DARKMODE;
+    return (bool_t)osglobals_color(&scolor);
 }
 
 /*---------------------------------------------------------------------------*/

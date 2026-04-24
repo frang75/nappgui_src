@@ -19,6 +19,7 @@
 #include "../osbutton.h"
 #include "../osbutton.inl"
 #include "../osgui.inl"
+#include <draw2d/color.h>
 #include <draw2d/font.h>
 #include <draw2d/image.h>
 #include <core/event.h>
@@ -47,8 +48,8 @@ struct _osbutton_t
     GtkWidget *radio;
     Font *font;
     String *text;
-    String *markup;
     Image *image;
+    PangoAttrList *attrs;
     GtkCssProvider *css_padding;
     GtkCssProvider *css_font;
     Listener *OnClick;
@@ -210,9 +211,12 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
         GdkRGBA color;
         layout = gtk_widget_create_pango_layout(widget, NULL);
         pango_layout_set_font_description(layout, cast(font_native(button->font), PangoFontDescription));
-        _oscontrol_to_gdkrgba(ekSYSCOLOR_LABEL, &color);
+        _oscontrol_to_gdkrgba((color_t)ekSYSCOLOR_LABEL, &color);
         cairo_set_source_rgba(cr, color.red, color.green, color.blue, color.alpha);
-        pango_layout_set_markup(layout, tc(button->markup), -1);
+        pango_layout_set_text(layout, tc(button->text), -1);
+
+        if (button->attrs != NULL)
+            pango_layout_set_attributes(layout, button->attrs);
     }
 
     /* Draw PushButton text with font scaling */
@@ -405,7 +409,6 @@ OSButton *osbutton_create(const uint32_t flags)
         ptr_destopt(font_destroy, &ffont, Font);
         /* The real font and text for button */
         button->text = str_c("");
-        button->markup = str_c("");
         button->font = _osgui_create_default_font();
     }
 
@@ -436,11 +439,17 @@ void osbutton_destroy(OSButton **button)
 
     listener_destroy(&(*button)->OnClick);
     str_destopt(&(*button)->text);
-    str_destopt(&(*button)->markup);
     ptr_destopt(image_destroy, &(*button)->image, Image);
     ptr_destopt(font_destroy, &(*button)->font, Font);
     _oscontrol_destroy_css_provider(&(*button)->css_padding);
     _oscontrol_destroy_css_provider(&(*button)->css_font);
+
+    if ((*button)->attrs != NULL)
+    {
+        pango_attr_list_unref((*button)->attrs);
+        (*button)->attrs = NULL;
+    }
+
     _oscontrol_destroy(*dcast(button, OSControl));
     heap_delete(button, OSButton);
 }
@@ -455,37 +464,57 @@ void osbutton_OnClick(OSButton *button, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_update_mnemonic_underline(OSButton *button, const char_t *text, const uint32_t pos)
+static void i_update_attributes(OSButton *button, const char_t *text, const uint32_t pos)
 {
     cassert_no_null(button);
+    /* Attributes will be shared by standard/custom renders */
+    if (button->attrs != NULL)
+    {
+        pango_attr_list_unref(button->attrs);
+        button->attrs = NULL;
+    }
+
+    /* pos by '_osgui_underline_gtk_text' (UTF8 safe) */
+    if (pos != UINT32_MAX)
+    {
+        const gchar *ltext = cast_const(text, gchar);
+        const gchar *start = g_utf8_offset_to_pointer(ltext, (glong)pos);
+        const gchar *end = g_utf8_next_char(start);
+        button->attrs = pango_attr_list_new();
+
+        {
+            PangoAttribute *attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+            attr->start_index = (guint)(start - ltext);
+            attr->end_index = (guint)(end - ltext);
+            pango_attr_list_insert(button->attrs, attr);
+        }
+
+        {
+            PangoAttribute *attr = NULL;
+            real32_t r, g, b, o = .2f;
+            color_get_rgbf((color_t)ekSYSCOLOR_LABEL, &r, &g, &b);
+
+            /* A little bit lighter */
+            if (_osgui_darkmode() == FALSE)
+            {
+                r = bmath_clampf(r + o, 0.f, 1.f);
+                g = bmath_clampf(g + o, 0.f, 1.f);
+                b = bmath_clampf(b + o, 0.f, 1.f);
+            }
+
+            attr = pango_attr_underline_color_new((guint16)(r * (real32_t)UINT16_MAX), (guint16)(g * (real32_t)UINT16_MAX), (guint16)(b * (real32_t)UINT16_MAX));
+            attr->start_index = (guint)(start - ltext);
+            attr->end_index = (guint)(end - ltext);
+            pango_attr_list_insert(button->attrs, attr);
+        }
+    }
 
     /* Push/flat buttons already render underlines through the custom Pango markup path */
     if (button_get_type(button->flags) == ekBUTTON_CHECK2 || button_get_type(button->flags) == ekBUTTON_CHECK3 || button_get_type(button->flags) == ekBUTTON_RADIO)
     {
         GtkWidget *label = gtk_bin_get_child(GTK_BIN(button->control.widget));
-
         if (label != NULL && GTK_IS_LABEL(label))
-        {
-            const gchar *ltext = cast_const(text, gchar);
-            glong nchars = g_utf8_strlen(ltext, -1);
-
-            if (pos != UINT32_MAX && pos < (uint32_t)nchars)
-            {
-                const gchar *start = g_utf8_offset_to_pointer(ltext, (glong)pos);
-                const gchar *end = g_utf8_next_char(start);
-                PangoAttrList *attrs = pango_attr_list_new();
-                PangoAttribute *attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
-                attr->start_index = (guint)(start - ltext);
-                attr->end_index = (guint)(end - ltext);
-                pango_attr_list_insert(attrs, attr);
-                gtk_label_set_attributes(GTK_LABEL(label), attrs);
-                pango_attr_list_unref(attrs);
-            }
-            else
-            {
-                gtk_label_set_attributes(GTK_LABEL(label), NULL);
-            }
-        }
+            gtk_label_set_attributes(GTK_LABEL(label), button->attrs);
     }
 }
 
@@ -499,15 +528,13 @@ void osbutton_text(OSButton *button, const char_t *text)
      * 2) 'markup': pango markup '<span>' to underline the shortcut.
      * 3) 'plain': Without any markup or mnemonic for text measure.
      */
-    char_t shortcut[256], markup[256], plain[256];
+    char_t shortcut[256], plain[256];
     uint32_t pos = UINT32_MAX;
     cassert_no_null(button);
     cassert(_osbutton_text_allowed(button->flags) == TRUE);
     pos = _osgui_underline_gtk_text(text, shortcut, sizeof(shortcut));
-    _osgui_underline_markup(shortcut, pos, markup, sizeof(markup));
     _osgui_underline_plain(shortcut, pos, plain, sizeof(plain));
     str_upd(&button->text, plain);
-    str_upd(&button->markup, markup);
 
     /*
      * The button inner label is a fake with '0' font size (invisible).
@@ -515,7 +542,7 @@ void osbutton_text(OSButton *button, const char_t *text)
      * The button 'real' text will be rendered in 'i_OnLabelDraw'
      */
     gtk_button_set_label(GTK_BUTTON(button->control.widget), shortcut);
-    i_update_mnemonic_underline(button, plain, pos);
+    i_update_attributes(button, plain, pos);
     gtk_widget_queue_draw(button->control.widget);
     button->twidth = -1.f;
     button->theight = -1.f;
