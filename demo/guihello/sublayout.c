@@ -97,6 +97,7 @@ static Layout *i_top_layout(LPData *data)
     layout_layout(layout1, layout2, 0, 0);
     layout_line(layout1, line, 1, 0);
     layout_textview(layout1, view, 2, 0);
+    cell_padding(layout_cell(layout1, 0, 0), 5);
     layout_hsize(layout1, 2, 230);
     layout_hmargin(layout1, 0, 5);
     layout_hmargin(layout1, 1, 5);

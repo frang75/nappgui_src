@@ -481,6 +481,7 @@ typedef struct _evtbcell_t EvTbCell;
 #define progress_get_type(flags) ((flags)&ekPROGRESS_TYPE)
 #define split_get_type(flags) ((flags)&ekSPLIT_TYPE)
 #define line_get_type(flags) ((flags)&ekLINE_TYPE)
+#define button_is_flat(flags) (bool_t)(button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
 
 typedef void *(*FPtr_gctx_create)(const uint32_t flags);
 #define FUNC_CHECK_GCTX_CREATE(func, type) \
