@@ -59,6 +59,7 @@
 @interface OSXButton : NSButton
 {
   @public
+    BOOL mouseOver;
     uint32_t hpadding;
     uint32_t vpadding;
     NSString *keyEquivalent;
@@ -148,22 +149,7 @@ static void i_OnClick(OSXButton *button)
     {
         OSXButtonCell *cell = [button cell];
         gui_state_t state = i_get_state(button);
-        if (button_get_type(cell->flags) == ekBUTTON_FLATGLE)
-        {
-            switch (state)
-            {
-            case ekGUI_ON:
-                [[button cell] setShowsBorderOnlyWhileMouseInside:NO];
-                break;
-            case ekGUI_OFF:
-                [[button cell] setShowsBorderOnlyWhileMouseInside:YES];
-                break;
-            case ekGUI_MIXED:
-            default:
-                cassert_default(state);
-            }
-        }
-        else if (button_get_type(cell->flags) == ekBUTTON_CHECK3)
+        if (button_get_type(cell->flags) == ekBUTTON_CHECK3)
         {
             if (state == ekGUI_MIXED)
             {
@@ -185,6 +171,40 @@ static void i_OnClick(OSXButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_tracking_areas(OSXButton *button)
+{
+    OSXButtonCell *cell = nil;
+    cassert_no_null(button);
+    cell = [button cell];
+    if (button_get_type(cell->flags) == ekBUTTON_FLATGLE)
+    {
+        NSUInteger n = [[button trackingAreas] count];
+        while (n > 0)
+        {
+            [button removeTrackingArea:[[button trackingAreas] objectAtIndex:0]];
+            n = [[button trackingAreas] count];
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)updateTrackingAreas
+{
+    OSXButtonCell *cell = [self cell];
+    [super updateTrackingAreas];
+    if (button_get_type(cell->flags) == ekBUTTON_FLATGLE)
+    {
+        NSTrackingArea *area = nil;
+        NSTrackingAreaOptions options = NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect;
+        i_remove_tracking_areas(self);
+        area = [[NSTrackingArea alloc] initWithRect:self.bounds options:options owner:self userInfo:nil];
+        [self addTrackingArea:area];
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (IBAction)onClickButton:(id)sender
 {
     cassert_no_null(sender);
@@ -199,6 +219,24 @@ static void i_OnClick(OSXButton *button)
 {
     if (_oswindow_mouse_down(cast(self, OSControl)) == TRUE)
         [super mouseDown:theEvent];
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)mouseEntered:(NSEvent *)theEvent
+{
+    unref(theEvent);
+    self->mouseOver = YES;
+    [self setNeedsDisplay:YES];
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)mouseExited:(NSEvent *)theEvent
+{
+    unref(theEvent);
+    self->mouseOver = NO;
+    [self setNeedsDisplay:YES];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -500,6 +538,22 @@ static void i_OnClick(OSXButton *button)
 
 /*---------------------------------------------------------------------------*/
 
+- (void) drawBezelWithFrame:(NSRect) frame inView:(NSView *) controlView
+{
+    cassert([controlView isKindOfClass:[OSXButton class]]);
+    if (button_get_type(self->flags) == ekBUTTON_FLATGLE)
+    {
+        OSXButton *button = cast(controlView, OSXButton);
+        gui_state_t state = i_get_state(button);
+        if (state == ekGUI_OFF && button->mouseOver == NO)
+            return;
+    }
+
+    [super drawBezelWithFrame:frame inView:controlView];
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView *)controlView
 {
     if (button_get_type(self->flags) == ekBUTTON_PUSH)
@@ -531,7 +585,7 @@ static void i_OnClick(OSXButton *button)
     cassert_no_null(nsimage);
     if (button_is_flat(self->flags) == TRUE)
         frame = NSMakeRect((CGFloat)self->imgx, (CGFloat)self->imgy, (CGFloat)self->imgwidth, (CGFloat)self->imgheight);
-    
+
     [super drawImage:nsimage withFrame:frame inView:controlView];
 }
 
@@ -603,7 +657,7 @@ static NSRect i_pushbutton_cell_frame(NSRect rect, const gui_size_t size)
                 self->theight = 0.f;
             }
         }
-        
+
         _osbutton_flat_position((real32_t)cellFrame.size.width, (real32_t)cellFrame.size.height, self->imgwidth, self->imgheight, i_BUTTON_IMAGE_SEP, self->imgpos, self->twidth, self->theight, &self->imgx, &self->imgy, &self->tx, &self->ty);
     }
 
@@ -755,7 +809,7 @@ static void i_recompute_button_action(OSXButton *button, NSView *parent_view)
     cassert_no_null(button);
     cassert_no_null(parent_view);
     cell = [button cell];
-    
+
     /*
      * Use of NSMatrix is informally deprecated. We expect to add the formal deprecation macros in
      * a subsequent release, but its use is discouraged in the mean time.
@@ -864,7 +918,6 @@ static void i_set_button_type(OSXButton *button, OSXButtonCell *cell, const uint
     case ekBUTTON_FLATGLE:
         [cell setBezelStyle:REGULAR_SQUARE_BEZEL];
         [cell setBordered:YES];
-        [cell setShowsBorderOnlyWhileMouseInside:YES];
         [cell setImageScaling:NSImageScaleNone];
         [button setButtonType:ON_OFF_BUTTON];
         break;
@@ -886,6 +939,7 @@ OSButton *osbutton_create(const uint32_t flags)
     button->hpadding = UINT32_MAX;
     button->vpadding = UINT32_MAX;
     button->OnClick = NULL;
+    button->mouseOver = NO;
     _oscontrol_init(button);
     cell = [[OSXButtonCell alloc] init];
     cell->flags = flags;
@@ -930,6 +984,7 @@ void osbutton_destroy(OSButton **button)
     buttonp = *dcast(button, OSXButton);
     cassert_no_null(buttonp);
     cell = [buttonp cell];
+    i_remove_tracking_areas(buttonp);
     listener_destroy(&buttonp->OnClick);
     _oscontrol_remove_textattr(&cell->attrs);
 
@@ -961,13 +1016,13 @@ void osbutton_text(OSButton *button, const char_t *text)
     cassert_no_null(lbutton);
     cell = [lbutton cell];
     cassert(_osbutton_text_allowed(cell->flags) == TRUE);
-    
+
     {
         char_t tbuff[256];
         cell->attrs.mark = _osgui_key_equivalent_text(text, tbuff, sizeof(tbuff));
         str_upd(&cell->text, tbuff);
     }
-    
+
     _oscontrol_set_text(lbutton, &cell->attrs, tc(cell->text));
 
     if (lbutton->keyEquivalent != nil)
@@ -1053,7 +1108,7 @@ void osbutton_image(OSButton *button, const Image *image)
     {
         cassert_msg(FALSE, "Button doesn't accept images.");
     }
-    
+
     if (image != NULL)
     {
         cell->imgwidth = (real32_t)image_width(image);
@@ -1264,7 +1319,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         *height += 2;
         break;
     }
-            
+
     default:
         cassert_default(button_get_type(cell->flags));
     }
