@@ -338,7 +338,6 @@ uint32_t _oscontrol_num_children(const OSControl *control)
 void _oscontrol_tooltip(OSControl *control, const char_t *text)
 {
     cassert_no_null(control);
-    cassert_no_null(text);
     if (control->window != NULL)
     {
         str_destopt(&control->tooltip);

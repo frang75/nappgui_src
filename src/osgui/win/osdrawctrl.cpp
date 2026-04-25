@@ -397,7 +397,7 @@ void _osdrawctrl_gdi_measuse(HDC hdc, const char_t *text, INT *width, INT *heigh
 
 /*---------------------------------------------------------------------------*/
 
-void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32_t x, const int32_t y, const align_t align, const ellipsis_t trim, const int32_t text_width, const color_t text_color, const ctrl_state_t state)
+void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32_t x, const int32_t y, const align_t align, const ellipsis_t trim, const int32_t text_width, const COLORREF text_color, const ctrl_state_t state)
 {
     RECT rect;
     WString str;
@@ -455,7 +455,7 @@ void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32
         rect.bottom = rect.top + (nrect.bottom - nrect.top);
     }
 
-    if (text_color == kCOLOR_DEFAULT)
+    if (text_color == UINT32_MAX)
     {
         if (osbs_windows() > ekWIN_XP3)
         {
@@ -474,6 +474,7 @@ void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32
     }
     else
     {
+        SetTextColor(hdc, text_color);
         DrawTextW(hdc, wtext, -1, &rect, format);
     }
 

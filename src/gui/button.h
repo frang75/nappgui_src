@@ -43,6 +43,8 @@ _gui_api void button_image(Button *button, const Image *image);
 
 _gui_api void button_image_alt(Button *button, const Image *image);
 
+_gui_api void button_image_pos(Button *button, const gui_pos_t pos);
+
 _gui_api void button_state(Button *button, const gui_state_t state);
 
 _gui_api void button_tag(Button *button, const uint32_t tag);

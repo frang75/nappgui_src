@@ -177,7 +177,7 @@ static void i_area(HWND hwnd, HDC hdc, Area *area)
                     int32_t tx = area->rect.left + i_GROUP_TITLE_OFFSET;
                     int32_t ty = area->rect.top;
                     ty -= (int32_t)height / 2;
-                    _osdrawctrl_gdi_text(hdc, theme, tc(area->text), tx, ty, ekLEFT, ekELLIPEND, mwidth, kCOLOR_DEFAULT, ekCTRL_STATE_NORMAL);
+                    _osdrawctrl_gdi_text(hdc, theme, tc(area->text), tx, ty, ekLEFT, ekELLIPEND, mwidth, UINT32_MAX, ekCTRL_STATE_NORMAL);
                 }
 
                 font_destroy(&font);

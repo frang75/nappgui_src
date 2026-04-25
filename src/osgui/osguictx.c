@@ -49,6 +49,7 @@ GuiCtx *osguictx(void)
         osbutton_font,
         osbutton_align,
         osbutton_image,
+        osbutton_image_pos,
         osbutton_state,
         osbutton_get_state,
         osbutton_hpadding,
