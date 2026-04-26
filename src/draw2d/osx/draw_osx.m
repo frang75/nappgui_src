@@ -30,6 +30,10 @@ NSNumber *kUNDERLINE_SINGLE = nil;
 
 /*---------------------------------------------------------------------------*/
 
+static void i_draw(DCtx *ctx, const drawop_t op);
+
+/*---------------------------------------------------------------------------*/
+
 void _draw_alloc_globals(void)
 {
     kUNDERLINE_NONE = [[NSNumber alloc] initWithInt:NSUnderlineStyleNone];
@@ -178,7 +182,10 @@ static ___INLINE void i_draw_linear(DCtx *ctx)
 {
     CGAffineTransform transform;
     CGContextSaveGState(ctx->context);
-    CGContextClip(ctx->context);
+    if (ctx->fill_rule == ekFILLEVENODD)
+        CGContextEOClip(ctx->context);
+    else
+        CGContextClip(ctx->context);
     /* Invalidate previous transform. Equivalent to hypothetical SetIdentity() */
     transform = CGContextGetCTM(ctx->context);
     transform = CGAffineTransformInvert(transform);
@@ -187,6 +194,25 @@ static ___INLINE void i_draw_linear(DCtx *ctx)
     CGContextConcatCTM(ctx->context, ctx->origin);
     CGContextConcatCTM(ctx->context, ctx->gradient_matrix);
     CGContextDrawLinearGradient(ctx->context, ctx->gradient, CGPointMake(ctx->gradient_rx0, ctx->gradient_ry0), CGPointMake(ctx->gradient_rx1, ctx->gradient_ry1), (CGGradientDrawingOptions)(kCGGradientDrawsBeforeStartLocation | kCGGradientDrawsAfterEndLocation));
+    CGContextRestoreGState(ctx->context);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static ___INLINE void i_draw_radial(DCtx *ctx)
+{
+    CGAffineTransform transform;
+    CGContextSaveGState(ctx->context);
+    if (ctx->fill_rule == ekFILLEVENODD)
+        CGContextEOClip(ctx->context);
+    else
+        CGContextClip(ctx->context);
+    transform = CGContextGetCTM(ctx->context);
+    transform = CGAffineTransformInvert(transform);
+    CGContextConcatCTM(ctx->context, transform);
+    CGContextConcatCTM(ctx->context, ctx->origin);
+    CGContextConcatCTM(ctx->context, ctx->gradient_matrix);
+    CGContextDrawRadialGradient(ctx->context, ctx->gradient, CGPointMake(ctx->gradient_rx0, ctx->gradient_ry0), ctx->gradient_rr0, CGPointMake(ctx->gradient_rx1, ctx->gradient_ry1), ctx->gradient_rr1, (CGGradientDrawingOptions)(kCGGradientDrawsBeforeStartLocation | kCGGradientDrawsAfterEndLocation));
     CGContextRestoreGState(ctx->context);
 }
 
@@ -207,13 +233,13 @@ static CGPathRef i_solid_path(DCtx *ctx)
         for (i = 0; i < ctx->dash_count; ++i)
             p[i] = ctx->line_dash[i] * ctx->line_width;
 
-        dpath = CGPathCreateCopyByDashingPath(path, NULL, 0, p, ctx->dash_count);
-        spath = CGPathCreateCopyByStrokingPath(dpath, NULL, ctx->line_width, ctx->linecap, ctx->linejoin, 100);
+        dpath = CGPathCreateCopyByDashingPath(path, NULL, ctx->dash_offset * ctx->line_width, p, ctx->dash_count);
+        spath = CGPathCreateCopyByStrokingPath(dpath, NULL, ctx->line_width, ctx->linecap, ctx->linejoin, ctx->miter_limit);
         CGPathRelease(dpath);
     }
     else
     {
-        spath = CGPathCreateCopyByStrokingPath(path, NULL, ctx->line_width, ctx->linecap, ctx->linejoin, 100);
+        spath = CGPathCreateCopyByStrokingPath(path, NULL, ctx->line_width, ctx->linecap, ctx->linejoin, ctx->miter_limit);
     }
 
     CGPathRelease(path);
@@ -262,6 +288,16 @@ static void i_stroke_path(DCtx *ctx)
             CGContextBeginPath(ctx->context);
             CGContextAddPath(ctx->context, path);
             i_draw_linear(ctx);
+            CGPathRelease(path);
+            break;
+        }
+
+        case ekFILL_RADIAL:
+        {
+            CGPathRef path = i_solid_path(ctx);
+            CGContextBeginPath(ctx->context);
+            CGContextAddPath(ctx->context, path);
+            i_draw_radial(ctx);
             CGPathRelease(path);
             break;
         }
@@ -346,6 +382,55 @@ void draw_bezier(DCtx *ctx, const real32_t x0, const real32_t y00, const real32_
 
 /*---------------------------------------------------------------------------*/
 
+void draw_path_begin(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    if (ctx->raster_mode == TRUE)
+        i_set_real2d_mode(ctx);
+    CGContextBeginPath(ctx->context);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_move(DCtx *ctx, const real32_t x, const real32_t y)
+{
+    cassert_no_null(ctx);
+    CGContextMoveToPoint(ctx->context, (CGFloat)x, (CGFloat)y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_line(DCtx *ctx, const real32_t x, const real32_t y)
+{
+    cassert_no_null(ctx);
+    CGContextAddLineToPoint(ctx->context, (CGFloat)x, (CGFloat)y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_bezier(DCtx *ctx, const real32_t x1, const real32_t y1, const real32_t x2, const real32_t y2, const real32_t x3, const real32_t y3)
+{
+    cassert_no_null(ctx);
+    CGContextAddCurveToPoint(ctx->context, (CGFloat)x1, (CGFloat)y1, (CGFloat)x2, (CGFloat)y2, (CGFloat)x3, (CGFloat)y3);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_close(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    CGContextClosePath(ctx->context);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_end(DCtx *ctx, const drawop_t op)
+{
+    i_draw(ctx, op);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_line_color(DCtx *ctx, const color_t color)
 {
     cassert_no_null(ctx);
@@ -375,7 +460,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
         uint32_t i, n = ctx->dash_count;
         for (i = 0; i < n; ++i)
             p[i] = ctx->line_dash[i] * ctx->line_width;
-        CGContextSetLineDash(ctx->context, 0.f, p, ctx->dash_count);
+        CGContextSetLineDash(ctx->context, ctx->dash_offset * ctx->line_width, p, ctx->dash_count);
     }
 }
 
@@ -435,6 +520,15 @@ void draw_line_join(DCtx *ctx, const linejoin_t join)
 
 /*---------------------------------------------------------------------------*/
 
+void draw_line_miter_limit(DCtx *ctx, const real32_t limit)
+{
+    cassert_no_null(ctx);
+    ctx->miter_limit = (CGFloat)limit;
+    CGContextSetMiterLimit(ctx->context, ctx->miter_limit);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 {
     if (pattern != NULL && n > 0)
@@ -449,12 +543,33 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
         }
 
         ctx->dash_count = pn;
-        CGContextSetLineDash(ctx->context, 0.f, p, pn);
+        CGContextSetLineDash(ctx->context, ctx->dash_offset * ctx->line_width, p, pn);
     }
     else
     {
         ctx->dash_count = 0;
-        CGContextSetLineDash(ctx->context, 0.f, NULL, 0);
+        CGContextSetLineDash(ctx->context, ctx->dash_offset * ctx->line_width, NULL, 0);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line_dash_offset(DCtx *ctx, const real32_t offset)
+{
+    cassert_no_null(ctx);
+    ctx->dash_offset = (CGFloat)offset;
+
+    if (ctx->dash_count > 0)
+    {
+        CGFloat p[16];
+        uint32_t i;
+        for (i = 0; i < ctx->dash_count; ++i)
+            p[i] = ctx->line_dash[i] * ctx->line_width;
+        CGContextSetLineDash(ctx->context, ctx->dash_offset * ctx->line_width, p, ctx->dash_count);
+    }
+    else
+    {
+        CGContextSetLineDash(ctx->context, ctx->dash_offset * ctx->line_width, NULL, 0);
     }
 }
 
@@ -482,10 +597,13 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         {
         case ekFILL_SOLID:
             i_fill_color(ctx);
-            CGContextDrawPath(ctx->context, kCGPathFill);
+            CGContextDrawPath(ctx->context, ctx->fill_rule == ekFILLEVENODD ? kCGPathEOFill : kCGPathFill);
             break;
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
+            break;
+        case ekFILL_RADIAL:
+            i_draw_radial(ctx);
             break;
         default:
             cassert_default(ctx->fillmode);
@@ -499,12 +617,17 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         {
         case ekFILL_SOLID:
             i_fill_color(ctx);
-            CGContextDrawPath(ctx->context, kCGPathFill);
+            CGContextDrawPath(ctx->context, ctx->fill_rule == ekFILLEVENODD ? kCGPathEOFill : kCGPathFill);
             CGContextAddPath(ctx->context, path);
             i_stroke_path(ctx);
             break;
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
+            CGContextAddPath(ctx->context, path);
+            i_stroke_path(ctx);
+            break;
+        case ekFILL_RADIAL:
+            i_draw_radial(ctx);
             CGContextAddPath(ctx->context, path);
             i_stroke_path(ctx);
             break;
@@ -526,10 +649,13 @@ static void i_draw(DCtx *ctx, const drawop_t op)
         {
         case ekFILL_SOLID:
             i_fill_color(ctx);
-            CGContextDrawPath(ctx->context, kCGPathFill);
+            CGContextDrawPath(ctx->context, ctx->fill_rule == ekFILLEVENODD ? kCGPathEOFill : kCGPathFill);
             break;
         case ekFILL_LINEAR:
             i_draw_linear(ctx);
+            break;
+        case ekFILL_RADIAL:
+            i_draw_radial(ctx);
             break;
         default:
             cassert_default(ctx->fillmode);
@@ -639,6 +765,14 @@ void draw_fill_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+void draw_fill_rule(DCtx *ctx, const fillrule_t rule)
+{
+    cassert_no_null(ctx);
+    ctx->fill_rule = rule;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_gradient(DCtx *ctx)
 {
     CGFloat locations[MAX_RANGE];
@@ -728,6 +862,35 @@ static color_t i_effective_color(const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_radial_vector(DCtx *ctx)
+{
+    ctx->gradient_rx0 = (CGFloat)ctx->gradient_x0;
+    ctx->gradient_ry0 = (CGFloat)ctx->gradient_y0;
+    ctx->gradient_rr0 = (CGFloat)ctx->gradient_r0;
+    ctx->gradient_rx1 = (CGFloat)ctx->gradient_x1;
+    ctx->gradient_ry1 = (CGFloat)ctx->gradient_y1;
+
+    switch (ctx->wrap)
+    {
+    case ekFCLAMP:
+        ctx->gradient_rr1 = (CGFloat)ctx->gradient_r1;
+        break;
+
+    case ekFTILE:
+    case ekFFLIP:
+    {
+        real32_t nl = (real32_t)(MAX_RANGE / MAX_COLORS);
+        ctx->gradient_rr1 = (CGFloat)(ctx->gradient_r0 + ((ctx->gradient_r1 - ctx->gradient_r0) * nl));
+        break;
+    }
+
+    default:
+        cassert_default(ctx->wrap);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t yy0, const real32_t x1, const real32_t yy1)
 {
     cassert_no_null(ctx);
@@ -787,6 +950,21 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
 
 /*---------------------------------------------------------------------------*/
 
+void draw_fill_radial(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t r0, const real32_t x1, const real32_t y1, const real32_t r1)
+{
+    draw_fill_linear(ctx, color, stop, n, 0, 0, 1, 0);
+    ctx->gradient_x0 = x0;
+    ctx->gradient_y0 = y0;
+    ctx->gradient_r0 = r0;
+    ctx->gradient_x1 = x1;
+    ctx->gradient_y1 = y1;
+    ctx->gradient_r1 = r1;
+    i_radial_vector(ctx);
+    ctx->fillmode = ekFILL_RADIAL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 {
     cassert_no_null(ctx);
@@ -813,8 +991,15 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
         }
 
         ctx->wrap = wrap;
-        i_gradient(ctx);
-        i_gradient_vector(ctx);
+        if (ctx->gradient_n > 0)
+        {
+            i_gradient(ctx);
+
+            if (ctx->fillmode == ekFILL_LINEAR)
+                i_gradient_vector(ctx);
+            else if (ctx->fillmode == ekFILL_RADIAL)
+                i_radial_vector(ctx);
+        }
     }
 }
 
