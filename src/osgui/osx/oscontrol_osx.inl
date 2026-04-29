@@ -28,6 +28,8 @@ void _oscontrol_cell_set_image(NSCell *cell, const Image *image);
 
 void _oscontrol_tooltip_set(NSView *view, const char_t *text);
 
+NSColor *_oscontrol_label_color(void);
+
 NSColor *_oscontrol_color(const color_t color);
 
 NSColor *_oscontrol_text_color(NSControl *control, const color_t color);

@@ -25,6 +25,7 @@ static Mutex *i_LOG_MUTEX = NULL;
 static bool_t i_LOG_STDOUT = TRUE;
 static bool_t i_LOG_STDERR = FALSE;
 static char_t i_LOG_FILEPATH[512] = "";
+#define BUFSIZE 2048
 
 /*---------------------------------------------------------------------------*/
 
@@ -63,7 +64,7 @@ static void i_unlock(void)
 uint32_t log_printf(const char_t *format, ...)
 {
     char_t time_buffer[32];
-    char_t msg_buffer[1024];
+    char_t msg_buffer[BUFSIZE];
     uint32_t time_size = 0;
     uint32_t msg_size = 0;
     uint32_t total_size = 0;
@@ -77,9 +78,10 @@ uint32_t log_printf(const char_t *format, ...)
     {
         va_list args;
         va_start(args, format);
-        msg_size = bstd_vsprintf(msg_buffer, 1024, format, args);
-        cassert(msg_size < 1024);
+        msg_size = bstd_vsprintf(msg_buffer, BUFSIZE, format, args);
         va_end(args);
+        if (msg_size > BUFSIZE)
+            msg_size = BUFSIZE;
     }
 
     i_lock();

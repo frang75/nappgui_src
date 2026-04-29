@@ -538,7 +538,7 @@ static void i_remove_tracking_areas(OSXButton *button)
 
 /*---------------------------------------------------------------------------*/
 
-- (void) drawBezelWithFrame:(NSRect) frame inView:(NSView *) controlView
+- (void)drawBezelWithFrame:(NSRect)frame inView:(NSView *)controlView
 {
     cassert([controlView isKindOfClass:[OSXButton class]]);
     if (button_get_type(self->flags) == ekBUTTON_FLATGLE)
@@ -1063,7 +1063,7 @@ void osbutton_font(OSButton *button, const Font *font)
     cell = [lbutton cell];
     cassert(_osbutton_text_allowed(cell->flags) == TRUE);
     _oscontrol_set_font(lbutton, &cell->attrs, font);
-    _oscontrol_size_from_font([lbutton cell], cell->attrs.font);
+    _oscontrol_size_from_font([lbutton cell], cell -> attrs.font);
     cell->size = _osgui_size_font(font_size(cell->attrs.font));
     cell->twidth = -1.f;
     cell->theight = -1.f;

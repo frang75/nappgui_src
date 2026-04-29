@@ -351,7 +351,9 @@ OSButton *osbutton_create(const uint32_t flags)
         widget = gtk_button_new_with_label("");
         gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
         gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
+#if GTK_CHECK_VERSION(3, 14, 0)
         gtk_style_context_add_class(gtk_widget_get_style_context(widget), GTK_STYLE_CLASS_FLAT);
+#endif
         g_signal_connect_after(widget, "draw", G_CALLBACK(i_OnButtonDraw), button);
         focus_widget = widget;
         break;
@@ -360,7 +362,9 @@ OSButton *osbutton_create(const uint32_t flags)
         widget = gtk_toggle_button_new_with_label("");
         gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
         gtk_button_set_relief(GTK_BUTTON(widget), GTK_RELIEF_NONE);
+#if GTK_CHECK_VERSION(3, 14, 0)
         gtk_style_context_add_class(gtk_widget_get_style_context(widget), GTK_STYLE_CLASS_FLAT);
+#endif
         g_signal_connect_after(widget, "draw", G_CALLBACK(i_OnButtonDraw), button);
         focus_widget = widget;
         break;

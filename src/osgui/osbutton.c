@@ -122,7 +122,7 @@ void _osbutton_flat_bounds(const char_t *text, const Font *font, const real32_t 
 
     cassert_no_null(width);
     cassert_no_null(height);
-    
+
     if (draw_text == TRUE)
         font_extents(font, text, -1.f, &twidth, &theight);
 
@@ -143,7 +143,7 @@ void _osbutton_flat_bounds(const char_t *text, const Font *font, const real32_t 
 
 void _osbutton_flat_position(const real32_t width, const real32_t height, const real32_t imgwidth, const real32_t imgheight, const real32_t imgsep, const gui_pos_t imgpos, const real32_t twidth, const real32_t theight, real32_t *imgx, real32_t *imgy, real32_t *tx, real32_t *ty)
 {
-    real32_t cwidth, cheight;
+    real32_t cwidth = 0.f, cheight = 0.f;
     real32_t ox, oy;
     cassert_no_null(imgx);
     cassert_no_null(imgy);

@@ -312,11 +312,7 @@ color_t osglobals_color(const syscolor_t *color)
         return (color_t)i_DARK_MODE;
 
     case ekSYSCOLOR_LABEL:
-#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-        return _oscolor_from_NSColor([NSColor labelColor]);
-#else
-        return _oscolor_from_NSColor([NSColor controlTextColor]);
-#endif
+        return _oscolor_from_NSColor(_oscontrol_label_color());
 
     case ekSYSCOLOR_VIEW:
         return _oscolor_from_NSColor([NSColor controlBackgroundColor]);

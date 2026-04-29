@@ -4,21 +4,24 @@
 
 ### Added
 
-- GroupBox `layout_group()`. [Commit]().
-- `view_tooltip()`. [Commit]().
-- `panel_scroll_size()`. [Commit]().
-- `panel_viewport()`. [Commit]().
+- GroupBox `layout_group()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- `view_tooltip()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- `panel_scroll_size()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- `panel_viewport()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- Support for text in flat buttons. [Commit](https://github.com/frang75/nappgui_src/commit/0a1eaf3bdbe9e1b530550fe3a392e2d37a065687).
+    - `button_image_pos()`
 
 ### Fixed
 
-- Issue in `label_color()`. [Commit]().
-- Issue in `window_control_frame()` with SplitViews. [Commit]().
-- Issue in `comwin_color()` position in macOS. [Commit]().
+- Issue in `label_color()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- Issue in `window_control_frame()` with SplitViews. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- Issue in `comwin_color()` position in macOS. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- GIF support for Ubuntu 26.04 LTS. [Commit]().
 
 ### Removed
 
-- `panel_scroll_width()`. [Commit]().
-- `panel_scroll_height()`. [Commit]().
+- `panel_scroll_width()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- `panel_scroll_height()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 
 ## v1.6.1 - Apr 02, 2026 (r6787)
 

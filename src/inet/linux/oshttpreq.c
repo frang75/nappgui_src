@@ -169,20 +169,20 @@ static void i_request(OSHttp *http, const bool_t use_get, const char_t *path, co
 
     if (data != NULL)
     {
-        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDSIZE, size);
+        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDSIZE, (long)size);
         cassert_unref(res == CURLE_OK, res);
-        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, (char *)data);
+        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, cast(data, char));
         cassert_unref(res == CURLE_OK, res);
     }
 
     if (use_get == TRUE)
     {
-        res = curl_easy_setopt(http->curl, CURLOPT_HTTPGET, 1);
+        res = curl_easy_setopt(http->curl, CURLOPT_HTTPGET, (long)1);
         cassert_unref(res == CURLE_OK, res);
     }
     else
     {
-        res = curl_easy_setopt(http->curl, CURLOPT_POST, 1);
+        res = curl_easy_setopt(http->curl, CURLOPT_POST, (long)1);
         cassert_unref(res == CURLE_OK, res);
     }
 

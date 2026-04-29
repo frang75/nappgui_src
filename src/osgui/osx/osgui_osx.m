@@ -417,10 +417,10 @@ void _osgui_groupbox_text(const NSRect *frame, const char_t *text)
         Font *font = _osgui_create_default_font();
         NSMutableParagraphStyle *pstyle = [[NSMutableParagraphStyle alloc] init];
         [pstyle setLineBreakMode:NSLineBreakByTruncatingTail];
-        [pstyle setAlignment:NSTextAlignmentLeft];
+        [pstyle setAlignment:_oscontrol_text_alignment(ekLEFT)];
         kGROUP_BOX_ATTRS = [[NSMutableDictionary alloc] init];
         [kGROUP_BOX_ATTRS setValue:cast(font_native(font), NSFont) forKey:NSFontAttributeName];
-        [kGROUP_BOX_ATTRS setValue:[NSColor labelColor] forKey:NSForegroundColorAttributeName];
+        [kGROUP_BOX_ATTRS setValue:_oscontrol_label_color() forKey:NSForegroundColorAttributeName];
         [kGROUP_BOX_ATTRS setValue:pstyle forKey:NSParagraphStyleAttributeName];
         fheight = font_height(font);
         font_destroy(&font);
