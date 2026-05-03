@@ -40,6 +40,7 @@ struct _http_t
     String *rprotocol;
     String *rmsg;
     ArrSt(Field) *headers;
+    ArrSt(Field) *cookies;
 };
 
 DeclSt(Field);
@@ -63,6 +64,7 @@ void http_destroy(Http **http)
     ptr_destopt(str_destroy, &(*http)->rprotocol, String);
     ptr_destopt(str_destroy, &(*http)->rmsg, String);
     arrst_destroy(&(*http)->headers, i_remove_field, Field);
+    arrst_destroy(&(*http)->cookies, i_remove_field, Field);
     oshttp_destroy(&(*http)->oshttp);
     heap_delete(http, Http);
 }
@@ -80,6 +82,7 @@ static Http *i_create(const char_t *host, const uint16_t port, const bool_t secu
     http->rmsg = NULL;
     http->rprotocol = NULL;
     http->headers = arrst_create(Field);
+    http->cookies = arrst_create(Field);
     return http;
 }
 
@@ -115,6 +118,56 @@ void http_add_header(Http *http, const char_t *name, const char_t *value)
 
 /*---------------------------------------------------------------------------*/
 
+void http_cookies_policy(Http *http, const cookies_t cookies)
+{
+    cassert_no_null(http);
+    oshttp_cookies_policy(http->oshttp, cookies);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookies_reload(Http *http)
+{
+    Stream *stm = NULL;
+    cassert_no_null(http);
+    arrst_clear(http->cookies, i_remove_field, Field);
+    stm = oshttp_cookies(http->oshttp);
+    if (stm != NULL)
+    {
+        while (stm_state(stm) == ekSTOK)
+        {
+            const char_t *cline = stm_read_to_char(stm, ';');
+            if (cline != NULL)
+            {
+                Field *cookie = arrst_new(http->cookies, Field);
+                str_split_trim(cline, "=", &cookie->name, &cookie->value);
+            }
+        }
+
+        stm_close(&stm);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t http_cookies_size(const Http *http)
+{
+    cassert_no_null(http);
+    return arrst_size(http->cookies, Field);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *http_cookie_name(const Http *http, const uint32_t index)
+{
+    const Field *field = NULL;
+    cassert_no_null(http);
+    field = arrst_get(http->cookies, index, Field);
+    return tc(field->name);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static const char_t *i_field(ArrSt(Field) *fields, const char_t *name)
 {
     arrst_foreach(field, fields, Field)
@@ -122,6 +175,66 @@ static const char_t *i_field(ArrSt(Field) *fields, const char_t *name)
             return tc(field->value);
     arrst_end()
     return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_field_pos(ArrSt(Field) *fields, const char_t *name)
+{
+    arrst_foreach(field, fields, Field)
+        if (str_equ_nocase(tc(field->name), name) == TRUE)
+            return field_i;
+    arrst_end()
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *http_cookie_search(const Http *http, const char_t *name)
+{
+    const char_t *value;
+    cassert_no_null(http);
+    value = i_field(http->cookies, name);
+    if (value != NULL)
+        return value;
+    return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *http_cookie_value(const Http *http, const uint32_t index)
+{
+    const Field *field = NULL;
+    cassert_no_null(http);
+    field = arrst_get(http->cookies, index, Field);
+    return tc(field->value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookie_delete(Http *http, const char_t *name)
+{
+    uint32_t pos;
+    cassert_no_null(http);
+    http_cookies_reload(http);
+    pos = i_field_pos(http->cookies, name);
+    if (pos != UINT32_MAX)
+    {
+        oshttp_cookie_delete(http->oshttp, name);
+        arrst_delete(http->cookies, pos, i_remove_field, Field);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookie_delete_all(Http *http)
+{
+    cassert_no_null(http);
+    http_cookies_reload(http);
+    arrst_foreach_const(cookie, http->cookies, Field)
+        oshttp_cookie_delete(http->oshttp, tc(cookie->name));
+    arrst_end()
+    arrst_clear(http->cookies, i_remove_field, Field);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -154,6 +267,39 @@ bool_t http_post(Http *http, const char_t *path, const byte_t *data, const uint3
     cassert_no_null(http);
     i_clear_response(http);
     oshttp_post(http->oshttp, path, data, size, TRUE, &http->error);
+    ptr_assign(error, http->error);
+    return http->error == ekIOK ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t http_put(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+{
+    cassert_no_null(http);
+    i_clear_response(http);
+    oshttp_put(http->oshttp, path, data, size, TRUE, &http->error);
+    ptr_assign(error, http->error);
+    return http->error == ekIOK ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t http_patch(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+{
+    cassert_no_null(http);
+    i_clear_response(http);
+    oshttp_patch(http->oshttp, path, data, size, TRUE, &http->error);
+    ptr_assign(error, http->error);
+    return http->error == ekIOK ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t http_delete(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+{
+    cassert_no_null(http);
+    i_clear_response(http);
+    oshttp_delete(http->oshttp, path, data, size, TRUE, &http->error);
     ptr_assign(error, http->error);
     return http->error == ekIOK ? TRUE : FALSE;
 }

@@ -26,12 +26,24 @@ void oshttp_clear_headers(OSHttp *http);
 
 void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value);
 
+void oshttp_cookies_policy(OSHttp *http, const cookies_t cookies);
+
 void oshttp_get(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
 
 void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
 
+void oshttp_put(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
+
+void oshttp_patch(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
+
+void oshttp_delete(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error);
+
 Stream *oshttp_response(OSHttp *http);
 
 void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error);
+
+Stream *oshttp_cookies(OSHttp *http);
+
+void oshttp_cookie_delete(OSHttp *http, const char_t *name);
 
 __END_C

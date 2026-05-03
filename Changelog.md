@@ -9,14 +9,28 @@
 - `panel_scroll_size()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - `panel_viewport()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - Support for text in flat buttons. [Commit](https://github.com/frang75/nappgui_src/commit/0a1eaf3bdbe9e1b530550fe3a392e2d37a065687).
-    - `button_image_pos()`
+    - `button_image_pos()`.
+- `stm_read_to_char()`. [Commit]().
+- HTTP request new methods. [Commit]().
+    - `http_put()`.
+    - `http_patch()`.
+    - `http_delete()`.
+- HTTP cookies support. [Commit]().
+    - `http_cookies_policy()`.
+    - `http_cookies_reload()`.
+    - `http_cookies_size()`.
+    - `http_cookie_name()`.
+    - `http_cookie_value()`.
+    - `http_cookie_search()`.
+    - `http_cookie_delete()`.
+    - `http_cookie_delete_all()`.
 
 ### Fixed
 
 - Issue in `label_color()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - Issue in `window_control_frame()` with SplitViews. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - Issue in `comwin_color()` position in macOS. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
-- GIF support for Ubuntu 26.04 LTS. [Commit]().
+- GIF support for Ubuntu 26.04 LTS. [Commit](https://github.com/frang75/nappgui_src/commit/7b8fa4ce0721b5af318b0041cd120c070677de5c).
 
 ### Removed
 

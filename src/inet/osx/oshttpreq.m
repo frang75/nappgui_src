@@ -44,18 +44,18 @@
 
 struct _oshttp_t
 {
-    String *host_url;
+    String *host;
     uint16_t port;
     bool_t secure;
     bool_t response;
 
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     Mutex *mutex;
-    NSURLSession *session;
     OSXURLDelegate *delegate;
 #endif
 
     NSMutableURLRequest *request;
+    cookies_t cookies;
     ierror_t error;
     String *protocol;
     Stream *headers;
@@ -130,19 +130,15 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
 {
     OSHttp *http = heap_new(OSHttp);
 
-    if (secure == TRUE)
-        http->host_url = str_printf("https://%s:%d", host, port);
-    else
-        http->host_url = str_printf("http://%s:%d", host, port);
-
+    http->host = str_c(host);
     http->port = port;
     http->secure = secure;
+    http->cookies = ekCOOKIES_ALL;
 
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
     http->delegate = [[OSXURLDelegate alloc] init];
     http->delegate->http = http;
     http->delegate->auto_redirect = TRUE;
-    http->session = [[NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:http->delegate delegateQueue:nil] retain];
     http->mutex = bmutex_create();
 #endif
 
@@ -160,10 +156,9 @@ void oshttp_destroy(OSHttp **http)
 {
     cassert_no_null(http);
     cassert_no_null(*http);
-    str_destroy(&(*http)->host_url);
+    str_destroy(&(*http)->host);
 
 #if defined(MAC_OS_X_VERSION_10_9) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
-    [(*http)->session release];
     [(*http)->delegate release];
     bmutex_close(&(*http)->mutex);
 #endif
@@ -229,6 +224,14 @@ void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
             [http->request setValue:lvalue forHTTPHeaderField:lname];
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oshttp_cookies_policy(OSHttp *http, const cookies_t cookies)
+{
+    cassert_no_null(http);
+    http->cookies = cookies;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -359,7 +362,7 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
     http->error = ekIOK;
 
     {
-        NSString *curl = [[NSString alloc] initWithFormat:@"%s/%s", tc(http->host_url), path];
+        NSString *curl = [[NSString alloc] initWithFormat:@"%s://%s:%d/%s", http->secure ? "https" : "http", tc(http->host), http->port, path];
         NSURL *url = [[NSURL alloc] initWithString:curl];
         [http->request setURL:url];
         [url release];
@@ -380,14 +383,35 @@ static void i_request(OSHttp *http, NSString *verb, const char_t *path, const by
 
 #if defined(MAC_OS_X_VERSION_10_11) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_11
     {
-        /* Synchronous request */
-        bool_t end = FALSE;
+        NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+        NSURLSession *session = nil;
         NSURLSessionTask *task = nil;
+        bool_t end = FALSE;
+
+        switch (http->cookies)
+        {
+        case ekCOOKIES_ALL:
+            [config setHTTPCookieStorage:[NSHTTPCookieStorage sharedHTTPCookieStorage]];
+            [config setHTTPShouldSetCookies:YES];
+            break;
+
+        case ekCOOKIES_OFF:
+            [config setHTTPCookieStorage:nil];
+            [config setHTTPShouldSetCookies:NO];
+            break;
+
+        default:
+            cassert_default(http->cookies);
+        }
+
         http->delegate->auto_redirect = auto_redirect;
-        task = [http->session dataTaskWithRequest:http->request
-                                completionHandler:^(NSData *_Nullable ddata, NSURLResponse *_Nullable response, NSError *_Nullable lerror) {
-                                  i_response(ddata, response, lerror, http);
-                                }];
+        session = [NSURLSession sessionWithConfiguration:config delegate:http->delegate delegateQueue:nil];
+
+        /* Synchronous request */
+        task = [session dataTaskWithRequest:http->request
+                          completionHandler:^(NSData *_Nullable ddata, NSURLResponse *_Nullable response, NSError *_Nullable lerror) {
+                            i_response(ddata, response, lerror, http);
+                          }];
 
         [task resume];
 
@@ -427,6 +451,27 @@ void oshttp_post(OSHttp *http, const char_t *path, const byte_t *data, const uin
 
 /*---------------------------------------------------------------------------*/
 
+void oshttp_put(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
+{
+    i_request(http, @"PUT", path, data, size, auto_redirect, error);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oshttp_patch(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
+{
+    i_request(http, @"PATCH", path, data, size, auto_redirect, error);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oshttp_delete(OSHttp *http, const char_t *path, const byte_t *data, const uint32_t size, const bool_t auto_redirect, ierror_t *error)
+{
+    i_request(http, @"DELETE", path, data, size, auto_redirect, error);
+}
+
+/*---------------------------------------------------------------------------*/
+
 Stream *oshttp_response(OSHttp *http)
 {
     Stream *stm = NULL;
@@ -455,4 +500,80 @@ void oshttp_response_body(OSHttp *http, Stream *body, ierror_t *error)
     }
 
     ptr_assign(error, http->error);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Stream *oshttp_cookies(OSHttp *http)
+{
+    Stream *stm = NULL;
+    NSArray< NSHTTPCookie * > *cookies = nil;
+    cassert_no_null(http);
+
+    {
+        NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+        NSString *curl = [[NSString alloc] initWithFormat:@"%s://%s", http->secure ? "https" : "http", tc(http->host)];
+        NSURL *url = [[NSURL alloc] initWithString:curl];
+        cookies = [storage cookiesForURL:url];
+        [url release];
+        [curl release];
+    }
+
+    if (cookies != nil && [cookies count] > 0)
+    {
+        NSUInteger i, n = [cookies count];
+        stm = stm_memory(1024);
+        for (i = 0; i < n; ++i)
+        {
+            NSHTTPCookie *cookie = [cookies objectAtIndex:i];
+            NSString *name = nil;
+            NSString *value = nil;
+            cassert_no_null(cookie);
+
+            if (i > 0)
+                stm_writef(stm, "; ");
+
+            name = [cookie name];
+            value = [cookie value];
+            stm_writef(stm, [name UTF8String]);
+            stm_writef(stm, "=");
+            stm_writef(stm, [value UTF8String]);
+        }
+    }
+
+    return stm;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oshttp_cookie_delete(OSHttp *http, const char_t *name)
+{
+    NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    NSArray< NSHTTPCookie * > *cookies = nil;
+    cassert_no_null(http);
+
+    {
+        NSString *curl = [[NSString alloc] initWithFormat:@"%s://%s", http->secure ? "https" : "http", tc(http->host)];
+        NSURL *url = [[NSURL alloc] initWithString:curl];
+        cookies = [storage cookiesForURL:url];
+        [url release];
+        [curl release];
+    }
+
+    if (cookies != nil && [cookies count] > 0)
+    {
+        NSUInteger i, n = [cookies count];
+        for (i = 0; i < n; ++i)
+        {
+            NSHTTPCookie *cookie = [cookies objectAtIndex:i];
+            const char_t *cname = NULL;
+            cassert_no_null(cookie);
+            cname = [[cookie name] UTF8String];
+            if (str_equ_c(name, cname) == TRUE)
+            {
+                [storage deleteCookie:cookie];
+                break;
+            }
+        }
+    }
 }

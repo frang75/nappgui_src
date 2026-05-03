@@ -29,6 +29,12 @@ typedef enum _ierror_t
     ekIOK
 } ierror_t;
 
+typedef enum _cookies_t
+{
+    ekCOOKIES_OFF,
+    ekCOOKIES_ALL
+} cookies_t;
+
 typedef struct _http_t Http;
 
 #endif

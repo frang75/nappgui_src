@@ -1673,6 +1673,13 @@ const char_t *stm_read_chars(Stream *stm, const uint32_t n)
 
 const char_t *stm_read_line(Stream *stm)
 {
+    return stm_read_to_char(stm, '\n');
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *stm_read_to_char(Stream *stm, const uint32_t endchar)
+{
     i_Buffer *line;
     uint32_t code = 0;
     cassert_no_null(stm);
@@ -1682,7 +1689,7 @@ const char_t *stm_read_line(Stream *stm)
     line = &stm->textline;
     line->roffset = 0;
     code = stm_read_char(stm);
-    while (code != '\n' && code != 0)
+    while (code != endchar && code != 0)
     {
         if (unicode_valid(code))
             i_char_to_cache(stm, code);

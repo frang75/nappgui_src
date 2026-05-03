@@ -25,9 +25,31 @@ _inet_api void http_clear_headers(Http *http);
 
 _inet_api void http_add_header(Http *http, const char_t *name, const char_t *value);
 
+_inet_api void http_cookies_policy(Http *http, const cookies_t cookies);
+
+_inet_api void http_cookies_reload(Http *http);
+
+_inet_api uint32_t http_cookies_size(const Http *http);
+
+_inet_api const char_t *http_cookie_name(const Http *http, const uint32_t index);
+
+_inet_api const char_t *http_cookie_value(const Http *http, const uint32_t index);
+
+_inet_api const char_t *http_cookie_search(const Http *http, const char_t *name);
+
+_inet_api void http_cookie_delete(Http *http, const char_t *name);
+
+_inet_api void http_cookie_delete_all(Http *http);
+
 _inet_api bool_t http_get(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
 
 _inet_api bool_t http_post(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
+
+_inet_api bool_t http_put(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
+
+_inet_api bool_t http_patch(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
+
+_inet_api bool_t http_delete(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error);
 
 _inet_api uint32_t http_response_status(const Http *http);
 
