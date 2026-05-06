@@ -239,6 +239,64 @@ void draw_bezier(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t
 
 /*---------------------------------------------------------------------------*/
 
+void draw_path_begin(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    if (ctx->path != NULL)
+        delete ctx->path;
+    ctx->path = new Gdiplus::GraphicsPath;
+    ctx->path_has_current = FALSE;
+    ctx->path->SetFillMode(ctx->fill_rule == ekFILLEVENODD ? Gdiplus::FillModeAlternate : Gdiplus::FillModeWinding);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_move(DCtx *ctx, const real32_t x, const real32_t y)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->path);
+    ctx->path->StartFigure();
+    ctx->path_current.X = (Gdiplus::REAL)x;
+    ctx->path_current.Y = (Gdiplus::REAL)y;
+    ctx->path_has_current = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_line(DCtx *ctx, const real32_t x, const real32_t y)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->path);
+    cassert(ctx->path_has_current == TRUE);
+    ctx->path->AddLine(ctx->path_current, Gdiplus::PointF((Gdiplus::REAL)x, (Gdiplus::REAL)y));
+    ctx->path_current.X = (Gdiplus::REAL)x;
+    ctx->path_current.Y = (Gdiplus::REAL)y;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_bezier(DCtx *ctx, const real32_t x1, const real32_t y1, const real32_t x2, const real32_t y2, const real32_t x3, const real32_t y3)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->path);
+    cassert(ctx->path_has_current == TRUE);
+    ctx->path->AddBezier(ctx->path_current, Gdiplus::PointF((Gdiplus::REAL)x1, (Gdiplus::REAL)y1), Gdiplus::PointF((Gdiplus::REAL)x2, (Gdiplus::REAL)y2), Gdiplus::PointF((Gdiplus::REAL)x3, (Gdiplus::REAL)y3));
+    ctx->path_current.X = (Gdiplus::REAL)x3;
+    ctx->path_current.Y = (Gdiplus::REAL)y3;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_close(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->path);
+    ctx->path->CloseFigure();
+    ctx->path_has_current = FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Gdiplus::Color i_color(const color_t c)
 {
     uint8_t r, g, b, a;
@@ -294,6 +352,10 @@ void draw_line_fill(DCtx *ctx)
         ctx->pen->GetDashPattern(pattern, ctx->pen->GetDashPatternCount());
         ctx->fpen->SetDashPattern(pattern, ctx->pen->GetDashPatternCount());
         ctx->fpen->SetDashStyle(ctx->pen->GetDashStyle());
+        ctx->fpen->SetDashOffset(ctx->pen->GetDashOffset());
+        ctx->fpen->SetLineJoin(ctx->pen->GetLineJoin());
+        ctx->fpen->SetLineCap(ctx->pen->GetStartCap(), ctx->pen->GetEndCap(), ctx->pen->GetDashCap());
+        ctx->fpen->SetMiterLimit(ctx->pen->GetMiterLimit());
     }
 
     ctx->current_pen = ctx->fpen;
@@ -334,6 +396,8 @@ void draw_line_cap(DCtx *ctx, const linecap_t cap)
 {
     cassert_no_null(ctx);
     ctx->pen->SetLineCap(i_linecap(cap), i_linecap(cap), Gdiplus::DashCapFlat);
+    if (ctx->fpen != NULL)
+        ctx->fpen->SetLineCap(i_linecap(cap), i_linecap(cap), Gdiplus::DashCapFlat);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -361,6 +425,19 @@ void draw_line_join(DCtx *ctx, const linejoin_t join)
 {
     cassert_no_null(ctx);
     ctx->pen->SetLineJoin(i_linejoin(join));
+    if (ctx->fpen != NULL)
+        ctx->fpen->SetLineJoin(i_linejoin(join));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line_miter_limit(DCtx *ctx, const real32_t limit)
+{
+    cassert_no_null(ctx);
+    ctx->miter_limit = (Gdiplus::REAL)limit;
+    ctx->pen->SetMiterLimit(ctx->miter_limit);
+    if (ctx->fpen != NULL)
+        ctx->fpen->SetMiterLimit(ctx->miter_limit);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -390,10 +467,22 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 
 /*---------------------------------------------------------------------------*/
 
+void draw_line_dash_offset(DCtx *ctx, const real32_t offset)
+{
+    cassert_no_null(ctx);
+    ctx->dash_offset = (Gdiplus::REAL)offset;
+    ctx->pen->SetDashOffset(ctx->dash_offset);
+    if (ctx->fpen != NULL)
+        ctx->fpen->SetDashOffset(ctx->dash_offset);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static ___INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const drawop_t op)
 {
     cassert_no_null(path);
     i_set_gdiplus_mode(ctx);
+    path->SetFillMode(ctx->fill_rule == ekFILLEVENODD ? Gdiplus::FillModeAlternate : Gdiplus::FillModeWinding);
 
     switch (op)
     {
@@ -414,6 +503,18 @@ static ___INLINE void i_draw_path(DCtx *ctx, Gdiplus::GraphicsPath *path, const 
     default:
         cassert_default(op);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_end(DCtx *ctx, const drawop_t op)
+{
+    cassert_no_null(ctx);
+    cassert_no_null(ctx->path);
+    i_draw_path(ctx, ctx->path, op);
+    delete ctx->path;
+    ctx->path = NULL;
+    ctx->path_has_current = FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -535,6 +636,14 @@ void draw_fill_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+void draw_fill_rule(DCtx *ctx, const fillrule_t rule)
+{
+    cassert_no_null(ctx);
+    ctx->fill_rule = rule;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_set_gradient_colors(DCtx *ctx)
 {
     cassert_no_null(ctx);
@@ -561,6 +670,50 @@ static void i_set_gradient_colors(DCtx *ctx)
         ctx->lbrush->SetWrapMode(ctx->gradient_wrap);
         ctx->lbrush->SetInterpolationColors(ctx->gradient_colors + 1, ctx->gradient_stops + 1, ctx->gradient_n);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_radial_gradient(DCtx *ctx)
+{
+    Gdiplus::Color colors[16];
+    Gdiplus::REAL stops[16];
+    Gdiplus::GraphicsPath path;
+    Gdiplus::PointF center[1];
+    Gdiplus::RectF rect;
+    INT i;
+
+    cassert_no_null(ctx);
+    cassert(ctx->gradient_n > 0);
+
+    rect.X = ctx->radial_x1 - ctx->radial_r1;
+    rect.Y = ctx->radial_y1 - ctx->radial_r1;
+    rect.Width = 2.f * ctx->radial_r1;
+    rect.Height = 2.f * ctx->radial_r1;
+    path.AddEllipse(rect);
+    path.Transform(ctx->gradient_matrix);
+
+    center[0].X = ctx->radial_x0;
+    center[0].Y = ctx->radial_y0;
+    ctx->gradient_matrix->TransformPoints(center, 1);
+
+    if (ctx->pbrush != NULL)
+        delete ctx->pbrush;
+
+    for (i = 0; i < ctx->gradient_n; ++i)
+    {
+        colors[i] = ctx->gradient_colors[ctx->gradient_n - i - 1];
+        stops[i] = 1.f - ctx->gradient_stops[ctx->gradient_n - i - 1];
+    }
+
+    ctx->pbrush = new Gdiplus::PathGradientBrush(&path);
+    ctx->pbrush->SetCenterPoint(center[0]);
+    ctx->pbrush->SetWrapMode(ctx->gradient_wrap);
+    ctx->pbrush->SetInterpolationColors(colors, stops, ctx->gradient_n);
+    ctx->current_brush = ctx->pbrush;
+
+    if (ctx->fpen != NULL)
+        ctx->fpen->SetBrush(ctx->current_brush);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -600,6 +753,31 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
 
 /*---------------------------------------------------------------------------*/
 
+void draw_fill_radial(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t r0, const real32_t x1, const real32_t y1, const real32_t r1)
+{
+    uint32_t i;
+    cassert_no_null(ctx);
+    cassert(n > 0);
+    cassert(n < 16);
+    ctx->radial_x0 = (Gdiplus::REAL)x0;
+    ctx->radial_y0 = (Gdiplus::REAL)y0;
+    ctx->radial_r0 = (Gdiplus::REAL)r0;
+    ctx->radial_x1 = (Gdiplus::REAL)x1;
+    ctx->radial_y1 = (Gdiplus::REAL)y1;
+    ctx->radial_r1 = (Gdiplus::REAL)r1;
+    ctx->gradient_n = (INT)n;
+
+    for (i = 0; i < n; ++i)
+    {
+        ctx->gradient_colors[i] = i_color(color[i]);
+        ctx->gradient_stops[i] = (Gdiplus::REAL)stop[i];
+    }
+
+    i_set_radial_gradient(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
 {
     cassert_no_null(ctx);
@@ -610,11 +788,17 @@ void draw_fill_matrix(DCtx *ctx, const T2Df *t2d)
         (Gdiplus::REAL)t2d->j.y,
         (Gdiplus::REAL)t2d->p.x,
         (Gdiplus::REAL)t2d->p.y);
+    if (ctx->current_brush == ctx->lbrush)
+    {
+        _dctx_gradient_transform(ctx);
 
-    _dctx_gradient_transform(ctx);
-
-    if (ctx->fpen != NULL)
-        ctx->fpen->SetBrush(ctx->current_brush);
+        if (ctx->fpen != NULL)
+            ctx->fpen->SetBrush(ctx->current_brush);
+    }
+    else if (ctx->current_brush == ctx->pbrush)
+    {
+        i_set_radial_gradient(ctx);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -642,8 +826,16 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
 {
     cassert_no_null(ctx);
     ctx->gradient_wrap = i_wrap(wrap);
-    i_set_gradient_colors(ctx);
-    _dctx_gradient_transform(ctx);
+    if (ctx->current_brush == ctx->lbrush)
+    {
+        i_set_gradient_colors(ctx);
+        _dctx_gradient_transform(ctx);
+    }
+    else if (ctx->current_brush == ctx->pbrush && ctx->pbrush != NULL)
+    {
+        ctx->pbrush->SetWrapMode(ctx->gradient_wrap);
+        _dctx_gradient_transform(ctx);
+    }
 
     if (ctx->fpen != NULL)
         ctx->fpen->SetBrush(ctx->current_brush);

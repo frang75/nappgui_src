@@ -44,7 +44,11 @@ struct _dctx_t
     Gdiplus::SolidBrush *tbrush;
     Gdiplus::SolidBrush *sbrush;
     Gdiplus::LinearGradientBrush *lbrush;
+    Gdiplus::PathGradientBrush *pbrush;
     Gdiplus::Brush *current_brush;
+    Gdiplus::GraphicsPath *path;
+    Gdiplus::PointF path_current;
+    bool_t path_has_current;
     Gdiplus::Bitmap *bitmap;
     Gdiplus::Graphics *graphics;
     Gdiplus::Matrix *gradient_matrix;
@@ -55,7 +59,16 @@ struct _dctx_t
     Gdiplus::REAL gradient_y;
     Gdiplus::REAL gradient_scale;
     Gdiplus::REAL gradient_angle;
+    Gdiplus::REAL radial_x0;
+    Gdiplus::REAL radial_y0;
+    Gdiplus::REAL radial_r0;
+    Gdiplus::REAL radial_x1;
+    Gdiplus::REAL radial_y1;
+    Gdiplus::REAL radial_r1;
     Gdiplus::WrapMode gradient_wrap;
+    fillrule_t fill_rule;
+    Gdiplus::REAL dash_offset;
+    Gdiplus::REAL miter_limit;
     real32_t text_width;
     align_t text_halign;
     align_t text_valign;

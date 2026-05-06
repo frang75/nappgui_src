@@ -241,13 +241,16 @@ Image *image_from_file(const char_t *pathname, ferror_t *error)
 
 Image *image_from_data(const byte_t *data, const uint32_t size)
 {
-    codec_t codec = i_codec(data[0]);
-    if (codec != ENUM_MAX(codec_t))
+    if (size > 0)
     {
-        OSImage *osimage = NULL;
-        real32_t *frame_length = NULL;
-        osimage = osimage_create_from_data(data, size);
-        return i_create_image(1, PARAM(num_frames, 0), &frame_length, codec, &osimage);
+        codec_t codec = i_codec(data[0]);
+        if (codec != ENUM_MAX(codec_t))
+        {
+            OSImage *osimage = NULL;
+            real32_t *frame_length = NULL;
+            osimage = osimage_create_from_data(data, size);
+            return i_create_image(1, PARAM(num_frames, 0), &frame_length, codec, &osimage);
+        }
     }
 
     return NULL;
@@ -390,6 +393,7 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
     {
         OSImage *osimage = NULL;
         real32_t *frame_length = NULL;
+
         cassert_no_null(image);
         osimage = osimage_create_scaled(image->osimage, width, height);
         return i_create_image(1, PARAM(num_frames, 0), &frame_length, image->codec, &osimage);
@@ -405,35 +409,36 @@ Image *image_scale(const Image *image, const uint32_t nwidth, const uint32_t nhe
 
 Image *image_read(Stream *stm)
 {
-    if (stm_is_memory(stm) == TRUE)
-    {
-        const byte_t *data = stm_buffer(stm);
-        uint64_t st = stm_bytes_readed(stm);
+    byte_t block[4096];
+    Stream *stm_out = NULL;
+    Image *image = NULL;
+    cassert_no_null(stm);
+    stm_out = stm_memory(4096);
 
-        if (_imgutil_parse(stm, NULL) == TRUE)
+    for (;;)
+    {
+        uint32_t n = stm_read(stm, block, sizeof32(block));
+        if (n > 0)
+            stm_write(stm_out, block, n);
+
+        if (n < sizeof32(block))
         {
-            uint64_t ed = stm_bytes_readed(stm);
-            return image_from_data(data, (uint32_t)(ed - st));
-        }
-        else
-        {
-            return NULL;
+            sstate_t state = stm_state(stm);
+            if (state != ekSTOK && state != ekSTEND)
+            {
+                stm_close(&stm_out);
+                return NULL;
+            }
+
+            break;
         }
     }
-    else
-    {
-        Image *image = NULL;
-        Stream *stm_out = stm_memory(4096);
-        if (_imgutil_parse(stm, stm_out) == TRUE)
-        {
-            const byte_t *data = stm_buffer(stm_out);
-            uint32_t size = stm_buffer_size(stm_out);
-            image = image_from_data(data, size);
-        }
 
-        stm_close(&stm_out);
-        return image;
-    }
+    if (stm_buffer_size(stm_out) > 0)
+        image = image_from_data(stm_buffer(stm_out), stm_buffer_size(stm_out));
+
+    stm_close(&stm_out);
+    return image;
 }
 
 /*---------------------------------------------------------------------------*/

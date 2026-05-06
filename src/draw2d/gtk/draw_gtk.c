@@ -38,6 +38,10 @@
 
 /*---------------------------------------------------------------------------*/
 
+static void i_draw(DCtx *ctx, const drawop_t op);
+
+/*---------------------------------------------------------------------------*/
+
 void _draw_alloc_globals(void)
 {
     /* GObject system must be initializated explicitly in older GLIB versions */
@@ -197,6 +201,7 @@ static void i_fill_pattern(cairo_t *cairo, color_t fill_color, cairo_pattern_t *
         i_color(cairo, fill_color, source_color);
         break;
     case ekFILL_LINEAR:
+    case ekFILL_RADIAL:
         cairo_set_source(cairo, lpattern);
         *source_color = 0;
         break;
@@ -261,6 +266,55 @@ void draw_bezier(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t
 
 /*---------------------------------------------------------------------------*/
 
+void draw_path_begin(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    if (ctx->raster_mode == TRUE)
+        i_set_real2d_mode(ctx);
+    cairo_new_path(ctx->cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_move(DCtx *ctx, const real32_t x, const real32_t y)
+{
+    cassert_no_null(ctx);
+    cairo_move_to(ctx->cairo, (double)x, (double)y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_line(DCtx *ctx, const real32_t x, const real32_t y)
+{
+    cassert_no_null(ctx);
+    cairo_line_to(ctx->cairo, (double)x, (double)y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_bezier(DCtx *ctx, const real32_t x1, const real32_t y1, const real32_t x2, const real32_t y2, const real32_t x3, const real32_t y3)
+{
+    cassert_no_null(ctx);
+    cairo_curve_to(ctx->cairo, (double)x1, (double)y1, (double)x2, (double)y2, (double)x3, (double)y3);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_close(DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    cairo_close_path(ctx->cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_path_end(DCtx *ctx, const drawop_t op)
+{
+    i_draw(ctx, op);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_line_color(DCtx *ctx, const color_t color)
 {
     cassert_no_null(ctx);
@@ -291,7 +345,7 @@ void draw_line_width(DCtx *ctx, const real32_t width)
         for (i = 0; i < ctx->dash_count; ++i)
             p[i] = ctx->line_dash[i] * width;
 
-        cairo_set_dash(ctx->cairo, p, ctx->dash_count, 0.);
+        cairo_set_dash(ctx->cairo, p, ctx->dash_count, ctx->dash_offset * width);
     }
 }
 
@@ -351,6 +405,14 @@ void draw_line_join(DCtx *ctx, const linejoin_t join)
 
 /*---------------------------------------------------------------------------*/
 
+void draw_line_miter_limit(DCtx *ctx, const real32_t limit)
+{
+    cassert_no_null(ctx);
+    cairo_set_miter_limit(ctx->cairo, (double)limit);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
 {
     if (pattern != NULL && n > 0)
@@ -366,12 +428,36 @@ void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n)
         }
 
         ctx->dash_count = pn;
-        cairo_set_dash(ctx->cairo, p, pn, 0.);
+        cairo_set_dash(ctx->cairo, p, pn, ctx->dash_offset * width);
     }
     else
     {
         ctx->dash_count = 0;
-        cairo_set_dash(ctx->cairo, NULL, 0, 0.);
+        cairo_set_dash(ctx->cairo, NULL, 0, ctx->dash_offset * cairo_get_line_width(ctx->cairo));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_line_dash_offset(DCtx *ctx, const real32_t offset)
+{
+    double width;
+
+    cassert_no_null(ctx);
+    ctx->dash_offset = (double)offset;
+    width = cairo_get_line_width(ctx->cairo);
+
+    if (ctx->dash_count > 0)
+    {
+        double p[16];
+        int i;
+        for (i = 0; i < ctx->dash_count; ++i)
+            p[i] = ctx->line_dash[i] * width;
+        cairo_set_dash(ctx->cairo, p, ctx->dash_count, ctx->dash_offset * width);
+    }
+    else
+    {
+        cairo_set_dash(ctx->cairo, NULL, 0, ctx->dash_offset * width);
     }
 }
 
@@ -487,6 +573,32 @@ void draw_fill_color(DCtx *ctx, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
+static cairo_fill_rule_t i_fillrule(const fillrule_t rule)
+{
+    switch (rule)
+    {
+    case ekFILLNONZERO:
+        return CAIRO_FILL_RULE_WINDING;
+    case ekFILLEVENODD:
+        return CAIRO_FILL_RULE_EVEN_ODD;
+    default:
+        cassert_default(rule);
+    }
+
+    return CAIRO_FILL_RULE_WINDING;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_fill_rule(DCtx *ctx, const fillrule_t rule)
+{
+    cassert_no_null(ctx);
+    ctx->fill_rule = i_fillrule(rule);
+    cairo_set_fill_rule(ctx->cairo, ctx->fill_rule);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1)
 {
     uint32_t i;
@@ -505,6 +617,31 @@ void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, con
     }
 
     ctx->fillmode = ekFILL_LINEAR;
+
+    if (ctx->raster_mode == FALSE)
+        _dctx_gradient_transform(ctx);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void draw_fill_radial(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t r0, const real32_t x1, const real32_t y1, const real32_t r1)
+{
+    uint32_t i;
+
+    if (ctx->lpattern != NULL)
+        cairo_pattern_destroy(ctx->lpattern);
+
+    ctx->lpattern = cairo_pattern_create_radial((double)x0, (double)y0, (double)r0, (double)x1, (double)y1, (double)r1);
+    cairo_pattern_set_extend(ctx->lpattern, ctx->wrap_mode);
+
+    for (i = 0; i < n; ++i)
+    {
+        real32_t r, g, b, a;
+        color_get_rgbaf(color[i], &r, &g, &b, &a);
+        cairo_pattern_add_color_stop_rgba(ctx->lpattern, (double)stop[i], (double)r, (double)g, (double)b, (double)a);
+    }
+
+    ctx->fillmode = ekFILL_RADIAL;
 
     if (ctx->raster_mode == FALSE)
         _dctx_gradient_transform(ctx);
