@@ -128,13 +128,21 @@ void oshttp_clear_headers(OSHttp *http)
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
+bool_t oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
 {
     String *str = NULL;
+    struct curl_slist *headers = NULL;
     cassert(http != NULL);
+
     str = str_printf("%s: %s", name, value);
-    http->headers = curl_slist_append(http->headers, tc(str));
+    headers = curl_slist_append(http->headers, tc(str));
     str_destroy(&str);
+
+    if (headers == NULL)
+        return FALSE;
+
+    http->headers = headers;
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/

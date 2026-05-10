@@ -213,17 +213,27 @@ void oshttp_clear_headers(OSHttp *http)
 
 /*---------------------------------------------------------------------------*/
 
-void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
+bool_t oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
 {
-    if (http->request != nil)
-    {
-        if (i_reserved_header(name) == FALSE)
-        {
-            NSString *lname = [NSString stringWithUTF8String:name];
-            NSString *lvalue = [NSString stringWithUTF8String:value];
-            [http->request setValue:lvalue forHTTPHeaderField:lname];
-        }
-    }
+    NSString *lname = nil;
+    NSString *lvalue = nil;
+
+    cassert_no_null(http);
+
+    if (http->request == nil)
+        return FALSE;
+
+    if (i_reserved_header(name) == TRUE)
+        return FALSE;
+
+    lname = [NSString stringWithUTF8String:name];
+    lvalue = [NSString stringWithUTF8String:value];
+
+    if (lname == nil || lvalue == nil)
+        return FALSE;
+
+    [http->request setValue:lvalue forHTTPHeaderField:lname];
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -24,7 +24,7 @@ void oshttp_destroy(OSHttp **http);
 
 void oshttp_clear_headers(OSHttp *http);
 
-void oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value);
+bool_t oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value);
 
 void oshttp_cookies_policy(OSHttp *http, const cookies_t cookies);
 
