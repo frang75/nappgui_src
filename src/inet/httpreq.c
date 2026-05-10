@@ -306,6 +306,76 @@ bool_t http_delete(Http *http, const char_t *path, const byte_t *data, const uin
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_is_status_line(const char_t *line)
+{
+    cassert_no_null(line);
+    if (*line++ != 'H')
+        return FALSE;
+    if (*line++ != 'T')
+        return FALSE;
+    if (*line++ != 'T')
+        return FALSE;
+    if (*line++ != 'P')
+        return FALSE;
+    if (*line != '/')
+        return FALSE;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_parse_status_line(const char_t *line, String **protocol, uint32_t *rcode, String **rmsg)
+{
+    const char_t *st = line;
+    const char_t *reason = NULL;
+    uint32_t code = 0;
+
+    cassert_no_null(line);
+    cassert_no_null(protocol);
+    cassert_no_null(rcode);
+    cassert_no_null(rmsg);
+
+    if (i_is_status_line(line) == FALSE)
+        return FALSE;
+
+    line += 5;
+    if (*line == '\0' || *line == ' ')
+        return FALSE;
+
+    while (*line != ' ' && *line != '\0')
+        line++;
+
+    if (*line != ' ')
+        return FALSE;
+
+    reason = line + 1;
+    if (reason[0] < '0' || reason[0] > '9')
+        return FALSE;
+
+    code = (uint32_t)(reason[0] - '0') * 100;
+    reason += 1;
+    if (reason[0] < '0' || reason[0] > '9')
+        return FALSE;
+
+    code += (uint32_t)(reason[0] - '0') * 10;
+    reason += 1;
+    if (reason[0] < '0' || reason[0] > '9')
+        return FALSE;
+
+    code += (uint32_t)(reason[0] - '0');
+    reason += 1;
+    if (*reason != ' ' && *reason != '\0')
+        return FALSE;
+
+    *protocol = str_cn(st, (uint32_t)(line - st));
+    *rcode = code;
+    *rmsg = str_c(*reason == ' ' ? reason + 1 : "");
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static bool_t i_response(Http *http)
 {
     cassert_no_null(http);
@@ -325,51 +395,47 @@ static bool_t i_response(Http *http)
                     {
                         /* The headers could contain several responses (redirection)
                         We get the last one */
-                        if (str_str(line, ":") == NULL)
+                        if (i_is_status_line(line) == TRUE)
                         {
-                            const char_t *st = line;
-                            char_t code[64];
-                            uint32_t i = 0;
+                            String *protocol = NULL;
+                            String *rmsg = NULL;
+                            uint32_t rcode = UINT32_MAX;
+
+                            if (i_parse_status_line(line, &protocol, &rcode, &rmsg) == FALSE)
+                            {
+                                http->error = ekISERVER;
+                                stm_close(&stm);
+                                return FALSE;
+                            }
 
                             str_destopt(&http->rprotocol);
                             str_destopt(&http->rmsg);
-
-                            while (*line != ' ')
-                                line++;
-                            http->rprotocol = str_cn(st, (uint32_t)(line - st));
-
-                            line++;
-                            while (*line != ' ' && *line != '\0')
-                            {
-                                code[i] = *line;
-                                line++;
-                                i++;
-                            }
-
-                            code[i] = '\0';
-
-                            http->rcode = str_to_u32(code, 10, NULL);
-
-                            if (*line != '\0')
-                            {
-                                line++;
-                                http->rmsg = str_c(line);
-                            }
-                            else
-                            {
-                                http->rmsg = str_c("");
-                            }
-
+                            http->rprotocol = protocol;
+                            http->rcode = rcode;
+                            http->rmsg = rmsg;
                             arrst_clear(http->headers, i_remove_field, Field);
                         }
-                        else
+                        else if (str_str(line, ":") != NULL && http->rcode != UINT32_MAX)
                         {
                             Field *header = arrst_new(http->headers, Field);
                             str_split_trim(line, ":", &header->name, &header->value);
                         }
+                        else
+                        {
+                            http->error = ekISERVER;
+                            stm_close(&stm);
+                            return FALSE;
+                        }
                     }
 
                 stm_next(line, stm)
+
+                if (http->rcode == UINT32_MAX)
+                {
+                    http->error = ekISERVER;
+                    stm_close(&stm);
+                    return FALSE;
+                }
 
                 stm_close(&stm);
                 return TRUE;
