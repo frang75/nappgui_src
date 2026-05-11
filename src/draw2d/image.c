@@ -241,7 +241,11 @@ Image *image_from_file(const char_t *pathname, ferror_t *error)
 
 Image *image_from_data(const byte_t *data, const uint32_t size)
 {
-    codec_t codec = i_codec(data[0]);
+    codec_t codec;
+    if (data == NULL || size == 0)
+        return NULL;
+
+    codec = i_codec(data[0]);
     if (codec != ENUM_MAX(codec_t))
     {
         OSImage *osimage = NULL;
