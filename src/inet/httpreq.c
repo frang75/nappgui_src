@@ -47,6 +47,212 @@ DeclSt(Field);
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_valid_header_name_char(const unsigned char c)
+{
+    if (c >= '0' && c <= '9')
+        return TRUE;
+
+    if (c >= 'A' && c <= 'Z')
+        return TRUE;
+
+    if (c >= 'a' && c <= 'z')
+        return TRUE;
+
+    /* Keep header names portable across backends; WinINet drops names with '_'. */
+    switch (c)
+    {
+    case '!':
+    case '#':
+    case '$':
+    case '%':
+    case '&':
+    case '\'':
+    case '*':
+    case '+':
+    case '-':
+    case '.':
+    case '^':
+    case '`':
+    case '|':
+    case '~':
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_utf8_cont(const unsigned char c)
+{
+    return (c & 0xC0) == 0x80 ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_utf8_next(const unsigned char **str, uint32_t *codepoint)
+{
+    const unsigned char *cstr = NULL;
+
+    cassert_no_null(str);
+    cassert_no_null(codepoint);
+
+    cstr = *str;
+
+    if (*cstr <= 0x7F)
+    {
+        *codepoint = (uint32_t)*cstr;
+        *str = cstr + 1;
+        return TRUE;
+    }
+
+    if (*cstr >= 0xC2 && *cstr <= 0xDF)
+    {
+        if (i_utf8_cont(cstr[1]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x1F) << 6) | (uint32_t)(cstr[1] & 0x3F);
+        *str = cstr + 2;
+        return TRUE;
+    }
+
+    if (*cstr == 0xE0)
+    {
+        if (cstr[1] < 0xA0 || cstr[1] > 0xBF || i_utf8_cont(cstr[2]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x0F) << 12) | ((uint32_t)(cstr[1] & 0x3F) << 6) | (uint32_t)(cstr[2] & 0x3F);
+        *str = cstr + 3;
+        return TRUE;
+    }
+
+    if ((*cstr >= 0xE1 && *cstr <= 0xEC) || (*cstr >= 0xEE && *cstr <= 0xEF))
+    {
+        if (i_utf8_cont(cstr[1]) == FALSE || i_utf8_cont(cstr[2]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x0F) << 12) | ((uint32_t)(cstr[1] & 0x3F) << 6) | (uint32_t)(cstr[2] & 0x3F);
+        *str = cstr + 3;
+        return TRUE;
+    }
+
+    if (*cstr == 0xED)
+    {
+        if (cstr[1] < 0x80 || cstr[1] > 0x9F || i_utf8_cont(cstr[2]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x0F) << 12) | ((uint32_t)(cstr[1] & 0x3F) << 6) | (uint32_t)(cstr[2] & 0x3F);
+        *str = cstr + 3;
+        return TRUE;
+    }
+
+    if (*cstr == 0xF0)
+    {
+        if (cstr[1] < 0x90 || cstr[1] > 0xBF || i_utf8_cont(cstr[2]) == FALSE || i_utf8_cont(cstr[3]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x07) << 18) | ((uint32_t)(cstr[1] & 0x3F) << 12) | ((uint32_t)(cstr[2] & 0x3F) << 6) | (uint32_t)(cstr[3] & 0x3F);
+        *str = cstr + 4;
+        return TRUE;
+    }
+
+    if (*cstr >= 0xF1 && *cstr <= 0xF3)
+    {
+        if (i_utf8_cont(cstr[1]) == FALSE || i_utf8_cont(cstr[2]) == FALSE || i_utf8_cont(cstr[3]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x07) << 18) | ((uint32_t)(cstr[1] & 0x3F) << 12) | ((uint32_t)(cstr[2] & 0x3F) << 6) | (uint32_t)(cstr[3] & 0x3F);
+        *str = cstr + 4;
+        return TRUE;
+    }
+
+    if (*cstr == 0xF4)
+    {
+        if (cstr[1] < 0x80 || cstr[1] > 0x8F || i_utf8_cont(cstr[2]) == FALSE || i_utf8_cont(cstr[3]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x07) << 18) | ((uint32_t)(cstr[1] & 0x3F) << 12) | ((uint32_t)(cstr[2] & 0x3F) << 6) | (uint32_t)(cstr[3] & 0x3F);
+        *str = cstr + 4;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_value_codepoint(const uint32_t codepoint)
+{
+    if (codepoint == '\t')
+        return TRUE;
+
+    if (codepoint < 32 || codepoint == 127)
+        return FALSE;
+
+    if (codepoint >= 0x80 && codepoint <= 0x9F)
+        return FALSE;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_name(const char_t *name)
+{
+    const unsigned char *cname = cast_const(name, unsigned char);
+
+    if (cname == NULL || *cname == '\0')
+        return FALSE;
+
+    while (*cname != '\0')
+    {
+        if (i_valid_header_name_char(*cname) == FALSE)
+            return FALSE;
+
+        cname += 1;
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_value(const char_t *value)
+{
+    const unsigned char *cvalue = cast_const(value, unsigned char);
+
+    if (cvalue == NULL)
+        return FALSE;
+
+    while (*cvalue != '\0')
+    {
+        uint32_t codepoint = 0;
+
+        if (i_utf8_next(&cvalue, &codepoint) == FALSE)
+            return FALSE;
+
+        if (i_valid_header_value_codepoint(codepoint) == FALSE)
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header(const char_t *name, const char_t *value)
+{
+    if (i_valid_header_name(name) == FALSE)
+        return FALSE;
+
+    if (i_valid_header_value(value) == FALSE)
+        return FALSE;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_remove_field(Field *field)
 {
     cassert_no_null(field);
@@ -110,10 +316,14 @@ void http_clear_headers(Http *http)
 
 /*---------------------------------------------------------------------------*/
 
-void http_add_header(Http *http, const char_t *name, const char_t *value)
+bool_t http_add_header(Http *http, const char_t *name, const char_t *value)
 {
     cassert_no_null(http);
-    oshttp_add_header(http->oshttp, name, value);
+
+    if (i_valid_header(name, value) == FALSE)
+        return FALSE;
+
+    return oshttp_add_header(http->oshttp, name, value);
 }
 
 /*---------------------------------------------------------------------------*/

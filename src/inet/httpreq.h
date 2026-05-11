@@ -23,7 +23,7 @@ _inet_api void http_destroy(Http **http);
 
 _inet_api void http_clear_headers(Http *http);
 
-_inet_api void http_add_header(Http *http, const char_t *name, const char_t *value);
+_inet_api bool_t http_add_header(Http *http, const char_t *name, const char_t *value);
 
 _inet_api void http_cookies_policy(Http *http, const cookies_t cookies);
 
