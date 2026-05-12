@@ -12,6 +12,7 @@
 
 #include "osgui_gtk.inl"
 #include "ospanel_gtk.inl"
+#include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
 #include "ossplit_gtk.inl"
 #include "../ospanel.h"
@@ -19,8 +20,10 @@
 #include "../osgui.inl"
 #include "../oscontrol.inl"
 #include <draw2d/color.h>
+#include <draw2d/font.h>
 #include <core/arrst.h>
 #include <core/heap.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 
 #if !defined(__GTK3__)
@@ -38,6 +41,8 @@ struct _area_t
     real32_t h;
     color_t bgcolor;
     color_t skcolor;
+    real32_t twidth;
+    String *text;
 };
 
 struct _ospanel_t
@@ -58,6 +63,16 @@ DeclSt(Area);
 #define i_green(rgba) (((double)((uint8_t)((rgba) >> 8))) / 255.)
 #define i_blue(rgba) (((double)((uint8_t)((rgba) >> 16))) / 255.)
 #define i_alpha(rgba) (((double)((uint8_t)((rgba) >> 24))) / 255.)
+static real32_t i_GROUP_TITLE_OFFSET = 8;
+static real32_t i_GROUP_TITLE_CLEAN = 3;
+
+/*---------------------------------------------------------------------------*/
+
+static void i_remove_area(Area *area)
+{
+    cassert_no_null(area);
+    str_destopt(&area->text);
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -100,6 +115,62 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSPanel *panel)
             cairo_rectangle(cr, (double)area->x + 1, (double)area->y + 1, (double)area->w - 1, (double)area->h - 1);
             cairo_stroke(cr);
             cairo_set_antialias(cr, ca);
+        }
+
+        if (area->text != NULL)
+        {
+            GtkStyleContext *context = gtk_widget_get_style_context(widget);
+            gtk_style_context_save(context);
+            gtk_style_context_add_class(context, GTK_STYLE_CLASS_FRAME);
+            gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+            gtk_render_frame(context, cr, (gdouble)area->x, (gdouble)area->y, (gdouble)area->w, (gdouble)area->h);
+            gtk_style_context_restore(context);
+
+            if (str_empty(area->text) == FALSE)
+            {
+                PangoLayout *layout = gtk_widget_create_pango_layout(widget, tc(area->text));
+                Font *font = _osgui_create_default_font();
+                const PangoFontDescription *fdesc = cast(font_native(font), PangoFontDescription);
+                real32_t mwidth = area->w - 2 * i_GROUP_TITLE_OFFSET;
+
+                pango_layout_set_font_description(layout, fdesc);
+                pango_layout_set_width(layout, (int)mwidth * PANGO_SCALE);
+                pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+
+                if (area->twidth < 0)
+                    font_extents(font, tc(area->text), -1, &area->twidth, NULL);
+
+                /* Erase the border line */
+                {
+                    real32_t ewidth = area->twidth < mwidth ? area->twidth : mwidth;
+                    gdouble x = (gdouble)(area->x + i_GROUP_TITLE_OFFSET - i_GROUP_TITLE_CLEAN);
+                    gdouble y = (gdouble)area->y;
+                    gdouble w = (gdouble)(ewidth + i_GROUP_TITLE_CLEAN * 2);
+
+                    if (area->skcolor != kCOLOR_TRANSPARENT)
+                    {
+                        cairo_rectangle(cr, x, y, w, 1);
+                        cairo_fill(cr);
+                    }
+                    else
+                    {
+                        GtkStyleContext *bcontext = _osglobals_button_context();
+                        gtk_render_background(bcontext, cr, x, y - 2, w, 4);
+                    }
+                }
+
+                /* Draw the text */
+                {
+                    real32_t height = font_height(font);
+                    real32_t tx = area->x + i_GROUP_TITLE_OFFSET;
+                    real32_t ty = area->y;
+                    ty -= height / 2;
+                    gtk_render_layout(context, cr, (gdouble)tx, (gdouble)ty, layout);
+                }
+
+                font_destroy(&font);
+                g_object_unref(layout);
+            }
         }
     arrst_end()
 
@@ -186,7 +257,7 @@ void ospanel_destroy(OSPanel **panel)
     cassert_no_null(*panel);
 
     if ((*panel)->areas != NULL)
-        arrst_destroy(&(*panel)->areas, NULL, Area);
+        arrst_destroy(&(*panel)->areas, i_remove_area, Area);
 
     _oscontrol_destroy(*dcast(panel, OSControl));
     heap_delete(panel, OSPanel);
@@ -194,7 +265,7 @@ void ospanel_destroy(OSPanel **panel)
 
 /*---------------------------------------------------------------------------*/
 
-void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+void ospanel_area(OSPanel *panel, void *obj, const char_t *group, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     cassert_no_null(panel);
     if (obj != NULL)
@@ -214,7 +285,7 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
 
         if (area == NULL)
         {
-            area = arrst_new(panel->areas, Area);
+            area = arrst_new0(panel->areas, Area);
             area->obj = obj;
         }
 
@@ -224,11 +295,35 @@ void ospanel_area(OSPanel *panel, void *obj, const color_t bgcolor, const color_
         area->h = height;
         area->bgcolor = bgcolor;
         area->skcolor = skcolor;
+        str_upd(&area->text, group);
+        area->twidth = -1;
     }
     else
     {
         if (panel->areas != NULL)
-            arrst_clear(panel->areas, NULL, Area);
+            arrst_clear(panel->areas, i_remove_area, Area);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
+{
+    cassert_no_null(panel);
+    if (x != NULL)
+    {
+        if (panel->hadjust != NULL)
+            *x = (real32_t)gtk_adjustment_get_value(panel->hadjust);
+        else
+            *x = 0;
+    }
+
+    if (y != NULL)
+    {
+        if (panel->vadjust != NULL)
+            *y = (real32_t)gtk_adjustment_get_value(panel->vadjust);
+        else
+            *y = 0;
     }
 }
 

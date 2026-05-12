@@ -61,6 +61,8 @@ _gui_api void view_OnAcceptFocus(View *view, Listener *listener);
 
 _gui_api void view_OnScroll(View *view, Listener *listener);
 
+_gui_api void view_tooltip(View *view, const char_t *text);
+
 _gui_api void view_allow_tab(View *view, const bool_t allow);
 
 _gui_api void view_keybuf(View *view, KeyBuf *buffer);

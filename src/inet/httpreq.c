@@ -40,9 +40,216 @@ struct _http_t
     String *rprotocol;
     String *rmsg;
     ArrSt(Field) *headers;
+    ArrSt(Field) *cookies;
 };
 
 DeclSt(Field);
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_name_char(const unsigned char c)
+{
+    if (c >= '0' && c <= '9')
+        return TRUE;
+
+    if (c >= 'A' && c <= 'Z')
+        return TRUE;
+
+    if (c >= 'a' && c <= 'z')
+        return TRUE;
+
+    /* Keep header names portable across backends; WinINet drops names with '_'. */
+    switch (c)
+    {
+    case '!':
+    case '#':
+    case '$':
+    case '%':
+    case '&':
+    case '\'':
+    case '*':
+    case '+':
+    case '-':
+    case '.':
+    case '^':
+    case '`':
+    case '|':
+    case '~':
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_utf8_cont(const unsigned char c)
+{
+    return (c & 0xC0) == 0x80 ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_utf8_next(const unsigned char **str, uint32_t *codepoint)
+{
+    const unsigned char *cstr = NULL;
+
+    cassert_no_null(str);
+    cassert_no_null(codepoint);
+
+    cstr = *str;
+
+    if (*cstr <= 0x7F)
+    {
+        *codepoint = (uint32_t)*cstr;
+        *str = cstr + 1;
+        return TRUE;
+    }
+
+    if (*cstr >= 0xC2 && *cstr <= 0xDF)
+    {
+        if (i_utf8_cont(cstr[1]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x1F) << 6) | (uint32_t)(cstr[1] & 0x3F);
+        *str = cstr + 2;
+        return TRUE;
+    }
+
+    if (*cstr == 0xE0)
+    {
+        if (cstr[1] < 0xA0 || cstr[1] > 0xBF || i_utf8_cont(cstr[2]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x0F) << 12) | ((uint32_t)(cstr[1] & 0x3F) << 6) | (uint32_t)(cstr[2] & 0x3F);
+        *str = cstr + 3;
+        return TRUE;
+    }
+
+    if ((*cstr >= 0xE1 && *cstr <= 0xEC) || (*cstr >= 0xEE && *cstr <= 0xEF))
+    {
+        if (i_utf8_cont(cstr[1]) == FALSE || i_utf8_cont(cstr[2]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x0F) << 12) | ((uint32_t)(cstr[1] & 0x3F) << 6) | (uint32_t)(cstr[2] & 0x3F);
+        *str = cstr + 3;
+        return TRUE;
+    }
+
+    if (*cstr == 0xED)
+    {
+        if (cstr[1] < 0x80 || cstr[1] > 0x9F || i_utf8_cont(cstr[2]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x0F) << 12) | ((uint32_t)(cstr[1] & 0x3F) << 6) | (uint32_t)(cstr[2] & 0x3F);
+        *str = cstr + 3;
+        return TRUE;
+    }
+
+    if (*cstr == 0xF0)
+    {
+        if (cstr[1] < 0x90 || cstr[1] > 0xBF || i_utf8_cont(cstr[2]) == FALSE || i_utf8_cont(cstr[3]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x07) << 18) | ((uint32_t)(cstr[1] & 0x3F) << 12) | ((uint32_t)(cstr[2] & 0x3F) << 6) | (uint32_t)(cstr[3] & 0x3F);
+        *str = cstr + 4;
+        return TRUE;
+    }
+
+    if (*cstr >= 0xF1 && *cstr <= 0xF3)
+    {
+        if (i_utf8_cont(cstr[1]) == FALSE || i_utf8_cont(cstr[2]) == FALSE || i_utf8_cont(cstr[3]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x07) << 18) | ((uint32_t)(cstr[1] & 0x3F) << 12) | ((uint32_t)(cstr[2] & 0x3F) << 6) | (uint32_t)(cstr[3] & 0x3F);
+        *str = cstr + 4;
+        return TRUE;
+    }
+
+    if (*cstr == 0xF4)
+    {
+        if (cstr[1] < 0x80 || cstr[1] > 0x8F || i_utf8_cont(cstr[2]) == FALSE || i_utf8_cont(cstr[3]) == FALSE)
+            return FALSE;
+
+        *codepoint = ((uint32_t)(cstr[0] & 0x07) << 18) | ((uint32_t)(cstr[1] & 0x3F) << 12) | ((uint32_t)(cstr[2] & 0x3F) << 6) | (uint32_t)(cstr[3] & 0x3F);
+        *str = cstr + 4;
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_value_codepoint(const uint32_t codepoint)
+{
+    if (codepoint == '\t')
+        return TRUE;
+
+    if (codepoint < 32 || codepoint == 127)
+        return FALSE;
+
+    if (codepoint >= 0x80 && codepoint <= 0x9F)
+        return FALSE;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_name(const char_t *name)
+{
+    const unsigned char *cname = cast_const(name, unsigned char);
+
+    if (cname == NULL || *cname == '\0')
+        return FALSE;
+
+    while (*cname != '\0')
+    {
+        if (i_valid_header_name_char(*cname) == FALSE)
+            return FALSE;
+
+        cname += 1;
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header_value(const char_t *value)
+{
+    const unsigned char *cvalue = cast_const(value, unsigned char);
+
+    if (cvalue == NULL)
+        return FALSE;
+
+    while (*cvalue != '\0')
+    {
+        uint32_t codepoint = 0;
+
+        if (i_utf8_next(&cvalue, &codepoint) == FALSE)
+            return FALSE;
+
+        if (i_valid_header_value_codepoint(codepoint) == FALSE)
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_valid_header(const char_t *name, const char_t *value)
+{
+    if (i_valid_header_name(name) == FALSE)
+        return FALSE;
+
+    if (i_valid_header_value(value) == FALSE)
+        return FALSE;
+
+    return TRUE;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -63,6 +270,7 @@ void http_destroy(Http **http)
     ptr_destopt(str_destroy, &(*http)->rprotocol, String);
     ptr_destopt(str_destroy, &(*http)->rmsg, String);
     arrst_destroy(&(*http)->headers, i_remove_field, Field);
+    arrst_destroy(&(*http)->cookies, i_remove_field, Field);
     oshttp_destroy(&(*http)->oshttp);
     heap_delete(http, Http);
 }
@@ -80,6 +288,7 @@ static Http *i_create(const char_t *host, const uint16_t port, const bool_t secu
     http->rmsg = NULL;
     http->rprotocol = NULL;
     http->headers = arrst_create(Field);
+    http->cookies = arrst_create(Field);
     return http;
 }
 
@@ -107,10 +316,64 @@ void http_clear_headers(Http *http)
 
 /*---------------------------------------------------------------------------*/
 
-void http_add_header(Http *http, const char_t *name, const char_t *value)
+bool_t http_add_header(Http *http, const char_t *name, const char_t *value)
 {
     cassert_no_null(http);
-    oshttp_add_header(http->oshttp, name, value);
+
+    if (i_valid_header(name, value) == FALSE)
+        return FALSE;
+
+    return oshttp_add_header(http->oshttp, name, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookies_policy(Http *http, const cookies_t cookies)
+{
+    cassert_no_null(http);
+    oshttp_cookies_policy(http->oshttp, cookies);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookies_reload(Http *http)
+{
+    Stream *stm = NULL;
+    cassert_no_null(http);
+    arrst_clear(http->cookies, i_remove_field, Field);
+    stm = oshttp_cookies(http->oshttp);
+    if (stm != NULL)
+    {
+        while (stm_state(stm) == ekSTOK)
+        {
+            const char_t *cline = stm_read_to_char(stm, ';');
+            if (cline != NULL)
+            {
+                Field *cookie = arrst_new(http->cookies, Field);
+                str_split_trim(cline, "=", &cookie->name, &cookie->value);
+            }
+        }
+
+        stm_close(&stm);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t http_cookies_size(const Http *http)
+{
+    cassert_no_null(http);
+    return arrst_size(http->cookies, Field);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *http_cookie_name(const Http *http, const uint32_t index)
+{
+    const Field *field = NULL;
+    cassert_no_null(http);
+    field = arrst_get(http->cookies, index, Field);
+    return tc(field->name);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -122,6 +385,66 @@ static const char_t *i_field(ArrSt(Field) *fields, const char_t *name)
             return tc(field->value);
     arrst_end()
     return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_field_pos(ArrSt(Field) *fields, const char_t *name)
+{
+    arrst_foreach(field, fields, Field)
+        if (str_equ_nocase(tc(field->name), name) == TRUE)
+            return field_i;
+    arrst_end()
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *http_cookie_search(const Http *http, const char_t *name)
+{
+    const char_t *value;
+    cassert_no_null(http);
+    value = i_field(http->cookies, name);
+    if (value != NULL)
+        return value;
+    return "";
+}
+
+/*---------------------------------------------------------------------------*/
+
+const char_t *http_cookie_value(const Http *http, const uint32_t index)
+{
+    const Field *field = NULL;
+    cassert_no_null(http);
+    field = arrst_get(http->cookies, index, Field);
+    return tc(field->value);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookie_delete(Http *http, const char_t *name)
+{
+    uint32_t pos;
+    cassert_no_null(http);
+    http_cookies_reload(http);
+    pos = i_field_pos(http->cookies, name);
+    if (pos != UINT32_MAX)
+    {
+        oshttp_cookie_delete(http->oshttp, name);
+        arrst_delete(http->cookies, pos, i_remove_field, Field);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void http_cookie_delete_all(Http *http)
+{
+    cassert_no_null(http);
+    http_cookies_reload(http);
+    arrst_foreach_const(cookie, http->cookies, Field)
+        oshttp_cookie_delete(http->oshttp, tc(cookie->name));
+    arrst_end()
+    arrst_clear(http->cookies, i_remove_field, Field);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -160,6 +483,109 @@ bool_t http_post(Http *http, const char_t *path, const byte_t *data, const uint3
 
 /*---------------------------------------------------------------------------*/
 
+bool_t http_put(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+{
+    cassert_no_null(http);
+    i_clear_response(http);
+    oshttp_put(http->oshttp, path, data, size, TRUE, &http->error);
+    ptr_assign(error, http->error);
+    return http->error == ekIOK ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t http_patch(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+{
+    cassert_no_null(http);
+    i_clear_response(http);
+    oshttp_patch(http->oshttp, path, data, size, TRUE, &http->error);
+    ptr_assign(error, http->error);
+    return http->error == ekIOK ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t http_delete(Http *http, const char_t *path, const byte_t *data, const uint32_t size, ierror_t *error)
+{
+    cassert_no_null(http);
+    i_clear_response(http);
+    oshttp_delete(http->oshttp, path, data, size, TRUE, &http->error);
+    ptr_assign(error, http->error);
+    return http->error == ekIOK ? TRUE : FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_is_status_line(const char_t *line)
+{
+    cassert_no_null(line);
+    if (*line++ != 'H')
+        return FALSE;
+    if (*line++ != 'T')
+        return FALSE;
+    if (*line++ != 'T')
+        return FALSE;
+    if (*line++ != 'P')
+        return FALSE;
+    if (*line != '/')
+        return FALSE;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_parse_status_line(const char_t *line, String **protocol, uint32_t *rcode, String **rmsg)
+{
+    const char_t *st = line;
+    const char_t *reason = NULL;
+    uint32_t code = 0;
+
+    cassert_no_null(line);
+    cassert_no_null(protocol);
+    cassert_no_null(rcode);
+    cassert_no_null(rmsg);
+
+    if (i_is_status_line(line) == FALSE)
+        return FALSE;
+
+    line += 5;
+    if (*line == '\0' || *line == ' ')
+        return FALSE;
+
+    while (*line != ' ' && *line != '\0')
+        line++;
+
+    if (*line != ' ')
+        return FALSE;
+
+    reason = line + 1;
+    if (reason[0] < '0' || reason[0] > '9')
+        return FALSE;
+
+    code = (uint32_t)(reason[0] - '0') * 100;
+    reason += 1;
+    if (reason[0] < '0' || reason[0] > '9')
+        return FALSE;
+
+    code += (uint32_t)(reason[0] - '0') * 10;
+    reason += 1;
+    if (reason[0] < '0' || reason[0] > '9')
+        return FALSE;
+
+    code += (uint32_t)(reason[0] - '0');
+    reason += 1;
+    if (*reason != ' ' && *reason != '\0')
+        return FALSE;
+
+    *protocol = str_cn(st, (uint32_t)(line - st));
+    *rcode = code;
+    *rmsg = str_c(*reason == ' ' ? reason + 1 : "");
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static bool_t i_response(Http *http)
 {
     cassert_no_null(http);
@@ -179,51 +605,47 @@ static bool_t i_response(Http *http)
                     {
                         /* The headers could contain several responses (redirection)
                         We get the last one */
-                        if (str_str(line, ":") == NULL)
+                        if (i_is_status_line(line) == TRUE)
                         {
-                            const char_t *st = line;
-                            char_t code[64];
-                            uint32_t i = 0;
+                            String *protocol = NULL;
+                            String *rmsg = NULL;
+                            uint32_t rcode = UINT32_MAX;
+
+                            if (i_parse_status_line(line, &protocol, &rcode, &rmsg) == FALSE)
+                            {
+                                http->error = ekISERVER;
+                                stm_close(&stm);
+                                return FALSE;
+                            }
 
                             str_destopt(&http->rprotocol);
                             str_destopt(&http->rmsg);
-
-                            while (*line != ' ')
-                                line++;
-                            http->rprotocol = str_cn(st, (uint32_t)(line - st));
-
-                            line++;
-                            while (*line != ' ' && *line != '\0')
-                            {
-                                code[i] = *line;
-                                line++;
-                                i++;
-                            }
-
-                            code[i] = '\0';
-
-                            http->rcode = str_to_u32(code, 10, NULL);
-
-                            if (*line != '\0')
-                            {
-                                line++;
-                                http->rmsg = str_c(line);
-                            }
-                            else
-                            {
-                                http->rmsg = str_c("");
-                            }
-
+                            http->rprotocol = protocol;
+                            http->rcode = rcode;
+                            http->rmsg = rmsg;
                             arrst_clear(http->headers, i_remove_field, Field);
                         }
-                        else
+                        else if (str_str(line, ":") != NULL && http->rcode != UINT32_MAX)
                         {
                             Field *header = arrst_new(http->headers, Field);
                             str_split_trim(line, ":", &header->name, &header->value);
                         }
+                        else
+                        {
+                            http->error = ekISERVER;
+                            stm_close(&stm);
+                            return FALSE;
+                        }
                     }
 
                 stm_next(line, stm)
+
+                if (http->rcode == UINT32_MAX)
+                {
+                    http->error = ekISERVER;
+                    stm_close(&stm);
+                    return FALSE;
+                }
 
                 stm_close(&stm);
                 return TRUE;

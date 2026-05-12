@@ -330,10 +330,10 @@ void oscomwin_color(OSWindow *parent, const char_t *caption, const real32_t x, c
             case ekJUSTIFY:
                 break;
             case ekCENTER:
-                origin.x -= size.height / 2;
+                origin.y -= size.height / 2;
                 break;
             case ekBOTTOM:
-                origin.x -= size.height;
+                origin.y -= size.height;
                 break;
             default:
                 cassert_default(valign);

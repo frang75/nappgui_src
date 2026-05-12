@@ -200,60 +200,34 @@ static ___INLINE bool_t i_is_gif_buffer(const byte_t *data, const uint32_t size)
 
 static GdkPixbuf *i_pixbuf_from_data(const byte_t *data, const uint32_t size)
 {
-#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 14))
     GInputStream *stream = g_memory_input_stream_new_from_data(cast_const(data, void), (gssize)size, NULL);
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_stream(stream, NULL, NULL);
     gboolean ok = g_input_stream_close(stream, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
     return pixbuf;
-
-#else
-    /* Only support for GdkPixbuf from file */
-    const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
-    GdkPixbuf *pixbuf = NULL;
-    if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
-    {
-        pixbuf = gdk_pixbuf_new_from_file((const char *)tempfile, NULL);
-        bfile_delete(tempfile, NULL);
-    }
-
-    return pixbuf;
-
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
 
 static GdkPixbufAnimation *i_animation_from_data(const byte_t *data, const uint32_t size)
 {
-#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 28))
-    GInputStream *stream = g_memory_input_stream_new_from_data(cast_const(data, void), (gssize)size, NULL);
+    GdkPixbufAnimation *animation = NULL;
+    GdkPixbufLoader *loader = gdk_pixbuf_loader_new();
+    gboolean ok = gdk_pixbuf_loader_write(loader, cast_const(data, guchar), (gsize)size, NULL);
+    cassert_unref(ok == TRUE, ok);
+    ok = gdk_pixbuf_loader_close(loader, NULL);
+    cassert_unref(ok == TRUE, ok);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    GdkPixbufAnimation *animation = gdk_pixbuf_animation_new_from_stream(stream, NULL, NULL);
+    animation = gdk_pixbuf_loader_get_animation(loader);
 #pragma GCC diagnostic pop
-    gboolean ok = g_input_stream_close(stream, NULL, NULL);
-    cassert_unref(ok == TRUE, ok);
+    cassert_no_null(animation);
+    g_object_ref(animation);
+    g_object_unref(loader);
     return animation;
-
-#else
-    /* Only support for GdkPixbufAnimation from file */
-    const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
-    GdkPixbufAnimation *animation = NULL;
-    if (hfile_from_data(tempfile, data, size, NULL) == TRUE)
-    {
-        animation = gdk_pixbuf_animation_new_from_file((const char *)tempfile, NULL);
-        bfile_delete(tempfile, NULL);
-    }
-
-    return animation;
-
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
-
-#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 4))
 
 static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer stream)
 {
@@ -262,32 +236,12 @@ static gboolean i_encode(const gchar *data, gsize size, GError **error, gpointer
     return TRUE;
 }
 
-#endif
-
 /*---------------------------------------------------------------------------*/
 
-static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
+static void i_pixbuf_save(const GdkPixbuf *pixbuf, const char *type, Stream *stm)
 {
-    gboolean ok = FALSE;
-#if (GDK_PIXBUF_MAJOR > 2 || (GDK_PIXBUF_MAJOR == 2 && GDK_PIXBUF_MINOR >= 4))
-    ok = gdk_pixbuf_save_to_callback(pixbuf, i_encode, (gpointer)stm, type, NULL, NULL);
+    gboolean ok = gdk_pixbuf_save_to_callback(cast(pixbuf, GdkPixbuf), i_encode, (gpointer)stm, type, NULL, NULL);
     cassert_unref(ok == TRUE, ok);
-
-#else
-    const char_t *tempfile = "/tmp/___imgdata2303temp___.bin";
-    Buffer *buffer = NULL;
-    ok = gdk_pixbuf_save(pixbuf, tempfile, type, NULL, NULL);
-    cassert_unref(ok == TRUE, ok);
-    buffer = hfile_buffer(tempfile, NULL);
-    if (buffer != NULL)
-    {
-        const byte_t *data = buffer_data(buffer);
-        uint32_t size = buffer_size(buffer);
-        stm_write(stm, data, size);
-        buffer_destroy(&buffer);
-    }
-
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -539,10 +493,12 @@ static void i_time_add_ms(GTimeVal *tval, const uint32_t msecs)
 
 /*---------------------------------------------------------------------------*/
 
-/* http://www.manpagez.com/html/gdk-pixbuf/gdk-pixbuf-2.34.0/gdk-pixbuf-Animations.php
-Note that some formats, like GIF, might clamp the timeout values in the image
-file to avoid updates that are just too quick. The minimum timeout for GIF
-images is currently 20 milliseconds. */
+/*
+ * http://www.manpagez.com/html/gdk-pixbuf/gdk-pixbuf-2.34.0/gdk-pixbuf-Animations.php
+ * Note that some formats, like GIF, might clamp the timeout values in the image
+ * file to avoid updates that are just too quick. The minimum timeout for GIF
+ * images is currently 20 milliseconds.
+ */
 static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame)
 {
 #pragma GCC diagnostic push
@@ -555,15 +511,7 @@ static int i_animation_delay(GdkPixbufAnimation *animation, const uint32_t frame
     for (i = 0; i < frame; ++i)
     {
         gboolean next_frame = FALSE;
-
-#if defined(__ASSERTS__)
-        i_time_add_ms(&tval, (uint32_t)delay - 1);
-        cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
-        i_time_add_ms(&tval, 1);
-#else
         i_time_add_ms(&tval, (uint32_t)delay);
-#endif
-
         next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
         cassert_unref(next_frame == TRUE, next_frame);
         delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
@@ -589,15 +537,7 @@ static const GdkPixbuf *i_animation_pixbuf(GdkPixbufAnimation *animation, const 
     {
         int delay = gdk_pixbuf_animation_iter_get_delay_time(iter);
         gboolean next_frame = FALSE;
-
-#if defined(__ASSERTS__)
-        i_time_add_ms(&tval, (uint32_t)delay - 1);
-        cassert(gdk_pixbuf_animation_iter_advance(iter, &tval) == FALSE);
-        i_time_add_ms(&tval, 1);
-#else
         i_time_add_ms(&tval, (uint32_t)delay);
-#endif
-
         next_frame = gdk_pixbuf_animation_iter_advance(iter, &tval);
         cassert_unref(next_frame == TRUE, next_frame);
     }
@@ -794,12 +734,7 @@ void osimage_write(const OSImage *image, const codec_t codec, Stream *stream)
     }
     else
     {
-        GdkPixbuf *pixbuf = NULL;
-        cassert_no_null(image->animation);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        pixbuf = gdk_pixbuf_animation_get_static_image(image->animation);
-#pragma GCC diagnostic pop
+        const GdkPixbuf *pixbuf = i_animation_pixbuf(image->animation, 0);
         i_pixbuf_save(pixbuf, type, stream);
     }
 }

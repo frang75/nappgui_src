@@ -65,6 +65,15 @@ typedef enum _gui_orient_t
     ekGUI_VERTICAL
 } gui_orient_t;
 
+typedef enum _gui_pos_t
+{
+    ekGUI_POS_NONE = 1,
+    ekGUI_POS_LEFT,
+    ekGUI_POS_TOP,
+    ekGUI_POS_RIGHT,
+    ekGUI_POS_BOTTOM
+} gui_pos_t;
+
 typedef enum _gui_state_t
 {
     ekGUI_OFF = 0,
@@ -472,6 +481,7 @@ typedef struct _evtbcell_t EvTbCell;
 #define progress_get_type(flags) ((flags)&ekPROGRESS_TYPE)
 #define split_get_type(flags) ((flags)&ekSPLIT_TYPE)
 #define line_get_type(flags) ((flags)&ekLINE_TYPE)
+#define button_is_flat(flags) (bool_t)(button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
 
 typedef void *(*FPtr_gctx_create)(const uint32_t flags);
 #define FUNC_CHECK_GCTX_CREATE(func, type) \
@@ -545,9 +555,9 @@ typedef void (*FPtr_gctx_set_hotkey)(void *item, const vkey_t, const uint32_t, L
 #define FUNC_CHECK_GCTX_SET_HOTKEY(func, type) \
     (void)((void (*)(type *, const vkey_t, const uint32_t, Listener *))func == func)
 
-typedef void (*FPtr_gctx_set_area)(void *item, void *obj, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
+typedef void (*FPtr_gctx_set_area)(void *item, void *obj, const char_t *group, const color_t bgcolor, const color_t skcolor, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 #define FUNC_CHECK_GCTX_SET_AREA(func, type) \
-    (void)((void (*)(type *, void *, const color_t, const color_t, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
+    (void)((void (*)(type *, void *, const char_t *, const color_t, const color_t, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
 
 typedef void (*FPtr_gctx_set2_bool)(void *item, const bool_t value1, const bool_t value2);
 #define FUNC_CHECK_GCTX_SET2_BOOL(func, type) \
@@ -719,6 +729,7 @@ struct _guictx_t
     FPtr_gctx_set_cptr func_button_set_font;
     FPtr_gctx_set_enum func_button_set_align;
     FPtr_gctx_set_cptr func_button_set_image;
+    FPtr_gctx_set_enum func_button_set_image_pos;
     FPtr_gctx_set_enum func_button_set_state;
     FPtr_gctx_get_enum func_button_get_state;
     FPtr_gctx_set_real32 func_button_set_hpadding;
@@ -850,6 +861,7 @@ struct _guictx_t
 
     /*! <Panels> */
     FPtr_gctx_set_area func_panel_area;
+    FPtr_gctx_get2_real32 func_panel_scroll_get;
     FPtr_gctx_get2_real32 func_panel_scroller_size;
     FPtr_gctx_set4_real32 func_panel_content_size;
     FPtr_gctx_call func_panel_set_need_display;

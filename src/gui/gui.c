@@ -219,7 +219,8 @@ void gui_language(const char_t *lang)
     arrpt_clear(i_PACKS, respack_destroy, ResPack);
     arrst_foreach(func_pack, i_FUNC_PACKS, FPtr_respack)
         ResPack *pack = (*func_pack)(lang);
-        arrpt_append(i_PACKS, pack, ResPack);
+        if (pack != NULL)
+            arrpt_append(i_PACKS, pack, ResPack);
     arrpt_end()
 
     arrpt_foreach(menu, i_MENUS, Menu)
@@ -241,7 +242,7 @@ const char_t *gui_text(const ResId id)
     bool_t is_resid;
     const char_t *text = respack_atext(i_PACKS, id, &is_resid);
     if (is_resid == TRUE)
-        return text;
+        return text != NULL ? text : "";
     else
         return id;
 }

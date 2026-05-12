@@ -42,6 +42,7 @@ struct _button_t
     String *talt;
     Image *image;
     Image *imalt;
+    gui_pos_t image_pos;
     Listener *OnClick;
 };
 
@@ -63,23 +64,76 @@ void _button_destroy(Button **button)
 
 /*---------------------------------------------------------------------------*/
 
+static const char_t *i_button_state_text(const Button *button, const gui_state_t state)
+{
+    cassert_no_null(button);
+    if (button_get_type(button->flags) == ekBUTTON_FLATGLE && state == ekGUI_ON && button->talt != NULL)
+        return tc(button->talt);
+    return tc(button->text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gui_state_t i_button_state(const Button *button)
+{
+    cassert_no_null(button);
+    if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
+        return button_get_state(button);
+    return ekGUI_OFF;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_flat_text(Button *button, const gui_state_t state)
+{
+    const char_t *text = i_button_state_text(button, state);
+    const char_t *tooltip = NULL;
+    cassert_no_null(button);
+    cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
+
+    if (button->image_pos == ekGUI_POS_NONE)
+    {
+        button->component.context->func_button_set_text(button->component.ositem, "");
+        tooltip = text;
+    }
+    else
+    {
+        button->component.context->func_button_set_text(button->component.ositem, text);
+    }
+
+    if (button->ttipid != NULL)
+        tooltip = _gui_respack_text(button->ttipid, NULL);
+
+    button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tooltip);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_flat_natural_bounds(Button *button, const char_t *text, const Image *image, real32_t *width, real32_t *height)
+{
+    real32_t refwidth = 0;
+    real32_t refheight = 0;
+    cassert_no_null(button);
+    cassert_no_null(width);
+    cassert_no_null(height);
+
+    if (image != NULL)
+    {
+        refwidth = (real32_t)image_width(image);
+        refheight = (real32_t)image_height(image);
+    }
+
+    button->component.context->func_button_bounds(button->component.ositem, text, refwidth, refheight, width, height);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static ___INLINE void i_update_button(Button *button, const gui_state_t state)
 {
     cassert_no_null(button);
     if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
     {
-        if (button->talt != NULL)
-        {
-            if (state == ekGUI_ON)
-            {
-                button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->talt));
-            }
-            else
-            {
-                cassert(state == ekGUI_OFF);
-                button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->text));
-            }
-        }
+        i_update_flat_text(button, state);
 
         if (button->imalt != NULL)
         {
@@ -203,6 +257,10 @@ static Button *i_create(const uint32_t flags, const align_t halign)
     button->flags = flags;
     button->text = str_c("");
     button->min_width = 0;
+    if (button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
+        button->image_pos = ekGUI_POS_NONE;
+    else
+        button->image_pos = ekGUI_POS_LEFT;
 
     if (button_get_type(flags) != ekBUTTON_FLAT && button_get_type(flags) != ekBUTTON_FLATGLE)
     {
@@ -288,7 +346,7 @@ static void i_update_text(Button *button)
         break;
     case ekBUTTON_FLAT:
     case ekBUTTON_FLATGLE:
-        button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, tc(button->text));
+        i_update_flat_text(button, i_button_state(button));
         break;
     default:
         cassert_default(button_get_type(button->flags));
@@ -325,6 +383,8 @@ void button_tooltip(Button *button, const char_t *text)
     cassert_no_null(button);
     if (text != NULL)
         ltext = _gui_respack_text(text, &button->ttipid);
+    else
+        button->ttipid = NULL;
     button->component.context->func_set_tooltip[ekGUI_TYPE_BUTTON](button->component.ositem, ltext);
 }
 
@@ -362,12 +422,26 @@ void button_image_alt(Button *button, const Image *image)
 
 /*---------------------------------------------------------------------------*/
 
+void button_image_pos(Button *button, const gui_pos_t pos)
+{
+    cassert_no_null(button);
+    cassert(button_get_type(button->flags) == ekBUTTON_FLAT || button_get_type(button->flags) == ekBUTTON_FLATGLE);
+    cassert(pos >= ekGUI_POS_NONE && pos <= ekGUI_POS_BOTTOM);
+    button->image_pos = pos;
+    button->component.context->func_button_set_image_pos(button->component.ositem, (enum_t)pos);
+    i_update_text(button);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void button_state(Button *button, const gui_state_t state)
 {
     cassert_no_null(button);
     if (button_get_type(button->flags) != ekBUTTON_RADIO)
     {
         button->component.context->func_button_set_state(button->component.ositem, (enum_t)state);
+        if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
+            i_update_button(button, state);
     }
     else
     {
@@ -494,9 +568,28 @@ void _button_natural(Button *button, const uint32_t i, real32_t *dim0, real32_t 
         }
         else
         {
-            real32_t width = (real32_t)image_width(button->image);
-            real32_t height = (real32_t)image_height(button->image);
-            button->component.context->func_button_bounds(button->component.ositem, NULL, width, height, &button->size.width, &button->size.height);
+            const char_t *text = button->image_pos == ekGUI_POS_NONE ? NULL : tc(button->text);
+            i_flat_natural_bounds(button, text, button->image, &button->size.width, &button->size.height);
+
+            if (button_get_type(button->flags) == ekBUTTON_FLATGLE)
+            {
+                const char_t *alt_text = text;
+                const Image *alt_image = button->image;
+                real32_t alt_width = 0;
+                real32_t alt_height = 0;
+
+                if (button->image_pos != ekGUI_POS_NONE && button->talt != NULL)
+                    alt_text = tc(button->talt);
+
+                if (button->imalt != NULL)
+                    alt_image = button->imalt;
+
+                i_flat_natural_bounds(button, alt_text, alt_image, &alt_width, &alt_height);
+                if (alt_width > button->size.width)
+                    button->size.width = alt_width;
+                if (alt_height > button->size.height)
+                    button->size.height = alt_height;
+            }
         }
 
         *dim0 = button->size.width;

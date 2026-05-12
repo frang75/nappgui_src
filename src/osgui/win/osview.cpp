@@ -322,6 +322,7 @@ OSView *osview_create(const uint32_t flags)
         dwStyle |= WS_VSCROLL;
 
     _oscontrol_init(cast(view, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kVIEW_CLASS, 16, 16, i_WndProc, kDEFAULT_PARENT_WINDOW);
+    view->control.tooltip_hwnd1 = view->control.hwnd;
     view->control.type = ekGUI_TYPE_CUSTOMVIEW;
     view->flags = flags;
     view->focused = FALSE;
@@ -527,6 +528,13 @@ void osview_OnScroll(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     _osscrolls_OnScroll(view->scroll, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osview_tooltip(OSView *view, const char_t *text)
+{
+    _oscontrol_tooltip(cast(view, OSControl), text);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -341,67 +341,70 @@ static void i_set_image(GuiComponent *component, const Image *image)
 
 static void i_set_empty(Cell *cell, const DBind *stbind, const uint32_t member_id)
 {
-    GuiComponent *component = _cell_component(cell);
-    const DBind *mbind = dbind_st_member(stbind, member_id);
-
-    switch (component->type)
+    if (_cell_is_component(cell) == TRUE)
     {
-    case ekGUI_TYPE_EDITBOX:
-        _edit_text(cast(component, Edit), "");
-        break;
+        GuiComponent *component = _cell_component(cell);
+        const DBind *mbind = dbind_st_member(stbind, member_id);
 
-    case ekGUI_TYPE_CUSTOMVIEW:
-        if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
-            _label_text(cast(component, Label), "");
-        else
-            _view_empty(cast(component, View));
-        break;
-
-    case ekGUI_TYPE_BUTTON:
-    case ekGUI_TYPE_POPUP:
-    case ekGUI_TYPE_COMBOBOX:
-    case ekGUI_TYPE_SLIDER:
-    case ekGUI_TYPE_UPDOWN:
-    case ekGUI_TYPE_PROGRESS:
-        break;
-
-    case ekGUI_TYPE_TEXTVIEW:
-    case ekGUI_TYPE_WEBVIEW:
-    case ekGUI_TYPE_TREEVIEW:
-    case ekGUI_TYPE_BOXVIEW:
-    case ekGUI_TYPE_SPLITVIEW:
-    case ekGUI_TYPE_PANEL:
-    case ekGUI_TYPE_LINE:
-    case ekGUI_TYPE_HEADER:
-    case ekGUI_TYPE_WINDOW:
-    case ekGUI_TYPE_TOOLBAR:
-    default:
-        cassert_default(component->type);
-    }
-
-    switch (dbind_type(mbind))
-    {
-    case ekDTYPE_BINARY:
-        if (str_equ_c(dbind_typename(mbind), "Image") == TRUE)
+        switch (component->type)
         {
-            const Image *image = cast_const(dbind_st_binary_default(stbind, member_id), Image);
-            i_set_image(component, image);
+        case ekGUI_TYPE_EDITBOX:
+            _edit_text(cast(component, Edit), "");
+            break;
+
+        case ekGUI_TYPE_CUSTOMVIEW:
+            if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
+                _label_text(cast(component, Label), "");
+            else
+                _view_empty(cast(component, View));
+            break;
+
+        case ekGUI_TYPE_BUTTON:
+        case ekGUI_TYPE_POPUP:
+        case ekGUI_TYPE_COMBOBOX:
+        case ekGUI_TYPE_SLIDER:
+        case ekGUI_TYPE_UPDOWN:
+        case ekGUI_TYPE_PROGRESS:
+            break;
+
+        case ekGUI_TYPE_TEXTVIEW:
+        case ekGUI_TYPE_WEBVIEW:
+        case ekGUI_TYPE_TREEVIEW:
+        case ekGUI_TYPE_BOXVIEW:
+        case ekGUI_TYPE_SPLITVIEW:
+        case ekGUI_TYPE_PANEL:
+        case ekGUI_TYPE_LINE:
+        case ekGUI_TYPE_HEADER:
+        case ekGUI_TYPE_WINDOW:
+        case ekGUI_TYPE_TOOLBAR:
+        default:
+            cassert_default(component->type);
         }
-        break;
 
-    case ekDTYPE_BOOL:
-    case ekDTYPE_INT:
-    case ekDTYPE_REAL:
-    case ekDTYPE_ENUM:
-    case ekDTYPE_STRING:
-    case ekDTYPE_STRUCT:
-    case ekDTYPE_CONTAINER:
-    case ekDTYPE_UNKNOWN:
-    default:
-        break;
+        switch (dbind_type(mbind))
+        {
+        case ekDTYPE_BINARY:
+            if (str_equ_c(dbind_typename(mbind), "Image") == TRUE)
+            {
+                const Image *image = cast_const(dbind_st_binary_default(stbind, member_id), Image);
+                i_set_image(component, image);
+            }
+            break;
+
+        case ekDTYPE_BOOL:
+        case ekDTYPE_INT:
+        case ekDTYPE_REAL:
+        case ekDTYPE_ENUM:
+        case ekDTYPE_STRING:
+        case ekDTYPE_STRUCT:
+        case ekDTYPE_CONTAINER:
+        case ekDTYPE_UNKNOWN:
+        default:
+            break;
+        }
+
+        cell_enabled(cell, FALSE);
     }
-
-    cell_enabled(cell, FALSE);
 }
 
 /*---------------------------------------------------------------------------*/

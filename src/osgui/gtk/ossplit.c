@@ -283,10 +283,7 @@ void ossplit_size(const OSSplit *view, real32_t *width, real32_t *height)
 
 void ossplit_origin(const OSSplit *view, real32_t *x, real32_t *y)
 {
-    unref(view);
-    unref(x);
-    unref(y);
-    cassert_msg(FALSE, "Not implemented");
+    _oscontrol_get_origin(cast_const(view, OSControl), x, y);
 }
 
 /*---------------------------------------------------------------------------*/

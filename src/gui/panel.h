@@ -35,9 +35,9 @@ _gui_api void panel_visible_layout(Panel *panel, const uint32_t index);
 
 _gui_api void panel_update(Panel *panel);
 
-_gui_api real32_t panel_scroll_width(const Panel *panel);
+_gui_api void panel_scroll_size(const Panel *panel, real32_t *width, real32_t *height);
 
-_gui_api real32_t panel_scroll_height(const Panel *panel);
+_gui_api void panel_viewport(const Panel *panel, V2Df *pos, S2Df *size);
 
 __END_C
 

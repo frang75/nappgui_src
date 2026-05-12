@@ -241,16 +241,17 @@ Image *image_from_file(const char_t *pathname, ferror_t *error)
 
 Image *image_from_data(const byte_t *data, const uint32_t size)
 {
-    if (size > 0)
+    codec_t codec;
+    if (data == NULL || size == 0)
+        return NULL;
+
+    codec = i_codec(data[0]);
+    if (codec != ENUM_MAX(codec_t))
     {
-        codec_t codec = i_codec(data[0]);
-        if (codec != ENUM_MAX(codec_t))
-        {
-            OSImage *osimage = NULL;
-            real32_t *frame_length = NULL;
-            osimage = osimage_create_from_data(data, size);
-            return i_create_image(1, PARAM(num_frames, 0), &frame_length, codec, &osimage);
-        }
+        OSImage *osimage = NULL;
+        real32_t *frame_length = NULL;
+        osimage = osimage_create_from_data(data, size);
+        return i_create_image(1, PARAM(num_frames, 0), &frame_length, codec, &osimage);
     }
 
     return NULL;

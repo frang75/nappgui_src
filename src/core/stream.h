@@ -119,6 +119,8 @@ _core_api const char_t *stm_read_chars(Stream *stm, const uint32_t n);
 
 _core_api const char_t *stm_read_line(Stream *stm);
 
+_core_api const char_t *stm_read_to_char(Stream *stm, const uint32_t endchar);
+
 _core_api const char_t *stm_read_trim(Stream *stm);
 
 _core_api ltoken_t stm_read_token(Stream *stm);

@@ -50,9 +50,8 @@ struct _window_t
 
 static void i_detach_main_panel(Panel *main_panel, void *window_renderable_item, FPtr_gctx_set_ptr func_detach_main_panel_from_window)
 {
-    GuiComponent *panel_component;
+    GuiComponent *panel_component = cast(main_panel, GuiComponent);
     cassert_no_nullf(func_detach_main_panel_from_window);
-    panel_component = _panel_get_component(main_panel);
     cassert_no_null(panel_component);
     func_detach_main_panel_from_window(window_renderable_item, panel_component->ositem);
     _panel_window(main_panel, NULL);
@@ -331,7 +330,7 @@ static void i_attach_main_layout(Window *window, Layout **layout)
     window->main_layout = *layout;
     main_panel = i_main_panel(window);
     _panel_window(main_panel, window);
-    panel_component = _panel_get_component(main_panel);
+    panel_component = cast(main_panel, GuiComponent);
     cassert_no_null(panel_component);
     window->context->func_attach_main_panel_to_window(window->ositem, panel_component->ositem);
     i_main_layout_compose(window, NULL);
@@ -753,20 +752,10 @@ S2Df window_get_client_size(const Window *window)
     S2Df size;
     cassert_no_null(window);
     panel = i_main_panel(window);
-    component = _panel_get_component(panel);
+    component = cast(panel, GuiComponent);
     window->context->func_get_size[ekGUI_TYPE_PANEL](component->ositem, &size.width, &size.height);
     return size;
 }
-
-/*---------------------------------------------------------------------------*/
-
-#if defined __ASSERTS__
-static bool_t i_in_active_layout(const Window *window, const GuiComponent *component)
-{
-    Panel *panel = i_main_panel(window);
-    return _panel_in_active_layout(panel, component);
-}
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -774,30 +763,25 @@ R2Df window_control_frame(const Window *window, const GuiControl *control)
 {
     R2Df r2d;
     GuiComponent *component = cast(control, GuiComponent);
-    Cell *cell = NULL;
     cassert_no_null(window);
     cassert_no_null(component);
-    cassert(_component_window(component) == window);
-    cassert(i_in_active_layout(window, component) == TRUE);
+    cassert(_component_get_window(component) == window);
     _component_get_origin(component, &r2d.pos);
     _component_get_size(component, &r2d.size);
-    cell = _component_cell(component);
-    for (; cell != NULL;)
+    while (component->parent != NULL)
     {
-        V2Df panel_pos;
-        Layout *layout = _cell_parent(cell);
-        Panel *panel = _layout_panel(layout);
-        if (panel != NULL)
+        V2Df ppos;
+        component = component->parent;
+        _component_get_origin(component, &ppos);
+        r2d.pos.x += ppos.x;
+        r2d.pos.y += ppos.y;
+
+        if (component->type == ekGUI_TYPE_PANEL)
         {
-            GuiComponent *panel_component = cast(panel, GuiComponent);
-            _component_get_origin(panel_component, &panel_pos);
-            r2d.pos.x += panel_pos.x;
-            r2d.pos.y += panel_pos.y;
-            cell = _component_cell(panel_component);
-        }
-        else
-        {
-            cell = NULL;
+            V2Df vpos;
+            panel_viewport(cast(component, Panel), &vpos, NULL);
+            r2d.pos.x -= vpos.x;
+            r2d.pos.y -= vpos.y;
         }
     }
 
@@ -890,7 +874,7 @@ void _window_update(Window *window)
     {
         S2Df current_panel_size;
         Panel *main_panel = i_main_panel(window);
-        GuiComponent *component = _panel_get_component(main_panel);
+        GuiComponent *component = cast(main_panel, GuiComponent);
         window->context->func_get_size[ekGUI_TYPE_PANEL](component->ositem, &current_panel_size.width, &current_panel_size.height);
         i_main_layout_compose(window, &current_panel_size);
     }

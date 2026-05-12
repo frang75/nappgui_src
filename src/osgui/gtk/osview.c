@@ -561,6 +561,14 @@ void osview_OnScroll(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+void osview_tooltip(OSView *view, const char_t *text)
+{
+    cassert_no_null(view);
+    gtk_widget_set_tooltip_text(view->control.widget, cast_const(text, gchar));
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_allow_key(OSView *view, const vkey_t key, const uint32_t value)
 {
     cassert_no_null(view);

@@ -192,6 +192,17 @@ void _oscontrol_tooltip_set(NSView *view, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
+NSColor *_oscontrol_label_color(void)
+{
+#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
+    return [NSColor labelColor];
+#else
+    return [NSColor controlTextColor];
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 NSColor *_oscontrol_color(const color_t color)
 {
     return _oscolor_NSColor(color);
@@ -206,17 +217,9 @@ NSColor *_oscontrol_text_color(NSControl *control, const color_t color)
         if (color == kCOLOR_DEFAULT)
         {
             if ([control isKindOfClass:[NSTextField class]])
-            {
-#if defined(MAC_OS_X_VERSION_10_10) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_10
-                return [NSColor labelColor];
-#else
-                return [NSColor controlTextColor];
-#endif
-            }
+                return _oscontrol_label_color();
             else
-            {
                 return [NSColor controlTextColor];
-            }
         }
         else
         {

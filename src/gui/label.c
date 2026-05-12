@@ -115,7 +115,7 @@ static LbData *i_create_data(const uint32_t flags, const align_t halign, const e
     data->halign = halign;
     data->ellipsis = ellipsis;
     data->color = gui_label_color();
-    data->over_color = gui_label_color();
+    data->over_color = kCOLOR_TRANSPARENT;
     data->bg_color = kCOLOR_TRANSPARENT;
     data->bg_over_color = kCOLOR_TRANSPARENT;
     return data;
@@ -139,20 +139,21 @@ static void i_OnDraw(LbData *data, Event *e)
     color_t bgcolor = kCOLOR_TRANSPARENT;
     const Font *font = NULL;
     cassert_no_null(data);
+
+    color = data->color;
+    bgcolor = data->bg_color;
+    font = data->font;
+
     if (data->hover == TRUE)
     {
-        color = data->over_color;
-        bgcolor = data->bg_over_color;
+        if (data->over_color != kCOLOR_TRANSPARENT)
+            color = data->over_color;
+
+        if (data->bg_over_color != kCOLOR_TRANSPARENT)
+            bgcolor = data->bg_over_color;
+
         if (data->over_font != NULL)
             font = data->over_font;
-        else
-            font = data->font;
-    }
-    else
-    {
-        color = data->color;
-        bgcolor = data->bg_color;
-        font = data->font;
     }
 
     if (bgcolor != kCOLOR_TRANSPARENT)

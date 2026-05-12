@@ -1005,7 +1005,7 @@ static ___INLINE void i_set_cursor(View *view, TData *data, const gui_cursor_t c
     if (data->cursor != cursor)
     {
         if (data->window == NULL)
-            data->window = _component_window(cast(view, GuiComponent));
+            data->window = _component_get_window(cast(view, GuiComponent));
         window_cursor(data->window, cursor, NULL, 0, 0);
         data->cursor = cursor;
     }

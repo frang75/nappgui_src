@@ -164,8 +164,8 @@ void _component_init(GuiComponent *component, const GuiCtx *context, const gui_t
     cassert_no_null(component);
     obj_init(&component->object);
     component->context = guictx_retain(context);
+    component->parent = NULL;
     component->type = type;
-    component->panel = NULL;
     component->tag.tag_uint32 = UINT32_MAX;
     component->ositem = ptr_dget_no_null(ositem, void);
 }
@@ -203,8 +203,8 @@ void _component_attach_to_panel(GuiComponent *panel_component, GuiComponent *chi
     cassert_no_null(child_component);
     cassert_no_null(child_component->context);
     cassert_no_nullf(child_component->context->func_attach_to_panel[child_component->type]);
-    cassert(child_component->panel == NULL);
-    child_component->panel = cast(panel_component, Panel);
+    cassert(child_component->parent == NULL);
+    child_component->parent = panel_component;
     child_component->context->func_attach_to_panel[child_component->type](child_component->ositem, panel_component->ositem);
 }
 
@@ -217,20 +217,37 @@ void _component_detach_from_panel(GuiComponent *panel_component, GuiComponent *c
     cassert_no_null(child_component);
     cassert_no_null(child_component->context);
     cassert_no_nullf(child_component->context->func_detach_from_panel[child_component->type]);
-    cassert(child_component->panel == cast(panel_component, Panel));
-    child_component->panel = NULL;
+    cassert(child_component->parent == panel_component);
+    child_component->parent = NULL;
     child_component->context->func_detach_from_panel[child_component->type](child_component->ositem, panel_component->ositem);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void _component_set_parent_window(GuiComponent *component, Window *parent_window)
+void _component_window(GuiComponent *component, Window *window)
 {
-    Panel *panels[GUI_COMPONENT_MAX_PANELS];
-    uint32_t j, num_panels;
-    _component_panels(component, &num_panels, panels);
-    for (j = 0; j < num_panels; ++j)
-        _panel_window(panels[j], parent_window);
+    cassert_no_null(component);
+    if (component->type == ekGUI_TYPE_PANEL)
+        _panel_window(cast(component, Panel), window);
+    else if (component->type == ekGUI_TYPE_SPLITVIEW)
+        _splitview_window(cast(component, SplitView), window);
+}
+
+/*---------------------------------------------------------------------------*/
+
+Window *_component_get_window(GuiComponent *component)
+{
+    cassert_no_null(component);
+    cassert_no_null(component->parent);
+    if (component->parent->type == ekGUI_TYPE_PANEL)
+    {
+        return _panel_get_window(cast(component->parent, Panel));
+    }
+    else
+    {
+        cassert(component->parent->type == ekGUI_TYPE_SPLITVIEW);
+        return _splitview_get_window(cast(component->parent, SplitView));
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -508,15 +525,7 @@ void *_component_ositem(const GuiComponent *component)
 Cell *_component_cell(const GuiComponent *component)
 {
     cassert_no_null(component);
-    if (component->panel != NULL)
-        return _panel_get_component_cell(component->panel, component);
+    if (component->parent != NULL && component->parent->type == ekGUI_TYPE_PANEL)
+        return _panel_get_component_cell(cast(component->parent, Panel), component);
     return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-Window *_component_window(const GuiComponent *component)
-{
-    cassert_no_null(component);
-    return _panel_get_window(component->panel);
 }

@@ -15,12 +15,12 @@ static Layout *i_flatbuttons(void)
     Button *button4 = button_flat();
     Button *button5 = button_flat();
     Button *button6 = button_flat();
-    button_text(button1, "Open File");
-    button_text(button2, "Save File");
-    button_text(button3, "Search File");
-    button_text(button4, "Edit File");
-    button_text(button5, "Add File");
-    button_text(button6, "Delete File");
+    button_tooltip(button1, "Open File");
+    button_tooltip(button2, "Save File");
+    button_tooltip(button3, "Search File");
+    button_tooltip(button4, "Edit File");
+    button_tooltip(button5, "Add File");
+    button_tooltip(button6, "Delete File");
     button_image(button1, gui_image(FOLDER24_PNG));
     button_image(button2, gui_image(DISK24_PNG));
     button_image(button3, gui_image(SEARCH24_PNG));
