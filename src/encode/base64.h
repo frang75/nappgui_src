@@ -19,7 +19,11 @@ _encode_api uint32_t b64_encoded_size(const uint32_t data_size);
 
 _encode_api uint32_t b64_decoded_size(const uint32_t encoded_size);
 
+_encode_api bool_t b64_encode_ex(const byte_t *data, const uint32_t size, char_t *base64, const uint32_t esize, uint32_t *written);
+
 _encode_api uint32_t b64_encode(const byte_t *data, const uint32_t size, char_t *base64, const uint32_t esize);
+
+_encode_api bool_t b64_decode_ex(const char_t *base64, const uint32_t size, byte_t *data, const uint32_t dsize, uint32_t *written);
 
 _encode_api uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data);
 

@@ -18,7 +18,45 @@
 #include <core/strings.h>
 #include <sewer/cassert.h>
 
+#define i_B64_MAX_ENCODED_SIZE ((uint64_t)UINT32_MAX - 1024ULL)
+
 static char_t i_B64_CHR[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_b64_encoded_size(const uint32_t data_size, uint32_t *encoded_size)
+{
+    uint64_t size = 4ULL * ((uint64_t)data_size / 3ULL) + 5ULL;
+
+    cassert_no_null(encoded_size);
+
+    if (size > i_B64_MAX_ENCODED_SIZE)
+    {
+        *encoded_size = 0;
+        return FALSE;
+    }
+
+    *encoded_size = (uint32_t)size;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_b64_required_size(const uint32_t data_size, uint32_t *required_size)
+{
+    uint64_t size = ((((uint64_t)data_size + 2ULL) / 3ULL) * 4ULL) + 1ULL;
+
+    cassert_no_null(required_size);
+
+    if (size > (uint64_t)UINT32_MAX)
+    {
+        *required_size = 0;
+        return FALSE;
+    }
+
+    *required_size = (uint32_t)size;
+    return TRUE;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -49,10 +87,43 @@ static uint32_t i_b64_int(const uint32_t ch)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_b64_decoded_bytes(const char_t *base64, const uint32_t size, uint32_t *decoded_size)
+{
+    uint32_t i = 0, j = 0, k = 0, s[4];
+
+    cassert_no_null(decoded_size);
+    *decoded_size = 0;
+
+    if (base64 == NULL)
+        return FALSE;
+
+    for (i = 0; i < size; i++)
+    {
+        s[j++] = i_b64_int((uint32_t) * (base64 + i));
+        if (j == 4)
+        {
+            if (s[2] == 64)
+                k += 1;
+            else if (s[3] == 64)
+                k += 2;
+            else
+                k += 3;
+
+            j = 0;
+        }
+    }
+
+    *decoded_size = k;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t b64_encoded_size(const uint32_t data_size)
 {
-    uint32_t size = 4 * (data_size / 3);
-    return size + 4 + 1;
+    uint32_t size = 0;
+    i_b64_encoded_size(data_size, &size);
+    return size;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -65,11 +136,9 @@ uint32_t b64_decoded_size(const uint32_t encoded_size)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t b64_encode(const byte_t *data, const uint32_t size, char_t *base64, const uint32_t esize)
+static uint32_t i_b64_encode(const byte_t *data, const uint32_t size, char_t *base64)
 {
     uint32_t i = 0, j = 0, k = 0, s[3];
-    cassert_no_null(data);
-    cassert_no_null(base64);
     for (i = 0; i < size; i++)
     {
         s[j++] = *(data + i);
@@ -105,19 +174,59 @@ uint32_t b64_encode(const byte_t *data, const uint32_t size, char_t *base64, con
         k += 4;
     }
 
-    cassert_unref(k < esize, esize);
     base64[k] = '\0';
     return k;
 }
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data)
+bool_t b64_encode_ex(const byte_t *data, const uint32_t size, char_t *base64, const uint32_t esize, uint32_t *written)
+{
+    uint32_t required_size = 0;
+    uint32_t n = 0;
+
+    if (written != NULL)
+        *written = 0;
+
+    if (base64 == NULL || (data == NULL && size > 0))
+        return FALSE;
+
+    if (i_b64_required_size(size, &required_size) == FALSE || esize < required_size)
+    {
+        if (base64 != NULL && esize > 0)
+            base64[0] = '\0';
+        return FALSE;
+    }
+
+    n = i_b64_encode(data, size, base64);
+    if (written != NULL)
+        *written = n;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t b64_encode(const byte_t *data, const uint32_t size, char_t *base64, const uint32_t esize)
+{
+    uint32_t required_size = 0;
+    bool_t required_ok = FALSE;
+
+    cassert_no_null(data);
+    cassert_no_null(base64);
+    required_ok = i_b64_required_size(size, &required_size);
+    cassert(required_ok == TRUE);
+    cassert_unref(required_size <= esize, esize);
+    unref(required_ok);
+    unref(required_size);
+
+    return i_b64_encode(data, size, base64);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_b64_decode(const char_t *base64, const uint32_t size, byte_t *data)
 {
     uint32_t i = 0, j = 0, k = 0, s[4];
-
-    cassert_no_null(base64);
-    cassert_no_null(data);
 
     for (i = 0; i < size; i++)
     {
@@ -154,12 +263,53 @@ uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t b64_decode_ex(const char_t *base64, const uint32_t size, byte_t *data, const uint32_t dsize, uint32_t *written)
+{
+    uint32_t k = 0;
+    uint32_t required_size = 0;
+
+    if (written != NULL)
+        *written = 0;
+
+    if (base64 == NULL || data == NULL)
+        return FALSE;
+
+    if (i_b64_decoded_bytes(base64, size, &required_size) == FALSE || required_size > dsize)
+        return FALSE;
+
+    k = i_b64_decode(base64, size, data);
+    if (written != NULL)
+        *written = k;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t b64_decode(const char_t *base64, const uint32_t size, byte_t *data)
+{
+    cassert_no_null(base64);
+    cassert_no_null(data);
+
+    return i_b64_decode(base64, size, data);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static String *i_encode_from_data(const byte_t *data, const uint32_t size)
 {
     uint32_t b64size = b64_encoded_size(size);
-    String *str = str_reserve(b64size);
-    char_t *b64data = tcc(str);
-    uint32_t n = b64_encode(data, size, b64data, b64size);
+    String *str = NULL;
+    char_t *b64data = NULL;
+    uint32_t n = 0;
+
+    if (b64size == 0)
+        return str_c("");
+
+    str = str_reserve(b64size);
+    b64data = tcc(str);
+    if (b64_encode_ex(data, size, b64data, b64size, &n) == FALSE)
+        n = 0;
     b64data[n] = '\0';
     return str;
 }
@@ -231,8 +381,11 @@ Buffer *b64_decode_from_data(const byte_t *data, const uint32_t size)
 {
     uint32_t dsize = b64_decoded_size(size);
     byte_t *binary = heap_malloc(dsize, "b64_decode");
-    uint32_t binsize = b64_decode(cast_const(data, char_t), size, binary);
-    Buffer *buffer = buffer_with_data(binary, binsize);
+    uint32_t binsize = 0;
+    Buffer *buffer = NULL;
+
+    b64_decode_ex(cast_const(data, char_t), size, binary, dsize, &binsize);
+    buffer = buffer_with_data(binary, binsize);
     heap_free(&binary, dsize, "b64_decode");
     return buffer;
 }
