@@ -123,10 +123,17 @@ static gchar *i_OnSelect(GtkComboBox *widget, const char *path, OSCombo *combo)
 {
     EvButton params;
     const String *str = NULL;
+    uint32_t n = 0;
+    bool_t error = FALSE;
     unref(widget);
     cassert_no_null(combo);
-    combo->selected = str_to_u32(path, 10, NULL);
-    cassert(combo->selected < arrpt_size(combo->texts, String));
+    combo->selected = str_to_u32(path, 10, &error);
+    n = arrpt_size(combo->texts, String);
+    cassert(error == FALSE);
+    cassert(combo->selected < n);
+    if (error == TRUE || combo->selected >= n)
+        return NULL;
+
     params.state = ekGUI_ON;
     params.index = combo->selected;
     params.text = NULL;

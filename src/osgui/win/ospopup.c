@@ -267,10 +267,16 @@ void _ospopup_command(OSPopUp *popup, WPARAM wParam)
     cassert_no_null(popup);
     if (HIWORD(wParam) == CBN_SELCHANGE && IsWindowEnabled(popup->control.hwnd) && popup->OnSelect != NULL)
     {
+        LRESULT index = SendMessage(popup->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+        LRESULT count = SendMessage(popup->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0);
         EvButton params;
+        cassert(index != CB_ERR);
+        cassert(index < count);
+        if (index == CB_ERR || count == CB_ERR || index >= count)
+            return;
+
         params.state = ekGUI_ON;
-        params.index = (uint32_t)SendMessage(popup->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-        cassert(params.index < (uint32_t)SendMessage(popup->control.hwnd, CB_GETCOUNT, (WPARAM)0, (LPARAM)0));
+        params.index = (uint32_t)index;
         params.text = NULL;
         listener_event(popup->OnSelect, ekGUI_EVENT_POPUP, popup, &params, NULL, OSPopUp, EvButton, void);
     }
