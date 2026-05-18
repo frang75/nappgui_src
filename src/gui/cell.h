@@ -29,6 +29,8 @@ _gui_api Edit *cell_edit(Cell *cell);
 
 _gui_api Combo *cell_combo(Cell *cell);
 
+_gui_api Tabs *cell_tabs(Cell *cell);
+
 _gui_api ListBox *cell_listbox(Cell *cell);
 
 _gui_api UpDown *cell_updown(Cell *cell);

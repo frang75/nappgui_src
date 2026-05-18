@@ -516,7 +516,7 @@ void _osgui_start_imp(void)
         INITCOMMONCONTROLSEX commctrl;
         BOOL ok;
         commctrl.dwSize = sizeof(INITCOMMONCONTROLSEX);
-        commctrl.dwICC = ICC_STANDARD_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_PROGRESS_CLASS;
+        commctrl.dwICC = ICC_STANDARD_CLASSES | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_TAB_CLASSES | ICC_PROGRESS_CLASS;
         ok = InitCommonControlsEx(&commctrl);
         cassert_unref(ok == TRUE, ok);
     }

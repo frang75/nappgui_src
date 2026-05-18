@@ -221,3 +221,96 @@ uint32_t _osimglist_height(const OSImgList *imglist)
     cassert(imglist->img_height != UINT32_MAX);
     return imglist->img_height;
 }
+
+/*---------------------------------------------------------------------------*/
+
+int _osimglist_index(OSImgList *imglist, HWND hwnd, const gui_type_t type, const Image *image)
+{
+    int index = 0;
+
+    if (image != NULL)
+    {
+        /* Image exits in list --> rehuse */
+        index = _osimglist_find(imglist, image);
+
+        /* Check for unused image --> replace */
+        if (index == -1)
+        {
+            uint32_t num_images = _osimglist_num_elems(imglist);
+            if (num_images > 0)
+            {
+                uint32_t i = 0, num_elems = 0;
+                bool_t *exists = heap_new_n0(num_images, bool_t);
+
+                if (type == ekGUI_TYPE_COMBOBOX)
+                {
+                    num_elems = (uint32_t)SendMessage(hwnd, CB_GETCOUNT, 0, 0);
+                }
+                else
+                {
+                    cassert(type == ekGUI_TYPE_TABLIST);
+                    num_elems = (uint32_t)SendMessage(hwnd, TCM_GETITEMCOUNT, 0, 0);
+                }
+
+                for (i = 0; i < num_elems; ++i)
+                {
+                    if (type == ekGUI_TYPE_COMBOBOX)
+                    {
+                        COMBOBOXEXITEM cbbi = {0};
+                        LRESULT res;
+                        cbbi.iItem = (INT_PTR)i;
+                        cbbi.mask = CBEIF_IMAGE;
+                        res = SendMessage(hwnd, CBEM_GETITEM, (WPARAM)0, (LPARAM)&cbbi);
+                        cassert_unref(res != 0, res);
+                        exists[cbbi.iImage] = TRUE;
+                    }
+                    else
+                    {
+                        TCITEM tci = {0};
+                        LRESULT res;
+                        cassert(type == ekGUI_TYPE_TABLIST);
+                        tci.mask = CBEIF_IMAGE;
+                        res = SendMessage(hwnd, TCM_GETITEM, (WPARAM)i, (LPARAM)&tci);
+                        cassert_unref(res != 0, res);
+                        exists[tci.iImage] = TRUE;
+                    }
+                }
+
+                for (i = 1; i < num_images && index == -1; ++i)
+                {
+                    if (exists[i] == FALSE)
+                    {
+                        index = (int)i;
+                        _osimglist_replace(imglist, index, image);
+                    }
+                }
+
+                heap_delete_n(&exists, num_images, bool_t);
+            }
+        }
+
+        /* Add a new image */
+        if (index == -1)
+        {
+            uint8_t result = 0;
+            index = _osimglist_add(imglist, image, &result);
+            if (result == HIMAGELIST_CREATED)
+            {
+                HIMAGELIST hlist = _osimglist_hlist(imglist);
+                if (type == ekGUI_TYPE_COMBOBOX)
+                {
+                    HIMAGELIST previous = (HIMAGELIST)SendMessage(hwnd, CBEM_SETIMAGELIST, 0, (LPARAM)hlist);
+                    cassert_unref(previous == NULL, previous);
+                }
+                else
+                {
+                    HIMAGELIST previous = (HIMAGELIST)SendMessage(hwnd, TCM_SETIMAGELIST, 0, (LPARAM)hlist);
+                    cassert(type == ekGUI_TYPE_TABLIST);
+                    cassert_unref(previous == NULL, previous);
+                }
+            }
+        }
+    }
+
+    return index;
+}

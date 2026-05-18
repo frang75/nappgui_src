@@ -106,7 +106,7 @@ static Layout *i_pushes(Button **defbutton)
     layout_button(layout, button3, 3, 0);
     layout_hmargin(layout, 2, 5);
     layout_hexpand(layout, 1);
-    *defbutton = button1;
+    ptr_assign(defbutton, button1);
     return layout;
 }
 

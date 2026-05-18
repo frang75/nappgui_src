@@ -24,6 +24,7 @@
 #include "popup.inl"
 #include "progress.inl"
 #include "slider.inl"
+#include "tabs.inl"
 #include "textview.inl"
 #include "webview.inl"
 #include "splitview.inl"
@@ -43,13 +44,12 @@ static const FPtr_gctx_set_bool i_FUNC_SET_VISIBLE[GUI_CONTEXT_NUM_COMPONENTS] =
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_POPUP */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_EDITBOX */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TABLIST */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_SLIDER */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_UPDOWN */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_PROGRESS */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_BOXVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_gctx_set_bool)NULL,  /* ekGUI_TYPE_PANEL */
@@ -60,13 +60,12 @@ static const FPtr_panels i_FUNC_PANELS[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_panels)NULL,              /* ekGUI_TYPE_POPUP */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_EDITBOX */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_panels)NULL,              /* ekGUI_TYPE_TABLIST */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_SLIDER */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_UPDOWN */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_PROGRESS */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_panels)NULL,              /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_panels)NULL,              /* ekGUI_TYPE_BOXVIEW */
     (FPtr_panels)_splitview_panels, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_panels)NULL,              /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_panels)_panel_panels,     /* ekGUI_TYPE_PANEL */
@@ -77,13 +76,12 @@ static const FPtr_natural i_FUNC_NATURAL[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_natural)_popup_natural,     /* ekGUI_TYPE_POPUP */
     (FPtr_natural)_edit_natural,      /* ekGUI_TYPE_EDITBOX */
     (FPtr_natural)_combo_natural,     /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_natural)_tabs_natural,      /* ekGUI_TYPE_TABLIST */
     (FPtr_natural)_slider_natural,    /* ekGUI_TYPE_SLIDER */
     (FPtr_natural)_updown_natural,    /* ekGUI_TYPE_UPDOWN */
     (FPtr_natural)_progress_natural,  /* ekGUI_TYPE_PROGRESS */
     (FPtr_natural)_textview_natural,  /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_natural)_webview_natural,   /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_natural)NULL,               /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_natural)NULL,               /* ekGUI_TYPE_BOXVIEW */
     (FPtr_natural)_splitview_natural, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_natural)_view_natural,      /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_natural)_panel_natural,     /* ekGUI_TYPE_PANEL */
@@ -94,13 +92,12 @@ static const FPtr_expand i_FUNC_EXPAND[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_expand)NULL,              /* ekGUI_TYPE_POPUP */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_EDITBOX */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_expand)_tabs_expand,      /* ekGUI_TYPE_TABLIST */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_SLIDER */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_UPDOWN */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_PROGRESS */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_expand)NULL,              /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_expand)NULL,              /* ekGUI_TYPE_BOXVIEW */
     (FPtr_expand)_splitview_expand, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_expand)NULL,              /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_expand)_panel_expand,     /* ekGUI_TYPE_PANEL */
@@ -111,13 +108,12 @@ static const FPtr_set_size i_FUNC_ON_RESIZE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_POPUP */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_EDITBOX */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_set_size)NULL,                /* ekGUI_TYPE_TABLIST */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_SLIDER */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_UPDOWN */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_PROGRESS */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_set_size)NULL,                /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_set_size)NULL,                /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_set_size)NULL,                /* ekGUI_TYPE_BOXVIEW */
     (FPtr_set_size)_splitview_OnResize, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_set_size)_view_OnResize,      /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_set_size)_panel_OnResize,     /* ekGUI_TYPE_PANEL */
@@ -128,13 +124,12 @@ static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_gctx_call)_popup_locale,  /* ekGUI_TYPE_POPUP */
     (FPtr_gctx_call)_edit_locale,   /* ekGUI_TYPE_EDITBOX */
     (FPtr_gctx_call)_combo_locale,  /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_gctx_call)_tabs_locale,   /* ekGUI_TYPE_TABLIST */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_SLIDER */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_UPDOWN */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_PROGRESS */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_BOXVIEW */
     (FPtr_gctx_call)NULL,           /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_gctx_call)_view_locale,   /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_gctx_call)_panel_locale,  /* ekGUI_TYPE_PANEL */
@@ -145,13 +140,12 @@ static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_destroy)_popup_destroy,     /* ekGUI_TYPE_POPUP */
     (FPtr_destroy)_edit_destroy,      /* ekGUI_TYPE_EDITBOX */
     (FPtr_destroy)_combo_destroy,     /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_destroy)_tabs_destroy,      /* ekGUI_TYPE_TABLIST */
     (FPtr_destroy)_slider_destroy,    /* ekGUI_TYPE_SLIDER */
     (FPtr_destroy)_updown_destroy,    /* ekGUI_TYPE_UPDOWN */
     (FPtr_destroy)_progress_destroy,  /* ekGUI_TYPE_PROGRESS */
     (FPtr_destroy)_textview_destroy,  /* ekGUI_TYPE_TEXTVIEW */
     (FPtr_destroy)_webview_destroy,   /* ekGUI_TYPE_WEBVIEW */
-    (FPtr_destroy)NULL,               /* ekGUI_TYPE_TREEVIEW */
-    (FPtr_destroy)NULL,               /* ekGUI_TYPE_BOXVIEW */
     (FPtr_destroy)_splitview_destroy, /* ekGUI_TYPE_SPLITVIEW */
     (FPtr_destroy)_view_destroy,      /* ekGUI_TYPE_CUSTOMVIEW */
     (FPtr_destroy)_panel_destroy_all, /* ekGUI_TYPE_PANEL */
@@ -323,12 +317,12 @@ void _component_taborder(GuiComponent *component, Window *window)
     case ekGUI_TYPE_POPUP:
     case ekGUI_TYPE_EDITBOX:
     case ekGUI_TYPE_COMBOBOX:
+    case ekGUI_TYPE_TABLIST:
     case ekGUI_TYPE_SLIDER:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
     case ekGUI_TYPE_TEXTVIEW:
     case ekGUI_TYPE_WEBVIEW:
-    case ekGUI_TYPE_TREEVIEW:
     case ekGUI_TYPE_CUSTOMVIEW:
         _window_taborder(window, component->ositem);
         break;
@@ -336,10 +330,7 @@ void _component_taborder(GuiComponent *component, Window *window)
     case ekGUI_TYPE_LINE:
         break;
 
-    case ekGUI_TYPE_BOXVIEW:
-    case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
-    case ekGUI_TYPE_TOOLBAR:
     default:
         cassert_default(component->type);
     }
@@ -480,6 +471,8 @@ const char_t *_component_type(const GuiComponent *component)
         return "Edit";
     case ekGUI_TYPE_COMBOBOX:
         return "Combo";
+    case ekGUI_TYPE_TABLIST:
+        return "Tabs";
     case ekGUI_TYPE_SLIDER:
         return "Slider";
     case ekGUI_TYPE_UPDOWN:
@@ -492,18 +485,12 @@ const char_t *_component_type(const GuiComponent *component)
         return "TextView";
     case ekGUI_TYPE_WEBVIEW:
         return "WebView";
-    case ekGUI_TYPE_TREEVIEW:
-        return "TreeView";
-    case ekGUI_TYPE_BOXVIEW:
-        return "BoxView";
     case ekGUI_TYPE_SPLITVIEW:
         return "SplitView";
     case ekGUI_TYPE_PANEL:
         return "Panel";
     case ekGUI_TYPE_LINE:
         return "Line";
-    case ekGUI_TYPE_HEADER:
-    case ekGUI_TYPE_TOOLBAR:
     case ekGUI_TYPE_WINDOW:
     default:
         cassert_default(component->type);

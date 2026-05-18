@@ -30,6 +30,7 @@ typedef struct _button_t Button;
 typedef struct _popup_t PopUp;
 typedef struct _edit_t Edit;
 typedef struct _combo_t Combo;
+typedef struct _tabs_t Tabs;
 typedef struct _listbox_t ListBox;
 typedef struct _updown_t UpDown;
 typedef struct _slider_t Slider;

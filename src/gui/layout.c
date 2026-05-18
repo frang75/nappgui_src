@@ -29,6 +29,7 @@
 #include "listbox.inl"
 #include "slider.inl"
 #include "splitview.inl"
+#include "tabs.inl"
 #include "view.inl"
 #include "window.inl"
 #include <geom2d/s2d.h>
@@ -480,7 +481,41 @@ void layout_edit(Layout *layout, Edit *edit, const uint32_t col, const uint32_t 
 void layout_combo(Layout *layout, Combo *combo, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, cast(combo, GuiComponent), col, row, ekJUSTIFY, ekCENTER);
-    cassert_no_null(cell);
+    cassert_unref(cell != NULL, cell);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void layout_tabs(Layout *layout, Tabs *tabs, const uint32_t col, const uint32_t row)
+{
+    Cell *cell = NULL;
+    align_t halign = ekJUSTIFY;
+    align_t valign = ekCENTER;
+    uint32_t flags = _tabs_flags(tabs);
+    switch (tabs_get_pos(flags))
+    {
+    case ekTABS_LEFT:
+        halign = ekRIGHT;
+        valign = ekJUSTIFY;
+        break;
+    case ekTABS_RIGHT:
+        halign = ekLEFT;
+        valign = ekJUSTIFY;
+        break;
+    case ekTABS_TOP:
+        halign = ekJUSTIFY;
+        valign = ekBOTTOM;
+        break;
+    case ekTABS_BOTTOM:
+        halign = ekJUSTIFY;
+        valign = ekCENTER;
+        break;
+
+    default:
+        cassert_default(tabs_get_pos(flags));
+    }
+
+    cell = i_set_component(layout, cast(tabs, GuiComponent), col, row, halign, valign);
     cassert_unref(cell != NULL, cell);
 }
 
@@ -698,6 +733,13 @@ Edit *layout_get_edit(Layout *layout, const uint32_t col, const uint32_t row)
 Combo *layout_get_combo(Layout *layout, const uint32_t col, const uint32_t row)
 {
     return guicontrol_combo(layout_control(layout, col, row));
+}
+
+/*---------------------------------------------------------------------------*/
+
+Tabs *layout_get_tabs(Layout *layout, const uint32_t col, const uint32_t row)
+{
+    return guicontrol_tabs(layout_control(layout, col, row));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2503,6 +2545,13 @@ Combo *cell_combo(Cell *cell)
 
 /*---------------------------------------------------------------------------*/
 
+Tabs *cell_tabs(Cell *cell)
+{
+    return guicontrol_tabs(cell_control(cell));
+}
+
+/*---------------------------------------------------------------------------*/
+
 ListBox *cell_listbox(Cell *cell)
 {
     return guicontrol_listbox(cell_control(cell));
@@ -2832,16 +2881,13 @@ static void i_set_dbind(Cell *cell, const DBind *stbind, const uint32_t member_i
         case ekGUI_TYPE_PROGRESS:
             break;
 
+        case ekGUI_TYPE_TABLIST:
         case ekGUI_TYPE_TEXTVIEW:
         case ekGUI_TYPE_WEBVIEW:
-        case ekGUI_TYPE_TREEVIEW:
-        case ekGUI_TYPE_BOXVIEW:
         case ekGUI_TYPE_SPLITVIEW:
         case ekGUI_TYPE_PANEL:
         case ekGUI_TYPE_LINE:
-        case ekGUI_TYPE_HEADER:
         case ekGUI_TYPE_WINDOW:
-        case ekGUI_TYPE_TOOLBAR:
         default:
             cassert_default(cell->content.component->type);
         }

@@ -92,6 +92,19 @@ Items *_items_from_combo(const GuiCtx *context, void *ositem)
 
 /*---------------------------------------------------------------------------*/
 
+Items *_items_from_tabs(const GuiCtx *context, void *ositem)
+{
+    Items *items = i_create(ositem);
+    cassert_no_null(context);
+    items->func_set_elem = context->func_tabs_set_elem;
+    items->func_list_height = NULL;
+    items->func_set_selected = context->func_tabs_set_selected;
+    items->func_get_selected = context->func_tabs_get_selected;
+    return items;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _items_destroy(Items **items)
 {
     cassert_no_null(items);
@@ -170,7 +183,8 @@ void _items_add_elem(Items *items, const char_t *text, const Image *image)
     elem->text = str_c(ltext);
     elem->image = i_image(image);
     items->func_set_elem(items->ositem, ekCTRL_OP_ADD, UINT32_MAX, tc(elem->text), elem->image);
-    items->func_list_height(items->ositem, i_list_height(items));
+    if (items->func_list_height != NULL)
+        items->func_list_height(items->ositem, i_list_height(items));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -200,7 +214,8 @@ void _items_ins_elem(Items *items, const uint32_t index, const char_t *text, con
     elem->text = str_c(ltext);
     elem->image = i_image(image);
     items->func_set_elem(items->ositem, ekCTRL_OP_INS, index, tc(elem->text), elem->image);
-    items->func_list_height(items->ositem, i_list_height(items));
+    if (items->func_list_height != NULL)
+        items->func_list_height(items->ositem, i_list_height(items));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -210,7 +225,8 @@ void _items_del_elem(Items *items, const uint32_t index)
     cassert_no_null(items);
     arrst_delete(items->elems, index, i_remove_elem, PElem);
     items->func_set_elem(items->ositem, ekCTRL_OP_DEL, index, NULL, NULL);
-    items->func_list_height(items->ositem, i_list_height(items));
+    if (items->func_list_height != NULL)
+        items->func_list_height(items->ositem, i_list_height(items));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -223,7 +239,9 @@ void _items_clear(Items *items)
     arrst_clear(items->elems, i_remove_elem, PElem);
     for (i = 0; i < n; ++i)
         items->func_set_elem(items->ositem, ekCTRL_OP_DEL, 0, NULL, NULL);
-    items->func_list_height(items->ositem, i_list_height(items));
+
+    if (items->func_list_height != NULL)
+        items->func_list_height(items->ositem, i_list_height(items));
 }
 
 /*---------------------------------------------------------------------------*/

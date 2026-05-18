@@ -20,6 +20,7 @@
 #include "osprogress.inl"
 #include "osslider.inl"
 #include "ossplit.inl"
+#include "ostabs.inl"
 #include "ostext.inl"
 #include "osupdown.inl"
 #include "osview.inl"
@@ -40,6 +41,8 @@ const char_t *_oscontrol_type_str(const gui_type_t type)
         return "OSEdit";
     case ekGUI_TYPE_COMBOBOX:
         return "OSComboBox";
+    case ekGUI_TYPE_TABLIST:
+        return "OSTabs";
     case ekGUI_TYPE_SLIDER:
         return "OSSlider";
     case ekGUI_TYPE_UPDOWN:
@@ -50,10 +53,6 @@ const char_t *_oscontrol_type_str(const gui_type_t type)
         return "OSTextView";
     case ekGUI_TYPE_WEBVIEW:
         return "OSWebView";
-    case ekGUI_TYPE_TREEVIEW:
-        return "OSTreeView";
-    case ekGUI_TYPE_BOXVIEW:
-        return "OSBoxView";
     case ekGUI_TYPE_SPLITVIEW:
         return "OSSplitView";
     case ekGUI_TYPE_CUSTOMVIEW:
@@ -62,10 +61,6 @@ const char_t *_oscontrol_type_str(const gui_type_t type)
         return "OSPanel";
     case ekGUI_TYPE_LINE:
         return "OSLine";
-    case ekGUI_TYPE_HEADER:
-        return "OSHeader";
-    case ekGUI_TYPE_TOOLBAR:
-        return "OSToolbar";
     case ekGUI_TYPE_WINDOW:
         return "OSWindow";
     default:
@@ -96,6 +91,9 @@ void _oscontrol_detach_and_destroy(OSControl **control, OSPanel *panel)
     case ekGUI_TYPE_COMBOBOX:
         _oscombo_detach_and_destroy(dcast(control, OSCombo), panel);
         break;
+    case ekGUI_TYPE_TABLIST:
+        _ostabs_detach_and_destroy(dcast(control, OSTabs), panel);
+        break;
     case ekGUI_TYPE_SLIDER:
         _osslider_detach_and_destroy(dcast(control, OSSlider), panel);
         break;
@@ -123,11 +121,7 @@ void _oscontrol_detach_and_destroy(OSControl **control, OSPanel *panel)
     case ekGUI_TYPE_LINE:
         _osline_detach_and_destroy(dcast(control, OSLine), panel);
         break;
-    case ekGUI_TYPE_TREEVIEW:
-    case ekGUI_TYPE_BOXVIEW:
-    case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
-    case ekGUI_TYPE_TOOLBAR:
     default:
         cassert_default(type);
     }

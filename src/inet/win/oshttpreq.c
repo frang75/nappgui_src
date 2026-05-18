@@ -377,14 +377,12 @@ void oshttp_cookie_delete(OSHttp *http, const char_t *name)
 {
     WString str1;
     WString str2;
-    DWORD state;
     const WCHAR *url = NULL;
     const WCHAR *wname = NULL;
     cassert_no_null(http);
     url = wstring_init(tc(http->url), &str1);
     wname = wstring_init(name, &str2);
-    state = InternetSetCookieEx(url, wname, L"deleted; expires=Thu, 01-Jan-1970 00:00:00 GMT", INTERNET_COOKIE_HTTPONLY, 0);
-    cassert_unref(state != FALSE, state);
+    InternetSetCookieEx(url, wname, L"deleted; expires=Thu, 01-Jan-1970 00:00:00 GMT", INTERNET_COOKIE_HTTPONLY, 0);
     wstring_remove(&str1);
     wstring_remove(&str2);
 }

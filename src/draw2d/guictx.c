@@ -471,6 +471,78 @@ void guictx_append_combo_manager_imp(
 
 /*---------------------------------------------------------------------------*/
 
+void guictx_append_tabs_manager_imp(
+    GuiCtx *context,
+    FPtr_gctx_create func_tabs_create,
+    FPtr_gctx_destroy func_tabs_destroy,
+    FPtr_gctx_set_listener func_tabs_OnSelect,
+    FPtr_gctx_set_text func_tabs_set_tooltip,
+    FPtr_gctx_set_cptr func_tabs_set_font,
+    FPtr_gctx_set_elem func_tabs_set_elem,
+    FPtr_gctx_set_uint32 func_tabs_set_selected,
+    FPtr_gctx_get_uint32 func_tabs_get_selected,
+    FPtr_gctx_bounds5 func_tabs_bounds,
+    FPtr_gctx_set_ptr func_attach_tabs_to_panel,
+    FPtr_gctx_set_ptr func_detach_tabs_from_panel,
+    FPtr_gctx_set_bool func_tabs_set_visible,
+    FPtr_gctx_set_bool func_tabs_set_enabled,
+    FPtr_gctx_get2_real32 func_tabs_get_size,
+    FPtr_gctx_get2_real32 func_tabs_get_origin,
+    FPtr_gctx_set4_real32 func_tabs_set_frame)
+{
+    cassert_no_null(context);
+    cassert(context->func_create[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_destroy[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_tabs_OnSelect == NULL);
+    cassert(context->func_set_tooltip[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_tabs_set_font == NULL);
+    cassert(context->func_tabs_set_elem == NULL);
+    cassert(context->func_tabs_set_selected == NULL);
+    cassert(context->func_tabs_get_selected == NULL);
+    cassert(context->func_tabs_bounds == NULL);
+    cassert(context->func_attach_to_panel[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_detach_from_panel[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_set_visible[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_set_enabled[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_get_size[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_get_origin[ekGUI_TYPE_TABLIST] == NULL);
+    cassert(context->func_set_frame[ekGUI_TYPE_TABLIST] == NULL);
+    cassert_no_nullf(func_tabs_create);
+    cassert_no_nullf(func_tabs_destroy);
+    cassert_no_nullf(func_tabs_OnSelect);
+    cassert_no_nullf(func_tabs_set_tooltip);
+    cassert_no_nullf(func_tabs_set_font);
+    cassert_no_nullf(func_tabs_set_elem);
+    cassert_no_nullf(func_tabs_set_selected);
+    cassert_no_nullf(func_tabs_get_selected);
+    cassert_no_nullf(func_tabs_bounds);
+    cassert_no_nullf(func_attach_tabs_to_panel);
+    cassert_no_nullf(func_detach_tabs_from_panel);
+    cassert_no_nullf(func_tabs_set_visible);
+    cassert_no_nullf(func_tabs_set_enabled);
+    cassert_no_nullf(func_tabs_get_size);
+    cassert_no_nullf(func_tabs_get_origin);
+    cassert_no_nullf(func_tabs_set_frame);
+    context->func_create[ekGUI_TYPE_TABLIST] = func_tabs_create;
+    context->func_destroy[ekGUI_TYPE_TABLIST] = func_tabs_destroy;
+    context->func_tabs_OnSelect = func_tabs_OnSelect;
+    context->func_set_tooltip[ekGUI_TYPE_TABLIST] = func_tabs_set_tooltip;
+    context->func_tabs_set_font = func_tabs_set_font;
+    context->func_tabs_set_elem = func_tabs_set_elem;
+    context->func_tabs_set_selected = func_tabs_set_selected;
+    context->func_tabs_get_selected = func_tabs_get_selected;
+    context->func_tabs_bounds = func_tabs_bounds;
+    context->func_attach_to_panel[ekGUI_TYPE_TABLIST] = func_attach_tabs_to_panel;
+    context->func_detach_from_panel[ekGUI_TYPE_TABLIST] = func_detach_tabs_from_panel;
+    context->func_set_visible[ekGUI_TYPE_TABLIST] = func_tabs_set_visible;
+    context->func_set_enabled[ekGUI_TYPE_TABLIST] = func_tabs_set_enabled;
+    context->func_get_size[ekGUI_TYPE_TABLIST] = func_tabs_get_size;
+    context->func_get_origin[ekGUI_TYPE_TABLIST] = func_tabs_get_origin;
+    context->func_set_frame[ekGUI_TYPE_TABLIST] = func_tabs_set_frame;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void guictx_append_updown_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_updown_create,

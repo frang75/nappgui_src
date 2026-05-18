@@ -746,6 +746,28 @@ PangoAlignment _oscontrol_alignment(const align_t align)
 
 /*---------------------------------------------------------------------------*/
 
+GtkPositionType _oscontrol_position(const gui_pos_t pos)
+{
+    switch (pos)
+    {
+    case ekGUI_POS_LEFT:
+        return GTK_POS_LEFT;
+    case ekGUI_POS_TOP:
+        return GTK_POS_TOP;
+    case ekGUI_POS_RIGHT:
+        return GTK_POS_RIGHT;
+    case ekGUI_POS_BOTTOM:
+        return GTK_POS_BOTTOM;
+    case ekGUI_POS_NONE:
+    default:
+        cassert_default(pos);
+    }
+
+    return GTK_POS_TOP;
+}
+
+/*---------------------------------------------------------------------------*/
+
 gui_type_t _oscontrol_type(const OSControl *control)
 {
     cassert_no_null(control);
@@ -822,14 +844,11 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_WEBVIEW:
         return cast(_osweb_focus_widget(cast(control, OSWeb)), OSWidget);
 
-    case ekGUI_TYPE_TREEVIEW:
-    case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
-    case ekGUI_TYPE_HEADER:
+    case ekGUI_TYPE_TABLIST:
     case ekGUI_TYPE_WINDOW:
-    case ekGUI_TYPE_TOOLBAR:
     default:
         cassert_default(control->type);
     }

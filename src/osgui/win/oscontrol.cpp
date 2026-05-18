@@ -598,6 +598,7 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_TEXTVIEW:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_CUSTOMVIEW:
+    case ekGUI_TYPE_TABLIST:
         return cast(control->hwnd, OSWidget);
 
     case ekGUI_TYPE_POPUP:
@@ -609,14 +610,10 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
     case ekGUI_TYPE_WEBVIEW:
         return cast(_osweb_focus_widget(cast(control, OSWeb)), OSWidget);
 
-    case ekGUI_TYPE_TREEVIEW:
-    case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_SPLITVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
-    case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
-    case ekGUI_TYPE_TOOLBAR:
     default:
         cassert_default(control->type);
     }

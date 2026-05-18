@@ -40,7 +40,7 @@ Thread *bthread_create_imp(uint32_t(func_thread_main)(void *), void *data)
 #endif
 #endif
 #if defined(__clang__)
-#if (__clang_major__ >= 16)
+#if (__clang_major__ >= 20)
 #pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
 #endif
 #endif
@@ -53,7 +53,7 @@ Thread *bthread_create_imp(uint32_t(func_thread_main)(void *), void *data)
 #endif
 #endif
 #if defined(__clang__)
-#if (__clang_major__ >= 16)
+#if (__clang_major__ >= 20)
 #pragma clang diagnostic DEFAULT "-Wcast-function-type-mismatch"
 #endif
 #endif

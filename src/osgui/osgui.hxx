@@ -21,6 +21,7 @@ typedef struct _osbutton_t OSButton;
 typedef struct _ospopup_t OSPopUp;
 typedef struct _osedit_t OSEdit;
 typedef struct _oscombo_t OSCombo;
+typedef struct _ostabs_t OSTabs;
 typedef struct _osslider_t OSSlider;
 typedef struct _osupdown_t OSUpDown;
 typedef struct _osprogress_t OSProgress;

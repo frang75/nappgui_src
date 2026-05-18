@@ -175,6 +175,7 @@ const Image *popup_get_image(const PopUp *popup, const uint32_t index)
 }
 
 /*---------------------------------------------------------------------------*/
+
 void _popup_natural(PopUp *popup, const uint32_t di, real32_t *dim0, real32_t *dim1)
 {
     cassert_no_null(popup);

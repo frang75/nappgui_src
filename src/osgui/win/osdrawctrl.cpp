@@ -397,6 +397,15 @@ void _osdrawctrl_gdi_measuse(HDC hdc, const char_t *text, INT *width, INT *heigh
 
 /*---------------------------------------------------------------------------*/
 
+static COLORREF i_colorref(const color_t color)
+{
+    uint8_t r, g, b;
+    color_get_rgb(color, &r, &g, &b);
+    return RGB(r, g, b);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32_t x, const int32_t y, const align_t align, const ellipsis_t trim, const int32_t text_width, const COLORREF text_color, const ctrl_state_t state)
 {
     RECT rect;
@@ -474,7 +483,7 @@ void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32
     }
     else
     {
-        SetTextColor(hdc, text_color);
+        SetTextColor(hdc, i_colorref(text_color));
         DrawTextW(hdc, wtext, -1, &rect, format);
     }
 

@@ -31,6 +31,8 @@ _gui_api void layout_edit(Layout *layout, Edit *edit, const uint32_t col, const 
 
 _gui_api void layout_combo(Layout *layout, Combo *combo, const uint32_t col, const uint32_t row);
 
+_gui_api void layout_tabs(Layout *layout, Tabs *tabs, const uint32_t col, const uint32_t row);
+
 _gui_api void layout_listbox(Layout *layout, ListBox *list, const uint32_t col, const uint32_t row);
 
 _gui_api void layout_updown(Layout *layout, UpDown *updown, const uint32_t col, const uint32_t row);
@@ -68,6 +70,8 @@ _gui_api PopUp *layout_get_popup(Layout *layout, const uint32_t col, const uint3
 _gui_api Edit *layout_get_edit(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api Combo *layout_get_combo(Layout *layout, const uint32_t col, const uint32_t row);
+
+_gui_api Tabs *layout_get_tabs(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api ListBox *layout_get_listbox(Layout *layout, const uint32_t col, const uint32_t row);
 

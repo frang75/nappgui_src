@@ -10,12 +10,12 @@
 - `panel_viewport()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - Support for text in flat buttons. [Commit](https://github.com/frang75/nappgui_src/commit/0a1eaf3bdbe9e1b530550fe3a392e2d37a065687).
     - `button_image_pos()`.
-- `stm_read_to_char()`. [Commit]().
-- HTTP request new methods. [Commit]().
+- `stm_read_to_char()`. [Commit](https://github.com/frang75/nappgui_src/commit/7e3c8d30a71c8264a0d235b1ce92b7434f095d0f).
+- HTTP request new methods. [Commit](https://github.com/frang75/nappgui_src/commit/7e3c8d30a71c8264a0d235b1ce92b7434f095d0f).
     - `http_put()`.
     - `http_patch()`.
     - `http_delete()`.
-- HTTP cookies support. [Commit]().
+- HTTP cookies support. [Commit](https://github.com/frang75/nappgui_src/commit/7e3c8d30a71c8264a0d235b1ce92b7434f095d0f).
     - `http_cookies_policy()`.
     - `http_cookies_reload()`.
     - `http_cookies_size()`.
@@ -24,6 +24,12 @@
     - `http_cookie_search()`.
     - `http_cookie_delete()`.
     - `http_cookie_delete_all()`.
+- Support for tab control. [Commit]().
+    * New `Tabs` widget `tabs.h`. [Doc](https://nappgui.com/en/gui/tabs.html).
+    * `guicontrol_tabs()`.
+    * `cell_tabs()`.
+    * `layout_tabs()`.
+    * `layout_get_tabs()`.
 
 ### Fixed
 
@@ -31,6 +37,12 @@
 - Issue in `window_control_frame()` with SplitViews. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - Issue in `comwin_color()` position in macOS. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - GIF support for Ubuntu 26.04 LTS. [Commit](https://github.com/frang75/nappgui_src/commit/7b8fa4ce0721b5af318b0041cd120c070677de5c).
+- Vulnerabilities in HTTP request. [Commit](https://github.com/frang75/nappgui_src/commit/e3b7b9cc35ec756b46079524858ae53cced71bf4). [Commit](https://github.com/frang75/nappgui_src/commit/f2925652de4ebebbff4480b1b1f24ea02e156086).
+- Vulnerabilities in resource packs. [Commit](https://github.com/frang75/nappgui_src/commit/cd6471f5f86cfe9e3f54085ea5cf7f913d696189).
+
+### Changed
+
+- `http_add_header()` now returns `bool_t`. [Commit](https://github.com/frang75/nappgui_src/commit/f2925652de4ebebbff4480b1b1f24ea02e156086).
 
 ### Removed
 

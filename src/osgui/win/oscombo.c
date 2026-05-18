@@ -345,67 +345,6 @@ void oscombo_bgcolor(OSCombo *combo, const color_t color)
 
 /*---------------------------------------------------------------------------*/
 
-static int i_img_index(HWND hwnd, OSImgList *imglist, const Image *image)
-{
-    int index = 0;
-
-    if (image != NULL)
-    {
-        /* Image exits in list --> rehuse */
-        index = _osimglist_find(imglist, image);
-
-        /* Check for unused image --> replace */
-        if (index == -1)
-        {
-            uint32_t num_images = _osimglist_num_elems(imglist);
-            if (num_images > 0)
-            {
-                uint32_t i = 0, num_elems = (uint32_t)SendMessage(hwnd, CB_GETCOUNT, 0, 0);
-                bool_t *exists = heap_new_n0(num_images, bool_t);
-
-                for (i = 0; i < num_elems; ++i)
-                {
-                    COMBOBOXEXITEM cbbi = {0};
-                    LRESULT res;
-                    cbbi.iItem = (INT_PTR)i;
-                    cbbi.mask = CBEIF_IMAGE;
-                    res = SendMessage(hwnd, CBEM_GETITEM, (WPARAM)0, (LPARAM)&cbbi);
-                    cassert_unref(res != 0, res);
-                    exists[cbbi.iImage] = TRUE;
-                }
-
-                for (i = 1; i < num_images && index == -1; ++i)
-                {
-                    if (exists[i] == FALSE)
-                    {
-                        index = (int)i;
-                        _osimglist_replace(imglist, index, image);
-                    }
-                }
-
-                heap_delete_n(&exists, num_images, bool_t);
-            }
-        }
-
-        /* Add a new image */
-        if (index == -1)
-        {
-            uint8_t result = 0;
-            index = _osimglist_add(imglist, image, &result);
-            if (result == HIMAGELIST_CREATED)
-            {
-                HIMAGELIST hlist = _osimglist_hlist(imglist);
-                HIMAGELIST previous = (HIMAGELIST)SendMessage(hwnd, CBEM_SETIMAGELIST, 0, (LPARAM)hlist);
-                cassert_unref(previous == NULL, previous);
-            }
-        }
-    }
-
-    return index;
-}
-
-/*---------------------------------------------------------------------------*/
-
 void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
     cassert_no_null(combo);
@@ -636,7 +575,7 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
 
         cbbi.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
         cbbi.pszText = (LPWSTR)wtext;
-        cbbi.iImage = i_img_index(hwnd, imglist, image);
+        cbbi.iImage = _osimglist_index(imglist, hwnd, ekGUI_TYPE_COMBOBOX, image);
         cbbi.iSelectedImage = cbbi.iImage;
         SendMessage(hwnd, msg, (WPARAM)0, (LPARAM)&cbbi);
         _osgui_wstr_remove(&str);

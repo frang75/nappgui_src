@@ -22,6 +22,7 @@
 #include "osprogress_osx.inl"
 #include "osslider_osx.inl"
 #include "ossplit_osx.inl"
+#include "ostabs_osx.inl"
 #include "ostext_osx.inl"
 #include "osupdown_osx.inl"
 #include "osview_osx.inl"
@@ -539,6 +540,9 @@ static gui_type_t i_oscontrol_type(NSView *object)
     if (_oscombo_is(object) == YES)
         return ekGUI_TYPE_COMBOBOX;
 
+    if (_ostabs_is(object) == YES)
+        return ekGUI_TYPE_TABLIST;
+
     if (_osslider_is(object) == YES)
         return ekGUI_TYPE_SLIDER;
 
@@ -677,15 +681,12 @@ bool_t _oscontrol_widget_enable(const OSWidget *widget)
     case ekGUI_TYPE_WEBVIEW:
     case ekGUI_TYPE_SPLITVIEW:
     case ekGUI_TYPE_CUSTOMVIEW:
+    case ekGUI_TYPE_TABLIST:
         return TRUE;
 
-    case ekGUI_TYPE_TREEVIEW:
-    case ekGUI_TYPE_BOXVIEW:
     case ekGUI_TYPE_PANEL:
     case ekGUI_TYPE_LINE:
-    case ekGUI_TYPE_HEADER:
     case ekGUI_TYPE_WINDOW:
-    case ekGUI_TYPE_TOOLBAR:
     default:
         cassert_default(type);
         return FALSE;

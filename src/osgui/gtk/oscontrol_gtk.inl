@@ -78,4 +78,6 @@ GtkJustification _oscontrol_justification(const align_t align);
 
 PangoAlignment _oscontrol_alignment(const align_t align);
 
+GtkPositionType _oscontrol_position(const gui_pos_t pos);
+
 __END_C

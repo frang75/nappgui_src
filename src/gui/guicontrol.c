@@ -71,6 +71,16 @@ Combo *guicontrol_combo(GuiControl *control)
 
 /*---------------------------------------------------------------------------*/
 
+Tabs *guicontrol_tabs(GuiControl *control)
+{
+    GuiComponent *component = cast(control, GuiComponent);
+    if (component != NULL && component->type == ekGUI_TYPE_TABLIST)
+        return cast(component, Tabs);
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 ListBox *guicontrol_listbox(GuiControl *control)
 {
     GuiComponent *component = cast(control, GuiComponent);

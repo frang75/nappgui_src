@@ -20,6 +20,7 @@
 #include "ospopup_win.inl"
 #include "osslider_win.inl"
 #include "osscroll_win.inl"
+#include "ostabs_win.inl"
 #include "ostext_win.inl"
 #include "osupdown_win.inl"
 #include "osstyleXP.inl"
@@ -227,15 +228,12 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         case ekGUI_TYPE_UPDOWN:
         case ekGUI_TYPE_PROGRESS:
         case ekGUI_TYPE_WEBVIEW:
-        case ekGUI_TYPE_TREEVIEW:
-        case ekGUI_TYPE_BOXVIEW:
         case ekGUI_TYPE_SPLITVIEW:
         case ekGUI_TYPE_CUSTOMVIEW:
         case ekGUI_TYPE_PANEL:
         case ekGUI_TYPE_LINE:
-        case ekGUI_TYPE_HEADER:
+        case ekGUI_TYPE_TABLIST:
         case ekGUI_TYPE_WINDOW:
-        case ekGUI_TYPE_TOOLBAR:
         default:
             cassert_default(control->type);
         }
@@ -279,14 +277,24 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     {
         const NMHDR *nmhdr = cast_const(lParam, NMHDR);
         OSControl *control = cast(GetWindowLongPtr(nmhdr->hwndFrom, GWLP_USERDATA), OSControl);
-        cassert_no_null(control);
-        if (control->type == ekGUI_TYPE_UPDOWN)
-            _osupdown_OnNotification(cast(control, OSUpDown), nmhdr, lParam);
+        if (nmhdr->code == UDN_DELTAPOS)
+        {
+            if (control != NULL && control->type == ekGUI_TYPE_UPDOWN)
+                _osupdown_OnNotification(cast(control, OSUpDown), nmhdr, lParam);
+        }
+        else if (nmhdr->code == TCN_SELCHANGE)
+        {
+            cassert_no_null(control);
+            cassert(control->type == ekGUI_TYPE_TABLIST);
+            _ostabs_OnNotification(cast(control, OSTabs), nmhdr);
+        }
         return 0;
     }
 
-    /* The TBS_TRANSPARENTBKGND style probably doesn't work right because you don't
-    implement WM_PRINTCLIENT in the parent. */
+    /*
+     * The TBS_TRANSPARENTBKGND style probably doesn't work right because you don't
+     * implement WM_PRINTCLIENT in the parent.
+     */
     case WM_PRINTCLIENT:
         return 0;
 

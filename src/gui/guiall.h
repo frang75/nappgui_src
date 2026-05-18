@@ -30,6 +30,7 @@
 #include "slider.h"
 #include "splitview.h"
 #include "tableview.h"
+#include "tabs.h"
 #include "textview.h"
 #include "webview.h"
 #include "updown.h"

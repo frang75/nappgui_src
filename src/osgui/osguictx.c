@@ -20,6 +20,7 @@
 #include "osslider.h"
 #include "osprogress.h"
 #include "osview.h"
+#include "ostabs.h"
 #include "ostext.h"
 #include "osweb.h"
 #include "ossplit.h"
@@ -146,6 +147,26 @@ GuiCtx *osguictx(void)
         oscombo_origin,
         oscombo_frame,
         OSCombo, OSPanel, Image, Font);
+
+    guictx_append_tabs_manager(
+        context,
+        ostabs_create,
+        ostabs_destroy,
+        ostabs_OnSelect,
+        ostabs_tooltip,
+        ostabs_font,
+        ostabs_elem,
+        ostabs_selected,
+        ostabs_get_selected,
+        ostabs_bounds,
+        ostabs_attach,
+        ostabs_detach,
+        ostabs_visible,
+        ostabs_enabled,
+        ostabs_size,
+        ostabs_origin,
+        ostabs_frame,
+        OSTabs, OSPanel, Image, Font);
 
     guictx_append_updown_manager(
         context,

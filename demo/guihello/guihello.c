@@ -14,6 +14,7 @@
 #include "listboxes.h"
 #include "textviews.h"
 #include "table.h"
+#include "tabpanel.h"
 #include "flyout.h"
 #include "guibind.h"
 #include "ipinput.h"
@@ -23,6 +24,7 @@
 #include "splits.h"
 #include "sublayout.h"
 #include "subpanel.h"
+#include "tabctrls.h"
 #include "tabstops.h"
 #include "buttonpad.h"
 #include "editpad.h"
@@ -68,88 +70,95 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = popup_combo();
         break;
     case 5:
-        panel = listboxes();
+        panel = tabctrls();
+        valign = ekJUSTIFY;
         break;
     case 6:
-        panel = form_basic(app->window);
+        panel = listboxes();
         break;
     case 7:
-        panel = seltext(app->window);
+        panel = form_basic(app->window);
         break;
     case 8:
-        panel = editor(app->window);
+        panel = seltext(app->window);
         break;
     case 9:
-        panel = sliders();
+        panel = editor(app->window);
         break;
     case 10:
-        panel = tabstops();
+        panel = sliders();
         break;
     case 11:
-        panel = textviews();
+        panel = tabstops();
         break;
     case 12:
-        panel = table_view();
+        panel = textviews();
         break;
     case 13:
-        panel = split_panel();
+        panel = table_view();
         break;
     case 14:
-        panel = modal_windows(app->window);
+        panel = split_panel();
         break;
     case 15:
-        panel = flyout_window(app->window);
+        panel = tabpanel(app->window);
         break;
     case 16:
-        panel = editpad();
+        panel = modal_windows(app->window);
         break;
     case 17:
-        panel = buttonpad();
+        panel = flyout_window(app->window);
         break;
     case 18:
-        panel = hotkeys(app->window);
+        panel = editpad();
         break;
     case 19:
-        panel = guibind();
+        panel = buttonpad();
         break;
     case 20:
-        panel = layoutbind();
+        panel = hotkeys(app->window);
         break;
     case 21:
-        panel = basic_layout();
+        panel = guibind();
         break;
     case 22:
+        panel = layoutbind();
+        break;
+    case 23:
+        panel = basic_layout();
+        break;
+    case 24:
         panel = sublayouts();
         valign = ekJUSTIFY;
         break;
-    case 23:
+    case 25:
         panel = subpanels();
         break;
-    case 24:
+    case 26:
         panel = multilayouts();
         break;
-    case 25:
+    case 27:
         panel = scrollpanel();
         break;
-    case 26:
+    case 28:
         panel = dynlay_panel();
         break;
-    case 27:
+    case 29:
         panel = dynmenu_panel(app->window);
         break;
-    case 28:
+    case 30:
         panel = ip_input(app->window);
         break;
-    case 29:
+    case 31:
         panel = font_x_scale();
         break;
-    case 30:
+    case 32:
         panel = font_units_demo();
         break;
-    case 31:
+    case 33:
         panel = reduce(app->window);
         break;
-    case 32:
+    case 34:
         panel = common_windows(app->window);
         break;
     default:
@@ -189,6 +198,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Labels mouse sensitive", NULL);
     listbox_add_elem(list, "Buttons", NULL);
     listbox_add_elem(list, "PopUp Combo", NULL);
+    listbox_add_elem(list, "Tabs", NULL);
     listbox_add_elem(list, "ListBoxes", NULL);
     listbox_add_elem(list, "Form", NULL);
     listbox_add_elem(list, "Text select", NULL);
@@ -198,6 +208,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "TextViews", NULL);
     listbox_add_elem(list, "TableView", NULL);
     listbox_add_elem(list, "SplitViews", NULL);
+    listbox_add_elem(list, "Tabs with panel", NULL);
     listbox_add_elem(list, "Modal Windows", NULL);
     listbox_add_elem(list, "Flyout Windows", NULL);
     listbox_add_elem(list, "Editbox padding", NULL);

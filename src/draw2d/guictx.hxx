@@ -151,6 +151,7 @@ typedef enum _gui_event_t
     ekGUI_EVENT_LABEL = 0x400,
     ekGUI_EVENT_BUTTON,
     ekGUI_EVENT_POPUP,
+    ekGUI_EVENT_TABS,
     ekGUI_EVENT_LISTBOX,
     ekGUI_EVENT_SLIDER,
     ekGUI_EVENT_UPDOWN,
@@ -199,29 +200,26 @@ typedef enum _gui_type_t
     ekGUI_TYPE_POPUP = 1,
     ekGUI_TYPE_EDITBOX = 2,
     ekGUI_TYPE_COMBOBOX = 3,
-    ekGUI_TYPE_SLIDER = 4,
-    ekGUI_TYPE_UPDOWN = 5,
-    ekGUI_TYPE_PROGRESS = 6,
+    ekGUI_TYPE_TABLIST = 4,
+    ekGUI_TYPE_SLIDER = 5,
+    ekGUI_TYPE_UPDOWN = 6,
+    ekGUI_TYPE_PROGRESS = 7,
 
     /* View Controls */
-    ekGUI_TYPE_TEXTVIEW = 7,
-    ekGUI_TYPE_WEBVIEW = 8,
-    ekGUI_TYPE_TREEVIEW = 9,
-    ekGUI_TYPE_BOXVIEW = 10,
-    ekGUI_TYPE_SPLITVIEW = 11,
-    ekGUI_TYPE_CUSTOMVIEW = 12,
+    ekGUI_TYPE_TEXTVIEW = 8,
+    ekGUI_TYPE_WEBVIEW = 9,
+    ekGUI_TYPE_SPLITVIEW = 10,
+    ekGUI_TYPE_CUSTOMVIEW = 11,
 
     /* Others */
-    ekGUI_TYPE_PANEL = 13,
-    ekGUI_TYPE_LINE = 14,
-    ekGUI_TYPE_HEADER = 15,
+    ekGUI_TYPE_PANEL = 12,
+    ekGUI_TYPE_LINE = 13,
 
     /* Non-Components */
-    ekGUI_TYPE_WINDOW = 16,
-    ekGUI_TYPE_TOOLBAR = 17
+    ekGUI_TYPE_WINDOW = 14
 } gui_type_t;
 
-#define GUI_CONTEXT_NUM_COMPONENTS 16
+#define GUI_CONTEXT_NUM_COMPONENTS 14
 
 typedef enum _gui_size_t
 {
@@ -317,6 +315,16 @@ typedef enum _combo_flag_t
     ekCOMBO_FLAG = 0,
     ekCOMBO_AUTOSEL = 4
 } combo_flag_t;
+
+typedef enum _tabs_flag_t
+{
+    ekTABS_FLAG = 0,
+    ekTABS_LEFT = 2,
+    ekTABS_TOP = 3,
+    ekTABS_RIGHT = 4,
+    ekTABS_BOTTOM = 5,
+    ekTABS_POS = 7
+} tabs_flag_t;
 
 typedef enum _slider_flag_t
 {
@@ -476,12 +484,13 @@ typedef struct _evtbcell_t EvTbCell;
 
 #define label_get_type(flags) ((flags)&ekLABEL_TYPE)
 #define button_get_type(flags) ((flags)&ekBUTTON_TYPE)
+#define button_is_flat(flags) (bool_t)(button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
 #define edit_get_type(flags) ((flags)&ekEDIT_TYPE)
+#define tabs_get_pos(flags) ((flags)&ekTABS_POS)
 #define slider_get_type(flags) ((flags)&ekSLIDER_TYPE)
 #define progress_get_type(flags) ((flags)&ekPROGRESS_TYPE)
 #define split_get_type(flags) ((flags)&ekSPLIT_TYPE)
 #define line_get_type(flags) ((flags)&ekLINE_TYPE)
-#define button_is_flat(flags) (bool_t)(button_get_type(flags) == ekBUTTON_FLAT || button_get_type(flags) == ekBUTTON_FLATGLE)
 
 typedef void *(*FPtr_gctx_create)(const uint32_t flags);
 #define FUNC_CHECK_GCTX_CREATE(func, type) \
@@ -782,6 +791,14 @@ struct _guictx_t
     FPtr_gctx_get_uint32 func_combo_get_selected;
     FPtr_gctx_bounds5 func_combo_bounds;
     FPtr_gctx_clipboard func_combo_clipboard;
+
+    /*! <Tabs> */
+    FPtr_gctx_set_listener func_tabs_OnSelect;
+    FPtr_gctx_set_cptr func_tabs_set_font;
+    FPtr_gctx_set_elem func_tabs_set_elem;
+    FPtr_gctx_set_uint32 func_tabs_set_selected;
+    FPtr_gctx_get_uint32 func_tabs_get_selected;
+    FPtr_gctx_bounds5 func_tabs_bounds;
 
     /*! <Slider> */
     FPtr_gctx_set_listener func_slider_OnMoved;

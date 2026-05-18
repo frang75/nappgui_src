@@ -18,6 +18,8 @@ Items *_items_from_popup(const GuiCtx *context, void *ositem);
 
 Items *_items_from_combo(const GuiCtx *context, void *ositem);
 
+Items *_items_from_tabs(const GuiCtx *context, void *ositem);
+
 void _items_destroy(Items **items);
 
 const char_t *_items_OnSelect(Items *items, Event *e, Cell *cell, void *sender, const char_t *sender_type);

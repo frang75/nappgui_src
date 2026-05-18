@@ -38,4 +38,6 @@ uint32_t _osimglist_width(const OSImgList *imglist);
 
 uint32_t _osimglist_height(const OSImgList *imglist);
 
+int _osimglist_index(OSImgList *imglist, HWND hwnd, const gui_type_t type, const Image *image);
+
 __END_C

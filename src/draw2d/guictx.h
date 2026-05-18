@@ -430,6 +430,79 @@ _draw2d_api void guictx_append_combo_manager_imp(
             (FPtr_gctx_get2_real32)func_combo_get_origin, \
             (FPtr_gctx_set4_real32)func_combo_set_frame))
 
+_draw2d_api void guictx_append_tabs_manager_imp(
+    GuiCtx *context,
+    FPtr_gctx_create func_tabs_create,
+    FPtr_gctx_destroy func_tabs_destroy,
+    FPtr_gctx_set_listener func_tabs_OnSelect,
+    FPtr_gctx_set_text func_tabs_set_tooltip,
+    FPtr_gctx_set_cptr func_tabs_set_font,
+    FPtr_gctx_set_elem func_tabs_set_elem,
+    FPtr_gctx_set_uint32 func_tabs_set_selected,
+    FPtr_gctx_get_uint32 func_tabs_get_selected,
+    FPtr_gctx_bounds5 func_tabs_bounds,
+    FPtr_gctx_set_ptr func_attach_tabs_to_panel,
+    FPtr_gctx_set_ptr func_detach_tabs_from_panel,
+    FPtr_gctx_set_bool func_tabs_set_visible,
+    FPtr_gctx_set_bool func_tabs_set_enabled,
+    FPtr_gctx_get2_real32 func_tabs_get_size,
+    FPtr_gctx_get2_real32 func_tabs_get_origin,
+    FPtr_gctx_set4_real32 func_tabs_set_frame);
+#define guictx_append_tabs_manager( \
+    context, \
+    func_tabs_create, \
+    func_tabs_destroy, \
+    func_tabs_OnSelect, \
+    func_tabs_set_tooltip, \
+    func_tabs_set_font, \
+    func_tabs_set_elem, \
+    func_tabs_set_selected, \
+    func_tabs_get_selected, \
+    func_tabs_bounds, \
+    func_attach_tabs_to_panel, \
+    func_detach_tabs_from_panel, \
+    func_tabs_set_visible, \
+    func_tabs_set_enabled, \
+    func_tabs_get_size, \
+    func_tabs_get_origin, \
+    func_tabs_set_frame, \
+    tabs_type, panel_type, image_type, font_type) \
+    ( \
+        FUNC_CHECK_GCTX_CREATE(func_tabs_create, tabs_type), \
+        FUNC_CHECK_GCTX_DESTROY(func_tabs_destroy, tabs_type), \
+        FUNC_CHECK_GCTX_SET_LISTENER(func_tabs_OnSelect, tabs_type), \
+        FUNC_CHECK_GCTX_SET_TEXT(func_tabs_set_tooltip, tabs_type), \
+        FUNC_CHECK_GCTX_SET_CPTR(func_tabs_set_font, tabs_type, font_type), \
+        FUNC_CHECK_GCTX_SET_ELEM(func_tabs_set_elem, tabs_type), \
+        FUNC_CHECK_GCTX_SET_UINT32(func_tabs_set_selected, tabs_type), \
+        FUNC_CHECK_GCTX_GET_UINT32(func_tabs_get_selected, tabs_type), \
+        FUNC_CHECK_GCTX_BOUNDS5(func_tabs_bounds, tabs_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_attach_tabs_to_panel, tabs_type, panel_type), \
+        FUNC_CHECK_GCTX_SET_PTR(func_detach_tabs_from_panel, tabs_type, panel_type), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_tabs_set_visible, tabs_type), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_tabs_set_enabled, tabs_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_tabs_get_size, tabs_type), \
+        FUNC_CHECK_GCTX_GET2_REAL32(func_tabs_get_origin, tabs_type), \
+        FUNC_CHECK_GCTX_SET4_REAL32(func_tabs_set_frame, tabs_type), \
+        guictx_append_tabs_manager_imp( \
+            context, \
+            (FPtr_gctx_create)func_tabs_create, \
+            (FPtr_gctx_destroy)func_tabs_destroy, \
+            (FPtr_gctx_set_listener)func_tabs_OnSelect, \
+            (FPtr_gctx_set_text)func_tabs_set_tooltip, \
+            (FPtr_gctx_set_cptr)func_tabs_set_font, \
+            (FPtr_gctx_set_elem)func_tabs_set_elem, \
+            (FPtr_gctx_set_uint32)func_tabs_set_selected, \
+            (FPtr_gctx_get_uint32)func_tabs_get_selected, \
+            (FPtr_gctx_bounds5)func_tabs_bounds, \
+            (FPtr_gctx_set_ptr)func_attach_tabs_to_panel, \
+            (FPtr_gctx_set_ptr)func_detach_tabs_from_panel, \
+            (FPtr_gctx_set_bool)func_tabs_set_visible, \
+            (FPtr_gctx_set_bool)func_tabs_set_enabled, \
+            (FPtr_gctx_get2_real32)func_tabs_get_size, \
+            (FPtr_gctx_get2_real32)func_tabs_get_origin, \
+            (FPtr_gctx_set4_real32)func_tabs_set_frame))
+
 _draw2d_api void guictx_append_updown_manager_imp(
     GuiCtx *context,
     FPtr_gctx_create func_updown_create,

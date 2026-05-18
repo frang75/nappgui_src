@@ -25,6 +25,8 @@ _gui_api Edit *guicontrol_edit(GuiControl *control);
 
 _gui_api Combo *guicontrol_combo(GuiControl *control);
 
+_gui_api Tabs *guicontrol_tabs(GuiControl *control);
+
 _gui_api ListBox *guicontrol_listbox(GuiControl *control);
 
 _gui_api UpDown *guicontrol_updown(GuiControl *control);
