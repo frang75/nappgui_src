@@ -58,8 +58,15 @@ static void i_OnSelect(GtkComboBox *widget, OSPopUp *popup)
     if (popup->launch_event == TRUE && popup->OnSelect != NULL)
     {
         EvButton params;
+        gint index = gtk_combo_box_get_active(widget);
+        uint32_t n = arrpt_size(popup->texts, String);
+        cassert(index >= 0);
+        cassert((uint32_t)index < n);
+        if (index < 0 || (uint32_t)index >= n)
+            return;
+
         params.state = ekGUI_ON;
-        params.index = (uint32_t)gtk_combo_box_get_active(widget);
+        params.index = (uint32_t)index;
         params.text = NULL;
         listener_event(popup->OnSelect, ekGUI_EVENT_POPUP, popup, &params, NULL, OSPopUp, EvButton, void);
     }
