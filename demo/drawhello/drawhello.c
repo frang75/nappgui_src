@@ -2,6 +2,7 @@
 
 #include "res_drawhello.h"
 #include <nappgui.h>
+#include <nsvg/nsvg.h>
 #include <gui/view.inl>
 #include <gui/drawctrl.inl>
 
@@ -646,33 +647,124 @@ static void i_text_raster(DCtx *ctx, const real32_t xscale, const real32_t text_
 
 /*---------------------------------------------------------------------------*/
 
-static void i_image(DCtx *ctx)
+static void i_box_frame(DCtx *ctx, const Font *title_font, const Font *meta_font, const char_t *title, const uint32_t content_width, const uint32_t content_height, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+{
+    String *caption = str_printf("%u x %u", content_width, content_height);
+    cassert_no_null(ctx);
+    cassert_no_null(title_font);
+    cassert_no_null(meta_font);
+    cassert_no_null(caption);
+    draw_fill_color(ctx, color_rgb(240, 243, 246));
+    draw_line_color(ctx, color_rgb(188, 196, 205));
+    draw_line_width(ctx, 1);
+    draw_rect(ctx, ekSKFILL, x, y, width, height);
+    draw_text_width(ctx, width - 20);
+    draw_text_trim(ctx, ekELLIPEND);
+    draw_font(ctx, title_font);
+    draw_text_color(ctx, color_rgb(52, 63, 72));
+    draw_text(ctx, title, x + 10, y + 7);
+    draw_font(ctx, meta_font);
+    draw_text_color(ctx, color_rgb(106, 117, 126));
+    draw_text(ctx, tc(caption), x + 10, y + 22);
+    draw_text_width(ctx, -1);
+    draw_text_trim(ctx, ekELLIPNONE);
+    str_destroy(&caption);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_image_box(DCtx *ctx, const Font *title_font, const Font *meta_font, const Image *image, const char_t *title, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+{
+    cassert_no_null(image);
+    i_box_frame(ctx, title_font, meta_font, title, image_width(image), image_height(image), x, y, width, height);
+    draw_image_align(ctx, ekCENTER, ekCENTER);
+    draw_image(ctx, image, x + width / 2, y + 40 + (height - 40) / 2);
+    draw_image_align(ctx, ekLEFT, ekTOP);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_nsvg_box(DCtx *ctx, const Font *title_font, const Font *meta_font, const NSVG *svg, const uint32_t svg_width, const uint32_t svg_height, const uint32_t draw_width, const uint32_t draw_height, const char_t *title, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
+{
+    const real32_t title_height = 40;
+    T2Df matrix;
+    real32_t sx, sy;
+    real32_t px, py;
+
+    cassert_no_null(ctx);
+    cassert_no_null(svg);
+    cassert(svg_width > 0);
+    cassert(svg_height > 0);
+
+    i_box_frame(ctx, title_font, meta_font, title, draw_width, draw_height, x, y, width, height);
+
+    sx = (real32_t)draw_width / (real32_t)svg_width;
+    sy = (real32_t)draw_height / (real32_t)svg_height;
+    px = x + ((width - (real32_t)draw_width) * .5f);
+    py = y + title_height + (((height - title_height) - (real32_t)draw_height) * .5f);
+
+    t2d_movef(&matrix, kT2D_IDENTf, px, py);
+    t2d_scalef(&matrix, &matrix, sx, sy);
+    draw_matrixf(ctx, &matrix);
+    nsvg_draw(svg, ctx);
+    draw_matrixf(ctx, kT2D_IDENTf);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_image(DCtx *ctx, const real32_t slider)
 {
     ResPack *pack = res_drawhello_respack("");
-    const Image *image = image_from_resource(pack, IMAGE_PNG);
-    T2Df matrix;
+    const Image *png = image_from_resource(pack, IMAGE_PNG);
+    const byte_t *svg_data = NULL;
+    NSVG *svg = NULL;
+    Pixbuf *svg_pixbuf = NULL;
+    Pixbuf *svg_small_pixbuf = NULL;
+    Pixbuf *svg_large_pixbuf = NULL;
+    uint32_t svg_size = 0;
+    uint32_t svg_width = 0;
+    uint32_t svg_height = 0;
+    uint32_t dynamic_width = 40 + (uint32_t)(slider * 120.f + .5f);
+    uint32_t dynamic_height = 0;
+    Image *png_scaled = image_scale(png, 180, UINT32_MAX);
+    Image *svg_small = NULL;
+    Image *svg_large = NULL;
+    Font *title_font = font_system(13.f, 0);
+    Font *meta_font = font_system(11.f, 0);
 
-    draw_image_align(ctx, ekLEFT, ekTOP);
-    draw_image(ctx, image, 25, 25);
-    t2d_movef(&matrix, kT2D_IDENTf, 300, 200);
-    t2d_rotatef(&matrix, &matrix, kBMATH_PIf / 8);
-    draw_image_align(ctx, ekCENTER, ekCENTER);
-    draw_matrixf(ctx, &matrix);
-    draw_image(ctx, image, 0, 0);
-    draw_matrixf(ctx, kT2D_IDENTf);
-    draw_image_align(ctx, ekRIGHT, ekTOP);
-    draw_image(ctx, image, 575, 25);
-    draw_image_align(ctx, ekLEFT, ekBOTTOM);
-    draw_image(ctx, image, 25, 375);
-    draw_image_align(ctx, ekRIGHT, ekBOTTOM);
-    draw_image(ctx, image, 575, 375);
+    svg_data = respack_file(pack, IMAGE_SVG, &svg_size);
+    cassert_no_null(svg_data);
+    svg = nsvg_from_data(svg_data, svg_size);
+    cassert_no_null(svg);
+    svg_pixbuf = nsvg_pixbuf(svg, UINT32_MAX, UINT32_MAX, ekRGBA32);
+    cassert_no_null(svg_pixbuf);
+    svg_width = pixbuf_width(svg_pixbuf);
+    svg_height = pixbuf_height(svg_pixbuf);
+    dynamic_height = (uint32_t)(((real32_t)svg_height * (real32_t)dynamic_width / (real32_t)svg_width) + .5f);
+    svg_small_pixbuf = nsvg_pixbuf(svg, 32, UINT32_MAX, ekRGBA32);
+    svg_large_pixbuf = nsvg_pixbuf(svg, 160, UINT32_MAX, ekRGBA32);
+    cassert_no_null(svg_small_pixbuf);
+    cassert_no_null(svg_large_pixbuf);
+    svg_small = image_from_pixbuf(svg_small_pixbuf, NULL);
+    svg_large = image_from_pixbuf(svg_large_pixbuf, NULL);
+    cassert_no_null(svg_small);
+    cassert_no_null(svg_large);
 
-    draw_fill_color(ctx, kCOLOR_BLUE);
-    draw_circle(ctx, ekFILL, 25, 25, 3);
-    draw_circle(ctx, ekFILL, 300, 200, 3);
-    draw_circle(ctx, ekFILL, 575, 25, 3);
-    draw_circle(ctx, ekFILL, 25, 375, 3);
-    draw_circle(ctx, ekFILL, 575, 375, 3);
+    i_image_box(ctx, title_font, meta_font, png_scaled, "PNG resource", 20, 20, 270, 150);
+    i_nsvg_box(ctx, title_font, meta_font, svg, svg_width, svg_height, svg_width, svg_height, "SVG vector", 310, 20, 270, 150);
+    i_image_box(ctx, title_font, meta_font, svg_small, "Pixbuf 32 px", 20, 190, 170, 190);
+    i_nsvg_box(ctx, title_font, meta_font, svg, svg_width, svg_height, dynamic_width, dynamic_height, "Vector slider", 215, 190, 170, 190);
+    i_image_box(ctx, title_font, meta_font, svg_large, "Pixbuf 160 px", 410, 190, 170, 190);
+
+    font_destroy(&title_font);
+    font_destroy(&meta_font);
+    image_destroy(&svg_large);
+    image_destroy(&svg_small);
+    pixbuf_destroy(&svg_large_pixbuf);
+    pixbuf_destroy(&svg_small_pixbuf);
+    pixbuf_destroy(&svg_pixbuf);
+    nsvg_destroy(&svg);
+    image_destroy(&png_scaled);
     respack_destroy(&pack);
 }
 
@@ -735,7 +827,7 @@ static void i_OnDraw(App *app, Event *e)
         i_text_raster(p->ctx, slider1_pos + .5f, 100 + 200 * (-.5f + slider2_pos), text_trim, text_align);
         break;
     case 13:
-        i_image(p->ctx);
+        i_image(p->ctx, slider1_pos);
         break;
     default:
         cassert_default(app->option);
@@ -826,7 +918,8 @@ static void i_set_demo(App *app, const uint32_t option)
         cell_enabled(app->popup_align, TRUE);
         break;
     case 13:
-        label_text(app->label, "Drawing images with alignment");
+        label_text(app->label, "PNG resources plus SVG through nsvg. Side cards use nsvg_pixbuf(); the slider scales nsvg_draw().");
+        cell_enabled(app->slider1, TRUE);
         break;
     default:
         cassert_default(app->option);
@@ -897,7 +990,7 @@ static Panel *i_panel(App *app)
     popup_add_elem(popup1, "Text-3", NULL);
     popup_add_elem(popup1, "Text-4", NULL);
     popup_add_elem(popup1, "Text-5", NULL);
-    popup_add_elem(popup1, "Image", NULL);
+    popup_add_elem(popup1, "Image/SVG", NULL);
     popup_list_height(popup1, 6);
     popup_add_elem(popup2, "No trim", NULL);
     popup_add_elem(popup2, "Ellip begin", NULL);

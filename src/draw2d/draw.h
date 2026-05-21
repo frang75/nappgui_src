@@ -23,6 +23,18 @@ _draw2d_api void draw_arc(DCtx *ctx, const real32_t x, const real32_t y, const r
 
 _draw2d_api void draw_bezier(DCtx *ctx, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1, const real32_t x2, const real32_t y2, const real32_t x3, const real32_t y3);
 
+_draw2d_api void draw_path_begin(DCtx *ctx);
+
+_draw2d_api void draw_path_move(DCtx *ctx, const real32_t x, const real32_t y);
+
+_draw2d_api void draw_path_line(DCtx *ctx, const real32_t x, const real32_t y);
+
+_draw2d_api void draw_path_bezier(DCtx *ctx, const real32_t x1, const real32_t y1, const real32_t x2, const real32_t y2, const real32_t x3, const real32_t y3);
+
+_draw2d_api void draw_path_close(DCtx *ctx);
+
+_draw2d_api void draw_path_end(DCtx *ctx, const drawop_t op);
+
 _draw2d_api void draw_line_color(DCtx *ctx, const color_t color);
 
 _draw2d_api void draw_line_fill(DCtx *ctx);
@@ -33,7 +45,11 @@ _draw2d_api void draw_line_cap(DCtx *ctx, const linecap_t cap);
 
 _draw2d_api void draw_line_join(DCtx *ctx, const linejoin_t join);
 
+_draw2d_api void draw_line_miter_limit(DCtx *ctx, const real32_t limit);
+
 _draw2d_api void draw_line_dash(DCtx *ctx, const real32_t *pattern, const uint32_t n);
+
+_draw2d_api void draw_line_dash_offset(DCtx *ctx, const real32_t offset);
 
 _draw2d_api void draw_rect(DCtx *ctx, const drawop_t op, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
 
@@ -47,7 +63,11 @@ _draw2d_api void draw_polygon(DCtx *ctx, const drawop_t op, const V2Df *points, 
 
 _draw2d_api void draw_fill_color(DCtx *ctx, const color_t color);
 
+_draw2d_api void draw_fill_rule(DCtx *ctx, const fillrule_t rule);
+
 _draw2d_api void draw_fill_linear(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t x1, const real32_t y1);
+
+_draw2d_api void draw_fill_radial(DCtx *ctx, const color_t *color, const real32_t *stop, const uint32_t n, const real32_t x0, const real32_t y0, const real32_t r0, const real32_t x1, const real32_t y1, const real32_t r1);
 
 _draw2d_api void draw_fill_matrix(DCtx *ctx, const T2Df *t2d);
 
