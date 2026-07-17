@@ -1,0 +1,41 @@
+/*
+ * NAppGUI Cross-platform C SDK
+ * 2015-2026 Francisco Garcia Collado
+ * MIT Licence
+ * https://nappgui.com/en/legal/license.html
+ *
+ * File: nsvg.hdf
+ *
+ */
+
+/* nsvg library import/export */
+
+/* clang-format off */
+
+#if defined(NAPPGUI_SHARED)
+    #if defined(NAPPGUI_BUILD_NSVG_LIB)
+        #define NAPPGUI_NSVG_EXPORT_DLL
+    #else
+        #define NAPPGUI_NSVG_IMPORT_DLL
+    #endif
+#endif
+
+#if defined(__GNUC__)
+    #if defined(NAPPGUI_NSVG_EXPORT_DLL)
+        #define _nsvg_api __attribute__((visibility("default")))
+    #else
+        #define _nsvg_api
+    #endif
+#elif defined(_MSC_VER)
+    #if defined(NAPPGUI_NSVG_IMPORT_DLL)
+        #define _nsvg_api __declspec(dllimport)
+    #elif defined(NAPPGUI_NSVG_EXPORT_DLL)
+        #define _nsvg_api __declspec(dllexport)
+    #else
+        #define _nsvg_api
+    #endif
+#else
+    #error Unknown compiler
+#endif
+
+/* clang-format on */

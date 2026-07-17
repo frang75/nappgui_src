@@ -74,6 +74,12 @@ typedef enum _fillwrap_t
     ekFFLIP
 } fillwrap_t;
 
+typedef enum _fillrule_t
+{
+    ekFILLNONZERO,
+    ekFILLEVENODD
+} fillrule_t;
+
 typedef enum _drawop_t
 {
     ekSTROKE = 1,
