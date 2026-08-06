@@ -38,6 +38,7 @@ Url *url_parse(const char_t *url)
     const char_t *end = url + str_len_c(url);
     const char_t *scheme_pos = str_str(start, ":");
     const char_t *at_sign_pos = NULL;
+    const char_t *authority_end = NULL;
     const char_t *path_pos = NULL;
     uurl->port = UINT16_MAX;
 
@@ -50,8 +51,23 @@ Url *url_parse(const char_t *url)
     if (str_str(start, "//") == start)
         start += 2;
 
+    authority_end = str_str(start, "/");
+    {
+        const char_t *query_pos = str_str(start, "?");
+        const char_t *fragment_pos = str_str(start, "#");
+
+        if (query_pos != NULL && (authority_end == NULL || query_pos < authority_end))
+            authority_end = query_pos;
+
+        if (fragment_pos != NULL && (authority_end == NULL || fragment_pos < authority_end))
+            authority_end = fragment_pos;
+
+        if (authority_end == NULL)
+            authority_end = end;
+    }
+
     at_sign_pos = str_str(start, "@");
-    if (at_sign_pos != NULL)
+    if (at_sign_pos != NULL && at_sign_pos < authority_end)
     {
         const char_t *pass_pos = str_str(start, ":");
         if (pass_pos != NULL && pass_pos < at_sign_pos)
@@ -70,23 +86,23 @@ Url *url_parse(const char_t *url)
     path_pos = str_str(start, "/");
     if (path_pos != NULL)
     {
-        const char_t *fragment_pos = str_str(start, "#");
-        const char_t *query_pos = str_str(start, "?");
-        const char_t *param_pos = str_str(start, ";");
+        const char_t *fragment_pos = str_str(path_pos, "#");
+        const char_t *query_pos = str_str(path_pos, "?");
+        const char_t *param_pos = str_str(path_pos, ";");
 
-        if (fragment_pos != NULL)
+        if (fragment_pos != NULL && fragment_pos < end)
         {
             uurl->fragment = str_cn(fragment_pos + 1, (uint32_t)(end - fragment_pos - 1));
             end = fragment_pos;
         }
 
-        if (query_pos != NULL)
+        if (query_pos != NULL && query_pos < end)
         {
             uurl->query = str_cn(query_pos + 1, (uint32_t)(end - query_pos - 1));
             end = query_pos;
         }
 
-        if (param_pos != NULL)
+        if (param_pos != NULL && param_pos < end)
         {
             uurl->params = str_cn(param_pos + 1, (uint32_t)(end - param_pos - 1));
             end = param_pos;
