@@ -24,6 +24,8 @@
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
 
+#define i_MAX_JSON_DEPTH 256
+
 typedef enum _jtoken_t
 {
     i_ekTRUE,
@@ -50,6 +52,8 @@ struct i_parser_t
     uint32_t col;
     uint32_t row;
     uint32_t lexsize;
+    uint32_t depth;
+    bool_t unrecoverable;
     const char_t *lexeme;
     char_t number[128];
     ArrPt(String) *log;
@@ -61,7 +65,7 @@ static byte_t *i_create_type(i_Parser *parser, const DBind *bind, const DBind *e
 static bool_t i_jump_json_value(i_Parser *parser);
 static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBind *ebind, const bool_t is_str_dptr, byte_t *data, bool_t *null_readed);
 static bool_t i_parse_json_object(i_Parser *parser, const DBind *stbind, byte_t *obj);
-static void i_write_json_value(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data);
+static void i_write_json_value(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data, bool_t *failed);
 
 /*---------------------------------------------------------------------------*/
 
@@ -89,14 +93,67 @@ static bool_t i_error(const bool_t cond, const bool_t fatal, i_Parser *parser, c
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_enter_json_level(i_Parser *parser)
+{
+    cassert_no_null(parser);
+
+    if (parser->depth >= i_MAX_JSON_DEPTH)
+    {
+        parser->unrecoverable = TRUE;
+        return i_error(FALSE, TRUE, parser, "Maximum Json nesting depth exceeded");
+    }
+
+    parser->depth += 1;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_leave_json_level(i_Parser *parser, const bool_t result)
+{
+    cassert_no_null(parser);
+    cassert(parser->depth > 0);
+    parser->depth -= 1;
+    return result;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_new_token(i_Parser *parser)
 {
     ltoken_t token;
     cassert_no_null(parser);
-    token = stm_read_token(parser->stm);
-    parser->row = stm_token_col(parser->stm);
-    parser->col = stm_token_row(parser->stm);
-    parser->lexeme = stm_token_lexeme(parser->stm, &parser->lexsize);
+
+    for (;;)
+    {
+        token = stm_read_token(parser->stm);
+        parser->row = stm_token_col(parser->stm);
+        parser->col = stm_token_row(parser->stm);
+        parser->lexeme = stm_token_lexeme(parser->stm, &parser->lexsize);
+
+        if (token == ekTMINUS)
+        {
+            if (parser->minus == TRUE)
+            {
+                parser->minus = FALSE;
+                parser->token = i_ekUNKNOWN;
+                return;
+            }
+
+            parser->minus = TRUE;
+            continue;
+        }
+
+        if (parser->minus == TRUE && token != ekTINTEGER && token != ekTREAL)
+        {
+            parser->minus = FALSE;
+            parser->token = i_ekUNKNOWN;
+            return;
+        }
+
+        break;
+    }
+
     switch (token)
     {
     case ekTIDENT:
@@ -158,9 +215,8 @@ static void i_new_token(i_Parser *parser)
         break;
 
     case ekTMINUS:
-        cassert(parser->minus == FALSE);
-        parser->minus = TRUE;
-        i_new_token(parser);
+        cassert(FALSE);
+        parser->token = i_ekUNKNOWN;
         break;
 
     case ekTSLCOM:
@@ -210,6 +266,9 @@ static bool_t i_jump_json_array(i_Parser *parser)
 
     if (ok == FALSE)
     {
+        if (parser->unrecoverable == TRUE)
+            return FALSE;
+
         /* Empty array */
         if (parser->token == i_ekCLOSE_ARRAY)
             return TRUE;
@@ -227,6 +286,8 @@ static bool_t i_jump_json_array(i_Parser *parser)
             return i_error(FALSE, TRUE, parser, "Comma expected jumping array");
 
         ok = i_jump_json_value(parser);
+        if (ok == FALSE && parser->unrecoverable == TRUE)
+            return FALSE;
     }
 }
 
@@ -292,9 +353,13 @@ static bool_t i_jump_json_value(i_Parser *parser)
     case i_ekSTRING:
         return TRUE;
     case i_ekOPEN_ARRAY:
-        return i_jump_json_array(parser);
+        if (i_enter_json_level(parser) == FALSE)
+            return FALSE;
+        return i_leave_json_level(parser, i_jump_json_array(parser));
     case i_ekOPEN_OBJECT:
-        return i_jump_json_object(parser);
+        if (i_enter_json_level(parser) == FALSE)
+            return FALSE;
+        return i_leave_json_level(parser, i_jump_json_object(parser));
     case i_ekCLOSE_ARRAY:
         return FALSE;
     case i_ekCLOSE_OBJECT:
@@ -325,6 +390,9 @@ static bool_t i_parse_json_array(i_Parser *parser, const DBind *bind, const DBin
 
     if (ok == FALSE)
     {
+        if (parser->unrecoverable == TRUE)
+            return FALSE;
+
         /* Empty array, we have to remove the first element added to parse value */
         if (parser->token == i_ekCLOSE_ARRAY)
         {
@@ -356,7 +424,12 @@ static bool_t i_parse_json_array(i_Parser *parser, const DBind *bind, const DBin
         dbind_init_data(ebind, data);
         ok = i_parse_json_value(parser, ebind, NULL, FALSE, data, NULL);
         if (ok == FALSE)
+        {
+            if (parser->unrecoverable == TRUE)
+                return FALSE;
+
             dbind_set_value_null(ebind, NULL, FALSE, data);
+        }
     }
 }
 
@@ -368,6 +441,9 @@ static bool_t i_parse_json_arrpt(i_Parser *parser, const DBind *bind, const DBin
 
     if (data == NULL)
     {
+        if (parser->unrecoverable == TRUE)
+            return FALSE;
+
         /* Empty array */
         if (parser->token == i_ekCLOSE_ARRAY)
             return TRUE;
@@ -388,6 +464,8 @@ static bool_t i_parse_json_arrpt(i_Parser *parser, const DBind *bind, const DBin
             return i_error(FALSE, TRUE, parser, "Comma expected in 'array'");
 
         data = i_create_type(parser, ebind, NULL);
+        if (parser->unrecoverable == TRUE)
+            return FALSE;
     }
 }
 
@@ -433,7 +511,8 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
         {
             uint32_t dsize = b64_decoded_size(parser->lexsize);
             byte_t *b64 = heap_malloc(dsize, "JsonB64Decode");
-            uint32_t b64size = b64_decode(parser->lexeme, parser->lexsize, b64);
+            uint32_t b64size = 0;
+            b64_decode_ex(parser->lexeme, parser->lexsize, b64, dsize, &b64size);
             rset = dbind_create_value_binary(bind, data, b64, b64size);
             heap_free(&b64, dsize, "JsonB64Decode");
         }
@@ -449,36 +528,43 @@ static bool_t i_parse_json_value(i_Parser *parser, const DBind *bind, const DBin
             byte_t *cont = *dcast(data, byte_t);
             if (cont != NULL)
                 cassert(dbind_container_size(bind, cont) == 0);
+            if (i_enter_json_level(parser) == FALSE)
+                return FALSE;
             if (dbind_container_is_ptr(bind) == TRUE)
-                return i_parse_json_arrpt(parser, bind, ebind, cont);
+                return i_leave_json_level(parser, i_parse_json_arrpt(parser, bind, ebind, cont));
             else
-                return i_parse_json_array(parser, bind, ebind, cont);
+                return i_leave_json_level(parser, i_parse_json_array(parser, bind, ebind, cont));
         }
         else
         {
             bool_t err = i_error(FALSE, TRUE, parser, "Unexpected Json '['");
-            i_jump_json_array(parser);
+            if (i_enter_json_level(parser) == TRUE)
+                i_leave_json_level(parser, i_jump_json_array(parser));
             return err;
         }
 
     case i_ekOPEN_OBJECT:
         if (type == ekDTYPE_STRUCT)
         {
+            if (i_enter_json_level(parser) == FALSE)
+                return FALSE;
+
             if (is_str_dptr == TRUE)
             {
                 if (*dcast(data, byte_t) == NULL)
                     *dcast(data, byte_t) = dbind_create_data(bind, ebind);
-                return i_parse_json_object(parser, bind, *dcast(data, byte_t));
+                return i_leave_json_level(parser, i_parse_json_object(parser, bind, *dcast(data, byte_t)));
             }
             else
             {
-                return i_parse_json_object(parser, bind, data);
+                return i_leave_json_level(parser, i_parse_json_object(parser, bind, data));
             }
         }
         else
         {
             bool_t err = i_error(FALSE, TRUE, parser, "Unexpected Json '{'");
-            i_jump_json_object(parser);
+            if (i_enter_json_level(parser) == TRUE)
+                i_leave_json_level(parser, i_jump_json_object(parser));
             return err;
         }
 
@@ -559,7 +645,12 @@ static bool_t i_parse_json_object(i_Parser *parser, const DBind *stbind, byte_t 
             byte_t *data = obj + dbind_st_offset(stbind, member_id);
             bool_t null_readed = FALSE;
             if (i_parse_json_value(parser, bind, ebind, is_str_dptr, data, &null_readed) == FALSE)
+            {
+                if (parser->unrecoverable == TRUE)
+                    return FALSE;
+
                 dbind_st_set_value_null(stbind, member_id, obj);
+            }
             else if (null_readed == TRUE)
                 dbind_st_set_value_null(stbind, member_id, obj);
             comma_state = FALSE;
@@ -661,6 +752,8 @@ void *json_read_imp(Stream *stm, const JsonOpts *opts, const char_t *type)
     parser.row = 0;
     parser.lexeme = NULL;
     parser.lexsize = 0;
+    parser.depth = 0;
+    parser.unrecoverable = FALSE;
     parser.minus = FALSE;
     parser.log = opts ? opts->log : NULL;
     i_bind_from_typename(type, &bind, &ebind);
@@ -720,7 +813,7 @@ static void i_write_escape_str(Stream *stm, const char_t *cstr)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_container(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data)
+static void i_write_container(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data, bool_t *failed)
 {
     const byte_t *cont = data;
     uint32_t i, n = dbind_container_size(bind, cont);
@@ -728,7 +821,7 @@ static void i_write_container(Stream *stm, const DBind *bind, const DBind *ebind
     for (i = 0; i < n; ++i)
     {
         const byte_t *elem = dbind_container_cget(bind, ebind, i, cont);
-        i_write_json_value(stm, ebind, NULL, elem);
+        i_write_json_value(stm, ebind, NULL, elem, failed);
         if (i < n - 1)
             stm_writef(stm, ", ");
     }
@@ -737,7 +830,7 @@ static void i_write_container(Stream *stm, const DBind *bind, const DBind *ebind
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_object(Stream *stm, const DBind *stbind, const byte_t *obj)
+static void i_write_object(Stream *stm, const DBind *stbind, const byte_t *obj, bool_t *failed)
 {
     uint32_t i, n = dbind_st_count(stbind);
     cassert_no_null(obj);
@@ -756,7 +849,7 @@ static void i_write_object(Stream *stm, const DBind *stbind, const byte_t *obj)
         if (type == ekDTYPE_STRING || type == ekDTYPE_BINARY || type == ekDTYPE_CONTAINER || is_str_dptr)
             mdata = *dcast_const(mdata, byte_t);
 
-        i_write_json_value(stm, mbind, mebind, mdata);
+        i_write_json_value(stm, mbind, mebind, mdata, failed);
         if (i < n - 1)
             stm_writef(stm, ", ");
     }
@@ -765,7 +858,7 @@ static void i_write_object(Stream *stm, const DBind *stbind, const byte_t *obj)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_binary(Stream *stm, const DBind *bind, const byte_t *data)
+static void i_write_binary(Stream *stm, const DBind *bind, const byte_t *data, bool_t *failed)
 {
     Stream *objstm = stm_memory(1024);
     const byte_t *stmdata = NULL;
@@ -777,12 +870,29 @@ static void i_write_binary(Stream *stm, const DBind *bind, const byte_t *data)
     if (stmsize > 0)
     {
         uint32_t b64size = b64_encoded_size(stmsize);
-        char_t *b64data = cast(heap_malloc(b64size, "JsonB64Encode"), char_t);
-        b64_encode(stmdata, stmsize, b64data, b64size);
-        stm_writef(stm, "\"");
-        stm_writef(stm, b64data);
-        stm_writef(stm, "\"");
-        heap_free(dcast(&b64data, byte_t), b64size, "JsonB64Encode");
+        if (b64size > 0)
+        {
+            char_t *b64data = cast(heap_malloc(b64size, "JsonB64Encode"), char_t);
+            bool_t ok = b64_encode_ex(stmdata, stmsize, b64data, b64size, NULL);
+            cassert(ok == TRUE);
+            if (ok == TRUE)
+            {
+                stm_writef(stm, "\"");
+                stm_writef(stm, b64data);
+                stm_writef(stm, "\"");
+            }
+            else
+            {
+                stm_writef(stm, "null");
+                ptr_assign(failed, TRUE);
+            }
+            heap_free(dcast(&b64data, byte_t), b64size, "JsonB64Encode");
+        }
+        else
+        {
+            stm_writef(stm, "null");
+            ptr_assign(failed, TRUE);
+        }
     }
     else
     {
@@ -794,7 +904,7 @@ static void i_write_binary(Stream *stm, const DBind *bind, const byte_t *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_json_value(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data)
+static void i_write_json_value(Stream *stm, const DBind *bind, const DBind *ebind, const byte_t *data, bool_t *failed)
 {
     if (data != NULL)
     {
@@ -839,15 +949,15 @@ static void i_write_json_value(Stream *stm, const DBind *bind, const DBind *ebin
         }
 
         case ekDTYPE_STRUCT:
-            i_write_object(stm, bind, data);
+            i_write_object(stm, bind, data, failed);
             break;
 
         case ekDTYPE_BINARY:
-            i_write_binary(stm, bind, data);
+            i_write_binary(stm, bind, data, failed);
             break;
 
         case ekDTYPE_CONTAINER:
-            i_write_container(stm, bind, ebind, data);
+            i_write_container(stm, bind, ebind, data, failed);
             break;
 
         case ekDTYPE_UNKNOWN:
@@ -867,9 +977,12 @@ void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const c
 {
     const DBind *bind = NULL;
     const DBind *ebind = NULL;
+    bool_t failed = FALSE;
     i_bind_from_typename(type, &bind, &ebind);
-    i_write_json_value(stm, bind, ebind, data);
+    i_write_json_value(stm, bind, ebind, data, &failed);
     stm_write_char(stm, 0);
+    if (failed == TRUE)
+        stm_corrupt(stm);
     unref(opts);
 }
 
