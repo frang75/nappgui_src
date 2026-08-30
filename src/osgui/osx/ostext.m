@@ -51,7 +51,6 @@
     char_t ffamily[64];
     real32_t fsize;
     uint32_t fstyle;
-    uint32_t funits;
     align_t palign;
     real32_t pspacing;
     real32_t pafter;
@@ -353,7 +352,6 @@ OSText *ostext_create(const uint32_t flags)
     view->ffamily[0] = '\0';
     view->fsize = REAL32_MAX;
     view->fstyle = UINT32_MAX;
-    view->funits = UINT32_MAX;
     view->palign = ENUM_MAX(align_t);
     view->pspacing = REAL32_MAX;
     view->pafter = REAL32_MAX;
@@ -538,7 +536,7 @@ void ostext_set_rtf(OSText *view, Stream *rtf_in)
 
 /*---------------------------------------------------------------------------*/
 
-static NSFont *i_font_create(const char_t *family, const real32_t size, const uint32_t style, const uint32_t units)
+static NSFont *i_font_create(const char_t *family, const real32_t size, const uint32_t style)
 {
     NSFont *nsfont = nil;
     cassert(size > 0.f);
@@ -555,17 +553,6 @@ static NSFont *i_font_create(const char_t *family, const real32_t size, const ui
 
     {
         Font *font = font_create(family, size, style);
-
-        if ((units & ekFCELL) == ekFCELL)
-        {
-            Font *nfont = NULL;
-            real32_t w, h;
-            font_extents(font, "REFTEXT", -1, &w, &h);
-            nfont = font_create(family, size * (size / h), style);
-            font_destroy(&font);
-            font = nfont;
-        }
-
         nsfont = cast(font_native(font), NSFont);
         font_destroy(&font);
     }
@@ -579,7 +566,7 @@ static void i_change_font(OSXTextView *lview)
 {
     NSFont *font = nil;
     cassert_no_null(lview);
-    font = i_font_create(lview->ffamily, lview->fsize, lview->fstyle, lview->funits);
+    font = i_font_create(lview->ffamily, lview->fsize, lview->fstyle);
     if (font != nil)
     {
         NSNumber *under = (lview->fstyle & ekFUNDERLINE) ? [NSNumber numberWithInt:NSUnderlineStyleSingle] : [NSNumber numberWithInt:NSUnderlineStyleNone];
@@ -680,14 +667,6 @@ void ostext_property(OSText *view, const gui_text_t param, const void *value)
         if (str_equ_c(lview->ffamily, cast_const(value, char_t)) == FALSE)
         {
             str_copy_c(lview->ffamily, sizeof(lview->ffamily), cast_const(value, char_t));
-            i_change_font(lview);
-        }
-        break;
-
-    case ekGUI_TEXT_UNITS:
-        if (lview->funits != *cast(value, uint32_t))
-        {
-            lview->funits = *cast(value, uint32_t);
             i_change_font(lview);
         }
         break;

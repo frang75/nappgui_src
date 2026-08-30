@@ -433,25 +433,19 @@ void _oscontrol_fixed_css_provider(GtkWidget *widget, const char_t *css)
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_font_pt(const real32_t fsize, const uint32_t fstyle)
+static real32_t i_font_pt(const real32_t fsize)
 {
-    if ((fstyle & ekFPOINTS) == ekFPOINTS)
-    {
-        return fsize;
-    }
-    else
-    {
-        PangoFontMap *fontmap = pango_cairo_font_map_get_default();
-        real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution(cast(fontmap, PangoCairoFontMap));
-        return fsize / (dpi / 72.f);
-    }
+    /* 'fsize' is always in logical screen points (DPI-independent) */
+    PangoFontMap *fontmap = pango_cairo_font_map_get_default();
+    real32_t dpi = (real32_t)pango_cairo_font_map_get_resolution(cast(fontmap, PangoCairoFontMap));
+    return fsize / (dpi / 72.f);
 }
 
 /*---------------------------------------------------------------------------*/
 
 static String *i_css_font_desc(const char_t *cssobj, const char_t *ffamily, const real32_t fsize, const uint32_t fstyle)
 {
-    real32_t ptsize = i_font_pt(fsize, fstyle);
+    real32_t ptsize = i_font_pt(fsize);
     const char *italic = (fstyle & ekFITALIC) ? "italic" : "normal";
     const char *bold = (fstyle & ekFBOLD) ? "bold" : "normal";
     Stream *stm = stm_memory(256);

@@ -573,6 +573,14 @@ color_t osglobals_color(const syscolor_t *color)
 
 /*---------------------------------------------------------------------------*/
 
+void osglobals_dpi_aware(void *non_used, const bool_t aware)
+{
+    unref(non_used);
+    unref(aware);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height)
 {
     unref(non_used);

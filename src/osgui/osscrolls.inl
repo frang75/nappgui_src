@@ -24,7 +24,7 @@ void _osscrolls_destroy(OSScrolls **scroll);
 
 void _osscrolls_OnScroll(OSScrolls *scroll, Listener *listener);
 
-void _osscrolls_visible_area(OSScrolls *scroll, uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height, uint32_t *total_width, uint32_t *total_height);
+void _osscrolls_visible_area(OSScrolls *scroll, uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height);
 
 uint32_t _osscrolls_x_pos(const OSScrolls *scroll);
 

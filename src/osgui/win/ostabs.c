@@ -175,6 +175,16 @@ void ostabs_elem(OSTabs *tabs, const ctrl_op_t op, const uint32_t index, const c
         tci.iImage = _osimglist_index(tabs->image_list, tabs->control.hwnd, ekGUI_TYPE_TABLIST, image);
         SendMessage(tabs->control.hwnd, msg, (WPARAM)tpos, (LPARAM)&tci);
         _osgui_wstr_remove(&str);
+
+        if (_osimglist_width(tabs->image_list) != UINT32_MAX)
+        {
+            uint32_t dpi = USER_DEFAULT_SCREEN_DPI;
+            HIMAGELIST hlist;
+            if (tabs->control.window != NULL)
+                dpi = _oswindow_dpi(tabs->control.window);
+            hlist = _osimglist_hlist(tabs->image_list, dpi);
+            SendMessage(tabs->control.hwnd, TCM_SETIMAGELIST, (WPARAM)0, (LPARAM)hlist);
+        }
     }
     else
     {
@@ -283,6 +293,33 @@ void ostabs_origin(const OSTabs *tabs, real32_t *x, real32_t *y)
 void ostabs_frame(OSTabs *tabs, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame(cast(tabs, OSControl), x, y, width, height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static BOOL CALLBACK i_theme_changed(HWND hwnd, LPARAM lParam)
+{
+    unref(lParam);
+    SendMessage(hwnd, WM_THEMECHANGED, 0, 0);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ostabs_update_dpi(OSTabs *tabs)
+{
+    cassert_no_null(tabs);
+    _oscontrol_set_font(cast(tabs, OSControl), tabs->font);
+
+    if (_osimglist_width(tabs->image_list) != UINT32_MAX)
+    {
+        uint32_t dpi = _oswindow_dpi(tabs->control.window);
+        HIMAGELIST hlist = _osimglist_hlist(tabs->image_list, dpi);
+        SendMessage(tabs->control.hwnd, TCM_SETIMAGELIST, (WPARAM)0, (LPARAM)hlist);
+    }
+
+    SendMessage(tabs->control.hwnd, WM_THEMECHANGED, 0, 0);
+    EnumChildWindows(tabs->control.hwnd, i_theme_changed, 0);
 }
 
 /*---------------------------------------------------------------------------*/

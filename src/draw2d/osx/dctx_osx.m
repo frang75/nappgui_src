@@ -105,13 +105,15 @@ static ___INLINE CGContextRef i_CGContext(NSGraphicsContext *nscontext)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
+void dctx_set_gcontext(DCtx *ctx, void *gcontext, const real32_t width, const real32_t height, const uint32_t dpi, const real32_t scale, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
 {
     cassert_no_null(ctx);
     cassert(ctx->context == NULL);
     unref(background);
-    ctx->width = width;
-    ctx->height = height;
+    unref(dpi);
+    unref(scale);
+    ctx->width = (uint32_t)width;
+    ctx->height = (uint32_t)height;
     ctx->context = i_CGContext(cast(gcontext, NSGraphicsContext));
     CGContextSaveGState(ctx->context);
     CGContextTranslateCTM(ctx->context, -(CGFloat)offset_x, -(CGFloat)offset_y);
@@ -157,6 +159,14 @@ void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
     unref(offset_x);
     unref(offset_y);
     cassert(FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t dctx_scale(const DCtx *ctx)
+{
+    unref(ctx);
+    return 1.f;
 }
 
 /*---------------------------------------------------------------------------*/

@@ -16,6 +16,8 @@ __EXTERN_C
 
 void _osedit_command(OSEdit *edit, WPARAM wParam);
 
+void _osedit_update_dpi(OSEdit *edit);
+
 COLORREF _osedit_color(const OSEdit *edit);
 
 HBRUSH _osedit_background_color(const OSEdit *edit, COLORREF *color);

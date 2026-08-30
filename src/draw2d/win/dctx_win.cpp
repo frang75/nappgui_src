@@ -34,6 +34,10 @@
 #define ROTATETRANSFORM RotateTransform
 #endif
 
+#ifndef USER_DEFAULT_SCREEN_DPI
+#define USER_DEFAULT_SCREEN_DPI 96
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 DCtx *dctx_create(void)
@@ -109,7 +113,7 @@ void dctx_destroy(DCtx **ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
+void dctx_set_gcontext(DCtx *ctx, void *gcontext, const real32_t width, const real32_t height, const uint32_t dpi, const real32_t scale, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
 {
     void **context = dcast(gcontext, void);
     cassert_no_null(ctx);
@@ -117,8 +121,10 @@ void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const ui
     ctx->graphics = cast(context[0], Gdiplus::Graphics);
     ctx->hdc = (HDC)context[1];
     ctx->background_color = background;
-    ctx->width = width;
-    ctx->height = height;
+    ctx->dpi = dpi;
+    ctx->scale = scale;
+    ctx->width = (uint32_t)width;
+    ctx->height = (uint32_t)height;
     ctx->offset_x = (Gdiplus::REAL)offset_x;
     ctx->offset_y = (Gdiplus::REAL)offset_y;
     ctx->gdi_mode = FALSE;
@@ -159,6 +165,14 @@ void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
     cassert_no_null(ctx);
     ptr_assign(offset_x, (real32_t)ctx->offset_x);
     ptr_assign(offset_y, (real32_t)ctx->offset_y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t dctx_scale(const DCtx *ctx)
+{
+    cassert_no_null(ctx);
+    return ctx->scale;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -281,6 +295,8 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
 
     ctx->width = width;
     ctx->height = height;
+    ctx->dpi = USER_DEFAULT_SCREEN_DPI;
+    ctx->scale = 1.f;
     ctx->format = format;
     ctx->pen = new Gdiplus::Pen((Gdiplus::ARGB)Gdiplus::Color::Black);
     ctx->tbrush = new Gdiplus::SolidBrush((Gdiplus::ARGB)Gdiplus::Color::Black);
@@ -302,6 +318,7 @@ void _dctx_transform(DCtx *ctx, const T2Df *t2d, const bool_t cartesian)
     cassert_no_null(t2d);
     unref(cartesian);
     ctx->graphics->ResetTransform();
+    ctx->graphics->ScaleTransform((Gdiplus::REAL)ctx->scale, (Gdiplus::REAL)ctx->scale);
     ctx->graphics->TranslateTransform(ctx->offset_x, ctx->offset_y);
 
     Gdiplus::Matrix mt(

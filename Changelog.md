@@ -2,11 +2,25 @@
 
 ## v1.6.3 - WIP
 
+### Added
+
+- HiDPI (Per-Monitor-v2) support in the Windows backend. [Issue](). [Doc](). [Commit]().
+    - `gui_dpi_aware()`.
+    - `font_native_dpi()`.
+    - `font_metrics_dpi()`.
+    - `font_with_cell_size()`.
+
+### Removed
+
+- `ekFPIXELS`, `ekFPOINTS`, `ekFCELL` font size unit flags in `fstyle_t`. [Commit]().
+- `font_units()`. [Commit]().
+- `textview_units()`. [Commit]().
+
 ## v1.6.2 - July 02, 2026 (r6905)
 
 ### Added
 
-- GroupBox `layout_group()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
+- GroupBox `layout_group()`. [Doc](https://nappgui.com/en/gui/layout.html#h5). [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - `view_tooltip()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - `panel_scroll_size()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
 - `panel_viewport()`. [Commit](https://github.com/frang75/nappgui_src/commit/ef308181ade42bb9e5d3b2d6a19810d8a9250072).
@@ -17,7 +31,7 @@
     - `http_put()`.
     - `http_patch()`.
     - `http_delete()`.
-- HTTP cookies support. [Issue](https://github.com/frang75/nappgui_src/issues/245). [Commit](https://github.com/frang75/nappgui_src/commit/7e3c8d30a71c8264a0d235b1ce92b7434f095d0f).
+- HTTP cookies support. [Issue](https://github.com/frang75/nappgui_src/issues/245). [Doc](https://nappgui.com/en/inet/httpreq.html#h3). [Commit](https://github.com/frang75/nappgui_src/commit/7e3c8d30a71c8264a0d235b1ce92b7434f095d0f).
     - `http_cookies_policy()`.
     - `http_cookies_reload()`.
     - `http_cookies_size()`.

@@ -181,8 +181,12 @@ static void i_OnDraw(App *app, Event *e)
 static void i_OnSize(App *app, Event *e)
 {
     const EvSize *p = event_params(e, EvSize);
-    real32_t width = p->width * app->ptscale;
-    real32_t height = p->height * app->ptscale;
+    real32_t width, height;
+    /* Re-query the point scale on every resize (rather than trusting the value cached at
+       creation time in i_gl_panel()) so a live DPI change is picked up correctly */
+    view_point_scale(app->glview, &app->ptscale);
+    width = p->width * app->ptscale;
+    height = p->height * app->ptscale;
     switch (app->api)
     {
     case 0:

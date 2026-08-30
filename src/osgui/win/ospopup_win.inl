@@ -16,6 +16,8 @@ __EXTERN_C
 
 void _ospopup_command(OSPopUp *popup, WPARAM wParam);
 
+void _ospopup_update_dpi(OSPopUp *popup);
+
 HWND _ospopup_focus_widget(OSPopUp *popup);
 
 __END_C

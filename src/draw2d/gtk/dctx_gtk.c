@@ -70,15 +70,17 @@ void dctx_destroy(DCtx **ctx)
 
 /*---------------------------------------------------------------------------*/
 
-void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
+void dctx_set_gcontext(DCtx *ctx, void *gcontext, const real32_t width, const real32_t height, const uint32_t dpi, const real32_t scale, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset)
 {
     cassert_no_null(ctx);
     cassert_no_null(gcontext);
     unref(background);
+    unref(dpi);
+    unref(scale);
     ctx->offset_x = (double)offset_x;
     ctx->offset_y = (double)offset_y;
-    ctx->width = width;
-    ctx->height = height;
+    ctx->width = (uint32_t)width;
+    ctx->height = (uint32_t)height;
     ctx->cairo = cast(gcontext, cairo_t);
     cairo_translate(ctx->cairo, -(double)offset_x, -(double)offset_y);
     cairo_get_matrix(ctx->cairo, &ctx->origin);
@@ -123,6 +125,14 @@ void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y)
     cassert_no_null(offset_y);
     *offset_x = (real32_t)ctx->offset_x;
     *offset_y = (real32_t)ctx->offset_y;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t dctx_scale(const DCtx *ctx)
+{
+    unref(ctx);
+    return 1.f;
 }
 
 /*---------------------------------------------------------------------------*/

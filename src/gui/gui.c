@@ -204,6 +204,17 @@ void gui_finish(void)
 
 /*---------------------------------------------------------------------------*/
 
+void gui_dpi_aware(const bool_t aware)
+{
+    const GuiCtx *context = guictx_get_current();
+    cassert_no_null(context);
+    cassert_no_nullf(context->func_globals_dpi_aware);
+    cassert_msg(arrpt_size(i_WINDOWS, Window) == 0, "gui_dpi_aware must be called before creating the first window");
+    context->func_globals_dpi_aware(NULL, aware);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void gui_respack(FPtr_respack func_respack)
 {
     cassert_no_nullf(func_respack);

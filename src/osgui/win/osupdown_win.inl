@@ -16,4 +16,6 @@ __EXTERN_C
 
 void _osupdown_OnNotification(OSUpDown *updown, const NMHDR *nmhdr, LPARAM lParam);
 
+void _osupdown_update_dpi(OSUpDown *updown);
+
 __END_C

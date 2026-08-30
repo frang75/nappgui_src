@@ -153,8 +153,14 @@ void ospopup_font(OSPopUp *popup, const Font *font)
 
 void ospopup_elem(OSPopUp *popup, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
+    uint32_t dpi = USER_DEFAULT_SCREEN_DPI;
     cassert_no_null(popup);
     _oscombo_elem(popup->control.hwnd, popup->image_list, op, index, text, image);
+
+    if (popup->control.window != NULL)
+        dpi = _oswindow_dpi(popup->control.window);
+    _oscombo_imglist(popup->control.hwnd, popup->image_list, dpi);
+
     if (SendMessage(popup->control.hwnd, CB_GETCURSEL, (WPARAM)0, (LPARAM)0) == -1)
         SendMessage(popup->control.hwnd, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
     InvalidateRect(popup->control.hwnd, NULL, FALSE);
@@ -274,6 +280,29 @@ void _ospopup_command(OSPopUp *popup, WPARAM wParam)
         params.text = NULL;
         listener_event(popup->OnSelect, ekGUI_EVENT_POPUP, popup, &params, NULL, OSPopUp, EvButton, void);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static BOOL CALLBACK i_theme_changed(HWND hwnd, LPARAM lParam)
+{
+    unref(lParam);
+    SendMessage(hwnd, WM_THEMECHANGED, 0, 0);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospopup_update_dpi(OSPopUp *popup)
+{
+    uint32_t dpi;
+    cassert_no_null(popup);
+    cassert_no_null(popup->control.window);
+    _oscontrol_set_font(cast(popup, OSControl), popup->font);
+    dpi = _oswindow_dpi(popup->control.window);
+    _oscombo_imglist(popup->control.hwnd, popup->image_list, dpi);
+    SendMessage(popup->control.hwnd, WM_THEMECHANGED, 0, 0);
+    EnumChildWindows(popup->control.hwnd, i_theme_changed, 0);
 }
 
 /*---------------------------------------------------------------------------*/

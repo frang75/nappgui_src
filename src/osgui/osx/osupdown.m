@@ -125,6 +125,17 @@ void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
+void osupdown_bounds(const OSUpDown *updown, real32_t *width, real32_t *height)
+{
+    unref(updown);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    *width = 16.f;
+    *height = 16.f;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osupdown_attach(OSUpDown *updown, OSPanel *panel)
 {
     _ospanel_attach_control(panel, cast(updown, NSView));

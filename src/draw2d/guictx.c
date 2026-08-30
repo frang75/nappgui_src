@@ -549,6 +549,7 @@ void guictx_append_updown_manager_imp(
     FPtr_gctx_destroy func_updown_destroy,
     FPtr_gctx_set_listener func_updown_OnClick,
     FPtr_gctx_set_text func_updown_set_tooltip,
+    FPtr_gctx_bounds7 func_updown_bounds,
     FPtr_gctx_set_ptr func_attach_updown_to_panel,
     FPtr_gctx_set_ptr func_detach_updown_from_panel,
     FPtr_gctx_set_bool func_updown_set_visible,
@@ -562,6 +563,7 @@ void guictx_append_updown_manager_imp(
     cassert(context->func_destroy[ekGUI_TYPE_UPDOWN] == NULL);
     cassert(context->func_updown_OnClick == NULL);
     cassert(context->func_set_tooltip[ekGUI_TYPE_UPDOWN] == NULL);
+    cassert(context->func_updown_bounds == NULL);
     cassert(context->func_attach_to_panel[ekGUI_TYPE_UPDOWN] == NULL);
     cassert(context->func_detach_from_panel[ekGUI_TYPE_UPDOWN] == NULL);
     cassert(context->func_set_visible[ekGUI_TYPE_UPDOWN] == NULL);
@@ -573,6 +575,7 @@ void guictx_append_updown_manager_imp(
     cassert_no_nullf(func_updown_destroy);
     cassert_no_nullf(func_updown_OnClick);
     cassert_no_nullf(func_updown_set_tooltip);
+    cassert_no_nullf(func_updown_bounds);
     cassert_no_nullf(func_attach_updown_to_panel);
     cassert_no_nullf(func_detach_updown_from_panel);
     cassert_no_nullf(func_updown_set_visible);
@@ -584,6 +587,7 @@ void guictx_append_updown_manager_imp(
     context->func_destroy[ekGUI_TYPE_UPDOWN] = func_updown_destroy;
     context->func_updown_OnClick = func_updown_OnClick;
     context->func_set_tooltip[ekGUI_TYPE_UPDOWN] = func_updown_set_tooltip;
+    context->func_updown_bounds = func_updown_bounds;
     context->func_attach_to_panel[ekGUI_TYPE_UPDOWN] = func_attach_updown_to_panel;
     context->func_detach_from_panel[ekGUI_TYPE_UPDOWN] = func_detach_updown_from_panel;
     context->func_set_visible[ekGUI_TYPE_UPDOWN] = func_updown_set_visible;
@@ -1488,6 +1492,7 @@ void guictx_append_globals_manager_imp(
     GuiCtx *context,
     FPtr_gctx_get_enum func_globals_device,
     FPtr_gctx_get_enum func_globals_color,
+    FPtr_gctx_set_bool func_globals_dpi_aware,
     FPtr_gctx_get2_real32 func_globals_resolution,
     FPtr_gctx_get4_real32 func_globals_workarea,
     FPtr_gctx_get2_real32 func_globals_mouse_position,
@@ -1500,6 +1505,7 @@ void guictx_append_globals_manager_imp(
     cassert_no_null(context);
     cassert(context->func_globals_device == NULL);
     cassert(context->func_globals_color == NULL);
+    cassert(context->func_globals_dpi_aware == NULL);
     cassert(context->func_globals_resolution == NULL);
     cassert(context->func_globals_workarea == NULL);
     cassert(context->func_globals_mouse_position == NULL);
@@ -1510,6 +1516,7 @@ void guictx_append_globals_manager_imp(
     cassert(context->func_globals_OnIdle == NULL);
     cassert_no_nullf(func_globals_device);
     cassert_no_nullf(func_globals_color);
+    cassert_no_nullf(func_globals_dpi_aware);
     cassert_no_nullf(func_globals_resolution);
     cassert_no_nullf(func_globals_workarea);
     cassert_no_nullf(func_globals_mouse_position);
@@ -1520,6 +1527,7 @@ void guictx_append_globals_manager_imp(
     cassert_no_nullf(func_globals_OnIdle);
     context->func_globals_device = func_globals_device;
     context->func_globals_color = func_globals_color;
+    context->func_globals_dpi_aware = func_globals_dpi_aware;
     context->func_globals_resolution = func_globals_resolution;
     context->func_globals_workarea = func_globals_workarea;
     context->func_globals_mouse_position = func_globals_mouse_position;

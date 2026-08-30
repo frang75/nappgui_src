@@ -15,12 +15,15 @@
 #include "osimg.inl"
 #include "../osglobals.h"
 #include <core/heap.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is only for Windows
 #endif
+
+static bool_t i_DPI_AWARE = TRUE;
 
 /*---------------------------------------------------------------------------*/
 
@@ -29,6 +32,21 @@ device_t osglobals_device(const void *non_used)
     cassert(FALSE);
     cassert_unref(non_used == NULL, non_used);
     return ekDESKTOP;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osglobals_dpi_aware(void *non_used, const bool_t aware)
+{
+    unref(non_used);
+    i_DPI_AWARE = aware;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osgui_dpi_aware(void)
+{
+    return i_DPI_AWARE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -74,11 +92,13 @@ color_t osglobals_color(const syscolor_t *color)
 
 void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height)
 {
+    real32_t scale;
     unref(non_used);
     cassert_no_null(width);
     cassert_no_null(height);
-    *width = (real32_t)GetSystemMetrics(SM_CXSCREEN);
-    *height = (real32_t)GetSystemMetrics(SM_CYSCREEN);
+    scale = (real32_t)_osgui_dpi_for_primary_monitor() / (real32_t)USER_DEFAULT_SCREEN_DPI;
+    *width = bmath_roundf((real32_t)GetSystemMetrics(SM_CXSCREEN) / scale);
+    *height = bmath_roundf((real32_t)GetSystemMetrics(SM_CYSCREEN) / scale);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -93,10 +113,11 @@ void osglobals_workarea(const void *non_used, real32_t *x, real32_t *y, real32_t
     cassert_no_null(height);
     if (SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0))
     {
-        *x = (real32_t)rcWork.left;
-        *y = (real32_t)rcWork.top;
-        *width = (real32_t)(rcWork.right - rcWork.left);
-        *height = (real32_t)(rcWork.bottom - rcWork.top);
+        real32_t scale = (real32_t)_osgui_dpi_for_primary_monitor() / (real32_t)USER_DEFAULT_SCREEN_DPI;
+        *x = bmath_roundf((real32_t)rcWork.left / scale);
+        *y = bmath_roundf((real32_t)rcWork.top / scale);
+        *width = bmath_roundf((real32_t)(rcWork.right - rcWork.left) / scale);
+        *height = bmath_roundf((real32_t)(rcWork.bottom - rcWork.top) / scale);
     }
 }
 
@@ -106,13 +127,15 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
 {
     POINT pt = {0};
     BOOL ok = FALSE;
+    real32_t scale;
     unref(non_used);
     cassert_no_null(x);
     cassert_no_null(y);
     ok = GetCursorPos(&pt);
     cassert_unref(ok != 0, ok);
-    *x = (real32_t)pt.x;
-    *y = (real32_t)pt.y;
+    scale = (real32_t)_osgui_dpi_for_primary_monitor() / (real32_t)USER_DEFAULT_SCREEN_DPI;
+    *x = (real32_t)pt.x / scale;
+    *y = (real32_t)pt.y / scale;
 }
 
 /*---------------------------------------------------------------------------*/

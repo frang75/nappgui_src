@@ -129,7 +129,7 @@ Panel *labels_mouse_over(void)
 {
     Panel *panel = panel_create();
     Layout *layout = layout_create(1, 5);
-    Font *font = font_system(20, ekFNORMAL | ekFPIXELS);
+    Font *font = font_system(20, ekFNORMAL);
     Label *label1 = label_create();
     Label *label2 = label_create();
     Label *label3 = label_create();

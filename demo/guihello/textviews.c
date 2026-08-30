@@ -21,7 +21,6 @@ static void i_set_rtf(TextView *text)
 
 static void i_set_hard_coding(TextView *text)
 {
-    textview_units(text, ekFPOINTS);
     textview_lspacing(text, 1.15f);
     textview_afspace(text, 10);
     textview_family(text, "Arial");

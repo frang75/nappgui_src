@@ -216,6 +216,24 @@ void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
+void osupdown_bounds(const OSUpDown *updown, real32_t *width, real32_t *height)
+{
+    uint32_t eheight = _osglobals_entry_height();
+    unref(updown);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    if (eheight % 2 == 1)
+        eheight += 1;
+
+    *height = (real32_t)eheight;
+    if (eheight > 32)
+        *width = 32;
+    else
+        *width = *height;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osupdown_attach(OSUpDown *updown, OSPanel *panel)
 {
     _ospanel_attach_control(panel, cast(updown, OSControl));
@@ -246,18 +264,7 @@ void osupdown_enabled(OSUpDown *updown, const bool_t enabled)
 
 void osupdown_size(const OSUpDown *updown, real32_t *width, real32_t *height)
 {
-    uint32_t eheight = _osglobals_entry_height();
-    cassert_no_null(width);
-    cassert_no_null(height);
-    if (eheight % 2 == 1)
-        eheight += 1;
-
-    *height = (real32_t)eheight;
-    if (eheight > 32)
-        *width = 32;
-    else
-        *width = *height;
-    unref(updown);
+    _oscontrol_get_size(cast_const(updown, OSControl), width, height);
 }
 
 /*---------------------------------------------------------------------------*/

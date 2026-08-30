@@ -29,6 +29,8 @@ struct _dctx_t
     bool_t gdi_mode;
     uint32_t width;
     uint32_t height;
+    uint32_t dpi;
+    real32_t scale;
     pixformat_t format;
     color_t line_color;
     color_t text_color;
@@ -66,7 +68,6 @@ struct _dctx_t
     Gdiplus::FontFamily *ffamily;
     INT fstyle;
     Gdiplus::REAL fsize;
-    Gdiplus::REAL fintleading;
     align_t image_halign;
     align_t image_valign;
     void *data;

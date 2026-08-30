@@ -14,13 +14,22 @@
 #include "osgui_win.inl"
 #include "osbutton_win.inl"
 #include "oscontrol_win.inl"
+#include "oscombo_win.inl"
+#include "osedit_win.inl"
 #include "osmenuitem_win.inl"
 #include "ospanel_win.inl"
+#include "ospopup_win.inl"
+#include "osprogress_win.inl"
+#include "osslider_win.inl"
 #include "ossplit_win.inl"
+#include "ostabs_win.inl"
+#include "osupdown_win.inl"
+#include "osview_win.inl"
 #include "../oswindow.h"
 #include "../oswindow.inl"
 #include "../osgui.inl"
 #include "../ostabstop.inl"
+#include <draw2d/font.h>
 #include <core/arrpt.h>
 #include <core/arrst.h>
 #include <core/event.h>
@@ -53,6 +62,8 @@ struct _oswindow_t
     bool_t destroy_main_view;
     bool_t wm_sizing;
     uint32_t flags;
+    uint32_t dpi;
+    real32_t scale;
     wstate_t state;
     gui_role_t role;
     OSPanel *main_panel;
@@ -68,13 +79,19 @@ DeclPt(Listener);
 /*---------------------------------------------------------------------------*/
 
 #define i_WM_MODAL_STOP 0x444
+
+#ifndef WM_DPICHANGED
+#define WM_DPICHANGED 0x02E0
+#endif
+
 static HWND i_CURRENT_ACTIVE_WINDOW = NULL;
 static ArrPt(Listener) *i_IDLES = NULL;
+static bool_t i_DPI_CONTEXT_SET = FALSE;
 
 /*---------------------------------------------------------------------------*/
 
-/* Same as AdjustWindowRectEx, but compatible with multi-row menubars */
-static void i_adjust_window_size(HWND hwnd, const LONG width, const LONG height, const DWORD dwStyle, const DWORD dwExStyle, LONG *nwidth, LONG *nheight)
+/* Same as AdjustWindowRectExForDpi, but compatible with multi-row menubars */
+static void i_adjust_window_size(HWND hwnd, const LONG width, const LONG height, const DWORD dwStyle, const DWORD dwExStyle, const uint32_t dpi, LONG *nwidth, LONG *nheight)
 {
     RECT rect;
     BOOL ok = FALSE;
@@ -85,7 +102,7 @@ static void i_adjust_window_size(HWND hwnd, const LONG width, const LONG height,
     rect.top = 0;
     rect.right = width;
     rect.bottom = height;
-    ok = AdjustWindowRectEx(&rect, dwStyle, FALSE, dwExStyle);
+    ok = _osgui_adjust_window_rect_ex_for_dpi(&rect, dwStyle, FALSE, dwExStyle, (UINT)dpi);
     cassert_unref(ok != 0, ok);
     *nwidth = rect.right - rect.left;
     *nheight = rect.bottom - rect.top;
@@ -115,22 +132,26 @@ static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
     {
         if (window->OnResize != NULL)
         {
-            /* ekGUI_EVENT_WND_SIZING needs the client area size (no full window size) */
+            /* ekGUI_EVENT_WND_SIZING needs the client area size (no full window size), in points */
             EvSize params;
             EvSize result;
 
+            font_metrics_dpi(window->dpi);
+
             {
                 LONG nwidth, nheight;
-                i_adjust_window_size(window->control.hwnd, 0, 0, window->dwStyle, window->dwExStyle, &nwidth, &nheight);
-                params.width = (real32_t)((wrect->right - wrect->left) - nwidth);
-                params.height = (real32_t)((wrect->bottom - wrect->top) - nheight);
+                i_adjust_window_size(window->control.hwnd, 0, 0, window->dwStyle, window->dwExStyle, window->dpi, &nwidth, &nheight);
+                params.width = bmath_roundf((real32_t)((wrect->right - wrect->left) - nwidth) / window->scale);
+                params.height = bmath_roundf((real32_t)((wrect->bottom - wrect->top) - nheight) / window->scale);
             }
 
             listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
 
             {
                 LONG nwidth, nheight;
-                i_adjust_window_size(window->control.hwnd, (LONG)result.width, (LONG)result.height, window->dwStyle, window->dwExStyle, &nwidth, &nheight);
+                LONG pwidth, pheight;
+                _oswindow_scale_size(window, result.width, result.height, &pwidth, &pheight);
+                i_adjust_window_size(window->control.hwnd, pwidth, pheight, window->dwStyle, window->dwExStyle, window->dpi, &nwidth, &nheight);
 
                 switch (edge)
                 {
@@ -172,27 +193,38 @@ static void i_resizing(OSWindow *window, WPARAM edge, RECT *wrect)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_resize(OSWindow *window, LONG client_width, LONG client_height, WPARAM state)
+static void i_resize(OSWindow *window, EvSize *psize)
 {
     cassert_no_null(window);
     if (window->launch_resize_event == TRUE && window->OnResize != NULL)
     {
-        EvSize p;
-        if (state == SIZE_MINIMIZED)
-        {
-            p.width = 0;
-            p.height = 0;
-        }
-        else
-        {
-            p.width = (real32_t)client_width;
-            p.height = (real32_t)client_height;
-        }
-
         SendMessage(window->control.hwnd, WM_SETREDRAW, FALSE, 0);
-        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &p, NULL, OSWindow, EvSize, void);
+        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, psize, NULL, OSWindow, EvSize, void);
         SendMessage(window->control.hwnd, WM_SETREDRAW, TRUE, 0);
         RedrawWindow(window->control.hwnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_compose_size(OSWindow *window, const real32_t width, const real32_t height, real32_t *rwidth, real32_t *rheight)
+{
+    cassert_no_null(window);
+    cassert_no_null(rwidth);
+    cassert_no_null(rheight);
+    if (window->OnResize != NULL)
+    {
+        EvSize params, result;
+        params.width = width;
+        params.height = height;
+        listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
+        *rwidth = result.width;
+        *rheight = result.height;
+    }
+    else
+    {
+        *rwidth = width;
+        *rheight = height;
     }
 }
 
@@ -323,6 +355,80 @@ static ___INLINE bool_t i_sizing_by_dragging(WPARAM wParam)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_update_panels_dpi(OSControl *control)
+{
+    cassert_no_null(control);
+    if (control->type == ekGUI_TYPE_PANEL)
+    {
+        ArrPt(OSControl) *children = _ospanel_children(cast(control, OSPanel));
+        _ospanel_update_dpi(cast(control, OSPanel));
+        arrpt_foreach(child, children, OSControl)
+            i_update_panels_dpi(child);
+        arrpt_end()
+    }
+    else if (control->type == ekGUI_TYPE_SPLITVIEW)
+    {
+        OSControl *child1 = NULL, *child2 = NULL;
+        _ossplit_children(cast(control, OSSplit), &child1, &child2);
+        if (child1 != NULL)
+            i_update_panels_dpi(child1);
+        if (child2 != NULL)
+            i_update_panels_dpi(child2);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_controls_dpi(OSWindow *window)
+{
+    cassert_no_null(window);
+    i_update_panels_dpi(cast(window->main_panel, OSControl));
+    arrpt_foreach(control, window->tabstop.controls, OSControl)
+        switch (control->type)
+        {
+        case ekGUI_TYPE_EDITBOX:
+            _osedit_update_dpi(cast(control, OSEdit));
+            break;
+        case ekGUI_TYPE_POPUP:
+            _ospopup_update_dpi(cast(control, OSPopUp));
+            break;
+        case ekGUI_TYPE_COMBOBOX:
+            _oscombo_update_dpi(cast(control, OSCombo));
+            break;
+        case ekGUI_TYPE_BUTTON:
+            _osbutton_update_dpi(cast(control, OSButton));
+            break;
+        case ekGUI_TYPE_TABLIST:
+            _ostabs_update_dpi(cast(control, OSTabs));
+            break;
+        case ekGUI_TYPE_CUSTOMVIEW:
+            _osview_update_dpi(cast(control, OSView));
+            break;
+        case ekGUI_TYPE_UPDOWN:
+            _osupdown_update_dpi(cast(control, OSUpDown));
+            break;
+        case ekGUI_TYPE_SLIDER:
+            _osslider_update_dpi(cast(control, OSSlider));
+            break;
+        case ekGUI_TYPE_PROGRESS:
+            _osprogress_update_dpi(cast(control, OSProgress));
+            break;
+        case ekGUI_TYPE_TEXTVIEW:
+        case ekGUI_TYPE_WEBVIEW:
+        case ekGUI_TYPE_SPLITVIEW:
+        case ekGUI_TYPE_PANEL:
+        case ekGUI_TYPE_LINE:
+        case ekGUI_TYPE_WINDOW:
+            break;
+
+        default:
+            cassert_default(control->type);
+        }
+    arrpt_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
 static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     OSWindow *window = cast(GetWindowLongPtr(hwnd, GWLP_USERDATA), OSWindow);
@@ -431,7 +537,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         {
             LONG owidth, oheight;
             LONG clwidth, clheight;
-            i_adjust_window_size(window->control.hwnd, 0, 0, window->dwStyle, window->dwExStyle, &owidth, &oheight);
+            i_adjust_window_size(window->control.hwnd, 0, 0, window->dwStyle, window->dwExStyle, window->dpi, &owidth, &oheight);
             clwidth = (rect->right - rect->left) - owidth;
             clheight = (rect->bottom - rect->top) - oheight;
             PostMessage(window->control.hwnd, WM_SIZE, SIZE_RESTORED, MAKELPARAM(clwidth, clheight));
@@ -464,13 +570,42 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
                     RECT rect;
                     rect.left = 0;
                     rect.top = 0;
-                    i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, &rect.right, &rect.bottom);
+                    i_adjust_window_size(window->control.hwnd, client_width, client_height, window->dwStyle, window->dwExStyle, window->dpi, &rect.right, &rect.bottom);
                     /* i_resizing() uses full window size and not client area size */
                     i_resizing(window, 1, &rect);
                 }
             }
 
-            i_resize(window, LOWORD(lParam), HIWORD(lParam), wParam);
+            /* Notify the app only when the user stretches, maximizes or minimizes the window.
+               TODO: revisit two pending cases (see Round 12 plan / backlog):
+               1) Plain snap (WM_SIZE, SIZE_RESTORED, no preceding WM_SIZING) currently falls into
+                  the 'else' branch (NULL, no notification).
+               2) Restoring from minimized ALSO arrives as SIZE_RESTORED (indistinguishable from
+                  snap via wParam alone) - would need tracking the previous IsIconic() state to
+                  detect it. macOS (windowDidDeminiaturize:) and GTK (i_OnWindowState(),
+                  GDK_WINDOW_STATE_ICONIFIED clearing) DO notify on this case, so Win32 is
+                  currently inconsistent with them here */
+            if (window->wm_sizing == TRUE || wParam == SIZE_MAXIMIZED || wParam == SIZE_MINIMIZED)
+            {
+                EvSize p;
+                font_metrics_dpi(window->dpi);
+                if (wParam == SIZE_MINIMIZED)
+                {
+                    p.width = 0;
+                    p.height = 0;
+                }
+                else
+                {
+                    p.width = bmath_roundf((real32_t)LOWORD(lParam) / window->scale);
+                    p.height = bmath_roundf((real32_t)HIWORD(lParam) / window->scale);
+                }
+
+                i_resize(window, &p);
+            }
+            else
+            {
+                i_resize(window, NULL);
+            }
         }
         window->wm_sizing = FALSE;
         return 0;
@@ -478,6 +613,45 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
     case WM_MOVE:
         i_moved(window);
         return 0;
+
+    case WM_DPICHANGED:
+    {
+        RECT *srect = cast(lParam, RECT);
+        RECT crect;
+        real32_t scale = window->scale;
+        real32_t pwidth, pheight;
+        real32_t rwidth, rheight;
+
+        /* Current content size, in points, measured with the OLD scale (before this DPI change) */
+        GetClientRect(window->control.hwnd, &crect);
+        pwidth = bmath_roundf((real32_t)(crect.right - crect.left) / scale);
+        pheight = bmath_roundf((real32_t)(crect.bottom - crect.top) / scale);
+
+        window->dpi = (uint32_t)LOWORD(wParam);
+        window->scale = (real32_t)window->dpi / (real32_t)USER_DEFAULT_SCREEN_DPI;
+        font_metrics_dpi(window->dpi);
+
+        /* Reapply DPI-dependent control state (fonts) before the relayout cascade repaints them */
+        i_update_controls_dpi(window);
+
+        /* Windows suggested rect (srect) is only an approximate linear scale of the previous size */
+        i_compose_size(window, pwidth, pheight, &rwidth, &rheight);
+
+        SetWindowPos(window->control.hwnd, NULL, srect->left, srect->top, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+        oswindow_client_size(window, rwidth, rheight);
+
+        /* If there is a menu bar, a second i_adjust_window_size() is required, once the window has been resized to new DPI */
+        if (GetMenu(window->control.hwnd) != NULL)
+            oswindow_client_size(window, rwidth, rheight);
+
+        i_resize(window, NULL);
+
+        /* TODO: a visual residue (stale custom-drawn content, e.g. a View) can remain after a DPI
+           change. Tried forcing a full erase here, didn't fix it - parked for now, revisit later.
+        RedrawWindow(window->control.hwnd, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
+        */
+        return 0;
+    }
 
     case WM_CLOSE:
         i_close(window, ekGUI_CLOSE_BUTTON);
@@ -538,7 +712,16 @@ static void i_window_style(const window_flag_t flags, DWORD *dwStyle, DWORD *dwE
 
 OSWindow *oswindow_create(const uint32_t flags)
 {
-    OSWindow *window = heap_new0(OSWindow);
+    OSWindow *window = NULL;
+
+    if (i_DPI_CONTEXT_SET == FALSE)
+    {
+        if (_osgui_dpi_aware() == TRUE)
+            _osgui_activate_dpi_awareness();
+        i_DPI_CONTEXT_SET = TRUE;
+    }
+
+    window = heap_new0(OSWindow);
     window->control.type = ekGUI_TYPE_WINDOW;
     i_window_style(flags, &window->dwStyle, &window->dwExStyle);
     _oscontrol_init_hidden(cast(window, OSControl), window->dwExStyle, window->dwStyle | WS_POPUP, kWINDOW_CLASS, 0, 0, i_WndProc, GetDesktopWindow());
@@ -546,6 +729,9 @@ OSWindow *oswindow_create(const uint32_t flags)
     window->destroy_main_view = TRUE;
     window->wm_sizing = FALSE;
     window->flags = flags;
+    window->dpi = (uint32_t)_osgui_dpi_for_window(window->control.hwnd);
+    window->scale = (real32_t)window->dpi / (real32_t)USER_DEFAULT_SCREEN_DPI;
+    font_metrics_dpi(window->dpi);
     window->state = ekNORMAL;
     window->role = ENUM_MAX(gui_role_t);
     _ostabstop_init(&window->tabstop, window);
@@ -718,6 +904,8 @@ void oswindow_taborder(OSWindow *window, OSControl *control)
     _ostabstop_list_add(&window->tabstop, control);
     if (control == NULL)
     {
+        i_update_controls_dpi(window);
+
         /* The window main panel has changed. We ensure that default button is still valid */
         window->tabstop.defbutton = _oswindow_apply_default_button(window, window->tabstop.defbutton);
 
@@ -971,19 +1159,19 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
         {
             RECT rect;
             _osgui_frame_without_shadows(window->control.hwnd, &rect);
-            *x = (real32_t)rect.left;
-            *y = (real32_t)rect.top;
+            *x = (real32_t)rect.left / window->scale;
+            *y = (real32_t)rect.top / window->scale;
         }
     }
     /* A window inner point (in client area coordinates) */
     else
     {
         POINT pt;
-        pt.x = (LONG)*x;
-        pt.y = (LONG)*y;
+        pt.x = (LONG)bmath_roundf(*x * window->scale);
+        pt.y = (LONG)bmath_roundf(*y * window->scale);
         ClientToScreen(window->control.hwnd, &pt);
-        *x = (real32_t)pt.x;
-        *y = (real32_t)pt.y;
+        *x = (real32_t)pt.x / window->scale;
+        *y = (real32_t)pt.y / window->scale;
     }
 }
 
@@ -993,6 +1181,7 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
 {
     RECT rect1;
     RECT rect2;
+    LONG px, py;
     cassert_no_null(window);
 
     {
@@ -1001,9 +1190,11 @@ void oswindow_origin(OSWindow *window, const real32_t x, const real32_t y)
     }
 
     _osgui_frame_without_shadows(window->control.hwnd, &rect2);
+    px = (LONG)bmath_roundf(x * window->scale);
+    py = (LONG)bmath_roundf(y * window->scale);
 
     {
-        BOOL ret = SetWindowPos(window->control.hwnd, NULL, (int)x + (rect1.left - rect2.left), (int)y + (rect1.top - rect2.top), 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+        BOOL ret = SetWindowPos(window->control.hwnd, NULL, px + (rect1.left - rect2.left), py + (rect1.top - rect2.top), 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
         cassert_unref(ret != 0, ret);
     }
 }
@@ -1024,8 +1215,8 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
     {
         RECT rect;
         _osgui_frame_without_shadows(window->control.hwnd, &rect);
-        *width = (real32_t)(rect.right - rect.left);
-        *height = (real32_t)(rect.bottom - rect.top);
+        *width = (real32_t)(rect.right - rect.left) / window->scale;
+        *height = (real32_t)(rect.bottom - rect.top) / window->scale;
     }
 }
 
@@ -1034,10 +1225,12 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 void oswindow_client_size(OSWindow *window, const real32_t content_width, const real32_t content_height)
 {
     BOOL ok = FALSE;
+    LONG swidth, sheight;
     LONG nwidth, nheight;
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
-    i_adjust_window_size(window->control.hwnd, (LONG)content_width, (LONG)content_height, window->dwStyle, window->dwExStyle, &nwidth, &nheight);
+    _oswindow_scale_size(window, content_width, content_height, &swidth, &sheight);
+    i_adjust_window_size(window->control.hwnd, swidth, sheight, window->dwStyle, window->dwExStyle, window->dpi, &nwidth, &nheight);
     window->launch_resize_event = FALSE;
     ok = SetWindowPos(window->control.hwnd, NULL, 0, 0, (int)nwidth, (int)nheight, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
     cassert_unref(ok != 0, ok);
@@ -1086,6 +1279,10 @@ void _oswindow_widget_set_focus(OSWindow *window, OSWidget *widget)
 static void i_get_controls(OSWindow *window, OSControl *control, ArrPt(OSControl) *controls)
 {
     cassert_no_null(control);
+    cassert_no_null(window);
+    cassert(control->window == NULL || control->window == window);
+    control->window = window;
+
     if (control->type == ekGUI_TYPE_PANEL)
     {
         ArrPt(OSControl) *children = _ospanel_children(cast(control, OSPanel));
@@ -1104,10 +1301,7 @@ static void i_get_controls(OSWindow *window, OSControl *control, ArrPt(OSControl
     }
     else
     {
-        cassert_no_null(window);
-        cassert(control->window == NULL || control->window == window);
         cassert(arrpt_find(controls, control, OSControl) == UINT32_MAX);
-        control->window = window;
         arrpt_append(controls, control, OSControl);
         _oscontrol_apply_tooltip(control);
     }
@@ -1517,4 +1711,42 @@ void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd)
         ti.uId = (UINT_PTR)control_hwnd;
         SendMessage(window->tooltip_hwnd, TTM_DELTOOL, 0, (LPARAM)&ti);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_scale_size(const OSWindow *window, const real32_t width, const real32_t height, LONG *nwidth, LONG *nheight)
+{
+    cassert_no_null(window);
+    cassert_no_null(nwidth);
+    cassert_no_null(nheight);
+    *nwidth = (LONG)bmath_roundf(width * window->scale);
+    *nheight = (LONG)bmath_roundf(height * window->scale);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oswindow_scale_pos(const OSWindow *window, const real32_t x, const real32_t y, LONG *nx, LONG *ny)
+{
+    cassert_no_null(window);
+    cassert_no_null(nx);
+    cassert_no_null(ny);
+    *nx = (LONG)bmath_roundf(x * window->scale);
+    *ny = (LONG)bmath_roundf(y * window->scale);
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _oswindow_dpi(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return window->dpi;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t _oswindow_scale(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return window->scale;
 }

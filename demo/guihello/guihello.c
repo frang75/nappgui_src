@@ -7,7 +7,6 @@
 #include "sliders.h"
 #include "editor.h"
 #include "fontx.h"
-#include "fontunits.h"
 #include "form.h"
 #include "seltext.h"
 #include "popcom.h"
@@ -153,12 +152,9 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = font_x_scale();
         break;
     case 32:
-        panel = font_units_demo();
-        break;
-    case 33:
         panel = reduce(app->window);
         break;
-    case 34:
+    case 33:
         panel = common_windows(app->window);
         break;
     default:
@@ -225,7 +221,6 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Dynamic menus", NULL);
     listbox_add_elem(list, "IP Input", NULL);
     listbox_add_elem(list, "Font x-scale", NULL);
-    listbox_add_elem(list, "Font units", NULL);
     listbox_add_elem(list, "Reduce components", NULL);
     listbox_add_elem(list, "Common windows", NULL);
     listbox_select(list, 0, TRUE);

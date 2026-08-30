@@ -89,7 +89,7 @@ uint32_t osdrawctrl_check_width(const DCtx *ctx)
 {
     unref(ctx);
     if (kCHECKBOX_WIDTH == 0)
-        kCHECKBOX_WIDTH = GetSystemMetrics(SM_CXMENUCHECK);
+        kCHECKBOX_WIDTH = _osgui_system_metrics_for_dpi(SM_CXMENUCHECK, USER_DEFAULT_SCREEN_DPI);
     return (uint32_t)kCHECKBOX_WIDTH;
 }
 
@@ -99,7 +99,7 @@ uint32_t osdrawctrl_check_height(const DCtx *ctx)
 {
     unref(ctx);
     if (kCHECKBOX_HEIGHT == 0)
-        kCHECKBOX_HEIGHT = GetSystemMetrics(SM_CXMENUCHECK);
+        kCHECKBOX_HEIGHT = _osgui_system_metrics_for_dpi(SM_CYMENUCHECK, USER_DEFAULT_SCREEN_DPI);
     return (uint32_t)kCHECKBOX_HEIGHT;
 }
 
@@ -121,12 +121,13 @@ void osdrawctrl_clear(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 {
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
-    rect.left = (LONG)x + (LONG)offset_x;
-    rect.top = (LONG)y + (LONG)offset_y;
-    rect.right = rect.left + (LONG)width;
-    rect.bottom = rect.top + (LONG)height;
+    rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale);
+    rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale);
+    rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
+    rect.bottom = rect.top + (LONG)bmath_roundf((real32_t)height * scale);
     FillRect((HDC)dctx_native(ctx), &rect, GetSysColorBrush(COLOR_WINDOW));
     unref(nonused);
 }
@@ -226,13 +227,14 @@ void osdrawctrl_header(DCtx *ctx, const int32_t x, const int32_t y, const uint32
 {
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     int istate = i_header_state(state);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
-    rect.left = (LONG)x + (LONG)offset_x + 1;
-    rect.top = (LONG)y + (LONG)offset_y;
-    rect.right = rect.left + (LONG)width;
-    rect.bottom = rect.top + (LONG)height;
+    rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale) + 1;
+    rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale);
+    rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
+    rect.bottom = rect.top + (LONG)bmath_roundf((real32_t)height * scale);
     _osstyleXP_DrawThemeBackground2(i_header_theme(ctx), HP_HEADERITEM, istate, (HDC)dctx_native(ctx), &rect);
 }
 
@@ -251,13 +253,14 @@ void osdrawctrl_indicator(DCtx *ctx, const int32_t x, const int32_t y, const uin
     {
         RECT rect;
         real32_t offset_x = 0, offset_y = 0;
+        real32_t scale = dctx_scale(ctx);
         HTHEME theme = i_header_theme(ctx);
         SIZE sz = i_sort_size(ctx);
         draw_set_raster_mode(ctx);
         dctx_offset(ctx, &offset_x, &offset_y);
-        rect.left = (LONG)x + (LONG)offset_x + 1;
-        rect.top = (LONG)y + (LONG)offset_y + 1;
-        rect.right = rect.left + (LONG)width;
+        rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale) + 1;
+        rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale) + 1;
+        rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
         rect.bottom = rect.top + sz.cy;
         unref(height);
         _osstyleXP_DrawThemeBackground2(theme, HP_HEADERSORTARROW, istate, (HDC)dctx_native(ctx), &rect);
@@ -270,14 +273,15 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
 {
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     int istate = i_list_state(state);
     HDC hdc = (HDC)dctx_native(ctx);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
-    rect.left = (LONG)x + (LONG)offset_x;
-    rect.top = (LONG)y + (LONG)offset_y;
-    rect.right = rect.left + (LONG)width;
-    rect.bottom = rect.top + (LONG)height;
+    rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale);
+    rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale);
+    rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
+    rect.bottom = rect.top + (LONG)bmath_roundf((real32_t)height * scale);
     if (osbs_windows() > ekWIN_XP3)
     {
         _osstyleXP_DrawThemeBackground2(i_list_theme(ctx), LVP_LISTITEM, istate, hdc, &rect);
@@ -300,13 +304,14 @@ void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
 {
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     unref(state);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
-    rect.left = (LONG)x + (LONG)offset_x;
-    rect.top = (LONG)y + (LONG)offset_y;
-    rect.right = rect.left + (LONG)width;
-    rect.bottom = rect.top + (LONG)height;
+    rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale);
+    rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale);
+    rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
+    rect.bottom = rect.top + (LONG)bmath_roundf((real32_t)height * scale);
     DrawFocusRect((HDC)dctx_native(ctx), &rect);
 }
 
@@ -316,12 +321,14 @@ void osdrawctrl_line(DCtx *ctx, const int32_t x0, const int32_t y0, const int32_
 {
     HDC hdc = NULL;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = 0;
     cassert_no_null(ctx);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
+    scale = dctx_scale(ctx);
     hdc = (HDC)dctx_native(ctx);
-    MoveToEx(hdc, (int)(x0 + (int32_t)offset_x), (int)(y0 + (int32_t)offset_y), NULL);
-    LineTo(hdc, (int)(x1 + (int32_t)offset_x), (int)(y1 + (int32_t)offset_y));
+    MoveToEx(hdc, (int)bmath_roundf(((real32_t)x0 + offset_x) * scale), (int)bmath_roundf(((real32_t)y0 + offset_y) * scale), NULL);
+    LineTo(hdc, (int)bmath_roundf(((real32_t)x1 + offset_x) * scale), (int)bmath_roundf(((real32_t)y1 + offset_y) * scale));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -495,20 +502,26 @@ void _osdrawctrl_gdi_text(HDC hdc, HTHEME theme, const char_t *text, const int32
 void osdrawctrl_text(DCtx *ctx, const char_t *text, const int32_t x, const int32_t y, const ctrl_state_t state)
 {
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     HDC hdc = (HDC)dctx_native(ctx);
     align_t align = dctx_text_intalign(ctx);
     ellipsis_t trim = dctx_text_trim(ctx);
     real32_t text_width = dctx_text_width(ctx);
     color_t text_color = dctx_text_color(ctx);
+    int32_t px, py, ptext_width;
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
+
+    px = (int32_t)bmath_roundf(((real32_t)x + offset_x) * scale);
+    py = (int32_t)bmath_roundf(((real32_t)y + offset_y) * scale);
+    ptext_width = (int32_t)bmath_roundf(text_width * scale);
 
     /*
      * For GDI-based raster text in bitmap context, we have to 'delete' the GDI object
      * Check 'Using GDI+ on a GDI HDC'
      */
     cassert(dctx_internal_bitmap(ctx) == NULL);
-    _osdrawctrl_gdi_text(hdc, i_list_theme(ctx), text, x + (int32_t)offset_x, y + (int32_t)offset_y, align, trim, (int32_t)text_width, text_color, state);
+    _osdrawctrl_gdi_text(hdc, i_list_theme(ctx), text, px, py, align, trim, ptext_width, text_color, state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -526,6 +539,7 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
     int istate = 0;
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     HDC hdc = (HDC)dctx_native(ctx);
     draw_set_raster_mode(ctx);
     dctx_offset(ctx, &offset_x, &offset_y);
@@ -553,10 +567,10 @@ void osdrawctrl_checkbox(DCtx *ctx, const int32_t x, const int32_t y, const uint
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
     cassert((LONG)height == kCHECKBOX_HEIGHT);
-    rect.left = (LONG)x + (LONG)offset_x;
-    rect.top = (LONG)y + (LONG)offset_y;
-    rect.right = rect.left + (LONG)width;
-    rect.bottom = rect.top + (LONG)height;
+    rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale);
+    rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale);
+    rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
+    rect.bottom = rect.top + (LONG)bmath_roundf((real32_t)height * scale);
     _osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
 }
 
@@ -567,6 +581,7 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
     int istate = 0;
     RECT rect;
     real32_t offset_x = 0, offset_y = 0;
+    real32_t scale = dctx_scale(ctx);
     HDC hdc = (HDC)dctx_native(ctx);
 
     draw_set_raster_mode(ctx);
@@ -595,9 +610,9 @@ void osdrawctrl_uncheckbox(DCtx *ctx, const int32_t x, const int32_t y, const ui
 
     cassert((LONG)width == kCHECKBOX_WIDTH);
     cassert((LONG)height == kCHECKBOX_HEIGHT);
-    rect.left = (LONG)x + (LONG)offset_x;
-    rect.top = (LONG)y + (LONG)offset_y;
-    rect.right = rect.left + (LONG)width;
-    rect.bottom = rect.top + (LONG)height;
+    rect.left = (LONG)bmath_roundf(((real32_t)x + offset_x) * scale);
+    rect.top = (LONG)bmath_roundf(((real32_t)y + offset_y) * scale);
+    rect.right = rect.left + (LONG)bmath_roundf((real32_t)width * scale);
+    rect.bottom = rect.top + (LONG)bmath_roundf((real32_t)height * scale);
     _osstyleXP_DrawThemeBackground2(i_button_theme(ctx), BP_CHECKBOX, istate, hdc, &rect);
 }

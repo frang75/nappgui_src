@@ -51,8 +51,8 @@ struct _osbutton_t
     real32_t twidth;
     real32_t theight;
     gui_pos_t imgpos;
-    LONG width;
-    LONG height;
+    LONG bufwidth;
+    LONG bufheight;
     uint32_t hpadding;
     uint32_t vpadding;
     Listener *OnClick;
@@ -83,7 +83,7 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
     memHdc = CreateCompatibleDC(hdc);
 
     if (button->dbuffer == NULL)
-        button->dbuffer = CreateCompatibleBitmap(hdc, button->width, button->height);
+        button->dbuffer = CreateCompatibleBitmap(hdc, button->bufwidth, button->bufheight);
 
     SelectObject(memHdc, button->dbuffer);
     enabled = IsWindowEnabled(hwnd);
@@ -96,8 +96,8 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
 
         rect.left = 0;
         rect.top = 0;
-        rect.right = button->width;
-        rect.bottom = button->height;
+        rect.right = button->bufwidth;
+        rect.bottom = button->bufheight;
         border = rect;
 
         if (theme != NULL)
@@ -164,6 +164,9 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
         real32_t imgwidth = 0.f, imgheight = 0.f, imgsep = 0.f;
         real32_t imgx = 0.f, imgy = 0.f;
         real32_t tx = 0.f, ty = 0.f;
+        real32_t pwidth = 0.f, pheight = 0.f;
+        real32_t scale = _oswindow_scale(button->control.window);
+        uint32_t dpi = _oswindow_dpi(button->control.window);
 
         if (image != NULL)
         {
@@ -185,22 +188,29 @@ static void i_draw_flat_button(OSButton *button, const Image *image)
             }
         }
 
-        _osbutton_flat_position((real32_t)button->width, (real32_t)button->height, imgwidth, imgheight, imgsep, button->imgpos, button->twidth, button->theight, &imgx, &imgy, &tx, &ty);
+        pwidth = (real32_t)button->bufwidth / scale;
+        pheight = (real32_t)button->bufheight / scale;
+        _osbutton_flat_position(pwidth, pheight, imgwidth, imgheight, imgsep, button->imgpos, button->twidth, button->theight, &imgx, &imgy, &tx, &ty);
+
+        imgx *= scale;
+        imgy *= scale;
+        tx *= scale;
+        ty *= scale;
 
         if (imgwidth > 0.f)
-            _osimg_draw(image, memHdc, UINT32_MAX, imgx, imgy, imgwidth, imgheight, !enabled);
+            _osimg_draw(image, memHdc, UINT32_MAX, imgx, imgy, imgwidth * scale, imgheight * scale, !enabled);
 
         if (button->twidth > 0.f)
         {
-            HGDIOBJ old_font = SelectObject(memHdc, (HFONT)font_native(button->font));
+            HGDIOBJ old_font = SelectObject(memHdc, (HFONT)font_native_dpi(button->font, dpi));
             COLORREF color = GetSysColor(enabled ? COLOR_BTNTEXT : COLOR_GRAYTEXT);
             SetBkMode(memHdc, TRANSPARENT);
-            _osdrawctrl_gdi_text(memHdc, NULL, tc(button->text), (int32_t)tx, (int32_t)ty, ekLEFT, ekELLIPEND, -1, color, ekCTRL_STATE_NORMAL);
+            _osdrawctrl_gdi_text(memHdc, NULL, tc(button->text), (int32_t)bmath_roundf(tx), (int32_t)bmath_roundf(ty), ekLEFT, ekELLIPEND, -1, color, ekCTRL_STATE_NORMAL);
             SelectObject(memHdc, old_font);
         }
     }
 
-    BitBlt(hdc, 0, 0, button->width, button->height, memHdc, 0, 0, SRCCOPY);
+    BitBlt(hdc, 0, 0, button->bufwidth, button->bufheight, memHdc, 0, 0, SRCCOPY);
     DeleteDC(memHdc);
 
     {
@@ -484,13 +494,17 @@ void osbutton_align(OSButton *button, const align_t align)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_set_image(HWND hwnd, const Image *image)
+static void i_set_image(HWND hwnd, const Image *image, const real32_t scale)
 {
-    HBITMAP hbitmap = _osimg_hbitmap(image, 0);
+    uint32_t pxwidth = (uint32_t)bmath_roundf((real32_t)image_width(image) * scale);
+    uint32_t pxheight = (uint32_t)bmath_roundf((real32_t)image_height(image) * scale);
+    Image *scaled_image = image_scale(image, pxwidth, pxheight);
+    HBITMAP hbitmap = _osimg_hbitmap(scaled_image, 0);
     BOOL ok = FALSE;
     SendMessage(hwnd, BM_SETIMAGE, (WPARAM)IMAGE_BITMAP, (LPARAM)hbitmap);
     ok = DeleteObject(hbitmap);
     cassert_unref(ok != 0, ok);
+    image_destroy(&scaled_image);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -504,8 +518,11 @@ void osbutton_image(OSButton *button, const Image *image)
     {
         if (image != NULL)
         {
+            real32_t scale = 1.f;
             button->image = image_copy(image);
-            i_set_image(button->control.hwnd, button->image);
+            if (button->control.window != NULL)
+                scale = _oswindow_scale(button->control.window);
+            i_set_image(button->control.hwnd, button->image, scale);
         }
         else
         {
@@ -680,7 +697,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         if (refwidth > 0.f)
         {
             *width += refwidth;
-            *width += (real32_t)(2 * GetSystemMetrics(SM_CXEDGE));
+            *width += (real32_t)(2 * _osgui_system_metrics_for_dpi(SM_CXEDGE, USER_DEFAULT_SCREEN_DPI));
         }
 
         /* Image is higher than text */
@@ -713,9 +730,9 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
     case ekBUTTON_CHECK3:
     case ekBUTTON_RADIO:
         font_extents(button->font, text, -1.f, width, height);
-        *width += (real32_t)GetSystemMetrics(SM_CXMENUCHECK);
-        *width += (real32_t)GetSystemMetrics(SM_CXEDGE);
-        *height = (real32_t)GetSystemMetrics(SM_CYMENUCHECK);
+        *width += (real32_t)_osgui_system_metrics_for_dpi(SM_CXMENUCHECK, USER_DEFAULT_SCREEN_DPI);
+        *width += (real32_t)_osgui_system_metrics_for_dpi(SM_CXEDGE, USER_DEFAULT_SCREEN_DPI);
+        *height = (real32_t)_osgui_system_metrics_for_dpi(SM_CYMENUCHECK, USER_DEFAULT_SCREEN_DPI);
         break;
 
     case ekBUTTON_FLAT:
@@ -782,12 +799,12 @@ void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const 
 
     if (button_is_flat(button->flags) == TRUE)
     {
-        LONG lwidth = (LONG)width;
-        LONG lheight = (LONG)height;
-        if (lwidth != button->width || lheight != button->height)
+        LONG lwidth, lheight;
+        _oswindow_scale_size(button->control.window, width, height, &lwidth, &lheight);
+        if (lwidth != button->bufwidth || lheight != button->bufheight)
         {
-            button->width = lwidth;
-            button->height = lheight;
+            button->bufwidth = lwidth;
+            button->bufheight = lheight;
             if (button->dbuffer != NULL)
             {
                 DeleteObject(button->dbuffer);
@@ -832,6 +849,36 @@ void _osbutton_command(OSButton *button, WPARAM wParam, const bool_t restore_foc
 
         _oswindow_release_transient_focus(cast(button, OSControl));
         unref(restore_focus);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osbutton_update_dpi(OSButton *button)
+{
+    cassert_no_null(button);
+    if (button->font != NULL)
+        _oscontrol_set_font(cast(button, OSControl), button->font);
+
+    if (button_is_flat(button->flags) == TRUE)
+    {
+        button->twidth = -1.f;
+        button->theight = -1.f;
+        if (button->dbuffer != NULL)
+        {
+            DeleteObject(button->dbuffer);
+            button->dbuffer = NULL;
+        }
+    }
+    else if (button_get_type(button->flags) == ekBUTTON_PUSH && button->image != NULL)
+    {
+        i_set_image(button->control.hwnd, button->image, _oswindow_scale(button->control.window));
+    }
+    else
+    {
+        button_flag_t type = button_get_type(button->flags);
+        if (type == ekBUTTON_CHECK2 || type == ekBUTTON_CHECK3 || type == ekBUTTON_RADIO)
+            SendMessage(button->control.hwnd, WM_THEMECHANGED, 0, 0);
     }
 }
 

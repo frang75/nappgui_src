@@ -24,6 +24,7 @@
 #include <draw2d/font.h>
 #include <core/heap.h>
 #include <core/strings.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 #include <sewer/unicode.h>
@@ -197,8 +198,12 @@ void _oscontrol_set_text(OSControl *control, const char_t *text)
 
 void _oscontrol_set_font(OSControl *control, const Font *font)
 {
-    HFONT hfont = (HFONT)font_native(font);
+    uint32_t dpi = USER_DEFAULT_SCREEN_DPI;
+    HFONT hfont;
     cassert_no_null(control);
+    if (control->window != NULL)
+        dpi = _oswindow_dpi(control->window);
+    hfont = (HFONT)font_native_dpi(font, dpi);
     SendMessage(control->hwnd, WM_SETFONT, (WPARAM)hfont, (LPARAM)FALSE);
 }
 
@@ -206,7 +211,8 @@ void _oscontrol_set_font(OSControl *control, const Font *font)
 
 void _oscontrol_update_font(OSControl *control, Font **current_font, const Font *font)
 {
-    HFONT hfont = (HFONT)font_native(font);
+    uint32_t dpi = USER_DEFAULT_SCREEN_DPI;
+    HFONT hfont;
     cassert_no_null(control);
     cassert_no_null(current_font);
     if (font_equals(*current_font, font) == FALSE)
@@ -214,6 +220,11 @@ void _oscontrol_update_font(OSControl *control, Font **current_font, const Font 
         font_destroy(current_font);
         *current_font = font_copy(font);
     }
+
+    if (control->window != NULL)
+        dpi = _oswindow_dpi(control->window);
+
+    hfont = (HFONT)font_native_dpi(font, dpi);
     SendMessage(control->hwnd, WM_SETFONT, (WPARAM)hfont, (LPARAM)FALSE);
 }
 
@@ -250,13 +261,15 @@ void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *he
 {
     BOOL ret;
     RECT rect;
+    real32_t scale;
     cassert_no_null(control);
     cassert_no_null(width);
     cassert_no_null(height);
     ret = GetWindowRect(control->hwnd, &rect);
     cassert_unref(ret != 0, ret);
-    *width = (real32_t)(rect.right - rect.left);
-    *height = (real32_t)(rect.bottom - rect.top);
+    scale = _oswindow_scale(control->window);
+    *width = bmath_ceilf((real32_t)(rect.right - rect.left) / scale);
+    *height = bmath_ceilf((real32_t)(rect.bottom - rect.top) / scale);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -266,13 +279,21 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
     BOOL ret = FALSE;
     OSControl *parent = NULL;
     int scroll_x = 0, scroll_y = 0;
+    LONG nx, ny, nwidth, nheight;
     cassert_no_null(control);
 
     parent = cast(GetWindowLongPtr(GetParent(control->hwnd), GWLP_USERDATA), OSControl);
     if (parent != NULL && parent->type == ekGUI_TYPE_PANEL)
+    {
+        real32_t scale = _oswindow_scale(control->window);
         _ospanel_scroll_pos(cast(parent, OSPanel), &scroll_x, &scroll_y);
+        scroll_x = (int)bmath_roundf((real32_t)scroll_x * scale);
+        scroll_y = (int)bmath_roundf((real32_t)scroll_y * scale);
+    }
 
-    ret = SetWindowPos(control->hwnd, NULL, (int)x - scroll_x, (int)y - scroll_y, (int)width, (int)height, SWP_NOZORDER);
+    _oswindow_scale_pos(control->window, x, y, &nx, &ny);
+    _oswindow_scale_size(control->window, width, height, &nwidth, &nheight);
+    ret = SetWindowPos(control->hwnd, NULL, (int)nx - scroll_x, (int)ny - scroll_y, (int)nwidth, (int)nheight, SWP_NOZORDER);
     cassert_unref(ret != 0, ret);
     control->x = (int32_t)x;
     control->y = (int32_t)y;

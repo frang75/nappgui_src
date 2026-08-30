@@ -16,4 +16,6 @@ __EXTERN_C
 
 void _osslider_message(OSSlider *slider, WPARAM wParam);
 
+void _osslider_update_dpi(OSSlider *slider);
+
 __END_C

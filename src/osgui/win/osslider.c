@@ -275,3 +275,11 @@ void _osslider_message(OSSlider *slider, WPARAM wParam)
         }
     }
 }
+
+/*---------------------------------------------------------------------------*/
+
+void _osslider_update_dpi(OSSlider *slider)
+{
+    cassert_no_null(slider);
+    SendMessage(slider->control.hwnd, WM_THEMECHANGED, 0, 0);
+}

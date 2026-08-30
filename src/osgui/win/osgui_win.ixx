@@ -32,6 +32,10 @@
 
 #define STATIC_TEXT_SIZE 1024
 
+#ifndef USER_DEFAULT_SCREEN_DPI
+#define USER_DEFAULT_SCREEN_DPI 96
+#endif
+
 typedef struct _view_listeners_t ViewListeners;
 typedef struct _osimgdata_t OSImgData;
 typedef struct _osimglist_t OSImgList;

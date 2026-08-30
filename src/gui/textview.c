@@ -56,9 +56,8 @@ TextView *textview_create(void)
     const GuiCtx *context = guictx_get_current();
     TextView *view = obj_new0(TextView);
     void *ositem = NULL;
-    Font *font = font_monospace(font_regular_size(), 0);
+    Font *font = font_system(font_regular_size(), 0);
     const char_t *family = font_family(font);
-    uint32_t units = ekFPIXELS;
     real32_t size = font_size(font);
     uint32_t fstyle = ekFNORMAL;
     align_t palign = ekLEFT;
@@ -70,7 +69,6 @@ TextView *textview_create(void)
     ositem = context->func_create[ekGUI_TYPE_TEXTVIEW](ekTEXT_FLAG);
     view->size = s2df(256, 144);
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_FAMILY, cast_const(family, void));
-    context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_UNITS, cast_const(&units, void));
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_SIZE, cast_const(&size, void));
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_STYLE, cast_const(&fstyle, void));
     context->func_text_set_prop(ositem, (enum_t)ekGUI_TEXT_PARALIGN, cast(&palign, void));
@@ -241,16 +239,6 @@ void textview_rtf(TextView *view, Stream *rtf_in)
     cassert_no_null(view->component.context);
     cassert_no_nullf(view->component.context->func_text_set_rtf);
     view->component.context->func_text_set_rtf(view->component.ositem, rtf_in);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void textview_units(TextView *view, const uint32_t units)
-{
-    cassert_no_null(view);
-    cassert_no_null(view->component.context);
-    cassert_no_nullf(view->component.context->func_text_set_prop);
-    view->component.context->func_text_set_prop(view->component.ositem, (enum_t)ekGUI_TEXT_UNITS, cast_const(&units, void));
 }
 
 /*---------------------------------------------------------------------------*/

@@ -132,8 +132,6 @@ static LData *i_create_data(void)
     data->elems = arrst_create(PElem);
     data->mouse_ypos = UINT32_MAX;
     data->selected = UINT32_MAX;
-    data->font_height = (uint32_t)bmath_ceilf(font_size(data->font));
-    data->cell_height = (uint32_t)bmath_ceilf(font_height(data->font));
     data->check_width = UINT32_MAX;
     data->check_height = UINT32_MAX;
     return data;
@@ -247,6 +245,8 @@ static void i_document_size(LData *data)
     uint32_t n = arrst_size(data->elems, PElem);
     cassert_no_null(data);
 
+    data->font_height = (uint32_t)bmath_ceilf(font_size(data->font));
+    data->cell_height = (uint32_t)bmath_ceilf(font_height(data->font));
     data->row_height = data->cell_height;
 
     if (data->checks == TRUE)

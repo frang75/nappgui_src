@@ -509,6 +509,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
     FPtr_gctx_destroy func_updown_destroy,
     FPtr_gctx_set_listener func_updown_OnClick,
     FPtr_gctx_set_text func_updown_set_tooltip,
+    FPtr_gctx_bounds7 func_updown_bounds,
     FPtr_gctx_set_ptr func_attach_updown_to_panel,
     FPtr_gctx_set_ptr func_detach_updown_from_panel,
     FPtr_gctx_set_bool func_updown_set_visible,
@@ -522,6 +523,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
     func_updown_destroy, \
     func_updown_OnClick, \
     func_updown_set_tooltip, \
+    func_updown_bounds, \
     func_attach_updown_to_panel, \
     func_detach_updown_from_panel, \
     func_updown_set_visible, \
@@ -535,6 +537,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
         FUNC_CHECK_GCTX_DESTROY(func_updown_destroy, updown_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_updown_OnClick, updown_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_updown_set_tooltip, updown_type), \
+        FUNC_CHECK_GCTX_BOUNDS7(func_updown_bounds, updown_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_updown_to_panel, updown_type, panel_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_updown_from_panel, updown_type, panel_type), \
         FUNC_CHECK_GCTX_SET_BOOL(func_updown_set_visible, updown_type), \
@@ -548,6 +551,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
             (FPtr_gctx_destroy)func_updown_destroy, \
             (FPtr_gctx_set_listener)func_updown_OnClick, \
             (FPtr_gctx_set_text)func_updown_set_tooltip, \
+            (FPtr_gctx_bounds7)func_updown_bounds, \
             (FPtr_gctx_set_ptr)func_attach_updown_to_panel, \
             (FPtr_gctx_set_ptr)func_detach_updown_from_panel, \
             (FPtr_gctx_set_bool)func_updown_set_visible, \
@@ -1469,6 +1473,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
     GuiCtx *context,
     FPtr_gctx_get_enum func_globals_device,
     FPtr_gctx_get_enum func_globals_color,
+    FPtr_gctx_set_bool func_globals_dpi_aware,
     FPtr_gctx_get2_real32 func_globals_resolution,
     FPtr_gctx_get4_real32 func_globals_workarea,
     FPtr_gctx_get2_real32 func_globals_mouse_position,
@@ -1481,6 +1486,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
     context, \
     func_globals_device, \
     func_globals_color, \
+    func_globals_dpi_aware, \
     func_globals_resolution, \
     func_globals_workarea, \
     func_globals_mouse_position, \
@@ -1493,6 +1499,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
     ( \
         FUNC_CHECK_GCTX_GET_ENUM(func_globals_device, void, device_t), \
         FUNC_CHECK_GCTX_GET_ENUM(func_globals_color, syscolor_t, color_t), \
+        FUNC_CHECK_GCTX_SET_BOOL(func_globals_dpi_aware, void), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_globals_resolution, void), \
         FUNC_CHECK_GCTX_GET4_REAL32(func_globals_workarea, void), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_globals_mouse_position, void), \
@@ -1505,6 +1512,7 @@ _draw2d_api void guictx_append_globals_manager_imp(
             context, \
             (FPtr_gctx_get_enum)func_globals_device, \
             cast_func(func_globals_color, FPtr_gctx_get_enum), \
+            (FPtr_gctx_set_bool)func_globals_dpi_aware, \
             (FPtr_gctx_get2_real32)func_globals_resolution, \
             (FPtr_gctx_get4_real32)func_globals_workarea, \
             (FPtr_gctx_get2_real32)func_globals_mouse_position, \

@@ -12,8 +12,10 @@
 
 #include "osscroll_win.inl"
 #include "osgui_win.inl"
+#include "oswindow_win.inl"
 #include "../osscroll.inl"
 #include <core/heap.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 
 struct _osscroll_t
@@ -55,7 +57,7 @@ OSScroll *_osscroll_horizontal(OSControl *control)
     else
     {
         scroll->type = SB_CTL;
-        scroll->hwnd = i_create_scroll((DWORD)scroll->type, control->hwnd, 100, GetSystemMetrics(SM_CXHSCROLL));
+        scroll->hwnd = i_create_scroll((DWORD)scroll->type, control->hwnd, 100, _osgui_system_metrics_for_dpi(SM_CXHSCROLL, USER_DEFAULT_SCREEN_DPI));
     }
 
     return scroll;
@@ -79,7 +81,7 @@ OSScroll *_osscroll_vertical(OSControl *control)
     else
     {
         scroll->type = SB_CTL;
-        scroll->hwnd = i_create_scroll(SBS_VERT, control->hwnd, GetSystemMetrics(SM_CXVSCROLL), 100);
+        scroll->hwnd = i_create_scroll(SBS_VERT, control->hwnd, _osgui_system_metrics_for_dpi(SM_CXVSCROLL, USER_DEFAULT_SCREEN_DPI), 100);
     }
 
     return scroll;
@@ -132,7 +134,7 @@ uint32_t _osscroll_trackpos(const OSScroll *scroll)
 uint32_t _osscroll_bar_width(const OSScroll *scroll)
 {
     unref(scroll);
-    return (uint32_t)GetSystemMetrics(SM_CXVSCROLL);
+    return (uint32_t)_osgui_system_metrics_for_dpi(SM_CXVSCROLL, USER_DEFAULT_SCREEN_DPI);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -140,7 +142,7 @@ uint32_t _osscroll_bar_width(const OSScroll *scroll)
 uint32_t _osscroll_bar_height(const OSScroll *scroll)
 {
     unref(scroll);
-    return (uint32_t)GetSystemMetrics(SM_CXHSCROLL);
+    return (uint32_t)_osgui_system_metrics_for_dpi(SM_CXHSCROLL, USER_DEFAULT_SCREEN_DPI);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -183,8 +185,14 @@ void _osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const
     cassert_no_null(scroll);
     if (scroll->type == SB_CTL)
     {
+        /* 'x'/'y'/'width'/'height' arrive in logical screen points - scaled to real pixels here, right before the raw SetWindowPos() call */
+        real32_t scale = (real32_t)_osgui_dpi_for_window(scroll->hwnd) / (real32_t)USER_DEFAULT_SCREEN_DPI;
+        int32_t px = (int32_t)bmath_roundf((real32_t)x * scale);
+        int32_t py = (int32_t)bmath_roundf((real32_t)y * scale);
+        int32_t pwidth = (int32_t)bmath_roundf((real32_t)width * scale);
+        int32_t pheight = (int32_t)bmath_roundf((real32_t)height * scale);
         /* The control-owner scrollbars are automatically positioned  */
-        BOOL ret = SetWindowPos(scroll->hwnd, NULL, (int)x, (int)y, (int)width, (int)height, SWP_NOZORDER);
+        BOOL ret = SetWindowPos(scroll->hwnd, NULL, (int)px, (int)py, (int)pwidth, (int)pheight, SWP_NOZORDER);
         cassert_unref(ret != 0, ret);
     }
 }
@@ -193,8 +201,26 @@ void _osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const
 
 void _osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y)
 {
+    real32_t scale;
+    int32_t pincr_x = 0, pincr_y = 0;
     cassert_no_null(control);
-    ScrollWindowEx(control->hwnd, (int)incr_x, (int)incr_y, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+    scale = _oswindow_scale(control->window);
+
+    if (incr_x != 0)
+    {
+        int32_t new_x = (int32_t)GetScrollPos(control->hwnd, SB_HORZ);
+        int32_t old_x = new_x + incr_x;
+        pincr_x = (int32_t)bmath_roundf((real32_t)old_x * scale) - (int32_t)bmath_roundf((real32_t)new_x * scale);
+    }
+
+    if (incr_y != 0)
+    {
+        int32_t new_y = (int32_t)GetScrollPos(control->hwnd, SB_VERT);
+        int32_t old_y = new_y + incr_y;
+        pincr_y = (int32_t)bmath_roundf((real32_t)old_y * scale) - (int32_t)bmath_roundf((real32_t)new_y * scale);
+    }
+
+    ScrollWindowEx(control->hwnd, (int)pincr_x, (int)pincr_y, NULL, NULL, NULL, NULL, SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
 }
 
 /*---------------------------------------------------------------------------*/

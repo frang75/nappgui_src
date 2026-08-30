@@ -44,7 +44,6 @@ struct _ostext_t
     OSControl control;
     char_t ffamily[64];
     real32_t fsize;
-    uint32_t funits;
     uint32_t fstyle;
     color_t color;
     color_t bgcolor;
@@ -90,30 +89,10 @@ static real32_t i_device_to_pixels(void)
 
 /*---------------------------------------------------------------------------*/
 
-static ___INLINE gint i_size_pango(const char_t *family, const real32_t size, const uint32_t fstyle, const uint32_t funits)
+static ___INLINE gint i_size_pango(const real32_t size)
 {
-    real32_t psize = 0;
-    if ((funits & ekFPOINTS) == ekFPOINTS)
-    {
-        psize = size * (real32_t)PANGO_SCALE;
-    }
-    else
-    {
-        /* Pixels */
-        psize = size / i_device_to_pixels();
-    }
-
-    if ((funits & ekFCELL) == ekFCELL && str_empty_c(family) == FALSE)
-    {
-        Font *font = font_create(family, size, fstyle);
-        real32_t w, h, s;
-        font_extents(font, "REFTEXT", -1, &w, &h);
-        s = size / h;
-        psize *= s;
-        font_destroy(&font);
-    }
-
-    return (gint)psize;
+    /* 'size' is always in logical screen points (DPI-independent) */
+    return (gint)(size / i_device_to_pixels());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -140,7 +119,7 @@ static GtkTextTag *i_tag_attribs(OSText *view)
     {
         GValue gvalue = G_VALUE_INIT;
         g_value_init(&gvalue, G_TYPE_INT);
-        g_value_set_int(&gvalue, i_size_pango(view->ffamily, view->fsize, view->fstyle, view->funits));
+        g_value_set_int(&gvalue, i_size_pango(view->fsize));
         g_object_set_property(G_OBJECT(tag), "size-set", &gtrue);
         g_object_set_property(G_OBJECT(tag), "size", &gvalue);
         g_value_unset(&gvalue);
@@ -828,17 +807,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
         }
         break;
 
-    case ekGUI_TEXT_UNITS:
-    {
-        uint32_t funits = *cast(value, uint32_t);
-        if (view->funits != funits)
-        {
-            view->funits = funits;
-            view->tag_attribs = NULL;
-        }
-        break;
-    }
-
     case ekGUI_TEXT_SIZE:
         if (view->fsize != *cast(value, real32_t))
         {
@@ -912,7 +880,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_AFPARSPACE:
     {
-        gint lspace = i_size_pango(NULL, *cast(value, real32_t), 0, view->funits) / PANGO_SCALE;
+        gint lspace = i_size_pango(*cast(value, real32_t)) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->afspace_px)
         {
             view->afspace_px = lspace;
@@ -924,7 +892,7 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
 
     case ekGUI_TEXT_BFPARSPACE:
     {
-        gint lspace = i_size_pango(NULL, *cast(value, real32_t), 0, view->funits) / PANGO_SCALE;
+        gint lspace = i_size_pango(*cast(value, real32_t)) / PANGO_SCALE;
         if (lspace >= 0 && lspace != view->bfspace_px)
         {
             view->bfspace_px = lspace;

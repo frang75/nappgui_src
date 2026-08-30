@@ -466,11 +466,14 @@ void osweb_frame(OSWeb *view, const real32_t x, const real32_t y, const real32_t
     /* The webview callback may not have been executed yet */
     if (view->web.webViewCtrl != NULL)
     {
+        /* 'width'/'height' arrive in logical screen points  */
         RECT bounds;
+        LONG pwidth, pheight;
+        _oswindow_scale_size(view->control.window, width, height, &pwidth, &pheight);
         bounds.left = 0;
         bounds.top = 0;
-        bounds.right = (LONG)width;
-        bounds.bottom = (LONG)height;
+        bounds.right = pwidth;
+        bounds.bottom = pheight;
         view->web.webViewCtrl->put_Bounds(bounds);
     }
 #endif

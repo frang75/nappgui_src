@@ -13,6 +13,7 @@
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
+#include "osprogress_win.inl"
 #include "../osprogress.h"
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -167,4 +168,12 @@ void osprogress_origin(const OSProgress *progress, real32_t *x, real32_t *y)
 void osprogress_frame(OSProgress *progress, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame(cast(progress, OSControl), x, y, width, height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osprogress_update_dpi(OSProgress *progress)
+{
+    cassert_no_null(progress);
+    SendMessage(progress->control.hwnd, WM_THEMECHANGED, 0, 0);
 }

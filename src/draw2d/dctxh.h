@@ -18,7 +18,7 @@ _draw2d_api DCtx *dctx_create(void);
 
 _draw2d_api void dctx_destroy(DCtx **ctx);
 
-_draw2d_api void dctx_set_gcontext(DCtx *ctx, void *gcontext, const uint32_t width, const uint32_t height, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset);
+_draw2d_api void dctx_set_gcontext(DCtx *ctx, void *gcontext, const real32_t width, const real32_t height, const uint32_t dpi, const real32_t scale, const real32_t offset_x, const real32_t offset_y, const uint32_t background, const bool_t reset);
 
 _draw2d_api void dctx_unset_gcontext(DCtx *ctx);
 
@@ -27,6 +27,8 @@ _draw2d_api void dctx_set_flipped(DCtx *ctx, const bool_t flipped);
 _draw2d_api void dctx_size(const DCtx *ctx, uint32_t *width, uint32_t *height);
 
 _draw2d_api void dctx_offset(const DCtx *ctx, real32_t *offset_x, real32_t *offset_y);
+
+_draw2d_api real32_t dctx_scale(const DCtx *ctx);
 
 _draw2d_api void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size);
 

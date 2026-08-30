@@ -16,6 +16,8 @@ __EXTERN_C
 
 void _osbutton_command(OSButton *button, WPARAM wParam, const bool_t restore_focus);
 
+void _osbutton_update_dpi(OSButton *button);
+
 void _osbutton_toggle(OSButton *button);
 
 void _osbutton_set_can_focus(OSButton *button, const bool_t can_focus);

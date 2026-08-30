@@ -141,24 +141,32 @@ static void i_OnWindowMoved(Window *window, Event *event)
 
 static void i_OnWindowResize(Window *window, Event *e)
 {
-    const EvSize *params = NULL;
     cassert_no_null(window);
     cassert_no_null(window->context);
     cassert(event_sender_imp(e, NULL) == window->ositem);
-    params = event_params(e, EvSize);
-    cassert_no_null(params);
 
     switch (event_type(e))
     {
     case ekGUI_EVENT_WND_SIZING:
     {
-        S2Df reqsize;
-        S2Df finsize;
         EvSize *result = event_result(e, EvSize);
+        S2Df finsize;
         cassert_no_null(result);
-        reqsize.width = params->width;
-        reqsize.height = params->height;
-        _layout_compose(window->main_layout, &reqsize, &finsize);
+
+        if (window->flags & ekWINDOW_RESIZE)
+        {
+            const EvSize *params = event_params(e, EvSize);
+            S2Df reqsize;
+            cassert_no_null(params);
+            reqsize.width = params->width;
+            reqsize.height = params->height;
+            _layout_compose(window->main_layout, &reqsize, &finsize);
+        }
+        else
+        {
+            _layout_compose(window->main_layout, NULL, &finsize);
+        }
+
         result->width = finsize.width;
         result->height = finsize.height;
         break;
@@ -166,8 +174,9 @@ static void i_OnWindowResize(Window *window, Event *e)
 
     case ekGUI_EVENT_WND_SIZE:
     {
+        const EvSize *params = event_params(e, EvSize);
         _layout_locate(window->main_layout);
-        if (window->OnResize != NULL)
+        if (window->OnResize != NULL && params != NULL)
             listener_pass_event(window->OnResize, e, window, Window);
         break;
     }

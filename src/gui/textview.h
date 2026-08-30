@@ -35,8 +35,6 @@ _gui_api void textview_cpos_writef(TextView *view, const char_t *text);
 
 _gui_api void textview_rtf(TextView *view, Stream *rtf_in);
 
-_gui_api void textview_units(TextView *view, const uint32_t units);
-
 _gui_api void textview_family(TextView *view, const char_t *family);
 
 _gui_api void textview_fsize(TextView *view, const real32_t size);

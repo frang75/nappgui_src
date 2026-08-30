@@ -15,10 +15,12 @@
 #include "oscontrol_win.inl"
 #include "oslistener.inl"
 #include "ospanel_win.inl"
+#include "oswindow_win.inl"
 #include "../ossplit.h"
 #include "../osgui.inl"
 #include <core/event.h>
 #include <core/heap.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -54,8 +56,12 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_SETCURSOR:
     {
         POINT pt;
+        real32_t scale = _oswindow_scale(split->control.window);
         GetCursorPos(&pt);
         ScreenToClient(split->control.hwnd, &pt);
+        /* 'pt' is real pixels (client area) - 'divrect' is in logical screen points */
+        pt.x = (LONG)bmath_roundf((real32_t)pt.x / scale);
+        pt.y = (LONG)bmath_roundf((real32_t)pt.y / scale);
         if (PtInRect(&split->divrect, pt) == TRUE)
         {
             HCURSOR cursor = split_get_type(split->flags) == ekSPLIT_VERT ? kSIZING_VERTICAL_CURSOR : kSIZING_HORIZONTAL_CURSOR;
@@ -78,11 +84,13 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             if (split->OnDrag != NULL)
             {
                 EvMouse params;
+                real32_t scale = _oswindow_scale(split->control.window);
                 split->mouse_pos = MAKEPOINTS(lParam);
-                params.x = (real32_t)split->mouse_pos.x;
-                params.y = (real32_t)split->mouse_pos.y;
-                params.lx = (real32_t)split->mouse_st.x;
-                params.ly = (real32_t)split->mouse_st.y;
+                /* 'mouse_pos'/'mouse_st' pixels. EvMouse needs screen points */
+                params.x = (real32_t)split->mouse_pos.x / scale;
+                params.y = (real32_t)split->mouse_pos.y / scale;
+                params.lx = (real32_t)split->mouse_st.x / scale;
+                params.ly = (real32_t)split->mouse_st.y / scale;
                 params.button = ekGUI_MOUSE_LEFT;
                 params.count = 0;
                 params.modifiers = 0;
@@ -97,8 +105,9 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         {
             POINTS point = MAKEPOINTS(lParam);
             POINT pt;
-            pt.x = point.x;
-            pt.y = point.y;
+            real32_t scale = _oswindow_scale(split->control.window);
+            pt.x = (LONG)bmath_roundf((real32_t)point.x / scale);
+            pt.y = (LONG)bmath_roundf((real32_t)point.y / scale);
             if (PtInRect(&split->divrect, pt) == FALSE)
                 ReleaseCapture();
         }
@@ -110,9 +119,10 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 #if defined __ASSERTS__
         POINTS point;
         POINT pt;
+        real32_t scale = _oswindow_scale(split->control.window);
         point = MAKEPOINTS(lParam);
-        pt.x = point.x;
-        pt.y = point.y;
+        pt.x = (LONG)bmath_roundf((real32_t)point.x / scale);
+        pt.y = (LONG)bmath_roundf((real32_t)point.y / scale);
         cassert(GetCapture() == split->control.hwnd);
         cassert(PtInRect(&split->divrect, pt) == TRUE);
 #endif
@@ -127,11 +137,12 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (split->OnDrag != NULL)
         {
             EvMouse params;
+            real32_t scale = _oswindow_scale(split->control.window);
             split->mouse_pos = MAKEPOINTS(lParam);
-            params.x = (real32_t)split->mouse_pos.x;
-            params.y = (real32_t)split->mouse_pos.y;
-            params.lx = (real32_t)split->mouse_st.x;
-            params.ly = (real32_t)split->mouse_st.y;
+            params.x = (real32_t)split->mouse_pos.x / scale;
+            params.y = (real32_t)split->mouse_pos.y / scale;
+            params.lx = (real32_t)split->mouse_st.x / scale;
+            params.ly = (real32_t)split->mouse_st.y / scale;
             params.button = ekGUI_MOUSE_LEFT;
             params.count = 0;
             params.modifiers = 0;

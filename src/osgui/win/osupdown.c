@@ -16,6 +16,8 @@
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "../osupdown.h"
+#include "../osgui.inl"
+#include <draw2d/font.h>
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -32,6 +34,7 @@
 struct _osupdown_t
 {
     OSControl control;
+    Font *font;
     Listener *OnClick;
 };
 
@@ -72,7 +75,7 @@ OSUpDown *osupdown_create(const uint32_t flags)
     dwStyle = WS_CHILD | WS_CLIPSIBLINGS | UDS_ARROWKEYS;
     _oscontrol_init(cast(updown, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, UPDOWN_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
     updown->control.tooltip_hwnd1 = updown->control.hwnd;
-    _oscontrol_set_frame(cast(updown, OSControl), 0, 0, 20, 20);
+    updown->font = _osgui_create_default_font();
     return updown;
 }
 
@@ -82,6 +85,7 @@ void osupdown_destroy(OSUpDown **updown)
 {
     cassert_no_null(updown);
     cassert_no_null(*updown);
+    font_destroy(&(*updown)->font);
     listener_destroy(&(*updown)->OnClick);
     _oscontrol_destroy(&(*updown)->control);
     heap_delete(updown, OSUpDown);
@@ -100,6 +104,31 @@ void osupdown_OnClick(OSUpDown *updown, Listener *listener)
 void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
     _oscontrol_tooltip(cast(updown, OSControl), text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osupdown_bounds(const OSUpDown *updown, real32_t *width, real32_t *height)
+{
+    real32_t fwidth, fheight;
+    uint32_t defpadding = 0;
+    cassert_no_null(updown);
+    cassert_no_null(width);
+    cassert_no_null(height);
+
+    /* Same height as a default Edit (osedit_bounds()'s default vpadding formula) */
+    font_extents(updown->font, "O", -1.f, &fwidth, &fheight);
+    defpadding = (uint32_t)((.3f * fheight) + .5f);
+    if (defpadding % 2 == 1)
+        defpadding += 1;
+    if (defpadding < 5)
+        defpadding = 5;
+
+    *height = fheight + (real32_t)defpadding;
+    if (*height > 32.f)
+        *width = 32.f;
+    else
+        *width = *height;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -172,4 +201,13 @@ void _osupdown_OnNotification(OSUpDown *updown, const NMHDR *nmhdr, LPARAM lPara
             listener_event(updown->OnClick, ekGUI_EVENT_UPDOWN, updown, &params, NULL, OSUpDown, EvButton, void);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osupdown_update_dpi(OSUpDown *updown)
+{
+    cassert_no_null(updown);
+    _oscontrol_set_font(cast(updown, OSControl), updown->font);
+    SendMessage(updown->control.hwnd, WM_THEMECHANGED, 0, 0);
 }

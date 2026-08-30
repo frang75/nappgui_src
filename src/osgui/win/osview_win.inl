@@ -4,18 +4,16 @@
  * MIT Licence
  * https://nappgui.com/en/legal/license.html
  *
- * File: ostabs_win.inl
+ * File: osview_win.inl
  *
  */
 
-/* Operating System native tabctrl */
+/* Operating System native view */
 
 #include "osgui_win.ixx"
 
 __EXTERN_C
 
-void _ostabs_update_dpi(OSTabs *tabs);
-
-void _ostabs_OnNotification(OSTabs *tabs, const NMHDR *nmhdr);
+void _osview_update_dpi(OSView *view);
 
 __END_C

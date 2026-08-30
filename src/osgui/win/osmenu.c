@@ -17,6 +17,7 @@
 #include "../osmenu.h"
 #include <core/arrpt.h>
 #include <core/heap.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -171,8 +172,11 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
         HWND hwnd = NULL;
         BOOL ok = FALSE;
         UINT flags = TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_NOANIMATION;
+        real32_t scale = _oswindow_scale(window);
+        int32_t px = (int32_t)bmath_roundf(x * scale);
+        int32_t py = (int32_t)bmath_roundf(y * scale);
         hwnd = _oswindow_set_current_popup_menu(window, menu->hmenu);
-        ok = TrackPopupMenu(menu->hmenu, flags, (int)x, (int)y, PARAM(nReserved, 0), hwnd, NULL);
+        ok = TrackPopupMenu(menu->hmenu, flags, (int)px, (int)py, PARAM(nReserved, 0), hwnd, NULL);
         cassert_unref(ok != 0, ok);
     }
 }

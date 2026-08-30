@@ -1062,6 +1062,9 @@ static void i_OnSize(TData *data, Event *e)
     View *view = event_sender(e, View);
     cassert_no_null(data);
     scrollview_control_size(data->sview, (uint32_t)p->width, (uint32_t)p->height);
+    i_head_height(data);
+    i_row_height(data);
+
     data->recompute_width = TRUE;
     data->recompute_height = TRUE;
     i_document_size(view, data);

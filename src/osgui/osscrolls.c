@@ -97,31 +97,27 @@ void _osscrolls_OnScroll(OSScrolls *scroll, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
-void _osscrolls_visible_area(OSScrolls *scroll, uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height, uint32_t *total_width, uint32_t *total_height)
+void _osscrolls_visible_area(OSScrolls *scroll, uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height)
 {
     cassert_no_null(scroll);
     if (scroll->hscroll != NULL)
     {
         uint32_t pos = _osscroll_pos(scroll->hscroll);
         ptr_assign(x, pos);
-        ptr_assign(total_width, scroll->content_width);
     }
     else
     {
         ptr_assign(x, 0);
-        ptr_assign(total_width, scroll->view_width);
     }
 
     if (scroll->vscroll != NULL)
     {
         uint32_t pos = _osscroll_pos(scroll->vscroll);
         ptr_assign(y, pos);
-        ptr_assign(total_height, scroll->content_height);
     }
     else
     {
         ptr_assign(y, 0);
-        ptr_assign(total_height, scroll->view_height);
     }
 
     ptr_assign(width, scroll->view_width);

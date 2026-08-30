@@ -102,7 +102,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
             view->ctx = dctx_create();
 
         params.ctx = view->ctx;
-        dctx_set_gcontext(view->ctx, cr, (uint32_t)view->clip_width, (uint32_t)view->clip_height, params.x, params.y, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
+        dctx_set_gcontext(view->ctx, cr, view->clip_width, view->clip_height, 96, 1.f, params.x, params.y, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
         _oslistener_redraw(cast(view, OSControl), &params, &view->listeners);
         dctx_unset_gcontext(view->ctx);
 
@@ -110,7 +110,7 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
         {
             params.x = 0;
             params.y = 0;
-            dctx_set_gcontext(view->ctx, cr, (uint32_t)view->clip_width, (uint32_t)view->clip_height, 0, 0, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
+            dctx_set_gcontext(view->ctx, cr, view->clip_width, view->clip_height, 96, 1.f, 0, 0, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
             listener_event(view->OnOverlay, ekGUI_EVENT_OVERLAY, view, &params, NULL, OSView, EvDraw, void);
             dctx_unset_gcontext(view->ctx);
         }

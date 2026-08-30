@@ -199,30 +199,12 @@ static NSFont *i_nsfont(const char_t *family, const real32_t size, const uint32_
 
 /*---------------------------------------------------------------------------*/
 
-static real32_t i_cell_size(NSFont *font, const real32_t size)
-{
-    const char_t *reftext = "ABCDEabcde";
-    real32_t twidth = 0, theight = 0;
-    real32_t scale = 0;
-    osfont_extents(cast(font, OSFont), reftext, 1, -1, &twidth, &theight);
-    scale = size / theight;
-    return bmath_floorf(size * scale);
-}
-
-/*---------------------------------------------------------------------------*/
-
 OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t width, const real32_t xscale, const uint32_t style)
 {
     real32_t esize = size;
     NSFont *nsfont = i_nsfont(family, esize, style);
     cassert_fatal_msg(nsfont != nil, "Font is not available on this computer.");
     unref(width);
-
-    if ((style & ekFCELL) == ekFCELL)
-    {
-        esize = i_cell_size(nsfont, esize);
-        nsfont = i_nsfont(family, esize, style);
-    }
 
     if (nsfont != nil)
     {
@@ -295,36 +277,58 @@ font_family_t osfont_system(const char_t *family)
 
 /*---------------------------------------------------------------------------*/
 
-void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xscale, real32_t *ascent, real32_t *descent, real32_t *leading, real32_t *cell_size, real32_t *avg_width, bool_t *monospace)
+real32_t osfont_ascent(const OSFont *font)
 {
     NSFont *nsfont = cast(font, NSFont);
+    return (real32_t)[nsfont ascender];
+}
 
-    if (ascent != NULL)
-        *ascent = (real32_t)[nsfont ascender];
+/*---------------------------------------------------------------------------*/
 
-    if (descent != NULL)
-        *descent = (real32_t) - [nsfont descender];
+real32_t osfont_descent(const OSFont *font)
+{
+    NSFont *nsfont = cast(font, NSFont);
+    return (real32_t) - [nsfont descender];
+}
 
-    /* We need to get a real text measure */
-    if (leading != NULL || cell_size != NULL || avg_width != NULL)
-    {
-        real32_t width, height;
-        uint32_t len;
-        const char_t *str = _draw2d_str_avg_char_width(&len);
-        osfont_extents(font, str, xscale, -1, &width, &height);
+/*---------------------------------------------------------------------------*/
 
-        if (leading != NULL)
-            *leading = height - size;
+real32_t osfont_leading(const OSFont *font, const real32_t size)
+{
+    real32_t width = 0, height = 0;
+    osfont_extents(font, "OO", 1.f, -1, &width, &height);
+    unref(width);
+    return height - size;
+}
 
-        if (cell_size != NULL)
-            *cell_size = height;
+/*---------------------------------------------------------------------------*/
 
-        if (avg_width != NULL)
-            *avg_width = width / len;
-    }
+real32_t osfont_cell_size(const OSFont *font)
+{
+    real32_t width = 0, height = 0;
+    osfont_extents(font, "OO", 1.f, -1, &width, &height);
+    unref(width);
+    return height;
+}
 
-    if (monospace != NULL)
-        *monospace = (bool_t)[nsfont isFixedPitch];
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_avg_width(const OSFont *font, const real32_t xscale)
+{
+    real32_t width = 0, height = 0;
+    uint32_t len = 0;
+    const char_t *str = _draw2d_str_avg_char_width(&len);
+    osfont_extents(font, str, xscale, -1, &width, &height);
+    unref(height);
+    return width / (real32_t)len;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osfont_is_monospace(const OSFont *font)
+{
+    NSFont *nsfont = cast(font, NSFont);
+    return (bool_t)[nsfont isFixedPitch];
 }
 
 /*---------------------------------------------------------------------------*/
@@ -349,6 +353,21 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscal
 const void *osfont_native(const OSFont *font)
 {
     return cast(font, void);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const void *osfont_native_dpi(OSFont *font, const uint32_t dpi)
+{
+    unref(dpi);
+    return cast(font, void);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osfont_metrics_dpi(const uint32_t dpi)
+{
+    unref(dpi);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -93,48 +93,6 @@ static DWORD i_flags(const edit_flag_t flags)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_update_vpadding(OSEdit *edit)
-{
-    real32_t width, height;
-    uint32_t defpadding = 0;
-
-    cassert_no_null(edit);
-    font_extents(edit->font, "O", -1.f, &width, &height);
-
-    defpadding = (uint32_t)((.3f * height) + .5f);
-    if (defpadding % 2 == 1)
-        defpadding += 1;
-
-    if (defpadding < 5)
-        defpadding = 5;
-
-    if (edit->vpadding == UINT32_MAX)
-    {
-        edit->rpadding = (real32_t)defpadding;
-        edit->wpadding = 0;
-    }
-    else
-    {
-        real32_t leading = font_leading(edit->font);
-        uint32_t padding = edit->vpadding + (uint32_t)leading;
-
-        if (padding % 2 == 1)
-            padding += 1;
-
-        if (padding < 4)
-            padding = 4;
-
-        if (padding > defpadding)
-            edit->wpadding = (INT)((padding - defpadding) / 2);
-        else
-            edit->wpadding = 0;
-
-        edit->rpadding = (real32_t)padding;
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
 OSEdit *osedit_create(const uint32_t flags)
 {
     OSEdit *edit = heap_new0(OSEdit);
@@ -146,7 +104,6 @@ OSEdit *osedit_create(const uint32_t flags)
     edit->font = _osgui_create_default_font();
     edit->launch_event = TRUE;
     edit->vpadding = UINT32_MAX;
-    i_update_vpadding(edit);
     _oscontrol_set_font(cast(edit, OSControl), edit->font);
     return edit;
 }
@@ -206,7 +163,6 @@ void osedit_font(OSEdit *edit, const Font *font)
 {
     cassert_no_null(edit);
     _oscontrol_update_font(cast(edit, OSControl), &edit->font, font);
-    i_update_vpadding(edit);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -299,7 +255,48 @@ void osedit_vpadding(OSEdit *edit, const real32_t padding)
 {
     cassert_no_null(edit);
     edit->vpadding = (padding < 0) ? UINT32_MAX : (uint32_t)padding;
-    i_update_vpadding(edit);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_update_vpadding(OSEdit *edit)
+{
+    real32_t width, height;
+    uint32_t defpadding = 0;
+
+    cassert_no_null(edit);
+    font_extents(edit->font, "O", -1.f, &width, &height);
+
+    defpadding = (uint32_t)((.3f * height) + .5f);
+    if (defpadding % 2 == 1)
+        defpadding += 1;
+
+    if (defpadding < 5)
+        defpadding = 5;
+
+    if (edit->vpadding == UINT32_MAX)
+    {
+        edit->rpadding = (real32_t)defpadding;
+        edit->wpadding = 0;
+    }
+    else
+    {
+        real32_t leading = font_leading(edit->font);
+        uint32_t padding = edit->vpadding + (uint32_t)leading;
+
+        if (padding % 2 == 1)
+            padding += 1;
+
+        if (padding < 4)
+            padding = 4;
+
+        if (padding > defpadding)
+            edit->wpadding = (INT)((padding - defpadding) / 2);
+        else
+            edit->wpadding = 0;
+
+        edit->rpadding = (real32_t)padding;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -310,6 +307,8 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     cassert_no_null(width);
     cassert_no_null(height);
     cassert_unref(lines == 1, lines);
+
+    i_update_vpadding(cast(edit, OSEdit));
 
     if (edit_get_type(edit->flags) == ekEDIT_SINGLE)
         font_extents(edit->font, "O", -1.f, width, height);
@@ -430,6 +429,14 @@ void _osedit_command(OSEdit *edit, WPARAM wParam)
                 i_set_cursor_pos(edit->control.hwnd, params.cpos);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osedit_update_dpi(OSEdit *edit)
+{
+    cassert_no_null(edit);
+    _oscontrol_set_font(cast(edit, OSControl), edit->font);
 }
 
 /*---------------------------------------------------------------------------*/

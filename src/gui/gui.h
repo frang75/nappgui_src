@@ -19,6 +19,8 @@ _gui_api void gui_start(void);
 
 _gui_api void gui_finish(void);
 
+_gui_api void gui_dpi_aware(const bool_t aware);
+
 _gui_api void gui_respack(FPtr_respack func_respack);
 
 _gui_api void gui_language(const char_t *lang);

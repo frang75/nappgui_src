@@ -54,7 +54,6 @@ UpDown *updown_create(void)
     void *ositem = context->func_create[ekGUI_TYPE_UPDOWN](ekUPDOWN_FLAG);
     UpDown *updown = obj_new0(UpDown);
     _component_init(&updown->component, context, PARAM(type, ekGUI_TYPE_UPDOWN), &ositem);
-    _component_get_size(&updown->component, &updown->size);
     context->func_updown_OnClick(updown->component.ositem, obj_listener(updown, i_OnClick, UpDown));
     return updown;
 }
@@ -98,6 +97,7 @@ void _updown_natural(UpDown *updown, const uint32_t i, real32_t *dim0, real32_t 
     cassert_no_null(dim1);
     if (i == 0)
     {
+        updown->component.context->func_updown_bounds(updown->component.ositem, &updown->size.width, &updown->size.height);
         *dim0 = updown->size.width;
     }
     else

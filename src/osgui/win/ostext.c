@@ -38,7 +38,6 @@
 struct _ostext_t
 {
     OSControl control;
-    uint32_t funits;
     uint32_t fstyle;
     real32_t fsize;
     COLORREF crTextColor;
@@ -202,47 +201,14 @@ static uint32_t i_text_num_chars(HWND hwnd)
 
 /*---------------------------------------------------------------------------*/
 
-static LONG i_font_yHeight(HWND hwnd, const WCHAR *szFaceName, const real32_t fsize, const uint32_t funits, const uint32_t fstyle)
+static LONG i_font_yHeight(const real32_t fsize)
 {
-    /* We need to create a temporal HFONT, to get the internal leading */
-    if (funits & ekFCELL)
-    {
-        int height_px = 0;
-        HDC hdc = GetDC(hwnd);
-        HFONT font = CreateFont(
-            (int)fsize,
-            PARAM(nWidth, 0),
-            PARAM(nEscapement, 0),
-            PARAM(nOrientation, 0),
-            (fstyle & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
-            (DWORD)((fstyle & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
-            (DWORD)((fstyle & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
-            (DWORD)((fstyle & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
-            PARAM(fdwCharSet, ANSI_CHARSET),
-            PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
-            PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
-            PARAM(fdwQuality, DEFAULT_QUALITY),
-            PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
-            szFaceName);
-        HFONT ofont = (HFONT)SelectObject(hdc, font);
-        TEXTMETRIC tm;
-
-        GetTextMetrics(hdc, &tm);
-        height_px = tm.tmHeight - tm.tmInternalLeading;
-        SelectObject(hdc, ofont);
-        DeleteObject(font);
-        ReleaseDC(hwnd, hdc);
-        return (LONG)(height_px * kTWIPS_PER_PIXEL_GUI);
-    }
-    else if (funits & ekFPOINTS)
-    {
-        real32_t size = fsize * (real32_t)kLOG_PIXY_GUI / 72.f;
-        return (LONG)size * kTWIPS_PER_PIXEL_GUI;
-    }
-    else
-    {
-        return (LONG)fsize * kTWIPS_PER_PIXEL_GUI;
-    }
+    /*
+     * 'fsize' is in logical screen points (96 DPI)
+     * NOT typographic/print points (72 DPI reference).
+     * Twips are 1/1440 inch, so 1 logical screen point = 1440/96 = 15 twips
+     */
+    return (LONG)(fsize)*15;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -255,7 +221,7 @@ static void i_apply_format(OSText *view, WPARAM char_sel)
     cassert_no_null(view);
     format.cbSize = sizeof(CHARFORMAT2);
     format.dwMask = CFM_FACE | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT | CFM_SUBSCRIPT | CFM_SIZE | CFM_COLOR | CFM_BACKCOLOR;
-    format.yHeight = i_font_yHeight(view->control.hwnd, view->szFaceName, view->fsize, view->funits, view->fstyle);
+    format.yHeight = i_font_yHeight(view->fsize);
 
     format.dwEffects = 0;
     if (view->fstyle & ekFBOLD)
@@ -410,10 +376,6 @@ void ostext_property(OSText *view, const gui_text_t prop, const void *value)
     {
     case ekGUI_TEXT_FAMILY:
         unicode_convers(cast_const(value, char_t), cast(view->szFaceName, char_t), ekUTF8, ekUTF16, sizeof(view->szFaceName));
-        break;
-
-    case ekGUI_TEXT_UNITS:
-        view->funits = *cast_const(value, uint32_t);
         break;
 
     case ekGUI_TEXT_SIZE:

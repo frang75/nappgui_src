@@ -33,23 +33,12 @@
 /*---------------------------------------------------------------------------*/
 
 static Gdiplus::ColorPalette *i_kGRAY8_PALETTE = NULL;
-int kLOG_PIXY = 0;
-LONG kTWIPS_PER_PIXEL = 0;
 
 /*---------------------------------------------------------------------------*/
 
 void _draw_alloc_globals(void)
 {
     i_kGRAY8_PALETTE = NULL;
-
-    /* TWIPS for Font Size */
-    {
-        HDC hdc = GetDC(NULL);
-        kLOG_PIXY = GetDeviceCaps(hdc, LOGPIXELSY);
-        int ret = ReleaseDC(NULL, hdc);
-        cassert_unref(ret == 1, ret);
-        kTWIPS_PER_PIXEL = 1440 / kLOG_PIXY;
-    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -651,13 +640,12 @@ void draw_fill_wrap(DCtx *ctx, const fillwrap_t wrap)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily **ffamily, INT *fstyle, Gdiplus::REAL *fsize, Gdiplus::REAL *fintleading)
+static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily **ffamily, INT *fstyle, Gdiplus::REAL *fsize)
 {
     const char_t *family = NULL;
     WCHAR wfamily[128];
     uint32_t style = 0;
     INT lstyle = 0;
-    Gdiplus::Unit unit = Gdiplus::UnitPixel;
 
     family = font_family(font);
     unicode_convers(family, cast(wfamily, char_t), ekUTF8, ekUTF16, sizeof(wfamily));
@@ -671,25 +659,16 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
         lstyle |= Gdiplus::FontStyleStrikeout;
     if (style & ekFUNDERLINE)
         lstyle |= Gdiplus::FontStyleUnderline;
-    if (style & ekFPOINTS)
-        unit = Gdiplus::UnitPoint;
 
     if (*ffamily != NULL)
         delete *ffamily;
 
     *ffamily = new Gdiplus::FontFamily(wfamily);
     *fstyle = lstyle;
+    /* 'size' is always in logical screen points - UnitPixel matches the world transform's own
+       DPI scaling (ScaleTransform), unlike UnitPoint, which would apply its own, conflicting
+       72-DPI-based conversion */
     *fsize = (Gdiplus::REAL)font_size(font);
-
-    if (style & ekFCELL)
-    {
-        *fintleading = (Gdiplus::REAL)font_leading(font);
-        *fsize -= *fintleading;
-    }
-    else
-    {
-        *fintleading = 0;
-    }
 
     if (*ffont != NULL)
         delete *ffont;
@@ -698,7 +677,7 @@ static void i_font(const Font *font, Gdiplus::Font **ffont, Gdiplus::FontFamily 
      * Careful creating GDI+ fonts from HFONT
      * Pure GDI fonts don't allow fonts with fsize < 1
      */
-    *ffont = new Gdiplus::Font(*ffamily, *fsize, *fstyle, unit);
+    *ffont = new Gdiplus::Font(*ffamily, *fsize, *fstyle, Gdiplus::UnitPixel);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -709,19 +688,19 @@ void draw_font(DCtx *ctx, const Font *font)
     if (ctx->font == NULL)
     {
         ctx->font = font_copy(font);
-        i_font(ctx->font, &ctx->ffont, &ctx->ffamily, &ctx->fstyle, &ctx->fsize, &ctx->fintleading);
+        i_font(ctx->font, &ctx->ffont, &ctx->ffamily, &ctx->fstyle, &ctx->fsize);
     }
     else if (font_equals(font, ctx->font) == FALSE)
     {
         font_destroy(&ctx->font);
         ctx->font = font_copy(font);
-        i_font(ctx->font, &ctx->ffont, &ctx->ffamily, &ctx->fstyle, &ctx->fsize, &ctx->fintleading);
+        i_font(ctx->font, &ctx->ffont, &ctx->ffamily, &ctx->fstyle, &ctx->fsize);
     }
 
     if (ctx->gdi_mode == TRUE)
     {
         cassert_no_null(ctx->hdc);
-        SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
+        SelectObject(ctx->hdc, (HFONT)font_native_dpi(ctx->font, ctx->dpi));
     }
 }
 
@@ -961,7 +940,7 @@ static void i_draw_text(DCtx *ctx, const char_t *text, const real32_t x, const r
         {
             /* If we have stroke text --> Use a path */
             Gdiplus::GraphicsPath path;
-            Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
+            Gdiplus::REAL size = ctx->fsize;
             cassert(op != ekFILL);
             path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, erect, &format);
             i_draw_path(ctx, &path, op);
@@ -977,7 +956,7 @@ static void i_draw_text(DCtx *ctx, const char_t *text, const real32_t x, const r
         {
             /* If we have stroke text --> Use a path */
             Gdiplus::GraphicsPath path;
-            Gdiplus::REAL size = ctx->fsize - ctx->fintleading;
+            Gdiplus::REAL size = ctx->fsize;
             cassert(op != ekFILL);
             path.AddString(wtext, -1, ctx->ffamily, ctx->fstyle, size, Gdiplus::PointF(rect.X, rect.Y), &format);
             i_draw_path(ctx, &path, op);
@@ -1086,7 +1065,7 @@ static void i_set_gdi_mode(DCtx *ctx)
         cassert_no_null(ctx->hdc);
         SetBkMode(ctx->hdc, TRANSPARENT);
         if (ctx->font != NULL)
-            SelectObject(ctx->hdc, (HFONT)font_native(ctx->font));
+            SelectObject(ctx->hdc, (HFONT)font_native_dpi(ctx->font, ctx->dpi));
         if (ctx->gdi_pen != NULL)
             SelectObject(ctx->hdc, ctx->gdi_pen);
         ctx->gdi_mode = TRUE;

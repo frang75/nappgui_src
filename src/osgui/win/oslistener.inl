@@ -20,7 +20,7 @@ void _oslistener_remove(ViewListeners *listeners);
 
 void _oslistener_set_enabled(ViewListeners *listeners, bool_t enabled);
 
-void _oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t width, const real32_t height, const real32_t visible_x, const real32_t visible_y, const real32_t visible_width, const real32_t visible_height, ViewListeners *listeners);
+void _oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t visible_x, const real32_t visible_y, const real32_t visible_width, const real32_t visible_height, ViewListeners *listeners);
 
 void _oslistener_mouse_exit(OSControl *sender, ViewListeners *listeners);
 

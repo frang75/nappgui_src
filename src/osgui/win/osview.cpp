@@ -10,6 +10,7 @@
 
 /* Operating System native custom view */
 
+#include "osview_win.inl"
 #include "osgui_win.inl"
 #include "oscontrol_win.inl"
 #include "ospanel_win.inl"
@@ -27,6 +28,7 @@
 #include <core/event.h>
 #include <core/heap.h>
 #include <osbs/osbs.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
 
@@ -83,7 +85,7 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
     case WM_PRINTCLIENT:
         cassert(FALSE);
-        _oslistener_draw(cast(view, OSControl), NULL, 0, 0, 0, 0, 0, 0, &view->listeners);
+        _oslistener_draw(cast(view, OSControl), NULL, 0, 0, 0, 0, &view->listeners);
         return 0;
 
     case WM_NCCALCSIZE:
@@ -116,6 +118,14 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(view->control.hwnd, &ps);
             HDC memHdc = CreateCompatibleDC(hdc);
+            Gdiplus::Graphics *graphics = NULL;
+            uint32_t dpi = _oswindow_dpi(view->control.window);
+            real32_t scale = _oswindow_scale(view->control.window);
+            real32_t vx = 0;
+            real32_t vy = 0;
+            real32_t vwidth = 0;
+            real32_t vheight = 0;
+            void *ctx[2];
 
             if (view->ctx == NULL)
             {
@@ -141,27 +151,36 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 background = (uint32_t)GetSysColor(COLOR_3DFACE);
             }
 
-            Gdiplus::Graphics *graphics = new Gdiplus::Graphics(memHdc);
+            graphics = new Gdiplus::Graphics(memHdc);
 
             /* Don't delete --> ImageView-like controls with standard background */
             if ((view->flags & ekVIEW_NOERASE) == 0)
                 graphics->Clear(i_color(background));
 
-            uint32_t vx = 0;
-            uint32_t vy = 0;
-            uint32_t vwidth = (uint32_t)view->dbuffer_width;
-            uint32_t vheight = (uint32_t)view->dbuffer_height;
-            uint32_t twidth = vwidth;
-            uint32_t theight = vheight;
-
+            /* Scrollbars works in logical points (no pixels) */
             if (view->scroll != NULL)
-                _osscrolls_visible_area(view->scroll, &vx, &vy, &vwidth, &vheight, &twidth, &theight);
+            {
+                uint32_t ix, iy, iwidth, iheight;
+                _osscrolls_visible_area(view->scroll, &ix, &iy, &iwidth, &iheight);
+                vx = (real32_t)ix;
+                vy = (real32_t)iy;
+                vwidth = (real32_t)iwidth;
+                vheight = (real32_t)iheight;
+            }
+            /* Pixel->Point conversion */
+            else
+            {
+                vx = 0;
+                vy = 0;
+                vwidth = bmath_roundf((real32_t)view->dbuffer_width / scale);
+                vheight = bmath_roundf((real32_t)view->dbuffer_height / scale);
+            }
 
-            void *ctx[2];
+            /* Both, drawing contexts and events expect logical points, no pixels */
             ctx[0] = graphics;
             ctx[1] = memHdc;
-            dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, -(real32_t)vx, -(real32_t)vy, background, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
-            _oslistener_draw(cast(view, OSControl), view->ctx, (real32_t)twidth, (real32_t)theight, (real32_t)vx, (real32_t)vy, (real32_t)vwidth, (real32_t)vheight, &view->listeners);
+            dctx_set_gcontext(view->ctx, ctx, vwidth, vheight, dpi, scale, -vx, -vy, background, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
+            _oslistener_draw(cast(view, OSControl), view->ctx, vx, vy, vwidth, vheight, &view->listeners);
             dctx_unset_gcontext(view->ctx);
 
             if (view->OnOverlay != NULL)
@@ -170,28 +189,32 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                 params.ctx = view->ctx;
                 params.x = 0;
                 params.y = 0;
-                params.width = (real32_t)vwidth;
-                params.height = (real32_t)vheight;
-                dctx_set_gcontext(view->ctx, ctx, (uint32_t)vwidth, (uint32_t)vheight, 0, 0, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
+                params.width = vwidth;
+                params.height = vheight;
+                dctx_set_gcontext(view->ctx, ctx, vwidth, vheight, dpi, scale, 0, 0, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
                 listener_event(view->OnOverlay, ekGUI_EVENT_OVERLAY, cast(view, OSControl), &params, NULL, OSControl, EvDraw, void);
                 dctx_unset_gcontext(view->ctx);
             }
 
-            delete graphics;
-            graphics = NULL;
-
             /* Back buffer image to window */
             BitBlt(hdc, 0, 0, view->dbuffer_width, view->dbuffer_height, memHdc, 0, 0, SRCCOPY);
 
-            BOOL ok = DeleteDC(memHdc);
-            cassert_unref(ok != 0, ok);
+            {
+                BOOL ok = DeleteDC(memHdc);
+                cassert_unref(ok != 0, ok);
+            }
 
             EndPaint(hwnd, &ps);
+            delete graphics;
+            graphics = NULL;
         }
         /* The window is rendered with other technology (e.g. OpenGL) */
         else
         {
-            _oslistener_draw(cast(view, OSControl), NULL, (real32_t)view->dbuffer_width, (real32_t)view->dbuffer_height, 0, 0, (real32_t)view->dbuffer_width, (real32_t)view->dbuffer_height, &view->listeners);
+            real32_t scale = _oswindow_scale(view->control.window);
+            real32_t width = bmath_roundf((real32_t)view->dbuffer_width / scale);
+            real32_t height = bmath_roundf((real32_t)view->dbuffer_height / scale);
+            _oslistener_draw(cast(view, OSControl), NULL, 0, 0, width, height, &view->listeners);
         }
 
         return 0;
@@ -402,6 +425,37 @@ void osview_destroy(OSView **view)
 
 /*---------------------------------------------------------------------------*/
 
+void _osview_update_dpi(OSView *view)
+{
+    cassert_no_null(view);
+    if (view->osdraw.button_theme != NULL)
+    {
+        _osstyleXP_CloseTheme(view->osdraw.button_theme);
+        view->osdraw.button_theme = _osstyleXP_OpenTheme(view->control.hwnd, L"BUTTON");
+    }
+
+    if (view->osdraw.list_theme != NULL)
+    {
+        _osstyleXP_CloseTheme(view->osdraw.list_theme);
+        view->osdraw.list_theme = _osstyleXP_OpenTheme(view->control.hwnd, L"Explorer::ListView");
+
+        /* WinXP */
+        if (view->osdraw.list_theme == NULL)
+            view->osdraw.list_theme = _osstyleXP_OpenTheme(view->control.hwnd, L"ListView");
+    }
+
+    if (view->osdraw.header_theme != NULL)
+    {
+        _osstyleXP_CloseTheme(view->osdraw.header_theme);
+        view->osdraw.header_theme = _osstyleXP_OpenTheme(view->control.hwnd, L"HEADER");
+    }
+
+    view->osdraw.sort_size.cx = -1;
+    view->osdraw.sort_size.cy = -1;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_OnDraw(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
@@ -599,8 +653,10 @@ void osview_content_size(OSView *view, const real32_t width, const real32_t heig
 
 real32_t osview_scale_factor(const OSView *view)
 {
-    unref(view);
-    return 1;
+    cassert_no_null(view);
+    if (view->control.window != NULL)
+        return _oswindow_scale(view->control.window);
+    return 1.f;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -669,16 +725,19 @@ void osview_origin(const OSView *view, real32_t *x, real32_t *y)
 
 void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
+    LONG bufwidth, bufheight;
     cassert_no_null(view);
     _oscontrol_set_frame(cast(view, OSControl), x, y, width, height);
-    view->dbuffer_width = (LONG)width;
-    view->dbuffer_height = (LONG)height;
+    _oswindow_scale_size(view->control.window, width, height, &bufwidth, &bufheight);
 
-    if (view->dbuffer != NULL)
+    if (view->dbuffer != NULL && (view->dbuffer_width != bufwidth || view->dbuffer_height != bufheight))
     {
         DeleteObject(view->dbuffer);
         view->dbuffer = NULL;
     }
+
+    view->dbuffer_width = bufwidth;
+    view->dbuffer_height = bufheight;
 
     if (view->scroll != NULL)
         _osscrolls_control_size(view->scroll, (uint32_t)width, (uint32_t)height);

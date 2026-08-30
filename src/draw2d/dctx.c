@@ -42,6 +42,7 @@ void _dctx_init(DCtx *ctx, const bool_t reset)
     }
 
     draw_matrixf(ctx, kT2D_IDENTf);
+    draw_line_color(ctx, kCOLOR_BLACK);
     draw_text_width(ctx, -1);
     draw_text_trim(ctx, ekELLIPMLINE);
     draw_text_align(ctx, ekLEFT, ekTOP);

@@ -18,6 +18,8 @@ _osgui_api device_t osglobals_device(const void *non_used);
 
 _osgui_api color_t osglobals_color(const syscolor_t *color);
 
+_osgui_api void osglobals_dpi_aware(void *non_used, const bool_t aware);
+
 _osgui_api void osglobals_resolution(const void *non_used, real32_t *width, real32_t *height);
 
 _osgui_api void osglobals_workarea(const void *non_used, real32_t *x, real32_t *y, real32_t *width, real32_t *height);

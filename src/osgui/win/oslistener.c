@@ -12,6 +12,7 @@
 
 #include "oslistener.inl"
 #include "osgui_win.inl"
+#include "oswindow_win.inl"
 #include "../oscontrol.inl"
 #include "../osgui.inl"
 #include "../osscrolls.inl"
@@ -69,7 +70,7 @@ void _oslistener_set_enabled(ViewListeners *listeners, bool_t enabled)
 
 /*---------------------------------------------------------------------------*/
 
-void _oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t width, const real32_t height, const real32_t visible_x, const real32_t visible_y, const real32_t visible_width, const real32_t visible_height, ViewListeners *listeners)
+void _oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t visible_x, const real32_t visible_y, const real32_t visible_width, const real32_t visible_height, ViewListeners *listeners)
 {
     cassert_no_null(sender);
     cassert_no_null(listeners);
@@ -81,8 +82,6 @@ void _oslistener_draw(OSControl *sender, DCtx *ctx, const real32_t width, const 
         params.y = visible_y;
         params.width = visible_width;
         params.height = visible_height;
-        unref(width);
-        unref(height);
         listener_event(listeners->OnDraw, ekGUI_EVENT_DRAW, sender, &params, NULL, OSControl, EvDraw, void);
     }
 }
@@ -107,6 +106,9 @@ void _oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real3
     if (listeners->enabled == TRUE)
     {
         EvMouse params;
+        real32_t scale = _oswindow_scale(sender->window);
+        real32_t px = x / scale;
+        real32_t py = y / scale;
 
         if ((event_wParam & MK_LBUTTON) && listeners->button != ekGUI_MOUSE_LEFT)
             return;
@@ -117,10 +119,10 @@ void _oslistener_mouse_moved(OSControl *sender, WPARAM event_wParam, const real3
         if ((event_wParam & MK_MBUTTON) && listeners->button != ekGUI_MOUSE_MIDDLE)
             return;
 
-        params.x = x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
-        params.y = y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
-        params.lx = x;
-        params.ly = y;
+        params.x = px + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+        params.y = py + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
+        params.lx = px;
+        params.ly = py;
         params.button = listeners->button;
         params.count = 0;
         params.modifiers = _osgui_modifiers();
@@ -167,20 +169,24 @@ void _oslistener_mouse_down(OSControl *sender, const gui_mouse_t button, const r
     cassert_no_null(sender);
     if (listeners->enabled == TRUE)
     {
+        real32_t scale = _oswindow_scale(sender->window);
+        real32_t px = x / scale;
+        real32_t py = y / scale;
+
         listeners->button = button;
         SetCapture(sender->hwnd);
 
-        listeners->mouse_down_x = x;
-        listeners->mouse_down_y = y;
+        listeners->mouse_down_x = px;
+        listeners->mouse_down_y = py;
         listeners->mouse_down_time = btime_now();
 
         if (listeners->OnDown != NULL)
         {
             EvMouse params;
-            params.x = x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
-            params.y = y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
-            params.lx = x;
-            params.ly = y;
+            params.x = px + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+            params.y = py + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
+            params.lx = px;
+            params.ly = py;
             params.button = button;
             params.count = 0;
             params.modifiers = _osgui_modifiers();
@@ -199,10 +205,13 @@ void _oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const rea
     if (listeners->enabled == TRUE)
     {
         EvMouse params;
-        params.x = x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
-        params.y = y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
-        params.lx = x;
-        params.ly = y;
+        real32_t scale = _oswindow_scale(sender->window);
+        real32_t px = x / scale;
+        real32_t py = y / scale;
+        params.x = px + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+        params.y = py + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
+        params.lx = px;
+        params.ly = py;
         params.button = button;
         params.count = 0;
         params.modifiers = _osgui_modifiers();
@@ -221,8 +230,8 @@ void _oslistener_mouse_up(OSControl *sender, const gui_mouse_t button, const rea
             /* Milliseconds */
             uint64_t ellapsed = (btime_now() - listeners->mouse_down_time) / 1000;
             UINT max = GetDoubleClickTime();
-            real32_t dx = abs_r32(x - listeners->mouse_down_x);
-            real32_t dy = abs_r32(y - listeners->mouse_down_y);
+            real32_t dx = abs_r32(px - listeners->mouse_down_x);
+            real32_t dy = abs_r32(py - listeners->mouse_down_y);
             if (ellapsed < max && dx < 5 && dy < 5)
                 listener_event(listeners->OnClick, ekGUI_EVENT_CLICK, sender, &params, NULL, OSControl, EvMouse, void);
         }
@@ -245,13 +254,17 @@ void _oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lPar
             POINT point;
             BOOL ok;
             EvWheel params;
+            real32_t scale = _oswindow_scale(sender->window);
+            real32_t px, py;
             spoint = MAKEPOINTS(event_lParam);
             point.x = spoint.x;
             point.y = spoint.y;
             ok = ScreenToClient(sender->hwnd, &point);
             cassert_unref(ok == TRUE, ok);
-            params.x = (real32_t)point.x + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
-            params.y = (real32_t)point.y + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
+            px = (real32_t)point.x / scale;
+            py = (real32_t)point.y / scale;
+            params.x = px + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
+            params.y = py + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
             params.dx = 0;
             params.dy = (real32_t)(GET_WHEEL_DELTA_WPARAM(event_wParam) / WHEEL_DELTA);
             params.dz = 0;

@@ -83,28 +83,10 @@ static real32_t i_device_to_pixels(void)
 
 /*---------------------------------------------------------------------------*/
 
-static gint i_font_size(const real32_t size, const uint32_t style)
+static gint i_font_size(const real32_t size)
 {
-    if ((style & ekFPOINTS) == ekFPOINTS)
-    {
-        return (gint)(size * (real32_t)PANGO_SCALE);
-    }
-    else
-    {
-        /* Pixels */
-        return (gint)(size / i_device_to_pixels());
-    }
-}
-
-/*---------------------------------------------------------------------------*/
-
-static gint i_scale_size_to_cell(const real32_t size, const int pango_size, PangoFontDescription *font)
-{
-    real32_t cell_size = 1e8f;
-    gint new_pango_size = 0;
-    osfont_extents(cast(font, OSFont), "REFTEXT", 1, -1, NULL, &cell_size);
-    new_pango_size = (gint)((size * (real32_t)pango_size) / cell_size);
-    return new_pango_size;
+    /* 'size' is always in logical screen points (DPI-independent) */
+    return (gint)(size / i_device_to_pixels());
 }
 
 /*---------------------------------------------------------------------------*/
@@ -136,18 +118,12 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t 
         name = family;
     }
 
-    psize = i_font_size(size, style);
+    psize = i_font_size(size);
     font = pango_font_description_new();
     pango_font_description_set_family(font, name);
     pango_font_description_set_size(font, psize);
     pango_font_description_set_style(font, (style & ekFITALIC) == ekFITALIC ? PANGO_STYLE_ITALIC : PANGO_STYLE_NORMAL);
     pango_font_description_set_weight(font, (style & ekFBOLD) == ekFBOLD ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
-
-    if ((style & ekFCELL) == ekFCELL)
-    {
-        gint s = i_scale_size_to_cell(size, psize, font);
-        pango_font_description_set_size(font, s);
-    }
 
     heap_auditor_add("PangoFontDescription");
     return cast(font, OSFont);
@@ -219,48 +195,87 @@ static bool_t i_is_monospace(PangoFontMap *fontmap, const PangoFontDescription *
 
 /*---------------------------------------------------------------------------*/
 
-void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xscale, real32_t *ascent, real32_t *descent, real32_t *leading, real32_t *cell_size, real32_t *avg_width, bool_t *monospace)
+real32_t osfont_ascent(const OSFont *font)
 {
     /* This object is owned by Pango and must not be freed */
     PangoFontMap *fontmap = pango_cairo_font_map_get_default();
     PangoContext *context = pango_font_map_create_context(fontmap);
     PangoFont *ffont = NULL;
     PangoFontMetrics *metrics = NULL;
+    real32_t ascent;
     cassert_no_null(font);
-
     ffont = pango_font_map_load_font(fontmap, context, cast(font, PangoFontDescription));
     metrics = pango_font_get_metrics(ffont, NULL);
-
-    if (ascent != NULL)
-        *ascent = (real32_t)(pango_font_metrics_get_ascent(metrics) / PANGO_SCALE);
-
-    if (descent != NULL)
-        *descent = (real32_t)(pango_font_metrics_get_descent(metrics) / PANGO_SCALE);
-
-    /* We need to get a real text measure */
-    if (leading != NULL || cell_size != NULL || avg_width != NULL)
-    {
-        real32_t width, height;
-        uint32_t len;
-        const char_t *str = _draw2d_str_avg_char_width(&len);
-        osfont_extents(font, str, xscale, -1, &width, &height);
-
-        if (leading != NULL)
-            *leading = height - size;
-
-        if (cell_size != NULL)
-            *cell_size = height;
-
-        if (avg_width != NULL)
-            *avg_width = width / (real32_t)len;
-    }
-
-    if (monospace != NULL)
-        *monospace = i_is_monospace(fontmap, cast_const(font, PangoFontDescription));
-
+    ascent = (real32_t)(pango_font_metrics_get_ascent(metrics) / PANGO_SCALE);
     g_object_unref(context);
     g_object_unref(ffont);
     pango_font_metrics_unref(metrics);
+    return ascent;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_descent(const OSFont *font)
+{
+    /* This object is owned by Pango and must not be freed */
+    PangoFontMap *fontmap = pango_cairo_font_map_get_default();
+    PangoContext *context = pango_font_map_create_context(fontmap);
+    PangoFont *ffont = NULL;
+    PangoFontMetrics *metrics = NULL;
+    real32_t descent;
+    cassert_no_null(font);
+    ffont = pango_font_map_load_font(fontmap, context, cast(font, PangoFontDescription));
+    metrics = pango_font_get_metrics(ffont, NULL);
+    descent = (real32_t)(pango_font_metrics_get_descent(metrics) / PANGO_SCALE);
+    g_object_unref(context);
+    g_object_unref(ffont);
+    pango_font_metrics_unref(metrics);
+    return descent;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_leading(const OSFont *font, const real32_t size)
+{
+    real32_t width = 0, height = 0;
+    cassert_no_null(font);
+    osfont_extents(font, "OO", 1.f, -1, &width, &height);
+    unref(width);
+    return height - size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_cell_size(const OSFont *font)
+{
+    real32_t width = 0, height = 0;
+    cassert_no_null(font);
+    osfont_extents(font, "OO", 1.f, -1, &width, &height);
+    unref(width);
+    return height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_avg_width(const OSFont *font, const real32_t xscale)
+{
+    real32_t width = 0, height = 0;
+    uint32_t len = 0;
+    const char_t *str = _draw2d_str_avg_char_width(&len);
+    cassert_no_null(font);
+    osfont_extents(font, str, xscale, -1, &width, &height);
+    unref(height);
+    return width / (real32_t)len;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osfont_is_monospace(const OSFont *font)
+{
+    /* This object is owned by Pango and must not be freed */
+    PangoFontMap *fontmap = pango_cairo_font_map_get_default();
+    cassert_no_null(font);
+    return i_is_monospace(fontmap, cast_const(font, PangoFontDescription));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -289,6 +304,22 @@ const void *osfont_native(const OSFont *font)
 {
     cassert_no_null(font);
     return cast(font, void);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const void *osfont_native_dpi(OSFont *font, const uint32_t dpi)
+{
+    cassert_no_null(font);
+    unref(dpi);
+    return cast(font, void);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osfont_metrics_dpi(const uint32_t dpi)
+{
+    unref(dpi);
 }
 
 /*---------------------------------------------------------------------------*/

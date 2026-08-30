@@ -247,7 +247,6 @@ typedef enum _gui_prop_t
 typedef enum _gui_text_t
 {
     ekGUI_TEXT_FAMILY = 0,
-    ekGUI_TEXT_UNITS,
     ekGUI_TEXT_SIZE,
     ekGUI_TEXT_STYLE,
     ekGUI_TEXT_COLOR,
@@ -670,6 +669,10 @@ typedef void (*FPtr_gctx_bounds6)(const void *item, const real32_t length, const
 #define FUNC_CHECK_GCTX_BOUNDS6(func, type) \
     (void)((void (*)(const type *, const real32_t, const gui_size_t, real32_t *, real32_t *))func == func)
 
+typedef void (*FPtr_gctx_bounds7)(const void *item, real32_t *width, real32_t *height);
+#define FUNC_CHECK_GCTX_BOUNDS7(func, type) \
+    (void)((void (*)(const type *, real32_t *, real32_t *))func == func)
+
 typedef void (*FPtr_gctx_tickmarks)(void *item, const uint32_t num_tickmarks, const bool_t tickmarks_at_left_top);
 #define FUNC_CHECK_GCTX_TICKMARKS(func, type) \
     (void)((void (*)(type *, const uint32_t, const bool_t))func == func)
@@ -815,6 +818,7 @@ struct _guictx_t
 
     /* UpDown */
     FPtr_gctx_set_listener func_updown_OnClick;
+    FPtr_gctx_bounds7 func_updown_bounds;
 
     /*! <Progress> */
     FPtr_gctx_set_real32 func_progress_set_position;
@@ -962,6 +966,7 @@ struct _guictx_t
     /*! <Globals> */
     FPtr_gctx_get_enum func_globals_device;
     FPtr_gctx_get_enum func_globals_color;
+    FPtr_gctx_set_bool func_globals_dpi_aware;
     FPtr_gctx_get2_real32 func_globals_resolution;
     FPtr_gctx_get4_real32 func_globals_workarea;
     FPtr_gctx_get2_real32 func_globals_mouse_position;

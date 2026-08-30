@@ -20,6 +20,7 @@
 #include <core/heap.h>
 #include <core/strings.h>
 #include <osbs/osbs.h>
+#include <sewer/bmath.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 #include "draw2d_gdi.ixx"
@@ -31,6 +32,7 @@
 /*---------------------------------------------------------------------------*/
 
 typedef struct _user_font_t UserFont;
+typedef struct _hdpi_t HDpi;
 
 struct _user_font_t
 {
@@ -38,11 +40,48 @@ struct _user_font_t
     HANDLE handle;
 };
 
+struct _hdpi_t
+{
+    uint32_t dpi;
+    HFONT hfont;
+    bool_t metrics;
+    real32_t ascent;
+    real32_t descent;
+    real32_t leading;
+    real32_t cell_size;
+    real32_t avg_width;
+    bool_t monospace;
+};
+
 DeclSt(UserFont);
+DeclSt(HDpi);
 static ArrSt(UserFont) *kUSER_FONTS = NULL;
 static String *i_SYSTEM_FONT_FAMILY = NULL;
 #define UNDEF_WIDTH 10000
 #define UNDEF_HEIGHT 10000
+
+#ifndef USER_DEFAULT_SCREEN_DPI
+#define USER_DEFAULT_SCREEN_DPI 96
+#endif
+
+/* SystemParametersInfoForDpi (Windows 10 1607+), resolved dynamically for older SO compatibility */
+typedef BOOL(__stdcall *SYSTEMPARAMETERSINFOFORDPI)(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni, UINT dpi);
+static SYSTEMPARAMETERSINFOFORDPI i_SystemParametersInfoForDpi = NULL;
+
+/* DPI used by osfont_extents()/osfont_ascent()/etc. to measure text. Refreshed by 'oswindow' right
+   before every layout compose/relocate pass, so text is measured at the real DPI of the window
+   being laid out (not the DPI the font happened to be created at) */
+static uint32_t i_METRICS_DPI = USER_DEFAULT_SCREEN_DPI;
+
+struct _osfont_t
+{
+    String *family;
+    real32_t size;
+    real32_t width;
+    uint32_t style;
+    uint32_t dpi;
+    ArrSt(HDpi) *hdpi;
+};
 
 /*---------------------------------------------------------------------------*/
 
@@ -59,9 +98,25 @@ static void i_remove_font(UserFont *font)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_remove_hdpi(HDpi *hdpi)
+{
+    BOOL ret = 0;
+    cassert_no_null(hdpi);
+    ret = DeleteObject(hdpi->hfont);
+    cassert_unref(ret != 0, ret);
+    heap_auditor_delete("HFONT");
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osfont_alloc_globals(void)
 {
     kUSER_FONTS = NULL;
+    {
+        HMODULE user32_mod = GetModuleHandle(L"user32.dll");
+        if (user32_mod != NULL)
+            i_SystemParametersInfoForDpi = cast_func(GetProcAddress(user32_mod, "SystemParametersInfoForDpi"), SYSTEMPARAMETERSINFOFORDPI);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -75,7 +130,7 @@ void osfont_dealloc_globals(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_metrics(NONCLIENTMETRICS *metrics)
+static void i_system_metrics(NONCLIENTMETRICS *metrics)
 {
     BOOL ret;
     cassert_no_null(metrics);
@@ -87,29 +142,20 @@ static void i_metrics(NONCLIENTMETRICS *metrics)
         metrics->cbSize -= sizeof(metrics->iPaddedBorderWidth);
 #endif
 
-    ret = SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), metrics, 0);
+    if (i_SystemParametersInfoForDpi != NULL)
+        ret = i_SystemParametersInfoForDpi(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), metrics, 0, USER_DEFAULT_SCREEN_DPI);
+    else
+        ret = SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), metrics, 0);
+
     cassert_unref(ret != 0, ret);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static int i_font_height(const real32_t size, const uint32_t style)
+static int i_font_height(const real32_t size, const uint32_t dpi)
 {
-    int height = 0;
-    if ((style & ekFPOINTS) == ekFPOINTS)
-    {
-        height = -(int)((size * (real32_t)kLOG_PIXY) / 72.f);
-    }
-    else
-    {
-        cassert((style & ekFPIXELS) == ekFPIXELS);
-        height = -(int)size;
-    }
-
-    if ((style & ekFCELL) == ekFCELL)
-        height = -height;
-
-    return height;
+    /* 'size' is always in logical screen points (DPI-independent) */
+    return -(int)((size * (real32_t)dpi) / (real32_t)USER_DEFAULT_SCREEN_DPI);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -120,7 +166,7 @@ static const char_t *i_system_font_family(void)
     {
         NONCLIENTMETRICS metrics;
         char_t face_name[LF_FULLFACESIZE];
-        i_metrics(&metrics);
+        i_system_metrics(&metrics);
         unicode_convers(cast_const(metrics.lfMessageFont.lfFaceName, char_t), face_name, ekUTF16, ekUTF8, sizeof(face_name));
         i_SYSTEM_FONT_FAMILY = str_c(face_name);
     }
@@ -138,12 +184,82 @@ static const char_t *i_monospace_font_family(void)
 
 /*---------------------------------------------------------------------------*/
 
+static uint32_t i_current_dpi(void)
+{
+    HDC hdc = GetDC(NULL);
+    uint32_t dpi = (uint32_t)GetDeviceCaps(hdc, LOGPIXELSY);
+    int ret = ReleaseDC(NULL, hdc);
+    cassert_unref(ret == 1, ret);
+    return dpi;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HFONT i_create_hfont(const char_t *face_name, const real32_t size, const real32_t width, const uint32_t style, const uint32_t dpi)
+{
+    WCHAR face_namew[LF_FULLFACESIZE];
+    int nHeight = 0;
+    int nWidth = 0;
+    HFONT hfont = NULL;
+
+    /* face_name to UTF16 */
+    {
+        uint32_t bytes = unicode_convers(face_name, cast(face_namew, char_t), ekUTF8, ekUTF16, sizeof(face_namew));
+        cassert_unref(bytes < sizeof(face_namew), bytes);
+    }
+
+    nHeight = i_font_height(size, dpi);
+
+    /* 'width' is always in logical screen points (DPI-independent), same as 'size'/nHeight above */
+    if (width >= 0)
+        nWidth = (int)bmath_roundf((width * (real32_t)dpi) / (real32_t)USER_DEFAULT_SCREEN_DPI);
+
+    hfont = CreateFont(
+        nHeight,
+        PARAM(nWidth, nWidth),
+        PARAM(nEscapement, 0),
+        PARAM(nOrientation, 0),
+        (style & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
+        (DWORD)((style & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
+        (DWORD)((style & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
+        (DWORD)((style & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
+        PARAM(fdwCharSet, ANSI_CHARSET),
+        PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
+        PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
+        PARAM(fdwQuality, DEFAULT_QUALITY),
+        PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
+        face_namew);
+
+    cassert_fatal_msg(hfont != NULL, "Font is not available on this computer");
+    heap_auditor_add("HFONT");
+    return hfont;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static HDpi *i_hdpi_entry(OSFont *font, const uint32_t dpi)
+{
+    cassert_no_null(font);
+    arrst_foreach(hdpi, font->hdpi, HDpi)
+        if (hdpi->dpi == dpi)
+            return hdpi;
+    arrst_end()
+
+    {
+        HDpi *hdpi = arrst_new0(font->hdpi, HDpi);
+        hdpi->dpi = dpi;
+        hdpi->hfont = i_create_hfont(tc(font->family), font->size, font->width, font->style, dpi);
+        return hdpi;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t width, const real32_t xscale, const uint32_t style)
 {
     const char_t *face_name = NULL;
-    WCHAR face_namew[LF_FULLFACESIZE];
-    int nHeight = 0;
-    HFONT hfont = NULL;
+    OSFont *font = NULL;
+    HDpi *hdpi = NULL;
 
     cassert_no_null(family);
     cassert(size > 0.f);
@@ -162,63 +278,43 @@ OSFont *osfont_create(const char_t *family, const real32_t size, const real32_t 
         face_name = family;
     }
 
-    /* face_name to UTF16 */
-    {
-        uint32_t bytes = unicode_convers(face_name, cast(face_namew, char_t), ekUTF8, ekUTF16, sizeof(face_namew));
-        cassert_unref(bytes < sizeof(face_namew), bytes);
-    }
-
-    nHeight = i_font_height(size, style);
-
-    hfont = CreateFont(
-        nHeight,
-        PARAM(nWidth, width >= 0 ? (int)width : 0),
-        PARAM(nEscapement, 0),
-        PARAM(nOrientation, 0),
-        (style & ekFBOLD) == ekFBOLD ? FW_BOLD : FW_MEDIUM,
-        (DWORD)((style & ekFITALIC) == ekFITALIC ? TRUE : FALSE),
-        (DWORD)((style & ekFUNDERLINE) == ekFUNDERLINE ? TRUE : FALSE),
-        (DWORD)((style & ekFSTRIKEOUT) == ekFSTRIKEOUT ? TRUE : FALSE),
-        PARAM(fdwCharSet, ANSI_CHARSET),
-        PARAM(fdwOutputPrecision, OUT_TT_PRECIS),
-        PARAM(fdwClipPrecision, CLIP_DEFAULT_PRECIS),
-        PARAM(fdwQuality, DEFAULT_QUALITY),
-        PARAM(fdwPitchAndFamily, DEFAULT_PITCH | FF_DONTCARE),
-        face_namew);
-
-    cassert_fatal_msg(hfont != NULL, "Font is not available on this computer");
-    heap_auditor_add("HFONT");
-    return cast(hfont, OSFont);
+    font = heap_new0(OSFont);
+    font->family = str_c(face_name);
+    font->size = size;
+    font->width = width;
+    font->style = style;
+    font->dpi = i_current_dpi();
+    font->hdpi = arrst_create(HDpi);
+    hdpi = i_hdpi_entry(font, font->dpi);
+    unref(hdpi);
+    return font;
 }
 
 /*---------------------------------------------------------------------------*/
 
 void osfont_destroy(OSFont **font)
 {
-    BOOL ret = 0;
     cassert_no_null(font);
     cassert_no_null(*font);
-    ret = DeleteObject(*cast(font, HFONT));
-    cassert_unref(ret != 0, ret);
-    heap_auditor_delete("HFONT");
-    *font = NULL;
+    arrst_destroy(&(*font)->hdpi, i_remove_hdpi, HDpi);
+    str_destroy(&(*font)->family);
+    heap_delete(font, OSFont);
 }
 
 /*---------------------------------------------------------------------------*/
 
 String *osfont_family_name(const OSFont *font)
 {
-    HFONT hfont = (HFONT)font;
     LOGFONT lf;
-    cassert_no_null(hfont);
-
+    HFONT hfont = NULL;
+    cassert_no_null(font);
+    hfont = (HFONT)osfont_native(font);
     if (GetObject(hfont, sizeof(LOGFONT), &lf) == sizeof(LOGFONT))
     {
         char_t faceName[LF_FACESIZE];
         unicode_convers(cast_const(lf.lfFaceName, char_t), faceName, ekUTF16, ekUTF8, sizeof(faceName));
         return str_c(faceName);
     }
-
     return NULL;
 }
 
@@ -243,50 +339,99 @@ font_family_t osfont_system(const char_t *family)
 
 /*---------------------------------------------------------------------------*/
 
-void osfont_metrics(const OSFont *font, const real32_t size, const real32_t xscale, real32_t *ascent, real32_t *descent, real32_t *leading, real32_t *cell_size, real32_t *avg_width, bool_t *monospace)
+static void i_metrics(const OSFont *font, HDpi *hdpi)
 {
-    HDC hdc = GetDC(NULL);
-    HGDIOBJ cfont = SelectObject(hdc, (HFONT)font);
-    TEXTMETRIC lptm;
-    unref(size);
-    GetTextMetrics(hdc, &lptm);
-
-    if (ascent != NULL)
-        *ascent = (real32_t)lptm.tmAscent;
-
-    if (descent != NULL)
-        *descent = (real32_t)lptm.tmDescent;
-
-    if (leading != NULL)
-        *leading = (real32_t)lptm.tmInternalLeading;
-
-    if (cell_size != NULL)
-        *cell_size = (real32_t)lptm.tmHeight;
-
-    if (avg_width != NULL)
+    if (hdpi->metrics == FALSE)
     {
+        HDC hdc = GetDC(NULL);
+        HGDIOBJ cfont = SelectObject(hdc, hdpi->hfont);
+        real32_t scale = (real32_t)hdpi->dpi / (real32_t)USER_DEFAULT_SCREEN_DPI;
+        TEXTMETRIC lptm;
         uint32_t len = 0;
         real32_t w = 0, h = 0;
-        const char_t *str = _draw2d_str_avg_char_width(&len);
-        osfont_extents(font, str, xscale, -1, &w, &h);
-        *avg_width = w / (real32_t)len;
-    }
+        const char_t *str = NULL;
 
-    if (monospace != NULL)
-    {
+        GetTextMetrics(hdc, &lptm);
+        hdpi->ascent = (real32_t)lptm.tmAscent / scale;
+        hdpi->descent = (real32_t)lptm.tmDescent / scale;
+        hdpi->leading = (real32_t)lptm.tmInternalLeading / scale;
+        hdpi->cell_size = (real32_t)lptm.tmHeight / scale;
+
         /*
          * If this bit is set the font is a variable pitch font. If this bit is clear the font
          * is a fixed pitch font. Note very carefully that those meanings are the opposite of
          * what the constant name implies.
          */
         if (lptm.tmPitchAndFamily & TMPF_FIXED_PITCH)
-            *monospace = FALSE;
+            hdpi->monospace = FALSE;
         else
-            *monospace = TRUE;
-    }
+            hdpi->monospace = TRUE;
 
-    SelectObject(hdc, cfont);
-    ReleaseDC(NULL, hdc);
+        SelectObject(hdc, cfont);
+        ReleaseDC(NULL, hdc);
+
+        str = _draw2d_str_avg_char_width(&len);
+        osfont_extents(font, str, 1.f, -1, &w, &h);
+        hdpi->avg_width = w / (real32_t)len;
+
+        hdpi->metrics = TRUE;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_ascent(const OSFont *font)
+{
+    HDpi *hdpi = i_hdpi_entry(cast(font, OSFont), i_METRICS_DPI);
+    i_metrics(font, hdpi);
+    return hdpi->ascent;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_descent(const OSFont *font)
+{
+    HDpi *hdpi = i_hdpi_entry(cast(font, OSFont), i_METRICS_DPI);
+    i_metrics(font, hdpi);
+    return hdpi->descent;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_leading(const OSFont *font, const real32_t size)
+{
+    HDpi *hdpi = i_hdpi_entry(cast(font, OSFont), i_METRICS_DPI);
+    unref(size);
+    i_metrics(font, hdpi);
+    return hdpi->leading;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_cell_size(const OSFont *font)
+{
+    HDpi *hdpi = i_hdpi_entry(cast(font, OSFont), i_METRICS_DPI);
+    i_metrics(font, hdpi);
+    return hdpi->cell_size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t osfont_avg_width(const OSFont *font, const real32_t xscale)
+{
+    HDpi *hdpi = i_hdpi_entry(cast(font, OSFont), i_METRICS_DPI);
+    unref(xscale);
+    i_metrics(font, hdpi);
+    return hdpi->avg_width;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osfont_is_monospace(const OSFont *font)
+{
+    HDpi *hdpi = i_hdpi_entry(cast(font, OSFont), i_METRICS_DPI);
+    i_metrics(font, hdpi);
+    return hdpi->monospace;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -297,20 +442,25 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscal
     const WCHAR *wtext = wstring_init(str_empty_c(text) ? " " : text, &str);
     HDC hdc = NULL;
     HGDIOBJ cfont = NULL;
+    HFONT hfont = NULL;
+    real32_t scale;
     RECT rect;
     int ret = 0;
+    cassert_no_null(font);
     unref(xscale);
     cassert_no_null(width);
     cassert_no_null(height);
+    hfont = (HFONT)osfont_native_dpi(cast(font, OSFont), i_METRICS_DPI);
     hdc = GetDC(NULL);
-    cfont = SelectObject(hdc, (HFONT)font);
+    cfont = SelectObject(hdc, hfont);
+    scale = (real32_t)i_METRICS_DPI / (real32_t)USER_DEFAULT_SCREEN_DPI;
     rect.left = 0;
-    rect.right = refwidth > 0 ? (LONG)refwidth : UNDEF_WIDTH;
+    rect.right = refwidth > 0 ? (LONG)(refwidth * scale) : UNDEF_WIDTH;
     rect.top = 0;
     rect.bottom = UNDEF_HEIGHT;
     DrawTextW(hdc, wtext, -1, &rect, DT_CALCRECT | DT_WORDBREAK);
-    *width = (real32_t)(rect.right - rect.left);
-    *height = (real32_t)(rect.bottom - rect.top);
+    *width = bmath_ceilf((real32_t)(rect.right - rect.left) / scale);
+    *height = bmath_ceilf((real32_t)(rect.bottom - rect.top) / scale);
     SelectObject(hdc, cfont);
     ret = ReleaseDC(NULL, hdc);
     cassert_unref(ret == 1, ret);
@@ -322,7 +472,22 @@ void osfont_extents(const OSFont *font, const char_t *text, const real32_t xscal
 const void *osfont_native(const OSFont *font)
 {
     cassert_no_null(font);
-    return (HFONT)font;
+    return osfont_native_dpi(cast(font, OSFont), font->dpi);
+}
+
+/*---------------------------------------------------------------------------*/
+
+const void *osfont_native_dpi(OSFont *font, const uint32_t dpi)
+{
+    HDpi *hdpi = i_hdpi_entry(font, dpi);
+    return hdpi->hfont;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void osfont_metrics_dpi(const uint32_t dpi)
+{
+    i_METRICS_DPI = dpi;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -330,7 +495,7 @@ const void *osfont_native(const OSFont *font)
 real32_t font_regular_size(void)
 {
     NONCLIENTMETRICS metrics;
-    i_metrics(&metrics);
+    i_system_metrics(&metrics);
     cassert(metrics.lfMessageFont.lfHeight < 0);
     return -(real32_t)metrics.lfMessageFont.lfHeight;
 }
@@ -340,7 +505,7 @@ real32_t font_regular_size(void)
 real32_t font_small_size(void)
 {
     NONCLIENTMETRICS metrics;
-    i_metrics(&metrics);
+    i_system_metrics(&metrics);
     cassert(metrics.lfMessageFont.lfHeight < 0);
     return -(real32_t)(metrics.lfMessageFont.lfHeight + 2);
 }
@@ -350,7 +515,7 @@ real32_t font_small_size(void)
 real32_t font_mini_size(void)
 {
     NONCLIENTMETRICS metrics;
-    i_metrics(&metrics);
+    i_system_metrics(&metrics);
     cassert(metrics.lfMessageFont.lfHeight < 0);
     return -(real32_t)(metrics.lfMessageFont.lfHeight + 4);
 }

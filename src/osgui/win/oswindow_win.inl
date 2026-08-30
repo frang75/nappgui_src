@@ -38,4 +38,12 @@ void _oswindow_set_tooltip(OSWindow *window, HWND control_hwnd, const char_t *te
 
 void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd);
 
+void _oswindow_scale_size(const OSWindow *window, const real32_t width, const real32_t height, LONG *nwidth, LONG *nheight);
+
+void _oswindow_scale_pos(const OSWindow *window, const real32_t x, const real32_t y, LONG *nx, LONG *ny);
+
+uint32_t _oswindow_dpi(const OSWindow *window);
+
+real32_t _oswindow_scale(const OSWindow *window);
+
 __END_C

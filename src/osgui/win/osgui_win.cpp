@@ -179,6 +179,51 @@ static HMODULE i_DWMAPIDLL = NULL;
 static DWMGETWINDOWATTRIBUTE i_DwmGetWindowAttribute = NULL;
 #define DWMWA_EXTENDED_FRAME_BOUNDS 9
 
+/* Per-Monitor-v2 DPI awareness, activated at runtime (not via .manifest) so it can be
+   disabled by the app with gui_dpi_aware(FALSE) before the first window is created */
+typedef BOOL(__stdcall *SETPROCESSDPIAWARENESSCONTEXT)(void *value);
+typedef HRESULT(__stdcall *SETPROCESSDPIAWARENESS)(int value);
+static SETPROCESSDPIAWARENESSCONTEXT i_SetProcessDpiAwarenessContext = NULL;
+static HMODULE i_SHCOREDLL = NULL;
+static SETPROCESSDPIAWARENESS i_SetProcessDpiAwareness = NULL;
+
+#ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((void *)(-4))
+#endif
+
+#ifndef PROCESS_PER_MONITOR_DPI_AWARE
+#define PROCESS_PER_MONITOR_DPI_AWARE 2
+#endif
+
+/* Per-monitor DPI query (Windows 10 1607+); on older SO, falls back to the desktop DC,
+   which reports the (possibly virtualized to 96) DPI of the primary monitor only */
+typedef UINT(__stdcall *GETDPIFORWINDOW)(HWND hwnd);
+static GETDPIFORWINDOW i_GetDpiForWindow = NULL;
+
+/* DPI-explicit system metrics (Windows 10 1607+); unlike plain GetSystemMetrics() (which has no
+   HWND context and can return inconsistent values depending on when Windows resolves the real
+   monitor), this always computes deterministically for the given DPI. On older SO, falls back
+   to plain GetSystemMetrics(), ignoring 'dpi' */
+typedef int(__stdcall *GETSYSTEMMETRICSFORDPI)(int nIndex, UINT dpi);
+static GETSYSTEMMETRICSFORDPI i_GetSystemMetricsForDpi = NULL;
+
+/* Per-monitor DPI-aware window rect adjustment (Windows 10 1607+). Under Per-Monitor-V2 the
+   border/title bar are sized for the window's *current* DPI, but plain AdjustWindowRectEx() has
+   no HWND context and can return a stale border size right after a live WM_DPICHANGED. On older
+   SO, falls back to AdjustWindowRectEx(), ignoring 'dpi' */
+typedef BOOL(__stdcall *ADJUSTWINDOWRECTEXFORDPI)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+static ADJUSTWINDOWRECTEXFORDPI i_AdjustWindowRectExForDpi = NULL;
+
+#ifndef MDT_EFFECTIVE_DPI
+#define MDT_EFFECTIVE_DPI 0
+#endif
+
+/* Real DPI of a given monitor (Windows 8.1+, Shcore.dll). Used to resolve the primary monitor's
+   DPI for globals APIs (screen resolution, work area, mouse position) that have no HWND context
+   of their own. On older SO, falls back to the (possibly virtualized to 96) desktop DC DPI */
+typedef HRESULT(__stdcall *GETDPIFORMONITOR)(HMONITOR hmonitor, int dpiType, UINT *dpiX, UINT *dpiY);
+static GETDPIFORMONITOR i_GetDpiForMonitor = NULL;
+
 HWND kDEFAULT_PARENT_WINDOW = NULL;
 HCURSOR kNORMAL_ARROW_CURSOR = NULL;
 HCURSOR kSIZING_HORIZONTAL_CURSOR = NULL;
@@ -189,8 +234,6 @@ const TCHAR *kVIEW_CLASS = L"com.nappgui.view";
 const TCHAR *kRICHEDIT_CLASS = NULL;
 const TCHAR *kWEBVIEW_CLASS = L"com.nappgui.webview";
 unicode_t kWINDOWS_UNICODE = ENUM_MAX(unicode_t);
-int kLOG_PIXY_GUI = 0;
-LONG kTWIPS_PER_PIXEL_GUI = 0;
 
 /*---------------------------------------------------------------------------*/
 
@@ -428,6 +471,89 @@ void _osgui_frame_without_shadows(const HWND hwnd, RECT *rect)
 
 /*---------------------------------------------------------------------------*/
 
+void _osgui_activate_dpi_awareness(void)
+{
+    bool_t activated = FALSE;
+
+    if (i_SetProcessDpiAwarenessContext != NULL)
+    {
+        BOOL ok = i_SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        if (ok != 0)
+            activated = TRUE;
+    }
+
+    if (activated == FALSE && i_SetProcessDpiAwareness != NULL)
+    {
+        HRESULT ok = i_SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+        if (ok == S_OK)
+            activated = TRUE;
+    }
+
+    if (activated == FALSE)
+        SetProcessDPIAware();
+}
+
+/*---------------------------------------------------------------------------*/
+
+UINT _osgui_dpi_for_window(HWND hwnd)
+{
+    if (i_GetDpiForWindow != NULL)
+        return i_GetDpiForWindow(hwnd);
+
+    {
+        HDC hdc = GetDC(hwnd);
+        UINT dpi = (UINT)GetDeviceCaps(hdc, LOGPIXELSY);
+        int ret = ReleaseDC(hwnd, hdc);
+        cassert_unref(ret == 1, ret);
+        return dpi;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+UINT _osgui_dpi_for_primary_monitor(void)
+{
+    if (i_GetDpiForMonitor != NULL)
+    {
+        POINT pt = {0, 0};
+        HMONITOR hmonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+        UINT dpiX = 0, dpiY = 0;
+        HRESULT hr = i_GetDpiForMonitor(hmonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+        if (SUCCEEDED(hr))
+            return dpiX;
+    }
+
+    {
+        HDC hdc = GetDC(NULL);
+        UINT dpi = (UINT)GetDeviceCaps(hdc, LOGPIXELSY);
+        int ret = ReleaseDC(NULL, hdc);
+        cassert_unref(ret == 1, ret);
+        return dpi;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+int _osgui_system_metrics_for_dpi(int index, UINT dpi)
+{
+    if (i_GetSystemMetricsForDpi != NULL)
+        return i_GetSystemMetricsForDpi(index, dpi);
+
+    return GetSystemMetrics(index);
+}
+
+/*---------------------------------------------------------------------------*/
+
+BOOL _osgui_adjust_window_rect_ex_for_dpi(RECT *rect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
+{
+    if (i_AdjustWindowRectExForDpi != NULL)
+        return i_AdjustWindowRectExForDpi(rect, dwStyle, bMenu, dwExStyle, dpi);
+
+    return AdjustWindowRectEx(rect, dwStyle, bMenu, dwExStyle);
+}
+
+/*---------------------------------------------------------------------------*/
+
 vkey_t _osgui_vkey(const WORD key)
 {
     uint32_t i, n = kNUM_VKEYS;
@@ -537,6 +663,26 @@ void _osgui_start_imp(void)
     if (i_DWMAPIDLL != NULL)
         i_DwmGetWindowAttribute = cast_func(GetProcAddress(i_DWMAPIDLL, "DwmGetWindowAttribute"), DWMGETWINDOWATTRIBUTE);
 
+    /* Per-Monitor-v2 DPI awareness (Windows 10 1607+, resolved dynamically for older SO compatibility) */
+    {
+        HMODULE user32_mod = GetModuleHandle(L"user32.dll");
+        if (user32_mod != NULL)
+        {
+            i_SetProcessDpiAwarenessContext = cast_func(GetProcAddress(user32_mod, "SetProcessDpiAwarenessContext"), SETPROCESSDPIAWARENESSCONTEXT);
+            i_GetDpiForWindow = cast_func(GetProcAddress(user32_mod, "GetDpiForWindow"), GETDPIFORWINDOW);
+            i_GetSystemMetricsForDpi = cast_func(GetProcAddress(user32_mod, "GetSystemMetricsForDpi"), GETSYSTEMMETRICSFORDPI);
+            i_AdjustWindowRectExForDpi = cast_func(GetProcAddress(user32_mod, "AdjustWindowRectExForDpi"), ADJUSTWINDOWRECTEXFORDPI);
+        }
+    }
+
+    /* Fallback for Windows 8.1 (Shcore.dll) */
+    i_SHCOREDLL = LoadLibrary(L"Shcore.dll");
+    if (i_SHCOREDLL != NULL)
+    {
+        i_SetProcessDpiAwareness = cast_func(GetProcAddress(i_SHCOREDLL, "SetProcessDpiAwareness"), SETPROCESSDPIAWARENESS);
+        i_GetDpiForMonitor = cast_func(GetProcAddress(i_SHCOREDLL, "GetDpiForMonitor"), GETDPIFORMONITOR);
+    }
+
     /* GDI Plus */
     /* OJO!!! guiplus de inicia en OSDRAW */
     /* TODO*/
@@ -585,16 +731,6 @@ void _osgui_start_imp(void)
 
     /* Unicode format for Windows GUI */
     kWINDOWS_UNICODE = ekUTF16;
-
-    /* TWIPS for Font Size */
-    {
-        HWND hwnd = GetDesktopWindow();
-        HDC hdc = GetDC(hwnd);
-        kLOG_PIXY_GUI = GetDeviceCaps(hdc, LOGPIXELSY);
-        int ret = ReleaseDC(hwnd, hdc);
-        cassert_unref(ret == 1, ret);
-        kTWIPS_PER_PIXEL_GUI = 1440 / kLOG_PIXY_GUI;
-    }
 
     /* Accelerators */
     i_ACCELERATORS = NULL;
@@ -655,6 +791,10 @@ void _osgui_finish_imp(void)
     /* Conditional support for frame without shadows (dwmapi.dll not available in XP) */
     if (i_DWMAPIDLL != NULL)
         FreeLibrary(i_DWMAPIDLL);
+
+    /* Per-Monitor-v2 DPI awareness fallback (Shcore.dll not available before Windows 8.1) */
+    if (i_SHCOREDLL != NULL)
+        FreeLibrary(i_SHCOREDLL);
 
     /* XP Styles */
     _osstyleXP_finish();

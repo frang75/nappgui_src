@@ -20,6 +20,8 @@ void _ospanel_destroy_default(OSPanel **panel);
 
 void _ospanel_destroy(OSPanel **panel);
 
+void _ospanel_update_dpi(OSPanel *panel);
+
 void _ospanel_resize_double_buffer(OSPanel *panel, LONG width, LONG height);
 
 HDC _ospanel_paint_double_buffer(OSPanel *panel, const uint32_t resize_strategy, LONG *width, LONG *height);

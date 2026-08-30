@@ -347,8 +347,13 @@ void oscombo_bgcolor(OSCombo *combo, const color_t color)
 
 void oscombo_elem(OSCombo *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image)
 {
+    uint32_t dpi = USER_DEFAULT_SCREEN_DPI;
     cassert_no_null(combo);
     _oscombo_elem(combo->control.hwnd, combo->image_list, op, index, text, image);
+
+    if (combo->control.window != NULL)
+        dpi = _oswindow_dpi(combo->control.window);
+    _oscombo_imglist(combo->control.hwnd, combo->image_list, dpi);
 
     /* If the editBox has not previous text, take the first element text */
     if (SendMessage(combo->edit_hwnd, WM_GETTEXTLENGTH, (WPARAM)0, (LPARAM)0) == 0)
@@ -404,13 +409,22 @@ uint32_t oscombo_get_selected(const OSCombo *combo)
 
 void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    long button_height = 0;
+    real32_t fwidth, fheight;
+    uint32_t defpadding = 0;
     cassert_no_null(combo);
     cassert_no_null(width);
     cassert_no_null(height);
-    button_height = (14 * HIWORD(GetDialogBaseUnits())) / 8;
+
+    /* Same height as a default Edit (osedit_bounds()'s default vpadding formula) */
+    font_extents(combo->font, "O", -1.f, &fwidth, &fheight);
+    defpadding = (uint32_t)((.3f * fheight) + .5f);
+    if (defpadding % 2 == 1)
+        defpadding += 1;
+    if (defpadding < 5)
+        defpadding = 5;
+
     *width = refwidth;
-    *height = (real32_t)(button_height - 4);
+    *height = fheight + (real32_t)defpadding;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -537,6 +551,29 @@ void _oscombo_command(OSCombo *combo, WPARAM wParam)
 
 /*---------------------------------------------------------------------------*/
 
+static BOOL CALLBACK i_theme_changed(HWND hwnd, LPARAM lParam)
+{
+    unref(lParam);
+    SendMessage(hwnd, WM_THEMECHANGED, 0, 0);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscombo_update_dpi(OSCombo *combo)
+{
+    uint32_t dpi;
+    cassert_no_null(combo);
+    cassert_no_null(combo->control.window);
+    _oscontrol_set_font(cast(combo, OSControl), combo->font);
+    dpi = _oswindow_dpi(combo->control.window);
+    _oscombo_imglist(combo->control.hwnd, combo->image_list, dpi);
+    SendMessage(combo->control.hwnd, WM_THEMECHANGED, 0, 0);
+    EnumChildWindows(combo->control.hwnd, i_theme_changed, 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
 HWND _oscombo_focus_widget(OSCombo *combo)
 {
     cassert_no_null(combo);
@@ -589,12 +626,24 @@ void _oscombo_elem(HWND hwnd, OSImgList *imglist, const ctrl_op_t op, const uint
 
 /*---------------------------------------------------------------------------*/
 
+void _oscombo_imglist(HWND hwnd, OSImgList *imglist, const uint32_t dpi)
+{
+    if (_osimglist_width(imglist) != UINT32_MAX)
+    {
+        HIMAGELIST hlist = _osimglist_hlist(imglist, dpi);
+        SendMessage(hwnd, CBEM_SETIMAGELIST, (WPARAM)0, (LPARAM)hlist);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _oscombo_set_list_height(HWND hwnd, HWND combo_hwnd, const uint32_t image_height, uint32_t num_elems)
 {
-    uint32_t height = (uint32_t)((14 * HIWORD(GetDialogBaseUnits())) / 8) - 4;
     uint32_t line_height = (uint32_t)SendMessage(hwnd, CB_GETITEMHEIGHT, (WPARAM)0, (LPARAM)0);
     RECT rect;
+    uint32_t height;
     GetClientRect(hwnd, &rect);
+    height = (uint32_t)(rect.bottom - rect.top);
 
     if (image_height != UINT32_MAX)
     {
