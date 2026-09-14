@@ -9,6 +9,17 @@
     - `font_native_dpi()`.
     - `font_metrics_dpi()`.
     - `font_with_cell_size()`.
+- Wayland support in the GTK3 backend. [Issue](https://github.com/frang75/nappgui_src/issues/279). [Doc](). [Commit]().
+    - `"-gdkbackend=x11"`/`"-gdkbackend=wayland"` `osmain()`/`osmain_sync()` option, to force a specific GDK backend.
+
+### Fixed
+
+- GTK3 backend no longer forces `GDK_BACKEND=x11`, breaking Wayland-only distros without an X11 session (Ubuntu 26.04+). [Issue](https://github.com/frang75/nappgui_src/issues/279). [Commit]().
+
+### Changed
+
+- `window_overlay()` now takes `origin`, `halign` and `valign`. [Commit]().
+- `menu_launch()` coordinates are now local to the parent window. [Commit]().
 
 ### Removed
 

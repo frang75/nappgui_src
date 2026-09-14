@@ -17,11 +17,16 @@
 #include <core/event.h>
 #include <core/strings.h>
 #include <osbs/bfile.h>
+#include <osbs/log.h>
 #include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 #include <stdlib.h>
 #include <locale.h>
+
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
 
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
@@ -64,7 +69,6 @@ OSApp *_osapp_init_imp(
     FPtr_app_call func_OnFinishLaunching,
     FPtr_app_call func_OnTimerSignal)
 {
-    static char GDK_BACKEND[64];
     bmem_zero(&i_APP, OSApp);
     cassert_unref(instance == NULL, instance);
     cassert_no_null(listener);
@@ -72,8 +76,6 @@ OSApp *_osapp_init_imp(
     cassert(i_APP.listener == NULL);
     cassert(i_APP.func_OnFinishLaunching == NULL);
     cassert(i_APP.func_OnTimerSignal == NULL);
-    str_copy_c(GDK_BACKEND, sizeof(GDK_BACKEND), "GDK_BACKEND=x11"); /* wayland */
-    putenv(GDK_BACKEND);
     cassert(g_application_id_is_valid("com.nappgui.app") == TRUE);
     i_APP.gtk_app = gtk_application_new("com.nappgui.app", G_APPLICATION_NON_UNIQUE);
     cassert_no_null(i_APP.gtk_app);
@@ -224,6 +226,39 @@ static gboolean i_OnTimerInit(gpointer data)
 
 /*---------------------------------------------------------------------------*/
 
+#if GLIB_CHECK_VERSION(2, 50, 0)
+static GLogWriterOutput i_log_writer_x11(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer data)
+{
+    const char_t *domain = NULL;
+    const char_t *message = NULL;
+    gsize i;
+    unref(data);
+
+    for (i = 0; i < n_fields; ++i)
+    {
+        if (str_equ_c(cast_const(fields[i].key, char_t), "GLIB_DOMAIN") == TRUE)
+            domain = cast_const(fields[i].value, char_t);
+        else if (str_equ_c(cast_const(fields[i].key, char_t), "MESSAGE") == TRUE)
+            message = cast_const(fields[i].value, char_t);
+    }
+
+    /* Known-benign noise from libcanberra-gtk-module (system-installed GTK sound-theme
+       module, unrelated to NAppGUI) calling gdk_x11_window_get_xid() on a window that
+       isn't a realized native X11 drawable yet  */
+    if (domain != NULL && message != NULL && str_equ_c(domain, "Gdk") == TRUE)
+    {
+        if (str_str(message, "drawable is not a native X11 window") != NULL)
+            return G_LOG_WRITER_HANDLED;
+        if (str_str(message, "gdk_window_get_origin") != NULL)
+            return G_LOG_WRITER_HANDLED;
+    }
+
+    return g_log_writer_default(level, fields, n_fields, data);
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
 {
     char_t pathname[1024];
@@ -251,13 +286,24 @@ static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
     cassert(app->timer_loop_id > 0);
     cassert(app->timer_init_id > 0);
 
-    /* Get the current backend */
-    /*
     {
         GdkDisplay *display = gdk_display_get_default();
-        const gchar *name = g_type_name(G_TYPE_FROM_INSTANCE(display));
+        const char_t *type_name = cast_const(g_type_name(G_TYPE_FROM_INSTANCE(display)), char_t);
+        const char_t *backend = type_name;
+#ifdef GDK_WINDOWING_WAYLAND
+        if (GDK_IS_WAYLAND_DISPLAY(display) == TRUE)
+            backend = "Wayland";
+#endif
+        if (str_str(type_name, "X11") != NULL)
+            backend = "X11";
+
+#if GLIB_CHECK_VERSION(2, 50, 0)
+        if (str_equ_c(backend, "X11") == TRUE)
+            g_log_set_writer_func(i_log_writer_x11, NULL, NULL);
+#endif
+
+        log_printf("GTK3 %s backend", backend);
     }
-    */
 }
 
 /*---------------------------------------------------------------------------*/

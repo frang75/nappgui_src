@@ -1334,6 +1334,7 @@ void guictx_append_window_manager_imp(
     FPtr_gctx_set_ptr func_attach_window_to_window,
     FPtr_gctx_set_ptr func_detach_window_from_window,
     FPtr_gctx_set_ptr func_window_launch,
+    FPtr_gctx_set_ptr4 func_window_launch_overlay,
     FPtr_gctx_set_ptr func_window_hide,
     FPtr_gctx_set_ptr2 func_window_launch_modal,
     FPtr_gctx_set_uint32 func_window_stop_modal,
@@ -1374,6 +1375,7 @@ void guictx_append_window_manager_imp(
     cassert(context->func_attach_window_to_window == NULL);
     cassert(context->func_detach_window_from_window == NULL);
     cassert(context->func_window_launch == NULL);
+    cassert(context->func_window_launch_overlay == NULL);
     cassert(context->func_window_hide == NULL);
     cassert(context->func_window_launch_modal == NULL);
     cassert(context->func_window_stop_modal == NULL);
@@ -1412,6 +1414,7 @@ void guictx_append_window_manager_imp(
     cassert_no_nullf(func_attach_window_to_window);
     cassert_no_nullf(func_detach_window_from_window);
     cassert_no_nullf(func_window_launch);
+    cassert_no_nullf(func_window_launch_overlay);
     cassert_no_nullf(func_window_hide);
     cassert_no_nullf(func_window_launch_modal);
     cassert_no_nullf(func_window_stop_modal);
@@ -1450,6 +1453,7 @@ void guictx_append_window_manager_imp(
     context->func_attach_window_to_window = func_attach_window_to_window;
     context->func_detach_window_from_window = func_detach_window_from_window;
     context->func_window_launch = func_window_launch;
+    context->func_window_launch_overlay = func_window_launch_overlay;
     context->func_window_hide = func_window_hide;
     context->func_window_launch_modal = func_window_launch_modal;
     context->func_window_stop_modal = func_window_stop_modal;

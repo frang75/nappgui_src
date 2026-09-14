@@ -33,7 +33,7 @@ _gui_api void window_show(Window *window);
 
 _gui_api void window_hide(Window *window);
 
-_gui_api void window_overlay(Window *window, Window *parent);
+_gui_api void window_overlay(Window *window, Window *parent, const V2Df origin, const align_t halign, const align_t valign);
 
 _gui_api uint32_t window_modal(Window *window, Window *parent);
 

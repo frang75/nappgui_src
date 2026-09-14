@@ -303,7 +303,7 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
 {
     cassert_no_null(menu);
     cassert(menu->window == NULL);
-    unref(window);
+    cassert_no_null(window);
 
     if (menu->is_popup == FALSE || menu->menupop == NULL)
     {
@@ -323,22 +323,36 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
 
     gtk_widget_show_all(menu->menupop);
 
-#if GTK_CHECK_VERSION(3, 22, 0)
     {
-        GdkDisplay *display = gdk_display_get_default();
-        GdkWindow *gdkwindow = gdk_display_get_default_group(display);
-        GdkRectangle rect;
-        rect.x = (int)x;
-        rect.y = (int)y;
-        rect.width = 100;
-        rect.height = 100;
-        gtk_menu_popup_at_rect(GTK_MENU(menu->menupop), gdkwindow, &rect, GDK_GRAVITY_NORTH_WEST, GDK_GRAVITY_NORTH_WEST, NULL);
-    }
+        GtkWidget *widget = cast(window, OSControl)->widget;
+        GtkWidget *content_box = _oswindow_content_box(window);
+        gint tx = 0, ty = 0;
+        gtk_widget_translate_coordinates(content_box, widget, (int)x, (int)y, &tx, &ty);
+
+#if GTK_CHECK_VERSION(3, 22, 0)
+        {
+            GdkWindow *gdkwindow = gtk_widget_get_window(widget);
+            GdkRectangle rect;
+            rect.x = tx;
+            rect.y = ty;
+            rect.width = 0;
+            rect.height = 0;
+            gtk_menu_popup_at_rect(GTK_MENU(menu->menupop), gdkwindow, &rect, GDK_GRAVITY_NORTH_WEST, GDK_GRAVITY_NORTH_WEST, NULL);
+        }
 #else
-    menu->popup_x = (gint)x;
-    menu->popup_y = (gint)y;
-    gtk_menu_popup(GTK_MENU(menu->menupop), NULL, NULL, i_popup_pos, menu, 0, 0);
+        /* Unlike gtk_menu_popup_at_rect() above, this legacy path (pre-GTK-3.22) has no
+           concept of a 'relative to window' rectangle -- i_popup_pos()'s output feeds
+           gtk_menu_popup() directly, which only understands screen coordinates. */
+        {
+            GdkWindow *gdkwindow = gtk_widget_get_window(widget);
+            gint origin_x = 0, origin_y = 0;
+            gdk_window_get_origin(gdkwindow, &origin_x, &origin_y);
+            menu->popup_x = tx + origin_x;
+            menu->popup_y = ty + origin_y;
+        }
+        gtk_menu_popup(GTK_MENU(menu->menupop), NULL, NULL, i_popup_pos, menu, 0, 0);
 #endif
+    }
 }
 
 /*---------------------------------------------------------------------------*/

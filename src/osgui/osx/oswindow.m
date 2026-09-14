@@ -827,20 +827,10 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     OSXWindow *lwindow = cast(window, OSXWindow);
-    OSXWindow *lparent = cast(parent_window, OSXWindow);
     cassert_no_null(window);
     cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
-    if (lparent != nil)
-    {
-        cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
-        lwindow->role = ekGUI_ROLE_OVERLAY;
-    }
-    else
-    {
-        lparent = nil; /*(OSXWindow*)window;*/
-        lwindow->role = ekGUI_ROLE_MAIN;
-    }
-
+    cassert_unref(parent_window == NULL, parent_window);
+    lwindow->role = ekGUI_ROLE_MAIN;
     _ostabstop_restore(&lwindow->tabstop);
 
     /* https://developer.apple.com/forums/thread/729496
@@ -849,10 +839,63 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
      * I changed my implementation to open the first window on my app.
      * The key is to use orderFrontRegardless() instead of makeKeyAndOrderFront(nil)
      */
-    if (lparent != nil)
-        [lwindow makeKeyAndOrderFront:lparent];
-    else
-        [lwindow orderFrontRegardless];
+    [lwindow orderFrontRegardless];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_launch_overlay(OSWindow *window, OSWindow *parent_window, const real32_t x, const real32_t y, const align_t halign, const align_t valign)
+{
+    OSXWindow *lwindow = cast(window, OSXWindow);
+    OSXWindow *lparent = cast(parent_window, OSXWindow);
+    real32_t width, height;
+    real32_t local_x, local_y;
+    real32_t screen_x, screen_y;
+    cassert_no_null(lwindow);
+    cassert_no_null(lparent);
+    cassert([cast(window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    cassert([cast(parent_window, NSResponder) isKindOfClass:[OSXWindow class]] == YES);
+    oswindow_get_size(window, &width, &height);
+
+    switch (halign)
+    {
+    case ekLEFT:
+        local_x = x;
+        break;
+    case ekRIGHT:
+        local_x = x - width;
+        break;
+    case ekCENTER:
+        local_x = x - width / 2;
+        break;
+    case ekJUSTIFY:
+    default:
+        cassert_default(halign);
+    }
+
+    switch (valign)
+    {
+    case ekTOP:
+        local_y = y;
+        break;
+    case ekBOTTOM:
+        local_y = y - height;
+        break;
+    case ekCENTER:
+        local_y = y - height / 2;
+        break;
+    case ekJUSTIFY:
+    default:
+        cassert_default(valign);
+    }
+
+    screen_x = local_x;
+    screen_y = local_y;
+    oswindow_get_origin(parent_window, &screen_x, &screen_y);
+    oswindow_origin(window, screen_x, screen_y);
+    lwindow->role = ekGUI_ROLE_OVERLAY;
+    _ostabstop_restore(&lwindow->tabstop);
+    [lwindow makeKeyAndOrderFront:lparent];
 }
 
 /*---------------------------------------------------------------------------*/

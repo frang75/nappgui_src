@@ -589,9 +589,12 @@ void osglobals_resolution(const void *non_used, real32_t *width, real32_t *heigh
 #if GTK_CHECK_VERSION(3, 22, 0)
     {
         GdkDisplay *display = gdk_display_get_default();
-        GdkMonitor *primary_monitor = gdk_display_get_primary_monitor(display);
+        GdkMonitor *monitor = gdk_display_get_primary_monitor(display);
         GdkRectangle monitor_geometry;
-        gdk_monitor_get_geometry(primary_monitor, &monitor_geometry);
+        if (monitor == NULL && gdk_display_get_n_monitors(display) > 0)
+            monitor = gdk_display_get_monitor(display, 0);
+        cassert_no_null(monitor);
+        gdk_monitor_get_geometry(monitor, &monitor_geometry);
         *width = (real32_t)monitor_geometry.width;
         *height = (real32_t)monitor_geometry.height;
     }
@@ -613,9 +616,14 @@ void osglobals_workarea(const void *non_used, real32_t *x, real32_t *y, real32_t
 #if GTK_CHECK_VERSION(3, 22, 0)
     {
         GdkDisplay *display = gdk_display_get_default();
-        GdkMonitor *primary_monitor = gdk_display_get_primary_monitor(display);
+        GdkMonitor *monitor = gdk_display_get_primary_monitor(display);
         GdkRectangle workarea;
-        gdk_monitor_get_workarea(primary_monitor, &workarea);
+
+        if (monitor == NULL && gdk_display_get_n_monitors(display) > 0)
+            monitor = gdk_display_get_monitor(display, 0);
+        cassert_no_null(monitor);
+
+        gdk_monitor_get_workarea(monitor, &workarea);
         *x = (real32_t)workarea.x;
         *y = (real32_t)workarea.y;
         *width = (real32_t)workarea.width;
@@ -636,7 +644,7 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
     /* https://stackoverflow.com/questions/55213291/query-cursor-position-with-gtk */
     gint ix, iy;
     GdkDisplay *display = gdk_display_get_default();
-    GdkWindow *window = NULL;
+    GdkScreen *screen = NULL;
     GdkDevice *mouse_device = NULL;
     cassert_no_null(x);
     cassert_no_null(y);
@@ -653,8 +661,7 @@ void osglobals_mouse_position(const void *non_used, real32_t *x, real32_t *y)
     }
 #endif
 
-    window = gdk_display_get_default_group(display);
-    gdk_window_get_device_position(window, mouse_device, &ix, &iy, NULL);
+    gdk_device_get_position(mouse_device, &screen, &ix, &iy);
     *x = (real32_t)ix;
     *y = (real32_t)iy;
 }

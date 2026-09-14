@@ -34,7 +34,6 @@ struct _cdata_t
     gint y;
     align_t halign;
     align_t valign;
-    GtkWidget *parent;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -174,11 +173,15 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
 {
     GtkWidget *dialog = NULL;
     GtkColorChooser *chooser = NULL;
+    GtkWindow *parent_window = NULL;
     CData data;
     gint res = 0;
     GdkRGBA curcol;
 
-    dialog = gtk_color_chooser_dialog_new(title, NULL);
+    if (parent != NULL)
+        parent_window = GTK_WINDOW(cast(parent, OSControl)->widget);
+
+    dialog = gtk_color_chooser_dialog_new(title, parent_window);
     chooser = GTK_COLOR_CHOOSER(dialog);
     _oscontrol_to_gdkrgba(current, &curcol);
     gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
@@ -198,7 +201,6 @@ void oscomwin_color(OSWindow *parent, const char_t *title, const real32_t x, con
     data.y = (gint)y;
     data.halign = halign;
     data.valign = valign;
-    data.parent = parent ? cast(parent, OSControl)->widget : NULL;
     g_signal_connect(dialog, "realize", G_CALLBACK(i_OnRealize), &data);
 
     /* gtk_widget_show(dialog); */

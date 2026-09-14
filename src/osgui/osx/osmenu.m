@@ -143,14 +143,10 @@ void osmenu_launch(OSMenu *menu, OSWindow *window, const real32_t x, const real3
 {
     OSXMenu *lmenu = cast(menu, OSXMenu);
     NSView *view = nil;
-    CGFloat ly = 0.f;
     cassert_no_null(lmenu);
     cassert([cast(lmenu, NSObject) isKindOfClass:[OSXMenu class]] == YES);
-    /* TODO: Use view (convert from screen to view coordinate) */
     view = _oswindow_main_view(window);
-    unref(view);
-    ly = [[NSScreen mainScreen] frame].size.height - (CGFloat)y;
-    [lmenu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, ly) inView:nil];
+    [lmenu popUpMenuPositioningItem:nil atLocation:NSMakePoint((CGFloat)x, (CGFloat)y) inView:view];
 }
 
 /*---------------------------------------------------------------------------*/

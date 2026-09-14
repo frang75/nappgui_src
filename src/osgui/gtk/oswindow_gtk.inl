@@ -22,6 +22,8 @@ void _oswindow_unset_focus(OSWindow *window);
 
 GtkAccelGroup *_oswindow_accel(const OSWindow *window);
 
+GtkWidget *_oswindow_content_box(const OSWindow *window);
+
 bool_t _oswindow_mouse_down(OSControl *control);
 
 void _oswindow_release_transient_focus(OSControl *control);

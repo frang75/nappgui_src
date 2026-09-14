@@ -1223,6 +1223,7 @@ _draw2d_api void guictx_append_window_manager_imp(
     FPtr_gctx_set_ptr func_attach_window_to_window,
     FPtr_gctx_set_ptr func_detach_window_from_window,
     FPtr_gctx_set_ptr func_window_launch,
+    FPtr_gctx_set_ptr4 func_window_launch_overlay,
     FPtr_gctx_set_ptr func_window_hide,
     FPtr_gctx_set_ptr2 func_window_launch_modal,
     FPtr_gctx_set_uint32 func_window_stop_modal,
@@ -1263,6 +1264,7 @@ _draw2d_api void guictx_append_window_manager_imp(
     func_attach_window_to_window, \
     func_detach_window_from_window, \
     func_window_launch, \
+    func_window_launch_overlay, \
     func_window_hide, \
     func_window_launch_modal, \
     func_window_stop_modal, \
@@ -1303,6 +1305,7 @@ _draw2d_api void guictx_append_window_manager_imp(
         FUNC_CHECK_GCTX_SET_PTR(func_attach_window_to_window, window_type, window_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_window_from_window, window_type, window_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_window_launch, window_type, window_type), \
+        FUNC_CHECK_GCTX_SET_PTR4(func_window_launch_overlay, window_type, window_type, align_t), \
         FUNC_CHECK_GCTX_SET_PTR(func_window_hide, window_type, window_type), \
         FUNC_CHECK_GCTX_SET_PTR2(func_window_launch_modal, window_type, window_type), \
         FUNC_CHECK_GCTX_SET_UINT32(func_window_stop_modal, window_type), \
@@ -1343,6 +1346,7 @@ _draw2d_api void guictx_append_window_manager_imp(
             (FPtr_gctx_set_ptr)func_attach_window_to_window, \
             (FPtr_gctx_set_ptr)func_detach_window_from_window, \
             (FPtr_gctx_set_ptr)func_window_launch, \
+            (FPtr_gctx_set_ptr4)func_window_launch_overlay, \
             (FPtr_gctx_set_ptr)func_window_hide, \
             (FPtr_gctx_set_ptr2)func_window_launch_modal, \
             (FPtr_gctx_set_uint32)func_window_stop_modal, \

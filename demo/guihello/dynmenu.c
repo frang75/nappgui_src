@@ -249,21 +249,18 @@ static void i_OnUnsetMenubar(DynMenu *dmenu, Event *e)
 
 static void i_OnPopUpMenu(DynMenu *dmenu, Event *e)
 {
-    V2Df pos;
+    R2Df frame;
     cassert_no_null(dmenu);
     unref(e);
 
     /* First, unlink the menu if has a menubar role */
     i_unset_menubar(dmenu);
 
-    /* Screen position of top-left textview corner */
-    {
-        R2Df frame = window_control_frame(dmenu->window, guicontrol(dmenu->text));
-        pos = window_client_to_screen(dmenu->window, frame.pos);
-    }
+    /* TextView in window coordinates */
+    frame = window_control_frame(dmenu->window, guicontrol(dmenu->text));
 
     /* Launch as popup */
-    menu_launch(dmenu->menu, dmenu->window, pos);
+    menu_launch(dmenu->menu, dmenu->window, frame.pos);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -525,6 +525,10 @@ typedef enum_t (*FPtr_gctx_set_ptr3)(void *item, void *ptr);
 #define FUNC_CHECK_GCTX_SET_PTR3(func, type, ptr_type, enum_type) \
     (void)((enum_type(*)(type *, ptr_type *))func == func)
 
+typedef void (*FPtr_gctx_set_ptr4)(void *item, void *ptr, const real32_t value1, const real32_t value2, const enum_t value3, const enum_t value4);
+#define FUNC_CHECK_GCTX_SET_PTR4(func, type, ptr_type, enum_type) \
+    (void)((void (*)(type *, ptr_type *, const real32_t, const real32_t, const enum_type, const enum_type))func == func)
+
 typedef void (*FPtr_gctx_set_cptr)(void *item, const void *ptr);
 #define FUNC_CHECK_GCTX_SET_CPTR(func, type, ptr_type) \
     (void)((void (*)(type *, const ptr_type *))func == func)
@@ -943,6 +947,7 @@ struct _guictx_t
     FPtr_gctx_set_ptr func_attach_window_to_window;
     FPtr_gctx_set_ptr func_detach_window_from_window;
     FPtr_gctx_set_ptr func_window_launch;
+    FPtr_gctx_set_ptr4 func_window_launch_overlay;
     FPtr_gctx_set_ptr func_window_hide;
     FPtr_gctx_set_ptr2 func_window_launch_modal;
     FPtr_gctx_set_uint32 func_window_stop_modal;

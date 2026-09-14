@@ -30,6 +30,10 @@
 #include <osbs/bthread.h>
 #include <sewer/cassert.h>
 
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
+
 #if !defined(__GTK3__)
 #error This file is only for GTK Toolkit
 #endif
@@ -63,6 +67,8 @@ struct _oswindow_t
     gint current_height;
     gint minimun_width;
     gint minimun_height;
+    GtkWidget *content_box;
+    GtkWidget *popover;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -70,6 +76,125 @@ struct _oswindow_t
 static GtkApplication *i_GTK_APP = NULL;
 static GdkPixbuf *i_APP_ICON = NULL;
 static bool_t i_APP_TERMINATE = FALSE;
+static bool_t i_close(OSWindow *, const gui_close_t);
+static gboolean i_OnKeyPress(GtkWidget *, GdkEventKey *, OSWindow *);
+
+/*---------------------------------------------------------------------------*/
+
+/* Wayland support for overlay windows, via GtkPopover */
+#if GTK_CHECK_VERSION(3, 12, 0)
+
+static void i_apply_flat_popover_css(GtkWidget *popover)
+{
+    static const gchar *css = "popover.background { border-radius: 0 }";
+    GtkCssProvider *provider = gtk_css_provider_new();
+    GtkStyleContext *context = gtk_widget_get_style_context(popover);
+    gtk_css_provider_load_from_data(provider, css, -1, NULL);
+    gtk_style_context_add_provider(context, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_on_popover_closed(GtkWidget *popover, OSWindow *window)
+{
+    unref(popover);
+    if (window->role == ekGUI_ROLE_OVERLAY)
+    {
+        if (i_close(window, ekGUI_CLOSE_DEACT) == TRUE)
+            window->role = ENUM_MAX(gui_role_t);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_show_overlay(OSWindow *window, OSWindow *parent_window, const gint origin_x, const gint origin_y, const align_t halign, const align_t valign)
+{
+    GtkRequisition natural;
+    GdkRectangle rect;
+    GtkPositionType position;
+
+    if (window->popover == NULL)
+    {
+        window->popover = gtk_popover_new(parent_window->content_box);
+        g_object_set_data(G_OBJECT(window->popover), "nappgui-overlay-window", window);
+        i_apply_flat_popover_css(window->popover);
+#if GTK_CHECK_VERSION(3, 20, 0)
+        gtk_popover_set_constrain_to(GTK_POPOVER(window->popover), GTK_POPOVER_CONSTRAINT_NONE);
+#endif
+
+        g_object_ref(window->content_box);
+        gtk_container_remove(GTK_CONTAINER(window->control.widget), window->content_box);
+        gtk_container_add(GTK_CONTAINER(window->popover), window->content_box);
+        g_object_unref(window->content_box);
+
+        g_signal_connect(window->popover, "closed", G_CALLBACK(i_on_popover_closed), (gpointer)window);
+        g_signal_connect(window->popover, "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)window);
+    }
+    else
+    {
+        gtk_popover_set_relative_to(GTK_POPOVER(window->popover), parent_window->content_box);
+    }
+
+    gtk_widget_show(window->content_box);
+    gtk_widget_show(window->popover);
+
+    gtk_widget_get_preferred_size(window->popover, NULL, &natural);
+
+    if (halign != ekCENTER)
+    {
+        position = (halign == ekLEFT) ? GTK_POS_RIGHT : GTK_POS_LEFT;
+        rect.x = origin_x;
+        rect.y = origin_y;
+    }
+    else
+    {
+        if (valign == ekTOP)
+        {
+            position = GTK_POS_BOTTOM;
+            rect.y = origin_y;
+        }
+        else if (valign == ekBOTTOM)
+        {
+            position = GTK_POS_TOP;
+            rect.y = origin_y;
+        }
+        else
+        {
+            position = GTK_POS_BOTTOM;
+            rect.y = origin_y - natural.height / 2;
+        }
+
+        rect.x = origin_x;
+    }
+
+    rect.width = 0;
+    rect.height = 0;
+    gtk_popover_set_position(GTK_POPOVER(window->popover), position);
+    gtk_popover_set_pointing_to(GTK_POPOVER(window->popover), &rect);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_unembed_overlay(OSWindow *window)
+{
+    if (window->popover != NULL)
+    {
+        GtkWidget *popover = window->popover;
+        window->popover = NULL;
+        g_signal_handlers_disconnect_by_func(popover, (gpointer)(intptr_t)i_on_popover_closed, window);
+        g_signal_handlers_disconnect_by_func(popover, (gpointer)(intptr_t)i_OnKeyPress, window);
+        g_object_ref(window->content_box);
+        gtk_container_remove(GTK_CONTAINER(popover), window->content_box);
+        gtk_container_add(GTK_CONTAINER(window->control.widget), window->content_box);
+        g_object_unref(window->content_box);
+        gtk_widget_destroy(popover);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+#endif /* GTK_CHECK_VERSION(3, 12, 0) */
 
 /*---------------------------------------------------------------------------*/
 
@@ -91,7 +216,21 @@ static bool_t i_close(OSWindow *window, const gui_close_t close_origin)
     }
 
     if (closed == TRUE)
-        gtk_widget_hide(window->control.widget);
+    {
+        if (window->popover != NULL)
+        {
+#if GTK_CHECK_VERSION(3, 12, 0)
+            gtk_widget_hide(window->content_box);
+            g_signal_handlers_block_by_func(window->popover, (gpointer)(intptr_t)i_on_popover_closed, window);
+            gtk_widget_hide(window->popover);
+            g_signal_handlers_unblock_by_func(window->popover, (gpointer)(intptr_t)i_on_popover_closed, window);
+#endif
+        }
+        else
+        {
+            gtk_widget_hide(window->control.widget);
+        }
+    }
 
     return closed;
 }
@@ -268,12 +407,23 @@ static gboolean i_OnKeyPress(GtkWidget *widget, GdkEventKey *event, OSWindow *wi
         {
             if (window->tabstop.defbutton != NULL)
             {
-                GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(widget));
-                GtkWidget *bfocus = _osbutton_focus_widget(window->tabstop.defbutton);
-                if (gtk_widget_get_can_focus(bfocus) == TRUE)
-                    gtk_window_set_focus(GTK_WINDOW(widget), bfocus);
-                _osbutton_command(window->tabstop.defbutton);
-                _osglobals_restore_focus(widget, focus);
+                /* 'widget' is a real GtkWindow for every window except one currently shown via a GtkPopover */
+                if (GTK_IS_WINDOW(widget) == TRUE)
+                {
+                    GtkWidget *focus = gtk_window_get_focus(GTK_WINDOW(widget));
+                    GtkWidget *bfocus = _osbutton_focus_widget(window->tabstop.defbutton);
+                    if (gtk_widget_get_can_focus(bfocus) == TRUE)
+                        gtk_window_set_focus(GTK_WINDOW(widget), bfocus);
+                    _osbutton_command(window->tabstop.defbutton);
+                    _osglobals_restore_focus(widget, focus);
+                }
+                else
+                {
+                    GtkWidget *bfocus = _osbutton_focus_widget(window->tabstop.defbutton);
+                    if (gtk_widget_get_can_focus(bfocus) == TRUE)
+                        gtk_widget_grab_focus(bfocus);
+                    _osbutton_command(window->tabstop.defbutton);
+                }
             }
 
             if (window->flags & ekWINDOW_RETURN)
@@ -400,6 +550,8 @@ OSWindow *oswindow_create(const uint32_t flags)
     gtk_widget_show(box);
     gtk_container_add(GTK_CONTAINER(widget), box);
     _oscontrol_init(cast(window, OSControl), ekGUI_TYPE_WINDOW, widget, widget, FALSE);
+    window->content_box = box;
+    window->popover = NULL;
     window->flags = flags;
     window->role = ENUM_MAX(gui_role_t);
     window->destroy_main_view = TRUE;
@@ -486,6 +638,10 @@ void oswindow_destroy(OSWindow **window)
     cassert_no_null(*window);
     cassert((*window)->menu == NULL);
 
+#if GTK_CHECK_VERSION(3, 12, 0)
+    i_unembed_overlay(*window);
+#endif
+
     gtk_widget_hide((*window)->control.widget);
     g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_delete);
     g_signal_handler_disconnect(G_OBJECT((*window)->control.widget), (*window)->signal_config);
@@ -513,7 +669,7 @@ void oswindow_destroy(OSWindow **window)
     _oswindow_hotkey_destroy(&(*window)->hotkeys);
     _ostabstop_remove(&(*window)->tabstop);
     cassert(i_num_children((*window)->control.widget) == 1);
-    cassert(i_num_children(gtk_bin_get_child(GTK_BIN((*window)->control.widget))) == 0);
+    cassert(i_num_children((*window)->content_box) == 0);
     g_object_unref((*window)->control.widget);
     heap_delete(window, OSWindow);
 }
@@ -665,11 +821,9 @@ gui_tab_t oswindow_info_focus(const OSWindow *window, void **next_ctrl)
 
 void oswindow_attach_panel(OSWindow *window, OSPanel *panel)
 {
-    GtkWidget *box = NULL;
     cassert_no_null(window);
     cassert(window->main_panel == NULL);
-    box = gtk_bin_get_child(GTK_BIN(window->control.widget));
-    gtk_box_pack_end(GTK_BOX(box), cast(panel, OSControl)->widget, TRUE, TRUE, 0);
+    gtk_box_pack_end(GTK_BOX(window->content_box), cast(panel, OSControl)->widget, TRUE, TRUE, 0);
     window->main_panel = panel;
 }
 
@@ -677,11 +831,9 @@ void oswindow_attach_panel(OSWindow *window, OSPanel *panel)
 
 void oswindow_detach_panel(OSWindow *window, OSPanel *panel)
 {
-    GtkWidget *box = NULL;
     cassert_no_null(window);
     cassert(window->main_panel == panel);
-    box = gtk_bin_get_child(GTK_BIN(window->control.widget));
-    gtk_container_remove(GTK_CONTAINER(box), cast(panel, OSControl)->widget);
+    gtk_container_remove(GTK_CONTAINER(window->content_box), cast(panel, OSControl)->widget);
     window->main_panel = NULL;
 }
 
@@ -705,21 +857,101 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_is_wayland(void)
+{
+#ifdef GDK_WINDOWING_WAYLAND
+    GdkDisplay *display = gdk_display_get_default();
+    return (bool_t)GDK_IS_WAYLAND_DISPLAY(display);
+#else
+    return FALSE;
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
+    /* window_overlay() now launches through oswindow_launch_overlay() instead -- this
+       entry point is only ever reached from window_show(), always with no parent. */
+    cassert(parent_window == NULL);
+    unref(parent_window);
     window->configure_event += 1;
-    if (parent_window != NULL)
+    window->role = ekGUI_ROLE_MAIN;
+#if GTK_CHECK_VERSION(3, 12, 0)
+    i_unembed_overlay(window);
+#endif
+    gtk_widget_show(window->control.widget);
+    _ostabstop_restore(&window->tabstop);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_launch_overlay(OSWindow *window, OSWindow *parent_window, const real32_t x, const real32_t y, const align_t halign, const align_t valign)
+{
+    cassert_no_null(window);
+    cassert_no_null(parent_window);
+    window->configure_event += 1;
+    window->role = ekGUI_ROLE_OVERLAY;
+
+    if (i_is_wayland() == TRUE)
     {
-        gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), GTK_WINDOW(parent_window->control.widget));
-        window->role = ekGUI_ROLE_OVERLAY;
+#if GTK_CHECK_VERSION(3, 12, 0)
+        i_show_overlay(window, parent_window, (gint)x, (gint)y, halign, valign);
+#else
+        cassert_msg(FALSE, "window_overlay() on Wayland requires GTK >= 3.12 (GtkPopover)");
+#endif
     }
     else
     {
-        window->role = ekGUI_ROLE_MAIN;
+        GtkRequisition natural;
+        GdkWindow *parent_gdk_window;
+        gint parent_x = 0;
+        gint parent_y = 0;
+        gint local_x = 0;
+        gint local_y = 0;
+
+        parent_gdk_window = gtk_widget_get_window(parent_window->control.widget);
+        gdk_window_get_origin(parent_gdk_window, &parent_x, &parent_y);
+        gtk_widget_get_preferred_size(window->control.widget, NULL, &natural);
+
+        switch (halign)
+        {
+        case ekLEFT:
+            local_x = (gint)x;
+            break;
+        case ekRIGHT:
+            local_x = (gint)x - natural.width;
+            break;
+        case ekCENTER:
+            local_x = (gint)x - natural.width / 2;
+            break;
+        case ekJUSTIFY:
+        default:
+            cassert_default(halign);
+        }
+
+        switch (valign)
+        {
+        case ekTOP:
+            local_y = (gint)y;
+            break;
+        case ekBOTTOM:
+            local_y = (gint)y - natural.height;
+            break;
+        case ekCENTER:
+            local_y = (gint)y - natural.height / 2;
+            break;
+        case ekJUSTIFY:
+        default:
+            cassert_default(valign);
+        }
+
+        gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), GTK_WINDOW(parent_window->control.widget));
+        gtk_window_move(GTK_WINDOW(window->control.widget), parent_x + local_x, parent_y + local_y);
+        gtk_widget_show(window->control.widget);
     }
 
-    gtk_widget_show(window->control.widget);
     _ostabstop_restore(&window->tabstop);
 }
 
@@ -730,18 +962,44 @@ void oswindow_hide(OSWindow *window, OSWindow *parent_window)
     cassert_no_null(window);
     unref(parent_window);
     window->role = ENUM_MAX(gui_role_t);
-    gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), NULL);
-    gtk_widget_hide(window->control.widget);
+
+    if (window->popover != NULL)
+    {
+        gtk_widget_hide(window->popover);
+    }
+    else
+    {
+        gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), NULL);
+        gtk_widget_hide(window->control.widget);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
 {
+    bool_t wayland_fake_modal = FALSE;
     cassert_no_null(window);
     cassert(window->runloop == NULL);
+    /* In case this same window was previously launched with the overlay role: a modal
+       must be a genuine, independent toplevel with its own real keyboard focus, never
+       content embedded in another window's GtkPopover. */
+#if GTK_CHECK_VERSION(3, 12, 0)
+    i_unembed_overlay(window);
+#endif
     _ostabstop_restore(&window->tabstop);
-    gtk_window_set_modal(GTK_WINDOW(window->control.widget), TRUE);
+
+    /*
+     * gtk_window_set_modal(TRUE) together with gtk_window_set_transient_for() makes
+     * Mutter treat the pair as an "attached dialog" under Wayland: dragging the modal
+     * drags the parent along.
+     */
+    wayland_fake_modal = (bool_t)(i_is_wayland() == TRUE && parent_window != NULL);
+    if (wayland_fake_modal == TRUE)
+        gtk_widget_set_sensitive(parent_window->content_box, FALSE);
+    else
+        gtk_window_set_modal(GTK_WINDOW(window->control.widget), TRUE);
+
     window->configure_event += 1;
     window->role = ekGUI_ROLE_MODAL;
     window->runloop = g_main_loop_new(NULL, FALSE);
@@ -753,6 +1011,9 @@ uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window)
     g_main_loop_run(window->runloop);
     g_main_loop_unref(window->runloop);
     gtk_window_set_transient_for(GTK_WINDOW(window->control.widget), NULL);
+
+    if (wayland_fake_modal == TRUE)
+        gtk_widget_set_sensitive(parent_window->content_box, TRUE);
 
     if (parent_window != NULL)
         _ostabstop_restore(&parent_window->tabstop);
@@ -846,6 +1107,14 @@ void oswindow_get_origin(const OSWindow *window, real32_t *x, real32_t *y)
         *x = 0;
         *y = 0;
     }
+    else if (i_is_wayland() == TRUE)
+    {
+        if (*x == REAL32_MAX && *y == REAL32_MAX)
+        {
+            *x = 0;
+            *y = 0;
+        }
+    }
     else
     {
         if (*x == REAL32_MAX && *y == REAL32_MAX)
@@ -899,10 +1168,44 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 
 /*---------------------------------------------------------------------------*/
 
+static void i_window_decoration_delta(OSWindow *window, GtkWidget *box, gint *dwidth, gint *dheight)
+{
+    cassert_no_null(window);
+    cassert_no_null(dwidth);
+    cassert_no_null(dheight);
+    *dwidth = 0;
+    *dheight = 0;
+    if (gtk_widget_get_realized(window->control.widget) == TRUE)
+    {
+        *dwidth = gtk_widget_get_allocated_width(window->control.widget) - gtk_widget_get_allocated_width(box);
+        *dheight = gtk_widget_get_allocated_height(window->control.widget) - gtk_widget_get_allocated_height(box);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnBoxFirstMap(GtkWidget *box, GdkEvent *event, gpointer data)
+{
+    unref(event);
+    unref(data);
+    /* The size request below is only meant to give the window its initial size; drop
+       it right after the first map so the user can still shrink/grow the window freely
+       afterwards (a resizable window must not keep a permanent minimum size). */
+    gtk_widget_set_size_request(box, -1, -1);
+    g_signal_handlers_disconnect_by_func(box, (gpointer)(intptr_t)i_OnBoxFirstMap, NULL);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_update_menu_size(OSWindow *window)
 {
     GtkRequisition msize;
+    GtkWidget *box = NULL;
+    gint width, height;
     cassert_no_null(window);
+    box = window->content_box;
+
     if (window->menu != NULL)
     {
         GtkWidget *wmenu = _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
@@ -914,15 +1217,42 @@ static void i_update_menu_size(OSWindow *window)
         msize.height = 0;
     }
 
+    width = window->current_width;
+    height = window->current_height + msize.height;
+
     if (window->is_resizable == TRUE)
     {
         window->configure_event += 1;
         gtk_widget_set_size_request(window->control.widget, -1, -1);
-        gtk_window_resize(GTK_WINDOW(window->control.widget), window->current_width, window->current_height + msize.height);
+
+        if (gtk_widget_get_realized(window->control.widget) == TRUE)
+        {
+            /* Window already mapped: an explicit gtk_window_resize() targets the whole
+               surface. On X11 the window manager draws the decoration outside of it, so
+               the delta is 0. On Wayland GTK draws its own decoration (CSD) inside the
+               same surface, so it must be added on top of 'width x height' or the content
+               box ends up squeezed into less space than requested. */
+            gint dwidth, dheight;
+            i_window_decoration_delta(window, box, &dwidth, &dheight);
+            gtk_window_resize(GTK_WINDOW(window->control.widget), width + dwidth, height + dheight);
+        }
+        else
+        {
+            /* Not shown yet: hint the *content* box instead of the toplevel, and let GTK
+               derive the toplevel's natural size from it. Any decoration GTK adds on top
+               (Wayland CSD) is then additive instead of being carved out of 'width x
+               height', which is what made the initial size come out too small/clipped. */
+            gtk_widget_set_size_request(box, width, height);
+            g_signal_handlers_disconnect_by_func(box, (gpointer)(intptr_t)i_OnBoxFirstMap, NULL);
+            g_signal_connect(box, "map-event", G_CALLBACK(i_OnBoxFirstMap), NULL);
+        }
     }
     else
     {
-        gtk_widget_set_size_request(window->control.widget, window->current_width, window->current_height + msize.height);
+        /* Non-resizable window: GTK keeps a non-resizable toplevel sized to fit its
+           child's requisition, on every backend, so hinting the content box is enough. */
+        gtk_widget_set_size_request(window->control.widget, -1, -1);
+        gtk_widget_set_size_request(box, width, height);
     }
 }
 
@@ -931,20 +1261,15 @@ static void i_update_menu_size(OSWindow *window)
 void oswindow_client_size(OSWindow *window, const real32_t width, const real32_t height)
 {
     cassert_no_null(window);
+    window->current_width = (gint)width;
+    window->current_height = (gint)height;
+
     if (window->is_resizable == TRUE)
     {
-        window->configure_event += 1;
-        gtk_window_resize(GTK_WINDOW(window->control.widget), (gint)width, (gint)height);
         window->minimun_width = -1;
         window->minimun_height = -1;
     }
-    else
-    {
-        gtk_widget_set_size_request(window->control.widget, (gint)width, (gint)height);
-    }
 
-    window->current_width = (gint)width;
-    window->current_height = (gint)height;
     i_update_menu_size(window);
 }
 
@@ -1079,10 +1404,10 @@ void _oswindow_set_app_terminate(void)
 
 void _oswindow_set_menubar(OSWindow *window, OSMenu *menu)
 {
-    GtkWidget *box = NULL, *wmenu = NULL;
+    GtkWidget *box = window->content_box;
+    GtkWidget *wmenu = NULL;
     cassert_no_null(window);
     cassert(window->menu == NULL);
-    box = gtk_bin_get_child(GTK_BIN(window->control.widget));
     cassert(i_num_children(box) == 1);
     wmenu = _osmenu_menubar(menu, window, i_menubar_required_width(window));
     gtk_box_pack_start(GTK_BOX(box), wmenu, FALSE, FALSE, 0);
@@ -1109,9 +1434,9 @@ void _oswindow_unset_menubar(OSWindow *window, OSMenu *menu)
     cassert(window->menu == menu);
     if (menu != NULL)
     {
-        GtkWidget *box = NULL, *wmenu = NULL;
+        GtkWidget *box = window->content_box;
+        GtkWidget *wmenu = NULL;
         cassert(window->accel != NULL);
-        box = gtk_bin_get_child(GTK_BIN(window->control.widget));
         cassert(i_num_children(box) == 2);
         wmenu = _osmenu_menubar_unlink(menu, window);
         gtk_widget_hide(wmenu);
@@ -1149,17 +1474,37 @@ GtkAccelGroup *_oswindow_accel(const OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
+GtkWidget *_oswindow_content_box(const OSWindow *window)
+{
+    cassert_no_null(window);
+    return window->content_box;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static ___INLINE OSWindow *i_root(GtkWidget *widget)
 {
-    GtkWidget *root_widget = NULL;
+    GtkWidget *iter = NULL;
     cassert_no_null(widget);
-    root_widget = gtk_widget_get_ancestor(widget, GTK_TYPE_WINDOW);
-    if (root_widget != NULL)
+
+    for (iter = widget; iter != NULL; iter = gtk_widget_get_parent(iter))
     {
-        OSControl *control = cast(g_object_get_data(G_OBJECT(root_widget), "OSControl"), OSControl);
-        cassert_no_null(control);
-        cassert(control->type == ekGUI_TYPE_WINDOW);
-        return cast(control, OSWindow);
+        if (GTK_IS_WINDOW(iter) == TRUE)
+        {
+            OSControl *control = cast(g_object_get_data(G_OBJECT(iter), "OSControl"), OSControl);
+            cassert_no_null(control);
+            cassert(control->type == ekGUI_TYPE_WINDOW);
+            return cast(control, OSWindow);
+        }
+
+#if GTK_CHECK_VERSION(3, 12, 0)
+        if (GTK_IS_POPOVER(iter) == TRUE)
+        {
+            OSWindow *window = cast(g_object_get_data(G_OBJECT(iter), "nappgui-overlay-window"), OSWindow);
+            cassert_no_null(window);
+            return window;
+        }
+#endif
     }
 
     return NULL;
@@ -1195,7 +1540,14 @@ void _oswindow_cursor_from_child(GtkWidget *widget, GdkCursor *cursor)
     OSWindow *window = i_root(widget);
     if (window != NULL)
     {
-        GdkWindow *gdkwindow = gtk_widget_get_window(window->control.widget);
+        GtkWidget *root_widget = window->control.widget;
+        GdkWindow *gdkwindow = NULL;
+        /* While shown via a GtkPopover (see i_show_overlay()), window->control.widget
+           is a hidden, contentless shell -- the popover itself is the real, visible
+           surface the cursor must be set on. */
+        if (window->popover != NULL)
+            root_widget = window->popover;
+        gdkwindow = gtk_widget_get_window(root_widget);
         if (gdkwindow != NULL)
             gdk_window_set_cursor(gdkwindow, cursor);
     }

@@ -505,16 +505,18 @@ void window_hide(Window *window)
 
 /*---------------------------------------------------------------------------*/
 
-void window_overlay(Window *window, Window *parent)
+void window_overlay(Window *window, Window *parent, const V2Df origin, const align_t halign, const align_t valign)
 {
     if (window->visible == FALSE)
     {
         cassert_no_null(window->context);
-        cassert_no_nullf(window->context->func_window_launch);
+        cassert_no_nullf(window->context->func_window_launch_overlay);
         cassert_no_null(parent);
+        cassert((window->flags & ekWINDOW_TITLE) == 0);
+        cassert((window->flags & ekWINDOW_RESIZE) == 0);
         window->visible = TRUE;
         window->role = ekGUI_ROLE_OVERLAY;
-        window->context->func_window_launch(window->ositem, parent->ositem);
+        window->context->func_window_launch_overlay(window->ositem, parent->ositem, origin.x, origin.y, (enum_t)halign, (enum_t)valign);
     }
 }
 

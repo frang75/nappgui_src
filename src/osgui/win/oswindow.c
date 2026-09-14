@@ -1024,24 +1024,82 @@ void oswindow_launch(OSWindow *window, OSWindow *parent_window)
 {
     cassert_no_null(window);
     cassert(window->state != i_ekSTATE_MANAGED);
+    cassert_unref(parent_window == NULL, parent_window);
     if (!(window->flags & ekWINDOW_OFFSCREEN))
     {
-        if (parent_window != NULL)
-        {
-            SetWindowPos(window->control.hwnd, parent_window->control.hwnd, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-            window->role = ekGUI_ROLE_OVERLAY;
-        }
-        else
-        {
-            window->role = ekGUI_ROLE_MAIN;
-        }
-
+        window->role = ekGUI_ROLE_MAIN;
         window->launch_resize_event = FALSE;
         _oscontrol_set_visible(cast(window, OSControl), TRUE);
         window->launch_resize_event = TRUE;
-
         i_activate(window);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void oswindow_launch_overlay(OSWindow *window, OSWindow *parent_window, const real32_t x, const real32_t y, const align_t halign, const align_t valign)
+{
+    real32_t width = 0, height = 0;
+    real32_t local_x = 0, local_y = 0;
+    POINT pt;
+
+    cassert_no_null(window);
+    cassert_no_null(parent_window);
+    cassert(window->state != i_ekSTATE_MANAGED);
+
+    if (window->flags & ekWINDOW_OFFSCREEN)
+        return;
+
+    oswindow_get_size(window, &width, &height);
+
+    switch (halign)
+    {
+    case ekLEFT:
+        local_x = x;
+        break;
+    case ekRIGHT:
+        local_x = x - width;
+        break;
+    case ekCENTER:
+        local_x = x - width / 2;
+        break;
+    case ekJUSTIFY:
+    default:
+        cassert_default(halign);
+    }
+
+    switch (valign)
+    {
+    case ekTOP:
+        local_y = y;
+        break;
+    case ekBOTTOM:
+        local_y = y - height;
+        break;
+    case ekCENTER:
+        local_y = y - height / 2;
+        break;
+    case ekJUSTIFY:
+    default:
+        cassert_default(valign);
+    }
+
+    pt.x = (LONG)bmath_roundf(local_x * parent_window->scale);
+    pt.y = (LONG)bmath_roundf(local_y * parent_window->scale);
+    ClientToScreen(parent_window->control.hwnd, &pt);
+
+    window->role = ekGUI_ROLE_OVERLAY;
+
+    {
+        BOOL ret = SetWindowPos(window->control.hwnd, parent_window->control.hwnd, pt.x, pt.y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE);
+        cassert_unref(ret != 0, ret);
+    }
+
+    window->launch_resize_event = FALSE;
+    _oscontrol_set_visible(cast(window, OSControl), TRUE);
+    window->launch_resize_event = TRUE;
+
+    i_activate(window);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1717,22 +1775,36 @@ void _oswindow_delete_tooltip(OSWindow *window, HWND control_hwnd)
 
 void _oswindow_scale_size(const OSWindow *window, const real32_t width, const real32_t height, LONG *nwidth, LONG *nheight)
 {
-    cassert_no_null(window);
     cassert_no_null(nwidth);
     cassert_no_null(nheight);
-    *nwidth = (LONG)bmath_roundf(width * window->scale);
-    *nheight = (LONG)bmath_roundf(height * window->scale);
+    if (window != NULL)
+    {
+        *nwidth = (LONG)bmath_roundf(width * window->scale);
+        *nheight = (LONG)bmath_roundf(height * window->scale);
+    }
+    else
+    {
+        *nwidth = (LONG)width;
+        *nheight = (LONG)height;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void _oswindow_scale_pos(const OSWindow *window, const real32_t x, const real32_t y, LONG *nx, LONG *ny)
 {
-    cassert_no_null(window);
     cassert_no_null(nx);
     cassert_no_null(ny);
-    *nx = (LONG)bmath_roundf(x * window->scale);
-    *ny = (LONG)bmath_roundf(y * window->scale);
+    if (window != NULL)
+    {
+        *nx = (LONG)bmath_roundf(x * window->scale);
+        *ny = (LONG)bmath_roundf(y * window->scale);
+    }
+    else
+    {
+        *nx = (LONG)x;
+        *ny = (LONG)y;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1747,6 +1819,7 @@ uint32_t _oswindow_dpi(const OSWindow *window)
 
 real32_t _oswindow_scale(const OSWindow *window)
 {
-    cassert_no_null(window);
-    return window->scale;
+    if (window != NULL)
+        return window->scale;
+    return 1.f;
 }

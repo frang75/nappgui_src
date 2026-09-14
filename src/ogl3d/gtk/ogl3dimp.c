@@ -21,6 +21,9 @@
 #include <EGL/egl.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
 #include "../glew.h"
 #include <sewer/warn.hxx>
 
@@ -199,22 +202,16 @@ static EGLint i_egl_profile(const oglapi_t api)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_egl_config(GtkWidget *widget, OGLCtx *ogl)
+static void i_egl_create(EGLNativeDisplayType native_display, EGLNativeWindowType native_window, OGLCtx *ogl)
 {
-    GdkDisplay *gdk_display;
-    Display *x11_display;
-    GdkWindow *gdk_window;
     EGLBoolean ok;
     EGLConfig config;
     EGLContext *sctx = NULL;
     EGLint attribs[32], i = 0;
 
     cassert_no_null(ogl);
-    gdk_display = gtk_widget_get_display(widget);
-    x11_display = gdk_x11_display_get_xdisplay(gdk_display);
-    gdk_window = gtk_widget_get_window(widget);
 
-    ogl->display = eglGetDisplay((EGLNativeDisplayType)x11_display);
+    ogl->display = eglGetDisplay(native_display);
     if (ogl->display == EGL_NO_DISPLAY)
     {
         ogl->err = ekOGLVIEW;
@@ -240,7 +237,7 @@ static void i_egl_config(GtkWidget *widget, OGLCtx *ogl)
         return;
     }
 
-    ogl->surface = eglCreateWindowSurface(ogl->display, config, gdk_x11_window_get_xid(gdk_window), NULL);
+    ogl->surface = eglCreateWindowSurface(ogl->display, config, native_window, NULL);
     if (ogl->surface == EGL_NO_SURFACE)
     {
         ogl->err = ekOGLVIEW;
@@ -287,6 +284,43 @@ static void i_egl_config(GtkWidget *widget, OGLCtx *ogl)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_egl_config_x11(GtkWidget *widget, GdkDisplay *gdk_display, OGLCtx *ogl)
+{
+    Display *x11_display = gdk_x11_display_get_xdisplay(gdk_display);
+    GdkWindow *gdk_window = gtk_widget_get_window(widget);
+    Window xid = gdk_x11_window_get_xid(gdk_window);
+    i_egl_create((EGLNativeDisplayType)x11_display, (EGLNativeWindowType)xid, ogl);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_egl_config(GtkWidget *widget, OGLCtx *ogl)
+{
+    GdkDisplay *gdk_display = gtk_widget_get_display(widget);
+
+#ifdef GDK_WINDOWING_WAYLAND
+    /* Native OpenGL views are not supported on Wayland: EGL has no equivalent of X11's
+     * child-window embedding, and a manually created wl_subsurface (the only client-side
+     * way to give the view its own native surface) reliably corrupts Mutter's window
+     * stacking regardless of call ordering or synchronization -- confirmed with gdb, the
+     * compositor's own logs and protocol traces across several independent fix attempts,
+     * all root-caused to a genuine compositor-side bug, not a client usage error. See
+     * "OpenGL (ogl3d) en Wayland" in internal/wayland_handoff.md for the full
+     * investigation. Revisiting this properly needs a GtkGLArea-based redesign (GTK's own
+     * sanctioned mechanism for this, which side-steps the whole issue by never creating a
+     * native surface at all), parked for now. */
+    if (GDK_IS_WAYLAND_DISPLAY(gdk_display) == TRUE)
+    {
+        ogl->err = ekOGLVIEW;
+        return;
+    }
+#endif
+
+    i_egl_config_x11(widget, gdk_display, ogl);
+}
+
+/*---------------------------------------------------------------------------*/
+
 OGLCtx *_ogl3dimp_context(const OGLProps *props, void *view, oglerr_t *err)
 {
     GtkWidget *widget = NULL;
@@ -312,6 +346,9 @@ OGLCtx *_ogl3dimp_context(const OGLProps *props, void *view, oglerr_t *err)
     ogl = cast(bmem_malloc(sizeof(OGLCtx)), OGLCtx);
     ogl->widget = widget;
     ogl->props = *props;
+    ogl->display = NULL;
+    ogl->surface = NULL;
+    ogl->context = NULL;
 
     if (blib_strcmp(G_OBJECT_TYPE_NAME(widget), "GtkDrawingArea") == 0)
     {
@@ -401,6 +438,7 @@ void _ogl3dimp_destroy(OGLCtx **ogl)
 void ogl3d_begin_draw(OGLCtx *ogl)
 {
     cassert_no_null(ogl);
+
     if (eglGetCurrentContext() != ogl->context)
     {
         EGLBoolean ok = eglMakeCurrent(ogl->display, ogl->surface, ogl->surface, ogl->context);

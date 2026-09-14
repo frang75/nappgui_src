@@ -359,34 +359,36 @@ static void i_OnDataChange(App *app, Event *e)
 
 static void i_flyout_over_control(App *app, GuiControl *control, const uint32_t align)
 {
-    /* Control bounds in window coordinates */
     R2Df frame = window_control_frame(app->window, control);
-    /* Top-Left control in screen coordinates */
-    V2Df pos = window_client_to_screen(app->window, frame.pos);
-    /* Flyout window size */
-    S2Df size = window_get_size(app->flyout);
+    V2Df origin = frame.pos;
+    align_t halign = ekLEFT;
+    align_t valign = ekTOP;
 
     switch (align)
     {
     case 0:
+        origin.x += frame.size.width;
+        halign = ekLEFT;
+        valign = ekTOP;
         break;
     case 1:
-        pos.y += (frame.size.height - size.height);
+        origin.x += frame.size.width;
+        halign = ekLEFT;
+        valign = ekBOTTOM;
         break;
     case 2:
-        pos.x += (frame.size.width - size.width);
+        halign = ekRIGHT;
+        valign = ekTOP;
         break;
     case 3:
-        pos.x += (frame.size.width - size.width);
-        pos.y += (frame.size.height - size.height);
+        halign = ekRIGHT;
+        valign = ekBOTTOM;
         break;
     default:
         cassert_default(align);
     }
 
-    /* Position in screen coordinates */
-    window_origin(app->flyout, pos);
-    window_overlay(app->flyout, app->window);
+    window_overlay(app->flyout, app->window, origin, halign, valign);
 }
 
 /*---------------------------------------------------------------------------*/

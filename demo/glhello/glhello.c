@@ -390,4 +390,4 @@ void glhello_texdata(const byte_t **texdata, uint32_t *texwidth, uint32_t *texhe
 /*---------------------------------------------------------------------------*/
 
 #include <osapp/osmain.h>
-osmain(i_create, i_destroy, "", App)
+osmain(i_create, i_destroy, "-gdkbackend=x11", App)

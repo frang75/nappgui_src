@@ -383,6 +383,7 @@ GuiCtx *osguictx(void)
         oswindow_attach_window,
         oswindow_detach_window,
         oswindow_launch,
+        oswindow_launch_overlay,
         oswindow_hide,
         oswindow_launch_modal,
         oswindow_stop_modal,

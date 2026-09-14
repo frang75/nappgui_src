@@ -30,6 +30,7 @@
 #include <osbs/bfile.h>
 #include <osbs/bthread.h>
 #include <osbs/log.h>
+#include <sewer/blib.h>
 #include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
@@ -340,6 +341,18 @@ void osmain_imp(
 
     if (options && str_str(options, "-hv") != NULL)
         heap_verbose(TRUE);
+
+#if defined(__LINUX__)
+    if (options && str_str(options, "-gdkbackend=x11") != NULL)
+    {
+        blib_setenv("GDK_BACKEND", "x11");
+    }
+    else if (options && str_str(options, "-gdkbackend=wayland") != NULL)
+    {
+        if (blib_getenv("WAYLAND_DISPLAY") != NULL)
+            blib_setenv("GDK_BACKEND", "wayland");
+    }
+#endif
 
     bfile_dir_exec(pathname, sizeof(pathname));
     app = obj_new0(i_App);

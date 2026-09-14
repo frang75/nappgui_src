@@ -208,13 +208,25 @@ static ___INLINE void i_widget_allocation(GtkWidget *widget, GtkAllocation *allo
 
 void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
 {
-    GtkAllocation alloc;
+    GtkWidget *parent;
     cassert_no_null(control);
     cassert_no_null(x);
     cassert_no_null(y);
-    i_widget_allocation(control->widget, &alloc);
-    *x = (real32_t)alloc.x;
-    *y = (real32_t)alloc.y;
+    parent = gtk_widget_get_parent(control->widget);
+    if (parent != NULL)
+    {
+        gint tx = 0, ty = 0;
+        gtk_widget_translate_coordinates(control->widget, parent, 0, 0, &tx, &ty);
+        *x = (real32_t)tx;
+        *y = (real32_t)ty;
+    }
+    else
+    {
+        GtkAllocation alloc;
+        i_widget_allocation(control->widget, &alloc);
+        *x = (real32_t)alloc.x;
+        *y = (real32_t)alloc.y;
+    }
 }
 
 /*---------------------------------------------------------------------------*/

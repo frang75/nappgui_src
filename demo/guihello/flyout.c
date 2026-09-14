@@ -12,6 +12,7 @@ struct _flyout_t
     Menu *menu;
     TextView *text;
     GuiControl *edit;
+    GuiControl *listbox;
     uint32_t align;
 };
 
@@ -63,36 +64,36 @@ static Window *i_create_flywin(void)
 
 static void i_OnIdleLaunch(FlyOut *flyout, Event *e)
 {
-    /* Edit control bounds in window coordinates */
     R2Df frame = window_control_frame(flyout->parent, flyout->edit);
-    /* Top-Left edit control in screen coordinates */
-    V2Df pos = window_client_to_screen(flyout->parent, frame.pos);
-    /* Flyout window size */
-    S2Df size = window_get_size(flyout->flywin);
+    V2Df origin = frame.pos;
+    align_t halign = ekLEFT;
+    align_t valign = ekTOP;
 
     switch (flyout->align)
     {
     case 0:
-        pos.y += frame.size.height;
+        origin.x += frame.size.width;
+        halign = ekLEFT;
+        valign = ekTOP;
         break;
     case 1:
-        pos.y -= size.height;
+        origin.x += frame.size.width;
+        halign = ekLEFT;
+        valign = ekBOTTOM;
         break;
     case 2:
-        pos.x -= size.width - frame.size.width;
-        pos.y += frame.size.height;
+        halign = ekRIGHT;
+        valign = ekTOP;
         break;
     case 3:
-        pos.x -= size.width - frame.size.width;
-        pos.y -= size.height;
+        halign = ekRIGHT;
+        valign = ekBOTTOM;
         break;
     default:
         cassert_default(flyout->align);
     }
 
-    /* Position in screen coordinates */
-    window_origin(flyout->flywin, pos);
-    window_overlay(flyout->flywin, flyout->parent);
+    window_overlay(flyout->flywin, flyout->parent, origin, halign, valign);
     unref(e);
 }
 
@@ -195,7 +196,8 @@ static void i_OnDown(FlyOut *flyout, Event *e)
         }
 
         {
-            V2Df pos = gui_mouse_pos();
+            R2Df frame = window_control_frame(flyout->parent, flyout->listbox);
+            V2Df pos = v2df(frame.pos.x + p->lx, frame.pos.y + p->ly);
             menu_launch(flyout->menu, flyout->parent, pos);
         }
     }
@@ -217,6 +219,7 @@ static Layout *i_listbox_layout(FlyOut *flyout)
     layout_textview(layout, text, 1, 0);
     layout_hmargin(layout, 0, 20);
     flyout->text = text;
+    flyout->listbox = guicontrol(list);
     return layout;
 }
 

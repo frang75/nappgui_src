@@ -161,14 +161,14 @@ void menu_del_item(Menu *menu, const uint32_t pos)
 
 /*---------------------------------------------------------------------------*/
 
-void menu_launch(Menu *menu, Window *window, const V2Df position)
+void menu_launch(Menu *menu, Window *window, const V2Df origin)
 {
     void *oswindow = NULL;
     cassert_no_null(menu);
     cassert_no_null(menu->context);
     cassert_no_nullf(menu->context->func_menu_launch_popup);
     oswindow = _window_ositem(window);
-    menu->context->func_menu_launch_popup(menu->ositem, oswindow, position.x, position.y);
+    menu->context->func_menu_launch_popup(menu->ositem, oswindow, origin.x, origin.y);
     window_update(window);
 }
 

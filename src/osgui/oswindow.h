@@ -62,6 +62,8 @@ _osgui_api void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_
 
 _osgui_api void oswindow_launch(OSWindow *window, OSWindow *parent_window);
 
+_osgui_api void oswindow_launch_overlay(OSWindow *window, OSWindow *parent_window, const real32_t x, const real32_t y, const align_t halign, const align_t valign);
+
 _osgui_api void oswindow_hide(OSWindow *window, OSWindow *parent_window);
 
 _osgui_api uint32_t oswindow_launch_modal(OSWindow *window, OSWindow *parent_window);
