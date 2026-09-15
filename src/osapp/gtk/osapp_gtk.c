@@ -226,39 +226,6 @@ static gboolean i_OnTimerInit(gpointer data)
 
 /*---------------------------------------------------------------------------*/
 
-#if GLIB_CHECK_VERSION(2, 50, 0)
-static GLogWriterOutput i_log_writer_x11(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer data)
-{
-    const char_t *domain = NULL;
-    const char_t *message = NULL;
-    gsize i;
-    unref(data);
-
-    for (i = 0; i < n_fields; ++i)
-    {
-        if (str_equ_c(cast_const(fields[i].key, char_t), "GLIB_DOMAIN") == TRUE)
-            domain = cast_const(fields[i].value, char_t);
-        else if (str_equ_c(cast_const(fields[i].key, char_t), "MESSAGE") == TRUE)
-            message = cast_const(fields[i].value, char_t);
-    }
-
-    /* Known-benign noise from libcanberra-gtk-module (system-installed GTK sound-theme
-       module, unrelated to NAppGUI) calling gdk_x11_window_get_xid() on a window that
-       isn't a realized native X11 drawable yet  */
-    if (domain != NULL && message != NULL && str_equ_c(domain, "Gdk") == TRUE)
-    {
-        if (str_str(message, "drawable is not a native X11 window") != NULL)
-            return G_LOG_WRITER_HANDLED;
-        if (str_str(message, "gdk_window_get_origin") != NULL)
-            return G_LOG_WRITER_HANDLED;
-    }
-
-    return g_log_writer_default(level, fields, n_fields, data);
-}
-#endif
-
-/*---------------------------------------------------------------------------*/
-
 static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
 {
     char_t pathname[1024];
@@ -296,11 +263,6 @@ static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
 #endif
         if (str_str(type_name, "X11") != NULL)
             backend = "X11";
-
-#if GLIB_CHECK_VERSION(2, 50, 0)
-        if (str_equ_c(backend, "X11") == TRUE)
-            g_log_set_writer_func(i_log_writer_x11, NULL, NULL);
-#endif
 
         log_printf("GTK3 %s backend", backend);
     }

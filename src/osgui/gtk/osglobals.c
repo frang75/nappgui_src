@@ -1073,9 +1073,40 @@ static void i_parse_gtk_theme(void)
 
 /*---------------------------------------------------------------------------*/
 
-#if !defined(__ASSERTS__)
-
 #if GLIB_CHECK_VERSION(2, 50, 0)
+
+#if defined(__ASSERTS__)
+
+/* Known-benign noise from libcanberra-gtk-module (system-installed GTK sound-theme
+   module, unrelated to NAppGUI) calling gdk_x11_window_get_xid() on a window that
+   isn't a realized native X11 drawable yet */
+static GLogWriterOutput i_log_writer_x11(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer data)
+{
+    const char_t *domain = NULL;
+    const char_t *message = NULL;
+    gsize i;
+    unref(data);
+
+    for (i = 0; i < n_fields; ++i)
+    {
+        if (str_equ_c(cast_const(fields[i].key, char_t), "GLIB_DOMAIN") == TRUE)
+            domain = cast_const(fields[i].value, char_t);
+        else if (str_equ_c(cast_const(fields[i].key, char_t), "MESSAGE") == TRUE)
+            message = cast_const(fields[i].value, char_t);
+    }
+
+    if (domain != NULL && message != NULL && str_equ_c(domain, "Gdk") == TRUE)
+    {
+        if (str_str(message, "drawable is not a native X11 window") != NULL)
+            return G_LOG_WRITER_HANDLED;
+        if (str_str(message, "gdk_window_get_origin") != NULL)
+            return G_LOG_WRITER_HANDLED;
+    }
+
+    return g_log_writer_default(level, fields, n_fields, data);
+}
+
+#else /* !defined(__ASSERTS__) */
 
 static GLogWriterOutput i_null_writter(GLogLevelFlags log_level, const GLogField *fields, gsize n_fields,
                                        gpointer user_data)
@@ -1087,9 +1118,9 @@ static GLogWriterOutput i_null_writter(GLogLevelFlags log_level, const GLogField
     return G_LOG_WRITER_HANDLED;
 }
 
-#else
+#endif
 
-/*---------------------------------------------------------------------------*/
+#else /* !GLIB_CHECK_VERSION(2, 50, 0) */
 
 static void i_null_writter(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data)
 {
@@ -1100,21 +1131,34 @@ static void i_null_writter(const gchar *log_domain, GLogLevelFlags log_level, co
 }
 
 #endif
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_log_writer(void)
+{
+#if GLIB_CHECK_VERSION(2, 50, 0)
+
+#if defined(__ASSERTS__)
+    /* Only filter the X11-specific benign noise when GTK is actually running on X11 */
+    GdkDisplay *display = gdk_display_get_default();
+    const char_t *type_name = cast_const(g_type_name(G_TYPE_FROM_INSTANCE(display)), char_t);
+    if (str_str(type_name, "X11") != NULL)
+        g_log_set_writer_func(i_log_writer_x11, NULL, NULL);
+#else
+    /* Disable unavoidable GLib/Gtk warnings when processing CSS */
+    g_log_set_writer_func(i_null_writter, NULL, NULL);
 #endif
+
+#else
+    g_log_set_default_handler(i_null_writter, NULL);
+#endif
+}
 
 /*---------------------------------------------------------------------------*/
 
 void _osglobals_init(void)
 {
-#if !defined(__ASSERTS__)
-    /* Disable unavoidable GLib/Gtk warnings when processing CSS */
-#if GLIB_CHECK_VERSION(2, 50, 0)
-    g_log_set_writer_func(i_null_writter, NULL, NULL);
-#else
-    g_log_set_default_handler(i_null_writter, NULL);
-#endif
-#endif
-
+    i_set_log_writer();
     i_parse_gtk_theme();
     i_impostor_window();
 }
