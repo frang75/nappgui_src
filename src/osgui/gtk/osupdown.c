@@ -225,7 +225,7 @@ void osupdown_bounds(const OSUpDown *updown, real32_t *width, real32_t *height)
     if (eheight % 2 == 1)
         eheight += 1;
 
-    *height = (real32_t)eheight;
+    *height = (real32_t)eheight + 1;
     if (eheight > 32)
         *width = 32;
     else

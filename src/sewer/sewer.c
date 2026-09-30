@@ -53,7 +53,8 @@ static void i_atexit(void)
 
 static void i_sewer_atexit(void)
 {
-    cassert(i_NUM_USERS == 0);
+    if (i_NUM_USERS != 0)
+        bstd_eprintf("Error! sewer is not properly closed (%d)\n", i_NUM_USERS);
 }
 
 /*---------------------------------------------------------------------------*/

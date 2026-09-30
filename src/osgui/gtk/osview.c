@@ -391,6 +391,7 @@ static void *i_upgrade_to_opengl(void *view_ptr)
     gtk_widget_get_size_request(view->darea, &width, &height);
     was_visible = gtk_widget_get_visible(view->darea);
     gtk_widget_destroy(view->darea);
+    g_object_unref(view->control.widget);
     eventbox = gtk_event_box_new();
     gtk_widget_set_name(eventbox, "NAppGUIOpenGLCtx");
     new_area = gtk_gl_area_new();
@@ -401,11 +402,11 @@ static void *i_upgrade_to_opengl(void *view_ptr)
     gtk_widget_set_size_request(eventbox, width, height);
 
     view->darea = eventbox;
-    view->control.widget = eventbox;
     view->glarea = new_area;
     view->clip_width = (real32_t)width;
     view->clip_height = (real32_t)height;
     view->flags |= ekVIEW_OPENGL;
+    _oscontrol_init(&view->control, ekGUI_TYPE_CUSTOMVIEW, eventbox, eventbox, FALSE);
     i_wire_common_signals(eventbox, eventbox, view);
     i_wire_dynamic_signals(eventbox, view);
 
@@ -715,8 +716,15 @@ void osview_content_size(OSView *view, const real32_t width, const real32_t heig
 
 real32_t osview_scale_factor(const OSView *view)
 {
+    cassert_no_null(view);
+#if GTK_CHECK_VERSION(3, 10, 0)
+    /* GTK3 only supports integer scales. With fractional desktop scaling (eg. 125%)
+       the compositor rounds up (x2) and downsamples, so GL framebuffers are x2 too */
+    return (real32_t)gtk_widget_get_scale_factor(view->control.widget);
+#else
     unref(view);
     return 1;
+#endif
 }
 
 /*---------------------------------------------------------------------------*/

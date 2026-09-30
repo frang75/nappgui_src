@@ -584,19 +584,14 @@ static void i_OnDraw(TData *data, Event *e)
             ctrl_state_t state = data->focused == TRUE ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL;
             bool_t draw_row = FALSE;
             bool_t selected = i_row_is_selected(data->selected, i);
-            if (selected == TRUE && data->focused == TRUE)
+            if (selected == TRUE)
             {
-                state = ekCTRL_STATE_PRESSED;
+                state = data->focused == TRUE ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_BKPRESSED;
                 draw_row = TRUE;
             }
             else if (i == data->mouse_row)
             {
                 state = data->focused == TRUE ? ekCTRL_STATE_HOT : ekCTRL_STATE_BKHOT;
-                draw_row = TRUE;
-            }
-            else if (selected == TRUE)
-            {
-                state = ekCTRL_STATE_BKPRESSED;
                 draw_row = TRUE;
             }
 
@@ -630,19 +625,14 @@ static void i_OnDraw(TData *data, Event *e)
                 ctrl_state_t state = data->focused == TRUE ? ekCTRL_STATE_NORMAL : ekCTRL_STATE_BKNORMAL;
                 bool_t draw_row = FALSE;
                 bool_t selected = i_row_is_selected(data->selected, i);
-                if (selected == TRUE && data->focused == TRUE)
+                if (selected == TRUE)
                 {
-                    state = ekCTRL_STATE_PRESSED;
+                    state = data->focused == TRUE ? ekCTRL_STATE_PRESSED : ekCTRL_STATE_BKPRESSED;
                     draw_row = TRUE;
                 }
                 else if (i == data->mouse_row)
                 {
                     state = data->focused == TRUE ? ekCTRL_STATE_HOT : ekCTRL_STATE_BKHOT;
-                    draw_row = TRUE;
-                }
-                else if (selected == TRUE)
-                {
-                    state = ekCTRL_STATE_BKPRESSED;
                     draw_row = TRUE;
                 }
 

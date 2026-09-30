@@ -19,6 +19,7 @@
 
 #include <sewer/nowarn.hxx>
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #ifdef GDK_WINDOWING_WAYLAND
@@ -219,6 +220,25 @@ static EGLint i_egl_profile(const oglapi_t api)
 
 /*---------------------------------------------------------------------------*/
 
+static EGLDisplay i_egl_display_x11(EGLNativeDisplayType native_display)
+{
+    EGLDisplay display = EGL_NO_DISPLAY;
+#if defined(EGL_VERSION_1_5) && defined(EGL_PLATFORM_X11_KHR)
+    /* eglGetDisplay() guesses the native display type and honors the EGL_PLATFORM
+       environment variable. With EGL_PLATFORM=wayland (set by some terminals/sessions),
+       Mesa takes our X11 Display* as a wl_display and crashes. Be explicit */
+    display = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, (void *)native_display, NULL);
+#endif
+
+    /* EGL 1.4 drivers */
+    if (display == EGL_NO_DISPLAY)
+        display = eglGetDisplay(native_display);
+
+    return display;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_egl_create(EGLNativeDisplayType native_display, EGLNativeWindowType native_window, OGLCtx *ogl)
 {
     EGLBoolean ok;
@@ -228,7 +248,7 @@ static void i_egl_create(EGLNativeDisplayType native_display, EGLNativeWindowTyp
 
     cassert_no_null(ogl);
 
-    ogl->display = eglGetDisplay(native_display);
+    ogl->display = i_egl_display_x11(native_display);
     if (ogl->display == EGL_NO_DISPLAY)
     {
         ogl->err = ekOGLVIEW;
@@ -398,7 +418,9 @@ static void i_egl_config_wayland(GtkWidget *widget, OGLCtx *ogl)
     }
 
     gtk_gl_area_set_required_version(GTK_GL_AREA(area), i_egl_major(ogl->props.api), i_egl_minor(ogl->props.api));
+#if GTK_CHECK_VERSION(3, 22, 0)
     gtk_gl_area_set_use_es(GTK_GL_AREA(area), FALSE);
+#endif
     gtk_gl_area_set_has_depth_buffer(GTK_GL_AREA(area), (gboolean)(ogl->props.depth_bpp > 0));
     gtk_gl_area_set_has_stencil_buffer(GTK_GL_AREA(area), (gboolean)(ogl->props.stencil_bpp > 0));
 
@@ -568,7 +590,12 @@ void ogl3d_begin_draw(OGLCtx *ogl)
 #if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3, 16, 0)
     if (ogl->glctx != NULL)
     {
-        /* GtkGlArea already makes ogl->glctx current around its own "render" signal */
+        /* GtkGlArea makes ogl->glctx current automatically around its own "render" signal,
+           but ogl3d_begin_draw() can also be called from outside that signal (e.g. when
+           releasing GPU resources on context teardown)  */
+        if (gdk_gl_context_get_current() != ogl->glctx)
+            gtk_gl_area_make_current(GTK_GL_AREA(ogl->widget));
+
         if (__TRUE_EXPECTED(ogl->glew != GLEW_OK))
         {
             ogl->glew = glewInit();

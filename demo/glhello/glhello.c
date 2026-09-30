@@ -8,6 +8,7 @@
 #include "ogl1.h"
 #include "ogl2.h"
 #include "ogl3.h"
+#include "ogl4.h"
 
 typedef struct _app_t App;
 
@@ -21,6 +22,7 @@ struct _app_t
     OGL1 *ogl1;
     OGL2 *ogl2;
     OGL3 *ogl3;
+    OGL4 *ogl4;
     uint32_t api;
     real32_t angle;
     real32_t scale;
@@ -41,6 +43,9 @@ static void i_destroy_gl_apps(App *app)
 
     if (app->ogl3 != NULL)
         ogl3_destroy(&app->ogl3);
+
+    if (app->ogl4 != NULL)
+        ogl4_destroy(&app->ogl4);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -84,8 +89,13 @@ static void i_set_glcontext(App *app, const uint32_t index)
         }
 
         case 3:
-            err = str_printf("Error creating OpenGL 4.3 context\n%s", "Not available");
+        {
+            oglerr_t glerr;
+            app->ogl4 = ogl4_create(app->glview, &glerr);
+            if (app->ogl4 == NULL)
+                err = str_printf("Error creating OpenGL 4.1 context\n%s", ogl3d_err_str(glerr));
             break;
+        }
 
         case 4:
             err = str_printf("Error creating DirectX 9 context\n%s", "Not available");
@@ -116,7 +126,7 @@ static void i_set_glcontext(App *app, const uint32_t index)
             break;
 
         default:
-            cassert_default(index);
+            err = str_printf("No GL context selected");
         }
 
         if (err == NULL)
@@ -163,6 +173,8 @@ static void i_OnDraw(App *app, Event *e)
         ogl3_draw(app->ogl3, width, height, app->angle, app->scale);
         break;
     case 3:
+        ogl4_draw(app->ogl4, width, height, app->angle, app->scale);
+        break;
     case 4:
     case 5:
     case 6:
@@ -199,6 +211,8 @@ static void i_OnSize(App *app, Event *e)
         ogl3_resize(app->ogl3, width, height);
         break;
     case 3:
+        ogl4_resize(app->ogl4, width, height);
+        break;
     case 4:
     case 5:
     case 6:
@@ -292,7 +306,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(listbox, "OpenGL 1.1/Fixed", NULL);
     listbox_add_elem(listbox, "OpenGL 2.1/GLSL", NULL);
     listbox_add_elem(listbox, "OpenGL 3.3", NULL);
-    listbox_add_elem(listbox, "OpenGL 4", NULL);
+    listbox_add_elem(listbox, "OpenGL 4.1", NULL);
     listbox_add_elem(listbox, "DirectX 9/Fixed", NULL);
     listbox_add_elem(listbox, "DirectX 9.c/HLSL", NULL);
     listbox_add_elem(listbox, "DirectX 10", NULL);
@@ -390,4 +404,4 @@ void glhello_texdata(const byte_t **texdata, uint32_t *texwidth, uint32_t *texhe
 /*---------------------------------------------------------------------------*/
 
 #include <osapp/osmain.h>
-osmain(i_create, i_destroy, "-gdkbackend=x11", App)
+osmain(i_create, i_destroy, "", App)

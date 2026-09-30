@@ -15,14 +15,17 @@
 #include "../osapp.inl"
 #include <osgui/osgui.h>
 #include <core/event.h>
+#include <core/hfile.h>
 #include <core/strings.h>
 #include <osbs/bfile.h>
 #include <osbs/log.h>
 #include <sewer/bmem.h>
+#include <sewer/bstd.h>
 #include <sewer/cassert.h>
 #include <sewer/unicode.h>
 #include <stdlib.h>
 #include <locale.h>
+#include <sys/stat.h>
 
 #ifdef GDK_WINDOWING_WAYLAND
 #include <gdk/gdkwayland.h>
@@ -60,6 +63,92 @@ static OSApp i_APP;
 
 /*---------------------------------------------------------------------------*/
 
+/* Reduce an arbitrary executable name to characters a GApplication id component allows */
+static void i_sanitize_id(const char_t *name, char_t *dest, const uint32_t size)
+{
+    uint32_t i = 0, j = 0;
+    for (i = 0; name[i] != 0 && j < size - 1; ++i)
+    {
+        char_t c = name[i];
+        if (c >= 'A' && c <= 'Z')
+            dest[j++] = (char_t)(c - 'A' + 'a');
+        else if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_' || c == '-')
+            dest[j++] = c;
+        else
+            dest[j++] = '-';
+    }
+
+    dest[j] = 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* GNOME/Wayland (and modern Mutter, even under X11) resolve an app's Dock/taskbar icon
+   through its application id matched against an installed '.desktop' file -- the per-window
+   pixbuf set later via gtk_window_set_icon() is only honored as a fallback by older desktop
+   versions. Every NAppGUI app used to share one generic, non-unique, never-installed id
+   ("com.nappgui.app"), so modern GNOME had nothing to resolve an icon from. Derive a unique
+   id from the executable's own name instead, so a matching '.desktop' file (written in
+   i_OnActivate(), once the icon path is known) can be found by the Dock. */
+static void i_app_id(char_t *app_id, const uint32_t size)
+{
+    char_t pathname[1024];
+    str_copy_c(app_id, size, "com.nappgui.app");
+    if (bfile_dir_exec(pathname, sizeof(pathname)) > 0)
+    {
+        char_t sanitized[256];
+        i_sanitize_id(str_filename(pathname), sanitized, sizeof(sanitized));
+        if (sanitized[0] != 0)
+        {
+            char_t candidate[300];
+            bstd_sprintf(candidate, sizeof(candidate), "com.nappgui.%s", sanitized);
+            if (g_application_id_is_valid(candidate) == TRUE)
+                str_copy_c(app_id, size, candidate);
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* Write a '.desktop' file to the user's own XDG applications directory (no root/install
+   step needed) so GNOME's Dock/taskbar can resolve this app's icon through 'app_id',
+   matching what a properly packaged/installed application would provide. */
+static void i_write_desktop_file(const char_t *app_id, const char_t *exe_pathname, const char_t *icon_pathname)
+{
+    char_t home[512];
+    if (bfile_dir_home(home, sizeof(home)) > 0)
+    {
+        String *dir = str_cpath("%s/.local/share/applications", home);
+        ferror_t err = ekFOK;
+        if (hfile_dir_create(tc(dir), &err) == TRUE)
+        {
+            String *path = str_cpath("%s/%s.desktop", tc(dir), app_id);
+            String *content = str_printf(
+                "[Desktop Entry]\n"
+                "Type=Application\n"
+                "Name=%s\n"
+                "Exec=%s\n"
+                "Icon=%s\n"
+                "Terminal=false\n"
+                "StartupWMClass=%s\n",
+                str_filename(exe_pathname), exe_pathname, icon_pathname, app_id);
+            hfile_from_string(tc(path), content, NULL);
+
+            /* bfile_create() (used internally by hfile_from_string()) always creates files
+               as 0777-before-umask -- harmless in general, but a '.desktop' file has no
+               reason to be executable. Match the 0644 that CMake's own build-time copy of
+               this same file already uses (prj/NAppDesktopFile.cmake, plain file(WRITE)). */
+            chmod(tc(path), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+            str_destroy(&content);
+            str_destroy(&path);
+        }
+
+        str_destroy(&dir);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSApp *_osapp_init_imp(
     uint32_t argc,
     char_t **argv,
@@ -76,8 +165,30 @@ OSApp *_osapp_init_imp(
     cassert(i_APP.listener == NULL);
     cassert(i_APP.func_OnFinishLaunching == NULL);
     cassert(i_APP.func_OnTimerSignal == NULL);
-    cassert(g_application_id_is_valid("com.nappgui.app") == TRUE);
-    i_APP.gtk_app = gtk_application_new("com.nappgui.app", G_APPLICATION_NON_UNIQUE);
+    {
+        char_t app_id[300];
+        i_app_id(app_id, sizeof(app_id));
+        cassert(g_application_id_is_valid(app_id) == TRUE);
+        i_APP.gtk_app = gtk_application_new(app_id, G_APPLICATION_NON_UNIQUE);
+
+        /* Load the icon and write the '.desktop' file as early as possible -- before
+           _osapp_run() ever calls g_application_run(), which registers 'app_id' with the
+           desktop (D-Bus activation) before this app gets a chance to run any of its own
+           "activate"-signal code. Doing this later left the very first launch of a demo
+           without a Dock icon, since the desktop's app_id -> icon lookup happened before
+           the '.desktop' file existed. */
+        {
+            char_t pathname[1024];
+            if (bfile_dir_exec(pathname, sizeof(pathname)) < sizeof(pathname))
+            {
+                String *logo = str_cpath("%s.ico", pathname);
+                i_APP.icon = gdk_pixbuf_new_from_file(tc(logo), NULL);
+                osgui_set_app(i_APP.gtk_app, i_APP.icon);
+                i_write_desktop_file(app_id, pathname, tc(logo));
+                str_destroy(&logo);
+            }
+        }
+    }
     cassert_no_null(i_APP.gtk_app);
     i_APP.argc = argc;
     i_APP.argv = argv;
@@ -228,19 +339,11 @@ static gboolean i_OnTimerInit(gpointer data)
 
 static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
 {
-    char_t pathname[1024];
     cassert_no_null(app);
     cassert_no_null(app->listener);
     cassert_no_nullf(app->func_OnTimerSignal);
     cassert(app->timer_loop_id == 0);
     cassert(app->timer_init_id == 0);
-    if (bfile_dir_exec(pathname, sizeof(pathname)) < sizeof(pathname))
-    {
-        String *logo = str_cpath("%s.ico", pathname);
-        app->icon = gdk_pixbuf_new_from_file(tc(logo), NULL);
-        osgui_set_app(gtk_app, app->icon);
-        str_destroy(&logo);
-    }
 
     /* printf decimal separator */
     setlocale(LC_NUMERIC, "C");

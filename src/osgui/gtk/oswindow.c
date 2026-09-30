@@ -274,6 +274,22 @@ static uint32_t i_menubar_current_height(const OSWindow *window)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_window_decoration_delta(OSWindow *window, GtkWidget *box, gint *dwidth, gint *dheight)
+{
+    cassert_no_null(window);
+    cassert_no_null(dwidth);
+    cassert_no_null(dheight);
+    *dwidth = 0;
+    *dheight = 0;
+    if (gtk_widget_get_realized(window->control.widget) == TRUE)
+    {
+        *dwidth = gtk_widget_get_allocated_width(window->control.widget) - gtk_widget_get_allocated_width(box);
+        *dheight = gtk_widget_get_allocated_height(window->control.widget) - gtk_widget_get_allocated_height(box);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWindow *window)
 {
     if (i_APP_TERMINATE == TRUE)
@@ -306,46 +322,51 @@ static gboolean i_OnConfigure(GtkWidget *widget, GdkEventConfigure *event, OSWin
             _ostabstop_restore(&window->tabstop);
         }
 
-        if (window->current_width != event->width || window->current_height != event->height)
+        /* 'event->width/height' is the toplevel's OWN allocated size, already includes the server-side decoration. */
         {
-            if (window->is_resizable == TRUE && window->OnResize != NULL)
+            gint client_width = gtk_widget_get_allocated_width(window->content_box);
+            gint client_height = gtk_widget_get_allocated_height(window->content_box);
+
+            if (window->current_width != client_width || window->current_height != client_height)
             {
-                EvSize params;
-                EvSize result;
-                uint32_t mheight = i_menubar_current_height(window);
-                params.width = (real32_t)event->width;
-                params.height = (real32_t)(event->height - (gint)mheight);
-                listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
-                listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &result, NULL, OSWindow, EvSize, void);
-
-                if (result.width > params.width)
+                if (window->is_resizable == TRUE && window->OnResize != NULL)
                 {
-                    GdkGeometry hints;
-                    window->minimun_width = (gint)result.width;
-                    hints.min_width = window->minimun_width;
-                    hints.min_height = window->minimun_height;
-                    gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
-                }
+                    EvSize params;
+                    EvSize result;
+                    uint32_t mheight = i_menubar_current_height(window);
+                    params.width = (real32_t)client_width;
+                    params.height = (real32_t)(client_height - (gint)mheight);
+                    listener_event(window->OnResize, ekGUI_EVENT_WND_SIZING, window, &params, &result, OSWindow, EvSize, EvSize);
+                    listener_event(window->OnResize, ekGUI_EVENT_WND_SIZE, window, &result, NULL, OSWindow, EvSize, void);
 
-                if (result.height > params.height)
+                    if (result.width > params.width || result.height > params.height)
+                    {
+                        gint dwidth, dheight;
+                        GdkGeometry hints;
+                        i_window_decoration_delta(window, window->content_box, &dwidth, &dheight);
+
+                        if (result.width > params.width)
+                            window->minimun_width = (gint)result.width + dwidth;
+
+                        if (result.height > params.height)
+                            window->minimun_height = (gint)result.height + (gint)mheight + dheight;
+
+                        hints.min_width = window->minimun_width;
+                        hints.min_height = window->minimun_height;
+                        gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+                    }
+
+                    window->current_width = (gint)result.width;
+                    window->current_height = (gint)result.height + (gint)mheight;
+
+                    if (window->menu != NULL)
+                        _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
+                }
+                else
                 {
-                    GdkGeometry hints;
-                    window->minimun_height = (gint)result.height + (gint)mheight;
-                    hints.min_width = window->minimun_width;
-                    hints.min_height = window->minimun_height;
-                    gtk_window_set_geometry_hints(GTK_WINDOW(window->control.widget), window->control.widget, &hints, (GdkWindowHints)GDK_HINT_MIN_SIZE);
+                    window->current_width = client_width;
+                    window->current_height = client_height;
                 }
-
-                window->current_width = (gint)result.width;
-                window->current_height = (gint)result.height + (gint)mheight;
-
-                if (window->menu != NULL)
-                    _osmenu_menubar(window->menu, window, i_menubar_required_width(window));
-            }
-            else
-            {
-                window->current_width = event->width;
-                window->current_height = event->height;
             }
         }
     }
@@ -700,6 +721,18 @@ void oswindow_OnClose(OSWindow *window, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_is_wayland(void)
+{
+#ifdef GDK_WINDOWING_WAYLAND
+    GdkDisplay *display = gdk_display_get_default();
+    return (bool_t)GDK_IS_WAYLAND_DISPLAY(display);
+#else
+    return FALSE;
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oswindow_title(OSWindow *window, const char_t *text)
 {
     cassert_no_null(window);
@@ -853,18 +886,6 @@ void oswindow_detach_window(OSWindow *parent_window, OSWindow *child_window)
     unref(parent_window);
     unref(child_window);
     cassert(FALSE);
-}
-
-/*---------------------------------------------------------------------------*/
-
-static bool_t i_is_wayland(void)
-{
-#ifdef GDK_WINDOWING_WAYLAND
-    GdkDisplay *display = gdk_display_get_default();
-    return (bool_t)GDK_IS_WAYLAND_DISPLAY(display);
-#else
-    return FALSE;
-#endif
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1168,32 +1189,48 @@ void oswindow_get_size(const OSWindow *window, real32_t *width, real32_t *height
 
 /*---------------------------------------------------------------------------*/
 
-static void i_window_decoration_delta(OSWindow *window, GtkWidget *box, gint *dwidth, gint *dheight)
+/*
+ * GTK's own CSD titlebar (used under Wayland, where the compositor draws no
+ * server-side decoration) can demand more natural width than the size NAppGUI
+ * requested, if the window title text is long -- growing the toplevel instead of
+ * eliding the title. Force the window back down to the requested size: the title
+ * label already has ellipsize enabled, so an explicit resize truncates it with an
+ * ellipsis rather than leaving the window oversized.
+ *
+ * NOTE: this only applies to resizable windows. Non-resizable windows can't use this
+ * same trick -- two attempts were tried and reverted (see internal/gtk_issues.md #31
+ * for the full account): overriding min/max geometry hints while keeping
+ * gtk_window_set_resizable(FALSE) doesn't stick (GTK re-locks them to its own,
+ * possibly CSD-inflated, natural size on every layout pass); keeping
+ * gtk_window_set_resizable(TRUE) and locking min==max hints instead avoids that fight
+ * but shows a misleading resize cursor at the borders (GTK still thinks the window is
+ * resizable) and, releasing content_box's size_request so it can be corrected here,
+ * lets its real children's natural size reassert itself and clip vertically if it
+ * doesn't match window->current_height exactly. The non-resizable oversize case
+ * remains unfixed -- see #31.
+ */
+static void i_force_window_size(OSWindow *window, const gint width, const gint height)
 {
     cassert_no_null(window);
-    cassert_no_null(dwidth);
-    cassert_no_null(dheight);
-    *dwidth = 0;
-    *dheight = 0;
-    if (gtk_widget_get_realized(window->control.widget) == TRUE)
-    {
-        *dwidth = gtk_widget_get_allocated_width(window->control.widget) - gtk_widget_get_allocated_width(box);
-        *dheight = gtk_widget_get_allocated_height(window->control.widget) - gtk_widget_get_allocated_height(box);
-    }
+    cassert(window->is_resizable == TRUE);
+    window->configure_event += 1;
+    gtk_window_resize(GTK_WINDOW(window->control.widget), width, height);
 }
 
 /*---------------------------------------------------------------------------*/
 
-static gboolean i_OnBoxFirstMap(GtkWidget *box, GdkEvent *event, gpointer data)
+static void i_OnBoxFirstMap(GtkWidget *box, gpointer data)
 {
-    unref(event);
-    unref(data);
-    /* The size request below is only meant to give the window its initial size; drop
-       it right after the first map so the user can still shrink/grow the window freely
-       afterwards (a resizable window must not keep a permanent minimum size). */
+    OSWindow *window = cast(data, OSWindow);
     gtk_widget_set_size_request(box, -1, -1);
-    g_signal_handlers_disconnect_by_func(box, (gpointer)(intptr_t)i_OnBoxFirstMap, NULL);
-    return FALSE;
+    g_signal_handlers_disconnect_by_func(box, (gpointer)(intptr_t)i_OnBoxFirstMap, data);
+
+    if (window->is_resizable == TRUE)
+    {
+        gint width = window->current_width;
+        gint height = window->current_height + (gint)i_menubar_current_height(window);
+        i_force_window_size(window, width, height);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1222,35 +1259,24 @@ static void i_update_menu_size(OSWindow *window)
 
     if (window->is_resizable == TRUE)
     {
-        window->configure_event += 1;
         gtk_widget_set_size_request(window->control.widget, -1, -1);
 
         if (gtk_widget_get_realized(window->control.widget) == TRUE)
         {
-            /* Window already mapped: an explicit gtk_window_resize() targets the whole
-               surface. On X11 the window manager draws the decoration outside of it, so
-               the delta is 0. On Wayland GTK draws its own decoration (CSD) inside the
-               same surface, so it must be added on top of 'width x height' or the content
-               box ends up squeezed into less space than requested. */
-            gint dwidth, dheight;
-            i_window_decoration_delta(window, box, &dwidth, &dheight);
-            gtk_window_resize(GTK_WINDOW(window->control.widget), width + dwidth, height + dheight);
+            i_force_window_size(window, width, height);
         }
         else
         {
-            /* Not shown yet: hint the *content* box instead of the toplevel, and let GTK
-               derive the toplevel's natural size from it. Any decoration GTK adds on top
-               (Wayland CSD) is then additive instead of being carved out of 'width x
-               height', which is what made the initial size come out too small/clipped. */
             gtk_widget_set_size_request(box, width, height);
-            g_signal_handlers_disconnect_by_func(box, (gpointer)(intptr_t)i_OnBoxFirstMap, NULL);
-            g_signal_connect(box, "map-event", G_CALLBACK(i_OnBoxFirstMap), NULL);
+            g_signal_handlers_disconnect_by_func(box, (gpointer)(intptr_t)i_OnBoxFirstMap, (gpointer)window);
+            g_signal_connect(box, "map", G_CALLBACK(i_OnBoxFirstMap), (gpointer)window);
         }
     }
     else
     {
         /* Non-resizable window: GTK keeps a non-resizable toplevel sized to fit its
-           child's requisition, on every backend, so hinting the content box is enough. */
+           child's requisition, on every backend -- except when the CSD titlebar (long
+           title, Wayland) demands more (see #31 in gtk_issues.md, unfixed). */
         gtk_widget_set_size_request(window->control.widget, -1, -1);
         gtk_widget_set_size_request(box, width, height);
     }
@@ -1266,8 +1292,8 @@ void oswindow_client_size(OSWindow *window, const real32_t width, const real32_t
 
     if (window->is_resizable == TRUE)
     {
-        window->minimun_width = -1;
-        window->minimun_height = -1;
+        window->minimun_width = 0;
+        window->minimun_height = 0;
     }
 
     i_update_menu_size(window);

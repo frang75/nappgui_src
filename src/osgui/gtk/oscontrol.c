@@ -217,6 +217,22 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
     {
         gint tx = 0, ty = 0;
         gtk_widget_translate_coordinates(control->widget, parent, 0, 0, &tx, &ty);
+
+        if (GTK_IS_LAYOUT(parent) == TRUE)
+        {
+            GtkAdjustment *hadjust = NULL;
+            GtkAdjustment *vadjust = NULL;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+            hadjust = gtk_layout_get_hadjustment(GTK_LAYOUT(parent));
+            vadjust = gtk_layout_get_vadjustment(GTK_LAYOUT(parent));
+#pragma GCC diagnostic pop
+            if (hadjust != NULL)
+                tx += (gint)gtk_adjustment_get_value(hadjust);
+            if (vadjust != NULL)
+                ty += (gint)gtk_adjustment_get_value(vadjust);
+        }
+
         *x = (real32_t)tx;
         *y = (real32_t)ty;
     }

@@ -57,6 +57,8 @@ static color_t kLINE_COLOR = 0;
 static color_t kLINK_COLOR = 0;
 static color_t kBORD_COLOR = 0;
 static color_t kBORDFOCUS_COLOR = 0;
+static color_t kHOTBACK_COLOR = 0;
+static color_t kSELBACK_COLOR = 0;
 static color_t kTEXT_COLOR = 0;
 static color_t kSELTX_COLOR = 0;
 static color_t kHOTTX_COLOR = 0;
@@ -156,6 +158,21 @@ static color_t i_color_prop(GtkWidget *widget, const char_t *prop, GtkStateFlags
 
 /*---------------------------------------------------------------------------*/
 
+static bool_t i_named_color(GtkWidget *widget, const char_t *name, color_t *color)
+{
+    GtkStyleContext *c = gtk_widget_get_style_context(widget);
+    GdkRGBA gdkcolor;
+    if (gtk_style_context_lookup_color(c, name, &gdkcolor) == TRUE)
+    {
+        *color = i_from_gdkcolor(&gdkcolor);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 /*
 static color_t i_backcolor_prop(GtkWidget *widget, GtkStateFlags flags)
 {
@@ -203,7 +220,8 @@ static void i_pixbuf_save(GdkPixbuf *pixbuf, const char *type, Stream *stm)
  */
 static color_t i_frame_color(GtkWidget *widget, const uint32_t size, const bool_t middle_i, const bool_t middle_j)
 {
-    uint32_t i = 0, j = 0;
+    uint32_t i, j;
+    uint32_t istart = 0, jstart = 0;
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (int)size, (int)size);
     cairo_t *cairo = cairo_create(surface);
     GdkPixbuf *bitmap = NULL;
@@ -215,12 +233,12 @@ static color_t i_frame_color(GtkWidget *widget, const uint32_t size, const bool_
     buffer = cast(gdk_pixbuf_get_pixels(bitmap), uint32_t);
 
     if (middle_i == TRUE)
-        i = size / 2;
+        istart = size / 2;
     if (middle_j == TRUE)
-        j = size / 2;
+        jstart = size / 2;
 
-    for (; i < size && col == 0; ++i)
-        for (; j < size && col == 0; ++j)
+    for (i = istart; i < size && col == 0; ++i)
+        for (j = jstart; j < size && col == 0; ++j)
         {
             if (buffer[j * size + i] != 0)
                 col = buffer[j * size + i];
@@ -251,15 +269,20 @@ static void i_precompute_colors(void)
     kLABEL_COLOR = i_color_prop(kLABEL, "color", GTK_STATE_FLAG_ACTIVE);
     kVIEW_COLOR = i_color_prop(kWINDOW, "background-color", GTK_STATE_FLAG_NORMAL);
     kLINE_COLOR = i_frame_color(kFRAME, 20, FALSE, TRUE);
-    kBORDFOCUS_COLOR = i_frame_color(kPROGRESSBAR, kPROGRESS_HEIGHT, TRUE, TRUE);
+
+    if (i_named_color(kWINDOW, "theme_selected_bg_color", &kBORDFOCUS_COLOR) == FALSE)
+        kBORDFOCUS_COLOR = i_frame_color(kPROGRESSBAR, kPROGRESS_HEIGHT, TRUE, TRUE);
+
+    kHOTBACK_COLOR = color_set_alpha(kBORDFOCUS_COLOR, (uint8_t)15);
+    kSELBACK_COLOR = color_set_alpha(kBORDFOCUS_COLOR, (uint8_t)50);
     kLINK_COLOR = i_color_prop(gtk_bin_get_child(GTK_BIN(kLINKBUTTON)), "color", GTK_STATE_FLAG_ACTIVE);
     kBORD_COLOR = kLINE_COLOR;
     kTEXT_COLOR = i_color_prop(kTABLE, "color", GTK_STATE_FLAG_NORMAL);
     kSELTX_COLOR = i_color_prop(kTABLE, "color", GTK_STATE_FLAG_SELECTED);
     kHOTTX_COLOR = i_color_prop(kTABLE, "color", GTK_STATE_FLAG_PRELIGHT);
-    kTEXTBACKDROP_COLOR = i_color_prop(kTABLE, "color", GTK_STATE_FLAG_NORMAL | GTK_STATE_FLAG_BACKDROP);
-    kSELTXBACKDROP_COLOR = i_color_prop(kTABLE, "color", GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_BACKDROP);
-    kHOTTXBACKDROP_COLOR = i_color_prop(kTABLE, "color", GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_BACKDROP);
+    kTEXTBACKDROP_COLOR = kTEXT_COLOR;
+    kHOTTXBACKDROP_COLOR = kHOTTX_COLOR;
+    kSELTXBACKDROP_COLOR = kTEXT_COLOR;
     r = (real32_t)((uint8_t)(kVIEW_COLOR) / 255.f);
     g = (real32_t)((uint8_t)(kVIEW_COLOR >> 8) / 255.f);
     b = (real32_t)((uint8_t)(kVIEW_COLOR >> 16) / 255.f);
@@ -1352,6 +1375,20 @@ color_t _osglobals_hottextbackdrop_color(void)
 color_t _osglobals_border_color(void)
 {
     return kLINE_COLOR;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t _osglobals_hotback_color(void)
+{
+    return kHOTBACK_COLOR;
+}
+
+/*---------------------------------------------------------------------------*/
+
+color_t _osglobals_selback_color(void)
+{
+    return kSELBACK_COLOR;
 }
 
 /*---------------------------------------------------------------------------*/

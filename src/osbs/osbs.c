@@ -45,7 +45,8 @@ static uint32_t i_NUM_SOCKETS_DEALLOC = 0;
 
 static void i_osbs_atexit(void)
 {
-    cassert(i_NUM_USERS == 0);
+    if (i_NUM_USERS != 0)
+        log_printf("Error! osbs is not properly closed (%d)\n", i_NUM_USERS);
 }
 
 /*---------------------------------------------------------------------------*/

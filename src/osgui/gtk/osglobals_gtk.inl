@@ -58,6 +58,10 @@ color_t _osglobals_hottextbackdrop_color(void);
 
 color_t _osglobals_border_color(void);
 
+color_t _osglobals_hotback_color(void);
+
+color_t _osglobals_selback_color(void);
+
 uint32_t _osglobals_check_width(void);
 
 uint32_t _osglobals_check_height(void);

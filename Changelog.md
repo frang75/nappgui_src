@@ -11,11 +11,17 @@
     - `font_with_cell_size()`.
 - Wayland support in the GTK3 backend. [Issue](https://github.com/frang75/nappgui_src/issues/279). [Doc](https://nappgui.com/en/gui/gui.html#h4). [Commit](https://github.com/frang75/nappgui_src/commit/d955e72ef15ceb43e295084013c5990727b309ea).
     - `"-gdkbackend=x11"`/`"-gdkbackend=wayland"` `osmain()`/`osmain_sync()` option, to force a specific GDK backend.
-- Support for macOS Golden Gate. [Commit]().
+- Support for macOS Golden Gate. [Commit](d307bdaa3670d577f7345170198b0d8d927f6770).
+- OpenGL 4.1 demo in `GLHello`. [Commit]().
 
 ### Fixed
 
 - GTK3 backend no longer forces `GDK_BACKEND=x11`, breaking Wayland-only distros without an X11 session (Ubuntu 26.04+). [Issue](https://github.com/frang75/nappgui_src/issues/279). [Commit](https://github.com/frang75/nappgui_src/commit/d955e72ef15ceb43e295084013c5990727b309ea).
+- GTK3 resize issues. [Issue](https://github.com/frang75/nappgui_src/issues/291) [Commit]().
+- GTK3 theme colors: `View` border, `TableView`/`ListBox` row hover/select. [Commit]().
+- GTK3 Scroll-to-focus inside a scrolled `Panel` didn't land on the correct position. [Commit]().
+- GTK3 application dock icon missing since Ubuntu 24.04. [Commit]().
+- GTK3 `UpDown` control clipped its bottom pixel row. [Commit]().
 
 ### Changed
 

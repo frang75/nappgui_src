@@ -182,10 +182,6 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
         flags = GTK_STATE_FLAG_NORMAL;
         break;
 
-    case ekCTRL_STATE_HOT:
-        flags = GTK_STATE_FLAG_PRELIGHT;
-        break;
-
     case ekCTRL_STATE_PRESSED:
         flags = GTK_STATE_FLAG_SELECTED;
         break;
@@ -194,26 +190,48 @@ void osdrawctrl_fill(DCtx *ctx, const int32_t x, const int32_t y, const uint32_t
         flags = GTK_STATE_FLAG_NORMAL | GTK_STATE_FLAG_BACKDROP;
         break;
 
-    case ekCTRL_STATE_BKHOT:
-        flags = GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_BACKDROP;
-        break;
-
-    case ekCTRL_STATE_BKPRESSED:
-        flags = GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_BACKDROP;
-        break;
-
     case ekCTRL_STATE_DISABLED:
         flags = GTK_STATE_FLAG_INSENSITIVE;
+        break;
+
+    case ekCTRL_STATE_HOT:
+    case ekCTRL_STATE_BKHOT:
+    case ekCTRL_STATE_BKPRESSED:
         break;
 
     default:
         cassert_default(state);
     }
 
-    gtk_style_context_save(c);
-    gtk_style_context_set_state(c, flags);
-    gtk_render_background(c, cairo, (double)x, (double)y, (double)width, (double)height);
-    gtk_style_context_restore(c);
+    if (state == ekCTRL_STATE_HOT || state == ekCTRL_STATE_BKHOT)
+    {
+        color_t tint = _osglobals_hotback_color();
+        real32_t r, g, b, a;
+        color_get_rgbaf(tint, &r, &g, &b, &a);
+        cairo_save(cairo);
+        cairo_set_source_rgba(cairo, (double)r, (double)g, (double)b, (double)a);
+        cairo_rectangle(cairo, (double)x, (double)y, (double)width, (double)height);
+        cairo_fill(cairo);
+        cairo_restore(cairo);
+    }
+    else if (state == ekCTRL_STATE_BKPRESSED)
+    {
+        color_t tint = _osglobals_selback_color();
+        real32_t r, g, b, a;
+        color_get_rgbaf(tint, &r, &g, &b, &a);
+        cairo_save(cairo);
+        cairo_set_source_rgba(cairo, (double)r, (double)g, (double)b, (double)a);
+        cairo_rectangle(cairo, (double)x, (double)y, (double)width, (double)height);
+        cairo_fill(cairo);
+        cairo_restore(cairo);
+    }
+    else
+    {
+        gtk_style_context_save(c);
+        gtk_style_context_set_state(c, flags);
+        gtk_render_background(c, cairo, (double)x, (double)y, (double)width, (double)height);
+        gtk_style_context_restore(c);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

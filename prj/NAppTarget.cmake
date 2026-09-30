@@ -1195,6 +1195,32 @@ function(nap_desktop_app appName dependList nrcMode)
         nap_target("${appName}" LINUX_DESKTOP "${dependList}" ${nrcMode})
         set(macOSBundle NO)
 
+        # Register a '.desktop' file in the user's own XDG applications directory at build
+        # time, so it already exists the very first time the freshly built binary is run
+        # (the runtime registration in osapp_gtk.c happens too late for GNOME's own
+        # app-cache to have picked it up before that first launch's Dock icon is resolved).
+        # This is a belt-and-suspenders complement, not a replacement: it also covers builds
+        # that don't go through this CMake helper, or an end-user app whose own packaging
+        # provides a real installed '.desktop' file that takes precedence.
+        string(TOLOWER "${appName}" appIdSuffix)
+        string(REGEX REPLACE "[^a-z0-9_-]" "-" appIdSuffix "${appIdSuffix}")
+        set(appId "com.nappgui.${appIdSuffix}")
+
+        if (DEFINED ENV{XDG_DATA_HOME})
+            set(desktopDir "$ENV{XDG_DATA_HOME}/applications")
+        else()
+            set(desktopDir "$ENV{HOME}/.local/share/applications")
+        endif()
+
+        add_custom_command(TARGET ${appName} POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+                "-DAPP_ID=${appId}"
+                "-DAPP_NAME=${appName}"
+                "-DEXE_PATH=$<TARGET_FILE:${appName}>"
+                "-DICON_PATH=$<TARGET_FILE_DIR:${appName}>/${appName}.ico"
+                "-DDESKTOP_DIR=${desktopDir}"
+                -P "${NAPPGUI_ROOT_PATH}/prj/NAppDesktopFile.cmake")
+
     else()
         message("Unknown platform")
 
