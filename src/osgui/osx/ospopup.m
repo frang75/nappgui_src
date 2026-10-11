@@ -48,9 +48,15 @@
     cassert(sender == self);
     if ([self isEnabled] == YES && self->OnSelect != NULL)
     {
+        NSInteger index = [self indexOfSelectedItem];
         EvButton params;
+        cassert(index >= 0);
+        cassert(index < [self numberOfItems]);
+        if (index < 0 || index >= [self numberOfItems])
+            return;
+
         params.state = ekGUI_ON;
-        params.index = (uint32_t)[self indexOfSelectedItem];
+        params.index = (uint32_t)index;
         params.text = NULL;
         listener_event(self->OnSelect, ekGUI_EVENT_POPUP, cast(sender, OSPopUp), &params, NULL, OSPopUp, EvButton, void);
     }

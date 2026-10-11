@@ -805,9 +805,12 @@ static void i_accum_child_panels(const GuiComponent *component, uint32_t *num_pa
     {
         if (component->type == ekGUI_TYPE_PANEL)
         {
+            cassert(*num_panels < GUI_COMPONENT_MAX_PANELS);
+            if (*num_panels >= GUI_COMPONENT_MAX_PANELS)
+                return;
+
             panels[*num_panels] = cast(component, Panel);
             *num_panels += 1;
-            cassert(*num_panels < GUI_COMPONENT_MAX_PANELS);
         }
         else if (component->type == ekGUI_TYPE_SPLITVIEW)
         {
