@@ -47,6 +47,7 @@ DCtx *dctx_create(void)
     ctx->tbrush = new Gdiplus::SolidBrush((Gdiplus::ARGB)Gdiplus::Color::Black);
     ctx->sbrush = new Gdiplus::SolidBrush((Gdiplus::ARGB)Gdiplus::Color::Black);
     ctx->lbrush = new Gdiplus::LinearGradientBrush(Gdiplus::RectF(0, 0, 1, 1e8f), 0, 0, 0);
+    ctx->pbrush = NULL;
     ctx->gradient_matrix = new Gdiplus::Matrix;
     return ctx;
 }
@@ -72,6 +73,12 @@ void dctx_destroy(DCtx **ctx)
 
     if ((*ctx)->fpen != NULL)
         delete (*ctx)->fpen;
+
+    if ((*ctx)->pbrush != NULL)
+        delete (*ctx)->pbrush;
+
+    if ((*ctx)->path != NULL)
+        delete (*ctx)->path;
 
     delete (*ctx)->pen;
     delete (*ctx)->tbrush;
@@ -302,6 +309,7 @@ DCtx *dctx_bitmap(const uint32_t width, const uint32_t height, const pixformat_t
     ctx->tbrush = new Gdiplus::SolidBrush((Gdiplus::ARGB)Gdiplus::Color::Black);
     ctx->sbrush = new Gdiplus::SolidBrush((Gdiplus::ARGB)Gdiplus::Color::Black);
     ctx->lbrush = new Gdiplus::LinearGradientBrush(Gdiplus::RectF(0, 0, 1, 1e8), 0, 0, 0);
+    ctx->pbrush = NULL;
     ctx->gradient_matrix = new Gdiplus::Matrix;
     ctx->bitmap = new Gdiplus::Bitmap((INT)width, (INT)height, pf);
     ctx->graphics = new Gdiplus::Graphics(ctx->bitmap);

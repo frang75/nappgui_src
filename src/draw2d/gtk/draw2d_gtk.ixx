@@ -22,7 +22,8 @@
 typedef enum _fillmode_t
 {
     ekFILL_SOLID,
-    ekFILL_LINEAR
+    ekFILL_LINEAR,
+    ekFILL_RADIAL
 } fillmode_t;
 
 struct _dctx_t
@@ -44,8 +45,10 @@ struct _dctx_t
     color_t stroke_color;
     color_t source_color;
     fillmode_t fillmode;
+    cairo_fill_rule_t fill_rule;
     double line_dash[16];
     int dash_count;
+    double dash_offset;
     real32_t text_width;
     align_t text_halign;
     align_t text_valign;
