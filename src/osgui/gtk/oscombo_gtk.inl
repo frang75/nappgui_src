@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: oscombo_gtk.inl
  *
@@ -17,6 +17,8 @@ __EXTERN_C
 bool_t _oscombo_autosel(const OSCombo *combo);
 
 GtkWidget *_oscombo_focus_widget(OSCombo *combo);
+
+bool_t _oscombo_has_focus(const OSCombo *combo);
 
 void _oscombo_elem(GtkComboBox *combo, const ctrl_op_t op, const uint32_t index, const char_t *text, const Image *image, ArrPt(String) *texts, ArrPt(Image) *images, uint32_t *imgwidth, uint32_t *imgheight);
 

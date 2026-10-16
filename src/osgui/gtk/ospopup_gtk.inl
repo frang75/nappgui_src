@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: ospopup_gtk.inl
  *
@@ -15,5 +15,7 @@
 __EXTERN_C
 
 GtkWidget *_ospopup_focus_widget(OSPopUp *popup);
+
+bool_t _ospopup_has_focus(const OSPopUp *popup);
 
 __END_C

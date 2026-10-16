@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: ospopup.h
  *
@@ -32,7 +32,7 @@ _osgui_api void ospopup_selected(OSPopUp *popup, const uint32_t index);
 
 _osgui_api uint32_t ospopup_get_selected(const OSPopUp *popup);
 
-_osgui_api void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height);
+_osgui_api void ospopup_bounds(const OSPopUp *popup, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height);
 
 _osgui_api void ospopup_attach(OSPopUp *popup, OSPanel *panel);
 

@@ -20,7 +20,7 @@ static void i_web_navigate(WebView *view, const uint32_t index)
     switch (index)
     {
     case 0:
-        webview_navigate(view, "https://nappgui.com");
+        webview_navigate(view, "https://www.nappgui.com");
         break;
     case 1:
         webview_navigate(view, "https://google.com");

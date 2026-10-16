@@ -950,7 +950,7 @@ static void i_OnAbout(Ctrl *ctrl, Event *e)
 {
     unref(ctrl);
     unref(e);
-    osapp_open_url("https://nappgui.com/en/demo/products.html");
+    osapp_open_url("https://www.nappgui.com/en/demo/products.html");
 }
 
 /*---------------------------------------------------------------------------*/

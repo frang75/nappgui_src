@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: oscontrol_gtk.inl
  *
@@ -31,6 +31,10 @@ void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *he
 void _oscontrol_widget_get_size(const GtkWidget *widget, real32_t *width, real32_t *height);
 
 void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y, const real32_t width, const real32_t height);
+
+void _oscontrol_squeeze_filler(OSControl *control, FPtr_filler func_create);
+
+void _oscontrol_squeeze_fixed_width(OSControl *control, const uint32_t min_width);
 
 void _oscontrol_attach_to_parent(OSControl *control, GtkWidget *parent_widget);
 

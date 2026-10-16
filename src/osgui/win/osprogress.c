@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osprogress.c
  *
@@ -104,21 +104,26 @@ void osprogress_position(OSProgress *progress, const real32_t position)
 
 /*---------------------------------------------------------------------------*/
 
-real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
+void osprogress_bounds(const OSProgress *progress, const real32_t length, const gui_size_t size, real32_t *width, real32_t *height)
 {
     unref(progress);
+    cassert_no_null(width);
+    cassert_no_null(height);
+    *width = length;
+
     switch (size)
     {
     case ekGUI_SIZE_REGULAR:
     case ekGUI_SIZE_SMALL:
-        return 15.f;
+        *height = 15.f;
+        break;
     case ekGUI_SIZE_MINI:
-        return 10.f;
+        *height = 10.f;
+        break;
     default:
         cassert_default(size);
+        *height = 0.f;
     }
-
-    return 0.f;
 }
 
 /*---------------------------------------------------------------------------*/

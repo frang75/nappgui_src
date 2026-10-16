@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osentry.c
  *
@@ -36,6 +36,7 @@ struct _osentry_t
     bool_t launch_event;
     bool_t in_validate;
     bool_t autoselect;
+    bool_t has_focus;
     int32_t select_start;
     int32_t select_end;
     String *text_update;
@@ -225,6 +226,26 @@ static void i_OnBufferDelete(GtkTextBuffer *buffer, GtkTextIter *start, GtkTextI
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnDrawAfter(GtkWidget *widget, cairo_t *cr, OSEntry *entry)
+{
+    cassert_no_null(entry);
+    if (entry->has_focus == TRUE)
+    {
+        GtkStyleContext *ctx = gtk_widget_get_style_context(widget);
+        GtkStateFlags state = gtk_style_context_get_state(ctx) | GTK_STATE_FLAG_FOCUSED;
+        int w = gtk_widget_get_allocated_width(widget);
+        int h = gtk_widget_get_allocated_height(widget);
+        gtk_style_context_save(ctx);
+        gtk_style_context_set_state(ctx, state);
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+        gtk_style_context_restore(ctx);
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static OSEntry *i_create(GtkWidget *widget, OSControl *control, const char_t *type)
 {
     OSEntry *entry = heap_new0(OSEntry);
@@ -250,6 +271,8 @@ static OSEntry *i_create(GtkWidget *widget, OSControl *control, const char_t *ty
         g_signal_connect_after(G_OBJECT(entry->buffer), "insert-text", G_CALLBACK(i_OnBufferInsert), (gpointer)entry);
         g_signal_connect_after(G_OBJECT(entry->buffer), "delete-range", G_CALLBACK(i_OnBufferDelete), (gpointer)entry);
     }
+
+    g_signal_connect_after(G_OBJECT(widget), "draw", G_CALLBACK(i_OnDrawAfter), (gpointer)entry);
 
     return entry;
 }
@@ -641,6 +664,8 @@ bool_t _osentry_resign_focus(OSEntry *entry)
 void _osentry_focus(OSEntry *entry, const bool_t focus)
 {
     cassert_no_null(entry);
+    entry->has_focus = focus;
+
     if (focus == FALSE)
         i_cache_select(entry);
 
@@ -700,6 +725,14 @@ bool_t _osentry_get_autoselect(const OSEntry *entry)
 {
     cassert_no_null(entry);
     return entry->autoselect;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osentry_get_focus(const OSEntry *entry)
+{
+    cassert_no_null(entry);
+    return entry->has_focus;
 }
 
 /*---------------------------------------------------------------------------*/

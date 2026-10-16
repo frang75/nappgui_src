@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osgui_gtk.ixx
  *
@@ -25,6 +25,8 @@
 
 typedef struct _view_listeners_t ViewListeners;
 typedef struct _osentry_t OSEntry;
+typedef struct _osfiller_t OSFiller;
+typedef GtkWidget *(*FPtr_filler)(OSControl *control);
 
 struct _view_listeners_t
 {
@@ -51,10 +53,20 @@ struct _view_listeners_t
     Listener *OnKeyUp;
 };
 
+struct _osfiller_t
+{
+    GtkWidget *widget;
+    FPtr_filler func_create;
+    uint32_t width;
+    uint32_t height;
+    bool_t active;
+};
+
 struct _oscontrol_t
 {
     gui_type_t type;
     GtkWidget *widget;
+    OSFiller filler;
 
 #if defined(__ASSERTS__)
     bool_t is_alive;

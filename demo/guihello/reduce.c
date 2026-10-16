@@ -37,15 +37,9 @@ static void i_OnDraw(void *nonused, Event *e)
 
 static void i_set_reduce_mode(Layout *layout, const align_t align)
 {
-    layout_halign(layout, 0, 0, align);
-    layout_halign(layout, 0, 1, align);
-    layout_halign(layout, 0, 2, align);
-    layout_halign(layout, 0, 3, align);
-    layout_halign(layout, 0, 4, align);
-    layout_halign(layout, 0, 5, align);
-    layout_halign(layout, 0, 6, align);
-    layout_halign(layout, 0, 7, align);
-    layout_halign(layout, 0, 8, align);
+    uint32_t i, n = layout_nrows(layout);
+    for (i = 0; i < n; ++i)
+        layout_halign(layout, 0, i, align);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -86,7 +80,7 @@ static PopUp *i_popup(void)
     popup_add_elem(popup, "Portugues", gui_image(PORTUGAL_PNG));
     popup_add_elem(popup, "Italiana", gui_image(ITALY_PNG));
     popup_add_elem(popup, "Tiếng Việt", gui_image(VIETNAM_PNG));
-    popup_add_elem(popup, "России", gui_image(RUSSIA_PNG));
+    popup_add_elem(popup, "России", NULL);
     popup_add_elem(popup, "日本語", gui_image(JAPAN_PNG));
     popup_list_height(popup, 10);
     return popup;
@@ -94,10 +88,41 @@ static PopUp *i_popup(void)
 
 /*---------------------------------------------------------------------------*/
 
+static PopUp *i_popup2(void)
+{
+    PopUp *popup = popup_create();
+    popup_add_elem(popup, "English", NULL);
+    popup_add_elem(popup, "Español", NULL);
+    popup_add_elem(popup, "Portugues", NULL);
+    popup_add_elem(popup, "Italiana", NULL);
+    popup_add_elem(popup, "Tiếng Việt", NULL);
+    popup_add_elem(popup, "России", NULL);
+    popup_add_elem(popup, "日本語", NULL);
+    popup_list_height(popup, 10);
+    return popup;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static Combo *i_combo(void)
+{
+    Combo *combo = combo_create();
+    combo_add_elem(combo, "English", gui_image(UKING_PNG));
+    combo_add_elem(combo, "Español", gui_image(SPAIN_PNG));
+    combo_add_elem(combo, "Portugues", gui_image(PORTUGAL_PNG));
+    combo_add_elem(combo, "Italiana", gui_image(ITALY_PNG));
+    combo_add_elem(combo, "Tiếng Việt", gui_image(VIETNAM_PNG));
+    combo_add_elem(combo, "России", gui_image(RUSSIA_PNG));
+    combo_add_elem(combo, "日本語", gui_image(JAPAN_PNG));
+    return combo;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static Window *i_reducible_window(ReduceData *data)
 {
     Layout *layout1 = layout_create(3, 1);
-    Layout *layout2 = layout_create(1, 9);
+    Layout *layout2 = layout_create(1, 12);
     Layout *layout3 = i_view_layout(data);
     Label *label = label_create();
     Edit *edit1 = edit_create();
@@ -105,7 +130,10 @@ static Window *i_reducible_window(ReduceData *data)
     Button *button = button_push();
     Button *check = button_check();
     Button *radio = button_radio();
-    PopUp *popup = i_popup();
+    PopUp *popup1 = i_popup();
+    PopUp *popup2 = i_popup2();
+    Combo *combo = i_combo();
+    UpDown *updown = updown_create();
     Slider *slider = slider_create();
     Progress *progress = progress_create();
     Panel *panel = panel_create();
@@ -116,6 +144,7 @@ static Window *i_reducible_window(ReduceData *data)
     button_text(button, "Hello, this is a push button");
     button_text(check, "Hello, this is a checkbox");
     button_text(radio, "Hello, this is a radio button");
+    progress_value(progress, .5f);
     view_OnDraw(view, listener(NULL, i_OnDraw, void));
     layout_label(layout2, label, 0, 0);
     layout_edit(layout2, edit1, 0, 1);
@@ -123,9 +152,12 @@ static Window *i_reducible_window(ReduceData *data)
     layout_button(layout2, button, 0, 3);
     layout_button(layout2, check, 0, 4);
     layout_button(layout2, radio, 0, 5);
-    layout_popup(layout2, popup, 0, 6);
-    layout_slider(layout2, slider, 0, 7);
-    layout_progress(layout2, progress, 0, 8);
+    layout_popup(layout2, popup1, 0, 6);
+    layout_popup(layout2, popup2, 0, 7);
+    layout_combo(layout2, combo, 0, 8);
+    layout_updown(layout2, updown, 0, 9);
+    layout_slider(layout2, slider, 0, 10);
+    layout_progress(layout2, progress, 0, 11);
     layout_layout(layout1, layout3, 0, 0);
     layout_layout(layout1, layout2, 1, 0);
     layout_view(layout1, view, 2, 0);
@@ -141,6 +173,9 @@ static Window *i_reducible_window(ReduceData *data)
     layout_vmargin(layout2, 5, 5);
     layout_vmargin(layout2, 6, 5);
     layout_vmargin(layout2, 7, 5);
+    layout_vmargin(layout2, 8, 5);
+    layout_vmargin(layout2, 9, 5);
+    layout_vmargin(layout2, 10, 5);
     layout_valign(layout1, 1, 0, ekTOP);
     panel_layout(panel, layout1);
     window_panel(window, panel);

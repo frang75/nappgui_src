@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: guictx.c
  *
@@ -174,7 +174,7 @@ void guictx_append_popup_manager_imp(
     FPtr_gctx_set_uint32 func_popup_list_height,
     FPtr_gctx_set_uint32 func_popup_set_selected,
     FPtr_gctx_get_uint32 func_popup_get_selected,
-    FPtr_gctx_bounds3 func_popup_bounds,
+    FPtr_gctx_bounds1 func_popup_bounds,
     FPtr_gctx_set_ptr func_attach_popup_to_panel,
     FPtr_gctx_set_ptr func_detach_popup_from_panel,
     FPtr_gctx_set_bool func_popup_set_visible,
@@ -672,7 +672,7 @@ void guictx_append_progress_manager_imp(
     FPtr_gctx_create func_progress_create,
     FPtr_gctx_destroy func_progress_destroy,
     FPtr_gctx_set_real32 func_progress_set_position,
-    FPtr_gctx_get_real32e func_progress_get_thickness,
+    FPtr_gctx_bounds6 func_progress_bounds,
     FPtr_gctx_set_ptr func_attach_progress_to_panel,
     FPtr_gctx_set_ptr func_detach_progress_from_panel,
     FPtr_gctx_set_bool func_progress_set_visible,
@@ -685,7 +685,7 @@ void guictx_append_progress_manager_imp(
     cassert(context->func_create[ekGUI_TYPE_PROGRESS] == NULL);
     cassert(context->func_destroy[ekGUI_TYPE_PROGRESS] == NULL);
     cassert(context->func_progress_set_position == NULL);
-    cassert(context->func_progress_get_thickness == NULL);
+    cassert(context->func_progress_bounds == NULL);
     cassert(context->func_attach_to_panel[ekGUI_TYPE_PROGRESS] == NULL);
     cassert(context->func_detach_from_panel[ekGUI_TYPE_PROGRESS] == NULL);
     cassert(context->func_set_visible[ekGUI_TYPE_PROGRESS] == NULL);
@@ -696,7 +696,7 @@ void guictx_append_progress_manager_imp(
     cassert_no_nullf(func_progress_create);
     cassert_no_nullf(func_progress_destroy);
     cassert_no_nullf(func_progress_set_position);
-    cassert_no_nullf(func_progress_get_thickness);
+    cassert_no_nullf(func_progress_bounds);
     cassert_no_nullf(func_attach_progress_to_panel);
     cassert_no_nullf(func_detach_progress_from_panel);
     cassert_no_nullf(func_progress_set_visible);
@@ -707,7 +707,7 @@ void guictx_append_progress_manager_imp(
     context->func_create[ekGUI_TYPE_PROGRESS] = func_progress_create;
     context->func_destroy[ekGUI_TYPE_PROGRESS] = func_progress_destroy;
     context->func_progress_set_position = func_progress_set_position;
-    context->func_progress_get_thickness = func_progress_get_thickness;
+    context->func_progress_bounds = func_progress_bounds;
     context->func_attach_to_panel[ekGUI_TYPE_PROGRESS] = func_attach_progress_to_panel;
     context->func_detach_from_panel[ekGUI_TYPE_PROGRESS] = func_detach_progress_from_panel;
     context->func_set_visible[ekGUI_TYPE_PROGRESS] = func_progress_set_visible;

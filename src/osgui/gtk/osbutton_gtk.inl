@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osbutton_gtk.inl
  *
@@ -15,6 +15,8 @@
 __EXTERN_C
 
 GtkWidget *_osbutton_focus_widget(OSButton *button);
+
+bool_t _osbutton_has_focus(const OSButton *button);
 
 void _osbutton_command(OSButton *button);
 

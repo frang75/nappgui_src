@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: popup.c
  *
@@ -18,6 +18,7 @@
 #include "gui.inl"
 #include <draw2d/font.h>
 #include <draw2d/guictx.h>
+#include <draw2d/image.h>
 #include <geom2d/s2d.h>
 #include <core/objh.h>
 #include <sewer/cassert.h>
@@ -195,8 +196,12 @@ void _popup_natural(PopUp *popup, const uint32_t di, real32_t *dim0, real32_t *d
             for (i = 0; i < n; ++i)
             {
                 real32_t width, height;
+                real32_t refwidth = 0;
                 const char_t *text = _items_get_text(popup->items, i);
-                popup->component.context->func_popup_bounds(popup->component.ositem, text, &width, &height);
+                const Image *image = _items_get_image(popup->items, i);
+                if (image != NULL)
+                    refwidth = (real32_t)image_width(image);
+                popup->component.context->func_popup_bounds(popup->component.ositem, text, refwidth, &width, &height);
                 if (width > popup->size.width)
                     popup->size.width = width;
                 if (height > popup->size.height)
@@ -205,7 +210,7 @@ void _popup_natural(PopUp *popup, const uint32_t di, real32_t *dim0, real32_t *d
         }
         else
         {
-            popup->component.context->func_popup_bounds(popup->component.ositem, "    ", &popup->size.width, &popup->size.height);
+            popup->component.context->func_popup_bounds(popup->component.ositem, "    ", 0.f, &popup->size.width, &popup->size.height);
         }
 
         *dim0 = popup->size.width;

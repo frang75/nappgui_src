@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: ostabstop.c
  *
@@ -12,9 +12,12 @@
 
 #include "ostabstop.inl"
 #include "oscontrol.inl"
+#include "osbutton.inl"
 #include "oscombo.inl"
 #include "osedit.inl"
 #include "ospanel.inl"
+#include "ospopup.inl"
+#include "osslider.inl"
 #include "ostext.inl"
 #include "osview.inl"
 #include "oswindow.inl"
@@ -317,6 +320,12 @@ static void i_on_focus(OSControl *control, const bool_t focused)
     gui_type_t type = _oscontrol_type(control);
     if (type == ekGUI_TYPE_EDITBOX)
         _osedit_focus(cast(control, OSEdit), focused);
+    else if (type == ekGUI_TYPE_BUTTON)
+        _osbutton_focus(cast(control, OSButton), focused);
+    else if (type == ekGUI_TYPE_POPUP)
+        _ospopup_focus(cast(control, OSPopUp), focused);
+    else if (type == ekGUI_TYPE_SLIDER)
+        _osslider_focus(cast(control, OSSlider), focused);
     else if (type == ekGUI_TYPE_COMBOBOX)
         _oscombo_focus(cast(control, OSCombo), focused);
     else if (type == ekGUI_TYPE_CUSTOMVIEW)

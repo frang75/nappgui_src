@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: guictx.hxx
  *
@@ -629,10 +629,6 @@ typedef enum_t (*FPtr_gctx_get_enum3)(const void *item, void **ptr);
 #define FUNC_CHECK_GCTX_GET_ENUM3(func, type, type_enum) \
     (void)((type_enum(*)(const type *, void **ptr))func == func)
 
-typedef real32_t (*FPtr_gctx_get_real32e)(const void *item, const enum_t value);
-#define FUNC_CHECK_GCTX_GET_REAL32E(func, type, type_enum) \
-    (void)((real32_t(*)(const type *, const type_enum))func == func)
-
 typedef void (*FPtr_gctx_get2_real32)(const void *item, real32_t *value1, real32_t *value2);
 #define FUNC_CHECK_GCTX_GET2_REAL32(func, type) \
     (void)((void (*)(const type *, real32_t *, real32_t *))func == func)
@@ -765,7 +761,7 @@ struct _guictx_t
     FPtr_gctx_set_uint32 func_popup_list_height;
     FPtr_gctx_set_uint32 func_popup_set_selected;
     FPtr_gctx_get_uint32 func_popup_get_selected;
-    FPtr_gctx_bounds3 func_popup_bounds;
+    FPtr_gctx_bounds1 func_popup_bounds;
 
     /*! <Edit> */
     FPtr_gctx_set_listener func_edit_OnFilter;
@@ -826,7 +822,7 @@ struct _guictx_t
 
     /*! <Progress> */
     FPtr_gctx_set_real32 func_progress_set_position;
-    FPtr_gctx_get_real32e func_progress_get_thickness;
+    FPtr_gctx_bounds6 func_progress_bounds;
 
     /*! <Text view> */
     FPtr_gctx_set_listener func_text_OnFilter;

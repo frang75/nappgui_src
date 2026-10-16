@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: hfile.c
  *
@@ -281,7 +281,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
                     if (recursive == TRUE)
                     {
                         String *path1 = str_cpath("%s/%s", src, tc(files1[i1].name));
-                        String *path2 = str_cpath("%s/%s", src, tc(files2[i2].name));
+                        String *path2 = str_cpath("%s/%s", dest, tc(files2[i2].name));
                         ok = hfile_dir_sync(tc(path1), tc(path2), recursive, remove_in_dest, except, except_size, error);
                         str_destroy(&path1);
                         str_destroy(&path2);
@@ -314,7 +314,7 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
                     if (recursive == TRUE)
                     {
                         String *path1 = str_cpath("%s/%s", src, tc(files1[i1].name));
-                        String *path2 = str_cpath("%s/%s", src, tc(files2[i2].name));
+                        String *path2 = str_cpath("%s/%s", dest, tc(files1[i1].name));
                         ok = hfile_dir_create(tc(path2), error);
                         if (ok == TRUE)
                             ok = hfile_dir_sync(tc(path1), tc(path2), recursive, remove_in_dest, except, except_size, error);

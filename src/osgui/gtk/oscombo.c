@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: oscombo.c
  *
@@ -48,6 +48,54 @@ struct _oscombo_t
     ArrPt(Image) *images;
     OSEntry *entry;
 };
+
+/*---------------------------------------------------------------------------*/
+
+static const uint32_t i_FILLER_WIDTH = 35;
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnFillerDraw(GtkWidget *widget, cairo_t *cr, OSCombo *combo)
+{
+    GtkStyleContext *ctx = _osglobals_entry_context();
+    int w = gtk_widget_get_allocated_width(widget);
+    int h = gtk_widget_get_allocated_height(widget);
+    cassert_no_null(combo);
+
+    gtk_style_context_save(ctx);
+    gtk_style_context_set_state(ctx, gtk_widget_get_state_flags(widget));
+    gtk_render_background(ctx, cr, 0, 0, w, h);
+    gtk_render_frame(ctx, cr, 0, 0, w, h);
+
+    if (_osentry_get_focus(combo->entry) == TRUE)
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+
+    gtk_style_context_restore(ctx);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnFillerPressed(GtkWidget *widget, GdkEventButton *event, OSCombo *combo)
+{
+    unref(event);
+    unref(combo);
+    gtk_widget_grab_focus(widget);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_filler(OSControl *control)
+{
+    OSCombo *combo = cast(control, OSCombo);
+    GtkWidget *filler = gtk_drawing_area_new();
+    gtk_widget_set_can_focus(filler, TRUE);
+    gtk_widget_add_events(filler, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(G_OBJECT(filler), "draw", G_CALLBACK(i_OnFillerDraw), (gpointer)combo);
+    g_signal_connect(G_OBJECT(filler), "button-press-event", G_CALLBACK(i_OnFillerPressed), (gpointer)combo);
+    return filler;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -203,6 +251,8 @@ OSCombo *oscombo_create(const uint32_t flags)
     }
 
     _oscontrol_init(&combo->control, ekGUI_TYPE_COMBOBOX, widget, entry, TRUE);
+    _oscontrol_squeeze_filler(&combo->control, i_filler);
+    _oscontrol_squeeze_fixed_width(&combo->control, i_FILLER_WIDTH);
     return combo;
 }
 
@@ -269,6 +319,8 @@ void oscombo_text(OSCombo *combo, const char_t *text)
 {
     cassert_no_null(combo);
     _osentry_text(combo->entry, text);
+    if (combo->control.filler.widget != NULL)
+        gtk_widget_queue_draw(combo->control.filler.widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -389,6 +441,8 @@ void oscombo_selected(OSCombo *combo, const uint32_t index)
     text = arrpt_get_const(combo->texts, index, String);
     combo->selected = index;
     _osentry_text(combo->entry, tc(text));
+    if (combo->control.filler.widget != NULL)
+        gtk_widget_queue_draw(combo->control.filler.widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -405,14 +459,23 @@ uint32_t oscombo_get_selected(const OSCombo *combo)
 
 void oscombo_bounds(const OSCombo *combo, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    GtkRequisition minsize;
     cassert_no_null(combo);
     cassert_no_null(width);
     cassert_no_null(height);
-    gtk_widget_set_size_request(combo->control.widget, -1, -1);
-    gtk_widget_get_preferred_size(combo->control.widget, &minsize, NULL);
+
     *width = refwidth;
-    *height = (real32_t)minsize.height;
+
+    if (gtk_widget_get_visible(combo->control.widget) == TRUE)
+    {
+        GtkRequisition minsize;
+        gtk_widget_set_size_request(combo->control.widget, -1, -1);
+        gtk_widget_get_preferred_size(combo->control.widget, &minsize, NULL);
+        *height = (real32_t)minsize.height;
+    }
+    else
+    {
+        *height = (real32_t)combo->control.filler.height;
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -487,7 +550,17 @@ bool_t _oscombo_autosel(const OSCombo *combo)
 GtkWidget *_oscombo_focus_widget(OSCombo *combo)
 {
     cassert_no_null(combo);
+    if (combo->control.filler.active == TRUE)
+        return combo->control.filler.widget;
     return _osentry_get_widget(combo->entry);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _oscombo_has_focus(const OSCombo *combo)
+{
+    cassert_no_null(combo);
+    return _osentry_get_focus(combo->entry);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -504,6 +577,8 @@ void _oscombo_focus(OSCombo *combo, const bool_t focus)
 {
     cassert_no_null(combo);
     _osentry_focus(combo->entry, focus);
+    if (combo->control.filler.widget != NULL)
+        gtk_widget_queue_draw(combo->control.filler.widget);
 }
 
 /*---------------------------------------------------------------------------*/

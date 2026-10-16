@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osview.c
  *
@@ -56,7 +56,8 @@ struct _osview_t
     real32_t clip_width;
     real32_t clip_height;
     ViewListeners listeners;
-    GtkCssProvider *css_bdcolor;
+    GtkCssProvider *css_noborder;
+    bool_t has_focus;
     bool_t allow_tab;
     Listener *OnFocus;
     Listener *OnResignFocus;
@@ -420,6 +421,22 @@ static void *i_upgrade_to_opengl(void *view_ptr)
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnFrameDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
+{
+    cassert_no_null(view);
+    if (view->has_focus == TRUE)
+    {
+        GtkStyleContext *ctx = gtk_widget_get_style_context(widget);
+        int w = gtk_widget_get_allocated_width(widget);
+        int h = gtk_widget_get_allocated_height(widget);
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSView *osview_create(const uint32_t flags)
 {
     OSView *view = heap_new0(OSView);
@@ -448,16 +465,13 @@ OSView *osview_create(const uint32_t flags)
     if (flags & ekVIEW_BORDER)
     {
         GtkWidget *frame = gtk_frame_new(NULL);
+        String *css = _osglobals_frame_hide_css();
         cassert(gtk_widget_get_has_window(frame) == FALSE);
         gtk_container_add(GTK_CONTAINER(frame), top);
         gtk_widget_show(top);
-
-        {
-            String *css = _osglobals_frame_focus_css();
-            view->css_bdcolor = _oscontrol_css_provider(tc(css));
-            str_destroy(&css);
-        }
-
+        g_signal_connect_after(frame, "draw", G_CALLBACK(i_OnFrameDraw), (gpointer)view);
+        view->css_noborder = _oscontrol_css_provider(tc(css));
+        str_destroy(&css);
         top = frame;
     }
 
@@ -506,7 +520,7 @@ void osview_destroy(OSView **view)
     if ((*view)->scroll != NULL)
         _osscrolls_destroy(&(*view)->scroll);
 
-    _oscontrol_destroy_css_provider(&(*view)->css_bdcolor);
+    _oscontrol_destroy_css_provider(&(*view)->css_noborder);
     _oscontrol_destroy(*dcast(view, OSControl));
     heap_delete(view, OSView);
 }
@@ -894,13 +908,17 @@ void _osview_focus(OSView *view, const bool_t focus)
         listener_event(view->OnFocus, ekGUI_EVENT_FOCUS, view, &params, NULL, OSView, bool_t, void);
     }
 
-    if (view->css_bdcolor != NULL)
+    if (view->flags & ekVIEW_BORDER)
     {
         cassert(GTK_IS_FRAME(view->control.widget));
+        view->has_focus = focus;
+
         if (focus == TRUE)
-            _oscontrol_add_css_provider(view->control.widget, view->css_bdcolor);
+            _oscontrol_add_css_provider(view->control.widget, view->css_noborder);
         else
-            _oscontrol_remove_css_provider(view->control.widget, view->css_bdcolor);
+            _oscontrol_remove_css_provider(view->control.widget, view->css_noborder);
+
+        gtk_widget_queue_draw(view->control.widget);
     }
 }
 

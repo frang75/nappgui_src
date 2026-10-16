@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osbutton.c
  *
@@ -42,12 +42,14 @@ struct _osbutton_t
     bool_t is_default;
     uint32_t vpadding;
     uint32_t hpadding;
+    bool_t has_focus;
     real32_t twidth;
     real32_t theight;
     gui_pos_t imgpos;
     GtkWidget *radio;
     Font *font;
     String *text;
+    String *ltext;
     Image *image;
     PangoAttrList *attrs;
     GtkCssProvider *css_padding;
@@ -58,6 +60,7 @@ struct _osbutton_t
 /*---------------------------------------------------------------------------*/
 
 static const real32_t i_PUSHBUTTON_EXTRAWIDTH = 2.f;
+static const real32_t i_CHECKBOX_EXTRAWIDTH = 8.f;
 static const real32_t i_CHECKBOX_EXTRAHEIGHT = 2.f;
 static real32_t i_BUTTON_IMAGE_SEP = 4.f;
 
@@ -158,6 +161,191 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEventButton *event, OSButton *
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnFillerDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
+{
+    GtkStyleContext *ctx = _osglobals_button_context();
+    int w = gtk_widget_get_allocated_width(widget);
+    int h = gtk_widget_get_allocated_height(widget);
+    cassert_no_null(button);
+
+    gtk_style_context_save(ctx);
+    gtk_style_context_set_state(ctx, gtk_widget_get_state_flags(widget));
+    gtk_render_background(ctx, cr, 0, 0, w, h);
+    gtk_render_frame(ctx, cr, 0, 0, w, h);
+
+    if (_osbutton_has_focus(button) == TRUE)
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+
+    gtk_style_context_restore(ctx);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnFillerPressed(GtkWidget *widget, GdkEventButton *event, OSButton *button)
+{
+    unref(widget);
+    unref(event);
+    if (_oswindow_mouse_down(cast(button, OSControl)) == TRUE)
+        return FALSE;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_filler(OSControl *control)
+{
+    OSButton *button = cast(control, OSButton);
+    GtkWidget *filler = gtk_drawing_area_new();
+    gtk_widget_set_can_focus(filler, TRUE);
+    gtk_widget_add_events(filler, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(G_OBJECT(filler), "draw", G_CALLBACK(i_OnFillerDraw), (gpointer)button);
+    g_signal_connect(G_OBJECT(filler), "button-press-event", G_CALLBACK(i_OnFillerPressed), (gpointer)button);
+    return filler;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnCheckFillerDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
+{
+    GdkPixbuf *bitmap = NULL;
+    gui_state_t state;
+    uint32_t iw = 0, ih = 0, cell = 0;
+    int w = gtk_widget_get_allocated_width(widget);
+    int h = gtk_widget_get_allocated_height(widget);
+    bool_t sensitive = (bool_t)gtk_widget_get_sensitive(button->control.widget);
+    cassert_no_null(button);
+    state = i_get_state(button);
+
+    if (button_get_type(button->flags) == ekBUTTON_RADIO)
+    {
+        bitmap = _osglobals_radio_bitmap();
+        iw = _osglobals_radio_width();
+        ih = _osglobals_radio_height();
+        cell = (state == ekGUI_ON) ? 2 : 0;
+        if (sensitive == FALSE)
+            cell += 1;
+    }
+    else
+    {
+        iw = _osglobals_check_width();
+        ih = _osglobals_check_height();
+
+        if (state == ekGUI_MIXED)
+        {
+            bitmap = _osglobals_check3_bitmap();
+            cell = (sensitive == TRUE) ? 0 : 1;
+        }
+        else
+        {
+            bitmap = _osglobals_checks_bitmap();
+            cell = (state == ekGUI_ON) ? 5 : 0;
+            if (sensitive == FALSE)
+                cell += 4;
+        }
+    }
+
+    /* Not even the real indicator fits at its natural size: scale the same bitmap down */
+    {
+        uint32_t dw = iw, dh = ih;
+        real32_t x, y;
+        GdkPixbuf *cellbmp;
+
+        if ((uint32_t)w < iw || (uint32_t)h < ih)
+        {
+            real32_t scale = (real32_t)w / (real32_t)iw;
+            real32_t scaleh = (real32_t)h / (real32_t)ih;
+            if (scaleh < scale)
+                scale = scaleh;
+
+            dw = (uint32_t)((real32_t)iw * scale);
+            dh = (uint32_t)((real32_t)ih * scale);
+            if (dw < 1)
+                dw = 1;
+            if (dh < 1)
+                dh = 1;
+        }
+
+        x = ((real32_t)w - (real32_t)dw) / 2.f;
+        y = ((real32_t)h - (real32_t)dh) / 2.f;
+        cellbmp = gdk_pixbuf_new_subpixbuf(bitmap, (int)(cell * iw), 0, (int)iw, (int)ih);
+
+        if (dw != iw || dh != ih)
+        {
+            GdkPixbuf *scaled = gdk_pixbuf_scale_simple(cellbmp, (int)dw, (int)dh, GDK_INTERP_BILINEAR);
+            g_object_unref(cellbmp);
+            cellbmp = scaled;
+        }
+
+        gdk_cairo_set_source_pixbuf(cr, cellbmp, (double)x, (double)y);
+        cairo_rectangle(cr, (double)x, (double)y, (double)dw, (double)dh);
+        cairo_fill(cr);
+        g_object_unref(cellbmp);
+    }
+
+    if (_osbutton_has_focus(button) == TRUE)
+    {
+        GtkStyleContext *ctx = _osglobals_button_context();
+        gtk_style_context_save(ctx);
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+        gtk_style_context_restore(ctx);
+    }
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnCheckFillerPressed(GtkWidget *widget, GdkEventButton *event, OSButton *button)
+{
+    gui_state_t state;
+    unref(event);
+    cassert_no_null(button);
+
+    _oswindow_mouse_down(cast(button, OSControl));
+    state = i_get_state(button);
+
+    switch (button_get_type(button->flags))
+    {
+    case ekBUTTON_CHECK2:
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->control.widget), state == ekGUI_ON ? FALSE : TRUE);
+        break;
+
+    case ekBUTTON_CHECK3:
+        gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(button->control.widget), FALSE);
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->control.widget), state == ekGUI_ON ? FALSE : TRUE);
+        break;
+
+    case ekBUTTON_RADIO:
+        /* Like any native radio button, clicking the already-active one doesn't unselect it */
+        if (state == ekGUI_OFF)
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->control.widget), TRUE);
+        break;
+
+    default:
+        cassert_default(button_get_type(button->flags));
+    }
+
+    _osbutton_command(button);
+    gtk_widget_queue_draw(widget);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_check_filler(OSControl *control)
+{
+    OSButton *button = cast(control, OSButton);
+    GtkWidget *filler = gtk_drawing_area_new();
+    gtk_widget_set_can_focus(filler, TRUE);
+    gtk_widget_add_events(filler, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(G_OBJECT(filler), "draw", G_CALLBACK(i_OnCheckFillerDraw), (gpointer)button);
+    g_signal_connect(G_OBJECT(filler), "button-press-event", G_CALLBACK(i_OnCheckFillerPressed), (gpointer)button);
+    return filler;
+}
+
+/*---------------------------------------------------------------------------*/
+
 static gboolean i_OnPushDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 {
     unref(cr);
@@ -223,7 +411,36 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
     if (button_get_type(button->flags) == ekBUTTON_PUSH)
     {
         /* In pushbuttons, we have to center the content */
-        real32_t cwidth = draw_text == TRUE ? button->twidth + i_PUSHBUTTON_EXTRAWIDTH : 0.f;
+        real32_t cwidth = 0.f;
+        bool_t ellipsized = FALSE;
+
+        if (draw_text == TRUE)
+        {
+            real32_t avail = bwidth - i_PUSHBUTTON_EXTRAWIDTH;
+            if (button->image != NULL)
+                avail -= (real32_t)image_width(button->image) + (real32_t)kBUTTON_IMAGE_SEP;
+            if (avail < 0.f)
+                avail = 0.f;
+
+            if (avail < button->twidth)
+            {
+                real32_t ellw = 0.f, ellh = 0.f;
+                font_extents(button->font, "...", -1.f, &ellw, &ellh);
+                if (avail < ellw)
+                {
+                    draw_text = FALSE;
+                }
+                else
+                {
+                    pango_layout_set_width(layout, (int)(avail * (real32_t)PANGO_SCALE));
+                    pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
+                    pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
+                    ellipsized = TRUE;
+                }
+            }
+        }
+
+        cwidth = draw_text == TRUE ? button->twidth + i_PUSHBUTTON_EXTRAWIDTH : 0.f;
         cairo_save(cr);
 
         if (button->image != NULL)
@@ -240,10 +457,16 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
             }
         }
 
-        cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->theight : 0.f) - 4) / 2));
+        if (ellipsized == TRUE)
+            cairo_translate(cr, 0, ((bheight - button->theight - 4) / 2));
+        else
+            cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->theight : 0.f) - 4) / 2));
+
         cairo_scale(cr, font_xscale(button->font), 1);
         cairo_move_to(cr, 0, 0);
-        pango_cairo_show_layout(cr, layout);
+
+        if (draw_text == TRUE)
+            pango_cairo_show_layout(cr, layout);
 
         /* Draw the pushbutton image. I don't know why, if I render the image first, text is not shown */
         if (button->image != NULL)
@@ -297,6 +520,26 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
 
     if (layout != NULL)
         g_object_unref(layout);
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnFocusDrawAfter(GtkWidget *widget, cairo_t *cr, OSButton *button)
+{
+    cassert_no_null(button);
+    if (_osbutton_has_focus(button) == TRUE)
+    {
+        GtkStyleContext *ctx = gtk_widget_get_style_context(widget);
+        GtkStateFlags state = gtk_style_context_get_state(ctx) | GTK_STATE_FLAG_FOCUSED;
+        int w = gtk_widget_get_allocated_width(widget);
+        int h = gtk_widget_get_allocated_height(widget);
+        gtk_style_context_save(ctx);
+        gtk_style_context_set_state(ctx, state);
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+        gtk_style_context_restore(ctx);
+    }
 
     return FALSE;
 }
@@ -372,6 +615,7 @@ OSButton *osbutton_create(const uint32_t flags)
     case ekBUTTON_RADIO:
         widget = gtk_radio_button_new_with_label(NULL, "");
         gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        gtk_label_set_ellipsize(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), PANGO_ELLIPSIZE_END);
         button->radio = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(widget), "");
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(button->radio), TRUE);
         focus_widget = widget;
@@ -381,6 +625,7 @@ OSButton *osbutton_create(const uint32_t flags)
     case ekBUTTON_CHECK3:
         widget = gtk_check_button_new_with_label("");
         gtk_button_set_use_underline(GTK_BUTTON(widget), TRUE);
+        gtk_label_set_ellipsize(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), PANGO_ELLIPSIZE_END);
         focus_widget = widget;
         break;
     default:
@@ -389,6 +634,7 @@ OSButton *osbutton_create(const uint32_t flags)
 
     cssobj = i_css_obj(button->flags);
     g_signal_connect(G_OBJECT(widget), "clicked", G_CALLBACK(i_OnClick), (gpointer)button);
+    g_signal_connect_after(G_OBJECT(focus_widget), "draw", G_CALLBACK(i_OnFocusDrawAfter), (gpointer)button);
     _oscontrol_init(&button->control, ekGUI_TYPE_BUTTON, widget, focus_widget, FALSE);
 
     /*
@@ -406,11 +652,15 @@ OSButton *osbutton_create(const uint32_t flags)
      */
     if (_osbutton_text_allowed(flags) == TRUE)
     {
-        Font *fake_font = font_system(0, 0);
-        Font *ffont = NULL;
-        _oscontrol_update_css_font(button->control.widget, cssobj, fake_font, &ffont, &button->css_font);
-        font_destroy(&fake_font);
-        ptr_destopt(font_destroy, &ffont, Font);
+        if (button_get_type(flags) != ekBUTTON_RADIO && button_get_type(flags) != ekBUTTON_CHECK2 && button_get_type(flags) != ekBUTTON_CHECK3)
+        {
+            Font *fake_font = font_system(0, 0);
+            Font *ffont = NULL;
+            _oscontrol_update_css_font(button->control.widget, cssobj, fake_font, &ffont, &button->css_font);
+            font_destroy(&fake_font);
+            ptr_destopt(font_destroy, &ffont, Font);
+        }
+
         /* The real font and text for button */
         button->text = str_c("");
         button->font = _osgui_create_default_font();
@@ -419,6 +669,18 @@ OSButton *osbutton_create(const uint32_t flags)
     g_signal_connect(G_OBJECT(focus_widget), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)button);
     g_signal_connect(G_OBJECT(focus_widget), "key-press-event", G_CALLBACK(i_OnKeyPress), (gpointer)button);
     button->launch_event = TRUE;
+
+    if (button_get_type(flags) == ekBUTTON_RADIO || button_get_type(flags) == ekBUTTON_CHECK2 || button_get_type(flags) == ekBUTTON_CHECK3)
+    {
+        _oscontrol_squeeze_filler(&button->control, i_check_filler);
+        _oscontrol_squeeze_fixed_width(&button->control, 40);
+    }
+    else
+    {
+        _oscontrol_squeeze_filler(&button->control, i_filler);
+        _oscontrol_squeeze_fixed_width(&button->control, 20);
+    }
+
     return button;
 }
 
@@ -443,6 +705,7 @@ void osbutton_destroy(OSButton **button)
 
     listener_destroy(&(*button)->OnClick);
     str_destopt(&(*button)->text);
+    str_destopt(&(*button)->ltext);
     ptr_destopt(image_destroy, &(*button)->image, Image);
     ptr_destopt(font_destroy, &(*button)->font, Font);
     _oscontrol_destroy_css_provider(&(*button)->css_padding);
@@ -539,6 +802,7 @@ void osbutton_text(OSButton *button, const char_t *text)
     pos = _osgui_underline_gtk_text(text, shortcut, sizeof(shortcut));
     _osgui_underline_plain(shortcut, pos, plain, sizeof(plain));
     str_upd(&button->text, plain);
+    str_upd(&button->ltext, shortcut);
 
     /*
      * The button inner label is a fake with '0' font size (invisible).
@@ -546,6 +810,10 @@ void osbutton_text(OSButton *button, const char_t *text)
      * The button 'real' text will be rendered in 'i_OnLabelDraw'
      */
     gtk_button_set_label(GTK_BUTTON(button->control.widget), shortcut);
+
+    if (button_get_type(button->flags) == ekBUTTON_RADIO || button_get_type(button->flags) == ekBUTTON_CHECK2 || button_get_type(button->flags) == ekBUTTON_CHECK3)
+        gtk_label_set_ellipsize(GTK_LABEL(gtk_bin_get_child(GTK_BIN(button->control.widget))), PANGO_ELLIPSIZE_END);
+
     i_update_attributes(button, plain, pos);
     gtk_widget_queue_draw(button->control.widget);
     button->twidth = -1.f;
@@ -740,7 +1008,7 @@ void osbutton_bounds(const OSButton *button, const char_t *text, const real32_t 
         cassert_unref(i_equal_button_text(button, text) == TRUE, text);
         cassert(button->vpadding != UINT32_MAX);
         cassert(button->hpadding != UINT32_MAX);
-        *width = button->twidth + i_PUSHBUTTON_EXTRAWIDTH;
+        *width = button->twidth + i_PUSHBUTTON_EXTRAWIDTH + i_CHECKBOX_EXTRAWIDTH;
         *width += (real32_t)_osglobals_check_width();
         *width += kCHECKBOX_IMAGE_SEP;
         *height = (real32_t)_osglobals_check_height();
@@ -814,6 +1082,10 @@ void osbutton_frame(OSButton *button, const real32_t x, const real32_t y, const 
 GtkWidget *_osbutton_focus_widget(OSButton *button)
 {
     cassert_no_null(button);
+
+    if (button->control.filler.active == TRUE)
+        return button->control.filler.widget;
+
     switch (button_get_type(button->flags))
     {
     case ekBUTTON_PUSH:
@@ -829,6 +1101,14 @@ GtkWidget *_osbutton_focus_widget(OSButton *button)
     }
 
     return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osbutton_has_focus(const OSButton *button)
+{
+    cassert_no_null(button);
+    return button->has_focus;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -855,4 +1135,15 @@ void _osbutton_set_default(OSButton *button, const bool_t is_default)
             gtk_widget_queue_draw(button->control.widget);
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osbutton_focus(OSButton *button, const bool_t focus)
+{
+    cassert_no_null(button);
+    button->has_focus = focus;
+
+    if (button->control.filler.widget != NULL)
+        gtk_widget_queue_draw(button->control.filler.widget);
 }

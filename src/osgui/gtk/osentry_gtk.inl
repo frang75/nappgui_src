@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osentry_gtk.inl
  *
@@ -61,6 +61,8 @@ const char_t *_osentry_get_const_text(const OSEntry *entry);
 const Font *_osentry_get_font(const OSEntry *entry);
 
 bool_t _osentry_get_autoselect(const OSEntry *entry);
+
+bool_t _osentry_get_focus(const OSEntry *entry);
 
 GtkCssProvider *_osentry_get_bgcolor(const OSEntry *entry);
 

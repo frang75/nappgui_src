@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osbutton.m
  *
@@ -1423,4 +1423,12 @@ void _osbutton_set_default(OSButton *button, const bool_t is_default)
             [lbutton setKeyEquivalent:@""];
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osbutton_focus(OSButton *button, const bool_t focus)
+{
+    unref(button);
+    unref(focus);
 }

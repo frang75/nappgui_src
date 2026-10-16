@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: guictx.h
  *
@@ -130,7 +130,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
     FPtr_gctx_set_uint32 func_popup_list_height,
     FPtr_gctx_set_uint32 func_popup_set_selected,
     FPtr_gctx_get_uint32 func_popup_get_selected,
-    FPtr_gctx_bounds3 func_popup_bounds,
+    FPtr_gctx_bounds1 func_popup_bounds,
     FPtr_gctx_set_ptr func_attach_popup_to_panel,
     FPtr_gctx_set_ptr func_detach_popup_from_panel,
     FPtr_gctx_set_bool func_popup_set_visible,
@@ -168,7 +168,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
         FUNC_CHECK_GCTX_SET_UINT32(func_popup_list_height, popup_type), \
         FUNC_CHECK_GCTX_SET_UINT32(func_popup_set_selected, popup_type), \
         FUNC_CHECK_GCTX_GET_UINT32(func_popup_get_selected, popup_type), \
-        FUNC_CHECK_GCTX_BOUNDS3(func_popup_bounds, popup_type), \
+        FUNC_CHECK_GCTX_BOUNDS1(func_popup_bounds, popup_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_popup_to_panel, popup_type, panel_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_popup_from_panel, popup_type, panel_type), \
         FUNC_CHECK_GCTX_SET_BOOL(func_popup_set_visible, popup_type), \
@@ -187,7 +187,7 @@ _draw2d_api void guictx_append_popup_manager_imp(
             (FPtr_gctx_set_uint32)func_popup_list_height, \
             (FPtr_gctx_set_uint32)func_popup_set_selected, \
             (FPtr_gctx_get_uint32)func_popup_get_selected, \
-            (FPtr_gctx_bounds3)func_popup_bounds, \
+            (FPtr_gctx_bounds1)func_popup_bounds, \
             (FPtr_gctx_set_ptr)func_attach_popup_to_panel, \
             (FPtr_gctx_set_ptr)func_detach_popup_from_panel, \
             (FPtr_gctx_set_bool)func_popup_set_visible, \
@@ -634,7 +634,7 @@ _draw2d_api void guictx_append_progress_manager_imp(
     FPtr_gctx_create func_progress_create,
     FPtr_gctx_destroy func_progress_destroy,
     FPtr_gctx_set_real32 func_progress_set_position,
-    FPtr_gctx_get_real32e func_progress_get_thickness,
+    FPtr_gctx_bounds6 func_progress_bounds,
     FPtr_gctx_set_ptr func_attach_progress_to_panel,
     FPtr_gctx_set_ptr func_detach_progress_from_panel,
     FPtr_gctx_set_bool func_progress_set_visible,
@@ -647,7 +647,7 @@ _draw2d_api void guictx_append_progress_manager_imp(
     func_progress_create, \
     func_progress_destroy, \
     func_progress_set_position, \
-    func_progress_get_thickness, \
+    func_progress_bounds, \
     func_attach_progress_to_panel, \
     func_detach_progress_from_panel, \
     func_progress_set_visible, \
@@ -660,7 +660,7 @@ _draw2d_api void guictx_append_progress_manager_imp(
         FUNC_CHECK_GCTX_CREATE(func_progress_create, progress_type), \
         FUNC_CHECK_GCTX_DESTROY(func_progress_destroy, progress_type), \
         FUNC_CHECK_GCTX_SET_REAL32(func_progress_set_position, progress_type), \
-        FUNC_CHECK_GCTX_GET_REAL32E(func_progress_get_thickness, progress_type, gui_size_t), \
+        FUNC_CHECK_GCTX_BOUNDS6(func_progress_bounds, progress_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_progress_to_panel, progress_type, panel_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_progress_from_panel, progress_type, panel_type), \
         FUNC_CHECK_GCTX_SET_BOOL(func_progress_set_visible, progress_type), \
@@ -673,7 +673,7 @@ _draw2d_api void guictx_append_progress_manager_imp(
             (FPtr_gctx_create)func_progress_create, \
             (FPtr_gctx_destroy)func_progress_destroy, \
             (FPtr_gctx_set_real32)func_progress_set_position, \
-            (FPtr_gctx_get_real32e)func_progress_get_thickness, \
+            (FPtr_gctx_bounds6)func_progress_bounds, \
             (FPtr_gctx_set_ptr)func_attach_progress_to_panel, \
             (FPtr_gctx_set_ptr)func_detach_progress_from_panel, \
             (FPtr_gctx_set_bool)func_progress_set_visible, \

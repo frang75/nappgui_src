@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osguictx.c
  *
@@ -208,7 +208,7 @@ GuiCtx *osguictx(void)
         osprogress_create,
         osprogress_destroy,
         osprogress_position,
-        osprogress_thickness,
+        osprogress_bounds,
         osprogress_attach,
         osprogress_detach,
         osprogress_visible,

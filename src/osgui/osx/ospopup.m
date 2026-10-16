@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: ospopup.m
  *
@@ -15,6 +15,7 @@
 #include "ospanel_osx.inl"
 #include "oswindow_osx.inl"
 #include "../ospopup.h"
+#include "../ospopup.inl"
 #include "../osgui.inl"
 #include <draw2d/font.h>
 #include <draw2d/image.h>
@@ -249,7 +250,7 @@ uint32_t ospopup_get_selected(const OSPopUp *popup)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height)
+void ospopup_bounds(const OSPopUp *popup, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
     OSXPopUp *lpopup = cast(popup, OSXPopUp);
     cassert_no_null(lpopup);
@@ -257,6 +258,10 @@ void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, r
     cassert_no_null(height);
     font_extents(lpopup->attrs.font, text, -1.f, width, height);
     *width += 40.f;
+
+    if (refwidth > 0.f)
+        *width += refwidth;
+
     *height = 24.f;
 }
 
@@ -314,4 +319,12 @@ void ospopup_frame(OSPopUp *popup, const real32_t x, const real32_t y, const rea
 BOOL _ospopup_is(NSView *view)
 {
     return [view isKindOfClass:[OSXPopUp class]];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospopup_focus(OSPopUp *popup, const bool_t focus)
+{
+    unref(popup);
+    unref(focus);
 }

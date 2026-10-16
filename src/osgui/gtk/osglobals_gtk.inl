@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osglobals_gtk.inl
  *
@@ -66,6 +66,14 @@ uint32_t _osglobals_check_width(void);
 
 uint32_t _osglobals_check_height(void);
 
+uint32_t _osglobals_radio_width(void);
+
+uint32_t _osglobals_radio_height(void);
+
+uint32_t _osglobals_slider_width(void);
+
+uint32_t _osglobals_slider_height(void);
+
 uint32_t _osglobals_entry_height(void);
 
 uint32_t _osglobals_progress_height(void);
@@ -74,7 +82,13 @@ uint32_t _osglobals_scrollbar_height(void);
 
 GdkPixbuf *_osglobals_checks_bitmap(void);
 
-String *_osglobals_frame_focus_css(void);
+GdkPixbuf *_osglobals_check3_bitmap(void);
+
+GdkPixbuf *_osglobals_radio_bitmap(void);
+
+GdkPixbuf *_osglobals_slider_bitmap(void);
+
+String *_osglobals_frame_hide_css(void);
 
 void _osglobals_restore_focus(GtkWidget *window, GtkWidget *widget);
 

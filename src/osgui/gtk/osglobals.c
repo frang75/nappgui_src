@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osglobals.c
  *
@@ -35,9 +35,13 @@ static GtkWidget *kLABEL = NULL;
 static GtkWidget *kENTRY = NULL;
 static GtkWidget *kBUTTON = NULL;
 static GtkWidget *kCHECK[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static GtkWidget *kCHECK3[2] = {NULL, NULL};
+static GtkWidget *kRADIO[4] = {NULL, NULL, NULL, NULL};
+static GtkWidget *kSLIDER[2] = {NULL, NULL};
 static GtkWidget *kSEPARATOR = NULL;
 static GtkWidget *kLINKBUTTON = NULL;
 static GtkWidget *kPROGRESSBAR = NULL;
+static GtkWidget *kPROGRESSTRACK = NULL;
 static GtkWidget *kFRAME = NULL;
 static GtkWidget *kTABLE = NULL;
 static GtkWidget *kSCROLLED = NULL;
@@ -45,8 +49,15 @@ static GtkWidget *kHEADER = NULL;
 static GtkWidget *kRESTORE_FOCUS_WINDOW = NULL;
 static GtkWidget *kRESTORE_FOCUS_WIDGET = NULL;
 static GdkPixbuf *kCHECKSBITMAP = NULL;
+static GdkPixbuf *kCHECK3BITMAP = NULL;
+static GdkPixbuf *kRADIOBITMAP = NULL;
+static GdkPixbuf *kSLIDERBITMAP = NULL;
 static uint32_t kCHECK_WIDTH = 0;
 static uint32_t kCHECK_HEIGHT = 0;
+static uint32_t kRADIO_WIDTH = 0;
+static uint32_t kRADIO_HEIGHT = 0;
+static uint32_t kSLIDER_WIDTH = 0;
+static uint32_t kSLIDER_HEIGHT = 0;
 static uint32_t kENTRY_HEIGHT = 0;
 static uint32_t kPROGRESS_HEIGHT = 0;
 static uint32_t kSCROLLBAR_HEIGHT = 0;
@@ -271,7 +282,7 @@ static void i_precompute_colors(void)
     kLINE_COLOR = i_frame_color(kFRAME, 20, FALSE, TRUE);
 
     if (i_named_color(kWINDOW, "theme_selected_bg_color", &kBORDFOCUS_COLOR) == FALSE)
-        kBORDFOCUS_COLOR = i_frame_color(kPROGRESSBAR, kPROGRESS_HEIGHT, TRUE, TRUE);
+        kBORDFOCUS_COLOR = i_frame_color(kPROGRESSBAR, 20, TRUE, TRUE);
 
     kHOTBACK_COLOR = color_set_alpha(kBORDFOCUS_COLOR, (uint8_t)15);
     kSELBACK_COLOR = color_set_alpha(kBORDFOCUS_COLOR, (uint8_t)50);
@@ -394,6 +405,97 @@ static void i_precompute_checks(void)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_precompute_check3(void)
+{
+    uint32_t mx, my, mwidth, mheight, border = 0;
+    gdouble dwidth = 0;
+    cairo_surface_t *surface = NULL;
+    cairo_t *cairo = NULL;
+    uint32_t i = 0;
+    cassert(kCHECK3BITMAP == NULL);
+    cassert(i_IMPOSTOR_MAPPED == TRUE);
+
+    i_widget_margins(kCHECK3[0], 30, 30, &mx, &my, &mwidth, &mheight, &border);
+    dwidth = (gdouble)mwidth;
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (gint)(2 * mwidth), (gint)mheight);
+    cairo = cairo_create(surface);
+    cairo_translate(cairo, -(gdouble)mx, -(gdouble)my);
+
+    for (i = 0; i < 2; ++i)
+    {
+        gtk_widget_draw(kCHECK3[i], cairo);
+        cairo_translate(cairo, dwidth, 0);
+    }
+
+    kCHECK3BITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)(2 * mwidth), (gint)mheight);
+    cairo_surface_destroy(surface);
+    cairo_destroy(cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_precompute_radio(void)
+{
+    uint32_t mx, my, mwidth, mheight, border = 0;
+    gdouble dwidth = 0;
+    cairo_surface_t *surface = NULL;
+    cairo_t *cairo = NULL;
+    uint32_t i = 0;
+    cassert(kRADIOBITMAP == NULL);
+    cassert(i_IMPOSTOR_MAPPED == TRUE);
+
+    i_widget_margins(kRADIO[0], 30, 30, &mx, &my, &mwidth, &mheight, &border);
+    kRADIO_WIDTH = mwidth;
+    kRADIO_HEIGHT = mheight;
+    dwidth = (gdouble)mwidth;
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (gint)(4 * mwidth), (gint)mheight);
+    cairo = cairo_create(surface);
+    cairo_translate(cairo, -(gdouble)mx, -(gdouble)my);
+
+    for (i = 0; i < 4; ++i)
+    {
+        gtk_widget_draw(kRADIO[i], cairo);
+        cairo_translate(cairo, dwidth, 0);
+    }
+
+    kRADIOBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)(4 * mwidth), (gint)mheight);
+    cairo_surface_destroy(surface);
+    cairo_destroy(cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_precompute_slider(void)
+{
+    uint32_t mx, my, mwidth, mheight, border = 0;
+    gdouble dwidth = 0;
+    cairo_surface_t *surface = NULL;
+    cairo_t *cairo = NULL;
+    uint32_t i = 0;
+    cassert(kSLIDERBITMAP == NULL);
+    cassert(i_IMPOSTOR_MAPPED == TRUE);
+
+    i_widget_margins(kSLIDER[0], 40, 40, &mx, &my, &mwidth, &mheight, &border);
+    kSLIDER_WIDTH = mwidth;
+    kSLIDER_HEIGHT = mheight;
+    dwidth = (gdouble)mwidth;
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, (gint)(2 * mwidth), (gint)mheight);
+    cairo = cairo_create(surface);
+    cairo_translate(cairo, -(gdouble)mx, -(gdouble)my);
+
+    for (i = 0; i < 2; ++i)
+    {
+        gtk_widget_draw(kSLIDER[i], cairo);
+        cairo_translate(cairo, dwidth, 0);
+    }
+
+    kSLIDERBITMAP = gdk_pixbuf_get_from_surface(surface, 0, 0, (gint)(2 * mwidth), (gint)mheight);
+    cairo_surface_destroy(surface);
+    cairo_destroy(cairo);
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_precompute_scroll(void)
 {
     GtkAllocation alloc;
@@ -425,16 +527,24 @@ static gboolean i_OnWindowDamage(GtkWidget *widget, GdkEventExpose *event, gpoin
         Font *font = _osgui_create_default_font();
         real32_t width, height;
         cassert(kENTRY_HEIGHT == 0);
-        cassert(kPROGRESS_HEIGHT == 0);
         font_extents(font, "OO", -1, &width, &height);
         kENTRY_HEIGHT = (uint32_t)height + kENTRY_VPADDING;
-        kPROGRESS_HEIGHT = (uint32_t)height;
         unref(width);
         font_destroy(&font);
     }
 
+    {
+        GtkRequisition min;
+        cassert(kPROGRESS_HEIGHT == 0);
+        gtk_widget_get_preferred_size(kPROGRESSBAR, &min, NULL);
+        kPROGRESS_HEIGHT = (uint32_t)min.height;
+    }
+
     i_precompute_colors();
     i_precompute_checks();
+    i_precompute_check3();
+    i_precompute_radio();
+    i_precompute_slider();
     i_precompute_scroll();
     cassert(kHEADER == NULL);
 
@@ -456,7 +566,11 @@ static void i_impostor_window(void)
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     GtkWidget *hbox1 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget *hbox2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget *hbox3 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget *hbox4 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget *tview = gtk_text_view_new();
+    GtkWidget *radio_off_pair = NULL;
+    GtkWidget *radio_off_disabled_pair = NULL;
     GtkCellRenderer *renderer = NULL;
     GtkTreeViewColumn *column1 = NULL;
     GtkTreeViewColumn *column2 = NULL;
@@ -470,12 +584,14 @@ static void i_impostor_window(void)
     kSEPARATOR = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
     kLINKBUTTON = gtk_link_button_new_with_label("", "__LINK__");
     kPROGRESSBAR = gtk_progress_bar_new();
+    kPROGRESSTRACK = gtk_progress_bar_new();
     kFRAME = gtk_frame_new(NULL);
     kTABLE = gtk_tree_view_new();
     kSCROLLED = gtk_scrolled_window_new(NULL, NULL);
     gtk_container_add(GTK_CONTAINER(kSCROLLED), tview);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(kSCROLLED), GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(kPROGRESSBAR), 1.);
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(kPROGRESSTRACK), 0.);
     gtk_container_add(GTK_CONTAINER(kFRAME), kTABLE);
     renderer = gtk_cell_renderer_text_new();
     column1 = gtk_tree_view_column_new_with_attributes("Column1", renderer, "text", 0, NULL);
@@ -501,6 +617,18 @@ static void i_impostor_window(void)
     kCHECK[7] = gtk_check_button_new();
     kCHECK[8] = gtk_check_button_new();
     kCHECK[9] = gtk_check_button_new();
+    kCHECK3[0] = gtk_check_button_new();
+    kCHECK3[1] = gtk_check_button_new();
+    kRADIO[0] = gtk_radio_button_new(NULL);
+    radio_off_pair = gtk_radio_button_new_from_widget(GTK_RADIO_BUTTON(kRADIO[0]));
+    kRADIO[1] = gtk_radio_button_new(NULL);
+    radio_off_disabled_pair = gtk_radio_button_new_from_widget(GTK_RADIO_BUTTON(kRADIO[1]));
+    kRADIO[2] = gtk_radio_button_new(NULL);
+    kRADIO[3] = gtk_radio_button_new(NULL);
+    kSLIDER[0] = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 1, .1);
+    kSLIDER[1] = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0, 1, .1);
+    gtk_scale_set_draw_value(GTK_SCALE(kSLIDER[0]), FALSE);
+    gtk_scale_set_draw_value(GTK_SCALE(kSLIDER[1]), FALSE);
     gtk_container_add(GTK_CONTAINER(kWINDOW), vbox);
     gtk_box_pack_start(GTK_BOX(hbox1), kCHECK[0], FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox1), kCHECK[1], FALSE, FALSE, 0);
@@ -512,14 +640,27 @@ static void i_impostor_window(void)
     gtk_box_pack_start(GTK_BOX(hbox2), kCHECK[7], FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox2), kCHECK[8], FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox2), kCHECK[9], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), kCHECK3[0], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), kCHECK3[1], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), kRADIO[0], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), radio_off_pair, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), kRADIO[1], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), radio_off_disabled_pair, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), kRADIO[2], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox3), kRADIO[3], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox4), kSLIDER[0], FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox4), kSLIDER[1], FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kBUTTON, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kLABEL, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kENTRY, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), hbox1, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), hbox2, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox3, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox4, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kSEPARATOR, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kLINKBUTTON, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kPROGRESSBAR, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), kPROGRESSTRACK, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kFRAME, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), kSCROLLED, TRUE, TRUE, 0);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kCHECK[0]), FALSE);
@@ -542,6 +683,17 @@ static void i_impostor_window(void)
     gtk_widget_set_state_flags(kCHECK[7], (GtkStateFlags)GTK_STATE_SELECTED, FALSE);
     gtk_widget_set_state_flags(kCHECK[8], (GtkStateFlags)(GTK_STATE_FLAG_BACKDROP | GTK_STATE_PRELIGHT), FALSE);
     gtk_widget_set_sensitive(kCHECK[9], FALSE);
+    gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(kCHECK3[0]), TRUE);
+    gtk_toggle_button_set_inconsistent(GTK_TOGGLE_BUTTON(kCHECK3[1]), TRUE);
+    gtk_widget_set_sensitive(kCHECK3[1], FALSE);
+    /* A lone radio is active by default. The 'pair' sibling absorbs that, forcing 'kRADIO[0]'/'kRADIO[1]' off */
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio_off_pair), TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radio_off_disabled_pair), TRUE);
+    gtk_widget_set_sensitive(kRADIO[1], FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kRADIO[2]), TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(kRADIO[3]), TRUE);
+    gtk_widget_set_sensitive(kRADIO[3], FALSE);
+    gtk_widget_set_sensitive(kSLIDER[1], FALSE);
     g_signal_connect(kWINDOW, "damage-event", G_CALLBACK(i_OnWindowDamage), NULL);
     gtk_widget_show_all(kWINDOW);
 
@@ -1211,6 +1363,15 @@ void _osglobals_finish(void)
     if (kCHECKSBITMAP != NULL)
         g_object_unref(kCHECKSBITMAP);
 
+    if (kCHECK3BITMAP != NULL)
+        g_object_unref(kCHECK3BITMAP);
+
+    if (kRADIOBITMAP != NULL)
+        g_object_unref(kRADIOBITMAP);
+
+    if (kSLIDERBITMAP != NULL)
+        g_object_unref(kSLIDERBITMAP);
+
     str_destopt(&kCSS_ENTRY);
     str_destopt(&kCSS_BUTTON);
     str_destopt(&kCSS_RADIO);
@@ -1409,6 +1570,38 @@ uint32_t _osglobals_check_height(void)
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t _osglobals_radio_width(void)
+{
+    cassert(kRADIO_WIDTH != 0);
+    return kRADIO_WIDTH;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _osglobals_radio_height(void)
+{
+    cassert(kRADIO_HEIGHT != 0);
+    return kRADIO_HEIGHT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _osglobals_slider_width(void)
+{
+    cassert(kSLIDER_WIDTH != 0);
+    return kSLIDER_WIDTH;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _osglobals_slider_height(void)
+{
+    cassert(kSLIDER_HEIGHT != 0);
+    return kSLIDER_HEIGHT;
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t _osglobals_entry_height(void)
 {
     cassert(kENTRY_HEIGHT != 0);
@@ -1441,33 +1634,33 @@ GdkPixbuf *_osglobals_checks_bitmap(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_write_rgb(Stream *stm, const char_t *prop, const color_t color)
+GdkPixbuf *_osglobals_check3_bitmap(void)
 {
-    uint8_t r, g, b;
-    color_get_rgb(color, &r, &g, &b);
-    stm_printf(stm, "%s: rgb(%d, %d, %d);", prop, r, g, b);
+    cassert(kCHECK3BITMAP != NULL);
+    return kCHECK3BITMAP;
 }
 
 /*---------------------------------------------------------------------------*/
 
-String *_osglobals_frame_focus_css(void)
+GdkPixbuf *_osglobals_radio_bitmap(void)
 {
-    Stream *stm = stm_memory(1024);
-    String *str = NULL;
-    stm_printf(stm, "%s > border {", tc(kCSS_FRAME));
-    i_write_rgb(stm, "border-left-color", kBORDFOCUS_COLOR);
-    i_write_rgb(stm, "border-right-color", kBORDFOCUS_COLOR);
-    i_write_rgb(stm, "border-top-color", kBORDFOCUS_COLOR);
-    i_write_rgb(stm, "border-bottom-color", kBORDFOCUS_COLOR);
-    stm_printf(stm, "} %s {", tc(kCSS_FRAME));
-    i_write_rgb(stm, "border-left-color", kBORDFOCUS_COLOR);
-    i_write_rgb(stm, "border-right-color", kBORDFOCUS_COLOR);
-    i_write_rgb(stm, "border-top-color", kBORDFOCUS_COLOR);
-    i_write_rgb(stm, "border-bottom-color", kBORDFOCUS_COLOR);
-    stm_printf(stm, "}");
-    str = stm_str(stm);
-    stm_close(&stm);
-    return str;
+    cassert(kRADIOBITMAP != NULL);
+    return kRADIOBITMAP;
+}
+
+/*---------------------------------------------------------------------------*/
+
+GdkPixbuf *_osglobals_slider_bitmap(void)
+{
+    cassert(kSLIDERBITMAP != NULL);
+    return kSLIDERBITMAP;
+}
+
+/*---------------------------------------------------------------------------*/
+
+String *_osglobals_frame_hide_css(void)
+{
+    return str_printf("%s > border { border-color: transparent; } %s { border-color: transparent; }", tc(kCSS_FRAME), tc(kCSS_FRAME));
 }
 
 /*---------------------------------------------------------------------------*/

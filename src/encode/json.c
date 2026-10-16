@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: json.c
  *
@@ -712,6 +712,8 @@ static void i_write_escape_str(Stream *stm, const char_t *cstr)
             stm_writef(stm, "\\t");
         else if (cp >= 32)
             stm_write_char(stm, cp);
+        else
+            stm_printf(stm, "\\u%04x", cp);
         cstr = unicode_next(cstr, ekUTF8);
         cp = unicode_to_u32(cstr, ekUTF8);
     }
@@ -869,7 +871,6 @@ void json_write_imp(Stream *stm, const void *data, const JsonOpts *opts, const c
     const DBind *ebind = NULL;
     i_bind_from_typename(type, &bind, &ebind);
     i_write_json_value(stm, bind, ebind, data);
-    stm_write_char(stm, 0);
     unref(opts);
 }
 

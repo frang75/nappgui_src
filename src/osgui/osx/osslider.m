@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osslider.m
  *
@@ -261,4 +261,12 @@ void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const 
 BOOL _osslider_is(NSView *view)
 {
     return [view isKindOfClass:[OSXSlider class]];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osslider_focus(OSSlider *slider, const bool_t focus)
+{
+    unref(slider);
+    unref(focus);
 }

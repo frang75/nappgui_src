@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osedit.c
  *
@@ -35,10 +35,55 @@ struct _osedit_t
     uint32_t fsize_render;
     uint32_t vpadding;
     uint32_t hpadding;
+    uint32_t height;
     GtkWidget *tview;
     GtkCssProvider *css_padding;
     OSEntry *entry;
 };
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnFillerDraw(GtkWidget *widget, cairo_t *cr, OSEdit *edit)
+{
+    GtkStyleContext *ctx = _osglobals_entry_context();
+    int w = gtk_widget_get_allocated_width(widget);
+    int h = gtk_widget_get_allocated_height(widget);
+    cassert_no_null(edit);
+
+    gtk_style_context_save(ctx);
+    gtk_style_context_set_state(ctx, gtk_widget_get_state_flags(widget));
+    gtk_render_background(ctx, cr, 0, 0, w, h);
+    gtk_render_frame(ctx, cr, 0, 0, w, h);
+
+    if (_osentry_get_focus(edit->entry) == TRUE)
+        gtk_render_focus(ctx, cr, 0, 0, w, h);
+
+    gtk_style_context_restore(ctx);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnFillerPressed(GtkWidget *widget, GdkEventButton *event, OSEdit *edit)
+{
+    unref(event);
+    unref(edit);
+    gtk_widget_grab_focus(widget);
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_filler(OSControl *control)
+{
+    OSEdit *edit = cast(control, OSEdit);
+    GtkWidget *filler = gtk_drawing_area_new();
+    gtk_widget_set_can_focus(filler, TRUE);
+    gtk_widget_add_events(filler, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(G_OBJECT(filler), "draw", G_CALLBACK(i_OnFillerDraw), (gpointer)edit);
+    g_signal_connect(G_OBJECT(filler), "button-press-event", G_CALLBACK(i_OnFillerPressed), (gpointer)edit);
+    return filler;
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -174,6 +219,7 @@ OSEdit *osedit_create(const uint32_t flags)
         gtk_text_view_set_accepts_tab(GTK_TEXT_VIEW(edit->tview), FALSE);
         widget = gtk_scrolled_window_new(NULL, NULL);
         gtk_container_set_border_width(GTK_CONTAINER(widget), 0);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
         gtk_container_add(GTK_CONTAINER(widget), edit->tview);
         g_signal_connect(G_OBJECT(edit->tview), "draw", G_CALLBACK(i_DrawBackground), (gpointer)edit);
         g_signal_connect(G_OBJECT(edit->tview), "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)edit);
@@ -218,6 +264,8 @@ OSEdit *osedit_create(const uint32_t flags)
     }
 
     _oscontrol_init(&edit->control, ekGUI_TYPE_EDITBOX, widget, edit->tview ? edit->tview : widget, TRUE);
+    _oscontrol_squeeze_filler(&edit->control, i_filler);
+    _oscontrol_squeeze_fixed_width(&edit->control, edit->tview != NULL ? 20 : 10);
     return edit;
 }
 
@@ -287,6 +335,7 @@ void osedit_font(OSEdit *edit, const Font *font)
 {
     cassert_no_null(edit);
     _osentry_font(edit->entry, font);
+    edit->height = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -366,6 +415,7 @@ void osedit_vpadding(OSEdit *edit, const real32_t padding)
 
     edit->vpadding = padding >= 0 ? (uint32_t)padding : kENTRY_VPADDING;
     _oscontrol_update_css_padding(widget, cssobj, edit->vpadding, edit->hpadding, &edit->css_padding);
+    edit->height = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -380,24 +430,34 @@ void osedit_bounds(const OSEdit *edit, const real32_t refwidth, const uint32_t l
     font = _osentry_get_font(edit->entry);
     if (edit->tview != NULL)
     {
-        GtkRequisition s1, s2;
-        real32_t fheight = bmath_ceilf((real32_t)edit->vpadding + font_size(font));
-        gtk_widget_set_size_request(edit->control.widget, (gint)refwidth, (gint)fheight);
-        gtk_widget_set_size_request(edit->tview, (gint)refwidth, (gint)fheight);
-        gtk_widget_get_preferred_size(edit->control.widget, &s1, NULL);
-        gtk_widget_get_preferred_size(edit->tview, &s2, NULL);
-        gtk_widget_set_size_request(edit->control.widget, -1, -1);
-        gtk_widget_set_size_request(edit->tview, -1, -1);
+        if (edit->height == 0 && gtk_widget_get_visible(edit->control.widget) == TRUE)
+        {
+            GtkRequisition s1, s2;
+            real32_t fheight = bmath_ceilf((real32_t)edit->vpadding + font_size(font));
+            gtk_widget_set_size_request(edit->control.widget, (gint)refwidth, (gint)fheight);
+            gtk_widget_set_size_request(edit->tview, (gint)refwidth, (gint)fheight);
+            gtk_widget_get_preferred_size(edit->control.widget, &s1, NULL);
+            gtk_widget_get_preferred_size(edit->tview, &s2, NULL);
+            gtk_widget_set_size_request(edit->control.widget, -1, -1);
+            gtk_widget_set_size_request(edit->tview, -1, -1);
+            cast(edit, OSEdit)->height = (uint32_t)(s1.height > s2.height ? s1.height : s2.height);
+        }
+
         *width = refwidth;
-        *height = (real32_t)(s1.height > s2.height ? s1.height : s2.height);
+        *height = (real32_t)edit->height;
     }
     else
     {
-        GtkRequisition s;
-        gtk_widget_set_size_request(edit->control.widget, -1, -1);
-        gtk_widget_get_preferred_size(edit->control.widget, &s, NULL);
+        if (edit->height == 0 && gtk_widget_get_visible(edit->control.widget) == TRUE)
+        {
+            GtkRequisition s;
+            gtk_widget_set_size_request(edit->control.widget, -1, -1);
+            gtk_widget_get_preferred_size(edit->control.widget, &s, NULL);
+            cast(edit, OSEdit)->height = (uint32_t)s.height;
+        }
+
         *width = refwidth;
-        *height = (real32_t)s.height + font_size(font) - (real32_t)edit->fsize_render;
+        *height = (real32_t)edit->height + font_size(font) - (real32_t)edit->fsize_render;
     }
 }
 
@@ -474,9 +534,22 @@ bool_t _osedit_autosel(const OSEdit *edit)
 GtkWidget *_osedit_focus_widget(OSEdit *edit)
 {
     cassert_no_null(edit);
+
+    if (edit->control.filler.active == TRUE)
+        return edit->control.filler.widget;
+
     if (edit->tview != NULL)
         return edit->tview;
+
     return edit->control.widget;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osedit_has_focus(const OSEdit *edit)
+{
+    cassert_no_null(edit);
+    return _osentry_get_focus(edit->entry);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -493,4 +566,7 @@ void _osedit_focus(OSEdit *edit, const bool_t focus)
 {
     cassert_no_null(edit);
     _osentry_focus(edit->entry, focus);
+
+    if (edit->control.filler.widget != NULL)
+        gtk_widget_queue_draw(edit->control.filler.widget);
 }

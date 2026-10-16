@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osprogress.h
  *
@@ -20,7 +20,7 @@ _osgui_api void osprogress_destroy(OSProgress **progress);
 
 _osgui_api void osprogress_position(OSProgress *progress, const real32_t position);
 
-_osgui_api real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size);
+_osgui_api void osprogress_bounds(const OSProgress *progress, const real32_t length, const gui_size_t size, real32_t *width, real32_t *height);
 
 _osgui_api void osprogress_attach(OSProgress *progress, OSPanel *panel);
 

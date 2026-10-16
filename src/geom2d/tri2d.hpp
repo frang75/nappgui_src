@@ -2,10 +2,10 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: tri2d.hpp
- * https://nappgui.com/en/geom2d/tri2d.html
+ * https://www.nappgui.com/en/geom2d/tri2d.html
  *
  */
 

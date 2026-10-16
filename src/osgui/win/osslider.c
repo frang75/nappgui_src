@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osslider.c
  *
@@ -16,6 +16,7 @@
 #include "ospanel_win.inl"
 #include "oswindow_win.inl"
 #include "../osslider.h"
+#include "../osslider.inl"
 #include <core/event.h>
 #include <core/heap.h>
 #include <sewer/cassert.h>
@@ -282,4 +283,12 @@ void _osslider_update_dpi(OSSlider *slider)
 {
     cassert_no_null(slider);
     SendMessage(slider->control.hwnd, WM_THEMECHANGED, 0, 0);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osslider_focus(OSSlider *slider, const bool_t focus)
+{
+    unref(slider);
+    unref(focus);
 }

@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osprogress.c
  *
@@ -29,6 +29,7 @@ struct _osprogress_t
 {
     OSControl control;
     guint pulse_id;
+    real32_t position;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -42,6 +43,12 @@ OSProgress *osprogress_create(const uint32_t flags)
     gtk_progress_bar_set_show_text(GTK_PROGRESS_BAR(widget), FALSE);
 
 #if GTK_CHECK_VERSION(3, 20, 0)
+    {
+        const char_t *cssobj = _osglobals_css_progressbar();
+        String *css = str_printf("%s, %s trough, trough {min-width: 1px;}", cssobj, cssobj);
+        _oscontrol_fixed_css_provider(widget, tc(css));
+        str_destroy(&css);
+    }
 #else
     {
         const char_t *cssobj = _osglobals_css_progressbar();
@@ -52,6 +59,7 @@ OSProgress *osprogress_create(const uint32_t flags)
 #endif
 
     progress->pulse_id = UINT32_MAX;
+    progress->position = 0.f;
     unref(flags);
     return progress;
 }
@@ -92,15 +100,21 @@ void osprogress_position(OSProgress *progress, const real32_t position)
         progress->pulse_id = UINT32_MAX;
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(progress->control.widget), (gdouble)position);
     }
+
+    progress->position = position;
 }
 
 /*---------------------------------------------------------------------------*/
 
-real32_t osprogress_thickness(const OSProgress *progress, const gui_size_t size)
+void osprogress_bounds(const OSProgress *progress, const real32_t length, const gui_size_t size, real32_t *width, real32_t *height)
 {
     cassert_no_null(progress);
+    cassert_no_null(width);
+    cassert_no_null(height);
     cassert_unref(size == ekGUI_SIZE_REGULAR, size);
-    return (real32_t)_osglobals_progress_height();
+
+    *width = length;
+    *height = (real32_t)_osglobals_progress_height();
 }
 
 /*---------------------------------------------------------------------------*/

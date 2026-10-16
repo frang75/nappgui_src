@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: oscontrol.c
  *
@@ -16,6 +16,7 @@
 #include "oscontrol_gtk.inl"
 #include "osedit_gtk.inl"
 #include "ospopup_gtk.inl"
+#include "osslider_gtk.inl"
 #include "ostext_gtk.inl"
 #include "osview_gtk.inl"
 #include "osweb_gtk.inl"
@@ -69,6 +70,11 @@ void _oscontrol_init(OSControl *control, const gui_type_t type, GtkWidget *widge
     cassert_no_null(control);
     control->type = type;
     control->widget = widget;
+    control->filler.widget = NULL;
+    control->filler.func_create = NULL;
+    control->filler.width = 0;
+    control->filler.height = 0;
+    control->filler.active = FALSE;
 #if defined(__ASSERTS__)
     control->is_alive = TRUE;
 #endif
@@ -140,8 +146,11 @@ void _oscontrol_destroy(OSControl *control)
 
     g_object_unref(control->widget);
 
+    if (control->filler.widget != NULL)
+        g_object_unref(control->filler.widget);
+
 #if defined(__ASSERTS__)
-    /*cassert(control->is_alive == FALSE);*/
+        /*cassert(control->is_alive == FALSE);*/
 #endif
 }
 
@@ -180,9 +189,19 @@ void _oscontrol_set_visible(OSControl *control, const bool_t visible)
 {
     cassert_no_null(control);
     if (visible == TRUE)
-        gtk_widget_show(control->widget);
+    {
+        if (control->filler.active == TRUE)
+            gtk_widget_show(control->filler.widget);
+        else
+            gtk_widget_show(control->widget);
+    }
     else
+    {
         gtk_widget_hide(control->widget);
+
+        if (control->filler.widget != NULL)
+            gtk_widget_hide(control->filler.widget);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -208,15 +227,21 @@ static ___INLINE void i_widget_allocation(GtkWidget *widget, GtkAllocation *allo
 
 void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
 {
+    GtkWidget *widget;
     GtkWidget *parent;
     cassert_no_null(control);
     cassert_no_null(x);
     cassert_no_null(y);
-    parent = gtk_widget_get_parent(control->widget);
+    if (control->filler.active == TRUE)
+        widget = control->filler.widget;
+    else
+        widget = control->widget;
+
+    parent = gtk_widget_get_parent(widget);
     if (parent != NULL)
     {
         gint tx = 0, ty = 0;
-        gtk_widget_translate_coordinates(control->widget, parent, 0, 0, &tx, &ty);
+        gtk_widget_translate_coordinates(widget, parent, 0, 0, &tx, &ty);
 
         if (GTK_IS_LAYOUT(parent) == TRUE)
         {
@@ -239,7 +264,7 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
     else
     {
         GtkAllocation alloc;
-        i_widget_allocation(control->widget, &alloc);
+        i_widget_allocation(widget, &alloc);
         *x = (real32_t)alloc.x;
         *y = (real32_t)alloc.y;
     }
@@ -250,7 +275,17 @@ void _oscontrol_get_origin(const OSControl *control, real32_t *x, real32_t *y)
 void _oscontrol_get_size(const OSControl *control, real32_t *width, real32_t *height)
 {
     cassert_no_null(control);
-    _oscontrol_widget_get_size(control->widget, width, height);
+
+    if (control->filler.active == TRUE)
+    {
+        _oscontrol_widget_get_size(control->filler.widget, width, height);
+        if ((real32_t)control->filler.height > *height)
+            *height = (real32_t)control->filler.height;
+    }
+    else
+    {
+        _oscontrol_widget_get_size(control->widget, width, height);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -264,6 +299,104 @@ void _oscontrol_widget_get_size(const GtkWidget *widget, real32_t *width, real32
     i_widget_allocation(cast(widget, GtkWidget), &alloc);
     *width = (real32_t)alloc.width;
     *height = (real32_t)alloc.height;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnGrabFocusIdle(gpointer data)
+{
+    GtkWidget *widget = GTK_WIDGET(data);
+    gtk_widget_grab_focus(widget);
+    g_object_unref(widget);
+    return G_SOURCE_REMOVE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_has_focus(const OSControl *control)
+{
+    cassert_no_null(control);
+    switch (control->type)
+    {
+    case ekGUI_TYPE_BUTTON:
+        return _osbutton_has_focus(cast(control, OSButton));
+
+    case ekGUI_TYPE_POPUP:
+        return _ospopup_has_focus(cast(control, OSPopUp));
+
+    case ekGUI_TYPE_EDITBOX:
+        return _osedit_has_focus(cast(control, OSEdit));
+
+    case ekGUI_TYPE_COMBOBOX:
+        return _oscombo_has_focus(cast(control, OSCombo));
+
+    case ekGUI_TYPE_SLIDER:
+        return _osslider_has_focus(cast(control, OSSlider));
+
+    case ekGUI_TYPE_TABLIST:
+    case ekGUI_TYPE_UPDOWN:
+    case ekGUI_TYPE_PROGRESS:
+    case ekGUI_TYPE_TEXTVIEW:
+    case ekGUI_TYPE_WEBVIEW:
+    case ekGUI_TYPE_SPLITVIEW:
+    case ekGUI_TYPE_CUSTOMVIEW:
+        return (bool_t)gtk_widget_has_focus(control->widget);
+
+    case ekGUI_TYPE_PANEL:
+    case ekGUI_TYPE_LINE:
+    case ekGUI_TYPE_WINDOW:
+    default:
+        cassert_default(control->type);
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_oscontrol_update_filler(OSControl *control, const real32_t width, const real32_t height)
+{
+    if (control->filler.func_create != NULL)
+    {
+        bool_t squeeze;
+        cassert(control->filler.width > 0);
+        control->filler.height = (uint32_t)height;
+        squeeze = (bool_t)((real32_t)control->filler.width > width);
+
+        if (squeeze != control->filler.active)
+        {
+            bool_t had_focus = i_has_focus(control);
+
+            if (squeeze == TRUE)
+            {
+                if (control->filler.widget == NULL)
+                {
+                    GtkWidget *parent = gtk_widget_get_parent(control->widget);
+                    control->filler.widget = control->filler.func_create(control);
+                    g_object_ref(control->filler.widget);
+                    g_object_set_data(G_OBJECT(control->filler.widget), "OSControl", control);
+                    gtk_layout_put(GTK_LAYOUT(parent), control->filler.widget, 0, 0);
+                }
+
+                gtk_widget_hide(control->widget);
+                gtk_widget_show(control->filler.widget);
+            }
+            else
+            {
+                gtk_widget_hide(control->filler.widget);
+                gtk_widget_show(control->widget);
+            }
+
+            control->filler.active = squeeze;
+
+            if (had_focus == TRUE)
+            {
+                GtkWidget *widget = cast(_oscontrol_focus_widget(control), GtkWidget);
+                g_object_ref(widget);
+                g_idle_add(i_OnGrabFocusIdle, widget);
+            }
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -282,6 +415,13 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
     {
         gtk_layout_move(GTK_LAYOUT(parent), control->widget, (gint)x, (gint)y);
         gtk_widget_set_size_request(control->widget, (gint)width, (gint)height);
+        i_oscontrol_update_filler(control, width, height);
+
+        if (control->filler.widget != NULL)
+        {
+            gtk_layout_move(GTK_LAYOUT(parent), control->filler.widget, (gint)x, (gint)y);
+            gtk_widget_set_size_request(control->filler.widget, (gint)width, (gint)height);
+        }
     }
     else
     {
@@ -298,15 +438,38 @@ void _oscontrol_set_frame(OSControl *control, const real32_t x, const real32_t y
 
 /*---------------------------------------------------------------------------*/
 
+void _oscontrol_squeeze_filler(OSControl *control, FPtr_filler func_create)
+{
+    cassert_no_null(control);
+    cassert(control->filler.widget == NULL);
+    cassert(control->filler.func_create == NULL);
+    control->filler.func_create = func_create;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _oscontrol_squeeze_fixed_width(OSControl *control, const uint32_t min_width)
+{
+    cassert_no_null(control);
+    control->filler.width = min_width;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _oscontrol_attach_to_parent(OSControl *control, GtkWidget *parent_widget)
 {
 #if defined(__ASSERTS__)
     uint32_t c = i_num_children(GTK_CONTAINER(parent_widget));
+    uint32_t expected = control->filler.widget != NULL ? c + 2 : c + 1;
 #endif
     cassert_no_null(control);
     cassert(str_equ_c(G_OBJECT_TYPE_NAME(parent_widget), "GtkLayout"));
     gtk_layout_put(GTK_LAYOUT(parent_widget), control->widget, 0, 0);
-    cassert(i_num_children(GTK_CONTAINER(parent_widget)) == c + 1);
+
+    if (control->filler.widget != NULL)
+        gtk_layout_put(GTK_LAYOUT(parent_widget), control->filler.widget, 0, 0);
+
+    cassert(i_num_children(GTK_CONTAINER(parent_widget)) == expected);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -315,6 +478,9 @@ void _oscontrol_detach_from_parent(OSControl *control, GtkWidget *parent_widget)
 {
     cassert_no_null(control);
     _oscontrol_widget_detach(control->widget, parent_widget);
+
+    if (control->filler.widget != NULL)
+        _oscontrol_widget_detach(control->filler.widget, parent_widget);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -842,6 +1008,8 @@ OSWidget *_oscontrol_focus_widget(const OSControl *control)
         return NULL;
 
     case ekGUI_TYPE_SLIDER:
+        return cast(_osslider_focus_widget(cast(control, OSSlider)), OSWidget);
+
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_TABLIST:
         return cast(control->widget, OSWidget);

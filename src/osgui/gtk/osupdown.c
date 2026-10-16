@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osupdown.c
  *
@@ -51,9 +51,11 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
     int h = gtk_widget_get_allocated_height(widget);
     GtkStateFlags upstate = gtk_widget_get_state_flags(widget);
     GtkStateFlags downstate = upstate;
-    int aw = w / 3;
+    int halfh = h / 2;
+    int asize = w < halfh ? w : halfh;
+    int aw = (asize * 2) / 3;
     int ax = (w - aw) / 2;
-    int ay = (h / 2 - aw) / 2;
+    int ay = (halfh - aw) / 2;
     cassert_no_null(updown);
 
     switch (updown->state)
@@ -78,12 +80,12 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSUpDown *updown)
 
     gtk_style_context_save(ctx);
     gtk_style_context_set_state(ctx, upstate);
-    gtk_render_frame(ctx, cr, 0, 0, w, (h / 2) + 1);
+    gtk_render_frame(ctx, cr, 0, 0, w, halfh + 1);
     gtk_style_context_set_state(ctx, downstate);
-    gtk_render_frame(ctx, cr, 0, (h / 2) + 1, w, (h / 2));
+    gtk_render_frame(ctx, cr, 0, halfh + 1, w, halfh);
     gtk_style_context_restore(ctx);
     gtk_render_arrow(ctx, cr, 0, ax, ay, aw);
-    gtk_render_arrow(ctx, cr, G_PI, ax, (h / 2) + ay, aw);
+    gtk_render_arrow(ctx, cr, G_PI, ax, halfh + ay, aw);
     return FALSE;
 }
 

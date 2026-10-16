@@ -138,7 +138,7 @@ static void i_OnInfo(Ctrl *ctrl, Event *e)
 {
     unref(ctrl);
     unref(e);
-    osapp_open_url("https://nappgui.com/en/demo/bode.html");
+    osapp_open_url("https://www.nappgui.com/en/demo/bode.html");
 }
 
 /*---------------------------------------------------------------------------*/

@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: progress.c
  *
@@ -27,19 +27,7 @@ struct _progress_t
 
 /*---------------------------------------------------------------------------*/
 
-static Progress *i_create(const gui_size_t psize)
-{
-    const GuiCtx *context = guictx_get_current();
-    void *ositem = NULL;
-    Progress *progress;
-    cassert_no_null(context);
-    progress = obj_new(Progress);
-    ositem = context->func_create[ekGUI_TYPE_PROGRESS](ekPROGRESS_HORZ);
-    _component_init(&progress->component, context, PARAM(type, ekGUI_TYPE_PROGRESS), &ositem);
-    progress->width = 100;
-    progress->height = context->func_progress_get_thickness(progress->component.ositem, (enum_t)psize);
-    return progress;
-}
+static const gui_size_t i_SIZE = ekGUI_SIZE_REGULAR;
 
 /*---------------------------------------------------------------------------*/
 
@@ -55,7 +43,15 @@ void _progress_destroy(Progress **progress)
 
 Progress *progress_create(void)
 {
-    return i_create(ekGUI_SIZE_REGULAR);
+    const GuiCtx *context = guictx_get_current();
+    void *ositem = NULL;
+    Progress *progress;
+    cassert_no_null(context);
+    progress = obj_new0(Progress);
+    ositem = context->func_create[ekGUI_TYPE_PROGRESS](ekPROGRESS_HORZ);
+    _component_init(&progress->component, context, PARAM(type, ekGUI_TYPE_PROGRESS), &ositem);
+    progress->width = 100;
+    return progress;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -99,6 +95,9 @@ void _progress_natural(Progress *progress, const uint32_t i, real32_t *dim0, rea
     cassert_no_null(dim1);
     if (i == 0)
     {
+        real32_t width = progress->width;
+        cassert_no_nullf(progress->component.context->func_progress_bounds);
+        progress->component.context->func_progress_bounds(progress->component.ositem, width, i_SIZE, &progress->width, &progress->height);
         *dim0 = progress->width;
     }
     else

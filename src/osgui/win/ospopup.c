@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: ospopup.c
  *
@@ -202,18 +202,17 @@ uint32_t ospopup_get_selected(const OSPopUp *popup)
 
 /*---------------------------------------------------------------------------*/
 
-void ospopup_bounds(const OSPopUp *popup, const char_t *text, real32_t *width, real32_t *height)
+void ospopup_bounds(const OSPopUp *popup, const char_t *text, const real32_t refwidth, real32_t *width, real32_t *height)
 {
-    uint32_t imgwidth = UINT32_MAX;
     cassert_no_null(popup);
     cassert_no_null(width);
     cassert_no_null(height);
     font_extents(popup->font, text, -1.f, width, height);
     *width += 40.f;
     *height += 10.f;
-    imgwidth = _osimglist_width(popup->image_list);
-    if (imgwidth != UINT32_MAX)
-        *width += (real32_t)(imgwidth + 5);
+
+    if (refwidth > 0.f)
+        *width += refwidth + 5.f;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -311,4 +310,12 @@ HWND _ospopup_focus_widget(OSPopUp *popup)
 {
     cassert_no_null(popup);
     return popup->combo_hwnd;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _ospopup_focus(OSPopUp *popup, const bool_t focus)
+{
+    unref(popup);
+    unref(focus);
 }

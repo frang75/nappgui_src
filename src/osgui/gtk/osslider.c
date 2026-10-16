@@ -2,7 +2,7 @@
  * NAppGUI Cross-platform C SDK
  * 2015-2026 Francisco Garcia Collado
  * MIT Licence
- * https://nappgui.com/en/legal/license.html
+ * https://www.nappgui.com/en/legal/license.html
  *
  * File: osslider.c
  *
@@ -11,7 +11,9 @@
 /* Operating System native slider */
 
 #include "osgui_gtk.inl"
+#include "osglobals_gtk.inl"
 #include "oscontrol_gtk.inl"
+#include "osslider_gtk.inl"
 #include "ospanel_gtk.inl"
 #include "oswindow_gtk.inl"
 #include "../osslider.h"
@@ -31,6 +33,7 @@ struct _osslider_t
     gui_size_t size;
     bool_t launch_event;
     bool_t discrete;
+    bool_t has_focus;
     uint32_t flags;
     Listener *OnMoved;
 };
@@ -74,6 +77,104 @@ static gboolean i_OnPressed(GtkWidget *widget, GdkEvent *event, OSSlider *slider
 
 /*---------------------------------------------------------------------------*/
 
+static gboolean i_OnFocusDrawBefore(GtkWidget *widget, cairo_t *cr, OSSlider *slider)
+{
+    cassert_no_null(slider);
+    if (_osslider_has_focus(slider) == TRUE)
+    {
+        GtkStyleContext *ctx = gtk_widget_get_style_context(widget);
+        GtkStateFlags state = gtk_style_context_get_state(ctx) | GTK_STATE_FLAG_FOCUSED;
+        GdkRectangle rect;
+        int margin = 4;
+        gtk_range_get_range_rect(GTK_RANGE(widget), &rect);
+        gtk_style_context_save(ctx);
+        gtk_style_context_set_state(ctx, state);
+        gtk_render_focus(ctx, cr, (double)(rect.x - margin), (double)(rect.y - margin), (double)(rect.width + 2 * margin), (double)(rect.height + 2 * margin));
+        gtk_style_context_restore(ctx);
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnPlaceholderDraw(GtkWidget *widget, cairo_t *cr, OSSlider *slider)
+{
+    GdkPixbuf *bitmap = _osglobals_slider_bitmap();
+    uint32_t iw = _osglobals_slider_width();
+    uint32_t ih = _osglobals_slider_height();
+    uint32_t dw = iw, dh = ih;
+    uint32_t cell = 0;
+    int w = gtk_widget_get_allocated_width(widget);
+    int h = gtk_widget_get_allocated_height(widget);
+    real32_t x, y;
+    GdkPixbuf *cellbmp;
+    cassert_no_null(slider);
+
+    if (gtk_widget_get_sensitive(slider->control.widget) == FALSE)
+        cell = 1;
+
+    /* Not even the real thumb fits at its natural size: scale the same bitmap down */
+    if ((uint32_t)w < iw || (uint32_t)h < ih)
+    {
+        real32_t scale = (real32_t)w / (real32_t)iw;
+        real32_t scaleh = (real32_t)h / (real32_t)ih;
+        if (scaleh < scale)
+            scale = scaleh;
+
+        dw = (uint32_t)((real32_t)iw * scale);
+        dh = (uint32_t)((real32_t)ih * scale);
+        if (dw < 1)
+            dw = 1;
+        if (dh < 1)
+            dh = 1;
+    }
+
+    x = ((real32_t)w - (real32_t)dw) / 2.f;
+    y = ((real32_t)h - (real32_t)dh) / 2.f;
+    cellbmp = gdk_pixbuf_new_subpixbuf(bitmap, (int)(cell * iw), 0, (int)iw, (int)ih);
+
+    if (dw != iw || dh != ih)
+    {
+        GdkPixbuf *scaled = gdk_pixbuf_scale_simple(cellbmp, (int)dw, (int)dh, GDK_INTERP_BILINEAR);
+        g_object_unref(cellbmp);
+        cellbmp = scaled;
+    }
+
+    gdk_cairo_set_source_pixbuf(cr, cellbmp, (double)x, (double)y);
+    cairo_rectangle(cr, (double)x, (double)y, (double)dw, (double)dh);
+    cairo_fill(cr);
+    g_object_unref(cellbmp);
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static gboolean i_OnPlaceholderPressed(GtkWidget *widget, GdkEventButton *event, OSSlider *slider)
+{
+    unref(widget);
+    unref(event);
+    if (_oswindow_mouse_down(cast(slider, OSControl)) == TRUE)
+        return FALSE;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static GtkWidget *i_placeholder(OSControl *control)
+{
+    OSSlider *slider = cast(control, OSSlider);
+    GtkWidget *placeholder = gtk_drawing_area_new();
+    gtk_widget_set_can_focus(placeholder, TRUE);
+    gtk_widget_add_events(placeholder, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(G_OBJECT(placeholder), "draw", G_CALLBACK(i_OnPlaceholderDraw), (gpointer)slider);
+    g_signal_connect(G_OBJECT(placeholder), "button-press-event", G_CALLBACK(i_OnPlaceholderPressed), (gpointer)slider);
+    return placeholder;
+}
+
+/*---------------------------------------------------------------------------*/
+
 OSSlider *osslider_create(const uint32_t flags)
 {
     OSSlider *slider = heap_new0(OSSlider);
@@ -83,6 +184,7 @@ OSSlider *osslider_create(const uint32_t flags)
     gtk_range_set_increments(GTK_RANGE(widget), .1, .1);
     g_signal_connect(widget, "button-press-event", G_CALLBACK(i_OnPressed), (gpointer)slider);
     g_signal_connect(widget, "change-value", G_CALLBACK(i_OnMoved), (gpointer)slider);
+    g_signal_connect(widget, "draw", G_CALLBACK(i_OnFocusDrawBefore), (gpointer)slider);
 
     /*
     if (o == GTK_ORIENTATION_HORIZONTAL)
@@ -96,6 +198,8 @@ OSSlider *osslider_create(const uint32_t flags)
     slider->flags = flags;
     slider->launch_event = TRUE;
     slider->discrete = FALSE;
+    _oscontrol_squeeze_filler(&slider->control, i_placeholder);
+    _oscontrol_squeeze_fixed_width(&slider->control, 20);
     return slider;
 }
 
@@ -175,7 +279,16 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
     cassert_no_null(width);
     cassert_no_null(height);
     cassert_unref(knob_size == ekGUI_SIZE_REGULAR, knob_size);
-    gtk_widget_get_preferred_size(slider->control.widget, &s, NULL);
+
+    if (slider->control.filler.active == TRUE)
+    {
+        s.width = (gint)slider->control.filler.width;
+        s.height = (gint)slider->control.filler.height;
+    }
+    else
+    {
+        gtk_widget_get_preferred_size(slider->control.widget, &s, NULL);
+    }
 
     switch (slider_get_type(slider->flags))
     {
@@ -239,4 +352,35 @@ void osslider_origin(const OSSlider *slider, real32_t *x, real32_t *y)
 void osslider_frame(OSSlider *slider, const real32_t x, const real32_t y, const real32_t width, const real32_t height)
 {
     _oscontrol_set_frame(cast(slider, OSControl), x, y, width, height);
+}
+
+/*---------------------------------------------------------------------------*/
+
+GtkWidget *_osslider_focus_widget(OSSlider *slider)
+{
+    cassert_no_null(slider);
+
+    if (slider->control.filler.active == TRUE)
+        return slider->control.filler.widget;
+
+    return slider->control.widget;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osslider_has_focus(const OSSlider *slider)
+{
+    cassert_no_null(slider);
+    return slider->has_focus;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osslider_focus(OSSlider *slider, const bool_t focus)
+{
+    cassert_no_null(slider);
+    slider->has_focus = focus;
+
+    if (slider->control.filler.widget != NULL)
+        gtk_widget_queue_draw(slider->control.filler.widget);
 }
