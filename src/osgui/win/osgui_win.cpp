@@ -179,9 +179,6 @@ static HMODULE i_DWMAPIDLL = NULL;
 static DWMGETWINDOWATTRIBUTE i_DwmGetWindowAttribute = NULL;
 #define DWMWA_EXTENDED_FRAME_BOUNDS 9
 
-typedef BOOL(__stdcall *SETPROCESSDPIAWARE)(void);
-static SETPROCESSDPIAWARE i_SetProcessDPIAware = NULL;
-
 /* Per-Monitor-v2 DPI awareness, activated at runtime (not via .manifest) so it can be
    disabled by the app with gui_dpi_aware(FALSE) before the first window is created */
 typedef BOOL(__stdcall *SETPROCESSDPIAWARENESSCONTEXT)(void *value);
