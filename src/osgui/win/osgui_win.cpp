@@ -187,6 +187,9 @@ static SETPROCESSDPIAWARENESSCONTEXT i_SetProcessDpiAwarenessContext = NULL;
 static HMODULE i_SHCOREDLL = NULL;
 static SETPROCESSDPIAWARENESS i_SetProcessDpiAwareness = NULL;
 
+typedef BOOL(__stdcall *SETPROCESSDPIAWARE)(void);
+static SETPROCESSDPIAWARE i_SetProcessDPIAware = NULL;
+
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
 #define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((void *)(-4))
 #endif
@@ -489,8 +492,8 @@ void _osgui_activate_dpi_awareness(void)
             activated = TRUE;
     }
 
-    if (activated == FALSE)
-        SetProcessDPIAware();
+    if (activated == FALSE && i_SetProcessDPIAware != NULL)
+        i_SetProcessDPIAware();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -672,6 +675,9 @@ void _osgui_start_imp(void)
             i_GetDpiForWindow = cast_func(GetProcAddress(user32_mod, "GetDpiForWindow"), GETDPIFORWINDOW);
             i_GetSystemMetricsForDpi = cast_func(GetProcAddress(user32_mod, "GetSystemMetricsForDpi"), GETSYSTEMMETRICSFORDPI);
             i_AdjustWindowRectExForDpi = cast_func(GetProcAddress(user32_mod, "AdjustWindowRectExForDpi"), ADJUSTWINDOWRECTEXFORDPI);
+
+            /* Basic DPI awareness (not available in XP) */
+            i_SetProcessDPIAware = cast_func(GetProcAddress(user32_mod, "SetProcessDPIAware"), SETPROCESSDPIAWARE);
         }
     }
 
