@@ -101,9 +101,15 @@
 
         if ([combo isEnabled] == YES && combo->OnSelect != NULL)
         {
+            NSInteger index = [combo indexOfSelectedItem];
             EvButton params;
+            cassert(index >= 0);
+            cassert(index < [combo numberOfItems]);
+            if (index < 0 || index >= [combo numberOfItems])
+                return;
+
             params.state = ekGUI_ON;
-            params.index = (uint32_t)[combo indexOfSelectedItem];
+            params.index = (uint32_t)index;
             params.text = NULL;
             listener_event(combo->OnSelect, ekGUI_EVENT_BUTTON, cast(combo, OSCombo), &params, NULL, OSCombo, EvButton, void);
         }
