@@ -287,6 +287,7 @@ void osslider_bounds(const OSSlider *slider, const real32_t length, const gui_si
     }
     else
     {
+        gtk_widget_show(slider->control.widget);
         gtk_widget_get_preferred_size(slider->control.widget, &s, NULL);
     }
 

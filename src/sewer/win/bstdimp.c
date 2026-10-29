@@ -109,7 +109,6 @@ uint32_t bstd_printf(const char_t *format, ...)
     WriteFile(handle, (LPCVOID)buffer, (DWORD)length, &lwsize, NULL);
     unref(lwsize);
 
-#if defined(_MSC_VER)
     if (length < 1024)
     {
         WCHAR wbuffer[1024];
@@ -123,7 +122,6 @@ uint32_t bstd_printf(const char_t *format, ...)
         OutputDebugString(wbuffer);
         bmem_free(cast(wbuffer, byte_t));
     }
-#endif
 
     if (dbuffer != NULL)
         bmem_free(cast(dbuffer, byte_t));

@@ -178,7 +178,11 @@
 - (void)mouseMoved:(NSEvent *)theEvent
 {
     if (self->mouse_inside == YES)
+    {
+        if (self->scroll != NULL)
+            _osscrolls_activity(self->scroll);
         _oslistener_mouse_moved(self, theEvent, self->scroll, &self->listeners);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -253,9 +257,34 @@
 {
     if (self->scroll != nil)
     {
-        gui_scroll_t ev = _osscroll_wheel_event(theEvent);
-        if (ev != ENUM_MAX(gui_scroll_t))
-            _osview_scroll_event(self, ekGUI_VERTICAL, ev);
+        gui_orient_t orient = ekGUI_VERTICAL;
+        CGFloat delta = [theEvent deltaY];
+
+        if ([theEvent deltaX] != 0)
+        {
+            orient = ekGUI_HORIZONTAL;
+            delta = [theEvent deltaX];
+        }
+        else if (delta != 0)
+        {
+            BOOL shift = NO;
+#if defined(MAC_OS_X_VERSION_10_12) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
+            NSEventModifierFlags flgs = [theEvent modifierFlags];
+            shift = (flgs & NSEventModifierFlagShift) != 0;
+#else
+            NSUInteger flgs = [theEvent modifierFlags];
+            shift = (flgs & NSShiftKeyMask) != 0;
+#endif
+            if (shift == YES)
+                orient = ekGUI_HORIZONTAL;
+        }
+
+        {
+            gui_scroll_t ev = _osscroll_wheel_event(delta);
+            _osscrolls_activity(self->scroll);
+            if (ev != ENUM_MAX(gui_scroll_t))
+                _osview_scroll_event(self, orient, ev);
+        }
     }
 
     _oslistener_scroll_whell(self, theEvent, self->scroll, &self->listeners);
@@ -424,6 +453,8 @@ static bool_t i_needs_tracking_area(OSXView *view)
     if (view->listeners.OnEnter != NULL)
         return TRUE;
     if (view->listeners.OnExit != NULL)
+        return TRUE;
+    if (view->scroll != NULL)
         return TRUE;
     return FALSE;
 }
@@ -624,6 +655,17 @@ void osview_OnScroll(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t osview_scroll_transition(OSView *view, const real64_t prtime, const real64_t crtime)
+{
+    OSXView *lview = i_get_view(view);
+    cassert_no_null(lview);
+    if (lview->scroll != NULL)
+        return _osscrolls_transition(lview->scroll, prtime, crtime);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_tooltip(OSView *view, const char_t *text)
 {
     cassert_no_null(view);
@@ -672,10 +714,10 @@ void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height)
     cassert_no_null(lview);
 
     if (width != NULL)
-        *width = (real32_t)_osscrolls_bar_width(lview->scroll, TRUE);
+        *width = (real32_t)_osscrolls_bar_reserve_width(lview->scroll);
 
     if (height != NULL)
-        *height = (real32_t)_osscrolls_bar_height(lview->scroll, TRUE);
+        *height = (real32_t)_osscrolls_bar_reserve_height(lview->scroll);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -875,6 +917,28 @@ void _osview_scroll_event(NSView *view, const gui_orient_t orient, const gui_scr
     cassert([view isKindOfClass:[OSXView class]]);
     if (_osscrolls_event(lview->scroll, orient, event, FALSE) == TRUE)
         [lview setNeedsDisplay:YES];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_scrolls_activity(NSView *view)
+{
+    OSXView *lview = cast(view, OSXView);
+    cassert_no_null(lview);
+    cassert([view isKindOfClass:[OSXView class]]);
+    if (lview->scroll != NULL)
+        _osscrolls_activity(lview->scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_scrolls_resync(NSView *view)
+{
+    OSXView *lview = cast(view, OSXView);
+    cassert_no_null(lview);
+    cassert([view isKindOfClass:[OSXView class]]);
+    if (lview->scroll != NULL)
+        _osscrolls_resync(lview->scroll);
 }
 
 /*

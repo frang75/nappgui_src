@@ -24,4 +24,8 @@ GtkWidget *_osview_area_widget(OSView *view);
 
 void _osview_scroll_event(OSView *view, const gui_orient_t orient, const gui_scroll_t event);
 
+void _osview_scrolls_activity(OSView *view);
+
+void _osview_scrolls_resync(OSView *view);
+
 __END_C

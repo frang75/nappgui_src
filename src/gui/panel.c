@@ -36,6 +36,8 @@ struct _panel_t
     S2Df natural_size;
     S2Df control_size;
     S2Df content_size;
+    S2Df scroll_margin;
+    S2Df final_size;
     void *data;
     FPtr_destroy func_destroy_data;
     ArrPt(GuiComponent) *children;
@@ -84,9 +86,11 @@ static Panel *i_create(const uint32_t flags)
     panel->visible_layout = UINT32_MAX;
     panel->active_layout = UINT32_MAX;
     panel->natural_size = s2df(-1.f, -1.f);
-    panel->control_size = s2df((flags & ekVIEW_HSCROLL) ? 256.f : -1.f, (flags & ekVIEW_VSCROLL) ? 256.f : -1.f);
+    panel->control_size = s2df((flags & ekPANEL_HSCROLL) ? 256.f : -1.f, (flags & ekPANEL_VSCROLL) ? 256.f : -1.f);
     panel->content_size = s2df(-1.f, -1.f);
-    panel->flags = flags;
+    panel->scroll_margin = s2df(0.f, 0.f);
+    panel->final_size = s2df(-1.f, -1.f);
+    panel->flags = flags | ekPANEL_HSHRINK | ekPANEL_VSHRINK;
     panel->children = arrpt_create(GuiComponent);
     return panel;
 }
@@ -103,8 +107,8 @@ Panel *panel_create(void)
 Panel *panel_scroll(const bool_t hscroll, const bool_t vscroll)
 {
     uint32_t flags = 0;
-    flags |= (hscroll == TRUE) ? ekVIEW_HSCROLL : 0;
-    flags |= (vscroll == TRUE) ? ekVIEW_VSCROLL : 0;
+    flags |= (hscroll == TRUE) ? ekPANEL_HSCROLL : 0;
+    flags |= (vscroll == TRUE) ? ekPANEL_VSCROLL : 0;
     return i_create(flags);
 }
 
@@ -113,9 +117,9 @@ Panel *panel_scroll(const bool_t hscroll, const bool_t vscroll)
 Panel *panel_custom(const bool_t hscroll, const bool_t vscroll, const bool_t border)
 {
     uint32_t flags = 0;
-    flags |= (hscroll == TRUE) ? ekVIEW_HSCROLL : 0;
-    flags |= (vscroll == TRUE) ? ekVIEW_VSCROLL : 0;
-    flags |= (border == TRUE) ? ekVIEW_BORDER : 0;
+    flags |= (hscroll == TRUE) ? ekPANEL_HSCROLL : 0;
+    flags |= (vscroll == TRUE) ? ekPANEL_VSCROLL : 0;
+    flags |= (border == TRUE) ? ekPANEL_BORDER : 0;
     return i_create(flags);
 }
 
@@ -144,6 +148,24 @@ void panel_size(Panel *panel, const S2Df size)
 {
     cassert_no_null(panel);
     panel->control_size = size;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void panel_scroll_mode(Panel *panel, const bool_t hshrink, const bool_t vshrink)
+{
+    cassert_no_null(panel);
+    cassert(panel->flags & ekPANEL_HSCROLL || panel->flags & ekPANEL_VSCROLL);
+
+    if (hshrink == TRUE)
+        panel->flags |= ekPANEL_HSHRINK;
+    else
+        panel->flags &= ~(uint32_t)ekPANEL_HSHRINK;
+
+    if (vshrink == TRUE)
+        panel->flags |= ekPANEL_VSHRINK;
+    else
+        panel->flags &= ~(uint32_t)ekPANEL_VSHRINK;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -203,22 +225,12 @@ void panel_update(Panel *panel)
 
 /*---------------------------------------------------------------------------*/
 
-void panel_scroll_size(const Panel *panel, real32_t *width, real32_t *height)
-{
-    cassert_no_null(panel);
-    cassert_no_null(panel->component.context);
-    cassert_no_nullf(panel->component.context->func_panel_scroller_size);
-    panel->component.context->func_panel_scroller_size(panel->component.ositem, width, height);
-}
-
-/*---------------------------------------------------------------------------*/
-
 void panel_viewport(const Panel *panel, V2Df *pos, S2Df *size)
 {
     cassert_no_null(panel);
     if (pos != NULL)
     {
-        if (panel->flags & ekVIEW_HSCROLL || panel->flags & ekVIEW_VSCROLL)
+        if (panel->flags & ekPANEL_HSCROLL || panel->flags & ekPANEL_VSCROLL)
             panel->component.context->func_panel_scroll_get(panel->component.ositem, &pos->x, &pos->y);
         else
             *pos = kV2D_ZEROf;
@@ -491,16 +503,48 @@ void _panel_natural(Panel *panel, const uint32_t di, real32_t *dim0, real32_t *d
     {
         panel->natural_size.width = *dim0;
         panel->content_size.width = *dim0;
+
         if (panel->control_size.width > 0)
+        {
             *dim0 = panel->control_size.width;
+            panel->scroll_margin.width = 0;
+        }
+        else if (panel->flags & ekPANEL_VSCROLL)
+        {
+            real32_t margin = 0;
+            panel->component.context->func_panel_scroller_size(panel->component.ositem, &margin, NULL);
+            panel->scroll_margin.width = margin;
+            if ((panel->flags & ekPANEL_VSHRINK) == 0)
+                *dim0 += margin;
+        }
+        else
+        {
+            panel->scroll_margin.width = 0;
+        }
     }
     else
     {
         cassert(di == 1);
         panel->natural_size.height = *dim1;
         panel->content_size.height = *dim1;
+
         if (panel->control_size.height > 0)
+        {
             *dim1 = panel->control_size.height;
+            panel->scroll_margin.height = 0;
+        }
+        else if (panel->flags & ekPANEL_HSCROLL)
+        {
+            real32_t margin = 0;
+            panel->component.context->func_panel_scroller_size(panel->component.ositem, NULL, &margin);
+            panel->scroll_margin.height = margin;
+            if ((panel->flags & ekPANEL_HSHRINK) == 0)
+                *dim1 += margin;
+        }
+        else
+        {
+            panel->scroll_margin.height = 0;
+        }
     }
 }
 
@@ -512,6 +556,7 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
     real32_t cursize = 0;
     real32_t reqsize = 0;
     real32_t laysize = 0;
+    real32_t margin = 0;
     cassert_no_null(panel);
     cassert_no_null(final_size);
     cassert(panel->active_layout == panel->visible_layout);
@@ -520,6 +565,9 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
     if (di == 0)
     {
         cursize = panel->natural_size.width;
+
+        if ((panel->flags & ekPANEL_VSHRINK) == 0)
+            margin = panel->scroll_margin.width;
 
         if (panel->control_size.width > 0)
         {
@@ -531,13 +579,17 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
         }
         else
         {
-            reqsize = required_size;
+            cassert(required_size >= margin);
+            reqsize = required_size - margin;
         }
     }
     else
     {
         cassert(di == 1);
         cursize = panel->natural_size.height;
+
+        if ((panel->flags & ekPANEL_HSHRINK) == 0)
+            margin = panel->scroll_margin.height;
 
         if (panel->control_size.height > 0)
         {
@@ -548,7 +600,8 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
         }
         else
         {
-            reqsize = required_size;
+            cassert(required_size >= margin);
+            reqsize = required_size - margin;
         }
     }
 
@@ -559,9 +612,9 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
     else if (di == 1 && panel->control_size.height > 0)
         *final_size = required_size;
     else
-        *final_size = laysize;
+        *final_size = laysize + margin;
 
-    if (panel->flags & ekVIEW_HSCROLL || panel->flags & ekVIEW_VSCROLL)
+    if (panel->flags & ekPANEL_HSCROLL || panel->flags & ekPANEL_VSCROLL)
     {
         if (di == 0)
         {
@@ -580,8 +633,9 @@ void _panel_expand(Panel *panel, const uint32_t di, const real32_t current_size,
 void _panel_OnResize(Panel *panel, const S2Df *size)
 {
     cassert_no_null(panel);
-    unref(size);
-    if (panel->flags & ekVIEW_HSCROLL || panel->flags & ekVIEW_VSCROLL)
+    cassert_no_null(size);
+    panel->final_size = *size;
+    if (panel->flags & ekPANEL_HSCROLL || panel->flags & ekPANEL_VSCROLL)
         panel->component.context->func_panel_content_size(panel->component.ositem, panel->content_size.width, panel->content_size.height, 10, 10);
 }
 
@@ -599,12 +653,45 @@ void _panel_taborder(const Panel *panel, Window *window)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_shrink_resize(Panel *panel, Layout *layout, const real32_t margin_width, const real32_t margin_height)
+{
+    real32_t dim0 = 0, dim1 = 0;
+    real32_t natural_width = 0, natural_height = 0;
+    real32_t final_width = 0, final_height = 0;
+
+    _layout_natural(layout, 0, &dim0, &dim1);
+    natural_width = dim0;
+    _layout_expand(layout, 0, natural_width, panel->final_size.width - margin_width, &final_width);
+
+    _layout_natural(layout, 1, &dim0, &dim1);
+    natural_height = dim1;
+    _layout_expand(layout, 1, natural_height, panel->final_size.height - margin_height, &final_height);
+
+    panel->content_size.width = final_width;
+    panel->content_size.height = final_height;
+    panel->component.context->func_panel_content_size(panel->component.ositem, panel->content_size.width, panel->content_size.height, 10, 10);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _panel_locate(Panel *panel)
 {
     Layout *layout = NULL;
+    real32_t margin_width = 0;
+    real32_t margin_height = 0;
     cassert_no_null(panel);
     cassert(panel->visible_layout == panel->active_layout);
     layout = arrpt_get(panel->layouts, panel->active_layout, Layout);
+
+    if (panel->flags & ekPANEL_VSHRINK && panel->scroll_margin.width > 0 && panel->content_size.height > panel->final_size.height)
+        margin_width = panel->scroll_margin.width;
+
+    if (panel->flags & ekPANEL_HSHRINK && panel->scroll_margin.height > 0 && panel->content_size.width > panel->final_size.width)
+        margin_height = panel->scroll_margin.height;
+
+    if (margin_width > 0 || margin_height > 0)
+        i_shrink_resize(panel, layout, margin_width, margin_height);
+
     _layout_locate(layout);
 }
 
@@ -615,6 +702,20 @@ void _panel_locale(Panel *panel)
     cassert_no_null(panel);
     arrpt_foreach(child, panel->children, GuiComponent)
         _component_locale(child);
+    arrpt_end()
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _panel_scroll_update(Panel *panel)
+{
+    cassert_no_null(panel);
+
+    if (panel->flags & ekPANEL_HSCROLL || panel->flags & ekPANEL_VSCROLL)
+        panel->component.context->func_panel_scroll_update(panel->component.ositem);
+
+    arrpt_foreach(child, panel->children, GuiComponent)
+        _component_scroll_update(child);
     arrpt_end()
 }
 

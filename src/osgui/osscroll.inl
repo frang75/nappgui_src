@@ -38,4 +38,12 @@ void _osscroll_frame(OSScroll *scroll, const uint32_t x, const uint32_t y, const
 
 void _osscroll_control_scroll(OSControl *control, const int32_t incr_x, const int32_t incr_y);
 
+void _osscroll_sync(OSScroll *scroll);
+
+bool_t _osscroll_overlay(const OSScroll *scroll);
+
+void _osscroll_activity(OSScroll *scroll);
+
+bool_t _osscroll_transition(OSScroll *scroll, const real64_t prtime, const real64_t crtime);
+
 __END_C

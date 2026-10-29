@@ -289,10 +289,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_MOUSEWHEEL:
         if (view->scroll != NULL)
         {
+            gui_orient_t orient = (GET_KEYSTATE_WPARAM(wParam) & MK_SHIFT) ? ekGUI_HORIZONTAL : ekGUI_VERTICAL;
             gui_scroll_t event = ekGUI_SCROLL_STEP_LEFT;
             if (GET_WHEEL_DELTA_WPARAM(wParam) < 0)
                 event = ekGUI_SCROLL_STEP_RIGHT;
-            if (_osscrolls_event(view->scroll, ekGUI_VERTICAL, event, FALSE) == TRUE)
+            if (_osscrolls_event(view->scroll, orient, event, FALSE) == TRUE)
                 InvalidateRect(view->control.hwnd, NULL, FALSE);
         }
 
@@ -586,6 +587,16 @@ void osview_OnScroll(OSView *view, Listener *listener)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t osview_scroll_transition(OSView *view, const real64_t prtime, const real64_t crtime)
+{
+    unref(view);
+    unref(prtime);
+    unref(crtime);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osview_tooltip(OSView *view, const char_t *text)
 {
     _oscontrol_tooltip(cast(view, OSControl), text);
@@ -627,10 +638,10 @@ void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height)
 {
     cassert_no_null(view);
     if (width != NULL)
-        *width = (real32_t)_osscrolls_bar_width(view->scroll, TRUE);
+        *width = (real32_t)_osscrolls_bar_reserve_width(view->scroll);
 
     if (height != NULL)
-        *height = (real32_t)_osscrolls_bar_height(view->scroll, TRUE);
+        *height = (real32_t)_osscrolls_bar_reserve_height(view->scroll);
 }
 
 /*---------------------------------------------------------------------------*/

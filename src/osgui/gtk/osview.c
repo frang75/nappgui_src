@@ -71,11 +71,6 @@ struct _osview_t
 
 /*---------------------------------------------------------------------------*/
 
-static const real32_t i_FRAME_HPADDING = 2;
-static const real32_t i_FRAME_VPADDING = 2;
-
-/*---------------------------------------------------------------------------*/
-
 static gboolean i_OnConfig(GtkWidget *widget, GdkEventConfigure *event, OSView *view)
 {
     cassert(str_equ_c(G_OBJECT_TYPE_NAME(widget), "GtkLayout") || str_equ_c(G_OBJECT_TYPE_NAME(widget), "GtkDrawingArea"));
@@ -83,14 +78,12 @@ static gboolean i_OnConfig(GtkWidget *widget, GdkEventConfigure *event, OSView *
 
     if ((view->flags & ekVIEW_OPENGL) == 0)
     {
-        if (view->ctx != NULL)
+        uint32_t w = (uint32_t)gtk_widget_get_allocated_width(widget);
+        uint32_t h = (uint32_t)gtk_widget_get_allocated_height(widget);
+        if ((real32_t)w != view->clip_width || (real32_t)h != view->clip_height)
         {
-            uint32_t w = (uint32_t)gtk_widget_get_allocated_width(widget);
-            uint32_t h = (uint32_t)gtk_widget_get_allocated_height(widget);
-            if (w != view->clip_width || h != view->clip_height)
-            {
-                /* dctx_update_view(view->ctx, cast(widget, void)); */
-            }
+            view->clip_width = (real32_t)w;
+            view->clip_height = (real32_t)h;
         }
     }
 
@@ -119,9 +112,29 @@ static gboolean i_OnDraw(GtkWidget *widget, cairo_t *cr, OSView *view)
             view->ctx = dctx_create();
 
         params.ctx = view->ctx;
-        dctx_set_gcontext(view->ctx, cr, view->clip_width, view->clip_height, 96, 1.f, params.x, params.y, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
-        _oslistener_redraw(cast(view, OSControl), &params, &view->listeners);
-        dctx_unset_gcontext(view->ctx);
+
+        {
+            bool_t clipped = FALSE;
+            if (view->scroll != NULL)
+            {
+                uint32_t avail_width = 0, avail_height = 0;
+                _osscrolls_avail_size(view->scroll, &avail_width, &avail_height);
+                if ((real32_t)avail_width < view->clip_width || (real32_t)avail_height < view->clip_height)
+                {
+                    cairo_save(cr);
+                    cairo_rectangle(cr, 0, 0, (double)avail_width, (double)avail_height);
+                    cairo_clip(cr);
+                    clipped = TRUE;
+                }
+            }
+
+            dctx_set_gcontext(view->ctx, cr, view->clip_width, view->clip_height, 96, 1.f, params.x, params.y, 0, (view->flags & ekVIEW_CONTROL) ? FALSE : TRUE);
+            _oslistener_redraw(cast(view, OSControl), &params, &view->listeners);
+            dctx_unset_gcontext(view->ctx);
+
+            if (clipped == TRUE)
+                cairo_restore(cr);
+        }
 
         if (view->OnOverlay != NULL)
         {
@@ -176,15 +189,27 @@ static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSView *view)
     cassert_unref(widget == view->darea, widget);
     if (view->capture == NULL)
     {
-        int w = gdk_window_get_width(event->window);
-        int h = gdk_window_get_height(event->window);
+        gpointer owner = NULL;
+        gdk_window_get_user_data(event->window, &owner);
 
         /* Scroll bars can send confusing move events
         Only we accept the motion over scroll window */
-        if ((int)view->clip_width == w && (int)view->clip_height == h)
+        if (cast(owner, GtkWidget) == view->darea)
         {
+            int w = gtk_widget_get_allocated_width(view->darea);
+            int h = gtk_widget_get_allocated_height(view->darea);
             real32_t scroll_x = view->scroll ? (real32_t)_osscrolls_x_pos(view->scroll) : 0;
             real32_t scroll_y = view->scroll ? (real32_t)_osscrolls_y_pos(view->scroll) : 0;
+
+            if ((real32_t)w != view->clip_width || (real32_t)h != view->clip_height)
+            {
+                view->clip_width = (real32_t)w;
+                view->clip_height = (real32_t)h;
+            }
+
+            if (view->scroll != NULL)
+                _osscrolls_activity(view->scroll);
+
             _oslistener_mouse_moved(cast(view, OSControl), event, scroll_x, scroll_y, &view->listeners);
         }
     }
@@ -292,10 +317,12 @@ static gboolean i_OnWheel(GtkWidget *widget, GdkEventScroll *event, OSView *view
 
     if (view->scroll != NULL)
     {
-        gui_scroll_t ev = _osscroll_wheel_event(event);
+        gui_orient_t orient = ekGUI_VERTICAL;
+        gui_scroll_t ev = _osscroll_wheel_event(event, &orient);
+        _osscrolls_activity(view->scroll);
         if (ev != ENUM_MAX(gui_scroll_t))
         {
-            if (_osscrolls_event(view->scroll, ekGUI_VERTICAL, ev, FALSE) == TRUE)
+            if (_osscrolls_event(view->scroll, orient, ev, FALSE) == TRUE)
                 gtk_widget_queue_draw(view->darea);
         }
     }
@@ -704,10 +731,10 @@ void osview_scroller_size(const OSView *view, real32_t *width, real32_t *height)
 {
     cassert_no_null(view);
     if (width != NULL)
-        *width = (real32_t)_osscrolls_bar_width(view->scroll, TRUE);
+        *width = (real32_t)_osscrolls_bar_reserve_width(view->scroll);
 
     if (height != NULL)
-        *height = (real32_t)_osscrolls_bar_height(view->scroll, TRUE);
+        *height = (real32_t)_osscrolls_bar_reserve_height(view->scroll);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -716,6 +743,16 @@ void osview_scroller_visible(OSView *view, const bool_t horizontal, const bool_t
 {
     cassert_no_null(view);
     _osscrolls_visible(view->scroll, horizontal, vertical);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osview_scroll_transition(OSView *view, const real64_t prtime, const real64_t crtime)
+{
+    cassert_no_null(view);
+    if (view->scroll != NULL)
+        return _osscrolls_transition(view->scroll, prtime, crtime);
+    return FALSE;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -818,15 +855,11 @@ void osview_frame(OSView *view, const real32_t x, const real32_t y, const real32
     if (view->control.widget != view->darea)
     {
         cassert(GTK_IS_FRAME(view->control.widget) == TRUE);
-        gtk_widget_set_size_request(view->darea, (gint)(width - i_FRAME_HPADDING), (gint)(height - i_FRAME_VPADDING));
-        view->clip_width = width - i_FRAME_HPADDING;
-        view->clip_height = height - i_FRAME_VPADDING;
+        gtk_widget_set_size_request(view->darea, (gint)width, (gint)height);
     }
-    else
-    {
-        view->clip_width = width;
-        view->clip_height = height;
-    }
+
+    view->clip_width = width;
+    view->clip_height = height;
 
     if (view->scroll != NULL)
         _osscrolls_control_size(view->scroll, (uint32_t)width, (uint32_t)height);
@@ -873,6 +906,24 @@ void _osview_scroll_event(OSView *view, const gui_orient_t orient, const gui_scr
     cassert_no_null(view);
     if (_osscrolls_event(view->scroll, orient, event, FALSE) == TRUE)
         gtk_widget_queue_draw(view->darea);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_scrolls_activity(OSView *view)
+{
+    cassert_no_null(view);
+    if (view->scroll != NULL)
+        _osscrolls_activity(view->scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osview_scrolls_resync(OSView *view)
+{
+    cassert_no_null(view);
+    if (view->scroll != NULL)
+        _osscrolls_resync(view->scroll);
 }
 
 /*---------------------------------------------------------------------------*/

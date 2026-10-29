@@ -79,22 +79,6 @@ uint32_t scrollview_control_height(const ScrollView *view)
 
 /*---------------------------------------------------------------------------*/
 
-uint32_t scrollview_scrollbar_width(const ScrollView *view)
-{
-    cassert_no_null(view);
-    return view->scrollbar_width;
-}
-
-/*---------------------------------------------------------------------------*/
-
-uint32_t scrollview_scrollbar_height(const ScrollView *view)
-{
-    cassert_no_null(view);
-    return view->scrollbar_height;
-}
-
-/*---------------------------------------------------------------------------*/
-
 uint32_t scrollview_xpos(const ScrollView *view)
 {
     V2Df pos;
@@ -135,17 +119,15 @@ void scrollview_content_size(ScrollView *view, const uint32_t content_width, con
     /* First content dimension */
     view_content_size(view->view, s2df((real32_t)content_width, (real32_t)content_height), s2df((real32_t)line_width, (real32_t)line_height));
 
-    /* Second content dimension taken into account scrollbars size and control size */
     view_scroll_size(view->view, &bar_width, &bar_height);
     view->scrollbar_width = (uint32_t)bar_width;
     view->scrollbar_height = (uint32_t)bar_height;
-    theight += view->scrollbar_height;
 
-    if (twidth < view->control_width)
-        twidth = view->control_width;
+    if (twidth < view->control_width - view->scrollbar_width)
+        twidth = view->control_width - view->scrollbar_width;
 
-    if (theight < view->control_height)
-        theight = view->control_height;
+    if (theight < view->control_height - view->scrollbar_height)
+        theight = view->control_height - view->scrollbar_height;
 
     view->content_width = twidth;
     view->content_height = theight;

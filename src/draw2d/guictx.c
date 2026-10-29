@@ -549,6 +549,7 @@ void guictx_append_updown_manager_imp(
     FPtr_gctx_destroy func_updown_destroy,
     FPtr_gctx_set_listener func_updown_OnClick,
     FPtr_gctx_set_text func_updown_set_tooltip,
+    FPtr_gctx_eval2_real64 func_updown_transition,
     FPtr_gctx_bounds7 func_updown_bounds,
     FPtr_gctx_set_ptr func_attach_updown_to_panel,
     FPtr_gctx_set_ptr func_detach_updown_from_panel,
@@ -563,6 +564,7 @@ void guictx_append_updown_manager_imp(
     cassert(context->func_destroy[ekGUI_TYPE_UPDOWN] == NULL);
     cassert(context->func_updown_OnClick == NULL);
     cassert(context->func_set_tooltip[ekGUI_TYPE_UPDOWN] == NULL);
+    cassert(context->func_updown_transition == NULL);
     cassert(context->func_updown_bounds == NULL);
     cassert(context->func_attach_to_panel[ekGUI_TYPE_UPDOWN] == NULL);
     cassert(context->func_detach_from_panel[ekGUI_TYPE_UPDOWN] == NULL);
@@ -575,6 +577,7 @@ void guictx_append_updown_manager_imp(
     cassert_no_nullf(func_updown_destroy);
     cassert_no_nullf(func_updown_OnClick);
     cassert_no_nullf(func_updown_set_tooltip);
+    cassert_no_nullf(func_updown_transition);
     cassert_no_nullf(func_updown_bounds);
     cassert_no_nullf(func_attach_updown_to_panel);
     cassert_no_nullf(func_detach_updown_from_panel);
@@ -587,6 +590,7 @@ void guictx_append_updown_manager_imp(
     context->func_destroy[ekGUI_TYPE_UPDOWN] = func_updown_destroy;
     context->func_updown_OnClick = func_updown_OnClick;
     context->func_set_tooltip[ekGUI_TYPE_UPDOWN] = func_updown_set_tooltip;
+    context->func_updown_transition = func_updown_transition;
     context->func_updown_bounds = func_updown_bounds;
     context->func_attach_to_panel[ekGUI_TYPE_UPDOWN] = func_attach_updown_to_panel;
     context->func_detach_from_panel[ekGUI_TYPE_UPDOWN] = func_detach_updown_from_panel;
@@ -968,6 +972,7 @@ void guictx_append_view_manager_imp(
     FPtr_gctx_get2_real32 func_view_scroll_get,
     FPtr_gctx_get2_real32 func_view_scroller_size,
     FPtr_gctx_set2_bool func_view_scroller_visible,
+    FPtr_gctx_eval2_real64 func_view_scroll_transition,
     FPtr_gctx_set4_real32 func_view_content_size,
     FPtr_gctx_get_real32 func_view_scale_factor,
     FPtr_gctx_call func_view_set_need_display,
@@ -1013,6 +1018,7 @@ void guictx_append_view_manager_imp(
     cassert(context->func_view_scroll_get == NULL);
     cassert(context->func_view_scroller_size == NULL);
     cassert(context->func_view_scroller_visible == NULL);
+    cassert(context->func_view_scroll_transition == NULL);
     cassert(context->func_view_content_size == NULL);
     cassert(context->func_view_scale_factor == NULL);
     cassert(context->func_view_set_need_display == NULL);
@@ -1050,6 +1056,7 @@ void guictx_append_view_manager_imp(
     cassert_no_nullf(func_view_scroll_get);
     cassert_no_nullf(func_view_scroller_size);
     cassert_no_nullf(func_view_scroller_visible);
+    cassert_no_nullf(func_view_scroll_transition);
     cassert_no_nullf(func_view_content_size);
     cassert_no_nullf(func_view_scale_factor);
     cassert_no_nullf(func_view_set_need_display);
@@ -1092,6 +1099,7 @@ void guictx_append_view_manager_imp(
     context->func_view_scroll_get = func_view_scroll_get;
     context->func_view_scroller_size = func_view_scroller_size;
     context->func_view_scroller_visible = func_view_scroller_visible;
+    context->func_view_scroll_transition = func_view_scroll_transition;
     context->func_view_content_size = func_view_content_size;
     context->func_view_scale_factor = func_view_scale_factor;
     context->func_view_set_need_display = func_view_set_need_display;
@@ -1117,6 +1125,7 @@ void guictx_append_panel_manager_imp(
     FPtr_gctx_get2_real32 func_panel_scroller_size,
     FPtr_gctx_set4_real32 func_panel_content_size,
     FPtr_gctx_call func_panel_set_need_display,
+    FPtr_gctx_call func_panel_scroll_update,
     FPtr_gctx_set_ptr func_attach_panel_to_panel,
     FPtr_gctx_set_ptr func_detach_panel_from_panel,
     FPtr_gctx_set_bool func_panel_set_visible,
@@ -1133,6 +1142,7 @@ void guictx_append_panel_manager_imp(
     cassert(context->func_panel_scroller_size == NULL);
     cassert(context->func_panel_content_size == NULL);
     cassert(context->func_panel_set_need_display == NULL);
+    cassert(context->func_panel_scroll_update == NULL);
     cassert(context->func_attach_to_panel[ekGUI_TYPE_PANEL] == NULL);
     cassert(context->func_detach_from_panel[ekGUI_TYPE_PANEL] == NULL);
     cassert(context->func_set_visible[ekGUI_TYPE_PANEL] == NULL);
@@ -1147,6 +1157,7 @@ void guictx_append_panel_manager_imp(
     cassert_no_nullf(func_panel_scroller_size);
     cassert_no_nullf(func_panel_content_size);
     cassert_no_nullf(func_panel_set_need_display);
+    cassert_no_nullf(func_panel_scroll_update);
     cassert_no_nullf(func_attach_panel_to_panel);
     cassert_no_nullf(func_detach_panel_from_panel);
     cassert_no_nullf(func_panel_set_visible);
@@ -1161,6 +1172,7 @@ void guictx_append_panel_manager_imp(
     context->func_panel_scroller_size = func_panel_scroller_size;
     context->func_panel_content_size = func_panel_content_size;
     context->func_panel_set_need_display = func_panel_set_need_display;
+    context->func_panel_scroll_update = func_panel_scroll_update;
     context->func_attach_to_panel[ekGUI_TYPE_PANEL] = func_attach_panel_to_panel;
     context->func_detach_from_panel[ekGUI_TYPE_PANEL] = func_detach_panel_from_panel;
     context->func_set_visible[ekGUI_TYPE_PANEL] = func_panel_set_visible;

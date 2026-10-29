@@ -135,6 +135,22 @@ static const FPtr_gctx_call i_FUNC_LOCALE[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_gctx_call)_panel_locale,  /* ekGUI_TYPE_PANEL */
     (FPtr_gctx_call)NULL};          /* ekGUI_TYPE_LINE */
 
+static const FPtr_gctx_call i_FUNC_SCROLL_UPDATE[GUI_CONTEXT_NUM_COMPONENTS] = {
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_BUTTON */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_POPUP */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_EDITBOX */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_COMBOBOX */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_TABLIST */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_SLIDER */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_UPDOWN */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_PROGRESS */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_TEXTVIEW */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_WEBVIEW */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_SPLITVIEW */
+    (FPtr_gctx_call)NULL,                 /* ekGUI_TYPE_CUSTOMVIEW */
+    (FPtr_gctx_call)_panel_scroll_update, /* ekGUI_TYPE_PANEL */
+    (FPtr_gctx_call)NULL};                /* ekGUI_TYPE_LINE */
+
 static const FPtr_destroy i_FUNC_DESTROY[GUI_CONTEXT_NUM_COMPONENTS] = {
     (FPtr_destroy)_button_destroy,    /* ekGUI_TYPE_BUTTON */
     (FPtr_destroy)_popup_destroy,     /* ekGUI_TYPE_POPUP */
@@ -430,6 +446,15 @@ void _component_locale(GuiComponent *component)
     cassert_no_null(component);
     if (i_FUNC_LOCALE[component->type] != NULL)
         i_FUNC_LOCALE[component->type](cast(component, void));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _component_scroll_update(GuiComponent *component)
+{
+    cassert_no_null(component);
+    if (i_FUNC_SCROLL_UPDATE[component->type] != NULL)
+        i_FUNC_SCROLL_UPDATE[component->type](cast(component, void));
 }
 
 /*---------------------------------------------------------------------------*/

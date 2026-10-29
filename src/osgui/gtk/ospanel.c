@@ -212,11 +212,20 @@ OSPanel *ospanel_create(const uint32_t flags)
     g_signal_connect(G_OBJECT(widget), "draw", G_CALLBACK(i_OnDraw), panel);
     g_signal_connect(G_OBJECT(widget), "button-press-event", G_CALLBACK(i_OnPressed), panel);
 
-    if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
+    if (flags & ekPANEL_HSCROLL || flags & ekPANEL_VSCROLL)
     {
+        GtkPolicyType hpolicy = GTK_POLICY_NEVER;
+        GtkPolicyType vpolicy = GTK_POLICY_NEVER;
+
+        if (flags & ekPANEL_HSCROLL)
+            hpolicy = GTK_POLICY_AUTOMATIC;
+
+        if (flags & ekPANEL_VSCROLL)
+            vpolicy = GTK_POLICY_AUTOMATIC;
+
         panel->scroll = gtk_scrolled_window_new(NULL, NULL);
         gtk_widget_show(panel->layout);
-        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(panel->scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(panel->scroll), hpolicy, vpolicy);
         gtk_container_add(GTK_CONTAINER(panel->scroll), panel->layout);
 
         /* A parent widget can "capture" the mouse */
@@ -235,7 +244,7 @@ OSPanel *ospanel_create(const uint32_t flags)
     }
 
     /* Creating the frame (border) view */
-    if (flags & ekVIEW_BORDER)
+    if (flags & ekPANEL_BORDER)
     {
         GtkWidget *frame = gtk_frame_new(NULL);
         cassert(gtk_widget_get_has_window(frame) == FALSE);
@@ -331,18 +340,46 @@ void ospanel_scroll_get(const OSPanel *panel, real32_t *x, real32_t *y)
 
 void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *height)
 {
+    bool_t overlay = FALSE;
+
     cassert_no_null(panel);
+
+#if GTK_CHECK_VERSION(3, 16, 0)
+    {
+        gboolean overlay_setting = TRUE;
+        g_object_get(gtk_settings_get_default(), "gtk-overlay-scrolling", &overlay_setting, NULL);
+        overlay = (bool_t)overlay_setting;
+    }
+#endif
 
     if (width != NULL)
     {
-        GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(panel->scroll));
-        *width = (real32_t)gtk_widget_get_allocated_width(vscroll);
+        if (overlay == TRUE)
+        {
+            *width = 0;
+        }
+        else
+        {
+            GtkWidget *vscroll = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(panel->scroll));
+            gint minimum = 0, natural = 0;
+            gtk_widget_get_preferred_width(vscroll, &minimum, &natural);
+            *width = (real32_t)natural;
+        }
     }
 
     if (height != NULL)
     {
-        GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(panel->scroll));
-        *height = (real32_t)gtk_widget_get_allocated_height(hscroll);
+        if (overlay == TRUE)
+        {
+            *height = 0;
+        }
+        else
+        {
+            GtkWidget *hscroll = gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(panel->scroll));
+            gint minimum = 0, natural = 0;
+            gtk_widget_get_preferred_height(hscroll, &minimum, &natural);
+            *height = (real32_t)natural;
+        }
     }
 }
 
@@ -350,12 +387,46 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
 
 void ospanel_content_size(OSPanel *panel, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height)
 {
+    real32_t cwidth = width;
+    real32_t cheight = height;
     cassert_no_null(panel);
     cassert(panel->layout != NULL);
     cassert(panel->hadjust != NULL && panel->vadjust != NULL);
     unref(line_width);
     unref(line_height);
-    gtk_layout_set_size(GTK_LAYOUT(panel->layout), (guint)width, (guint)height);
+
+    {
+        GtkPolicyType hpolicy = GTK_POLICY_NEVER, vpolicy = GTK_POLICY_NEVER;
+        gtk_scrolled_window_get_policy(GTK_SCROLLED_WINDOW(panel->scroll), &hpolicy, &vpolicy);
+
+        if (hpolicy == GTK_POLICY_AUTOMATIC && vpolicy == GTK_POLICY_AUTOMATIC)
+        {
+            bool_t with_hscroll = (bool_t)(width > panel->width);
+            bool_t with_vscroll = (bool_t)(height > panel->height);
+            real32_t barw = 0, barh = 0;
+            ospanel_scroller_size(panel, &barw, &barh);
+
+            if (with_hscroll == FALSE && with_vscroll == TRUE && barw > 0)
+            {
+                if (width > panel->width - barw)
+                    with_hscroll = TRUE;
+            }
+
+            if (with_vscroll == FALSE && with_hscroll == TRUE && barh > 0)
+            {
+                if (height > panel->height - barh)
+                    with_vscroll = TRUE;
+            }
+
+            if (with_hscroll == TRUE && with_vscroll == TRUE)
+            {
+                cwidth += barw;
+                cheight += barh;
+            }
+        }
+    }
+
+    gtk_layout_set_size(GTK_LAYOUT(panel->layout), (guint)cwidth, (guint)cheight);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -364,6 +435,30 @@ void ospanel_display(OSPanel *panel)
 {
     cassert_no_null(panel);
     gtk_widget_queue_draw(panel->control.widget);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_update(OSPanel *panel)
+{
+    GtkWidget *toplevel = NULL;
+    GtkWidget *focus = NULL;
+
+    cassert_no_null(panel);
+    cassert_no_null(panel->scroll);
+
+    toplevel = gtk_widget_get_toplevel(panel->scroll);
+    if (GTK_IS_WINDOW(toplevel) == TRUE)
+        focus = gtk_window_get_focus(GTK_WINDOW(toplevel));
+
+    gtk_widget_hide(panel->scroll);
+    gtk_widget_show(panel->scroll);
+
+    while (gtk_events_pending() == TRUE)
+        gtk_main_iteration();
+
+    if (focus != NULL)
+        gtk_widget_grab_focus(focus);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -422,15 +422,26 @@ static void i_precompute_system_colors(void)
 
 /*---------------------------------------------------------------------------*/
 
-void gui_update(void)
+void gui_update(const bool_t theme, const bool_t scrollers)
 {
-    i_precompute_system_colors();
+    if (theme == TRUE)
+        i_precompute_system_colors();
 
-    arrpt_foreach(window, i_WINDOWS, Window)
-        _window_update(window);
-    arrpt_end()
+    if (scrollers == TRUE)
+    {
+        arrpt_foreach(window, i_WINDOWS, Window)
+            _window_scroll_update(window);
+        arrpt_end()
+    }
 
-    if (i_ONTHEME != NULL)
+    if (theme == TRUE || scrollers == TRUE)
+    {
+        arrpt_foreach(window, i_WINDOWS, Window)
+            _window_update(window);
+        arrpt_end()
+    }
+
+    if (theme == TRUE && i_ONTHEME != NULL)
         listener_event(i_ONTHEME, 0, NULL, NULL, NULL, void, void, void);
 }
 

@@ -30,12 +30,17 @@
     uint32_t knob_size;
     CGFloat mouse_click;
     double px_scroll;
+    real64_t elapsed;
+    bool_t is_overlay;
+    bool_t is_hovering;
 }
 @end
 
 /*---------------------------------------------------------------------------*/
 
 static const uint32_t i_MIN_KNOB = 20;
+static const real64_t i_FADE_WAIT = 1.;
+static const real64_t i_FADE_DURATION = .25;
 
 /*---------------------------------------------------------------------------*/
 
@@ -125,6 +130,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
     cassert_no_null(self);
     cassert_no_null(parent);
     cassert_no_null(theEvent);
+    _osview_scrolls_activity(parent);
     origin = [parent bounds].origin;
     pt = [parent convertPoint:[theEvent locationInWindow] fromView:nil];
 
@@ -172,6 +178,7 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
         cassert_no_null(theEvent);
         cassert_no_null(parent);
         cassert(self->max > 0);
+        _osview_scrolls_activity(parent);
         origin = [parent bounds].origin;
         pt = [parent convertPoint:[theEvent locationInWindow] fromView:nil];
         if (self->orient == ekGUI_HORIZONTAL)
@@ -189,10 +196,37 @@ static NSScrollerPart i_hit_pos(const OSXScroller *scroller, uint32_t pos, doubl
 
 /*---------------------------------------------------------------------------*/
 
+- (void)mouseEntered:(NSEvent *)theEvent
+{
+    unref(theEvent);
+    if (self->is_overlay == TRUE && self->is_hovering == FALSE)
+    {
+        self->is_hovering = TRUE;
+        self->elapsed = 0;
+        [self setAlphaValue:1];
+        _osview_scrolls_resync(i_parent(self));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+- (void)mouseExited:(NSEvent *)theEvent
+{
+    unref(theEvent);
+    if (self->is_hovering == TRUE)
+    {
+        self->is_hovering = FALSE;
+        _osview_scrolls_resync(i_parent(self));
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void)scrollWheel:(NSEvent *)theEvent
 {
     NSView *parent = i_parent(self);
-    gui_scroll_t ev = _osscroll_wheel_event(theEvent);
+    gui_scroll_t ev = _osscroll_wheel_event([theEvent deltaY]);
+    _osview_scrolls_activity(parent);
     if (ev != ENUM_MAX(gui_scroll_t))
     {
         if (_osview_is(parent) == YES)
@@ -234,7 +268,7 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
     NSControlSize csize = _oscontrol_control_size(ekGUI_SIZE_REGULAR);
     heap_auditor_add("OSXScroller");
 #if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
-    [scroll setScrollerStyle:NSScrollerStyleLegacy /*NSScrollerStyleOverlay*/];
+    [scroll setScrollerStyle:NSScrollerStyleLegacy];
     [scroll setKnobStyle:NSScrollerKnobStyleDefault];
 #endif
     [scroll setControlSize:csize];
@@ -245,6 +279,9 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
     scroll->pos = 0;
     scroll->page = 0;
     scroll->max = 0;
+    scroll->elapsed = 0;
+    scroll->is_overlay = FALSE;
+    scroll->is_hovering = FALSE;
 #if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
     scroll->bar_width = (uint32_t)[OSXScroller scrollerWidthForControlSize:csize scrollerStyle:NSScrollerStyleLegacy];
 #else
@@ -252,6 +289,12 @@ static OSScroll *i_create(const gui_orient_t orient, OSControl *control, NSRect 
 #endif
     scroll->click_pos = UINT32_MAX;
     scroll->mouse_click = UINT32_MAX;
+    {
+        NSUInteger options = NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect;
+        NSTrackingArea *area = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:options owner:scroll userInfo:nil];
+        [scroll addTrackingArea:area];
+        [area release];
+    }
     [i_parent(scroll) addSubview:scroll];
     return cast(scroll, OSScroll);
 }
@@ -325,6 +368,98 @@ uint32_t _osscroll_bar_height(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
+void _osscroll_sync(OSScroll *scroll)
+{
+    OSXScroller *scroller = i_scroller(scroll);
+    cassert_no_null(scroller);
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+    {
+        bool_t is_overlay = (bool_t)([NSScroller preferredScrollerStyle] == NSScrollerStyleOverlay);
+        [scroller setWantsLayer:is_overlay];
+        scroller->is_overlay = is_overlay;
+
+        if (is_overlay == FALSE)
+            [scroller setAlphaValue:1];
+
+        {
+            NSControlSize csize;
+            if (is_overlay == TRUE && scroller->is_hovering == FALSE)
+                csize = _oscontrol_control_size(ekGUI_SIZE_MINI);
+            else
+                csize = _oscontrol_control_size(ekGUI_SIZE_REGULAR);
+
+            if (csize != [scroller controlSize])
+            {
+                [scroller setControlSize:csize];
+                scroller->bar_width = (uint32_t)[OSXScroller scrollerWidthForControlSize:csize scrollerStyle:NSScrollerStyleLegacy];
+            }
+        }
+    }
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osscroll_overlay(const OSScroll *scroll)
+{
+    const OSXScroller *scroller = i_cscroller(scroll);
+    cassert_no_null(scroller);
+    return scroller->is_overlay;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osscroll_activity(OSScroll *scroll)
+{
+    OSXScroller *scroller = i_scroller(scroll);
+    cassert_no_null(scroller);
+    if (_osscroll_overlay(scroll) == TRUE)
+    {
+        scroller->elapsed = 0;
+        [scroller setAlphaValue:1];
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osscroll_transition(OSScroll *scroll, const real64_t prtime, const real64_t crtime)
+{
+    OSXScroller *scroller = i_scroller(scroll);
+    cassert_no_null(scroller);
+    if (_osscroll_overlay(scroll) == FALSE)
+        return FALSE;
+
+    if (scroller->is_hovering == TRUE)
+    {
+        scroller->elapsed = 0;
+        [scroller setAlphaValue:1];
+        return TRUE;
+    }
+
+    scroller->elapsed += (crtime - prtime);
+
+    {
+        real64_t elapsed = scroller->elapsed;
+        if (elapsed < i_FADE_WAIT)
+        {
+            return TRUE;
+        }
+        else if (elapsed < i_FADE_WAIT + i_FADE_DURATION)
+        {
+            real32_t alpha = (real32_t)(1. - (elapsed - i_FADE_WAIT) / i_FADE_DURATION);
+            [scroller setAlphaValue:alpha];
+            return TRUE;
+        }
+        else
+        {
+            [scroller setAlphaValue:0];
+            return FALSE;
+        }
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
 {
     OSXScroller *scroller = i_scroller(scroll);
@@ -342,7 +477,17 @@ void _osscroll_visible(OSScroll *scroll, const bool_t visible)
 {
     OSXScroller *scroller = i_scroller(scroll);
     cassert_no_null(scroller);
-    [scroller setHidden:visible == TRUE ? NO : YES];
+    if (visible == TRUE)
+    {
+        BOOL was_hidden = [scroller isHidden];
+        [scroller setHidden:NO];
+        if (was_hidden == YES && scroller->is_overlay == TRUE)
+            [scroller setAlphaValue:0];
+    }
+    else
+    {
+        [scroller setHidden:YES];
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -396,15 +541,12 @@ void _osscroll_control_scroll(OSControl *control, const int32_t incr_x, const in
 
 /*---------------------------------------------------------------------------*/
 
-gui_scroll_t _osscroll_wheel_event(const NSEvent *event)
+gui_scroll_t _osscroll_wheel_event(const CGFloat delta)
 {
-    CGFloat d = 0;
     gui_scroll_t ev = ENUM_MAX(gui_scroll_t);
-    cassert_no_null(event);
-    d = [event deltaY];
-    if (d != 0)
+    if (delta != 0)
     {
-        if (d > 0)
+        if (delta > 0)
             ev = ekGUI_SCROLL_STEP_LEFT;
         else
             ev = ekGUI_SCROLL_STEP_RIGHT;

@@ -32,6 +32,7 @@
 #include "dynlay.h"
 #include "dynmenu.h"
 #include "scrollpanel.h"
+#include "scrollview.h"
 #include "reduce.h"
 #include "res_guihello.h"
 
@@ -140,21 +141,24 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = scrollpanel();
         break;
     case 28:
-        panel = dynlay_panel();
+        panel = scrollview();
         break;
     case 29:
-        panel = dynmenu_panel(app->window);
+        panel = dynlay_panel();
         break;
     case 30:
-        panel = ip_input(app->window);
+        panel = dynmenu_panel(app->window);
         break;
     case 31:
-        panel = font_x_scale();
+        panel = ip_input(app->window);
         break;
     case 32:
-        panel = reduce(app->window);
+        panel = font_x_scale();
         break;
     case 33:
+        panel = reduce(app->window);
+        break;
+    case 34:
         panel = common_windows(app->window);
         break;
     default:
@@ -217,6 +221,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Subpanels", NULL);
     listbox_add_elem(list, "Multi-Layouts", NULL);
     listbox_add_elem(list, "Scroll panel", NULL);
+    listbox_add_elem(list, "Scroll view", NULL);
     listbox_add_elem(list, "Dynamic layouts", NULL);
     listbox_add_elem(list, "Dynamic menus", NULL);
     listbox_add_elem(list, "IP Input", NULL);

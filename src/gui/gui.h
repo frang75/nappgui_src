@@ -53,7 +53,7 @@ _gui_api R2Df gui_workarea(void);
 
 _gui_api V2Df gui_mouse_pos(void);
 
-_gui_api void gui_update(void);
+_gui_api void gui_update(const bool_t theme, const bool_t scrollers);
 
 _gui_api void gui_OnThemeChanged(Listener *listener);
 

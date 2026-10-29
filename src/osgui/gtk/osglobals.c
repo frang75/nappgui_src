@@ -60,7 +60,6 @@ static uint32_t kSLIDER_WIDTH = 0;
 static uint32_t kSLIDER_HEIGHT = 0;
 static uint32_t kENTRY_HEIGHT = 0;
 static uint32_t kPROGRESS_HEIGHT = 0;
-static uint32_t kSCROLLBAR_HEIGHT = 0;
 static bool_t kDARK_MODE = FALSE;
 static color_t kLABEL_COLOR = 0;
 static color_t kVIEW_COLOR = 0;
@@ -496,22 +495,6 @@ static void i_precompute_slider(void)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_precompute_scroll(void)
-{
-    GtkAllocation alloc;
-    GtkWidget *scrollbar = gtk_scrolled_window_get_vscrollbar(GTK_SCROLLED_WINDOW(kSCROLLED));
-    cassert(kSCROLLBAR_HEIGHT == 0);
-    cassert(i_IMPOSTOR_MAPPED == TRUE);
-    gtk_widget_get_allocation(scrollbar, &alloc);
-    kSCROLLBAR_HEIGHT = (uint32_t)alloc.width;
-    if (kSCROLLBAR_HEIGHT < 2)
-        kSCROLLBAR_HEIGHT = 2;
-    else if (kSCROLLBAR_HEIGHT < 12)
-        kSCROLLBAR_HEIGHT = 12;
-}
-
-/*---------------------------------------------------------------------------*/
-
 static gboolean i_OnWindowDamage(GtkWidget *widget, GdkEventExpose *event, gpointer data)
 {
     cassert(widget == kWINDOW);
@@ -545,7 +528,6 @@ static gboolean i_OnWindowDamage(GtkWidget *widget, GdkEventExpose *event, gpoin
     i_precompute_check3();
     i_precompute_radio();
     i_precompute_slider();
-    i_precompute_scroll();
     cassert(kHEADER == NULL);
 
     {
@@ -1614,14 +1596,6 @@ uint32_t _osglobals_progress_height(void)
 {
     cassert(kPROGRESS_HEIGHT != 0);
     return kPROGRESS_HEIGHT;
-}
-
-/*---------------------------------------------------------------------------*/
-
-uint32_t _osglobals_scrollbar_height(void)
-{
-    cassert(kSCROLLBAR_HEIGHT != 0);
-    return kSCROLLBAR_HEIGHT;
 }
 
 /*---------------------------------------------------------------------------*/

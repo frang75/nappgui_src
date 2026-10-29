@@ -54,6 +54,8 @@ uint32_t _component_get_tag(const GuiComponent *component);
 
 void _component_locale(GuiComponent *component);
 
+void _component_scroll_update(GuiComponent *component);
+
 void _component_update_listener_imp(
     GuiComponent *component,
     Listener **listener,

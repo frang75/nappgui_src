@@ -125,6 +125,16 @@ void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t osupdown_transition(OSUpDown *updown, const real64_t prtime, const real64_t crtime)
+{
+    unref(updown);
+    unref(prtime);
+    unref(crtime);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void osupdown_bounds(const OSUpDown *updown, real32_t *width, real32_t *height)
 {
     unref(updown);

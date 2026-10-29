@@ -36,6 +36,7 @@
     uint32_t terminate_count;
     bool_t abnormal_termination;
     bool_t theme_changed;
+    bool_t scroll_changed;
     void *listener;
 
     FPtr_app_call func_OnFinishLaunching;
@@ -43,6 +44,7 @@
     FPtr_destroy func_destroy;
     FPtr_app_void func_OnExecutionEnd;
     Listener *OnThemeChanged;
+    Listener *OnScrollChanged;
 }
 
 @end
@@ -91,25 +93,20 @@
     /* https://stackoverflow.com/questions/52504872/updating-for-dark-mode-nscolor-ignores-appearance-changes?rq=1 */
     if (self->theme_changed == TRUE)
     {
-        bool_t dark_mode = FALSE;
-
-#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
-        {
-            NSArray *appers = [NSArray arrayWithObjects:NSAppearanceNameAqua, NSAppearanceNameDarkAqua, nil];
-            NSAppearance *apper = [NSApp effectiveAppearance];
-            NSAppearanceName name = [apper bestMatchFromAppearancesWithNames:appers];
-            if ([name isEqualToString:NSAppearanceNameDarkAqua])
-                dark_mode = TRUE;
-        }
-#endif
-
-        unref(dark_mode);
         osglobals_theme_changed();
 
         if (self->OnThemeChanged != NULL)
-            listener_event(self->OnThemeChanged, 0, (OSApp *)self->listener, NULL, NULL, OSApp, void, void);
+            listener_event(self->OnThemeChanged, 0, cast(self->listener, OSApp), NULL, NULL, OSApp, void, void);
 
         self->theme_changed = FALSE;
+    }
+
+    if (self->scroll_changed == TRUE)
+    {
+        if (self->OnScrollChanged != NULL)
+            listener_event(self->OnScrollChanged, 0, cast(self->listener, OSApp), NULL, NULL, OSApp, void, void);
+
+        self->scroll_changed = FALSE;
     }
 
     if (__FALSE_EXPECTED(self->terminate_count > 0))
@@ -163,6 +160,13 @@
                                                             name:@"AppleInterfaceThemeChangedNotification"
                                                           object:nil];
     [[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(themeChanged:) name:@"AppleColorPreferencesChangedNotification" object:nil];
+#endif
+
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(scrollChanged:)
+                                                 name:NSPreferredScrollerStyleDidChangeNotification
+                                               object:nil];
 #endif
 
     self->func_OnFinishLaunching(self->listener);
@@ -227,6 +231,14 @@
 
 /*---------------------------------------------------------------------------*/
 
+- (void)scrollChanged:(NSNotification *)aNotification
+{
+    unref(aNotification);
+    self->scroll_changed = TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 - (void)dealloc
 {
     [super dealloc];
@@ -261,11 +273,13 @@ OSApp *_osapp_init_imp(
     delegate->terminate_count = 0;
     delegate->abnormal_termination = FALSE;
     delegate->theme_changed = FALSE;
+    delegate->scroll_changed = FALSE;
     delegate->func_OnFinishLaunching = func_OnFinishLaunching;
     delegate->func_OnTimerSignal = func_OnTimerSignal;
     delegate->func_destroy = NULL;
     delegate->func_OnExecutionEnd = NULL;
     delegate->OnThemeChanged = NULL;
+    delegate->OnScrollChanged = NULL;
     [NSApp setDelegate:delegate];
     return (OSApp *)app;
 }
@@ -314,6 +328,7 @@ void _osapp_terminate_imp(
     delegate->func_OnExecutionEnd = func_OnExecutionEnd;
     delegate->terminate_count = 1;
     listener_destroy(&delegate->OnThemeChanged);
+    listener_destroy(&delegate->OnScrollChanged);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -420,6 +435,14 @@ void _osapp_OnThemeChanged(OSApp *app, Listener *listener)
 {
     OSXAppDelegate *delegate = [cast(app, NSApplication) delegate];
     listener_update(&delegate->OnThemeChanged, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osapp_OnScrollChanged(OSApp *app, Listener *listener)
+{
+    OSXAppDelegate *delegate = [cast(app, NSApplication) delegate];
+    listener_update(&delegate->OnScrollChanged, listener);
 }
 
 /*---------------------------------------------------------------------------*/

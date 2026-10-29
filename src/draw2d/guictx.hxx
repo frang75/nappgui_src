@@ -359,6 +359,15 @@ typedef enum _view_flag_t
     ekVIEW_CONTROL = 0x40
 } view_flag_t;
 
+typedef enum _panel_flag_t
+{
+    ekPANEL_HSCROLL = 0x1,
+    ekPANEL_VSCROLL = 0x2,
+    ekPANEL_BORDER = 0x4,
+    ekPANEL_HSHRINK = 0x20,
+    ekPANEL_VSHRINK = 0x40
+} panel_flag_t;
+
 typedef enum _line_flag_t
 {
     ekLINE_FLAG = 0,
@@ -593,6 +602,10 @@ typedef void (*FPtr_gctx_set2_real64)(void *item, const real64_t value1, const r
 #define FUNC_CHECK_GCTX_SET2_REAL64(func, type) \
     (void)((void (*)(type *, const real64_t, const real64_t))func == func)
 
+typedef bool_t (*FPtr_gctx_eval2_real64)(void *item, const real64_t value1, const real64_t value2);
+#define FUNC_CHECK_GCTX_EVAL2_REAL64(func, type) \
+    (void)((bool_t(*)(type *, const real64_t, const real64_t))func == func)
+
 typedef void (*FPtr_gctx_set4_real32)(void *item, const real32_t value1, const real32_t value2, const real32_t value3, const real32_t value4);
 #define FUNC_CHECK_GCTX_SET4_REAL32(func, type) \
     (void)((void (*)(type *, const real32_t, const real32_t, const real32_t, const real32_t))func == func)
@@ -818,6 +831,7 @@ struct _guictx_t
 
     /* UpDown */
     FPtr_gctx_set_listener func_updown_OnClick;
+    FPtr_gctx_eval2_real64 func_updown_transition;
     FPtr_gctx_bounds7 func_updown_bounds;
 
     /*! <Progress> */
@@ -880,6 +894,7 @@ struct _guictx_t
     FPtr_gctx_get2_real32 func_view_scroll_get;
     FPtr_gctx_get2_real32 func_view_scroller_size;
     FPtr_gctx_set2_bool func_view_scroller_visible;
+    FPtr_gctx_eval2_real64 func_view_scroll_transition;
     FPtr_gctx_set4_real32 func_view_content_size;
     FPtr_gctx_get_real32 func_view_scale_factor;
     FPtr_gctx_call func_view_set_need_display;
@@ -892,6 +907,7 @@ struct _guictx_t
     FPtr_gctx_get2_real32 func_panel_scroller_size;
     FPtr_gctx_set4_real32 func_panel_content_size;
     FPtr_gctx_call func_panel_set_need_display;
+    FPtr_gctx_call func_panel_scroll_update;
 
     /*! <Lines> */
     FPtr_gctx_bounds5 func_line_bounds;

@@ -27,7 +27,33 @@ struct _updown_t
     S2Df size;
     ResId ttipid;
     Listener *OnClick;
+    bool_t transition;
 };
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnRepeatTransition(UpDown *updown, Event *e)
+{
+    const EvTransition *params = event_params(e, EvTransition);
+    cassert_no_null(updown);
+    if (updown->component.context->func_updown_transition(updown->component.ositem, params->prtime, params->crtime) == FALSE)
+    {
+        updown->transition = FALSE;
+        _gui_delete_transition(updown, UpDown);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_ensure_repeat_transition(UpDown *updown)
+{
+    cassert_no_null(updown);
+    if (updown->transition == FALSE)
+    {
+        updown->transition = TRUE;
+        _gui_add_transition(updown, obj_listener(updown, i_OnRepeatTransition, UpDown), UpDown);
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -41,6 +67,8 @@ static void i_OnClick(UpDown *updown, Event *e)
         if (cell != NULL)
             _cell_update_incr(cell, params->index == 0 ? TRUE : FALSE);
     }
+
+    i_ensure_repeat_transition(updown);
 
     if (updown->OnClick != NULL)
         listener_pass_event(updown->OnClick, e, updown, UpDown);
@@ -64,6 +92,7 @@ void _updown_destroy(UpDown **updown)
 {
     cassert_no_null(updown);
     cassert_no_null(*updown);
+    _gui_delete_transition(*updown, UpDown);
     _component_destroy_imp(&(*updown)->component);
     listener_destroy(&(*updown)->OnClick);
     obj_delete(updown, UpDown);

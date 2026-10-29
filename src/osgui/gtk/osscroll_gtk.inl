@@ -14,6 +14,6 @@
 
 __EXTERN_C
 
-gui_scroll_t _osscroll_wheel_event(const GdkEventScroll *event);
+gui_scroll_t _osscroll_wheel_event(const GdkEventScroll *event, gui_orient_t *orient);
 
 __END_C

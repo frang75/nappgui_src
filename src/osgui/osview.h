@@ -62,6 +62,8 @@ _osgui_api void osview_scroller_size(const OSView *view, real32_t *width, real32
 
 _osgui_api void osview_scroller_visible(OSView *view, const bool_t horizontal, const bool_t vertical);
 
+_osgui_api bool_t osview_scroll_transition(OSView *view, const real64_t prtime, const real64_t crtime);
+
 _osgui_api void osview_content_size(OSView *view, const real32_t width, const real32_t height, const real32_t line_width, const real32_t line_height);
 
 _osgui_api real32_t osview_scale_factor(const OSView *view);

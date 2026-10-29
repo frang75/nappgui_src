@@ -51,6 +51,7 @@ struct _osapp_t
     bool_t abnormal_termination;
     bool_t with_run_loop;
     Listener *OnTheme;
+    Listener *OnScroll;
     FPtr_app_call func_OnFinishLaunching;
     FPtr_app_call func_OnTimerSignal;
     FPtr_destroy func_destroy;
@@ -202,6 +203,7 @@ OSApp *_osapp_init_imp(
     i_APP.abnormal_termination = FALSE;
     i_APP.with_run_loop = with_run_loop;
     i_APP.OnTheme = NULL;
+    i_APP.OnScroll = NULL;
     i_APP.func_OnFinishLaunching = func_OnFinishLaunching;
     i_APP.func_OnTimerSignal = func_OnTimerSignal;
     return &i_APP;
@@ -250,6 +252,7 @@ static void i_terminate(OSApp *app)
         g_object_unref(app->icon);
 
     listener_destroy(&app->OnTheme);
+    listener_destroy(&app->OnScroll);
     g_application_quit(G_APPLICATION(app->gtk_app));
 }
 
@@ -337,6 +340,19 @@ static gboolean i_OnTimerInit(gpointer data)
 
 /*---------------------------------------------------------------------------*/
 
+#if GTK_CHECK_VERSION(3, 16, 0)
+static void i_OnOverlayScrollingChanged(GtkSettings *settings, GParamSpec *pspec, OSApp *app)
+{
+    unref(settings);
+    unref(pspec);
+    cassert_no_null(app);
+    if (app->OnScroll != NULL)
+        listener_event(app->OnScroll, 0, cast(app->listener, OSApp), NULL, NULL, OSApp, void, void);
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
 {
     cassert_no_null(app);
@@ -355,6 +371,13 @@ static void i_OnActivate(GtkApplication *gtk_app, OSApp *app)
     app->timer_init_id = g_timeout_add(10, i_OnTimerInit, (gpointer)app);
     cassert(app->timer_loop_id > 0);
     cassert(app->timer_init_id > 0);
+
+#if GTK_CHECK_VERSION(3, 16, 0)
+    {
+        gulong signal_id = g_signal_connect(gtk_settings_get_default(), "notify::gtk-overlay-scrolling", G_CALLBACK(i_OnOverlayScrollingChanged), (gpointer)app);
+        cassert_unref(signal_id > 0, signal_id);
+    }
+#endif
 
     {
         GdkDisplay *display = gdk_display_get_default();
@@ -440,6 +463,14 @@ void _osapp_OnThemeChanged(OSApp *app, Listener *listener)
 {
     cassert_no_null(app);
     listener_update(&app->OnTheme, listener);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osapp_OnScrollChanged(OSApp *app, Listener *listener)
+{
+    cassert_no_null(app);
+    listener_update(&app->OnScroll, listener);
 }
 
 /*---------------------------------------------------------------------------*/

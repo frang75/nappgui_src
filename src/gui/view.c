@@ -61,6 +61,7 @@ struct _view_t
     ResId ttipid;
     const VCtrlTbl *vtbl;
     VListeners *listeners;
+    bool_t transition;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -254,11 +255,34 @@ static void i_OnAcceptFocus(View *view, Event *e)
 
 /*---------------------------------------------------------------------------*/
 
+static void i_OnScrollTransition(View *view, Event *e)
+{
+    const EvTransition *params = event_params(e, EvTransition);
+    cassert_no_null(view);
+    view->component.context->func_view_scroll_transition(view->component.ositem, params->prtime, params->crtime);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_ensure_scroll_transition(View *view)
+{
+    cassert_no_null(view);
+    if (view->transition == FALSE)
+    {
+        view->transition = TRUE;
+        _gui_add_transition(view, obj_listener(view, i_OnScrollTransition, View), View);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void i_OnScroll(View *view, Event *e)
 {
     cassert_no_null(view);
     cassert_no_null(view->listeners);
-    listener_pass_event(view->listeners->OnScroll, e, view, View);
+    if (view->listeners->OnScroll != NULL)
+        listener_pass_event(view->listeners->OnScroll, e, view, View);
+    i_ensure_scroll_transition(view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -279,6 +303,13 @@ static View *i_create(const uint32_t flags, const VCtrlTbl *vtbl)
             view->listeners = heap_new0(VListeners);
 
         _component_init(&view->component, context, PARAM(type, ekGUI_TYPE_CUSTOMVIEW), &ositem);
+
+        if (vtbl == NULL && (flags & (ekVIEW_HSCROLL | ekVIEW_VSCROLL)) != 0)
+        {
+            context->func_view_OnScroll(view->component.ositem, listener(view, i_OnScroll, View));
+            i_ensure_scroll_transition(view);
+        }
+
         return view;
     }
     else
@@ -934,7 +965,9 @@ static void i_OnCtrlScroll(View *view, Event *e)
     cassert_no_null(view);
     cassert_no_null(view->vtbl);
     cassert(event_type(e) == ekGUI_EVENT_SCROLL);
-    listener_pass_handler(view->vtbl->OnScroll, view->data, e, view, View);
+    if (view->vtbl->OnScroll != NULL)
+        listener_pass_handler(view->vtbl->OnScroll, view->data, e, view, View);
+    i_ensure_scroll_transition(view);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -992,8 +1025,11 @@ View *_vctrl_create_imp(const uint32_t flags, const VCtrlTbl *tbl, void *data, c
     if (tbl->OnAcceptFocus != NULL)
         view->component.context->func_view_OnAcceptFocus(view->component.ositem, listener(view, i_OnCtrlAcceptFocus, View));
 
-    if (tbl->OnScroll != NULL)
+    if (tbl->OnScroll != NULL || (flags & (ekVIEW_HSCROLL | ekVIEW_VSCROLL)) != 0)
         view->component.context->func_view_OnScroll(view->component.ositem, listener(view, i_OnCtrlScroll, View));
+
+    if ((flags & (ekVIEW_HSCROLL | ekVIEW_VSCROLL)) != 0)
+        i_ensure_scroll_transition(view);
 
     return view;
 }

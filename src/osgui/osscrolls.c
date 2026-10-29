@@ -28,6 +28,8 @@ struct _osscrolls_t
     bool_t vvisible;
     uint32_t view_width;
     uint32_t view_height;
+    uint32_t avail_width;
+    uint32_t avail_height;
     uint32_t content_width;
     uint32_t content_height;
     uint32_t line_width;
@@ -126,6 +128,31 @@ void _osscrolls_visible_area(OSScrolls *scroll, uint32_t *x, uint32_t *y, uint32
 
 /*---------------------------------------------------------------------------*/
 
+void _osscrolls_avail_size(const OSScrolls *scroll, uint32_t *width, uint32_t *height)
+{
+    cassert_no_null(scroll);
+
+    if (scroll->hscroll != NULL)
+    {
+        ptr_assign(width, scroll->avail_width);
+    }
+    else
+    {
+        ptr_assign(width, scroll->view_width);
+    }
+
+    if (scroll->vscroll != NULL)
+    {
+        ptr_assign(height, scroll->avail_height);
+    }
+    else
+    {
+        ptr_assign(height, scroll->view_height);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 uint32_t _osscrolls_x_pos(const OSScrolls *scroll)
 {
     cassert_no_null(scroll);
@@ -188,6 +215,48 @@ uint32_t _osscrolls_bar_height(const OSScrolls *scroll, const bool_t check_if_vi
 
 /*---------------------------------------------------------------------------*/
 
+uint32_t _osscrolls_bar_reserve_width(OSScrolls *scroll)
+{
+    cassert_no_null(scroll);
+    _osscrolls_resync(scroll);
+
+    if (scroll->vscroll != NULL)
+    {
+        if (scroll->vvisible == TRUE && scroll->content_height > scroll->view_height)
+        {
+            if (_osscroll_overlay(scroll->vscroll) == TRUE)
+                return 0;
+
+            return _osscroll_bar_width(scroll->vscroll);
+        }
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
+uint32_t _osscrolls_bar_reserve_height(OSScrolls *scroll)
+{
+    cassert_no_null(scroll);
+    _osscrolls_resync(scroll);
+
+    if (scroll->hscroll != NULL)
+    {
+        if (scroll->hvisible == TRUE && scroll->content_width > scroll->view_width)
+        {
+            if (_osscroll_overlay(scroll->hscroll) == TRUE)
+                return 0;
+
+            return _osscroll_bar_height(scroll->hscroll);
+        }
+    }
+
+    return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_scroll_t event, const bool_t update_children)
 {
     OSScroll *sbar = NULL;
@@ -203,14 +272,14 @@ bool_t _osscrolls_event(OSScrolls *scroll, const gui_orient_t orient, const gui_
     case ekGUI_HORIZONTAL:
         sbar = scroll->hscroll;
         step = scroll->line_width;
-        page = scroll->view_width;
-        max = (scroll->content_width > scroll->view_width) ? (scroll->content_width - scroll->view_width) : 0;
+        page = scroll->avail_width;
+        max = (scroll->content_width > scroll->avail_width) ? (scroll->content_width - scroll->avail_width) : 0;
         break;
     case ekGUI_VERTICAL:
         sbar = scroll->vscroll;
         step = scroll->line_height;
-        page = scroll->view_height;
-        max = (scroll->content_height > scroll->view_height) ? (scroll->content_height - scroll->view_height) : 0;
+        page = scroll->avail_height;
+        max = (scroll->content_height > scroll->avail_height) ? (scroll->content_height - scroll->avail_height) : 0;
         break;
     default:
         cassert_default(orient);
@@ -371,9 +440,16 @@ void _osscrolls_set(OSScrolls *scroll, const uint32_t x, const uint32_t y, const
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_limits(OSScroll *scroll, const bool_t visible, const uint32_t visible_size, const uint32_t total_size)
+static bool_t i_overflow(const bool_t visible, const uint32_t visible_size, const uint32_t total_size)
 {
-    if (visible == TRUE && visible_size > 0 && visible_size < total_size)
+    return (bool_t)(visible == TRUE && visible_size > 0 && visible_size < total_size);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_config(OSScroll *scroll, const bool_t with_scroll, const uint32_t visible_size, const uint32_t total_size)
+{
+    if (with_scroll == TRUE)
     {
         uint32_t max = total_size;
         uint32_t pos = _osscroll_pos(scroll);
@@ -384,13 +460,10 @@ static bool_t i_limits(OSScroll *scroll, const bool_t visible, const uint32_t vi
             pos = max_pos;
 
         _osscroll_config(scroll, pos, max, page);
-        return TRUE;
     }
-    /* Scrollbar is not necessary */
     else
     {
         _osscroll_set_pos(scroll, 0);
-        return FALSE;
     }
 }
 
@@ -402,19 +475,49 @@ static void i_update_bars(OSScrolls *scroll)
     bool_t with_vscroll = FALSE;
     uint32_t bw = 0;
     uint32_t bh = 0;
+    uint32_t bw_reserve = 0;
+    uint32_t bh_reserve = 0;
 
     cassert_no_null(scroll);
 
     if (scroll->hscroll != NULL)
     {
-        with_hscroll = i_limits(scroll->hscroll, scroll->hvisible, scroll->view_width, scroll->content_width);
+        _osscroll_sync(scroll->hscroll);
+        with_hscroll = i_overflow(scroll->hvisible, scroll->view_width, scroll->content_width);
         bh = _osscroll_bar_height(scroll->hscroll);
+        bh_reserve = (_osscroll_overlay(scroll->hscroll) == TRUE) ? 0 : bh;
     }
 
     if (scroll->vscroll != NULL)
     {
-        with_vscroll = i_limits(scroll->vscroll, scroll->vvisible, scroll->view_height, scroll->content_height);
+        _osscroll_sync(scroll->vscroll);
+        with_vscroll = i_overflow(scroll->vvisible, scroll->view_height, scroll->content_height);
         bw = _osscroll_bar_width(scroll->vscroll);
+        bw_reserve = (_osscroll_overlay(scroll->vscroll) == TRUE) ? 0 : bw;
+    }
+
+    if (scroll->hscroll != NULL && with_hscroll == FALSE && with_vscroll == TRUE)
+        with_hscroll = i_overflow(scroll->hvisible, scroll->view_width - bw_reserve, scroll->content_width);
+
+    if (scroll->vscroll != NULL && with_vscroll == FALSE && with_hscroll == TRUE)
+        with_vscroll = i_overflow(scroll->vvisible, scroll->view_height - bh_reserve, scroll->content_height);
+
+    if (scroll->hscroll != NULL)
+    {
+        uint32_t width = scroll->view_width;
+        if (with_vscroll == TRUE)
+            width -= bw_reserve;
+        scroll->avail_width = width;
+        i_config(scroll->hscroll, with_hscroll, width, scroll->content_width);
+    }
+
+    if (scroll->vscroll != NULL)
+    {
+        uint32_t height = scroll->view_height;
+        if (with_hscroll == TRUE)
+            height -= bh_reserve;
+        scroll->avail_height = height;
+        i_config(scroll->vscroll, with_vscroll, height, scroll->content_height);
     }
 
     if (with_hscroll == TRUE)
@@ -425,10 +528,7 @@ static void i_update_bars(OSScrolls *scroll)
         uint32_t height = bh;
 
         if (with_vscroll == TRUE)
-        {
             width -= bw;
-            i_limits(scroll->hscroll, scroll->hvisible, width, scroll->content_width);
-        }
 
         _osscroll_frame(scroll->hscroll, x, y, width, height);
         _osscroll_visible(scroll->hscroll, TRUE);
@@ -445,6 +545,10 @@ static void i_update_bars(OSScrolls *scroll)
         uint32_t y = 0;
         uint32_t width = bw;
         uint32_t height = scroll->view_height;
+
+        if (with_hscroll == TRUE)
+            height -= bh;
+
         _osscroll_frame(scroll->vscroll, x, y, width, height);
         _osscroll_visible(scroll->vscroll, TRUE);
     }
@@ -485,4 +589,36 @@ void _osscrolls_visible(OSScrolls *scroll, const bool_t horizontal, const bool_t
     scroll->hvisible = horizontal;
     scroll->vvisible = vertical;
     i_update_bars(scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osscrolls_resync(OSScrolls *scroll)
+{
+    cassert_no_null(scroll);
+    i_update_bars(scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osscrolls_activity(OSScrolls *scroll)
+{
+    cassert_no_null(scroll);
+    if (scroll->hscroll != NULL)
+        _osscroll_activity(scroll->hscroll);
+    if (scroll->vscroll != NULL)
+        _osscroll_activity(scroll->vscroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osscrolls_transition(OSScrolls *scroll, const real64_t prtime, const real64_t crtime)
+{
+    bool_t still_needed = FALSE;
+    cassert_no_null(scroll);
+    if (scroll->hscroll != NULL && _osscroll_transition(scroll->hscroll, prtime, crtime) == TRUE)
+        still_needed = TRUE;
+    if (scroll->vscroll != NULL && _osscroll_transition(scroll->vscroll, prtime, crtime) == TRUE)
+        still_needed = TRUE;
+    return still_needed;
 }

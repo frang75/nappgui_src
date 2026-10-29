@@ -78,8 +78,6 @@ uint32_t _osglobals_entry_height(void);
 
 uint32_t _osglobals_progress_height(void);
 
-uint32_t _osglobals_scrollbar_height(void);
-
 GdkPixbuf *_osglobals_checks_bitmap(void);
 
 GdkPixbuf *_osglobals_check3_bitmap(void);

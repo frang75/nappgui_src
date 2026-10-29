@@ -26,10 +26,6 @@ uint32_t scrollview_control_width(const ScrollView *view);
 
 uint32_t scrollview_control_height(const ScrollView *view);
 
-uint32_t scrollview_scrollbar_width(const ScrollView *view);
-
-uint32_t scrollview_scrollbar_height(const ScrollView *view);
-
 uint32_t scrollview_xpos(const ScrollView *view);
 
 uint32_t scrollview_ypos(const ScrollView *view);

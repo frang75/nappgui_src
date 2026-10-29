@@ -47,6 +47,26 @@ static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
 
 /*---------------------------------------------------------------------------*/
 
+/* NSScrollerStyle / overlay scrollers don't exist before OSX 10.7 (Lion) */
+#if defined(MAC_OS_X_VERSION_10_7) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7
+
+static bool_t i_scroller_is_legacy(NSScroller *scroller)
+{
+    return (bool_t)([scroller scrollerStyle] == NSScrollerStyleLegacy);
+}
+
+#else
+
+static bool_t i_scroller_is_legacy(NSScroller *scroller)
+{
+    unref(scroller);
+    return TRUE;
+}
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 @interface OSXPanel : NSView
 {
   @public
@@ -118,8 +138,8 @@ static NSEventMask kWHEEL_EVENT = NSScrollWheelMask;
 
 - (BOOL)eventIsInside:(NSEvent *)theEvent
 {
-    NSPoint locationInView = [self convertPoint:theEvent.locationInWindow fromView:nil];
-    return NSPointInRect(locationInView, [self bounds]);
+    NSPoint locationInView = [self->scroll convertPoint:theEvent.locationInWindow fromView:nil];
+    return NSPointInRect(locationInView, [self->scroll bounds]);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -142,15 +162,15 @@ OSPanel *ospanel_create(const uint32_t flags)
     panel->content_size = CGSizeMake(-1, -1);
     [panel setAutoresizesSubviews:NO];
 
-    if (flags & ekVIEW_HSCROLL || flags & ekVIEW_VSCROLL)
+    if (flags & ekPANEL_HSCROLL || flags & ekPANEL_VSCROLL)
     {
         NSScrollView *scroll = [[NSScrollView alloc] initWithFrame:NSZeroRect];
         [scroll setDrawsBackground:NO];
         [scroll setDocumentView:panel];
-        [scroll setHasHorizontalScroller:(flags & ekVIEW_HSCROLL) ? YES : NO];
-        [scroll setHasVerticalScroller:(flags & ekVIEW_VSCROLL) ? YES : NO];
+        [scroll setHasHorizontalScroller:(flags & ekPANEL_HSCROLL) ? YES : NO];
+        [scroll setHasVerticalScroller:(flags & ekPANEL_VSCROLL) ? YES : NO];
         [scroll setAutohidesScrollers:YES];
-        [scroll setBorderType:(flags & ekVIEW_BORDER) ? NSGrooveBorder : NSNoBorder];
+        [scroll setBorderType:(flags & ekPANEL_BORDER) ? NSGrooveBorder : NSNoBorder];
         panel->scroll = scroll;
 
         panel->evmonitor = [NSEvent addLocalMonitorForEventsMatchingMask:kWHEEL_EVENT
@@ -356,21 +376,21 @@ void ospanel_scroller_size(const OSPanel *panel, real32_t *width, real32_t *heig
     if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
     {
         NSScrollView *scroll = cast(panel, NSScrollView);
+        NSScroller *vscroller = [scroll verticalScroller];
+        NSScroller *hscroller = [scroll horizontalScroller];
 
         if (width)
         {
-            NSScroller *scroller = [scroll verticalScroller];
             *width = 0;
-            if (scroller != nil)
-                *width = (real32_t)[scroller frame].size.width;
+            if (vscroller != nil && i_scroller_is_legacy(vscroller) == TRUE)
+                *width = (real32_t)[vscroller frame].size.width;
         }
 
         if (height)
         {
-            NSScroller *scroller = [scroll horizontalScroller];
             *height = 0;
-            if (scroller != nil)
-                *height = (real32_t)[scroller frame].size.height;
+            if (hscroller != nil && i_scroller_is_legacy(hscroller) == TRUE)
+                *height = (real32_t)[hscroller frame].size.height;
         }
     }
     else
@@ -390,12 +410,7 @@ static void i_OnUpdateSize(OSPanel *panel)
     OSXPanel *lpanel = i_get_panel(panel);
     if ([cast(panel, NSView) isKindOfClass:[NSScrollView class]])
     {
-        CGFloat diff = 0;
-        NSScroller *scroller = [cast(panel, NSScrollView) verticalScroller];
-        if (scroller != nil && [scroller isHidden] == NO)
-            diff = [scroller frame].size.width;
-
-        [lpanel setFrame:NSMakeRect(0, 0, lpanel->content_size.width - diff, lpanel->content_size.height)];
+        [lpanel setFrame:NSMakeRect(0, 0, lpanel->content_size.width, lpanel->content_size.height)];
     }
     else
     {
@@ -424,6 +439,13 @@ void ospanel_display(OSPanel *panel)
 {
     OSXPanel *lpanel = i_get_panel(panel);
     [lpanel setNeedsDisplay:YES];
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_update(OSPanel *panel)
+{
+    unref(panel);
 }
 
 /*---------------------------------------------------------------------------*/

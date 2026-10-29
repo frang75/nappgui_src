@@ -878,6 +878,16 @@ gui_role_t _window_role(const Window *window)
 
 /*---------------------------------------------------------------------------*/
 
+void _window_scroll_update(Window *window)
+{
+    Panel *main_panel = NULL;
+    cassert_no_null(window);
+    main_panel = i_main_panel(window);
+    _panel_scroll_update(main_panel);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _window_update(Window *window)
 {
     cassert_no_null(window);

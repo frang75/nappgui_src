@@ -258,7 +258,7 @@ static void i_OnFinishLaunching(i_App *app)
 
     if (app->func_create != NULL)
     {
-        gui_update();
+        gui_update(TRUE, FALSE);
         app->appitem = app->func_create();
     }
 
@@ -315,7 +315,16 @@ static void i_OnTheme(void *sender, Event *e)
 {
     unref(sender);
     unref(e);
-    gui_update();
+    gui_update(TRUE, FALSE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnScrollChanged(void *sender, Event *e)
+{
+    unref(sender);
+    unref(e);
+    gui_update(FALSE, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -375,6 +384,7 @@ void osmain_imp(
     gui_OnNotification(listener(NULL, i_OnNotification, void));
 
     _osapp_OnThemeChanged(app->osapp, listener(NULL, i_OnTheme, void));
+    _osapp_OnScrollChanged(app->osapp, listener(NULL, i_OnScrollChanged, void));
     _osapp_set_lang(app->osapp, "en");
     _osapp_request_user_attention(app->osapp);
     _osapp_release_pool(pool);

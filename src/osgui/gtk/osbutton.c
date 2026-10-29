@@ -458,9 +458,9 @@ static gboolean i_OnButtonDraw(GtkWidget *widget, cairo_t *cr, OSButton *button)
         }
 
         if (ellipsized == TRUE)
-            cairo_translate(cr, 0, ((bheight - button->theight - 4) / 2));
+            cairo_translate(cr, 0, ((bheight - button->theight) / 2));
         else
-            cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->theight : 0.f) - 4) / 2));
+            cairo_translate(cr, (bwidth - cwidth) / 2, ((bheight - (draw_text == TRUE ? button->theight : 0.f)) / 2));
 
         cairo_scale(cr, font_xscale(button->font), 1);
         cairo_move_to(cr, 0, 0);

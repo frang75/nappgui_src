@@ -281,12 +281,12 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         break;
 
     case WM_NCCALCSIZE:
-        if (panel->flags & ekVIEW_BORDER)
+        if (panel->flags & ekPANEL_BORDER)
             _osgui_nccalcsize(hwnd, wParam, lParam, FALSE, 0, &panel->border);
         break;
 
     case WM_NCPAINT:
-        if (panel->flags & ekVIEW_BORDER)
+        if (panel->flags & ekPANEL_BORDER)
         {
             bool_t focused = (bool_t)(GetFocus() == hwnd);
             _osgui_ncpaint(hwnd, focused, &panel->border, NULL);
@@ -367,10 +367,11 @@ static LRESULT CALLBACK i_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_MOUSEWHEEL:
         if (panel->scroll != NULL)
         {
+            gui_orient_t orient = (GET_KEYSTATE_WPARAM(wParam) & MK_SHIFT) ? ekGUI_HORIZONTAL : ekGUI_VERTICAL;
             gui_scroll_t event = ekGUI_SCROLL_STEP_LEFT;
             if (GET_WHEEL_DELTA_WPARAM(wParam) < 0)
                 event = ekGUI_SCROLL_STEP_RIGHT;
-            _osscrolls_event(panel->scroll, ekGUI_VERTICAL, event, TRUE);
+            _osscrolls_event(panel->scroll, orient, event, TRUE);
         }
         break;
 
@@ -442,17 +443,17 @@ OSPanel *ospanel_create(const uint32_t flags)
     OSPanel *panel = heap_new0(OSPanel);
     DWORD dwStyle = WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
-    if (flags & ekVIEW_HSCROLL)
+    if (flags & ekPANEL_HSCROLL)
         dwStyle |= WS_HSCROLL;
 
-    if (flags & ekVIEW_VSCROLL)
+    if (flags & ekPANEL_VSCROLL)
         dwStyle |= WS_VSCROLL;
 
     panel->control.type = ekGUI_TYPE_PANEL;
     _oscontrol_init(cast(panel, OSControl), PARAM(dwExStyle, WS_EX_NOPARENTNOTIFY), dwStyle, kVIEW_CLASS, 0, 0, i_WndProc, kDEFAULT_PARENT_WINDOW);
 
-    if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
-        panel->scroll = _osscrolls_create(cast(panel, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
+    if ((flags & ekPANEL_HSCROLL) || (flags & ekPANEL_VSCROLL))
+        panel->scroll = _osscrolls_create(cast(panel, OSControl), (bool_t)(flags & ekPANEL_HSCROLL) != 0, (bool_t)(flags & ekPANEL_VSCROLL) != 0);
 
     panel->flags = flags;
     panel->children = arrpt_create(OSControl);
@@ -589,6 +590,13 @@ void ospanel_display(OSPanel *panel)
     cassert_no_null(panel);
     if (panel->areas != NULL)
         InvalidateRect(panel->control.hwnd, NULL, TRUE);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void ospanel_scroll_update(OSPanel *panel)
+{
+    unref(panel);
 }
 
 /*---------------------------------------------------------------------------*/

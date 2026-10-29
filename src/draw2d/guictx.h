@@ -509,6 +509,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
     FPtr_gctx_destroy func_updown_destroy,
     FPtr_gctx_set_listener func_updown_OnClick,
     FPtr_gctx_set_text func_updown_set_tooltip,
+    FPtr_gctx_eval2_real64 func_updown_transition,
     FPtr_gctx_bounds7 func_updown_bounds,
     FPtr_gctx_set_ptr func_attach_updown_to_panel,
     FPtr_gctx_set_ptr func_detach_updown_from_panel,
@@ -523,6 +524,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
     func_updown_destroy, \
     func_updown_OnClick, \
     func_updown_set_tooltip, \
+    func_updown_transition, \
     func_updown_bounds, \
     func_attach_updown_to_panel, \
     func_detach_updown_from_panel, \
@@ -537,6 +539,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
         FUNC_CHECK_GCTX_DESTROY(func_updown_destroy, updown_type), \
         FUNC_CHECK_GCTX_SET_LISTENER(func_updown_OnClick, updown_type), \
         FUNC_CHECK_GCTX_SET_TEXT(func_updown_set_tooltip, updown_type), \
+        FUNC_CHECK_GCTX_EVAL2_REAL64(func_updown_transition, updown_type), \
         FUNC_CHECK_GCTX_BOUNDS7(func_updown_bounds, updown_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_updown_to_panel, updown_type, panel_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_updown_from_panel, updown_type, panel_type), \
@@ -551,6 +554,7 @@ _draw2d_api void guictx_append_updown_manager_imp(
             (FPtr_gctx_destroy)func_updown_destroy, \
             (FPtr_gctx_set_listener)func_updown_OnClick, \
             (FPtr_gctx_set_text)func_updown_set_tooltip, \
+            (FPtr_gctx_eval2_real64)func_updown_transition, \
             (FPtr_gctx_bounds7)func_updown_bounds, \
             (FPtr_gctx_set_ptr)func_attach_updown_to_panel, \
             (FPtr_gctx_set_ptr)func_detach_updown_from_panel, \
@@ -934,6 +938,7 @@ _draw2d_api void guictx_append_view_manager_imp(
     FPtr_gctx_get2_real32 func_view_scroll_get,
     FPtr_gctx_get2_real32 func_view_scroller_size,
     FPtr_gctx_set2_bool func_view_scroller_visible,
+    FPtr_gctx_eval2_real64 func_view_scroll_transition,
     FPtr_gctx_set4_real32 func_view_content_size,
     FPtr_gctx_get_real32 func_view_scale_factor,
     FPtr_gctx_call func_view_set_need_display,
@@ -979,6 +984,7 @@ _draw2d_api void guictx_append_view_manager_imp(
     func_view_scroll_get, \
     func_view_scroller_size, \
     func_view_scroller_visible, \
+    func_view_scroll_transition, \
     func_view_content_size, \
     func_view_scale_factor, \
     func_view_set_need_display, \
@@ -1024,6 +1030,7 @@ _draw2d_api void guictx_append_view_manager_imp(
         FUNC_CHECK_GCTX_GET2_REAL32(func_view_scroll_get, view_type), \
         FUNC_CHECK_GCTX_GET2_REAL32(func_view_scroller_size, view_type), \
         FUNC_CHECK_GCTX_SET2_BOOL(func_view_scroller_visible, view_type), \
+        FUNC_CHECK_GCTX_EVAL2_REAL64(func_view_scroll_transition, view_type), \
         FUNC_CHECK_GCTX_SET4_REAL32(func_view_content_size, view_type), \
         FUNC_CHECK_GCTX_GET_REAL32(func_view_scale_factor, view_type), \
         FUNC_CHECK_GCTX_CALL(func_view_set_need_display, view_type), \
@@ -1070,6 +1077,7 @@ _draw2d_api void guictx_append_view_manager_imp(
             (FPtr_gctx_get2_real32)func_view_scroll_get, \
             (FPtr_gctx_get2_real32)func_view_scroller_size, \
             (FPtr_gctx_set2_bool)func_view_scroller_visible, \
+            (FPtr_gctx_eval2_real64)func_view_scroll_transition, \
             (FPtr_gctx_set4_real32)func_view_content_size, \
             (FPtr_gctx_get_real32)func_view_scale_factor, \
             (FPtr_gctx_call)func_view_set_need_display, \
@@ -1092,6 +1100,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
     FPtr_gctx_get2_real32 func_panel_scroller_size,
     FPtr_gctx_set4_real32 func_panel_content_size,
     FPtr_gctx_call func_panel_set_need_display,
+    FPtr_gctx_call func_panel_scroll_update,
     FPtr_gctx_set_ptr func_attach_panel_to_panel,
     FPtr_gctx_set_ptr func_detach_panel_from_panel,
     FPtr_gctx_set_bool func_panel_set_visible,
@@ -1108,6 +1117,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
     func_panel_scroller_size, \
     func_panel_content_size, \
     func_panel_set_need_display, \
+    func_panel_scroll_update, \
     func_attach_panel_to_panel, \
     func_detach_panel_from_panel, \
     func_panel_set_visible, \
@@ -1124,6 +1134,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
         FUNC_CHECK_GCTX_GET2_REAL32(func_panel_scroller_size, panel_type), \
         FUNC_CHECK_GCTX_SET4_REAL32(func_panel_content_size, panel_type), \
         FUNC_CHECK_GCTX_CALL(func_panel_set_need_display, panel_type), \
+        FUNC_CHECK_GCTX_CALL(func_panel_scroll_update, panel_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_attach_panel_to_panel, panel_type, panel_type), \
         FUNC_CHECK_GCTX_SET_PTR(func_detach_panel_from_panel, panel_type, panel_type), \
         FUNC_CHECK_GCTX_SET_BOOL(func_panel_set_visible, panel_type), \
@@ -1140,6 +1151,7 @@ _draw2d_api void guictx_append_panel_manager_imp(
             (FPtr_gctx_get2_real32)func_panel_scroller_size, \
             (FPtr_gctx_set4_real32)func_panel_content_size, \
             (FPtr_gctx_call)func_panel_set_need_display, \
+            (FPtr_gctx_call)func_panel_scroll_update, \
             (FPtr_gctx_set_ptr)func_attach_panel_to_panel, \
             (FPtr_gctx_set_ptr)func_detach_panel_from_panel, \
             (FPtr_gctx_set_bool)func_panel_set_visible, \

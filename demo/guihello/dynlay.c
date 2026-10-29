@@ -669,62 +669,32 @@ static DynData *i_panel_data(void)
 }
 
 /*---------------------------------------------------------------------------*/
-/*
- * Dynamic layouts example
- *
- * The main layout is a stack with three rows:
- * Control Layout: Buttons to add/remove dynamic layouts cells
- * Top Layout: Grid layout with simple widgets where we can add/remove columns/rows dynamically
- * Bottom Layout: A stack where we can add/remove complex sublayouts dynamically
- *
- * Main layout lives in a scroll panel with fixed size.
- * When main layout grows, scrollbars will be activated to browse all the content.
- *
- */
-/*---------------------------------------------------------------------------*/
+
 Panel *dynlay_panel(void)
 {
     DynData *data = i_panel_data();
-    Panel *panel = panel_scroll(TRUE, TRUE);
-    Layout *layout = layout_create(1, 4);
-    Layout *control_layout = i_control_layout(data);
-    Layout *top_layout = i_top_layout(data);
-    Layout *bottom_layout = i_bottom_layout(data);
-    data->top_layout = top_layout;
-    data->bottom_layout = bottom_layout;
-
-    /* Main layout composition */
-    layout_layout(layout, control_layout, 0, 0);
-    layout_layout(layout, top_layout, 0, 1);
-    layout_layout(layout, bottom_layout, 0, 2);
-
-    /* Grid layout dynamic margins */
+    Panel *panel1 = panel_create();
+    Panel *panel2 = panel_scroll(TRUE, TRUE);
+    Layout *layout1 = layout_create(1, 2);
+    Layout *layout2 = layout_create(1, 3);
+    Layout *layout3 = i_control_layout(data);
+    Layout *layout4 = i_top_layout(data);
+    Layout *layout5 = i_bottom_layout(data);
+    data->top_layout = layout4;
+    data->bottom_layout = layout5;
+    panel_size(panel2, s2df(400, 500));
+    panel_scroll_mode(panel2, FALSE, FALSE);
     i_top_layout_margins(data);
-
-    /* Articles layout margins */
     i_bottom_layout_margins(data);
-
-    /* Static vertical separation between three layouts */
-    layout_vmargin(layout, 0, 10);
-    layout_vmargin(layout, 1, 10);
-
-    /*
-     * The main layout vertical expansion is delegated to a fourth empty cell.
-     * This prevents excess pixels from being distributed across all rows,
-     * keeping the top three rows together.
-     */
-    layout_vexpand(layout, 3);
-
-    /*
-     * Main container fixed size
-     * Scrollbars will be activated when layouts grow
-     */
-    panel_size(panel, s2df(400, 500));
-
-    /* Panel-Layout binding */
-    panel_layout(panel, layout);
-
-    /* DynData is a dynamic structure that will be destroyed the Panel destroys */
-    panel_data(panel, &data, i_destroy_dyndata, DynData);
-    return panel;
+    layout_layout(layout1, layout3, 0, 0);
+    layout_panel(layout1, panel2, 0, 1);
+    layout_layout(layout2, layout4, 0, 0);
+    layout_layout(layout2, layout5, 0, 1);
+    layout_vmargin(layout1, 0, 10);
+    layout_vmargin(layout2, 0, 10);
+    layout_vexpand(layout2, 2);
+    panel_layout(panel2, layout2);
+    panel_layout(panel1, layout1);
+    panel_data(panel1, &data, i_destroy_dyndata, DynData);
+    return panel1;
 }

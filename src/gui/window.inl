@@ -16,6 +16,8 @@ __EXTERN_C
 
 void _window_update(Window *window);
 
+void _window_scroll_update(Window *window);
+
 void *_window_ositem(Window *window);
 
 Panel *_window_main_panel(Window *window);

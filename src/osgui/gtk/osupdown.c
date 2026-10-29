@@ -40,7 +40,14 @@ struct _osupdown_t
     OSControl control;
     udstate_t state;
     Listener *OnClick;
+    real64_t elapsed;
+    bool_t repeating;
 };
+
+/*---------------------------------------------------------------------------*/
+
+static const real64_t i_REPEAT_DELAY = .3;
+static const real64_t i_REPEAT_INTERVAL = .1;
 
 /*---------------------------------------------------------------------------*/
 
@@ -152,11 +159,39 @@ static gboolean i_OnPress(GtkWidget *widget, GdkEventButton *event, OSUpDown *up
 static gboolean i_OnMove(GtkWidget *widget, GdkEventMotion *event, OSUpDown *updown)
 {
     int h = gtk_widget_get_allocated_height(widget);
+    bool_t pressed = (bool_t)((event->state & (GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK)) != 0);
     cassert_no_null(updown);
-    if (event->y < h / 2)
-        updown->state = ekUP_HOVER;
+
+    if (pressed == TRUE)
+    {
+        udstate_t new_state = ekUP_CLICK;
+        if (event->y >= h / 2)
+            new_state = ekDOWN_CLICK;
+
+        if ((updown->state == ekUP_CLICK || updown->state == ekDOWN_CLICK) && new_state != updown->state)
+        {
+            uint32_t index = 0;
+            if (new_state == ekDOWN_CLICK)
+                index = 1;
+
+            updown->state = new_state;
+            updown->elapsed = 0;
+            updown->repeating = FALSE;
+            i_OnClick(updown, index);
+        }
+        else
+        {
+            updown->state = new_state;
+        }
+    }
     else
-        updown->state = ekDOWN_HOVER;
+    {
+        if (event->y < h / 2)
+            updown->state = ekUP_HOVER;
+        else
+            updown->state = ekDOWN_HOVER;
+    }
+
     gtk_widget_queue_draw(widget);
     return TRUE;
 }
@@ -214,6 +249,48 @@ void osupdown_tooltip(OSUpDown *updown, const char_t *text)
 {
     cassert_no_null(updown);
     gtk_widget_set_tooltip_text(updown->control.widget, cast_const(text, gchar));
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t osupdown_transition(OSUpDown *updown, const real64_t prtime, const real64_t crtime)
+{
+    uint32_t index = 0;
+    cassert_no_null(updown);
+
+    if (updown->state != ekUP_CLICK && updown->state != ekDOWN_CLICK)
+    {
+        updown->elapsed = 0;
+        updown->repeating = FALSE;
+        return FALSE;
+    }
+
+    if (updown->state == ekUP_CLICK)
+        index = 0;
+    else
+        index = 1;
+
+    updown->elapsed += (crtime - prtime);
+
+    if (updown->repeating == FALSE)
+    {
+        if (updown->elapsed >= i_REPEAT_DELAY)
+        {
+            updown->repeating = TRUE;
+            updown->elapsed = 0;
+            i_OnClick(updown, index);
+        }
+    }
+    else
+    {
+        if (updown->elapsed >= i_REPEAT_INTERVAL)
+        {
+            updown->elapsed = 0;
+            i_OnClick(updown, index);
+        }
+    }
+
+    return TRUE;
 }
 
 /*---------------------------------------------------------------------------*/

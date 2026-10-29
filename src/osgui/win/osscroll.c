@@ -147,6 +147,38 @@ uint32_t _osscroll_bar_height(const OSScroll *scroll)
 
 /*---------------------------------------------------------------------------*/
 
+void _osscroll_sync(OSScroll *scroll)
+{
+    unref(scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osscroll_overlay(const OSScroll *scroll)
+{
+    unref(scroll);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _osscroll_activity(OSScroll *scroll)
+{
+    unref(scroll);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t _osscroll_transition(OSScroll *scroll, const real64_t prtime, const real64_t crtime)
+{
+    unref(scroll);
+    unref(prtime);
+    unref(crtime);
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _osscroll_set_pos(OSScroll *scroll, const uint32_t pos)
 {
     cassert_no_null(scroll);
@@ -175,7 +207,7 @@ void _osscroll_config(OSScroll *scroll, const uint32_t pos, const uint32_t max, 
     si.nMin = 0;
     si.nMax = (int)max;
     si.nPos = (int)pos;
-    SetScrollInfo(scroll->hwnd, scroll->type, &si, FALSE);
+    SetScrollInfo(scroll->hwnd, scroll->type, &si, TRUE);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -53,6 +53,8 @@ void _osapp_set_lang(OSApp *app, const char_t *lang);
 
 void _osapp_OnThemeChanged(OSApp *app, Listener *listener);
 
+void _osapp_OnScrollChanged(OSApp *app, Listener *listener);
+
 void _osapp_menubar(OSApp *app, void *menu, void *window);
 
 __END_C

@@ -934,7 +934,7 @@ static void i_row_height(TData *data)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_document_size(View *view, TData *data)
+static void i_document_size(TData *data)
 {
     uint32_t twidth = 0;
     uint32_t theight = 0;
@@ -961,11 +961,7 @@ static void i_document_size(View *view, TData *data)
     /* Document height has been invalidated */
     if (data->recompute_height == TRUE)
     {
-        real32_t scroll_height = 0;
-
         theight = data->num_rows * data->row_height + i_BOTTOM_PADDING;
-        view_scroll_size(cast(view, View), NULL, &scroll_height);
-        theight += (uint32_t)scroll_height;
 
         if (data->head_visible == TRUE)
             theight += data->head_height;
@@ -1050,6 +1046,7 @@ static void i_OnSize(TData *data, Event *e)
 {
     const EvSize *p = event_params(e, EvSize);
     View *view = event_sender(e, View);
+    unref(view);
     cassert_no_null(data);
     scrollview_control_size(data->sview, (uint32_t)p->width, (uint32_t)p->height);
     i_head_height(data);
@@ -1057,7 +1054,7 @@ static void i_OnSize(TData *data, Event *e)
 
     data->recompute_width = TRUE;
     data->recompute_height = TRUE;
-    i_document_size(view, data);
+    i_document_size(data);
 
     if (data->focus_align != ENUM_MAX(align_t))
     {
@@ -1243,7 +1240,7 @@ static void i_OnDrag(TData *data, Event *e)
             col->width = (uint32_t)col_width;
 
         data->recompute_width = TRUE;
-        i_document_size(view, data);
+        i_document_size(data);
         view_update(view);
     }
 }
@@ -1621,7 +1618,7 @@ static void i_toggle_expand(TableView *view, TData *data, const uint32_t row)
         i_expand_node(view, data, row);
 
     data->recompute_height = TRUE;
-    i_document_size(cast(view, View), data);
+    i_document_size(data);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2093,7 +2090,7 @@ TableView *tableview_create(void)
     view_size(view, s2df(256, 128));
     i_head_height(data);
     i_row_height(data);
-    i_document_size(view, data);
+    i_document_size(data);
     return cast(view, TableView);
 }
 
@@ -2157,7 +2154,7 @@ void tableview_font(TableView *view, const Font *font)
         data->recompute_width = TRUE;
         data->recompute_height = TRUE;
         i_row_height(data);
-        i_document_size(cast(view, View), data);
+        i_document_size(data);
         view_update(cast(view, View));
     }
 }
@@ -2209,7 +2206,7 @@ static void i_update_after_column(TableView *view)
     cassert_no_null(data);
     i_row_height(data);
     data->recompute_width = TRUE;
-    i_document_size(cast(view, View), data);
+    i_document_size(data);
     view_update(cast(view, View));
 }
 
@@ -2309,7 +2306,7 @@ void tableview_column_width(TableView *view, const uint32_t column_id, const rea
             column->width = column->max_width;
 
         data->recompute_width = TRUE;
-        i_document_size(cast(view, View), data);
+        i_document_size(data);
         view_update(cast(view, View));
     }
 }
@@ -2332,14 +2329,14 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
         {
             column->width = column->min_width;
             data->recompute_width = TRUE;
-            i_document_size(cast(view, View), data);
+            i_document_size(data);
             view_update(cast(view, View));
         }
         else if (column->width > column->max_width)
         {
             column->width = column->max_width;
             data->recompute_width = TRUE;
-            i_document_size(cast(view, View), data);
+            i_document_size(data);
             view_update(cast(view, View));
         }
     }
@@ -2525,7 +2522,7 @@ void tableview_grid(TableView *view, const bool_t hlines, const bool_t vlines)
         data->hlines = hlines;
         data->recompute_height = TRUE;
         i_row_height(data);
-        i_document_size(cast(view, View), data);
+        i_document_size(data);
         update = TRUE;
     }
 
@@ -2592,7 +2589,7 @@ void tableview_update(TableView *view)
     else
         i_num_rows(view, data);
     data->recompute_height = TRUE;
-    i_document_size(cast(view, View), data);
+    i_document_size(data);
     view_update(cast(view, View));
 }
 

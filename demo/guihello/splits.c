@@ -30,8 +30,6 @@ static Panel *i_left_panel(void)
     uint32_t i, n = 32;
     Panel *panel = panel_scroll(FALSE, TRUE);
     Layout *layout = layout_create(2, n);
-    real32_t rmargin = 0;
-    panel_scroll_size(panel, &rmargin, NULL);
     for (i = 0; i < n; ++i)
     {
         char_t text[64];
@@ -49,7 +47,7 @@ static Panel *i_left_panel(void)
         layout_vmargin(layout, i, 3);
 
     layout_hmargin(layout, 0, 5);
-    layout_margin4(layout, 0, rmargin, 0, 0);
+    layout_margin4(layout, 0, 5, 0, 0);
     layout_hexpand(layout, 1);
     panel_layout(panel, layout);
     return panel;

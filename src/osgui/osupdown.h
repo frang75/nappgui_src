@@ -22,6 +22,8 @@ _osgui_api void osupdown_OnClick(OSUpDown *updown, Listener *listener);
 
 _osgui_api void osupdown_tooltip(OSUpDown *updown, const char_t *text);
 
+_osgui_api bool_t osupdown_transition(OSUpDown *updown, const real64_t prtime, const real64_t crtime);
+
 _osgui_api void osupdown_bounds(const OSUpDown *updown, real32_t *width, real32_t *height);
 
 _osgui_api void osupdown_attach(OSUpDown *updown, OSPanel *panel);
