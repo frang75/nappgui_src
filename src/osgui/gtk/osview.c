@@ -513,8 +513,7 @@ OSView *osview_create(const uint32_t flags)
     if ((flags & ekVIEW_HSCROLL) || (flags & ekVIEW_VSCROLL))
     {
         view->scroll = _osscrolls_create(cast(view, OSControl), (bool_t)(flags & ekVIEW_HSCROLL) != 0, (bool_t)(flags & ekVIEW_VSCROLL) != 0);
-        if (flags & ekVIEW_VSCROLL)
-            g_signal_connect(area, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
+        g_signal_connect(area, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
     }
 
     i_wire_common_signals(view->darea, top, view);
@@ -634,7 +633,8 @@ void osview_OnWheel(OSView *view, Listener *listener)
 {
     cassert_no_null(view);
     listener_update(&view->listeners.OnWheel, listener);
-    _oslistener_signal(view->darea, listener != NULL, &view->listeners.wheel_signal, GDK_SCROLL_MASK, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
+    if (view->scroll == NULL)
+        _oslistener_signal(view->darea, listener != NULL, &view->listeners.wheel_signal, GDK_SCROLL_MASK, "scroll-event", G_CALLBACK(i_OnWheel), (gpointer)view);
 }
 
 /*---------------------------------------------------------------------------*/

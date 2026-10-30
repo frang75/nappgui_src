@@ -287,7 +287,9 @@ void _oslistener_scroll_whell(const NSView *view, NSEvent *theEvent, const OSScr
     {
         EvWheel params;
         cassert_no_null(theEvent);
-        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.x, &params.y);
+        i_mouse_position_in_view_coordinates(view, [theEvent locationInWindow], &params.lx, &params.ly);
+        params.x = params.lx;
+        params.y = params.ly;
         params.dx = (real32_t)[theEvent deltaX];
         params.dy = (real32_t)[theEvent deltaY];
         params.dz = (real32_t)[theEvent deltaZ];

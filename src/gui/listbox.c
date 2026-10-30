@@ -78,6 +78,7 @@ static void i_OnSize(LData *data, Event *e);
 static void i_OnEnter(LData *data, Event *e);
 static void i_OnExit(LData *data, Event *e);
 static void i_OnMoved(LData *data, Event *e);
+static void i_OnWheel(LData *data, Event *e);
 static void i_OnFocus(LData *data, Event *e);
 static void i_OnDown(LData *data, Event *e);
 static void i_OnUp(LData *data, Event *e);
@@ -101,7 +102,7 @@ static VCtrlTbl i_LISTBOX_TLB = {
     (FPtr_event_handler)i_OnUp,
     NULL, /* OnClick */
     NULL, /* OnDrag */
-    NULL, /* OnWheel */
+    (FPtr_event_handler)i_OnWheel,
     (FPtr_event_handler)i_OnKeyDown,
     (FPtr_event_handler)i_OnKeyUp,
     (FPtr_event_handler)i_OnFocus,
@@ -168,6 +169,7 @@ static void i_OnDraw(LData *data, Event *e)
     uint32_t n = 0;
     cassert_no_null(data);
     drawctrl_clear(p->ctx, (int32_t)p->x, (int32_t)p->y, (uint32_t)p->width, (uint32_t)p->height);
+
     n = arrst_size(data->elems, PElem);
 
     if (n > 0)
@@ -332,23 +334,37 @@ static bool_t i_mouse_in_check(const LData *data, const uint32_t x, uint32_t y)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnMoved(LData *data, Event *e)
+static void i_mouse_hover(View *view, LData *data, const uint32_t x, const uint32_t y)
 {
-    const EvMouse *p = event_params(e, EvMouse);
-    uint32_t y = (uint32_t)p->y;
     cassert_no_null(data);
     data->mouse_ypos = y;
     data->mouse_incheck = FALSE;
 
     if (arrst_size(data->elems, PElem) > 0)
     {
-        View *view = event_sender(e, View);
-
         if (data->checks == TRUE)
-            data->mouse_incheck = i_mouse_in_check(data, (uint32_t)p->x, y);
+            data->mouse_incheck = i_mouse_in_check(data, x, y);
 
         view_update(view);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnMoved(LData *data, Event *e)
+{
+    const EvMouse *p = event_params(e, EvMouse);
+    View *view = event_sender(e, View);
+    i_mouse_hover(view, data, (uint32_t)p->x, (uint32_t)p->y);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWheel(LData *data, Event *e)
+{
+    const EvWheel *p = event_params(e, EvWheel);
+    View *view = event_sender(e, View);
+    i_mouse_hover(view, data, (uint32_t)p->x, (uint32_t)p->y);
 }
 
 /*---------------------------------------------------------------------------*/

@@ -191,7 +191,7 @@ void ostabs_selected(OSTabs *tabs, const uint32_t index)
     cassert_no_null(tabs);
     tabs->launch_event = FALSE;
     gtk_notebook_set_current_page(GTK_NOTEBOOK(tabs->control.widget), (gint)index);
-    tabs->launch_event = FALSE;
+    tabs->launch_event = TRUE;
 }
 
 /*---------------------------------------------------------------------------*/

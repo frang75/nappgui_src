@@ -4,24 +4,28 @@
 
 ### Added
 
-- Panel scrollbar gutter handling. [Issue](https://github.com/frang75/nappgui_src/issues/275). [Commit](). [Doc]().
+- Panel scrollbar gutter handling. [Issue](https://github.com/frang75/nappgui_src/issues/275). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748). [Doc](https://www.nappgui.com/en/gui/panel.html#h3).
     - `panel_scroll_mode()`.
-- Support for **Shift + Wheel** for horizontal scrolling in Panel and View. [Commit](). [Doc]().
+- Support for **Shift + Wheel** for horizontal scrolling in Panel and View. [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
+- Pointer coordinates on the control in `EvWheel`. [Commit]().
+    - `EvWheel::lx`.
+    - `EvWheel::ly`.
 
 ### Fixed
 
 - GTK3 backend support narrowing widgets to 5px. [Commit](https://github.com/frang75/nappgui_src/commit/3c28e80f479a1145e53835c34979d87da91f15a2).
 - TableView draws vertical scrollbar when column resize. [Issue](https://github.com/frang75/nappgui_src/issues/277). [Commit]().
-- Scrollbar Panel management (overlay/solid). [Doc](). [Commit]().
-- Scrollbar View management (overlay/solid). [Doc](). [Commit]().
+- Scrollbar Panel management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
+- Scrollbar View management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
+- ListBox and TableView hover row not updated on mouse wheel scroll. [Commit]().
 
 ### Changed
 
-- `gui_update()` adds two parameters (`const bool_t theme, const bool_t scrollers`). [Commit]().
+- `gui_update()` adds two parameters (`const bool_t theme, const bool_t scrollers`). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 
 ### Removed
 
-- `panel_scroll_size()`. [Issue](https://github.com/frang75/nappgui_src/issues/275). [Commit](). [Doc]().
+- `panel_scroll_size()`. [Issue](https://github.com/frang75/nappgui_src/issues/275). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 
 ## v1.6.3 - October 01, 2026 (r7077)
 

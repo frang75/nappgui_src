@@ -1066,6 +1066,8 @@ struct _evwheel_t
 {
     real32_t x;
     real32_t y;
+    real32_t lx;
+    real32_t ly;
     real32_t dx;
     real32_t dy;
     real32_t dz;

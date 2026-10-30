@@ -126,6 +126,7 @@ static void i_OnOverlay(TData *data, Event *e);
 static void i_OnSize(TData *data, Event *e);
 static void i_OnExit(TData *data, Event *e);
 static void i_OnMove(TData *data, Event *e);
+static void i_OnWheel(TData *data, Event *e);
 static void i_OnDown(TData *data, Event *e);
 static void i_OnUp(TData *data, Event *e);
 static void i_OnDrag(TData *data, Event *e);
@@ -149,7 +150,7 @@ static VCtrlTbl i_TABLEVIEW_TLB = {
     (FPtr_event_handler)i_OnUp,
     NULL, /* OnClick */
     (FPtr_event_handler)i_OnDrag,
-    NULL, /* OnWheel */
+    (FPtr_event_handler)i_OnWheel,
     (FPtr_event_handler)i_OnKeyDown,
     (FPtr_event_handler)i_OnKeyUp,
     (FPtr_event_handler)i_OnFocus,
@@ -1113,17 +1114,10 @@ static void i_mouse_in_header(TData *data, const Column *cols, const uint32_t st
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnMove(TData *data, Event *e)
+static void i_mouse_hover(View *view, TData *data, const uint32_t mouse_x, const uint32_t mouse_y, const uint32_t mouse_ly)
 {
-    const EvMouse *p = event_params(e, EvMouse);
-    View *view = event_sender(e, View);
-    uint32_t mouse_x = (uint32_t)p->x;
-    uint32_t mouse_y = (uint32_t)p->y;
-    uint32_t mouse_ly = (uint32_t)p->ly;
     uint32_t content_width = 0;
-
     cassert_no_null(data);
-    cassert(data->mouse_down == FALSE);
     data->mouse_row = UINT32_MAX;
     data->mouse_head = UINT32_MAX;
     data->mouse_sep = UINT32_MAX;
@@ -1214,8 +1208,32 @@ static void i_OnMove(TData *data, Event *e)
             i_set_cursor(view, data, hand == TRUE ? ekGUI_CURSOR_HAND : ekGUI_CURSOR_ARROW);
         }
     }
+}
 
+/*---------------------------------------------------------------------------*/
+
+static void i_OnMove(TData *data, Event *e)
+{
+    const EvMouse *p = event_params(e, EvMouse);
+    View *view = event_sender(e, View);
+    cassert_no_null(data);
+    cassert(data->mouse_down == FALSE);
+    i_mouse_hover(view, data, (uint32_t)p->x, (uint32_t)p->y, (uint32_t)p->ly);
     view_update(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnWheel(TData *data, Event *e)
+{
+    cassert_no_null(data);
+    if (data->mouse_down == FALSE)
+    {
+        const EvWheel *p = event_params(e, EvWheel);
+        View *view = event_sender(e, View);
+        i_mouse_hover(view, data, (uint32_t)p->x, (uint32_t)p->y, (uint32_t)p->ly);
+        view_update(view);
+    }
 }
 
 /*---------------------------------------------------------------------------*/

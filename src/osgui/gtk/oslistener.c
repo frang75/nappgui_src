@@ -267,8 +267,10 @@ void _oslistener_scroll_whell(OSControl *sender, GdkEventScroll *event, const re
         if (listeners->OnWheel != NULL)
         {
             EvWheel params;
-            params.x = bmath_roundf((real32_t)event->x + scroll_x);
-            params.y = bmath_roundf((real32_t)event->y + scroll_y);
+            params.lx = bmath_roundf((real32_t)event->x);
+            params.ly = bmath_roundf((real32_t)event->y);
+            params.x = bmath_roundf(params.lx + scroll_x);
+            params.y = bmath_roundf(params.ly + scroll_y);
             params.dx = 0;
             params.dy = event->direction == GDK_SCROLL_DOWN ? -1 : 1;
             params.dz = 0;

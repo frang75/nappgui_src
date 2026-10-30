@@ -265,6 +265,8 @@ void _oslistener_whell(OSControl *sender, WPARAM event_wParam, LPARAM event_lPar
             py = (real32_t)point.y / scale;
             params.x = px + (scroll ? (real32_t)_osscrolls_x_pos(scroll) : 0);
             params.y = py + (scroll ? (real32_t)_osscrolls_y_pos(scroll) : 0);
+            params.lx = px;
+            params.ly = py;
             params.dx = 0;
             params.dy = (real32_t)(GET_WHEEL_DELTA_WPARAM(event_wParam) / WHEEL_DELTA);
             params.dz = 0;
