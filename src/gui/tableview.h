@@ -43,6 +43,8 @@ _gui_api void tableview_column_width(TableView *view, const uint32_t column_id, 
 
 _gui_api void tableview_column_limits(TableView *view, const uint32_t column_id, const real32_t min, const real32_t max);
 
+_gui_api real32_t tableview_column_extents(const TableView *view, const uint32_t column_id, const char_t *reftext, const Image *reficon);
+
 _gui_api void tableview_column_align(TableView *view, const uint32_t column_id, const align_t align);
 
 _gui_api void tableview_column_resizable(TableView *view, const uint32_t column_id, const bool_t resizable);

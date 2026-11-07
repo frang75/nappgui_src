@@ -950,29 +950,26 @@ static void i_document_size(TData *data)
         arrst_end()
 
         data->fill_width = twidth;
-        twidth += i_DOCUMENT_RIGHT_MARGIN;
         data->recompute_width = FALSE;
         update = TRUE;
     }
     else
     {
-        twidth = scrollview_content_width(data->sview);
+        twidth = data->fill_width;
     }
+
+    twidth += i_DOCUMENT_RIGHT_MARGIN;
 
     /* Document height has been invalidated */
+    theight = data->num_rows * data->row_height + i_BOTTOM_PADDING;
+
+    if (data->head_visible == TRUE)
+        theight += data->head_height;
+
     if (data->recompute_height == TRUE)
     {
-        theight = data->num_rows * data->row_height + i_BOTTOM_PADDING;
-
-        if (data->head_visible == TRUE)
-            theight += data->head_height;
-
         data->recompute_height = FALSE;
         update = TRUE;
-    }
-    else
-    {
-        theight = scrollview_content_height(data->sview);
     }
 
     if (update == TRUE)
@@ -2358,6 +2355,36 @@ void tableview_column_limits(TableView *view, const uint32_t column_id, const re
             view_update(cast(view, View));
         }
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+real32_t tableview_column_extents(const TableView *view, const uint32_t column_id, const char_t *reftext, const Image *reficon)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    const Column *column = NULL;
+    real32_t width = (real32_t)i_COLUMN_PADDING;
+    cassert_no_null(data);
+    column = arrst_get_const(data->columns, column_id, Column);
+    cassert_no_null(column);
+
+    if (reficon != NULL)
+    {
+        cassert(column->icon_height > 0);
+        cassert(image_height(reficon) == column->icon_height);
+        width += (real32_t)image_width(reficon);
+        width += (real32_t)column->hmargin;
+    }
+
+    if (reftext != NULL)
+    {
+        real32_t twidth = 0;
+        real32_t theight = 0;
+        font_extents(column->font, reftext, -1, &twidth, &theight);
+        width += twidth;
+    }
+
+    return width;
 }
 
 /*---------------------------------------------------------------------------*/

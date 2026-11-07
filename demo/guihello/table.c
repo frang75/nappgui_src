@@ -181,14 +181,22 @@ static void i_OnTableData(AppData *data, Event *e)
 
         case 1:
             cell->align = ekLEFT;
-            if (pos->row % 3 == 0)
-                cell->icon = gui_image(ERROR16_PNG);
-            else if (pos->row % 3 == 1)
-                cell->icon = gui_image(EDIT16_PNG);
-            else
+            if (pos->row == 0)
+            {
                 cell->icon = gui_image(DISK16_PNG);
+                bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Reference Address 00");
+            }
+            else
+            {
+                if (pos->row % 3 == 0)
+                    cell->icon = gui_image(ERROR16_PNG);
+                else if (pos->row % 3 == 1)
+                    cell->icon = gui_image(EDIT16_PNG);
+                else
+                    cell->icon = gui_image(DISK16_PNG);
 
-            bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Adress %d", pos->row);
+                bstd_sprintf(data->temp_string, sizeof(data->temp_string), "Address %d", pos->row);
+            }
             break;
 
         case 2:
@@ -428,7 +436,13 @@ Panel *table_view(void)
     tableview_header_title(table, 7, "Extra\nData 3");
     tableview_header_title(table, 8, "Extra\nData 4");
     tableview_column_width(table, 0, 100);
-    tableview_column_width(table, 1, 105);
+
+    {
+        const Image *image = gui_image(DISK16_PNG);
+        real32_t width = tableview_column_extents(table, 1, "Reference Address 00", image);
+        tableview_column_width(table, 1, width);
+    }
+
     tableview_column_width(table, 2, 50);
     tableview_column_width(table, 3, 50);
     tableview_column_width(table, 4, 170);

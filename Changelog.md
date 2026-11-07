@@ -7,9 +7,10 @@
 - Panel scrollbar gutter handling. [Issue](https://github.com/frang75/nappgui_src/issues/275). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748). [Doc](https://www.nappgui.com/en/gui/panel.html#h3).
     - `panel_scroll_mode()`.
 - Support for **Shift + Wheel** for horizontal scrolling in Panel and View. [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
-- Pointer coordinates on the control in `EvWheel`. [Commit]().
+- Pointer coordinates on the control in `EvWheel`. [Commit](https://github.com/frang75/nappgui_src/commit/e11521d6dc7ff44bf6a2c7760b976f76fa8b69fe).
     - `EvWheel::lx`.
     - `EvWheel::ly`.
+- `tableview_column_extents()`. [Issue](https://github.com/frang75/nappgui_src/issues/287). [Commit]().
 
 ### Fixed
 
@@ -17,7 +18,7 @@
 - TableView draws vertical scrollbar when column resize. [Issue](https://github.com/frang75/nappgui_src/issues/277). [Commit]().
 - Scrollbar Panel management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 - Scrollbar View management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
-- ListBox and TableView hover row not updated on mouse wheel scroll. [Commit]().
+- ListBox and TableView hover row not updated on mouse wheel scroll. [Commit](https://github.com/frang75/nappgui_src/commit/e11521d6dc7ff44bf6a2c7760b976f76fa8b69fe).
 
 ### Changed
 
