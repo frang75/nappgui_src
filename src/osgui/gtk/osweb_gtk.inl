@@ -14,6 +14,8 @@
 
 __EXTERN_C
 
+void _osweb_finish(void);
+
 GtkWidget *_osweb_focus_widget(OSWeb *view);
 
 void _osweb_set_capture(OSWeb *view, OSControl *control);

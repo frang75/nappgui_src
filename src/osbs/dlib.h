@@ -15,7 +15,7 @@
 
 __EXTERN_C
 
-_osbs_api DLib *dlib_open(const char_t *path, const char_t *libname);
+_osbs_api DLib *dlib_open(const char_t *path, const char_t *libname, const char_t *libvers);
 
 _osbs_api void dlib_close(DLib **dlib);
 

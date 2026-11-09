@@ -16,18 +16,53 @@
 #include <core/hfile.h>
 #include <core/stream.h>
 #include <core/strings.h>
+#include <osbs/dlib.h>
+#include <sewer/bmem.h>
 #include <sewer/cassert.h>
 #include <sewer/ptr.h>
-#include <curl/curl.h>
 
 #if !defined(__LINUX__)
 #error This file is only for Linux system
 #endif
 
+typedef void CURL;
+typedef struct _curlslist_t CurlSList;
+typedef struct _curlapi_t CurlApi;
+
+typedef int (*FPtr_curl_global_init)(long flags);
+typedef void (*FPtr_curl_global_cleanup)(void);
+typedef CURL *(*FPtr_curl_easy_init)(void);
+typedef void (*FPtr_curl_easy_cleanup)(CURL *curl);
+typedef int (*FPtr_curl_easy_setopt)(CURL *curl, int option, ...);
+typedef int (*FPtr_curl_easy_getinfo)(CURL *curl, int info, ...);
+typedef int (*FPtr_curl_easy_perform)(CURL *curl);
+typedef CurlSList *(*FPtr_curl_slist_append)(CurlSList *list, const char *data);
+typedef void (*FPtr_curl_slist_free_all)(CurlSList *list);
+
+struct _curlslist_t
+{
+    char *data;
+    CurlSList *next;
+};
+
+struct _curlapi_t
+{
+    DLib *dlib;
+    FPtr_curl_global_init global_init;
+    FPtr_curl_global_cleanup global_cleanup;
+    FPtr_curl_easy_init easy_init;
+    FPtr_curl_easy_cleanup easy_cleanup;
+    FPtr_curl_easy_setopt easy_setopt;
+    FPtr_curl_easy_getinfo easy_getinfo;
+    FPtr_curl_easy_perform easy_perform;
+    FPtr_curl_slist_append slist_append;
+    FPtr_curl_slist_free_all slist_free_all;
+};
+
 struct _oshttp_t
 {
     CURL *curl;
-    struct curl_slist *headers;
+    CurlSList *headers;
     String *host;
     bool_t secure;
     cookies_t cookies;
@@ -35,6 +70,27 @@ struct _oshttp_t
     Stream *resp_data;
     ierror_t error;
 };
+
+/*---------------------------------------------------------------------------*/
+
+static const int i_CURLE_OK = 0;
+static const long i_CURL_GLOBAL_ALL = 3;
+static const int i_CURLOPT_PORT = 3;
+static const int i_CURLOPT_FOLLOWLOCATION = 52;
+static const int i_CURLOPT_POSTFIELDSIZE = 60;
+static const int i_CURLOPT_WRITEDATA = 10001;
+static const int i_CURLOPT_URL = 10002;
+static const int i_CURLOPT_POSTFIELDS = 10015;
+static const int i_CURLOPT_HTTPHEADER = 10023;
+static const int i_CURLOPT_HEADERDATA = 10029;
+static const int i_CURLOPT_COOKIEFILE = 10031;
+static const int i_CURLOPT_CUSTOMREQUEST = 10036;
+static const int i_CURLOPT_COOKIEJAR = 10082;
+static const int i_CURLOPT_COOKIELIST = 10135;
+static const int i_CURLOPT_WRITEFUNCTION = 20011;
+static const int i_CURLOPT_HEADERFUNCTION = 20079;
+static const int i_CURLINFO_COOKIELIST = 0x400000 + 28;
+static CurlApi i_CURL;
 
 /*---------------------------------------------------------------------------*/
 
@@ -48,16 +104,81 @@ struct _oshttp_t
 
 /*---------------------------------------------------------------------------*/
 
+static DLib *i_curl_dlib(void)
+{
+    DLib *dlib = dlib_open(NULL, "curl", "4");
+    if (dlib == NULL)
+        dlib = dlib_open(NULL, "curl-gnutls", "4");
+    if (dlib == NULL)
+        dlib = dlib_open(NULL, "curl", NULL);
+    return dlib;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_curl_procs(CurlApi *api)
+{
+    cassert_no_null(api);
+    api->global_init = dlib_proc(api->dlib, "curl_global_init", FPtr_curl_global_init);
+    api->global_cleanup = dlib_proc(api->dlib, "curl_global_cleanup", FPtr_curl_global_cleanup);
+    api->easy_init = dlib_proc(api->dlib, "curl_easy_init", FPtr_curl_easy_init);
+    api->easy_cleanup = dlib_proc(api->dlib, "curl_easy_cleanup", FPtr_curl_easy_cleanup);
+    api->easy_setopt = dlib_proc(api->dlib, "curl_easy_setopt", FPtr_curl_easy_setopt);
+    api->easy_getinfo = dlib_proc(api->dlib, "curl_easy_getinfo", FPtr_curl_easy_getinfo);
+    api->easy_perform = dlib_proc(api->dlib, "curl_easy_perform", FPtr_curl_easy_perform);
+    api->slist_append = dlib_proc(api->dlib, "curl_slist_append", FPtr_curl_slist_append);
+    api->slist_free_all = dlib_proc(api->dlib, "curl_slist_free_all", FPtr_curl_slist_free_all);
+    if (api->global_init == NULL)
+        return FALSE;
+    if (api->global_cleanup == NULL)
+        return FALSE;
+    if (api->easy_init == NULL)
+        return FALSE;
+    if (api->easy_cleanup == NULL)
+        return FALSE;
+    if (api->easy_setopt == NULL)
+        return FALSE;
+    if (api->easy_getinfo == NULL)
+        return FALSE;
+    if (api->easy_perform == NULL)
+        return FALSE;
+    if (api->slist_append == NULL)
+        return FALSE;
+    if (api->slist_free_all == NULL)
+        return FALSE;
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 void oshttp_init(void)
 {
-    curl_global_init(CURL_GLOBAL_ALL);
+    bmem_zero(&i_CURL, CurlApi);
+    i_CURL.dlib = i_curl_dlib();
+    if (i_CURL.dlib != NULL)
+    {
+        if (i_curl_procs(&i_CURL) == TRUE)
+        {
+            i_CURL.global_init(i_CURL_GLOBAL_ALL);
+        }
+        else
+        {
+            dlib_close(&i_CURL.dlib);
+            bmem_zero(&i_CURL, CurlApi);
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 void oshttp_finish(void)
 {
-    curl_global_cleanup();
+    if (i_CURL.dlib != NULL)
+    {
+        i_CURL.global_cleanup();
+        dlib_close(&i_CURL.dlib);
+        bmem_zero(&i_CURL, CurlApi);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -65,7 +186,10 @@ void oshttp_finish(void)
 OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secure)
 {
     OSHttp *http = heap_new(OSHttp);
-    http->curl = curl_easy_init();
+    if (i_CURL.dlib != NULL)
+        http->curl = i_CURL.easy_init();
+    else
+        http->curl = NULL;
     http->error = ekIOK;
     http->cookies = ekCOOKIES_ALL;
     http->secure = secure;
@@ -74,10 +198,14 @@ OSHttp *oshttp_create(const char_t *host, const uint16_t port, const bool_t secu
     http->resp_data = NULL;
     http->host = str_c(host);
 
-    if (http->curl != NULL)
+    if (i_CURL.dlib == NULL)
     {
-        int res = curl_easy_setopt(http->curl, CURLOPT_PORT, (long)port);
-        cassert_unref(res == CURLE_OK, res);
+        http->error = ekINOIMPL;
+    }
+    else if (http->curl != NULL)
+    {
+        int res = i_CURL.easy_setopt(http->curl, i_CURLOPT_PORT, (long)port);
+        cassert_unref(res == i_CURLE_OK, res);
     }
     else
     {
@@ -96,14 +224,14 @@ void oshttp_destroy(OSHttp **http)
 
     if ((*http)->headers != NULL)
     {
-        curl_slist_free_all((*http)->headers);
+        i_CURL.slist_free_all((*http)->headers);
         (*http)->headers = NULL;
     }
 
     str_destroy(&(*http)->host);
 
     if ((*http)->curl != NULL)
-        curl_easy_cleanup((*http)->curl);
+        i_CURL.easy_cleanup((*http)->curl);
 
     if ((*http)->resp_headers != NULL)
         stm_close(&(*http)->resp_headers);
@@ -121,7 +249,7 @@ void oshttp_clear_headers(OSHttp *http)
     cassert_no_null(http);
     if (http->headers != NULL)
     {
-        curl_slist_free_all(http->headers);
+        i_CURL.slist_free_all(http->headers);
         http->headers = NULL;
     }
 }
@@ -131,11 +259,14 @@ void oshttp_clear_headers(OSHttp *http)
 bool_t oshttp_add_header(OSHttp *http, const char_t *name, const char_t *value)
 {
     String *str = NULL;
-    struct curl_slist *headers = NULL;
+    CurlSList *headers = NULL;
     cassert(http != NULL);
 
+    if (i_CURL.dlib == NULL)
+        return FALSE;
+
     str = str_printf("%s: %s", name, value);
-    headers = curl_slist_append(http->headers, tc(str));
+    headers = i_CURL.slist_append(http->headers, tc(str));
     str_destroy(&str);
 
     if (headers == NULL)
@@ -176,42 +307,42 @@ static void i_request(OSHttp *http, const char *verb, const char_t *path, const 
     }
 
     /* Seems that CURLOPT_FOLLOWLOCATION fails */
-    res = curl_easy_setopt(http->curl, CURLOPT_FOLLOWLOCATION, auto_redirect ? 1L : 0L);
-    cassert_unref(res == CURLE_OK, res);
+    res = i_CURL.easy_setopt(http->curl, i_CURLOPT_FOLLOWLOCATION, auto_redirect ? 1L : 0L);
+    cassert_unref(res == i_CURLE_OK, res);
 
     {
         String *url = str_printf("%s://%s%s", http->secure ? "https" : "http", tc(http->host), path);
-        res = curl_easy_setopt(http->curl, CURLOPT_URL, tc(url));
-        cassert_unref(res == CURLE_OK, res);
+        res = i_CURL.easy_setopt(http->curl, i_CURLOPT_URL, tc(url));
+        cassert_unref(res == i_CURLE_OK, res);
         str_destroy(&url);
     }
 
     if (http->headers != NULL)
     {
-        res = curl_easy_setopt(http->curl, CURLOPT_HTTPHEADER, http->headers);
-        cassert_unref(res == CURLE_OK, res);
+        res = i_CURL.easy_setopt(http->curl, i_CURLOPT_HTTPHEADER, http->headers);
+        cassert_unref(res == i_CURLE_OK, res);
     }
 
     if (data != NULL)
     {
-        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDSIZE, (long)size);
-        cassert_unref(res == CURLE_OK, res);
-        res = curl_easy_setopt(http->curl, CURLOPT_POSTFIELDS, cast(data, char));
-        cassert_unref(res == CURLE_OK, res);
+        res = i_CURL.easy_setopt(http->curl, i_CURLOPT_POSTFIELDSIZE, (long)size);
+        cassert_unref(res == i_CURLE_OK, res);
+        res = i_CURL.easy_setopt(http->curl, i_CURLOPT_POSTFIELDS, cast(data, char));
+        cassert_unref(res == i_CURLE_OK, res);
     }
 
-    res = curl_easy_setopt(http->curl, CURLOPT_CUSTOMREQUEST, verb);
-    cassert_unref(res == CURLE_OK, res);
+    res = i_CURL.easy_setopt(http->curl, i_CURLOPT_CUSTOMREQUEST, verb);
+    cassert_unref(res == i_CURLE_OK, res);
 
     switch (http->cookies)
     {
     case ekCOOKIES_OFF:
         /* Means, "don't read cookies" */
-        curl_easy_setopt(http->curl, CURLOPT_COOKIEFILE, NULL);
+        i_CURL.easy_setopt(http->curl, i_CURLOPT_COOKIEFILE, NULL);
         /* Means, "don't write cookies" */
-        curl_easy_setopt(http->curl, CURLOPT_COOKIEJAR, NULL);
+        i_CURL.easy_setopt(http->curl, i_CURLOPT_COOKIEJAR, NULL);
         /* Means, "remove in-memory cookies" */
-        curl_easy_setopt(http->curl, CURLOPT_COOKIELIST, "ALL");
+        i_CURL.easy_setopt(http->curl, i_CURLOPT_COOKIELIST, "ALL");
         break;
 
     case ekCOOKIES_ALL:
@@ -219,9 +350,9 @@ static void i_request(OSHttp *http, const char *verb, const char_t *path, const 
         String *cname = str_printf("%s_cookies.txt", tc(http->host));
         String *cfile = hfile_appdata(tc(cname));
         /* Means, "read cookies from this file" */
-        curl_easy_setopt(http->curl, CURLOPT_COOKIEFILE, tc(cfile));
+        i_CURL.easy_setopt(http->curl, i_CURLOPT_COOKIEFILE, tc(cfile));
         /* Means, "write cookies to this file" */
-        curl_easy_setopt(http->curl, CURLOPT_COOKIEJAR, tc(cfile));
+        i_CURL.easy_setopt(http->curl, i_CURLOPT_COOKIEJAR, tc(cfile));
         str_destroy(&cname);
         str_destroy(&cfile);
         break;
@@ -239,18 +370,18 @@ static void i_request(OSHttp *http, const char *verb, const char_t *path, const 
     http->resp_headers = stm_memory(100 * 1024);
     http->resp_data = stm_memory(1024 * 1024);
 
-    res = curl_easy_setopt(http->curl, CURLOPT_HEADERFUNCTION, i_write_response);
-    cassert(res == CURLE_OK);
-    res = curl_easy_setopt(http->curl, CURLOPT_HEADERDATA, http->resp_headers);
-    cassert(res == CURLE_OK);
+    res = i_CURL.easy_setopt(http->curl, i_CURLOPT_HEADERFUNCTION, i_write_response);
+    cassert(res == i_CURLE_OK);
+    res = i_CURL.easy_setopt(http->curl, i_CURLOPT_HEADERDATA, http->resp_headers);
+    cassert(res == i_CURLE_OK);
 
-    res = curl_easy_setopt(http->curl, CURLOPT_WRITEFUNCTION, i_write_response);
-    cassert(res == CURLE_OK);
-    res = curl_easy_setopt(http->curl, CURLOPT_WRITEDATA, http->resp_data);
-    cassert(res == CURLE_OK);
+    res = i_CURL.easy_setopt(http->curl, i_CURLOPT_WRITEFUNCTION, i_write_response);
+    cassert(res == i_CURLE_OK);
+    res = i_CURL.easy_setopt(http->curl, i_CURLOPT_WRITEDATA, http->resp_data);
+    cassert(res == i_CURLE_OK);
 
-    res = curl_easy_perform(http->curl);
-    if (res == CURLE_OK)
+    res = i_CURL.easy_perform(http->curl);
+    if (res == i_CURLE_OK)
     {
         ptr_assign(error, ekIOK);
     }
@@ -367,15 +498,15 @@ Stream *oshttp_cookies(OSHttp *http)
     Stream *stm = NULL;
     cassert_no_null(http);
 
-    if (http->cookies == ekCOOKIES_ALL)
+    if (http->curl != NULL && http->cookies == ekCOOKIES_ALL)
     {
-        struct curl_slist *cookies = NULL;
-        struct curl_slist *nc = NULL;
+        CurlSList *cookies = NULL;
+        CurlSList *nc = NULL;
         bool_t comma = FALSE;
         int res = 0;
 
-        res = curl_easy_getinfo(http->curl, CURLINFO_COOKIELIST, &cookies);
-        cassert_unref(res == CURLE_OK, res);
+        res = i_CURL.easy_getinfo(http->curl, i_CURLINFO_COOKIELIST, &cookies);
+        cassert_unref(res == i_CURLE_OK, res);
 
         if (cookies != NULL)
             stm = stm_memory(1024);
@@ -396,7 +527,7 @@ Stream *oshttp_cookies(OSHttp *http)
             }
         }
 
-        curl_slist_free_all(cookies);
+        i_CURL.slist_free_all(cookies);
     }
 
     return stm;
@@ -406,13 +537,16 @@ Stream *oshttp_cookies(OSHttp *http)
 
 void oshttp_cookie_delete(OSHttp *http, const char_t *name)
 {
-    struct curl_slist *cookies = NULL;
-    struct curl_slist *nc = NULL;
+    CurlSList *cookies = NULL;
+    CurlSList *nc = NULL;
     int res = 0;
 
     cassert_no_null(http);
-    res = curl_easy_getinfo(http->curl, CURLINFO_COOKIELIST, &cookies);
-    cassert_unref(res == CURLE_OK, res);
+    if (http->curl == NULL)
+        return;
+
+    res = i_CURL.easy_getinfo(http->curl, i_CURLINFO_COOKIELIST, &cookies);
+    cassert_unref(res == i_CURLE_OK, res);
 
     for (nc = cookies; nc != NULL; nc = nc->next)
     {
@@ -422,13 +556,13 @@ void oshttp_cookie_delete(OSHttp *http, const char_t *name)
             if (str_equ_c(fields[COOKIE_NAME], name) == TRUE)
             {
                 String *cdel = str_printf("%s\t%s\t%s\t%s\t0\t%s\t", fields[COOKIE_DOMAIN], fields[COOKIE_SUBDOMAINS], fields[COOKIE_PATH], fields[COOKIE_SECURE], fields[COOKIE_NAME]);
-                res = curl_easy_setopt(http->curl, CURLOPT_COOKIELIST, tc(cdel));
-                cassert_unref(res == CURLE_OK, res);
+                res = i_CURL.easy_setopt(http->curl, i_CURLOPT_COOKIELIST, tc(cdel));
+                cassert_unref(res == i_CURLE_OK, res);
                 str_destroy(&cdel);
                 break;
             }
         }
     }
 
-    curl_slist_free_all(cookies);
+    i_CURL.slist_free_all(cookies);
 }

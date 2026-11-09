@@ -17,6 +17,7 @@
 #include "ospanel_gtk.inl"
 #include "osmenu_gtk.inl"
 #include "ossplit_gtk.inl"
+#include "osweb_gtk.inl"
 #include "oswindow_gtk.inl"
 #include "../osgui.inl"
 #include "../osglobals.h"
@@ -187,6 +188,7 @@ void _osgui_finish_imp(void)
     _osglobals_finish();
     _ossplit_destroy_tracks();
     _oscomwin_finish();
+    _osweb_finish();
     if (kNS_RESIZE_CURSOR != NULL)
     {
         g_object_unref(kNS_RESIZE_CURSOR);

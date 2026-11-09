@@ -30,7 +30,31 @@ static const char_t *i_LIB_SUFIX = ".dylib";
 
 /*---------------------------------------------------------------------------*/
 
-DLib *dlib_open(const char_t *path, const char_t *libname)
+static void i_libname(char_t *pathname, const uint32_t size, const char_t *libname, const char_t *libvers)
+{
+    blib_strcat(pathname, size, i_LIB_PREFIX);
+    blib_strcat(pathname, size, libname);
+    if (libvers != NULL && libvers[0] != '\0')
+    {
+#if defined(__LINUX__)
+        blib_strcat(pathname, size, i_LIB_SUFIX);
+        blib_strcat(pathname, size, ".");
+        blib_strcat(pathname, size, libvers);
+#else
+        blib_strcat(pathname, size, ".");
+        blib_strcat(pathname, size, libvers);
+        blib_strcat(pathname, size, i_LIB_SUFIX);
+#endif
+    }
+    else
+    {
+        blib_strcat(pathname, size, i_LIB_SUFIX);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+DLib *dlib_open(const char_t *path, const char_t *libname, const char_t *libvers)
 {
     uint32_t size = 0;
     char_t *pathname = NULL;
@@ -41,6 +65,8 @@ DLib *dlib_open(const char_t *path, const char_t *libname)
     size += blib_strlen(libname);
     size += blib_strlen(i_LIB_PREFIX);
     size += blib_strlen(i_LIB_SUFIX);
+    if (libvers != NULL)
+        size += blib_strlen(libvers) + 1;
 
     if (path != NULL && path[0] != '\0')
     {
@@ -50,17 +76,14 @@ DLib *dlib_open(const char_t *path, const char_t *libname)
         blib_strcpy(pathname, size, path);
         if (path[n - 1] != '/')
             blib_strcat(pathname, size, "/");
-        blib_strcat(pathname, size, i_LIB_PREFIX);
-        blib_strcat(pathname, size, libname);
-        blib_strcat(pathname, size, i_LIB_SUFIX);
     }
     else
     {
         pathname = cast(bmem_malloc(size), char_t);
-        blib_strcpy(pathname, size, i_LIB_PREFIX);
-        blib_strcat(pathname, size, libname);
-        blib_strcat(pathname, size, i_LIB_SUFIX);
+        pathname[0] = '\0';
     }
+
+    i_libname(pathname, size, libname, libvers);
 
     lib = dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
     bmem_free(cast(pathname, byte_t));

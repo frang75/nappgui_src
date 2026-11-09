@@ -10,19 +10,27 @@
 - Pointer coordinates on the control in `EvWheel`. [Commit](https://github.com/frang75/nappgui_src/commit/e11521d6dc7ff44bf6a2c7760b976f76fa8b69fe).
     - `EvWheel::lx`.
     - `EvWheel::ly`.
-- `tableview_column_extents()`. [Issue](https://github.com/frang75/nappgui_src/issues/287). [Commit]().
+- `tableview_column_extents()`. [Issue](https://github.com/frang75/nappgui_src/issues/287). [Commit](https://github.com/frang75/nappgui_src/commit/780981a789473596ae38fd537da9edae5c094aed).
 
 ### Fixed
 
 - GTK3 backend support narrowing widgets to 5px. [Commit](https://github.com/frang75/nappgui_src/commit/3c28e80f479a1145e53835c34979d87da91f15a2).
-- TableView draws vertical scrollbar when column resize. [Issue](https://github.com/frang75/nappgui_src/issues/277). [Commit]().
+- TableView draws vertical scrollbar when column resize. [Issue](https://github.com/frang75/nappgui_src/issues/277). [Commit](https://github.com/frang75/nappgui_src/commit/780981a789473596ae38fd537da9edae5c094aed).
 - Scrollbar Panel management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 - Scrollbar View management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 - ListBox and TableView hover row not updated on mouse wheel scroll. [Commit](https://github.com/frang75/nappgui_src/commit/e11521d6dc7ff44bf6a2c7760b976f76fa8b69fe).
 
+### Build System
+
+- Support for `NMake Makefiles` CMake generator. [Issue](https://github.com/frang75/nappgui_src/issues/239). [Commit]().
+- Installing `libcurl4-openssl-dev` is no longer necessary. On Linux, `libcurl` is loaded at runtime using `dlib_open()`. [Issue](https://github.com/frang75/nappgui_src/issues/215). [Commit]().
+- OpenGL development libraries are no longer required. If not found, `ogl3d` is not compiled. [Issue](https://github.com/frang75/nappgui_src/issues/215). [Commit]().
+- Removed the CMake option `NAPPGUI_WEB`. Installing `libwebkit2gtk-*-dev` is no longer necessary. On Linux, WebKitGTK is loaded at runtime using `dlib_open()`. [Commit]().
+
 ### Changed
 
 - `gui_update()` adds two parameters (`const bool_t theme, const bool_t scrollers`). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
+- `dlib_open()` adds a new parameter (`const char_t *libvers`). [Commit]().
 
 ### Removed
 

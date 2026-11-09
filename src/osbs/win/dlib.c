@@ -66,9 +66,11 @@ static DLib *i_open(const char_t *path, const char_t *prefix, const char_t *libn
 
 /*---------------------------------------------------------------------------*/
 
-DLib *dlib_open(const char_t *path, const char_t *libname)
+DLib *dlib_open(const char_t *path, const char_t *libname, const char_t *libvers)
 {
-    DLib *lib = i_open(path, "", libname);
+    DLib *lib = NULL;
+    unref(libvers);
+    lib = i_open(path, "", libname);
     /* MinGW generate DLLs with lib prefix */
     if (lib == NULL)
         lib = i_open(path, "lib", libname);

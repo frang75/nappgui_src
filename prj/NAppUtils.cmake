@@ -29,47 +29,22 @@ endfunction()
 
 #------------------------------------------------------------------------------
 
-function(nap_find_webview_linux _found _headers _libs)
+function(nap_check_inet_support)
+    set(INET_SUPPORT "YES" CACHE INTERNAL "")
+    set(INET_SUPPORT_INFO "" CACHE INTERNAL "")
 
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(WEBKITGTK QUIET webkit2gtk-4.1)
-    if (WEBKITGTK_FOUND)
-        set(${_found} "YES" PARENT_SCOPE)
-        set(${_headers} "${WEBKITGTK_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(${_libs} "${WEBKITGTK_LIBRARIES}" PARENT_SCOPE)
-        return()
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        find_library(NAPPGUI_CURL_RUNTIME NAMES "libcurl.so.4" "libcurl-gnutls.so.4")
+        if (NOT NAPPGUI_CURL_RUNTIME)
+            set(INET_SUPPORT_INFO "(libcurl not found on this machine. See https://www.nappgui.com/en/inet/inet.html)" CACHE INTERNAL "")
+        endif()
     endif()
-
-    pkg_check_modules(WEBKITGTK QUIET webkit2gtk-4.0)
-    if (WEBKITGTK_FOUND)
-        set(${_found} "YES" PARENT_SCOPE)
-        set(${_headers} "${WEBKITGTK_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(${_libs} "${WEBKITGTK_LIBRARIES}" PARENT_SCOPE)
-        return()
-    endif()
-
-    pkg_check_modules(WEBKITGTK QUIET webkit2gtk-3.0)
-    if (WEBKITGTK_FOUND)
-        set(${_found} "YES" PARENT_SCOPE)
-        set(${_headers} "${WEBKITGTK_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(${_libs} "${WEBKITGTK_LIBRARIES}" PARENT_SCOPE)
-        return()
-    endif()
-
-    set(${_found} "NO" PARENT_SCOPE)
-    set(${_headers} "NOT-FOUND" PARENT_SCOPE)
-    set(${_libs} "NOT-FOUND" PARENT_SCOPE)
-
 endfunction()
 
 #------------------------------------------------------------------------------
 
 function(nap_check_webview_support)
-    # Web support disabled by user
-    if (NOT NAPPGUI_WEB)
-        set(WEB_SUPPORT "NO" CACHE INTERNAL "")
-        return()
-    endif()
+    set(WEB_SUPPORT_INFO "" CACHE INTERNAL "")
 
     if (WIN32)
         if (${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
@@ -93,13 +68,60 @@ function(nap_check_webview_support)
         endif()
 
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        nap_find_webview_linux(WEBVIEW_FOUND WEBVIEW_HEADERS WEBVIEW_LIBS)
-        if (NOT WEBVIEW_FOUND)
-            set(WEB_SUPPORT "NO" CACHE INTERNAL "")
-            return()
+        find_library(NAPPGUI_WEBKIT_RUNTIME NAMES "libwebkit2gtk-4.1.so.0" "libwebkit2gtk-4.0.so.37" "libwebkit2gtk-3.0.so.25")
+        if (NOT NAPPGUI_WEBKIT_RUNTIME)
+            set(WEB_SUPPORT_INFO "(WebKitGTK not found on this machine. See https://www.nappgui.com/en/gui/webview.html)" CACHE INTERNAL "")
         endif()
 
     endif()
 
     set(WEB_SUPPORT "YES" CACHE INTERNAL "")
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(nap_find_opengl _found)
+
+    set(${_found} "NO" PARENT_SCOPE)
+
+    if (WIN32)
+        set(${_found} "YES" PARENT_SCOPE)
+
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+        find_package(OpenGL QUIET)
+        if (OPENGL_FOUND)
+            set(${_found} "YES" PARENT_SCOPE)
+        endif()
+
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        find_package(OpenGL QUIET COMPONENTS EGL)
+        if (NOT OPENGL_FOUND OR NOT OPENGL_GLU_FOUND)
+            return()
+        endif()
+
+        if (NOT OPENGL_egl_LIBRARY)
+            find_path(NAPPGUI_EGL_INCLUDE "EGL/egl.h")
+            find_library(NAPPGUI_EGL_LIBRARY "EGL")
+            if (NOT NAPPGUI_EGL_INCLUDE OR NOT NAPPGUI_EGL_LIBRARY)
+                return()
+            endif()
+        endif()
+
+        set(${_found} "YES" PARENT_SCOPE)
+
+    endif()
+
+endfunction()
+
+#------------------------------------------------------------------------------
+
+function(nap_check_3d_support)
+    nap_find_opengl(OPENGL_SUPPORT)
+    if (OPENGL_SUPPORT)
+        set(3D_SUPPORT "YES" CACHE INTERNAL "")
+        set(3D_SUPPORT_INFO "" CACHE INTERNAL "")
+    else()
+        set(3D_SUPPORT "NO" CACHE INTERNAL "")
+        set(3D_SUPPORT_INFO "(OpenGL not found. See https://www.nappgui.com/en/ogl3d/ogl3d.html)" CACHE INTERNAL "")
+    endif()
 endfunction()

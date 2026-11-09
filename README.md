@@ -1,7 +1,7 @@
 # NAppGUI
 Cross-Platform C SDK. Build portable desktop applications for Windows, macOS and Linux, using just C.
 
-![NAppGUI Stack](https://nappgui.com/img/start/nappgui_stack.png)
+![NAppGUI Stack](https://www.nappgui.com/github/nappgui_stack.png)
 
 ## Quick start in Windows
 
@@ -59,10 +59,8 @@ sudo apt-get install git
 sudo apt-get install cmake
 
 // Development libraries
-sudo apt-get install libgtk-3-dev                       // Gui Toolkit
-sudo apt-get install libcurl4-openssl-dev               // For HTTP support
-sudo apt-get install libwebkit2gtk-4.1-dev              // For WebView support
-sudo apt-get install mesa-common-dev libglu1-mesa-dev libegl1-mesa-dev  // For OpenGL support
+sudo apt-get install libgtk-3-dev                       // Mandatory: GUI toolkit
+sudo apt-get install mesa-common-dev libglu1-mesa-dev libegl1-mesa-dev  // Optional: OpenGL support
 ```
 ### Open the Terminal
 ```
