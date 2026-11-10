@@ -63,10 +63,6 @@ nap_generate_tools()
 include(${NAPPGUI_ROOT_PATH}/prj/NAppTarget.cmake)
 include(${NAPPGUI_ROOT_PATH}/CMakeTargets.cmake)
 
-if ("${3D_SUPPORT}" STREQUAL "NO")
-    list(REMOVE_ITEM ALL_TARGETS "src/ogl3d" "demo/glhello")
-endif()
-
 foreach (target ${ALL_TARGETS})
     add_subdirectory(${target})
 endforeach()

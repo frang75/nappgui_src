@@ -671,6 +671,8 @@ function(nap_link_inet_depends targetName)
 
     if(WIN32)
         target_link_libraries(${targetName} wininet)
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        target_link_libraries(${targetName} ${CMAKE_DL_LIBS})
     endif()
 
 endfunction()
