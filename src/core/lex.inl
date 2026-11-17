@@ -26,6 +26,8 @@ void _lexscn_escapes(LexScn *lex, const bool_t activate);
 
 void _lexscn_comments(LexScn *lex, const bool_t activate);
 
+void _lexscn_octal(LexScn *lex, const bool_t activate);
+
 ltoken_t _lexscn_token(LexScn *lex, Stream *stm);
 
 uint32_t _lexscn_row(const LexScn *lex);

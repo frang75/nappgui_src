@@ -67,6 +67,8 @@ _core_api void stm_token_spaces(Stream *stm, const bool_t active_spaces);
 
 _core_api void stm_token_comments(Stream *stm, const bool_t active_comments);
 
+_core_api void stm_token_octal(Stream *stm, const bool_t active_octal);
+
 _core_api sstate_t stm_state(const Stream *stm);
 
 _core_api ferror_t stm_file_err(const Stream *stm);

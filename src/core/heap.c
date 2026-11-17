@@ -65,7 +65,6 @@ struct i_memory_t
 {
     int main_thread_id;
     Mutex *mutex;
-    uint32_t mtcount;
     uint32_t page_size;
     i_Page *current_page;
     uint64_t num_allocs;
@@ -149,7 +148,7 @@ static void i_init_memory(i_Memory *memory, const uint32_t page_size)
     bmem_zero(memory, i_Memory);
     memory->main_thread_id = bthread_current_id();
     memory->mutex = bmutex_create();
-    memory->mtcount = 0;
+    osbs_memory_mt(memory->mutex);
     memory->page_size = page_size;
     i_new_page(memory->page_size, &memory->current_page, &memory->std_pages_alloc);
 
@@ -166,10 +165,10 @@ static void i_remove_memory(i_Memory *memory)
 {
     cassert_no_null(memory);
     cassert(bthread_current_id() == memory->main_thread_id);
-    cassert(memory->mtcount == 0);
 
     bmem_free(cast(memory->current_page, byte_t));
     memory->current_page = NULL;
+    osbs_memory_mt(NULL);
     bmutex_close(&memory->mutex);
 
 #if defined(__MEMORY_AUDITOR__)
@@ -388,9 +387,6 @@ void _heap_finish(void)
         }
     }
 
-    if (i_MEMORY.mtcount > 0)
-        log_printf("Multi-threaded support has not been closed.");
-
     if (i_HEAP_STATS == TRUE)
     {
 #if defined(__DEBUG__)
@@ -516,9 +512,7 @@ static ___INLINE byte_t *i_malloc_imp(const uint32_t size, const uint32_t align,
 
     cassert(size > 0);
 
-    if (i_MEMORY.mutex != NULL)
-        bmutex_lock(i_MEMORY.mutex);
-
+    bmutex_lock(i_MEMORY.mutex);
     i_MEMORY.num_allocs += 1;
     i_MEMORY.total_bytes_allocated += size;
     i_MEMORY.bytes_allocated += size;
@@ -537,33 +531,9 @@ static ___INLINE byte_t *i_malloc_imp(const uint32_t size, const uint32_t align,
 #endif
 
     mem = i_malloc(&i_MEMORY, size, align);
-
-    if (i_MEMORY.mutex != NULL)
-        bmutex_unlock(i_MEMORY.mutex);
+    bmutex_unlock(i_MEMORY.mutex);
 
     return mem;
-}
-
-/*---------------------------------------------------------------------------*/
-
-void heap_start_mt(void)
-{
-    bmutex_lock(i_MEMORY.mutex);
-    i_MEMORY.mtcount += 1;
-    osbs_memory_mt(i_MEMORY.mutex);
-    bmutex_unlock(i_MEMORY.mutex);
-}
-
-/*---------------------------------------------------------------------------*/
-
-void heap_end_mt(void)
-{
-    bmutex_lock(i_MEMORY.mutex);
-    cassert(i_MEMORY.mtcount > 0);
-    i_MEMORY.mtcount -= 1;
-    if (i_MEMORY.mtcount == 0)
-        osbs_memory_mt(NULL);
-    bmutex_unlock(i_MEMORY.mutex);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -614,13 +584,8 @@ static ___INLINE byte_t *i_realloc_imp(byte_t *mem, const uint32_t size, const u
     if (__TRUE_EXPECTED(size != new_size))
     {
         byte_t *new_mem = NULL;
-        bool_t locked = FALSE;
 
-        if (i_MEMORY.mtcount > 0)
-        {
-            bmutex_lock(i_MEMORY.mutex);
-            locked = TRUE;
-        }
+        bmutex_lock(i_MEMORY.mutex);
 
         new_mem = i_realloc(&i_MEMORY, mem, new_size, size, align);
         i_MEMORY.num_reallocs += 1;
@@ -653,8 +618,7 @@ static ___INLINE byte_t *i_realloc_imp(byte_t *mem, const uint32_t size, const u
         unref(name);
 #endif
 
-        if (locked == TRUE)
-            bmutex_unlock(i_MEMORY.mutex);
+        bmutex_unlock(i_MEMORY.mutex);
 
         return new_mem;
     }
@@ -700,16 +664,11 @@ byte_t *heap_aligned_realloc(byte_t *mem, const uint32_t size, const uint32_t ne
 void heap_free(byte_t **mem, const uint32_t size, const char_t *name)
 {
     byte_t *mem_ptr = NULL;
-    bool_t locked = FALSE;
     cassert_no_null(mem);
     cassert_no_null(*mem);
     cassert(size > 0);
 
-    if (i_MEMORY.mtcount > 0)
-    {
-        bmutex_lock(i_MEMORY.mutex);
-        locked = TRUE;
-    }
+    bmutex_lock(i_MEMORY.mutex);
 
     mem_ptr = *mem;
     *mem = NULL;
@@ -732,8 +691,7 @@ void heap_free(byte_t **mem, const uint32_t size, const char_t *name)
     unref(name);
 #endif
 
-    if (locked == TRUE)
-        bmutex_unlock(i_MEMORY.mutex);
+    bmutex_unlock(i_MEMORY.mutex);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -743,20 +701,14 @@ void heap_auditor_add(const char_t *name)
 #if defined(__MEMORY_AUDITOR__)
     {
         i_Object *object = NULL;
-        bool_t locked = FALSE;
 
-        if (i_MEMORY.mtcount > 0)
-        {
-            bmutex_lock(i_MEMORY.mutex);
-            locked = TRUE;
-        }
+        bmutex_lock(i_MEMORY.mutex);
 
         object = i_get_object(name, TRUE, 0);
         object->num_allocs += 1;
         i_MEMORY.num_allocs += 1;
 
-        if (locked == TRUE)
-            bmutex_unlock(i_MEMORY.mutex);
+        bmutex_unlock(i_MEMORY.mutex);
     }
 #else
     unref(name);
@@ -770,21 +722,15 @@ void heap_auditor_delete(const char_t *name)
 #if defined(__MEMORY_AUDITOR__)
     {
         i_Object *object = NULL;
-        bool_t locked = FALSE;
 
-        if (i_MEMORY.mtcount > 0)
-        {
-            bmutex_lock(i_MEMORY.mutex);
-            locked = TRUE;
-        }
+        bmutex_lock(i_MEMORY.mutex);
 
         object = i_get_existing_object(name);
         cassert_msg(object->num_allocs > 0, "heap auditor: free auditor object type without allocs.");
         object->num_deallocs += 1;
         i_MEMORY.num_deallocs += 1;
 
-        if (locked == TRUE)
-            bmutex_unlock(i_MEMORY.mutex);
+        bmutex_unlock(i_MEMORY.mutex);
     }
 #else
     unref(name);

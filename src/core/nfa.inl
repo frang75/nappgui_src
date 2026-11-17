@@ -14,16 +14,12 @@
 
 __EXTERN_C
 
-NFA *_nfa_string(const char_t *str);
-
-NFA *_nfa_regex(const char_t *regex, const bool_t verbose);
+NFA *_nfa_regex(const char_t *regex, const bool_t verbose, rerror_t *error, uint32_t *errpos);
 
 void _nfa_destroy(NFA **nfa);
 
-void _nfa_start(NFA *nfa);
+bool_t _nfa_match(const NFA *nfa, const char_t *str);
 
-bool_t _nfa_next(NFA *nfa, const uint32_t codepoint);
-
-bool_t _nfa_accept(NFA *nfa);
+bool_t _nfa_search(const NFA *nfa, const char_t *str, uint32_t *pos, uint32_t *len);
 
 __END_C

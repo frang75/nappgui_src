@@ -241,13 +241,100 @@ static bool_t i_except(const char_t *name, const char_t **except, const uint32_t
 
 /*---------------------------------------------------------------------------*/
 
-bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
+static bool_t i_dir_sync(const char_t *src, const char_t *dest, const char_t *root, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error);
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_sync_src(const char_t *src, const char_t *dest, const char_t *root, const DirEntry *entry, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
+{
+    bool_t ok = TRUE;
+    String *path1 = NULL;
+    cassert_no_null(entry);
+    path1 = str_cpath("%s/%s", src, tc(entry->name));
+    if (entry->type == ekDIRECTORY)
+    {
+        if (recursive == TRUE)
+        {
+            String *path2 = str_cpath("%s/%s", dest, tc(entry->name));
+            cassert(str_equ_c(tc(path1), root) == FALSE);
+            ok = i_dir_sync(tc(path1), tc(path2), root, recursive, remove_in_dest, except, except_size, error);
+            str_destroy(&path2);
+        }
+    }
+    else
+    {
+        ok = hfile_copy(tc(path1), dest, error);
+    }
+
+    str_destroy(&path1);
+    return ok;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_remove_dest(const char_t *dest, const DirEntry *entry, ferror_t *error)
+{
+    bool_t ok = TRUE;
+    String *path = NULL;
+    cassert_no_null(entry);
+    path = str_cpath("%s/%s", dest, tc(entry->name));
+    if (entry->type == ekDIRECTORY)
+        ok = hfile_dir_destroy(tc(path), error);
+    else
+        ok = bfile_delete(tc(path), error);
+    str_destroy(&path);
+    return ok;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_sync_dest(const char_t *dest, const DirEntry *entry, const bool_t recursive, const bool_t remove_in_dest, ferror_t *error)
+{
+    cassert_no_null(entry);
+    if (remove_in_dest == FALSE)
+        return TRUE;
+
+    if (entry->type == ekDIRECTORY && recursive == FALSE)
+        return TRUE;
+
+    return i_remove_dest(dest, entry, error);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_sync_both(const char_t *src, const char_t *dest, const char_t *root, const DirEntry *entry1, const DirEntry *entry2, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
+{
+    cassert_no_null(entry1);
+    cassert_no_null(entry2);
+    if (entry1->type == entry2->type)
+    {
+        if (entry1->type == ekDIRECTORY)
+            return i_sync_src(src, dest, root, entry1, recursive, remove_in_dest, except, except_size, error);
+
+        if (date_cmp(&entry1->date, &entry2->date) > 0 || entry1->size != entry2->size)
+            return i_sync_src(src, dest, root, entry1, recursive, remove_in_dest, except, except_size, error);
+
+        return TRUE;
+    }
+
+    if (entry1->type == ekDIRECTORY && recursive == FALSE)
+        return i_sync_dest(dest, entry2, recursive, remove_in_dest, error);
+
+    if (i_remove_dest(dest, entry2, error) == FALSE)
+        return FALSE;
+
+    return i_sync_src(src, dest, root, entry1, recursive, remove_in_dest, except, except_size, error);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static bool_t i_dir_sync(const char_t *src, const char_t *dest, const char_t *root, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
 {
     ArrSt(DirEntry) *dir1 = NULL, *dir2 = NULL;
     const DirEntry *files1 = NULL, *files2 = NULL;
     uint32_t n1, n2, i1 = 0, i2 = 0;
     bool_t ok = TRUE;
-    if (!hfile_dir(src))
+    if (hfile_dir(src) == FALSE)
     {
         ptr_assign(error, ekFNOPATH);
         return FALSE;
@@ -266,146 +353,53 @@ bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recurs
     n1 = arrst_size(dir1, DirEntry);
     n2 = arrst_size(dir2, DirEntry);
 
-    /* Two dirs with entries */
-    while (i1 < n1 && i2 < n2 && ok)
+    while (ok == TRUE && (i1 < n1 || i2 < n2))
     {
-        int cmp = str_cmp(files1[i1].name, tc(files2[i2].name));
+        int cmp = 0;
+        if (i1 == n1)
+            cmp = 1;
+        else if (i2 == n2)
+            cmp = -1;
+        else
+            cmp = str_cmp(files1[i1].name, tc(files2[i2].name));
 
-        /* Entry with the same name in both dirs */
         if (cmp == 0)
         {
             if (i_except(tc(files1[i1].name), except, except_size) == FALSE)
-            {
-                if (files1[i1].type == ekDIRECTORY)
-                {
-                    if (recursive == TRUE)
-                    {
-                        String *path1 = str_cpath("%s/%s", src, tc(files1[i1].name));
-                        String *path2 = str_cpath("%s/%s", dest, tc(files2[i2].name));
-                        ok = hfile_dir_sync(tc(path1), tc(path2), recursive, remove_in_dest, except, except_size, error);
-                        str_destroy(&path1);
-                        str_destroy(&path2);
-                    }
-                }
-                /* This is a file */
-                else
-                {
-                    /* Source file is more recent --> Copy */
-                    if (date_cmp(&files1[i1].date, &files2[i2].date) > 0)
-                    {
-                        String *path = str_cpath("%s/%s", src, tc(files1[i1].name));
-                        ok = hfile_copy(tc(path), dest, error);
-                        str_destroy(&path);
-                    }
-                }
-            }
-
+                ok = i_sync_both(src, dest, root, &files1[i1], &files2[i2], recursive, remove_in_dest, except, except_size, error);
             i1 += 1;
             i2 += 1;
         }
-
-        /* Entry exists in src, but not in dest */
         else if (cmp < 0)
         {
             if (i_except(tc(files1[i1].name), except, except_size) == FALSE)
-            {
-                if (files1[i1].type == ekDIRECTORY)
-                {
-                    if (recursive == TRUE)
-                    {
-                        String *path1 = str_cpath("%s/%s", src, tc(files1[i1].name));
-                        String *path2 = str_cpath("%s/%s", dest, tc(files1[i1].name));
-                        ok = hfile_dir_create(tc(path2), error);
-                        if (ok == TRUE)
-                            ok = hfile_dir_sync(tc(path1), tc(path2), recursive, remove_in_dest, except, except_size, error);
-                        str_destroy(&path1);
-                        str_destroy(&path2);
-                    }
-                }
-                /* This is a file */
-                else
-                {
-                    String *path = str_cpath("%s/%s", src, tc(files1[i1].name));
-                    ok = hfile_copy(tc(path), dest, error);
-                    str_destroy(&path);
-                }
-            }
-
+                ok = i_sync_src(src, dest, root, &files1[i1], recursive, remove_in_dest, except, except_size, error);
             i1 += 1;
         }
-
-        /* Entry exists in dest, but not in src */
         else
         {
-            if (remove_in_dest == TRUE && i_except(tc(files2[i2].name), except, except_size) == FALSE)
-            {
-                String *path = str_cpath("%s/%s", dest, tc(files2[i2].name));
-
-                if (files2[i2].type == ekDIRECTORY)
-                    ok = hfile_dir_destroy(tc(path), error);
-                else
-                    ok = bfile_delete(tc(path), error);
-
-                str_destroy(&path);
-            }
-
+            if (i_except(tc(files2[i2].name), except, except_size) == FALSE)
+                ok = i_sync_dest(dest, &files2[i2], recursive, remove_in_dest, error);
             i2 += 1;
         }
-    }
-
-    /* Remaining entries in src */
-    while (i1 < n1 && ok)
-    {
-        if (i_except(tc(files1[i1].name), except, except_size) == FALSE)
-        {
-            if (files1[i1].type == ekDIRECTORY)
-            {
-                if (recursive == TRUE)
-                {
-                    String *path1 = str_cpath("%s/%s", src, tc(files1[i1].name));
-                    String *path2 = str_cpath("%s/%s", dest, tc(files1[i1].name));
-                    ok = hfile_dir_sync(tc(path1), tc(path2), recursive, remove_in_dest, except, except_size, error);
-                    str_destroy(&path1);
-                    str_destroy(&path2);
-                }
-            }
-            /* This is a file */
-            else
-            {
-                String *path = str_cpath("%s/%s", src, tc(files1[i1].name));
-                ok = hfile_copy(tc(path), dest, error);
-                str_destroy(&path);
-            }
-        }
-
-        i1 += 1;
-    }
-
-    /* Remaining entries in dest */
-    while (i2 < n2 && remove_in_dest && ok)
-    {
-        if (i_except(tc(files2[i2].name), except, except_size) == FALSE)
-        {
-            String *path = str_cpath("%s/%s", dest, tc(files2[i2].name));
-
-            if (files2[i2].type == ekDIRECTORY)
-                ok = hfile_dir_destroy(tc(path), error);
-            else
-                ok = bfile_delete(tc(path), error);
-
-            str_destroy(&path);
-        }
-
-        i2 += 1;
     }
 
     arrst_destroy(&dir1, hfile_dir_entry_remove, DirEntry);
     arrst_destroy(&dir2, hfile_dir_entry_remove, DirEntry);
 
     if (ok == TRUE)
+    {
         ptr_assign(error, ekFOK);
+    }
 
     return ok;
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t hfile_dir_sync(const char_t *src, const char_t *dest, const bool_t recursive, const bool_t remove_in_dest, const char_t **except, const uint32_t except_size, ferror_t *error)
+{
+    return i_dir_sync(src, dest, dest, recursive, remove_in_dest, except, except_size, error);
 }
 
 /*---------------------------------------------------------------------------*/

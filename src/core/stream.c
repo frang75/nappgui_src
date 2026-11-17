@@ -116,6 +116,7 @@ struct _stream_t
     bool_t spaces;
     bool_t newlines;
     bool_t comments;
+    bool_t octal;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -232,6 +233,7 @@ static Stream *i_create_stream(const type_t type)
     stm->spaces = FALSE;
     stm->newlines = FALSE;
     stm->comments = FALSE;
+    stm->octal = FALSE;
     return stm;
 }
 
@@ -654,6 +656,16 @@ void stm_token_comments(Stream *stm, const bool_t active_comments)
     stm->comments = active_comments;
     if (stm->lex != NULL)
         _lexscn_comments(stm->lex, stm->comments);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void stm_token_octal(Stream *stm, const bool_t active_octal)
+{
+    cassert_no_null(stm);
+    stm->octal = active_octal;
+    if (stm->lex != NULL)
+        _lexscn_octal(stm->lex, stm->octal);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1761,9 +1773,23 @@ ltoken_t stm_read_token(Stream *stm)
         _lexscn_escapes(stm->lex, stm->escapes);
         _lexscn_spaces(stm->lex, stm->spaces);
         _lexscn_comments(stm->lex, stm->comments);
+        _lexscn_octal(stm->lex, stm->octal);
     }
 
     return _lexscn_token(stm->lex, stm);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_int_base(const ltoken_t token)
+{
+    if (token == ekTINTEGER)
+        return 10;
+    if (token == ekTOCTAL)
+        return 8;
+    if (token == ekTHEX)
+        return 16;
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1779,9 +1805,10 @@ static int64_t i_read_i64(Stream *stm)
         tok = stm_read_token(stm);
     }
 
-    if (tok == ekTINTEGER)
+    if (i_int_base(tok) != 0)
     {
-        int64_t number = str_to_i64(stm_token_lexeme(stm, NULL), 10, NULL);
+        uint32_t base = i_int_base(tok);
+        int64_t number = str_to_i64(stm_token_lexeme(stm, NULL), base, NULL);
 
         if (minus == TRUE)
             return -number;
@@ -1799,8 +1826,11 @@ static uint64_t i_read_u64(Stream *stm)
 {
     ltoken_t tok = stm_read_token(stm);
 
-    if (tok == ekTINTEGER)
-        return str_to_u64(stm_token_lexeme(stm, NULL), 10, NULL);
+    if (i_int_base(tok) != 0)
+    {
+        uint32_t base = i_int_base(tok);
+        return str_to_u64(stm_token_lexeme(stm, NULL), base, NULL);
+    }
 
     stm_corrupt(stm);
     return 0;

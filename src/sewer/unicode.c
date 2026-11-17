@@ -594,7 +594,7 @@ bool_t unicode_isascii(const uint32_t codepoint)
 bool_t unicode_isalnum(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)isalnum((int)codepoint);
+        return (bool_t)(isalnum((int)codepoint) != 0);
     return FALSE;
 }
 
@@ -603,7 +603,7 @@ bool_t unicode_isalnum(const uint32_t codepoint)
 bool_t unicode_isalpha(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)isalpha((int)codepoint);
+        return (bool_t)(isalpha((int)codepoint) != 0);
     return FALSE;
 }
 
@@ -612,7 +612,7 @@ bool_t unicode_isalpha(const uint32_t codepoint)
 bool_t unicode_iscntrl(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)iscntrl((int)codepoint);
+        return (bool_t)(iscntrl((int)codepoint) != 0);
     return FALSE;
 }
 
@@ -628,7 +628,7 @@ bool_t unicode_isdigit(const uint32_t codepoint)
 bool_t unicode_isgraph(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)isgraph((int)codepoint);
+        return (bool_t)(isgraph((int)codepoint) != 0);
     return FALSE;
 }
 
@@ -637,7 +637,7 @@ bool_t unicode_isgraph(const uint32_t codepoint)
 bool_t unicode_isprint(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)isprint((int)codepoint);
+        return (bool_t)(isprint((int)codepoint) != 0);
     return FALSE;
 }
 
@@ -646,7 +646,7 @@ bool_t unicode_isprint(const uint32_t codepoint)
 bool_t unicode_ispunct(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)ispunct((int)codepoint);
+        return (bool_t)(ispunct((int)codepoint) != 0);
     return FALSE;
 }
 
@@ -662,7 +662,7 @@ bool_t unicode_isspace(const uint32_t codepoint)
 bool_t unicode_isxdigit(const uint32_t codepoint)
 {
     if (codepoint < 128)
-        return (bool_t)isxdigit((int)codepoint);
+        return (bool_t)(isxdigit((int)codepoint) != 0);
     return FALSE;
 }
 

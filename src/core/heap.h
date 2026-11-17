@@ -15,10 +15,6 @@
 
 __EXTERN_C
 
-_core_api void heap_start_mt(void);
-
-_core_api void heap_end_mt(void);
-
 _core_api void heap_verbose(const bool_t verbose);
 
 _core_api void heap_stats(const bool_t stats);

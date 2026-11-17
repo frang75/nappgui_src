@@ -227,6 +227,19 @@ typedef enum _dbindst_t
     ekDBIND_ALIAS_SIZE
 } dbindst_t;
 
+typedef enum _rerror_t
+{
+    ekRREPEAT,
+    ekRCOUNT,
+    ekROPEN,
+    ekRCLOSE,
+    ekRCLASS,
+    ekRRANGE,
+    ekRESCAPE,
+    ekRSIZE,
+    ekROK
+} rerror_t;
+
 typedef struct _buffer_t Buffer;
 typedef struct _string_t String;
 typedef struct _stream_t Stream;
