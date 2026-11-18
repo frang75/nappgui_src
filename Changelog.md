@@ -11,8 +11,9 @@
     - `EvWheel::lx`.
     - `EvWheel::ly`.
 - `tableview_column_extents()`. [Issue](https://github.com/frang75/nappgui_src/issues/287). [Commit](https://github.com/frang75/nappgui_src/commit/780981a789473596ae38fd537da9edae5c094aed).
-- `stm_token_octal()`. [Commit]().
-- `regex_search()`. [Doc](https://www.nappgui.com/en/core/regex.html#h2). [Commit]().
+- `stm_token_octal()`. [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
+- `regex_search()`. [Doc](https://www.nappgui.com/en/core/regex.html#h2). [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
+- `gui_accent_color()`. [Commit]().
 
 ### Fixed
 
@@ -21,8 +22,9 @@
 - Scrollbar Panel management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 - Scrollbar View management (overlay/solid). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 - ListBox and TableView hover row not updated on mouse wheel scroll. [Commit](https://github.com/frang75/nappgui_src/commit/e11521d6dc7ff44bf6a2c7760b976f76fa8b69fe).
-- Fix issues when processing tokens in `stm_read_token()` (escape sequences, numbers, eof, `unicode_is*()`). [Commit]().
-- Fix issues in `hfile_dir_sync()`. [Commit]().
+- Issues when processing tokens in `stm_read_token()` (escape sequences, numbers, eof, `unicode_is*()`). [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
+- Issues in `hfile_dir_sync()`. [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
+- Issue in `label_trim()` with `ekELLIPNONE`.
 
 ### Build System
 
@@ -35,19 +37,19 @@
 
 - `gui_update()` adds two parameters (`const bool_t theme, const bool_t scrollers`). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
 - `dlib_open()` adds a new parameter (`const char_t *libvers`). [Commit](https://github.com/frang75/nappgui_src/commit/20cc7d9a7d0cdc679c001ebfe940969a15e834a1).
-- Regular expressions use POSIX ERE syntax with RE2 extensions. [Issue](https://github.com/frang75/nappgui_src/issues/126). [Doc](https://www.nappgui.com/en/core/regex.html). [Commit]().
+- Regular expressions use POSIX ERE syntax with RE2 extensions. [Issue](https://github.com/frang75/nappgui_src/issues/126). [Doc](https://www.nappgui.com/en/core/regex.html). [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
     - `regex_create()` adds two parameters (`rerror_t *error, uint32_t *errpos`).
     - New type: `rerror_t`.
     - `regex_match()` is thread-safe.
     - Fix crashes and invalid patterns.
-- `Heap` is always thread-safe. [Doc](https://www.nappgui.com/en/core/heap.html#h1). [Commit]().
+- `Heap` is always thread-safe. [Doc](https://www.nappgui.com/en/core/heap.html#h1). [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
     - Fix memory corruption in `osapp_task()` threads.
-- `stm_read_*_tok()` accept octal and hexadecimal integers. [Commit]().
+- `stm_read_*_tok()` accept octal and hexadecimal integers. [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
 
 ### Removed
 
 - `panel_scroll_size()`. [Issue](https://github.com/frang75/nappgui_src/issues/275). [Commit](https://github.com/frang75/nappgui_src/commit/8364d4a069ac5137607eebb926d2512d69b2a748).
-- `heap_start_mt()` and `heap_end_mt()`. [Commit]().
+- `heap_start_mt()` and `heap_end_mt()`. [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
 
 ## v1.6.3 - October 01, 2026 (r7077)
 

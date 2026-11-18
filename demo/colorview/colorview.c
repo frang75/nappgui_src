@@ -44,6 +44,7 @@ static ArrSt(ViewItem) *i_colors(void)
     i_add(items, "Line", gui_line_color());
     i_add(items, "Border", gui_border_color());
     i_add(items, "Link", gui_link_color());
+    i_add(items, "Accent", gui_accent_color());
     i_add(items, "Alt1", gui_alt_color(color_rgb(192, 255, 255), color_rgb(48, 112, 112)));
     i_add(items, "Alt2", gui_alt_color(color_rgb(255, 192, 255), color_rgb(128, 48, 112)));
     i_add(items, "Alt3", gui_alt_color(color_rgb(255, 255, 192), color_rgb(112, 112, 48)));

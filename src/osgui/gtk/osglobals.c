@@ -721,6 +721,9 @@ color_t osglobals_color(const syscolor_t *color)
     case ekSYSCOLOR_BORDER:
         cassert(kBORD_COLOR != 0);
         return kBORD_COLOR;
+    case ekSYSCOLOR_ACCENT:
+        cassert(kBORDFOCUS_COLOR != 0);
+        return kBORDFOCUS_COLOR;
     default:
         cassert_default(*color);
     }

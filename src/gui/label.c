@@ -138,6 +138,7 @@ static void i_OnDraw(LbData *data, Event *e)
     color_t color = kCOLOR_TRANSPARENT;
     color_t bgcolor = kCOLOR_TRANSPARENT;
     const Font *font = NULL;
+    int32_t x = 0;
     cassert_no_null(data);
 
     color = data->color;
@@ -168,6 +169,24 @@ static void i_OnDraw(LbData *data, Event *e)
     {
     case ekLABEL_SINGLE:
         draw_text_trim(p->ctx, data->ellipsis);
+        if (data->ellipsis == ekELLIPNONE)
+        {
+            draw_text_width(p->ctx, -1);
+            switch (data->halign)
+            {
+            case ekLEFT:
+            case ekJUSTIFY:
+                break;
+            case ekCENTER:
+                x = (int32_t)(p->width / 2);
+                break;
+            case ekRIGHT:
+                x = (int32_t)p->width;
+                break;
+            default:
+                cassert_default(data->halign);
+            }
+        }
         break;
 
     case ekLABEL_MULTI:
@@ -178,7 +197,7 @@ static void i_OnDraw(LbData *data, Event *e)
         cassert_default(label_get_type(data->flags));
     }
 
-    drawctrl_text(p->ctx, tc(data->text), 0, 0, ekCTRL_STATE_NORMAL);
+    drawctrl_text(p->ctx, tc(data->text), x, 0, ekCTRL_STATE_NORMAL);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -442,12 +461,12 @@ void label_trim(Label *label, const ellipsis_t ellipsis)
     cassert_no_null(data);
     switch (ellipsis)
     {
+    case ekELLIPNONE:
     case ekELLIPBEGIN:
     case ekELLIPMIDDLE:
     case ekELLIPEND:
         sellip = ellipsis;
         break;
-    case ekELLIPNONE:
     case ekELLIPMLINE:
         sellip = ekELLIPEND;
         break;

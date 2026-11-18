@@ -469,7 +469,8 @@ typedef enum _syscolor_t
     ekSYSCOLOR_VIEW,
     ekSYSCOLOR_LINE,
     ekSYSCOLOR_LINK,
-    ekSYSCOLOR_BORDER
+    ekSYSCOLOR_BORDER,
+    ekSYSCOLOR_ACCENT
 } syscolor_t;
 
 typedef struct _ccursor_t Cursor;

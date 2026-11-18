@@ -192,6 +192,10 @@ void osmenuitem_destroy(OSMenuItem **item)
     cassert_no_null(*item);
     cassert((*item)->menu == NULL);
     cassert((*item)->sub_menu == NULL);
+
+    if ((*item)->key != ENUM_MAX(vkey_t))
+        _osgui_remove_accelerator((*item)->id);
+
     listener_destroy(&(*item)->OnClick);
 
     if ((*item)->hbitmap != NULL)

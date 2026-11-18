@@ -81,6 +81,9 @@ color_t osglobals_color(const syscolor_t *color)
     case ekSYSCOLOR_BORDER:
         return GetSysColor(COLOR_ACTIVEBORDER) | (uint32_t)(255 << 24);
 
+    case ekSYSCOLOR_ACCENT:
+        return GetSysColor(COLOR_HIGHLIGHT) | (uint32_t)(255 << 24);
+
     default:
         cassert_default(*color);
     }

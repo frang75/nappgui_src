@@ -399,6 +399,10 @@ void osbutton_destroy(OSButton **button)
 {
     cassert_no_null(button);
     cassert_no_null(*button);
+
+    if ((*button)->key != ENUM_MAX(vkey_t))
+        _osgui_remove_accelerator((*button)->id);
+
     ptr_destopt(font_destroy, &(*button)->font, Font);
     ptr_destopt(image_destroy, &(*button)->image, Image);
     str_destopt(&(*button)->text);

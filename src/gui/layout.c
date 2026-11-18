@@ -1078,6 +1078,29 @@ void layout_tabstop(Layout *layout, const uint32_t col, const uint32_t row, cons
     cassert_no_null(layout);
     cell = i_get_cell(layout, col, row);
     cassert_no_null(cell);
+
+    if (tabstop == TRUE && cell->type == i_ekCOMPONENT)
+    {
+        gui_type_t type = cell->content.component->type;
+
+        if (type == ekGUI_TYPE_PROGRESS || type == ekGUI_TYPE_LINE)
+        {
+            cassert(cell->tabstop == FALSE);
+            return;
+        }
+
+        if (type == ekGUI_TYPE_CUSTOMVIEW)
+        {
+            View *view = cast(cell->content.component, View);
+            const char_t *subtype = _view_subtype(view);
+            if (str_equ_c(subtype, "Label") == TRUE || str_equ_c(subtype, "ImageView") == TRUE)
+            {
+                cassert(cell->tabstop == FALSE);
+                return;
+            }
+        }
+    }
+
     cell->tabstop = tabstop;
 }
 

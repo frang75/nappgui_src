@@ -343,6 +343,13 @@ color_t gui_border_color(void)
 
 /*---------------------------------------------------------------------------*/
 
+color_t gui_accent_color(void)
+{
+    return (color_t)ekSYSCOLOR_ACCENT;
+}
+
+/*---------------------------------------------------------------------------*/
+
 device_t gui_device(void)
 {
     const GuiCtx *context = guictx_get_current();
@@ -412,6 +419,9 @@ static void i_precompute_system_colors(void)
     color_indexed((uint16_t)scol, context->func_globals_color(&scol));
 
     scol = ekSYSCOLOR_BORDER;
+    color_indexed((uint16_t)scol, context->func_globals_color(&scol));
+
+    scol = ekSYSCOLOR_ACCENT;
     color_indexed((uint16_t)scol, context->func_globals_color(&scol));
 
     arrst_foreach(alt, i_ALTCOLORS, ColorAlt)

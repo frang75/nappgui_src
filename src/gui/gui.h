@@ -45,6 +45,8 @@ _gui_api color_t gui_link_color(void);
 
 _gui_api color_t gui_border_color(void);
 
+_gui_api color_t gui_accent_color(void);
+
 _gui_api device_t gui_device(void);
 
 _gui_api S2Df gui_resolution(void);

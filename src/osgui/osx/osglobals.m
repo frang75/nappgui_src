@@ -330,6 +330,13 @@ color_t osglobals_color(const syscolor_t *color)
     case ekSYSCOLOR_BORDER:
         return i_GRID_COLOR;
 
+    case ekSYSCOLOR_ACCENT:
+#if defined(MAC_OS_X_VERSION_10_14) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_14
+        return _oscolor_from_NSColor([NSColor controlAccentColor]);
+#else
+        return _oscolor_from_NSColor([NSColor colorWithCalibratedRed:0 green:(CGFloat).410 blue:(CGFloat).853 alpha:1]);
+#endif
+
     default:
         cassert_default(*color);
     }
