@@ -22,6 +22,8 @@ void _gbind_update_bool(Layout *layout, const DBind *stbind, const uint32_t memb
 
 void _gbind_update_u32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const uint32_t value);
 
+void _gbind_update_i32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const int32_t value);
+
 void _gbind_update_norm32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const real32_t value);
 
 void _gbind_update_incr(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const bool_t positive_incr);

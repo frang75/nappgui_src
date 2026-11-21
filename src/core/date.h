@@ -41,6 +41,14 @@ _core_api bool_t date_is_valid(const Date *date);
 
 _core_api week_day_t date_weekday(const Date *date);
 
+_core_api bool_t date_is_leap(const int16_t year);
+
+_core_api uint8_t date_month_days(const int16_t year, const month_t month);
+
+_core_api int32_t date_to_days(const Date *date);
+
+_core_api Date date_from_days(const int32_t days);
+
 _core_api String *date_format(const Date *date, const char_t *format);
 
 _core_api extern Date kDATE_NULL;

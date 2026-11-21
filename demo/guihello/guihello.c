@@ -34,6 +34,7 @@
 #include "scrollpanel.h"
 #include "scrollview.h"
 #include "reduce.h"
+#include "dateviews.h"
 #include "res_guihello.h"
 
 typedef struct _app_t App;
@@ -98,67 +99,70 @@ static void i_set_panel(App *app, const uint32_t index)
         panel = table_view();
         break;
     case 14:
-        panel = split_panel();
+        panel = dateviews();
         break;
     case 15:
-        panel = tabpanel(app->window);
+        panel = split_panel();
         break;
     case 16:
-        panel = modal_windows(app->window);
+        panel = tabpanel(app->window);
         break;
     case 17:
-        panel = flyout_window(app->window);
+        panel = modal_windows(app->window);
         break;
     case 18:
-        panel = editpad();
+        panel = flyout_window(app->window);
         break;
     case 19:
-        panel = buttonpad();
+        panel = editpad();
         break;
     case 20:
-        panel = hotkeys(app->window);
+        panel = buttonpad();
         break;
     case 21:
-        panel = guibind();
+        panel = hotkeys(app->window);
         break;
     case 22:
-        panel = layoutbind();
+        panel = guibind();
         break;
     case 23:
-        panel = basic_layout();
+        panel = layoutbind();
         break;
     case 24:
+        panel = basic_layout();
+        break;
+    case 25:
         panel = sublayouts();
         valign = ekJUSTIFY;
         break;
-    case 25:
+    case 26:
         panel = subpanels();
         break;
-    case 26:
+    case 27:
         panel = multilayouts();
         break;
-    case 27:
+    case 28:
         panel = scrollpanel();
         break;
-    case 28:
+    case 29:
         panel = scrollview();
         break;
-    case 29:
+    case 30:
         panel = dynlay_panel();
         break;
-    case 30:
+    case 31:
         panel = dynmenu_panel(app->window);
         break;
-    case 31:
+    case 32:
         panel = ip_input(app->window);
         break;
-    case 32:
+    case 33:
         panel = font_x_scale();
         break;
-    case 33:
+    case 34:
         panel = reduce(app->window);
         break;
-    case 34:
+    case 35:
         panel = common_windows(app->window);
         break;
     default:
@@ -207,6 +211,7 @@ static Panel *i_panel(App *app)
     listbox_add_elem(list, "Tabstops", NULL);
     listbox_add_elem(list, "TextViews", NULL);
     listbox_add_elem(list, "TableView", NULL);
+    listbox_add_elem(list, "DateView", NULL);
     listbox_add_elem(list, "SplitViews", NULL);
     listbox_add_elem(list, "Tabs with panel", NULL);
     listbox_add_elem(list, "Modal Windows", NULL);

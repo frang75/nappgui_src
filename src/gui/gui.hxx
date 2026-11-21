@@ -40,6 +40,7 @@ typedef struct _textview_t TextView;
 typedef struct _webview_t WebView;
 typedef struct _imageview_t ImageView;
 typedef struct _tableview_t TableView;
+typedef struct _dateview_t DateView;
 typedef struct _splitview_t SplitView;
 typedef struct _layout_t Layout;
 typedef struct _cell_t Cell;

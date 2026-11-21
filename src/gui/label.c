@@ -88,6 +88,7 @@ static VCtrlTbl i_LABEL_TLB = {
     (FPtr_natural)i_natural,
     NULL, /* func_empty */
     NULL, /* func_uint32 */
+    NULL, /* func_int32 */
     NULL, /* func_image */
 };
 

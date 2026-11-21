@@ -16,6 +16,7 @@
 #include "cell.h"
 #include "cell.inl"
 #include "button.inl"
+#include "combo.h"
 #include "component.inl"
 #include "gbind.inl"
 #include "guicontrol.h"
@@ -611,6 +612,14 @@ void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const
 
 /*---------------------------------------------------------------------------*/
 
+void layout_dateview(Layout *layout, DateView *view, const uint32_t col, const uint32_t row)
+{
+    Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
+    cassert_unref(cell != NULL, cell);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const uint32_t row)
 {
     Cell *cell = i_set_component(layout, cast(view, GuiComponent), col, row, ekJUSTIFY, ekJUSTIFY);
@@ -811,6 +820,13 @@ ImageView *layout_get_imageview(Layout *layout, const uint32_t col, const uint32
 TableView *layout_get_tableview(Layout *layout, const uint32_t col, const uint32_t row)
 {
     return guicontrol_tableview(layout_control(layout, col, row));
+}
+
+/*---------------------------------------------------------------------------*/
+
+DateView *layout_get_dateview(Layout *layout, const uint32_t col, const uint32_t row)
+{
+    return guicontrol_dateview(layout_control(layout, col, row));
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2646,6 +2662,13 @@ TableView *cell_tableview(Cell *cell)
 
 /*---------------------------------------------------------------------------*/
 
+DateView *cell_dateview(Cell *cell)
+{
+    return guicontrol_dateview(cell_control(cell));
+}
+
+/*---------------------------------------------------------------------------*/
+
 SplitView *cell_splitview(Cell *cell)
 {
     return guicontrol_splitview(cell_control(cell));
@@ -2905,8 +2928,23 @@ static void i_set_dbind(Cell *cell, const DBind *stbind, const uint32_t member_i
             }
             break;
 
-        case ekGUI_TYPE_BUTTON:
         case ekGUI_TYPE_COMBOBOX:
+        {
+            Combo *combo = cast(cell->content.component, Combo);
+            if (dtype == ekDTYPE_ENUM && combo_count(combo) == 0)
+            {
+                uint32_t i, n = dbind_enum_count(bind);
+                for (i = 0; i < n; ++i)
+                {
+                    const char_t *alias = dbind_enum_alias(bind, i);
+                    combo_add_elem(combo, alias, NULL);
+                }
+            }
+
+            break;
+        }
+
+        case ekGUI_TYPE_BUTTON:
         case ekGUI_TYPE_SLIDER:
         case ekGUI_TYPE_UPDOWN:
         case ekGUI_TYPE_PROGRESS:
@@ -3108,6 +3146,24 @@ static Layout *i_cell_obj(Cell *cell, void **obj, Layout **layout_notif)
 
 /*---------------------------------------------------------------------------*/
 
+bool_t _cell_str_member(Cell *cell)
+{
+    cassert_no_null(cell);
+    if (cell->member_id != UINT32_MAX)
+    {
+        void *obj = NULL;
+        Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
+        const DBind *mbind = dbind_st_member(layout->stbind, cell->member_id);
+        if (dbind_type(mbind) == ekDTYPE_STRING)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/*---------------------------------------------------------------------------*/
+
 bool_t _cell_filter_str(Cell *cell, const char_t *str, char_t *dest, const uint32_t size)
 {
     cassert_no_null(cell);
@@ -3150,6 +3206,21 @@ void _cell_update_u32(Cell *cell, const uint32_t value)
         Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
         if (obj != NULL)
             _gbind_update_u32(layout, layout->stbind, cell->member_id, obj, layout_notif, value);
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _cell_update_i32(Cell *cell, const int32_t value)
+{
+    cassert_no_null(cell);
+    if (cell->member_id != UINT32_MAX)
+    {
+        void *obj = NULL;
+        Layout *layout_notif = NULL;
+        Layout *layout = i_cell_obj(cell, &obj, &layout_notif);
+        if (obj != NULL)
+            _gbind_update_i32(layout, layout->stbind, cell->member_id, obj, layout_notif, value);
     }
 }
 

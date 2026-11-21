@@ -13,7 +13,23 @@
 - `tableview_column_extents()`. [Issue](https://github.com/frang75/nappgui_src/issues/287). [Commit](https://github.com/frang75/nappgui_src/commit/780981a789473596ae38fd537da9edae5c094aed).
 - `stm_token_octal()`. [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
 - `regex_search()`. [Doc](https://www.nappgui.com/en/core/regex.html#h2). [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
-- `gui_accent_color()`. [Commit]().
+- `gui_accent_color()`. [Commit](https://github.com/frang75/nappgui_src/commit/7865f5347dab73d1d3bf0faa301697657fd9ab21).
+- DateView control. [Doc](https://www.nappgui.com/en/gui/dateview.html). [Commit]().
+    - `layout_dateview()`.
+    - `layout_get_dateview()`.
+    - `cell_dateview()`.
+    - `guicontrol_dateview()`.
+    - New type: `DateView`.
+    - New event: `EvDate`.
+- Locale calendar settings. [Doc](https://www.nappgui.com/en/osbs/btime.html). [Commit]().
+    - `btime_first_wday()`.
+    - `btime_month_name()`.
+    - `btime_wday_name()`.
+- Date functions. [Doc](https://www.nappgui.com/en/core/date.html). [Commit]().
+    - `date_is_leap()`
+    - `date_month_days()`
+    - `date_to_days()`
+    - `date_from_days()`
 
 ### Fixed
 
@@ -24,7 +40,8 @@
 - ListBox and TableView hover row not updated on mouse wheel scroll. [Commit](https://github.com/frang75/nappgui_src/commit/e11521d6dc7ff44bf6a2c7760b976f76fa8b69fe).
 - Issues when processing tokens in `stm_read_token()` (escape sequences, numbers, eof, `unicode_is*()`). [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
 - Issues in `hfile_dir_sync()`. [Commit](https://github.com/frang75/nappgui_src/commit/4a23a88c3c65f451cc11a1efaf324b1cae07ccb1).
-- Issue in `label_trim()` with `ekELLIPNONE`.
+- Issue in `label_trim()` with `ekELLIPNONE`. [Commit](https://github.com/frang75/nappgui_src/commit/7865f5347dab73d1d3bf0faa301697657fd9ab21).
+- Data binding in TableView, ComboBox, ListBox. [Commit]().
 
 ### Build System
 

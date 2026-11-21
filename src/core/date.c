@@ -19,6 +19,85 @@
 /*---------------------------------------------------------------------------*/
 
 Date kDATE_NULL = {0, 0, 0, 0, 0, 0, 0};
+static const int32_t i_MIN_DAYS = -12687794;
+static const int32_t i_MAX_DAYS = 11248737;
+
+/*---------------------------------------------------------------------------*/
+
+static int32_t i_days(const int32_t year, const int32_t month, const int32_t mday)
+{
+    int32_t y = year;
+    int32_t era = 0;
+    int32_t yoe = 0;
+    int32_t mp = 0;
+    int32_t doy = 0;
+    int32_t doe = 0;
+
+    if (month <= 2)
+        y -= 1;
+
+    if (y >= 0)
+        era = y / 400;
+    else
+        era = (y - 399) / 400;
+
+    yoe = y - era * 400;
+
+    if (month > 2)
+        mp = month - 3;
+    else
+        mp = month + 9;
+
+    doy = (153 * mp + 2) / 5 + mday - 1;
+    doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    return era * 146097 + doe - 719468;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_civil(const int32_t days, int32_t *year, int32_t *month, int32_t *mday)
+{
+    int32_t z = days + 719468;
+    int32_t era = 0;
+    int32_t doe = 0;
+    int32_t yoe = 0;
+    int32_t doy = 0;
+    int32_t mp = 0;
+
+    cassert_no_null(year);
+    cassert_no_null(month);
+    cassert_no_null(mday);
+
+    if (z >= 0)
+        era = z / 146097;
+    else
+        era = (z - 146096) / 146097;
+
+    doe = z - era * 146097;
+    yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    mp = (5 * doy + 2) / 153;
+    *year = yoe + era * 400;
+    *mday = doy - (153 * mp + 2) / 5 + 1;
+
+    if (mp < 10)
+        *month = mp + 3;
+    else
+        *month = mp - 9;
+
+    if (*month <= 2)
+        *year += 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static week_day_t i_wday(const int32_t days)
+{
+    int32_t r = days % 7;
+    if (r < 0)
+        r += 7;
+    return (week_day_t)((r + 4) % 7);
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -178,7 +257,37 @@ bool_t date_is_null(const Date *date)
 
 /*---------------------------------------------------------------------------*/
 
-static bool_t i_is_leap_year(const int16_t year)
+bool_t date_is_valid(const Date *date)
+{
+    cassert_no_null(date);
+    if (date->month == 0 || date->month > 12)
+        return FALSE;
+    if (date->mday == 0 || date->mday > date_month_days(date->year, (month_t)date->month))
+        return FALSE;
+    if (date->hour >= 24)
+        return FALSE;
+    if (date->minute >= 60)
+        return FALSE;
+    if (date->second >= 60)
+        return FALSE;
+
+    return TRUE;
+}
+
+/*---------------------------------------------------------------------------*/
+
+week_day_t date_weekday(const Date *date)
+{
+    int32_t days = 0;
+    cassert_no_null(date);
+    cassert(date->mday >= 1 && date->mday <= date_month_days(date->year, (month_t)date->month));
+    days = i_days((int32_t)date->year, (int32_t)date->month, (int32_t)date->mday);
+    return i_wday(days);
+}
+
+/*---------------------------------------------------------------------------*/
+
+bool_t date_is_leap(const int16_t year)
 {
     if ((year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)))
         return TRUE;
@@ -188,7 +297,7 @@ static bool_t i_is_leap_year(const int16_t year)
 
 /*---------------------------------------------------------------------------*/
 
-static uint8_t i_month_days(const month_t month, const int16_t year)
+uint8_t date_month_days(const int16_t year, const month_t month)
 {
     switch (month)
     {
@@ -206,7 +315,7 @@ static uint8_t i_month_days(const month_t month, const int16_t year)
     case ekNOVEMBER:
         return 30;
     case ekFEBRUARY:
-        if (i_is_leap_year(year) == TRUE)
+        if (date_is_leap(year) == TRUE)
             return 29;
         else
             return 28;
@@ -219,43 +328,38 @@ static uint8_t i_month_days(const month_t month, const int16_t year)
 
 /*---------------------------------------------------------------------------*/
 
-bool_t date_is_valid(const Date *date)
+int32_t date_to_days(const Date *date)
 {
     cassert_no_null(date);
-    if (date->year > 9999)
-        return FALSE;
-    if (date->month == 0 || date->month > 12)
-        return FALSE;
-    if (date->mday == 0 || date->mday > i_month_days((month_t)date->month, date->year))
-        return FALSE;
-    if (date->hour >= 24)
-        return FALSE;
-    if (date->minute >= 60)
-        return FALSE;
-    if (date->second >= 60)
-        return FALSE;
-
-    return TRUE;
+    cassert(date->month >= 1 && date->month <= 12);
+    cassert(date->mday >= 1 && date->mday <= date_month_days(date->year, (month_t)date->month));
+    return i_days((int32_t)date->year, (int32_t)date->month, (int32_t)date->mday);
 }
 
 /*---------------------------------------------------------------------------*/
 
-week_day_t date_weekday(const Date *date)
+Date date_from_days(const int32_t days)
 {
-    static uint32_t t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
-    uint32_t y, m, d, wd;
+    int32_t cdays = days;
+    int32_t year = 0;
+    int32_t month = 0;
+    int32_t mday = 0;
+    Date date;
 
-    cassert_no_null(date);
-    cassert(date->mday >= 1 && date->mday <= i_month_days((month_t)date->month, date->year));
+    if (cdays < i_MIN_DAYS)
+        cdays = i_MIN_DAYS;
+    else if (cdays > i_MAX_DAYS)
+        cdays = i_MAX_DAYS;
 
-    y = (uint32_t)date->year;
-    m = date->month;
-    d = date->mday;
-
-    y -= m < 3;
-    wd = (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
-
-    return (week_day_t)wd;
+    i_civil(cdays, &year, &month, &mday);
+    date.year = (int16_t)year;
+    date.month = (uint8_t)month;
+    date.wday = (uint8_t)i_wday(cdays);
+    date.mday = (uint8_t)mday;
+    date.hour = 0;
+    date.minute = 0;
+    date.second = 0;
+    return date;
 }
 
 /*---------------------------------------------------------------------------*/

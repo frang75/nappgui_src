@@ -711,6 +711,15 @@ void _view_uint32(View *view, const uint32_t value)
 
 /*---------------------------------------------------------------------------*/
 
+void _view_int32(View *view, const int32_t value)
+{
+    cassert_no_null(view);
+    if (view->vtbl != NULL && view->vtbl->func_int32 != NULL)
+        view->vtbl->func_int32(view, value);
+}
+
+/*---------------------------------------------------------------------------*/
+
 void _view_image(View *view, const Image *image)
 {
     cassert_no_null(view);

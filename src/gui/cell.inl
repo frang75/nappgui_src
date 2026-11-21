@@ -30,11 +30,15 @@ Button *_cell_radio_listener(Cell *on_cell);
 
 Cell *_cell_radio_dbind_cell(Cell *on_cell);
 
+bool_t _cell_str_member(Cell *cell);
+
 bool_t _cell_filter_str(Cell *cell, const char_t *str, char_t *dest, const uint32_t size);
 
 void _cell_update_bool(Cell *cell, const bool_t value);
 
 void _cell_update_u32(Cell *cell, const uint32_t value);
+
+void _cell_update_i32(Cell *cell, const int32_t value);
 
 void _cell_update_norm32(Cell *cell, const real32_t value);
 

@@ -51,6 +51,8 @@ _gui_api void layout_imageview(Layout *layout, ImageView *view, const uint32_t c
 
 _gui_api void layout_tableview(Layout *layout, TableView *view, const uint32_t col, const uint32_t row);
 
+_gui_api void layout_dateview(Layout *layout, DateView *view, const uint32_t col, const uint32_t row);
+
 _gui_api void layout_splitview(Layout *layout, SplitView *view, const uint32_t col, const uint32_t row);
 
 _gui_api void layout_panel(Layout *layout, Panel *panel, const uint32_t col, const uint32_t row);
@@ -90,6 +92,8 @@ _gui_api WebView *layout_get_webview(Layout *layout, const uint32_t col, const u
 _gui_api ImageView *layout_get_imageview(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api TableView *layout_get_tableview(Layout *layout, const uint32_t col, const uint32_t row);
+
+_gui_api DateView *layout_get_dateview(Layout *layout, const uint32_t col, const uint32_t row);
 
 _gui_api SplitView *layout_get_splitview(Layout *layout, const uint32_t col, const uint32_t row);
 

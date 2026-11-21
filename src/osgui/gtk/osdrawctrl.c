@@ -241,8 +241,11 @@ void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
     color_t color = _osglobals_text_color();
     cairo_t *cairo = cast(dctx_native(ctx), cairo_t);
     real32_t pattern[2] = {2.f, 1.f};
+    real32_t cpattern[16];
+    uint32_t patsize = 0;
     real32_t r, g, b, a;
     unref(state);
+    dctx_line_dash(ctx, cpattern, &patsize);
     cairo_save(cairo);
     cairo_set_antialias(cairo, CAIRO_ANTIALIAS_NONE);
     draw_line_width(ctx, 1);
@@ -252,6 +255,7 @@ void osdrawctrl_focus(DCtx *ctx, const int32_t x, const int32_t y, const uint32_
     cairo_rectangle(cairo, (double)x + 2, (double)y + 2, (double)width - 4, (double)height - 4);
     cairo_stroke(cairo);
     cairo_restore(cairo);
+    draw_line_dash(ctx, cpattern, patsize);
 }
 
 /*---------------------------------------------------------------------------*/

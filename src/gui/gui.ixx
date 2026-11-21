@@ -51,6 +51,8 @@ typedef void (*FPtr_panels)(const void *component, uint32_t *num_panels, Panel *
 #define FUNC_CHECK_PANELS(func, type) \
     (void)((void (*)(const type *, uint32_t *, Panel **))func == func)
 
+typedef void (*FPtr_set_int32)(void *item, const int32_t value);
+
 typedef void (*FPtr_set_image)(void *item, const Image *image);
 
 union _tag_t
@@ -93,6 +95,7 @@ struct _vctrltbl_t
     FPtr_natural func_natural;
     FPtr_gctx_call func_empty;
     FPtr_gctx_set_uint32 func_uint32;
+    FPtr_set_int32 func_int32;
     FPtr_set_image func_image;
 };
 

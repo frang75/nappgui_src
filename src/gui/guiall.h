@@ -14,6 +14,7 @@
 #include "cell.h"
 #include "combo.h"
 #include "comwin.h"
+#include "dateview.h"
 #include "edit.h"
 #include "gui.h"
 #include "guicontrol.h"

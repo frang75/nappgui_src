@@ -12,12 +12,15 @@
 
 #include "combo.h"
 #include "combo.inl"
+#include "cell.inl"
 #include "editimp.inl"
 #include "items.inl"
 #include "component.inl"
 #include "gui.inl"
 #include <draw2d/guictx.h>
+#include <core/event.h>
 #include <core/objh.h>
+#include <core/strings.h>
 #include <sewer/cassert.h>
 
 struct _combo_t
@@ -43,11 +46,38 @@ void _combo_destroy(Combo **combo)
 
 /*---------------------------------------------------------------------------*/
 
-static void i_OnFilter(Combo *combo, Event *e)
+static Cell *i_str_cell(Combo *combo)
 {
     Cell *cell = NULL;
     cassert_no_null(combo);
     cell = _component_cell(&combo->component);
+    if (cell != NULL && _cell_str_member(cell) == TRUE)
+        return cell;
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static uint32_t i_text_index(const Combo *combo, const char_t *text)
+{
+    uint32_t i, n;
+    cassert_no_null(combo);
+    n = _items_count(combo->items);
+    for (i = 0; i < n; ++i)
+    {
+        const char_t *etext = _items_get_text(combo->items, i);
+        if (str_equ_c(etext, text) == TRUE)
+            return i;
+    }
+
+    return UINT32_MAX;
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_OnFilter(Combo *combo, Event *e)
+{
+    Cell *cell = i_str_cell(combo);
     _editimp_OnFilter(combo->eimpl, e, cell, cast(combo, void), "Combo");
 }
 
@@ -58,16 +88,28 @@ static void i_OnChange(Combo *combo, Event *e)
     Cell *cell = NULL;
     cassert_no_null(combo);
     cell = _component_cell(&combo->component);
-    _editimp_OnChange(combo->eimpl, e, cell, cast(combo, void), "Combo");
+    if (cell != NULL && _cell_str_member(cell) == TRUE)
+    {
+        _editimp_OnChange(combo->eimpl, e, cell, cast(combo, void), "Combo");
+    }
+    else
+    {
+        if (cell != NULL)
+        {
+            const EvText *p = event_params(e, EvText);
+            uint32_t index = i_text_index(combo, p->text);
+            _cell_update_u32(cell, index);
+        }
+
+        _editimp_OnChange(combo->eimpl, e, NULL, cast(combo, void), "Combo");
+    }
 }
 
 /*---------------------------------------------------------------------------*/
 
 static void i_OnFocus(Combo *combo, Event *e)
 {
-    Cell *cell = NULL;
-    cassert_no_null(combo);
-    cell = _component_cell(&combo->component);
+    Cell *cell = i_str_cell(combo);
     _editimp_OnFocus(combo->eimpl, e, cell, cast(combo, void), "Combo");
 }
 
@@ -79,7 +121,18 @@ static void i_OnSelect(Combo *combo, Event *e)
     const char_t *text = NULL;
     cassert_no_null(combo);
     cell = _component_cell(&combo->component);
-    text = _items_OnSelect(combo->items, e, cell, cast(combo, void), "Combo");
+    if (cell != NULL && _cell_str_member(cell) == TRUE)
+    {
+        const EvButton *p = event_params(e, EvButton);
+        const char_t *etext = _items_get_text(combo->items, p->index);
+        _cell_update_str(cell, etext);
+        text = _items_OnSelect(combo->items, e, NULL, cast(combo, void), "Combo");
+    }
+    else
+    {
+        text = _items_OnSelect(combo->items, e, cell, cast(combo, void), "Combo");
+    }
+
     _editimp_text(combo->eimpl, text);
 }
 
@@ -373,6 +426,31 @@ const Image *combo_get_image(const Combo *combo, const uint32_t index)
 {
     cassert_no_null(combo);
     return _items_get_image(combo->items, index);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _combo_text(Combo *combo, const char_t *text)
+{
+    cassert_no_null(combo);
+    _editimp_text(combo->eimpl, text);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _combo_uint32(Combo *combo, const uint32_t index)
+{
+    cassert_no_null(combo);
+    if (index < _items_count(combo->items))
+    {
+        const char_t *text = _items_get_text(combo->items, index);
+        _items_selected(combo->items, index);
+        _editimp_text(combo->eimpl, text);
+    }
+    else
+    {
+        _editimp_text(combo->eimpl, "");
+    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -16,6 +16,10 @@ __EXTERN_C
 
 void _combo_destroy(Combo **combo);
 
+void _combo_text(Combo *combo, const char_t *text);
+
+void _combo_uint32(Combo *combo, const uint32_t index);
+
 void _combo_natural(Combo *combo, const uint32_t i, real32_t *dim0, real32_t *dim1);
 
 void _combo_locale(Combo *combo);

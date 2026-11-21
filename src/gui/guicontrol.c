@@ -183,6 +183,19 @@ TableView *guicontrol_tableview(GuiControl *control)
 
 /*---------------------------------------------------------------------------*/
 
+DateView *guicontrol_dateview(GuiControl *control)
+{
+    GuiComponent *component = cast(control, GuiComponent);
+    if (component != NULL && component->type == ekGUI_TYPE_CUSTOMVIEW)
+    {
+        if (str_equ_c(_view_subtype(cast(component, View)), "DateView") == TRUE)
+            return cast(component, DateView);
+    }
+    return NULL;
+}
+
+/*---------------------------------------------------------------------------*/
+
 SplitView *guicontrol_splitview(GuiControl *control)
 {
     GuiComponent *component = cast(control, GuiComponent);

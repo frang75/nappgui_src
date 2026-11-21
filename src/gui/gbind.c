@@ -15,6 +15,7 @@
 #include "cell.inl"
 #include "component.inl"
 #include "button.inl"
+#include "combo.inl"
 #include "view.inl"
 #include "edit.inl"
 #include "label.inl"
@@ -98,6 +99,7 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
         else
         {
             _view_uint32(cast(component, View), (uint32_t)value);
+            _view_int32(cast(component, View), (int32_t)value);
         }
         break;
 
@@ -119,6 +121,12 @@ static void i_set_integer(GuiComponent *component, const int64_t value, const in
     }
 
     case ekGUI_TYPE_COMBOBOX:
+        if (value >= 0 && value < UINT32_MAX)
+            _combo_uint32(cast(component, Combo), (uint32_t)value);
+        else
+            _combo_uint32(cast(component, Combo), UINT32_MAX);
+        break;
+
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
         break;
@@ -219,10 +227,14 @@ static void i_set_enum(GuiComponent *component, const uint32_t index, const uint
         _popup_uint32(cast(component, PopUp), index);
         break;
 
+    case ekGUI_TYPE_COMBOBOX:
+        _combo_uint32(cast(component, Combo), index);
+        break;
+
     case ekGUI_TYPE_SLIDER:
     {
         real32_t vnorm = 0;
-        if (count > 1)
+        if (count > 1 && index < count)
             vnorm = (real32_t)index / ((real32_t)count - 1);
         _slider_real32(cast(component, Slider), vnorm);
         break;
@@ -236,7 +248,6 @@ static void i_set_enum(GuiComponent *component, const uint32_t index, const uint
         break;
 
     case ekGUI_TYPE_EDITBOX:
-    case ekGUI_TYPE_COMBOBOX:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
         break;
@@ -264,9 +275,12 @@ static void i_set_string(GuiComponent *component, const char_t *str)
         _edit_text(cast(component, Edit), str);
         break;
 
+    case ekGUI_TYPE_COMBOBOX:
+        _combo_text(cast(component, Combo), str);
+        break;
+
     case ekGUI_TYPE_BUTTON:
     case ekGUI_TYPE_POPUP:
-    case ekGUI_TYPE_COMBOBOX:
     case ekGUI_TYPE_SLIDER:
     case ekGUI_TYPE_UPDOWN:
     case ekGUI_TYPE_PROGRESS:
@@ -336,6 +350,10 @@ static void i_set_empty(Cell *cell, const DBind *stbind, const uint32_t member_i
             _edit_text(cast(component, Edit), "");
             break;
 
+        case ekGUI_TYPE_COMBOBOX:
+            _combo_text(cast(component, Combo), "");
+            break;
+
         case ekGUI_TYPE_CUSTOMVIEW:
             if (str_equ_c(_view_subtype(cast(component, View)), "Label") == TRUE)
                 _label_text(cast(component, Label), "");
@@ -345,7 +363,6 @@ static void i_set_empty(Cell *cell, const DBind *stbind, const uint32_t member_i
 
         case ekGUI_TYPE_BUTTON:
         case ekGUI_TYPE_POPUP:
-        case ekGUI_TYPE_COMBOBOX:
         case ekGUI_TYPE_SLIDER:
         case ekGUI_TYPE_UPDOWN:
         case ekGUI_TYPE_PROGRESS:
@@ -433,7 +450,9 @@ void _gbind_update_control(Cell *cell, const DBind *stbind, const uint32_t membe
             enum_t value = dbind_st_get_enum_value(stbind, member_id, obj);
             uint32_t index = dbind_enum_index(mbind, value);
             uint32_t count = dbind_enum_count(mbind);
-            const char_t *alias = dbind_enum_alias(mbind, index);
+            const char_t *alias = "";
+            if (index != UINT32_MAX)
+                alias = dbind_enum_alias(mbind, index);
             i_set_enum(component, index, count, alias);
             break;
         }
@@ -579,6 +598,17 @@ void _gbind_update_bool(Layout *layout, const DBind *stbind, const uint32_t memb
 /*---------------------------------------------------------------------------*/
 
 void _gbind_update_u32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const uint32_t value)
+{
+    byte_t store[16];
+    bindset_t updated = ekBINDSET_NOT_ALLOWED;
+    i_store_field(stbind, member_id, obj, store, sizeof(store));
+    updated = dbind_st_set_value_int(stbind, member_id, cast(obj, byte_t), (int64_t)value);
+    i_on_updated(layout, stbind, member_id, obj, layout_notify, updated, store, sizeof(store));
+}
+
+/*---------------------------------------------------------------------------*/
+
+void _gbind_update_i32(Layout *layout, const DBind *stbind, const uint32_t member_id, void *obj, Layout *layout_notify, const int32_t value)
 {
     byte_t store[16];
     bindset_t updated = ekBINDSET_NOT_ALLOWED;

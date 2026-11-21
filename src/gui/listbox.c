@@ -114,6 +114,7 @@ static VCtrlTbl i_LISTBOX_TLB = {
     NULL, /* func_natural */
     (FPtr_gctx_call)i_set_empty,
     (FPtr_gctx_set_uint32)i_set_uint32,
+    NULL, /* func_int32 */
     NULL /* func_image*/};
 
 /*---------------------------------------------------------------------------*/
@@ -437,7 +438,8 @@ static void i_select(ListBox *listbox, LData *data, const bool_t bymouse)
         text = tc(elem->text);
     }
 
-    _cell_update_u32(_vctrl_cell(cast(listbox, View)), data->selected);
+    if (data->multisel == FALSE)
+        _cell_update_u32(_vctrl_cell(cast(listbox, View)), data->selected);
 
     if (data->OnSelect != NULL)
     {
@@ -701,8 +703,12 @@ static void i_OnKeyUp(LData *data, Event *e)
 static void i_set_empty(ListBox *listbox)
 {
     LData *data = view_get_data(cast(listbox, View), LData);
-    i_clean_select(data->elems);
-    view_update(cast(listbox, View));
+    cassert_no_null(data);
+    if (data->multisel == FALSE)
+    {
+        i_clean_select(data->elems);
+        view_update(cast(listbox, View));
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -710,20 +716,24 @@ static void i_set_empty(ListBox *listbox)
 static void i_set_uint32(ListBox *listbox, const uint32_t value)
 {
     LData *data = view_get_data(cast(listbox, View), LData);
-    i_clean_select(data->elems);
-
-    if (value < arrst_size(data->elems, PElem))
+    cassert_no_null(data);
+    if (data->multisel == FALSE)
     {
-        PElem *elem = arrst_get(data->elems, value, PElem);
-        elem->select = TRUE;
-        data->selected = value;
-    }
-    else
-    {
-        data->selected = UINT32_MAX;
-    }
+        i_clean_select(data->elems);
 
-    view_update(cast(listbox, View));
+        if (value < arrst_size(data->elems, PElem))
+        {
+            PElem *elem = arrst_get(data->elems, value, PElem);
+            elem->select = TRUE;
+            data->selected = value;
+        }
+        else
+        {
+            data->selected = UINT32_MAX;
+        }
+
+        view_update(cast(listbox, View));
+    }
 }
 
 /*---------------------------------------------------------------------------*/

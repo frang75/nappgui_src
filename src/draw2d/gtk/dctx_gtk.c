@@ -139,10 +139,13 @@ real32_t dctx_scale(const DCtx *ctx)
 
 void dctx_line_dash(const DCtx *ctx, real32_t *pattern, uint32_t *size)
 {
-    unref(ctx);
-    unref(pattern);
-    unref(size);
-    cassert(FALSE);
+    uint32_t i;
+    cassert_no_null(ctx);
+    cassert_no_null(pattern);
+    cassert_no_null(size);
+    *size = (uint32_t)ctx->dash_count;
+    for (i = 0; i < *size; ++i)
+        pattern[i] = (real32_t)ctx->line_dash[i];
 }
 
 /*---------------------------------------------------------------------------*/

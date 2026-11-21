@@ -45,6 +45,8 @@ _gui_api ImageView *guicontrol_imageview(GuiControl *control);
 
 _gui_api TableView *guicontrol_tableview(GuiControl *control);
 
+_gui_api DateView *guicontrol_dateview(GuiControl *control);
+
 _gui_api SplitView *guicontrol_splitview(GuiControl *control);
 
 _gui_api Panel *guicontrol_panel(GuiControl *control);

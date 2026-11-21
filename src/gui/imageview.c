@@ -79,6 +79,7 @@ static VCtrlTbl i_IMGVIEW_TLB = {
     NULL, /* func_natural */
     NULL, /* func_empty */
     NULL, /* func_uint32 */
+    NULL, /* func_int32 */
     (FPtr_set_image)imageview_image};
 
 /*---------------------------------------------------------------------------*/

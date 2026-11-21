@@ -193,7 +193,8 @@ typedef enum _gui_event_t
     ekGUI_EVENT_TBL_NCHILDREN,
     ekGUI_EVENT_TBL_NODEINFO,
     ekGUI_EVENT_TBL_EXPAND,
-    ekGUI_EVENT_IDLE
+    ekGUI_EVENT_IDLE,
+    ekGUI_EVENT_DATE
 } gui_event_t;
 
 typedef enum _gui_type_t
@@ -496,6 +497,7 @@ typedef struct _evtbcell_t EvTbCell;
 typedef struct _evtbnode_t EvTbNode;
 typedef struct _evtbnodeinfo_t EvTbNodeInfo;
 typedef struct _evtbexpand_t EvTbExpand;
+typedef struct _evdate_t EvDate;
 
 #define label_get_type(flags) ((flags)&ekLABEL_TYPE)
 #define button_get_type(flags) ((flags)&ekBUTTON_TYPE)
@@ -1161,6 +1163,11 @@ struct _evtbexpand_t
 {
     void *node;
     bool_t expanded;
+};
+
+struct _evdate_t
+{
+    Date date;
 };
 
 #endif

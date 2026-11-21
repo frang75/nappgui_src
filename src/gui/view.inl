@@ -30,6 +30,8 @@ void _view_empty(View *view);
 
 void _view_uint32(View *view, const uint32_t value);
 
+void _view_int32(View *view, const int32_t value);
+
 void _view_image(View *view, const Image *image);
 
 __END_C

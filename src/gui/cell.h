@@ -49,6 +49,8 @@ _gui_api ImageView *cell_imageview(Cell *cell);
 
 _gui_api TableView *cell_tableview(Cell *cell);
 
+_gui_api DateView *cell_dateview(Cell *cell);
+
 _gui_api SplitView *cell_splitview(Cell *cell);
 
 _gui_api Panel *cell_panel(Cell *cell);

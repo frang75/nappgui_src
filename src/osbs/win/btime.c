@@ -12,6 +12,7 @@
 
 #include "../btime.h"
 #include <sewer/cassert.h>
+#include <sewer/unicode.h>
 
 #if !defined(__WINDOWS__)
 #error This file is for Windows system
@@ -153,4 +154,56 @@ void btime_to_date(const uint64_t micro, Date *date)
     i_micro_to_filetime(micro, &ft);
     FileTimeToSystemTime(&ft, &st);
     i_systime_to_date(&st, date);
+}
+
+/*---------------------------------------------------------------------------*/
+
+week_day_t btime_first_wday(void)
+{
+    WCHAR wday[8];
+    if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_IFIRSTDAYOFWEEK, wday, 8) > 0 && wday[0] >= L'0' && wday[0] <= L'6')
+    {
+        uint32_t day = (uint32_t)(wday[0] - L'0');
+        return (week_day_t)((day + 1) % 7);
+    }
+
+    return ekSUNDAY;
+}
+
+/*---------------------------------------------------------------------------*/
+
+void btime_month_name(const month_t month, char_t *name, const uint32_t size)
+{
+    WCHAR wname[128];
+    LCTYPE type = (LCTYPE)(LOCALE_SMONTHNAME1 + (uint32_t)month - 1);
+    cassert(month >= ekJANUARY && month <= ekDECEMBER);
+    cassert_no_null(name);
+    if (GetLocaleInfoW(LOCALE_USER_DEFAULT, type, wname, 128) > 0)
+        unicode_convers(cast_const(wname, char_t), name, ekUTF16, ekUTF8, size);
+    else
+        name[0] = '\0';
+}
+
+/*---------------------------------------------------------------------------*/
+
+void btime_wday_name(const week_day_t wday, char_t *name, const uint32_t size)
+{
+    WCHAR wname[128];
+    uint32_t index = (uint32_t)wday;
+    LCTYPE shortest = 0;
+    LCTYPE abbrev = 0;
+    cassert((uint32_t)wday <= 6);
+    cassert_no_null(name);
+
+    if (index == 0)
+        index = 7;
+
+    shortest = (LCTYPE)(LOCALE_SSHORTESTDAYNAME1 + index - 1);
+    abbrev = (LCTYPE)(LOCALE_SABBREVDAYNAME1 + index - 1);
+    if (GetLocaleInfoW(LOCALE_USER_DEFAULT, shortest, wname, 128) > 0)
+        unicode_convers(cast_const(wname, char_t), name, ekUTF16, ekUTF8, size);
+    else if (GetLocaleInfoW(LOCALE_USER_DEFAULT, abbrev, wname, 128) > 0)
+        unicode_convers(cast_const(wname, char_t), name, ekUTF16, ekUTF8, size);
+    else
+        name[0] = '\0';
 }

@@ -12,6 +12,7 @@
 
 #include "tableview.h"
 #include "tableviewh.h"
+#include "cell.inl"
 #include "drawctrl.inl"
 #include "scrollview.inl"
 #include "component.inl"
@@ -135,6 +136,8 @@ static void i_OnKeyUp(TData *data, Event *e);
 static void i_OnFocus(TData *data, Event *e);
 static void i_OnScroll(TData *data, Event *e);
 static void i_destroy_data(TData **data);
+static void i_set_empty(TableView *view);
+static void i_set_uint32(TableView *view, const uint32_t value);
 
 /*---------------------------------------------------------------------------*/
 
@@ -160,8 +163,9 @@ static VCtrlTbl i_TABLEVIEW_TLB = {
     (FPtr_destroy)i_destroy_data,
     NULL, /* func_locale */
     NULL, /* func_natural */
-    NULL, /* func_empty */
-    NULL, /* func_uint32 */
+    (FPtr_gctx_call)i_set_empty,
+    (FPtr_gctx_set_uint32)i_set_uint32,
+    NULL, /* func_int32 */
     NULL /* func_image*/};
 
 /*---------------------------------------------------------------------------*/
@@ -1362,6 +1366,14 @@ static bool_t i_select(TableView *view, TData *data, const uint32_t row, const u
         }
     }
 
+    if (change_sel == TRUE && data->multisel == FALSE && data->tree_col_id == UINT32_MAX)
+    {
+        uint32_t srow = UINT32_MAX;
+        if (arrst_size(data->selected, uint32_t) == 1)
+            srow = *arrst_first_const(data->selected, uint32_t);
+        _cell_update_u32(_vctrl_cell(cast(view, View)), srow);
+    }
+
     if (change_sel == TRUE && data->OnSelect != NULL)
     {
         EvTbSel p;
@@ -2107,6 +2119,36 @@ TableView *tableview_create(void)
     i_row_height(data);
     i_document_size(data);
     return cast(view, TableView);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_empty(TableView *view)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    if (data->multisel == FALSE && data->tree_col_id == UINT32_MAX)
+        tableview_deselect_all(view);
+}
+
+/*---------------------------------------------------------------------------*/
+
+static void i_set_uint32(TableView *view, const uint32_t value)
+{
+    TData *data = view_get_data(cast(view, View), TData);
+    cassert_no_null(data);
+    if (data->multisel == FALSE && data->tree_col_id == UINT32_MAX)
+    {
+        if (value < data->num_rows)
+        {
+            tableview_select(view, &value, 1);
+            tableview_focus_row(view, value, ekCENTER);
+        }
+        else
+        {
+            tableview_deselect_all(view);
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
